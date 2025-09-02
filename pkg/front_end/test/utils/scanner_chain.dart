@@ -34,7 +34,9 @@ class Read extends Step<TestDescription, ReadFile, ChainContext> {
 
   @override
   Future<Result<ReadFile>> run(
-      TestDescription input, ChainContext context) async {
+    TestDescription input,
+    ChainContext context,
+  ) async {
     return pass(new ReadFile(input.uri, await readBytesFromFile(input.uri)));
   }
 }

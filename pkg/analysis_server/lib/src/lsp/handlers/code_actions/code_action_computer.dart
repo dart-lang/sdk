@@ -487,9 +487,8 @@ class _CodeActionSorter {
             // Compare either edits or commands based on which the selected action has.
             return firstLiteral.edit != null
                 ? firstLiteral.edit == other.edit
-                : firstLiteral.command != null
-                ? firstLiteral.command == other.command
-                : false;
+                : firstLiteral.command != null &&
+                    firstLiteral.command == other.command;
           });
 
       // Build a new CodeAction that merges the diagnostics from each same

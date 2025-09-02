@@ -23,7 +23,7 @@ int f() {
 }
 const a = f();
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, 34, 3)],
+      [error(CompileTimeErrorCode.constEvalMethodInvocation, 34, 3)],
     );
   }
 

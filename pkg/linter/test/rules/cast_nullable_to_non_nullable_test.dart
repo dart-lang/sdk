@@ -62,7 +62,7 @@ var a = s! as String;
 ''',
       [
         // No lint.
-        error(CompileTimeErrorCode.UNDEFINED_CLASS, 0, 9),
+        error(CompileTimeErrorCode.undefinedClass, 0, 9),
       ],
     );
   }

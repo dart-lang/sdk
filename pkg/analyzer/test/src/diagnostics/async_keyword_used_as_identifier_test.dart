@@ -25,7 +25,7 @@ class A {
   }
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 32, 5)],
+      [error(WarningCode.unusedLocalVariable, 32, 5)],
     );
   }
 
@@ -37,8 +37,8 @@ f() async {
 }
 ''',
       [
-        error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 18, 5),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 5),
+        error(ParserErrorCode.asyncKeywordUsedAsIdentifier, 18, 5),
+        error(WarningCode.unusedLocalVariable, 18, 5),
       ],
     );
   }
@@ -51,8 +51,8 @@ f() async* {
 }
 ''',
       [
-        error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 19, 5),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 5),
+        error(ParserErrorCode.asyncKeywordUsedAsIdentifier, 19, 5),
+        error(WarningCode.unusedLocalVariable, 19, 5),
       ],
     );
   }
@@ -65,8 +65,8 @@ f() sync* {
 }
 ''',
       [
-        error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 18, 5),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 5),
+        error(ParserErrorCode.asyncKeywordUsedAsIdentifier, 18, 5),
+        error(WarningCode.unusedLocalVariable, 18, 5),
       ],
     );
   }
@@ -79,8 +79,8 @@ f() async {
 }
 ''',
       [
-        error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 18, 5),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 5),
+        error(ParserErrorCode.asyncKeywordUsedAsIdentifier, 18, 5),
+        error(WarningCode.unusedLocalVariable, 18, 5),
       ],
     );
   }
@@ -93,8 +93,8 @@ f() async* {
 }
 ''',
       [
-        error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 19, 5),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 5),
+        error(ParserErrorCode.asyncKeywordUsedAsIdentifier, 19, 5),
+        error(WarningCode.unusedLocalVariable, 19, 5),
       ],
     );
   }
@@ -107,8 +107,8 @@ f() sync* {
 }
 ''',
       [
-        error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 18, 5),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 5),
+        error(ParserErrorCode.asyncKeywordUsedAsIdentifier, 18, 5),
+        error(WarningCode.unusedLocalVariable, 18, 5),
       ],
     );
   }

@@ -1501,7 +1501,7 @@ void HeapSnapshotWriter::Write() {
 
   WriteBytes("dartheap", 8);  // Magic value.
   WriteUnsigned(0);           // Flags.
-  WriteUtf8(isolate()->name());
+  WriteUtf8(isolate_group()->source()->name);
   Heap* H = thread()->heap();
 
   {
@@ -1525,7 +1525,8 @@ void HeapSnapshotWriter::Write() {
     Library& lib = Library::Handle();
     String& str = String::Handle();
 
-    intptr_t field_table_size = isolate()->field_table()->NumFieldIds();
+    intptr_t field_table_size =
+        isolate_group()->initial_field_table()->NumFieldIds();
     const char** field_table_names =
         thread()->zone()->Alloc<const char*>(field_table_size);
     for (intptr_t i = 0; i < field_table_size; i++) {
@@ -1707,7 +1708,7 @@ void HeapSnapshotWriter::Write() {
     iteration.IterateObjects(&visitor);
 
     // External properties.
-    isolate()->group()->VisitWeakPersistentHandles(&visitor);
+    isolate_group()->VisitWeakPersistentHandles(&visitor);
 
     // Smis.
     for (SmiPtr smi : smis_) {
@@ -1796,7 +1797,7 @@ void HeapSnapshotWriter::Write() {
 
     // External properties.
     WriteUnsigned(external_property_count_);
-    isolate()->group()->VisitWeakPersistentHandles(&visitor);
+    isolate_group()->VisitWeakPersistentHandles(&visitor);
   }
 
   {

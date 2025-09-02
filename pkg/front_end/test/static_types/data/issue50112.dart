@@ -3,9 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 method<T>(T t) {
-  if (/*T%*/ t is Iterable) {
-    /*current: dynamic*/ for (var e in /*T% & Iterable<dynamic>!*/ t) {
-      /*dynamic*/ e;
+  if ( /*T%*/ t is Iterable) {
+    /*current: dynamic*/
+    for (var e in /*T% & Iterable<dynamic>!*/ t) {
+      /*dynamic*/
+      e;
     }
   }
 }

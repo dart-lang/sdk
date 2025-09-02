@@ -314,21 +314,21 @@ class DateTime extends Object {
 
 class Deprecated extends Object {
   final String message;
-  final bool _isUse;
-  final bool _isImplement;
-  final bool _isExtend;
+  final _DeprecationKind _kind;
   const Deprecated(this.message)
-      : _isUse = true,
-        _isImplement = false,
-        _isExtend = false;
+      : _kind = _DeprecationKind.use;
   const Deprecated.implement([this.message = "next release"])
-      : _isUse = false,
-        _isImplement = true,
-        _isExtend = false;
+      : _kind = _DeprecationKind.implement;
   const Deprecated.extend([this.message = "next release"])
-      : _isUse = false,
-        _isImplement = false,
-        _isExtend = true;
+      : _kind = _DeprecationKind.extend;
+  const Deprecated.subclass([this.message = "next release"])
+      : _kind = _DeprecationKind.subclass;
+  const Deprecated.instantiate([this.message = "next release"])
+      : _kind = _DeprecationKind.instantiate;
+}
+
+enum _DeprecationKind {
+  use, implement, extend, subclass, instantiate;
 }
 
 class pragma {
@@ -386,8 +386,14 @@ class Duration implements Comparable<Duration> {
 
 @Since("2.14")
 abstract class Enum {
-  int get index; // Enum
-  String get _name;
+  // These two getters are a departure here, from the real SDK. Here we have
+  // concrete getters; the SDK has abstract gettesr. The real implementations
+  // of enums require a significant amount of desugaring.
+  // (See the spec:
+  // https://github.com/dart-lang/language/blob/main/accepted/2.17/enhanced-enums/feature-specification.md#implementation).
+  // As an alternative to desugaring, we make these getters concrete.
+  int get index => -1; // Enum; this comment is necessary for notification_navigation_test.
+  String get _name => '';
 }
 
 abstract class _Enum implements Enum {

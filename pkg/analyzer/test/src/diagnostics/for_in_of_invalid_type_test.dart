@@ -35,7 +35,7 @@ f(bool e) async {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 41, 1)],
+      [error(CompileTimeErrorCode.forInOfInvalidType, 41, 1)],
     );
   }
 
@@ -48,7 +48,7 @@ f(Never e) async {
   }
 }
 ''',
-      [error(WarningCode.DEAD_CODE, 32, 26)],
+      [error(WarningCode.deadCode, 32, 26)],
     );
     // TODO(scheglov): extract for-in resolution and implement
     //    assertType(findNode.simple('id;'), 'Never');
@@ -63,7 +63,7 @@ f(Object e) async {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 43, 1)],
+      [error(CompileTimeErrorCode.forInOfInvalidType, 43, 1)],
     );
   }
 
@@ -119,7 +119,7 @@ f(bool e) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 29, 1)],
+      [error(CompileTimeErrorCode.forInOfInvalidType, 29, 1)],
     );
   }
 
@@ -143,7 +143,7 @@ f(Never e) {
   }
 }
 ''',
-      [error(WarningCode.DEAD_CODE, 20, 26)],
+      [error(WarningCode.deadCode, 20, 26)],
     );
     // TODO(scheglov): extract for-in resolution and implement
     //    assertType(findNode.simple('id;'), 'Never');
@@ -158,7 +158,7 @@ f(Object e) async {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 37, 1)],
+      [error(CompileTimeErrorCode.forInOfInvalidType, 37, 1)],
     );
   }
 }
@@ -175,7 +175,7 @@ f(dynamic e) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 32, 1)],
+      [error(CompileTimeErrorCode.forInOfInvalidType, 32, 1)],
     );
   }
 }

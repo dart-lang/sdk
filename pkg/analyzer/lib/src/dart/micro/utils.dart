@@ -59,10 +59,9 @@ ConstructorElement? _getActualConstructorElement(
   while (constructor is ConstructorElementImpl && constructor.isSynthetic) {
     var enclosing = constructor.enclosingElement;
     if (enclosing is ClassElementImpl && enclosing.isMixinApplication) {
-      var superInvocation =
-          constructor.constantInitializers
-              .whereType<SuperConstructorInvocation>()
-              .singleOrNull;
+      var superInvocation = constructor.constantInitializers
+          .whereType<SuperConstructorInvocation>()
+          .singleOrNull;
       if (superInvocation != null) {
         constructor = superInvocation.element;
       }
@@ -168,10 +167,9 @@ MockLibraryImportElement? _getMockImportElement(
   var usedLibrary = element.library;
   // find ImportElement that imports used library with used prefix
   List<LibraryImport>? candidates;
-  var libraryImports =
-      libraryFragment.withEnclosing2
-          .expand((fragment) => fragment.libraryImports)
-          .toList();
+  var libraryImports = libraryFragment.withEnclosing2
+      .expand((fragment) => fragment.libraryImports)
+      .toList();
   for (var importElement in libraryImports) {
     // required library
     if (importElement.importedLibrary != usedLibrary) {
@@ -406,10 +404,9 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
         offset = node.name.end;
         length = 0;
       }
-      var kind =
-          node.arguments == null
-              ? MatchKind.INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS
-              : MatchKind.INVOCATION;
+      var kind = node.arguments == null
+          ? MatchKind.INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS
+          : MatchKind.INVOCATION;
       references.add(MatchInfo(offset, length, kind));
     }
   }

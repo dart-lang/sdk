@@ -32,13 +32,7 @@ enum E {
   E.named();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR,
-          24,
-          7,
-        ),
-      ],
+      [error(CompileTimeErrorCode.nonConstGenerativeEnumConstructor, 24, 7)],
     );
   }
 
@@ -50,13 +44,7 @@ enum E {
   E();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR,
-          16,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.nonConstGenerativeEnumConstructor, 16, 1)],
     );
   }
 }

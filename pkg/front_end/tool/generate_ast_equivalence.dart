@@ -123,24 +123,28 @@ class EquivalenceVisitorStrategy extends Visitor1Strategy {
         return '$prefix$shallowMatchDeclarations';
       case AstFieldKind.list:
         ListFieldType listFieldType = fieldType as ListFieldType;
-        String elementEquivalence =
-            computeMatchingHelper(listFieldType.elementType);
+        String elementEquivalence = computeMatchingHelper(
+          listFieldType.elementType,
+        );
         return '($thisName, $otherName) => $prefix$matchLists('
             '$thisName, $otherName, $elementEquivalence)';
       case AstFieldKind.set:
         SetFieldType setFieldType = fieldType as SetFieldType;
-        String elementMatching =
-            computeMatchingHelper(setFieldType.elementType);
-        String elementEquivalence =
-            computeEquivalenceHelper(setFieldType.elementType);
+        String elementMatching = computeMatchingHelper(
+          setFieldType.elementType,
+        );
+        String elementEquivalence = computeEquivalenceHelper(
+          setFieldType.elementType,
+        );
         return '($thisName, $otherName) => $prefix$checkSets('
             '$thisName, $otherName, $elementMatching, $elementEquivalence)';
       case AstFieldKind.map:
         MapFieldType mapFieldType = fieldType as MapFieldType;
         String keyMatching = computeMatchingHelper(mapFieldType.keyType);
         String keyEquivalence = computeEquivalenceHelper(mapFieldType.keyType);
-        String valueEquivalence =
-            computeEquivalenceHelper(mapFieldType.valueType);
+        String valueEquivalence = computeEquivalenceHelper(
+          mapFieldType.valueType,
+        );
         return '($thisName,  $otherName) => $prefix$checkMaps('
             '$thisName, $otherName, $keyMatching, '
             '$keyEquivalence, $valueEquivalence)';
@@ -180,24 +184,28 @@ class EquivalenceVisitorStrategy extends Visitor1Strategy {
         return '$prefix$checkDeclarations';
       case AstFieldKind.list:
         ListFieldType listFieldType = fieldType as ListFieldType;
-        String elementEquivalence =
-            computeEquivalenceHelper(listFieldType.elementType);
+        String elementEquivalence = computeEquivalenceHelper(
+          listFieldType.elementType,
+        );
         return '($thisName, $otherName) => $prefix$checkLists('
             '$thisName, $otherName, $elementEquivalence)';
       case AstFieldKind.set:
         SetFieldType setFieldType = fieldType as SetFieldType;
-        String elementMatching =
-            computeMatchingHelper(setFieldType.elementType);
-        String elementEquivalence =
-            computeEquivalenceHelper(setFieldType.elementType);
+        String elementMatching = computeMatchingHelper(
+          setFieldType.elementType,
+        );
+        String elementEquivalence = computeEquivalenceHelper(
+          setFieldType.elementType,
+        );
         return '($thisName, $otherName) => $prefix$checkSets('
             '$thisName, $otherName, $elementMatching, $elementEquivalence)';
       case AstFieldKind.map:
         MapFieldType mapFieldType = fieldType as MapFieldType;
         String keyMatching = computeMatchingHelper(mapFieldType.keyType);
         String keyEquivalence = computeEquivalenceHelper(mapFieldType.keyType);
-        String valueEquivalence =
-            computeEquivalenceHelper(mapFieldType.valueType);
+        String valueEquivalence = computeEquivalenceHelper(
+          mapFieldType.valueType,
+        );
         return '($thisName, $otherName) => $prefix$checkMaps('
             '$thisName, $otherName, $keyMatching, '
             '$keyEquivalence, $valueEquivalence)';
@@ -383,7 +391,10 @@ class EquivalenceVisitorStrategy extends Visitor1Strategy {
 
   @override
   void handleVisitReference(
-      AstModel astModel, AstClass astClass, StringBuffer sb) {
+    AstModel astModel,
+    AstClass astClass,
+    StringBuffer sb,
+  ) {
     sb.writeln('''
     return false;''');
   }

@@ -2,549 +2,820 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:61:23: Error: The method 'method' isn't defined for the type 'Class<A>'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:125:23: Error: The method 'method' isn't defined for the type 'Class<A>'.
 //  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // Try correcting the name to the name of an existing method, or defining a method named 'method'.
 // final field1 = classA.method(); // Error: Expect method not found.
 //                       ^^^^^^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:62:26: Error: The argument type 'Class<A>' can't be assigned to the parameter type 'Class<B>'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:126:26: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
 //  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // final field2 = Extension(classA).method(); // Error: Expect bounds mismatch.
 //                          ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:63:16: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension|method'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:127:28: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // Try changing type arguments so that they conform to the bounds.
 // final field3 = Extension<A>(classA).method(); // Error: Expect bounds mismatch.
-//                ^
+//                            ^
 // pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
 // extension Extension<T extends B> on Class<T> {
 //                     ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:64:29: Error: The argument type 'Class<A>' can't be assigned to the parameter type 'Class<B>'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:128:29: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
 //  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // final field4 = Extension<B>(classA).method();
 //                             ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:65:26: Error: The argument type 'Class<A>' can't be assigned to the parameter type 'Class<B>'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:129:26: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
 //  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // final field5 = Extension(classA).genericMethod(a); // Error: Expect bounds mismatch.
 //                          ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:65:48: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:129:48: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // final field5 = Extension(classA).genericMethod(a); // Error: Expect bounds mismatch.
 //                                                ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:66:26: Error: The argument type 'Class<A>' can't be assigned to the parameter type 'Class<B>'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:130:26: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
 //  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // final field6 = Extension(classA).genericMethod<A>(a); // Error: Expect bounds mismatch.
 //                          ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:66:34: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension|genericMethod'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:130:34: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension.genericMethod'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // Try changing type arguments so that they conform to the bounds.
 // final field6 = Extension(classA).genericMethod<A>(a); // Error: Expect bounds mismatch.
 //                                  ^
-// pkg/front_end/testcases/extensions/check_bounds.dart:15:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/extensions/check_bounds.dart:17:17: Context: This is the type variable whose bound isn't conformed to.
 //   genericMethod<S extends B>(S s) {}
 //                 ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:67:26: Error: The argument type 'Class<A>' can't be assigned to the parameter type 'Class<B>'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:131:26: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
 //  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // final field7 = Extension(classA).genericMethod<B>(a); // Error: Expect bounds mismatch.
 //                          ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:67:51: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:131:51: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // final field7 = Extension(classA).genericMethod<B>(a); // Error: Expect bounds mismatch.
 //                                                   ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:68:51: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:132:28: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+// Try changing type arguments so that they conform to the bounds.
+// final field8 = Extension<A>(classA).genericMethod(a); // Error: Expect bounds mismatch.
+//                            ^
+// pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
+// extension Extension<T extends B> on Class<T> {
+//                     ^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:132:51: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // final field8 = Extension<A>(classA).genericMethod(a); // Error: Expect bounds mismatch.
 //                                                   ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:68:16: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension|genericMethod'.
-//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
-//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
-// Try changing type arguments so that they conform to the bounds.
-// final field8 = Extension<A>(classA).genericMethod(a); // Error: Expect bounds mismatch.
-//                ^
-// pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
-// extension Extension<T extends B> on Class<T> {
-//                     ^
-//
-// pkg/front_end/testcases/extensions/check_bounds.dart:70:5: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension|genericMethod'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:134:17: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // Try changing type arguments so that they conform to the bounds.
 //     Extension<A>(classA).genericMethod<A>(a); // Error: Expect bounds mismatch.
-//     ^
+//                 ^
 // pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
 // extension Extension<T extends B> on Class<T> {
 //                     ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:70:5: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension|genericMethod'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:134:26: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension.genericMethod'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // Try changing type arguments so that they conform to the bounds.
 //     Extension<A>(classA).genericMethod<A>(a); // Error: Expect bounds mismatch.
-//     ^
-// pkg/front_end/testcases/extensions/check_bounds.dart:15:17: Context: This is the type variable whose bound isn't conformed to.
+//                          ^
+// pkg/front_end/testcases/extensions/check_bounds.dart:17:17: Context: This is the type variable whose bound isn't conformed to.
 //   genericMethod<S extends B>(S s) {}
 //                 ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:72:43: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:136:17: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//     Extension<A>(classA).genericMethod<B>(a); // Error: Expect bounds mismatch.
+//                 ^
+// pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
+// extension Extension<T extends B> on Class<T> {
+//                     ^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:136:43: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //     Extension<A>(classA).genericMethod<B>(a); // Error: Expect bounds mismatch.
 //                                           ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:72:5: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension|genericMethod'.
-//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
-//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//     Extension<A>(classA).genericMethod<B>(a); // Error: Expect bounds mismatch.
-//     ^
-// pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
-// extension Extension<T extends B> on Class<T> {
-//                     ^
-//
-// pkg/front_end/testcases/extensions/check_bounds.dart:74:40: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:138:40: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //     Extension<B>(classB).genericMethod(a); // Error: Expect bounds mismatch.
 //                                        ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:76:26: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension|genericMethod'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:140:26: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension.genericMethod'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // Try changing type arguments so that they conform to the bounds.
 //     Extension<B>(classB).genericMethod<A>(a); // Error: Expect bounds mismatch.
 //                          ^
-// pkg/front_end/testcases/extensions/check_bounds.dart:15:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/extensions/check_bounds.dart:17:17: Context: This is the type variable whose bound isn't conformed to.
 //   genericMethod<S extends B>(S s) {}
 //                 ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:77:55: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:141:55: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // final field13 = Extension<B>(classB).genericMethod<B>(a);
 //                                                       ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:81:17: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension|method'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:145:29: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // Try changing type arguments so that they conform to the bounds.
 // final field16 = Extension<A>(classB).method(); // Error: Expect bounds mismatch.
-//                 ^
+//                             ^
 // pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
 // extension Extension<T extends B> on Class<T> {
 //                     ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:84:38: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:148:38: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // final field18 = classB.genericMethod(a); // Error: Expect bounds mismatch.
 //                                      ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:85:24: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension|genericMethod'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:149:24: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'genericMethod'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // Try changing type arguments so that they conform to the bounds.
 // final field19 = classB.genericMethod<A>(a); // Error: Expect bounds mismatch.
 //                        ^
-// pkg/front_end/testcases/extensions/check_bounds.dart:15:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/extensions/check_bounds.dart:17:17: Context: This is the type variable whose bound isn't conformed to.
 //   genericMethod<S extends B>(S s) {}
 //                 ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:86:41: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:150:41: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // final field20 = classB.genericMethod<B>(a);
 //                                         ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:87:49: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:151:49: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // final field21 = Extension(classB).genericMethod(a); // Error: Expect bounds mismatch.
 //                                                 ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:89:23: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension|genericMethod'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:153:23: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension.genericMethod'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // Try changing type arguments so that they conform to the bounds.
 //     Extension(classB).genericMethod<A>(a); // Error: Expect bounds mismatch.
 //                       ^
-// pkg/front_end/testcases/extensions/check_bounds.dart:15:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/extensions/check_bounds.dart:17:17: Context: This is the type variable whose bound isn't conformed to.
 //   genericMethod<S extends B>(S s) {}
 //                 ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:90:52: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:154:52: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // final field23 = Extension(classB).genericMethod<B>(a);
 //                                                    ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:92:40: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:156:17: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//     Extension<A>(classB).genericMethod(a); // Error: Expect bounds mismatch.
+//                 ^
+// pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
+// extension Extension<T extends B> on Class<T> {
+//                     ^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:156:40: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //     Extension<A>(classB).genericMethod(a); // Error: Expect bounds mismatch.
 //                                        ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:92:5: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension|genericMethod'.
-//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
-//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//     Extension<A>(classB).genericMethod(a); // Error: Expect bounds mismatch.
-//     ^
-// pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
-// extension Extension<T extends B> on Class<T> {
-//                     ^
-//
-// pkg/front_end/testcases/extensions/check_bounds.dart:94:5: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension|genericMethod'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:158:17: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // Try changing type arguments so that they conform to the bounds.
 //     Extension<A>(classB).genericMethod<A>(a); // Error: Expect bounds mismatch.
-//     ^
+//                 ^
 // pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
 // extension Extension<T extends B> on Class<T> {
 //                     ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:94:5: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension|genericMethod'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:158:26: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension.genericMethod'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // Try changing type arguments so that they conform to the bounds.
 //     Extension<A>(classB).genericMethod<A>(a); // Error: Expect bounds mismatch.
-//     ^
-// pkg/front_end/testcases/extensions/check_bounds.dart:15:17: Context: This is the type variable whose bound isn't conformed to.
+//                          ^
+// pkg/front_end/testcases/extensions/check_bounds.dart:17:17: Context: This is the type variable whose bound isn't conformed to.
 //   genericMethod<S extends B>(S s) {}
 //                 ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:96:43: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:160:17: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//     Extension<A>(classB).genericMethod<B>(a); // Error: Expect bounds mismatch.
+//                 ^
+// pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
+// extension Extension<T extends B> on Class<T> {
+//                     ^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:160:43: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //     Extension<A>(classB).genericMethod<B>(a); // Error: Expect bounds mismatch.
 //                                           ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:96:5: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension|genericMethod'.
-//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
-//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//     Extension<A>(classB).genericMethod<B>(a); // Error: Expect bounds mismatch.
-//     ^
-// pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
-// extension Extension<T extends B> on Class<T> {
-//                     ^
-//
-// pkg/front_end/testcases/extensions/check_bounds.dart:98:40: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:162:40: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //     Extension<B>(classB).genericMethod(a); // Error: Expect bounds mismatch.
 //                                        ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:100:26: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension|genericMethod'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:164:26: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension.genericMethod'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // Try changing type arguments so that they conform to the bounds.
 //     Extension<B>(classB).genericMethod<A>(a); // Error: Expect bounds mismatch.
 //                          ^
-// pkg/front_end/testcases/extensions/check_bounds.dart:15:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/extensions/check_bounds.dart:17:17: Context: This is the type variable whose bound isn't conformed to.
 //   genericMethod<S extends B>(S s) {}
 //                 ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:101:55: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:165:55: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // final field29 = Extension<B>(classB).genericMethod<B>(a);
 //                                                       ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:24:10: Error: The method 'method' isn't defined for the type 'Class<A>'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:61:34: Error: Too few positional arguments: 1 required, 0 given.
+//   Extension(classA).genericMethod(); // Error: Expect bounds mismatch.
+//                                  ^
+// pkg/front_end/testcases/extensions/check_bounds.dart:17:3: Context: Found this candidate, but the arguments don't match.
+//   genericMethod<S extends B>(S s) {}
+//   ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:65:37: Error: Too few positional arguments: 1 required, 0 given.
+//   Extension<A>(classA).genericMethod(); // Error: Expect bounds mismatch.
+//                                     ^
+// pkg/front_end/testcases/extensions/check_bounds.dart:17:3: Context: Found this candidate, but the arguments don't match.
+//   genericMethod<S extends B>(S s) {}
+//   ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:88:37: Error: Too few positional arguments: 1 required, 0 given.
+//   Extension<B>(classB).genericMethod();
+//                                     ^
+// pkg/front_end/testcases/extensions/check_bounds.dart:17:3: Context: Found this candidate, but the arguments don't match.
+//   genericMethod<S extends B>(S s) {}
+//   ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:109:34: Error: Too few positional arguments: 1 required, 0 given.
+//   Extension(classB).genericMethod();
+//                                  ^
+// pkg/front_end/testcases/extensions/check_bounds.dart:17:3: Context: Found this candidate, but the arguments don't match.
+//   genericMethod<S extends B>(S s) {}
+//   ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:29:10: Error: The method 'method' isn't defined for the type 'Class<A>'.
 //  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // Try correcting the name to the name of an existing method, or defining a method named 'method'.
 //   classA.method(); // Error: Expect method not found.
 //          ^^^^^^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:25:13: Error: The argument type 'Class<A>' can't be assigned to the parameter type 'Class<B>'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:30:10: Error: The getter 'method' isn't defined for the type 'Class<A>'.
+//  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'method'.
+//   classA.method; // Error: Expect method not found.
+//          ^^^^^^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:31:10: Error: The getter 'property' isn't defined for the type 'Class<A>'.
+//  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'property'.
+//   classA.property; // Error: Expect getter not found.
+//          ^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:32:10: Error: The setter 'property' isn't defined for the type 'Class<A>'.
+//  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'property'.
+//   classA.property = null; // Error: Expect setter not found.
+//          ^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:33:9: Error: The operator '[]' isn't defined for the type 'Class<A>'.
+//  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+// Try correcting the operator to an existing operator, or defining a '[]' operator.
+//   classA[0]; // Error: Expect index get not found.
+//         ^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:34:9: Error: The operator '[]=' isn't defined for the type 'Class<A>'.
+//  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+// Try correcting the operator to an existing operator, or defining a '[]=' operator.
+//   classA[0] = null; // Error: Expect index set not found.
+//         ^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:35:13: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
 //  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //   Extension(classA).method(); // Error: Expect bounds mismatch.
 //             ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:26:3: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension|method'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:36:13: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
+//  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//   Extension(classA).method; // Error: Expect bounds mismatch.
+//             ^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:37:13: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
+//  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//   Extension(classA).property; // Error: Expect bounds mismatch.
+//             ^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:38:13: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
+//  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//   Extension(classA).property = null; // Error: Expect bounds mismatch.
+//             ^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:39:13: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
+//  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//   Extension(classA).property += null; // Error: Expect bounds mismatch.
+//             ^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:40:13: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
+//  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//   Extension(classA).property ??= 0; // Error: Expect bounds mismatch.
+//             ^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:41:13: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
+//  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//   Extension(classA).property(); // Error: Expect bounds mismatch.
+//             ^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:42:13: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
+//  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//   Extension(classA).property++; // Error: Expect bounds mismatch.
+//             ^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:43:15: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
+//  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//   --Extension(classA).property; // Error: Expect bounds mismatch.
+//               ^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:44:13: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
+//  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//   Extension(classA)[0]; // Error: Expect bounds mismatch.
+//             ^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:45:13: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
+//  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//   Extension(classA)[0] = null; // Error: Expect bounds mismatch.
+//             ^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:46:13: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
+//  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//   Extension(classA)[0] += null; // Error: Expect bounds mismatch.
+//             ^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:47:13: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
+//  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//   Extension(classA)[0] ??= 0; // Error: Expect bounds mismatch.
+//             ^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:48:15: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // Try changing type arguments so that they conform to the bounds.
 //   Extension<A>(classA).method(); // Error: Expect bounds mismatch.
-//   ^
+//               ^
 // pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
 // extension Extension<T extends B> on Class<T> {
 //                     ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:28:13: Error: The argument type 'Class<A>' can't be assigned to the parameter type 'Class<B>'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:49:15: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   Extension<A>(classA).method; // Error: Expect bounds mismatch.
+//               ^
+// pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
+// extension Extension<T extends B> on Class<T> {
+//                     ^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:50:15: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   Extension<A>(classA).property; // Error: Expect bounds mismatch.
+//               ^
+// pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
+// extension Extension<T extends B> on Class<T> {
+//                     ^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:51:15: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   Extension<A>(classA).property = null; // Error: Expect bounds mismatch.
+//               ^
+// pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
+// extension Extension<T extends B> on Class<T> {
+//                     ^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:52:15: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   Extension<A>(classA).property += null; // Error: Expect bounds mismatch.
+//               ^
+// pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
+// extension Extension<T extends B> on Class<T> {
+//                     ^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:53:15: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   Extension<A>(classA).property ??= 0; // Error: Expect bounds mismatch.
+//               ^
+// pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
+// extension Extension<T extends B> on Class<T> {
+//                     ^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:53:24: Error: The getter 'property' isn't defined for the type 'Class<A>'.
+//  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'property'.
+//   Extension<A>(classA).property ??= 0; // Error: Expect bounds mismatch.
+//                        ^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:53:24: Error: The setter 'property' isn't defined for the type 'Class<A>'.
+//  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'property'.
+//   Extension<A>(classA).property ??= 0; // Error: Expect bounds mismatch.
+//                        ^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:54:15: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   Extension<A>(classA).property(); // Error: Expect bounds mismatch.
+//               ^
+// pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
+// extension Extension<T extends B> on Class<T> {
+//                     ^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:55:15: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   Extension<A>(classA).property++; // Error: Expect bounds mismatch.
+//               ^
+// pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
+// extension Extension<T extends B> on Class<T> {
+//                     ^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:56:17: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   --Extension<A>(classA).property; // Error: Expect bounds mismatch.
+//                 ^
+// pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
+// extension Extension<T extends B> on Class<T> {
+//                     ^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:57:15: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   Extension<A>(classA)[0]; // Error: Expect bounds mismatch.
+//               ^
+// pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
+// extension Extension<T extends B> on Class<T> {
+//                     ^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:58:15: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   Extension<A>(classA)[0] = null; // Error: Expect bounds mismatch.
+//               ^
+// pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
+// extension Extension<T extends B> on Class<T> {
+//                     ^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:59:15: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   Extension<A>(classA)[0] += null; // Error: Expect bounds mismatch.
+//               ^
+// pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
+// extension Extension<T extends B> on Class<T> {
+//                     ^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:60:15: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   Extension<A>(classA)[0] ??= 0; // Error: Expect bounds mismatch.
+//               ^
+// pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
+// extension Extension<T extends B> on Class<T> {
+//                     ^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:62:13: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
 //  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //   Extension(classA).genericMethod(a); // Error: Expect bounds mismatch.
 //             ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:28:35: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:62:35: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //   Extension(classA).genericMethod(a); // Error: Expect bounds mismatch.
 //                                   ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:29:13: Error: The argument type 'Class<A>' can't be assigned to the parameter type 'Class<B>'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:63:13: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
 //  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //   Extension(classA).genericMethod<A>(a); // Error: Expect bounds mismatch.
 //             ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:29:21: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension|genericMethod'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:63:21: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension.genericMethod'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // Try changing type arguments so that they conform to the bounds.
 //   Extension(classA).genericMethod<A>(a); // Error: Expect bounds mismatch.
 //                     ^
-// pkg/front_end/testcases/extensions/check_bounds.dart:15:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/extensions/check_bounds.dart:17:17: Context: This is the type variable whose bound isn't conformed to.
 //   genericMethod<S extends B>(S s) {}
 //                 ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:30:13: Error: The argument type 'Class<A>' can't be assigned to the parameter type 'Class<B>'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:64:13: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
 //  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //   Extension(classA).genericMethod<B>(a); // Error: Expect bounds mismatch.
 //             ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:30:38: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:64:38: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //   Extension(classA).genericMethod<B>(a); // Error: Expect bounds mismatch.
 //                                      ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:31:38: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:66:15: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   Extension<A>(classA).genericMethod(a); // Error: Expect bounds mismatch.
+//               ^
+// pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
+// extension Extension<T extends B> on Class<T> {
+//                     ^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:66:38: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //   Extension<A>(classA).genericMethod(a); // Error: Expect bounds mismatch.
 //                                      ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:31:3: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension|genericMethod'.
-//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
-//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//   Extension<A>(classA).genericMethod(a); // Error: Expect bounds mismatch.
-//   ^
-// pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
-// extension Extension<T extends B> on Class<T> {
-//                     ^
-//
-// pkg/front_end/testcases/extensions/check_bounds.dart:32:3: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension|genericMethod'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:67:15: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // Try changing type arguments so that they conform to the bounds.
 //   Extension<A>(classA).genericMethod<A>(a); // Error: Expect bounds mismatch.
-//   ^
+//               ^
 // pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
 // extension Extension<T extends B> on Class<T> {
 //                     ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:32:3: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension|genericMethod'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:67:24: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension.genericMethod'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // Try changing type arguments so that they conform to the bounds.
 //   Extension<A>(classA).genericMethod<A>(a); // Error: Expect bounds mismatch.
-//   ^
-// pkg/front_end/testcases/extensions/check_bounds.dart:15:17: Context: This is the type variable whose bound isn't conformed to.
+//                        ^
+// pkg/front_end/testcases/extensions/check_bounds.dart:17:17: Context: This is the type variable whose bound isn't conformed to.
 //   genericMethod<S extends B>(S s) {}
 //                 ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:33:41: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:68:15: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   Extension<A>(classA).genericMethod<B>(a); // Error: Expect bounds mismatch.
+//               ^
+// pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
+// extension Extension<T extends B> on Class<T> {
+//                     ^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:68:41: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //   Extension<A>(classA).genericMethod<B>(a); // Error: Expect bounds mismatch.
 //                                         ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:33:3: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension|genericMethod'.
-//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
-//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//   Extension<A>(classA).genericMethod<B>(a); // Error: Expect bounds mismatch.
-//   ^
-// pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
-// extension Extension<T extends B> on Class<T> {
-//                     ^
-//
-// pkg/front_end/testcases/extensions/check_bounds.dart:34:38: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:89:38: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //   Extension<B>(classB).genericMethod(a); // Error: Expect bounds mismatch.
 //                                      ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:35:24: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension|genericMethod'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:90:24: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension.genericMethod'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // Try changing type arguments so that they conform to the bounds.
-//   Extension<B>(classB).genericMethod<A>(a); // Error: Expect bounds mismatch.
+//   Extension<B>(classB).genericMethod<A>(a); // Error: Argument type mismatch.
 //                        ^
-// pkg/front_end/testcases/extensions/check_bounds.dart:15:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/extensions/check_bounds.dart:17:17: Context: This is the type variable whose bound isn't conformed to.
 //   genericMethod<S extends B>(S s) {}
 //                 ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:36:41: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:91:41: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
-//   Extension<B>(classB).genericMethod<B>(a);
+//   Extension<B>(classB).genericMethod<B>(a); // Error: Argument type mismatch.
 //                                         ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:40:3: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension|method'.
-//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
-//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//   Extension<A>(classB).method(); // Error: Expect bounds mismatch.
-//   ^
-// pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
-// extension Extension<T extends B> on Class<T> {
-//                     ^
-//
-// pkg/front_end/testcases/extensions/check_bounds.dart:43:24: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:93:24: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //   classB.genericMethod(a); // Error: Expect bounds mismatch.
 //                        ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:44:10: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension|genericMethod'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:94:10: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'genericMethod'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // Try changing type arguments so that they conform to the bounds.
 //   classB.genericMethod<A>(a); // Error: Expect bounds mismatch.
 //          ^
-// pkg/front_end/testcases/extensions/check_bounds.dart:15:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/extensions/check_bounds.dart:17:17: Context: This is the type variable whose bound isn't conformed to.
 //   genericMethod<S extends B>(S s) {}
 //                 ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:45:27: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:95:27: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
-//   classB.genericMethod<B>(a);
+//   classB.genericMethod<B>(a); // Error: Argument type mismatch
 //                           ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:46:35: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:110:35: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //   Extension(classB).genericMethod(a); // Error: Expect bounds mismatch.
 //                                   ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:47:21: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension|genericMethod'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:111:21: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension.genericMethod'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // Try changing type arguments so that they conform to the bounds.
 //   Extension(classB).genericMethod<A>(a); // Error: Expect bounds mismatch.
 //                     ^
-// pkg/front_end/testcases/extensions/check_bounds.dart:15:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/extensions/check_bounds.dart:17:17: Context: This is the type variable whose bound isn't conformed to.
 //   genericMethod<S extends B>(S s) {}
 //                 ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:48:38: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:112:38: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
-//   Extension(classB).genericMethod<B>(a);
+//   Extension(classB).genericMethod<B>(a); // Error: Argument type mismatch
 //                                      ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:49:38: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:113:15: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   Extension<A>(classB).genericMethod(a); // Error: Expect bounds mismatch.
+//               ^
+// pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
+// extension Extension<T extends B> on Class<T> {
+//                     ^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:113:38: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //   Extension<A>(classB).genericMethod(a); // Error: Expect bounds mismatch.
 //                                      ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:49:3: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension|genericMethod'.
-//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
-//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//   Extension<A>(classB).genericMethod(a); // Error: Expect bounds mismatch.
-//   ^
-// pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
-// extension Extension<T extends B> on Class<T> {
-//                     ^
-//
-// pkg/front_end/testcases/extensions/check_bounds.dart:50:3: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension|genericMethod'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:114:15: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // Try changing type arguments so that they conform to the bounds.
 //   Extension<A>(classB).genericMethod<A>(a); // Error: Expect bounds mismatch.
-//   ^
+//               ^
 // pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
 // extension Extension<T extends B> on Class<T> {
 //                     ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:50:3: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension|genericMethod'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:114:24: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension.genericMethod'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // Try changing type arguments so that they conform to the bounds.
 //   Extension<A>(classB).genericMethod<A>(a); // Error: Expect bounds mismatch.
-//   ^
-// pkg/front_end/testcases/extensions/check_bounds.dart:15:17: Context: This is the type variable whose bound isn't conformed to.
+//                        ^
+// pkg/front_end/testcases/extensions/check_bounds.dart:17:17: Context: This is the type variable whose bound isn't conformed to.
 //   genericMethod<S extends B>(S s) {}
 //                 ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:51:41: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:115:15: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   Extension<A>(classB).genericMethod<B>(a); // Error: Expect bounds mismatch.
+//               ^
+// pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
+// extension Extension<T extends B> on Class<T> {
+//                     ^
+//
+// pkg/front_end/testcases/extensions/check_bounds.dart:115:41: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //   Extension<A>(classB).genericMethod<B>(a); // Error: Expect bounds mismatch.
 //                                         ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:51:3: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension|genericMethod'.
-//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
-//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//   Extension<A>(classB).genericMethod<B>(a); // Error: Expect bounds mismatch.
-//   ^
-// pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
-// extension Extension<T extends B> on Class<T> {
-//                     ^
-//
-// pkg/front_end/testcases/extensions/check_bounds.dart:52:38: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:116:38: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //   Extension<B>(classB).genericMethod(a); // Error: Expect bounds mismatch.
 //                                      ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:53:24: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension|genericMethod'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:117:24: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension.genericMethod'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // Try changing type arguments so that they conform to the bounds.
 //   Extension<B>(classB).genericMethod<A>(a); // Error: Expect bounds mismatch.
 //                        ^
-// pkg/front_end/testcases/extensions/check_bounds.dart:15:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/extensions/check_bounds.dart:17:17: Context: This is the type variable whose bound isn't conformed to.
 //   genericMethod<S extends B>(S s) {}
 //                 ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:54:41: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:118:41: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
-//   Extension<B>(classB).genericMethod<B>(a);
+//   Extension<B>(classB).genericMethod<B>(a); // Error: Argument type mismatch
 //                                         ^
 //
 // pkg/front_end/testcases/extensions/check_bounds_lib.dart:11:10: Error: The method 'method' isn't defined for the type 'Class<A>'.
@@ -554,24 +825,24 @@ library;
 //   classA.method();
 //          ^^^^^^
 //
-// pkg/front_end/testcases/extensions/check_bounds_lib.dart:12:13: Error: The argument type 'Class<A>' can't be assigned to the parameter type 'Class<B>'.
+// pkg/front_end/testcases/extensions/check_bounds_lib.dart:12:13: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
 //  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //   Extension(classA).method(); // Expect bounds mismatch.
 //             ^
 //
-// pkg/front_end/testcases/extensions/check_bounds_lib.dart:13:3: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension|method'.
+// pkg/front_end/testcases/extensions/check_bounds_lib.dart:13:15: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // Try changing type arguments so that they conform to the bounds.
 //   Extension<A>(classA).method(); // Expect bounds mismatch.
-//   ^
+//               ^
 // pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
 // extension Extension<T extends B> on Class<T> {
 //                     ^
 //
-// pkg/front_end/testcases/extensions/check_bounds_lib.dart:15:13: Error: The argument type 'Class<A>' can't be assigned to the parameter type 'Class<B>'.
+// pkg/front_end/testcases/extensions/check_bounds_lib.dart:15:13: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
 //  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
@@ -584,24 +855,24 @@ library;
 //   Extension(classA).genericMethod(a); // Expect bounds mismatch.
 //                                   ^
 //
-// pkg/front_end/testcases/extensions/check_bounds_lib.dart:16:13: Error: The argument type 'Class<A>' can't be assigned to the parameter type 'Class<B>'.
+// pkg/front_end/testcases/extensions/check_bounds_lib.dart:16:13: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
 //  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //   Extension(classA).genericMethod<A>(a); // Expect bounds mismatch.
 //             ^
 //
-// pkg/front_end/testcases/extensions/check_bounds_lib.dart:16:21: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension|genericMethod'.
+// pkg/front_end/testcases/extensions/check_bounds_lib.dart:16:21: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension.genericMethod'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // Try changing type arguments so that they conform to the bounds.
 //   Extension(classA).genericMethod<A>(a); // Expect bounds mismatch.
 //                     ^
-// pkg/front_end/testcases/extensions/check_bounds.dart:15:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/extensions/check_bounds.dart:17:17: Context: This is the type variable whose bound isn't conformed to.
 //   genericMethod<S extends B>(S s) {}
 //                 ^
 //
-// pkg/front_end/testcases/extensions/check_bounds_lib.dart:17:13: Error: The argument type 'Class<A>' can't be assigned to the parameter type 'Class<B>'.
+// pkg/front_end/testcases/extensions/check_bounds_lib.dart:17:13: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
 //  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
@@ -614,41 +885,51 @@ library;
 //   Extension(classA).genericMethod<B>(a); // Expect bounds mismatch.
 //                                      ^
 //
+// pkg/front_end/testcases/extensions/check_bounds_lib.dart:18:15: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   Extension<A>(classA).genericMethod(a); // Expect bounds mismatch.
+//               ^
+// pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
+// extension Extension<T extends B> on Class<T> {
+//                     ^
+//
 // pkg/front_end/testcases/extensions/check_bounds_lib.dart:18:38: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //   Extension<A>(classA).genericMethod(a); // Expect bounds mismatch.
 //                                      ^
 //
-// pkg/front_end/testcases/extensions/check_bounds_lib.dart:18:3: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension|genericMethod'.
-//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
-//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//   Extension<A>(classA).genericMethod(a); // Expect bounds mismatch.
-//   ^
-// pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
-// extension Extension<T extends B> on Class<T> {
-//                     ^
-//
-// pkg/front_end/testcases/extensions/check_bounds_lib.dart:19:3: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension|genericMethod'.
+// pkg/front_end/testcases/extensions/check_bounds_lib.dart:19:15: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // Try changing type arguments so that they conform to the bounds.
 //   Extension<A>(classA).genericMethod<A>(a); // Expect bounds mismatch.
-//   ^
+//               ^
 // pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
 // extension Extension<T extends B> on Class<T> {
 //                     ^
 //
-// pkg/front_end/testcases/extensions/check_bounds_lib.dart:19:3: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension|genericMethod'.
+// pkg/front_end/testcases/extensions/check_bounds_lib.dart:19:24: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension.genericMethod'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // Try changing type arguments so that they conform to the bounds.
 //   Extension<A>(classA).genericMethod<A>(a); // Expect bounds mismatch.
-//   ^
-// pkg/front_end/testcases/extensions/check_bounds.dart:15:17: Context: This is the type variable whose bound isn't conformed to.
+//                        ^
+// pkg/front_end/testcases/extensions/check_bounds.dart:17:17: Context: This is the type variable whose bound isn't conformed to.
 //   genericMethod<S extends B>(S s) {}
 //                 ^
+//
+// pkg/front_end/testcases/extensions/check_bounds_lib.dart:20:15: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   Extension<A>(classA).genericMethod<B>(a); // Expect bounds mismatch.
+//               ^
+// pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
+// extension Extension<T extends B> on Class<T> {
+//                     ^
 //
 // pkg/front_end/testcases/extensions/check_bounds_lib.dart:20:41: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
@@ -656,29 +937,19 @@ library;
 //   Extension<A>(classA).genericMethod<B>(a); // Expect bounds mismatch.
 //                                         ^
 //
-// pkg/front_end/testcases/extensions/check_bounds_lib.dart:20:3: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension|genericMethod'.
-//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
-//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//   Extension<A>(classA).genericMethod<B>(a); // Expect bounds mismatch.
-//   ^
-// pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
-// extension Extension<T extends B> on Class<T> {
-//                     ^
-//
 // pkg/front_end/testcases/extensions/check_bounds_lib.dart:21:38: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //   Extension<B>(classB).genericMethod(a); // Expect bounds mismatch.
 //                                      ^
 //
-// pkg/front_end/testcases/extensions/check_bounds_lib.dart:22:24: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension|genericMethod'.
+// pkg/front_end/testcases/extensions/check_bounds_lib.dart:22:24: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension.genericMethod'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // Try changing type arguments so that they conform to the bounds.
 //   Extension<B>(classB).genericMethod<A>(a); // Expect bounds mismatch.
 //                        ^
-// pkg/front_end/testcases/extensions/check_bounds.dart:15:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/extensions/check_bounds.dart:17:17: Context: This is the type variable whose bound isn't conformed to.
 //   genericMethod<S extends B>(S s) {}
 //                 ^
 //
@@ -688,12 +959,12 @@ library;
 //   Extension<B>(classB).genericMethod<B>(a);
 //                                         ^
 //
-// pkg/front_end/testcases/extensions/check_bounds_lib.dart:27:3: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension|method'.
+// pkg/front_end/testcases/extensions/check_bounds_lib.dart:27:15: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // Try changing type arguments so that they conform to the bounds.
 //   Extension<A>(classB).method(); // Expect bounds mismatch.
-//   ^
+//               ^
 // pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
 // extension Extension<T extends B> on Class<T> {
 //                     ^
@@ -704,13 +975,13 @@ library;
 //   classB.genericMethod(a); // Expect bounds mismatch.
 //                        ^
 //
-// pkg/front_end/testcases/extensions/check_bounds_lib.dart:31:10: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension|genericMethod'.
+// pkg/front_end/testcases/extensions/check_bounds_lib.dart:31:10: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'genericMethod'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // Try changing type arguments so that they conform to the bounds.
 //   classB.genericMethod<A>(a); // Expect bounds mismatch.
 //          ^
-// pkg/front_end/testcases/extensions/check_bounds.dart:15:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/extensions/check_bounds.dart:17:17: Context: This is the type variable whose bound isn't conformed to.
 //   genericMethod<S extends B>(S s) {}
 //                 ^
 //
@@ -726,13 +997,13 @@ library;
 //   Extension(classB).genericMethod(a); // Expect bounds mismatch.
 //                                   ^
 //
-// pkg/front_end/testcases/extensions/check_bounds_lib.dart:34:21: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension|genericMethod'.
+// pkg/front_end/testcases/extensions/check_bounds_lib.dart:34:21: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension.genericMethod'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // Try changing type arguments so that they conform to the bounds.
 //   Extension(classB).genericMethod<A>(a); // Expect bounds mismatch.
 //                     ^
-// pkg/front_end/testcases/extensions/check_bounds.dart:15:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/extensions/check_bounds.dart:17:17: Context: This is the type variable whose bound isn't conformed to.
 //   genericMethod<S extends B>(S s) {}
 //                 ^
 //
@@ -742,41 +1013,51 @@ library;
 //   Extension(classB).genericMethod<B>(a);
 //                                      ^
 //
+// pkg/front_end/testcases/extensions/check_bounds_lib.dart:36:15: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   Extension<A>(classB).genericMethod(a); // Expect bounds mismatch.
+//               ^
+// pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
+// extension Extension<T extends B> on Class<T> {
+//                     ^
+//
 // pkg/front_end/testcases/extensions/check_bounds_lib.dart:36:38: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //   Extension<A>(classB).genericMethod(a); // Expect bounds mismatch.
 //                                      ^
 //
-// pkg/front_end/testcases/extensions/check_bounds_lib.dart:36:3: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension|genericMethod'.
-//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
-//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//   Extension<A>(classB).genericMethod(a); // Expect bounds mismatch.
-//   ^
-// pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
-// extension Extension<T extends B> on Class<T> {
-//                     ^
-//
-// pkg/front_end/testcases/extensions/check_bounds_lib.dart:37:3: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension|genericMethod'.
+// pkg/front_end/testcases/extensions/check_bounds_lib.dart:37:15: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // Try changing type arguments so that they conform to the bounds.
 //   Extension<A>(classB).genericMethod<A>(a); // Expect bounds mismatch.
-//   ^
+//               ^
 // pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
 // extension Extension<T extends B> on Class<T> {
 //                     ^
 //
-// pkg/front_end/testcases/extensions/check_bounds_lib.dart:37:3: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension|genericMethod'.
+// pkg/front_end/testcases/extensions/check_bounds_lib.dart:37:24: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension.genericMethod'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // Try changing type arguments so that they conform to the bounds.
 //   Extension<A>(classB).genericMethod<A>(a); // Expect bounds mismatch.
-//   ^
-// pkg/front_end/testcases/extensions/check_bounds.dart:15:17: Context: This is the type variable whose bound isn't conformed to.
+//                        ^
+// pkg/front_end/testcases/extensions/check_bounds.dart:17:17: Context: This is the type variable whose bound isn't conformed to.
 //   genericMethod<S extends B>(S s) {}
 //                 ^
+//
+// pkg/front_end/testcases/extensions/check_bounds_lib.dart:38:15: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension'.
+//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+// Try changing type arguments so that they conform to the bounds.
+//   Extension<A>(classB).genericMethod<B>(a); // Expect bounds mismatch.
+//               ^
+// pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
+// extension Extension<T extends B> on Class<T> {
+//                     ^
 //
 // pkg/front_end/testcases/extensions/check_bounds_lib.dart:38:41: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
@@ -784,29 +1065,19 @@ library;
 //   Extension<A>(classB).genericMethod<B>(a); // Expect bounds mismatch.
 //                                         ^
 //
-// pkg/front_end/testcases/extensions/check_bounds_lib.dart:38:3: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'T' on 'Extension|genericMethod'.
-//  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
-//  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
-// Try changing type arguments so that they conform to the bounds.
-//   Extension<A>(classB).genericMethod<B>(a); // Expect bounds mismatch.
-//   ^
-// pkg/front_end/testcases/extensions/check_bounds.dart:13:21: Context: This is the type variable whose bound isn't conformed to.
-// extension Extension<T extends B> on Class<T> {
-//                     ^
-//
 // pkg/front_end/testcases/extensions/check_bounds_lib.dart:39:38: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //   Extension<B>(classB).genericMethod(a); // Expect bounds mismatch.
 //                                      ^
 //
-// pkg/front_end/testcases/extensions/check_bounds_lib.dart:40:24: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension|genericMethod'.
+// pkg/front_end/testcases/extensions/check_bounds_lib.dart:40:24: Error: Type argument 'A' doesn't conform to the bound 'B' of the type variable 'S' on 'Extension.genericMethod'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // Try changing type arguments so that they conform to the bounds.
 //   Extension<B>(classB).genericMethod<A>(a); // Expect bounds mismatch.
 //                        ^
-// pkg/front_end/testcases/extensions/check_bounds.dart:15:17: Context: This is the type variable whose bound isn't conformed to.
+// pkg/front_end/testcases/extensions/check_bounds.dart:17:17: Context: This is the type variable whose bound isn't conformed to.
 //   genericMethod<S extends B>(S s) {}
 //                 ^
 //
@@ -836,77 +1107,83 @@ class Class<T extends self::A> extends core::Object {
     ;
 }
 extension Extension<T extends self::B> on self::Class<T> {
+  get property = self::Extension|get#property;
+  set property = self::Extension|set#property;
   method method = self::Extension|method;
   method tearoff method = self::Extension|get#method;
   method genericMethod = self::Extension|genericMethod;
   method tearoff genericMethod = self::Extension|get#genericMethod;
+  method genericMethod2 = self::Extension|genericMethod2;
+  method tearoff genericMethod2 = self::Extension|get#genericMethod2;
+  operator [] = self::Extension|[];
+  operator []= = self::Extension|[]=;
 }
 static final field self::A a = new self::A::•();
 static final field self::Class<self::A> classA = new self::Class::•<self::A>();
 static final field self::Class<self::B> classB = new self::Class::•<self::B>();
-static final field dynamic field1 = invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:61:23: Error: The method 'method' isn't defined for the type 'Class<A>'.
+static final field dynamic field1 = invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:125:23: Error: The method 'method' isn't defined for the type 'Class<A>'.
  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 Try correcting the name to the name of an existing method, or defining a method named 'method'.
 final field1 = classA.method(); // Error: Expect method not found.
                       ^^^^^^" in self::classA{<unresolved>}.method();
-static final field dynamic field2 = self::Extension|method<self::B>(invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:62:26: Error: The argument type 'Class<A>' can't be assigned to the parameter type 'Class<B>'.
+static final field dynamic field2 = self::Extension|method<self::B>(invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:126:26: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 final field2 = Extension(classA).method(); // Error: Expect bounds mismatch.
                          ^" in self::classA as{TypeError} self::Class<self::B>);
 static final field dynamic field3 = self::Extension|method<self::A>(self::classA);
-static final field dynamic field4 = self::Extension|method<self::B>(invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:64:29: Error: The argument type 'Class<A>' can't be assigned to the parameter type 'Class<B>'.
+static final field dynamic field4 = self::Extension|method<self::B>(invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:128:29: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 final field4 = Extension<B>(classA).method();
                             ^" in self::classA as{TypeError} self::Class<self::B>);
-static final field dynamic field5 = self::Extension|genericMethod<self::B, self::B>(invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:65:26: Error: The argument type 'Class<A>' can't be assigned to the parameter type 'Class<B>'.
+static final field dynamic field5 = self::Extension|genericMethod<self::B, self::B>(invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:129:26: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 final field5 = Extension(classA).genericMethod(a); // Error: Expect bounds mismatch.
-                         ^" in self::classA as{TypeError} self::Class<self::B>, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:65:48: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+                         ^" in self::classA as{TypeError} self::Class<self::B>, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:129:48: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 final field5 = Extension(classA).genericMethod(a); // Error: Expect bounds mismatch.
                                                ^" in self::a as{TypeError} self::B);
-static final field dynamic field6 = self::Extension|genericMethod<self::B, self::A>(invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:66:26: Error: The argument type 'Class<A>' can't be assigned to the parameter type 'Class<B>'.
+static final field dynamic field6 = self::Extension|genericMethod<self::B, self::A>(invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:130:26: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 final field6 = Extension(classA).genericMethod<A>(a); // Error: Expect bounds mismatch.
                          ^" in self::classA as{TypeError} self::Class<self::B>, self::a);
-static final field dynamic field7 = self::Extension|genericMethod<self::B, self::B>(invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:67:26: Error: The argument type 'Class<A>' can't be assigned to the parameter type 'Class<B>'.
+static final field dynamic field7 = self::Extension|genericMethod<self::B, self::B>(invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:131:26: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 final field7 = Extension(classA).genericMethod<B>(a); // Error: Expect bounds mismatch.
-                         ^" in self::classA as{TypeError} self::Class<self::B>, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:67:51: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+                         ^" in self::classA as{TypeError} self::Class<self::B>, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:131:51: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 final field7 = Extension(classA).genericMethod<B>(a); // Error: Expect bounds mismatch.
                                                   ^" in self::a as{TypeError} self::B);
-static final field dynamic field8 = self::Extension|genericMethod<self::A, self::B>(self::classA, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:68:51: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+static final field dynamic field8 = self::Extension|genericMethod<self::A, self::B>(self::classA, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:132:51: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 final field8 = Extension<A>(classA).genericMethod(a); // Error: Expect bounds mismatch.
                                                   ^" in self::a as{TypeError} self::B);
 static final field dynamic field9 = self::Extension|genericMethod<self::A, self::A>(self::classA, self::a);
-static final field dynamic field10 = self::Extension|genericMethod<self::A, self::B>(self::classA, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:72:43: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+static final field dynamic field10 = self::Extension|genericMethod<self::A, self::B>(self::classA, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:136:43: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
     Extension<A>(classA).genericMethod<B>(a); // Error: Expect bounds mismatch.
                                           ^" in self::a as{TypeError} self::B);
-static final field dynamic field11 = self::Extension|genericMethod<self::B, self::B>(self::classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:74:40: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+static final field dynamic field11 = self::Extension|genericMethod<self::B, self::B>(self::classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:138:40: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
     Extension<B>(classB).genericMethod(a); // Error: Expect bounds mismatch.
                                        ^" in self::a as{TypeError} self::B);
 static final field dynamic field12 = self::Extension|genericMethod<self::B, self::A>(self::classB, self::a);
-static final field dynamic field13 = self::Extension|genericMethod<self::B, self::B>(self::classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:77:55: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+static final field dynamic field13 = self::Extension|genericMethod<self::B, self::B>(self::classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:141:55: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 final field13 = Extension<B>(classB).genericMethod<B>(a);
@@ -915,169 +1192,333 @@ static final field dynamic field14 = self::Extension|method<self::B>(self::class
 static final field dynamic field15 = self::Extension|method<self::B>(self::classB);
 static final field dynamic field16 = self::Extension|method<self::A>(self::classB);
 static final field dynamic field17 = self::Extension|method<self::B>(self::classB);
-static final field dynamic field18 = self::Extension|genericMethod<self::B, self::B>(self::classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:84:38: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+static final field dynamic field18 = self::Extension|genericMethod<self::B, self::B>(self::classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:148:38: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 final field18 = classB.genericMethod(a); // Error: Expect bounds mismatch.
                                      ^" in self::a as{TypeError} self::B);
 static final field dynamic field19 = self::Extension|genericMethod<self::B, self::A>(self::classB, self::a);
-static final field dynamic field20 = self::Extension|genericMethod<self::B, self::B>(self::classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:86:41: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+static final field dynamic field20 = self::Extension|genericMethod<self::B, self::B>(self::classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:150:41: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 final field20 = classB.genericMethod<B>(a);
                                         ^" in self::a as{TypeError} self::B);
-static final field dynamic field21 = self::Extension|genericMethod<self::B, self::B>(self::classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:87:49: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+static final field dynamic field21 = self::Extension|genericMethod<self::B, self::B>(self::classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:151:49: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 final field21 = Extension(classB).genericMethod(a); // Error: Expect bounds mismatch.
                                                 ^" in self::a as{TypeError} self::B);
 static final field dynamic field22 = self::Extension|genericMethod<self::B, self::A>(self::classB, self::a);
-static final field dynamic field23 = self::Extension|genericMethod<self::B, self::B>(self::classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:90:52: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+static final field dynamic field23 = self::Extension|genericMethod<self::B, self::B>(self::classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:154:52: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 final field23 = Extension(classB).genericMethod<B>(a);
                                                    ^" in self::a as{TypeError} self::B);
-static final field dynamic field24 = self::Extension|genericMethod<self::A, self::B>(self::classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:92:40: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+static final field dynamic field24 = self::Extension|genericMethod<self::A, self::B>(self::classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:156:40: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
     Extension<A>(classB).genericMethod(a); // Error: Expect bounds mismatch.
                                        ^" in self::a as{TypeError} self::B);
 static final field dynamic field25 = self::Extension|genericMethod<self::A, self::A>(self::classB, self::a);
-static final field dynamic field26 = self::Extension|genericMethod<self::A, self::B>(self::classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:96:43: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+static final field dynamic field26 = self::Extension|genericMethod<self::A, self::B>(self::classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:160:43: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
     Extension<A>(classB).genericMethod<B>(a); // Error: Expect bounds mismatch.
                                           ^" in self::a as{TypeError} self::B);
-static final field dynamic field27 = self::Extension|genericMethod<self::B, self::B>(self::classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:98:40: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+static final field dynamic field27 = self::Extension|genericMethod<self::B, self::B>(self::classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:162:40: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
     Extension<B>(classB).genericMethod(a); // Error: Expect bounds mismatch.
                                        ^" in self::a as{TypeError} self::B);
 static final field dynamic field28 = self::Extension|genericMethod<self::B, self::A>(self::classB, self::a);
-static final field dynamic field29 = self::Extension|genericMethod<self::B, self::B>(self::classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:101:55: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+static final field dynamic field29 = self::Extension|genericMethod<self::B, self::B>(self::classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:165:55: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 final field29 = Extension<B>(classB).genericMethod<B>(a);
                                                       ^" in self::a as{TypeError} self::B);
+static extension-member method Extension|get#property<T extends self::B>(lowered final self::Class<self::Extension|get#property::T> #this) → dynamic
+  return 0;
+static extension-member method Extension|set#property<T extends self::B>(lowered final self::Class<self::Extension|set#property::T> #this, wildcard dynamic _#wc0#formal) → void {}
 static extension-member method Extension|method<T extends self::B>(lowered final self::Class<self::Extension|method::T> #this) → dynamic {}
 static extension-member method Extension|get#method<T extends self::B>(lowered final self::Class<self::Extension|get#method::T> #this) → () → dynamic
   return () → dynamic => self::Extension|method<self::Extension|get#method::T>(#this);
 static extension-member method Extension|genericMethod<T extends self::B, S extends self::B>(lowered final self::Class<self::Extension|genericMethod::T> #this, self::Extension|genericMethod::S s) → dynamic {}
 static extension-member method Extension|get#genericMethod<T extends self::B>(lowered final self::Class<self::Extension|get#genericMethod::T> #this) → <S extends self::B>(S) → dynamic
   return <S extends self::B>(S s) → dynamic => self::Extension|genericMethod<self::Extension|get#genericMethod::T, S>(#this, s);
+static extension-member method Extension|genericMethod2<T extends self::B, S extends self::B>(lowered final self::Class<self::Extension|genericMethod2::T> #this) → dynamic {}
+static extension-member method Extension|get#genericMethod2<T extends self::B>(lowered final self::Class<self::Extension|get#genericMethod2::T> #this) → <S extends self::B>() → dynamic
+  return <S extends self::B>() → dynamic => self::Extension|genericMethod2<self::Extension|get#genericMethod2::T, S>(#this);
+static extension-member method Extension|[]<T extends self::B>(lowered final self::Class<self::Extension|[]::T> #this, wildcard dynamic _#wc1#formal) → dynamic {}
+static extension-member method Extension|[]=<T extends self::B>(lowered final self::Class<self::Extension|[]=::T> #this, wildcard dynamic _#wc2#formal, wildcard dynamic _#wc3#formal) → void {}
 static method main() → dynamic {}
 static method test(self::A a) → dynamic {
   self::Class<self::A> classA = new self::Class::•<self::A>();
   self::Class<self::B> classB = new self::Class::•<self::B>();
-  invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:24:10: Error: The method 'method' isn't defined for the type 'Class<A>'.
+  invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:29:10: Error: The method 'method' isn't defined for the type 'Class<A>'.
  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 Try correcting the name to the name of an existing method, or defining a method named 'method'.
   classA.method(); // Error: Expect method not found.
          ^^^^^^" in classA{<unresolved>}.method();
-  self::Extension|method<self::B>(invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:25:13: Error: The argument type 'Class<A>' can't be assigned to the parameter type 'Class<B>'.
+  invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:30:10: Error: The getter 'method' isn't defined for the type 'Class<A>'.
+ - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+ - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'method'.
+  classA.method; // Error: Expect method not found.
+         ^^^^^^" in classA{<unresolved>}.method;
+  invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:31:10: Error: The getter 'property' isn't defined for the type 'Class<A>'.
+ - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+ - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'property'.
+  classA.property; // Error: Expect getter not found.
+         ^^^^^^^^" in classA{<unresolved>}.property;
+  invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:32:10: Error: The setter 'property' isn't defined for the type 'Class<A>'.
+ - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+ - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'property'.
+  classA.property = null; // Error: Expect setter not found.
+         ^^^^^^^^" in classA.{<unresolved>}property = null;
+  invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:33:9: Error: The operator '[]' isn't defined for the type 'Class<A>'.
+ - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+ - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+Try correcting the operator to an existing operator, or defining a '[]' operator.
+  classA[0]; // Error: Expect index get not found.
+        ^" in classA{<unresolved>}.[](0);
+  invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:34:9: Error: The operator '[]=' isn't defined for the type 'Class<A>'.
+ - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+ - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+Try correcting the operator to an existing operator, or defining a '[]=' operator.
+  classA[0] = null; // Error: Expect index set not found.
+        ^" in classA{<unresolved>}.[]=(0, null);
+  self::Extension|method<self::B>(invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:35:13: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
   Extension(classA).method(); // Error: Expect bounds mismatch.
             ^" in classA as{TypeError} self::Class<self::B>);
+  self::Extension|get#method<self::B>(invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:36:13: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
+ - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+ - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+ - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+  Extension(classA).method; // Error: Expect bounds mismatch.
+            ^" in classA as{TypeError} self::Class<self::B>);
+  self::Extension|get#property<self::B>(invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:37:13: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
+ - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+ - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+ - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+  Extension(classA).property; // Error: Expect bounds mismatch.
+            ^" in classA as{TypeError} self::Class<self::B>);
+  self::Extension|set#property<self::B>(invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:38:13: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
+ - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+ - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+ - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+  Extension(classA).property = null; // Error: Expect bounds mismatch.
+            ^" in classA as{TypeError} self::Class<self::B>, null);
+  let final self::Class<self::B> #t1 = invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:39:13: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
+ - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+ - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+ - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+  Extension(classA).property += null; // Error: Expect bounds mismatch.
+            ^" in classA as{TypeError} self::Class<self::B> in self::Extension|set#property<self::B>(#t1, self::Extension|get#property<self::B>(#t1){dynamic}.+(null));
+  let final self::Class<self::A> #t2 = classA in self::Extension|get#property<self::B>(#t2{self::Class<self::B>}) == null ?{dynamic} self::Extension|set#property<self::B>(#t2{self::Class<self::B>}, 0) : null;
+  self::Extension|get#property<self::B>(invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:41:13: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
+ - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+ - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+ - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+  Extension(classA).property(); // Error: Expect bounds mismatch.
+            ^" in classA as{TypeError} self::Class<self::B>){dynamic}();
+  let final self::Class<self::B> #t3 = invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:42:13: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
+ - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+ - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+ - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+  Extension(classA).property++; // Error: Expect bounds mismatch.
+            ^" in classA as{TypeError} self::Class<self::B> in self::Extension|set#property<self::B>(#t3, self::Extension|get#property<self::B>(#t3){dynamic}.+(1));
+  let final self::Class<self::B> #t4 = invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:43:15: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
+ - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+ - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+ - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+  --Extension(classA).property; // Error: Expect bounds mismatch.
+              ^" in classA as{TypeError} self::Class<self::B> in let final dynamic #t5 = self::Extension|get#property<self::B>(#t4){dynamic}.-(1) in let final void #t6 = self::Extension|set#property<self::B>(#t4, #t5) in #t5;
+  self::Extension|[]<self::B>(invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:44:13: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
+ - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+ - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+ - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+  Extension(classA)[0]; // Error: Expect bounds mismatch.
+            ^" in classA as{TypeError} self::Class<self::B>, 0);
+  self::Extension|[]=<self::B>(invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:45:13: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
+ - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+ - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+ - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+  Extension(classA)[0] = null; // Error: Expect bounds mismatch.
+            ^" in classA as{TypeError} self::Class<self::B>, 0, null);
+  let final self::Class<self::B> #t7 = invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:46:13: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
+ - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+ - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+ - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+  Extension(classA)[0] += null; // Error: Expect bounds mismatch.
+            ^" in classA as{TypeError} self::Class<self::B> in let final core::int #t8 = 0 in self::Extension|[]=<self::B>(#t7, #t8, self::Extension|[]<self::B>(#t7, #t8){dynamic}.+(null));
+  let final self::Class<self::B> #t9 = invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:47:13: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
+ - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+ - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+ - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+  Extension(classA)[0] ??= 0; // Error: Expect bounds mismatch.
+            ^" in classA as{TypeError} self::Class<self::B> in let final core::int #t10 = 0 in self::Extension|[]<self::B>(#t9, #t10) == null ?{dynamic} self::Extension|[]=<self::B>(#t9, #t10, 0) : null;
   self::Extension|method<self::A>(classA);
-  self::Extension|method<self::B>(classB);
-  self::Extension|genericMethod<self::B, self::B>(invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:28:13: Error: The argument type 'Class<A>' can't be assigned to the parameter type 'Class<B>'.
+  self::Extension|get#method<self::A>(classA);
+  self::Extension|get#property<self::A>(classA);
+  self::Extension|set#property<self::A>(classA, null);
+  let final self::Class<self::A> #t11 = classA in self::Extension|set#property<self::A>(#t11, self::Extension|get#property<self::A>(#t11){dynamic}.+(null));
+  let final self::Class<self::A> #t12 = classA in invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:53:24: Error: The getter 'property' isn't defined for the type 'Class<A>'.
+ - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+ - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'property'.
+  Extension<A>(classA).property ??= 0; // Error: Expect bounds mismatch.
+                       ^^^^^^^^" in #t12{<unresolved>}.property == null ?{dynamic} invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:53:24: Error: The setter 'property' isn't defined for the type 'Class<A>'.
+ - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+ - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'property'.
+  Extension<A>(classA).property ??= 0; // Error: Expect bounds mismatch.
+                       ^^^^^^^^" in #t12.{<unresolved>}property = 0 : null;
+  self::Extension|get#property<self::A>(classA){dynamic}();
+  let final self::Class<self::A> #t13 = classA in self::Extension|set#property<self::A>(#t13, self::Extension|get#property<self::A>(#t13){dynamic}.+(1));
+  let final self::Class<self::A> #t14 = classA in let final dynamic #t15 = self::Extension|get#property<self::A>(#t14){dynamic}.-(1) in let final void #t16 = self::Extension|set#property<self::A>(#t14, #t15) in #t15;
+  self::Extension|[]<self::A>(classA, 0);
+  self::Extension|[]=<self::A>(classA, 0, null);
+  let final self::Class<self::A> #t17 = classA in let final core::int #t18 = 0 in self::Extension|[]=<self::A>(#t17, #t18, self::Extension|[]<self::A>(#t17, #t18){dynamic}.+(null));
+  let final self::Class<self::A> #t19 = classA in let final core::int #t20 = 0 in self::Extension|[]<self::A>(#t19, #t20) == null ?{dynamic} self::Extension|[]=<self::A>(#t19, #t20, 0) : null;
+  invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:61:34: Error: Too few positional arguments: 1 required, 0 given.
+  Extension(classA).genericMethod(); // Error: Expect bounds mismatch.
+                                 ^";
+  self::Extension|genericMethod<self::B, self::B>(invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:62:13: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
   Extension(classA).genericMethod(a); // Error: Expect bounds mismatch.
-            ^" in classA as{TypeError} self::Class<self::B>, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:28:35: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+            ^" in classA as{TypeError} self::Class<self::B>, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:62:35: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
   Extension(classA).genericMethod(a); // Error: Expect bounds mismatch.
                                   ^" in a as{TypeError} self::B);
-  self::Extension|genericMethod<self::B, self::A>(invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:29:13: Error: The argument type 'Class<A>' can't be assigned to the parameter type 'Class<B>'.
+  self::Extension|genericMethod<self::B, self::A>(invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:63:13: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
   Extension(classA).genericMethod<A>(a); // Error: Expect bounds mismatch.
             ^" in classA as{TypeError} self::Class<self::B>, a);
-  self::Extension|genericMethod<self::B, self::B>(invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:30:13: Error: The argument type 'Class<A>' can't be assigned to the parameter type 'Class<B>'.
+  self::Extension|genericMethod<self::B, self::B>(invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:64:13: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
   Extension(classA).genericMethod<B>(a); // Error: Expect bounds mismatch.
-            ^" in classA as{TypeError} self::Class<self::B>, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:30:38: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+            ^" in classA as{TypeError} self::Class<self::B>, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:64:38: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
   Extension(classA).genericMethod<B>(a); // Error: Expect bounds mismatch.
                                      ^" in a as{TypeError} self::B);
-  self::Extension|genericMethod<self::A, self::B>(classA, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:31:38: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+  invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:65:37: Error: Too few positional arguments: 1 required, 0 given.
+  Extension<A>(classA).genericMethod(); // Error: Expect bounds mismatch.
+                                    ^";
+  self::Extension|genericMethod<self::A, self::B>(classA, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:66:38: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
   Extension<A>(classA).genericMethod(a); // Error: Expect bounds mismatch.
                                      ^" in a as{TypeError} self::B);
   self::Extension|genericMethod<self::A, self::A>(classA, a);
-  self::Extension|genericMethod<self::A, self::B>(classA, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:33:41: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+  self::Extension|genericMethod<self::A, self::B>(classA, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:68:41: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
   Extension<A>(classA).genericMethod<B>(a); // Error: Expect bounds mismatch.
                                         ^" in a as{TypeError} self::B);
-  self::Extension|genericMethod<self::B, self::B>(classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:34:38: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+  self::Extension|method<self::B>(classB);
+  self::Extension|get#method<self::B>(classB);
+  self::Extension|get#property<self::B>(classB);
+  self::Extension|set#property<self::B>(classB, null);
+  self::Extension|method<self::B>(classB);
+  self::Extension|get#method<self::B>(classB);
+  self::Extension|get#property<self::B>(classB);
+  self::Extension|set#property<self::B>(classB, null);
+  let final self::Class<self::B> #t21 = classB in self::Extension|set#property<self::B>(#t21, self::Extension|get#property<self::B>(#t21){dynamic}.+(null));
+  let final self::Class<self::B> #t22 = classB in self::Extension|get#property<self::B>(#t22) == null ?{dynamic} self::Extension|set#property<self::B>(#t22, 0) : null;
+  self::Extension|get#property<self::B>(classB){dynamic}();
+  let final self::Class<self::B> #t23 = classB in self::Extension|set#property<self::B>(#t23, self::Extension|get#property<self::B>(#t23){dynamic}.+(1));
+  let final self::Class<self::B> #t24 = classB in let final dynamic #t25 = self::Extension|get#property<self::B>(#t24){dynamic}.-(1) in let final void #t26 = self::Extension|set#property<self::B>(#t24, #t25) in #t25;
+  self::Extension|[]<self::B>(classB, 0);
+  self::Extension|[]=<self::B>(classB, 0, null);
+  let final self::Class<self::B> #t27 = classB in let final core::int #t28 = 0 in self::Extension|[]=<self::B>(#t27, #t28, self::Extension|[]<self::B>(#t27, #t28){dynamic}.+(null));
+  let final self::Class<self::B> #t29 = classB in let final core::int #t30 = 0 in self::Extension|[]<self::B>(#t29, #t30) == null ?{dynamic} self::Extension|[]=<self::B>(#t29, #t30, 0) : null;
+  invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:88:37: Error: Too few positional arguments: 1 required, 0 given.
+  Extension<B>(classB).genericMethod();
+                                    ^";
+  self::Extension|genericMethod<self::B, self::B>(classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:89:38: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
   Extension<B>(classB).genericMethod(a); // Error: Expect bounds mismatch.
                                      ^" in a as{TypeError} self::B);
   self::Extension|genericMethod<self::B, self::A>(classB, a);
-  self::Extension|genericMethod<self::B, self::B>(classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:36:41: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+  self::Extension|genericMethod<self::B, self::B>(classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:91:41: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
-  Extension<B>(classB).genericMethod<B>(a);
+  Extension<B>(classB).genericMethod<B>(a); // Error: Argument type mismatch.
                                         ^" in a as{TypeError} self::B);
-  self::Extension|method<self::B>(classB);
-  self::Extension|method<self::B>(classB);
-  self::Extension|method<self::A>(classB);
-  self::Extension|method<self::B>(classB);
-  self::Extension|genericMethod<self::B, self::B>(classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:43:24: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+  self::Extension|genericMethod<self::B, self::B>(classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:93:24: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
   classB.genericMethod(a); // Error: Expect bounds mismatch.
                        ^" in a as{TypeError} self::B);
   self::Extension|genericMethod<self::B, self::A>(classB, a);
-  self::Extension|genericMethod<self::B, self::B>(classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:45:27: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+  self::Extension|genericMethod<self::B, self::B>(classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:95:27: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
-  classB.genericMethod<B>(a);
+  classB.genericMethod<B>(a); // Error: Argument type mismatch
                           ^" in a as{TypeError} self::B);
-  self::Extension|genericMethod<self::B, self::B>(classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:46:35: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+  self::Extension|method<self::B>(classB);
+  self::Extension|get#method<self::B>(classB);
+  self::Extension|get#property<self::B>(classB);
+  self::Extension|set#property<self::B>(classB, null);
+  let final self::Class<self::B> #t31 = classB in self::Extension|set#property<self::B>(#t31, self::Extension|get#property<self::B>(#t31){dynamic}.+(null));
+  let final self::Class<self::B> #t32 = classB in self::Extension|get#property<self::B>(#t32) == null ?{dynamic} self::Extension|set#property<self::B>(#t32, 0) : null;
+  self::Extension|get#property<self::B>(classB){dynamic}();
+  let final self::Class<self::B> #t33 = classB in self::Extension|set#property<self::B>(#t33, self::Extension|get#property<self::B>(#t33){dynamic}.+(1));
+  let final self::Class<self::B> #t34 = classB in let final dynamic #t35 = self::Extension|get#property<self::B>(#t34){dynamic}.-(1) in let final void #t36 = self::Extension|set#property<self::B>(#t34, #t35) in #t35;
+  self::Extension|[]<self::B>(classB, 0);
+  self::Extension|[]=<self::B>(classB, 0, null);
+  let final self::Class<self::B> #t37 = classB in let final core::int #t38 = 0 in self::Extension|[]=<self::B>(#t37, #t38, self::Extension|[]<self::B>(#t37, #t38){dynamic}.+(null));
+  let final self::Class<self::B> #t39 = classB in let final core::int #t40 = 0 in self::Extension|[]<self::B>(#t39, #t40) == null ?{dynamic} self::Extension|[]=<self::B>(#t39, #t40, 0) : null;
+  invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:109:34: Error: Too few positional arguments: 1 required, 0 given.
+  Extension(classB).genericMethod();
+                                 ^";
+  self::Extension|genericMethod<self::B, self::B>(classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:110:35: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
   Extension(classB).genericMethod(a); // Error: Expect bounds mismatch.
                                   ^" in a as{TypeError} self::B);
   self::Extension|genericMethod<self::B, self::A>(classB, a);
-  self::Extension|genericMethod<self::B, self::B>(classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:48:38: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+  self::Extension|genericMethod<self::B, self::B>(classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:112:38: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
-  Extension(classB).genericMethod<B>(a);
+  Extension(classB).genericMethod<B>(a); // Error: Argument type mismatch
                                      ^" in a as{TypeError} self::B);
-  self::Extension|genericMethod<self::A, self::B>(classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:49:38: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+  self::Extension|genericMethod<self::A, self::B>(classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:113:38: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
   Extension<A>(classB).genericMethod(a); // Error: Expect bounds mismatch.
                                      ^" in a as{TypeError} self::B);
   self::Extension|genericMethod<self::A, self::A>(classB, a);
-  self::Extension|genericMethod<self::A, self::B>(classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:51:41: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+  self::Extension|genericMethod<self::A, self::B>(classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:115:41: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
   Extension<A>(classB).genericMethod<B>(a); // Error: Expect bounds mismatch.
                                         ^" in a as{TypeError} self::B);
-  self::Extension|genericMethod<self::B, self::B>(classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:52:38: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+  self::Extension|genericMethod<self::B, self::B>(classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:116:38: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
   Extension<B>(classB).genericMethod(a); // Error: Expect bounds mismatch.
                                      ^" in a as{TypeError} self::B);
   self::Extension|genericMethod<self::B, self::A>(classB, a);
-  self::Extension|genericMethod<self::B, self::B>(classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:54:41: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
+  self::Extension|genericMethod<self::B, self::B>(classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:118:41: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
-  Extension<B>(classB).genericMethod<B>(a);
+  Extension<B>(classB).genericMethod<B>(a); // Error: Argument type mismatch
                                         ^" in a as{TypeError} self::B);
 }
 static method /* from org-dartlang-testcase:///check_bounds_lib.dart */ testInPart(self::A a) → dynamic {
@@ -1089,7 +1530,7 @@ static method /* from org-dartlang-testcase:///check_bounds_lib.dart */ testInPa
 Try correcting the name to the name of an existing method, or defining a method named 'method'.
   classA.method();
          ^^^^^^" in classA{<unresolved>}.method();
-  self::Extension|method<self::B>(invalid-expression "pkg/front_end/testcases/extensions/check_bounds_lib.dart:12:13: Error: The argument type 'Class<A>' can't be assigned to the parameter type 'Class<B>'.
+  self::Extension|method<self::B>(invalid-expression "pkg/front_end/testcases/extensions/check_bounds_lib.dart:12:13: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
@@ -1097,7 +1538,7 @@ Try correcting the name to the name of an existing method, or defining a method 
             ^" in classA as{TypeError} self::Class<self::B>);
   self::Extension|method<self::A>(classA);
   self::Extension|method<self::B>(classB);
-  self::Extension|genericMethod<self::B, self::B>(invalid-expression "pkg/front_end/testcases/extensions/check_bounds_lib.dart:15:13: Error: The argument type 'Class<A>' can't be assigned to the parameter type 'Class<B>'.
+  self::Extension|genericMethod<self::B, self::B>(invalid-expression "pkg/front_end/testcases/extensions/check_bounds_lib.dart:15:13: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
@@ -1107,13 +1548,13 @@ Try correcting the name to the name of an existing method, or defining a method 
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
   Extension(classA).genericMethod(a); // Expect bounds mismatch.
                                   ^" in a as{TypeError} self::B);
-  self::Extension|genericMethod<self::B, self::A>(invalid-expression "pkg/front_end/testcases/extensions/check_bounds_lib.dart:16:13: Error: The argument type 'Class<A>' can't be assigned to the parameter type 'Class<B>'.
+  self::Extension|genericMethod<self::B, self::A>(invalid-expression "pkg/front_end/testcases/extensions/check_bounds_lib.dart:16:13: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
   Extension(classA).genericMethod<A>(a); // Expect bounds mismatch.
             ^" in classA as{TypeError} self::Class<self::B>, a);
-  self::Extension|genericMethod<self::B, self::B>(invalid-expression "pkg/front_end/testcases/extensions/check_bounds_lib.dart:17:13: Error: The argument type 'Class<A>' can't be assigned to the parameter type 'Class<B>'.
+  self::Extension|genericMethod<self::B, self::B>(invalid-expression "pkg/front_end/testcases/extensions/check_bounds_lib.dart:17:13: Error: A value of type 'Class<A>' can't be assigned to a variable of type 'Class<B>'.
  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.

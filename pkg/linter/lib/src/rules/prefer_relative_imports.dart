@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -19,7 +20,7 @@ class PreferRelativeImports extends LintRule {
     : super(name: LintNames.prefer_relative_imports, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_relative_imports;
+  DiagnosticCode get diagnosticCode => LinterLintCode.preferRelativeImports;
 
   @override
   List<String> get incompatibleRules => const [
@@ -27,7 +28,10 @@ class PreferRelativeImports extends LintRule {
   ];
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     if (!context.isInLibDir) return;
 
     var sourceUri = context.libraryElement?.uri;

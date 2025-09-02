@@ -28,7 +28,7 @@ class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_CONDITION, 27, 5)],
+      [error(CompileTimeErrorCode.nonBoolCondition, 27, 5)],
     );
 
     var node = findNode.singleConditionalExpression;
@@ -84,7 +84,7 @@ class A {
   }
 }
 ''',
-      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 41, 5)],
+      [error(ParserErrorCode.missingAssignableSelector, 41, 5)],
     );
 
     var node = findNode.singleConditionalExpression;
@@ -154,7 +154,7 @@ T f<T>(T t, bool b) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 79, 1)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 79, 1)],
     );
 
     var node = findNode.conditionalExpression('b ?');
@@ -242,7 +242,7 @@ class A {
   }
 }
 ''',
-      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 37, 5)],
+      [error(ParserErrorCode.missingAssignableSelector, 37, 5)],
     );
 
     var node = findNode.singleConditionalExpression;

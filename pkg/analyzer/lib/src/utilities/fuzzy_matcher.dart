@@ -148,8 +148,9 @@ class FuzzyMatcher extends CompletionMatcher {
     patternRoles = List.filled(pattern.length, CharRole.NONE);
     fuzzyMap(pattern, patternRoles);
     var maxCharScore = matchStyle == MatchStyle.TEXT ? 6 : 4;
-    scoreScale =
-        pattern.isNotEmpty ? 1.0 / (maxCharScore * pattern.length) : 0.0;
+    scoreScale = pattern.isNotEmpty
+        ? 1.0 / (maxCharScore * pattern.length)
+        : 0.0;
   }
 
   /// This function picks the matches layer with the best score.
@@ -301,16 +302,14 @@ class FuzzyMatcher extends CompletionMatcher {
     var prev = _CharType.NONE;
     for (var i = 0; i < string.length; i++) {
       var ch = string.codeUnitAt(i);
-      var type =
-          ch < 128
-              ? _CharType.values[TYPES.codeUnitAt(ch) - 48]
-              : _CharType.LOWER;
+      var type = ch < 128
+          ? _CharType.values[TYPES.codeUnitAt(ch) - 48]
+          : _CharType.LOWER;
       var role = CharRole.NONE;
       if (type == _CharType.LOWER) {
-        role =
-            (prev.index <= _CharType.PUNCT.index)
-                ? CharRole.HEAD
-                : CharRole.TAIL;
+        role = (prev.index <= _CharType.PUNCT.index)
+            ? CharRole.HEAD
+            : CharRole.TAIL;
       } else if (type == _CharType.UPPER) {
         role = CharRole.HEAD;
         // Note: this treats RPCTest as two words.

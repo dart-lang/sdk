@@ -50,7 +50,7 @@ void f(void Function<T>()? m, void Function<T>() n) {
   (m ?? n)();
 }
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_GENERIC_INVOCATION, 56, 8)],
+      [error(WarningCode.inferenceFailureOnGenericInvocation, 56, 8)],
     );
   }
 
@@ -69,7 +69,7 @@ void f() {
   (<T>() {})();
 }
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_GENERIC_INVOCATION, 13, 10)],
+      [error(WarningCode.inferenceFailureOnGenericInvocation, 13, 10)],
     );
   }
 }

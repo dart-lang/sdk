@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -18,12 +20,15 @@ class AvoidReturningNullForVoid extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.avoid_returning_null_for_void_from_function,
-    LinterLintCode.avoid_returning_null_for_void_from_method,
+    LinterLintCode.avoidReturningNullForVoidFromFunction,
+    LinterLintCode.avoidReturningNullForVoidFromMethod,
   ];
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addExpressionFunctionBody(this, visitor);
     registry.addReturnStatement(this, visitor);
@@ -59,12 +64,12 @@ class _Visitor extends SimpleAstVisitor<void> {
       FunctionExpression() => (
         parent.declaredFragment?.element.returnType,
         parent.body.isAsynchronous,
-        LinterLintCode.avoid_returning_null_for_void_from_function,
+        LinterLintCode.avoidReturningNullForVoidFromFunction,
       ),
       MethodDeclaration() => (
         parent.declaredFragment?.element.returnType,
         parent.body.isAsynchronous,
-        LinterLintCode.avoid_returning_null_for_void_from_method,
+        LinterLintCode.avoidReturningNullForVoidFromMethod,
       ),
       _ => throw StateError('Unexpected type'),
     };

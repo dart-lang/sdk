@@ -11,14 +11,13 @@ import 'dart:io' show stdout;
 import 'dart:math' as math;
 
 import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
-import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
+import 'package:analysis_server/src/services/completion/dart/candidate_suggestion.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analysis_server/src/services/completion/dart/probability_range.dart';
 import 'package:analysis_server/src/services/completion/dart/relevance_tables.g.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
-import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -577,7 +576,7 @@ class CompletionMetrics {
   void recordShadowedCompletion(
     String? completionLocation,
     ExpectedCompletion expectedCompletion,
-    CompletionSuggestionLite closeMatchSuggestion,
+    CandidateSuggestion closeMatchSuggestion,
   ) {
     shadowedCompletions
         .putIfAbsent(completionLocation ?? 'unknown', () => [])
@@ -935,7 +934,7 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
     MetricsSuggestionListener listener,
     ExpectedCompletion expectedCompletion,
     String? completionLocation,
-    List<CompletionSuggestionLite> suggestions,
+    List<CandidateSuggestion> suggestions,
     CompletionMetrics metrics,
     int elapsedMS,
   ) {
@@ -965,7 +964,7 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
                 .toList();
         precedingRelevanceCounts = <int, int>{};
         for (var i = 0; i < rank - 1; i++) {
-          var relevance = suggestions[i].relevance;
+          var relevance = suggestions[i].relevanceScore;
           precedingRelevanceCounts[relevance] =
               (precedingRelevanceCounts[relevance] ?? 0) + 1;
         }
@@ -1008,7 +1007,7 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
 
       if (options.printMissedCompletionDetails ||
           options.printShadowedCompletionDetails) {
-        CompletionSuggestionLite? closeMatchSuggestion;
+        CandidateSuggestion? closeMatchSuggestion;
         for (var suggestion in suggestions) {
           if (suggestion.completion == expectedCompletion.completion) {
             closeMatchSuggestion = suggestion;
@@ -1488,7 +1487,7 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
 
   int _computeCharsBeforeTop(
     ExpectedCompletion target,
-    List<CompletionSuggestionLite> suggestions, {
+    List<CandidateSuggestion> suggestions, {
     int minRank = 1,
   }) {
     var rank = placementInSuggestionList(suggestions, target).rank;
@@ -1509,34 +1508,28 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
 
   /// Computes completion suggestions for [dartRequest], and returns the
   /// suggestions, sorted by rank and then by completion text.
-  Future<List<CompletionSuggestionLite>> _computeCompletionSuggestions(
+  Future<List<CandidateSuggestion>> _computeCompletionSuggestions(
     MetricsSuggestionListener listener,
     OperationPerformanceImpl performance,
     DartCompletionRequest dartRequest,
     NotImportedSuggestions notImportedSuggestions,
   ) async {
     var budget = CompletionBudget(Duration(seconds: 30));
-    var suggestions = await DartCompletionManager(
+    var collector = await DartCompletionManager(
       budget: budget,
       listener: listener,
       notImportedSuggestions: notImportedSuggestions,
-    ).computeSuggestions(
-      dartRequest,
-      performance,
+    ).computeFinalizedCandidateSuggestions(
+      request: dartRequest,
+      performance: performance,
       maxSuggestions: -1,
-      useFilter: true,
     );
-
-    // Note that some routes sort suggestions before responding differently.
-    // The Cider and legacy handlers use [fuzzyFilterSort], which does not match
-    // [completionComparator].
-    suggestions.sort(completionComparator);
-    return suggestions.map(CompletionSuggestionLite.fromBuilder).toList();
+    return collector.suggestions;
   }
 
-  List<CompletionSuggestionLite> _filterSuggestions(
+  List<CandidateSuggestion> _filterSuggestions(
     String prefix,
-    List<CompletionSuggestionLite> suggestions,
+    List<CandidateSuggestion> suggestions,
   ) {
     // TODO(brianwilkerson): Replace this with a more realistic filtering
     //  algorithm.
@@ -1550,7 +1543,7 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
       var suggestion = data.suggestion;
       return [
         rank.toString(),
-        suggestion.relevance.toString(),
+        suggestion.relevanceScore.toString(),
         suggestion.completion,
         suggestion.kind.toString(),
       ];
@@ -1635,7 +1628,7 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
   ///
   /// If [expectedCompletion] is not found, `Place.none()` is returned.
   static Place placementInSuggestionList(
-    List<CompletionSuggestionLite> suggestions,
+    List<CandidateSuggestion> suggestions,
     ExpectedCompletion expectedCompletion,
   ) {
     for (var i = 0; i < suggestions.length; i++) {
@@ -1824,79 +1817,6 @@ class CompletionResult {
   }
 }
 
-/// Enough data from [CompletionSuggestionBuilder] to compute metrics.
-///
-/// It excludes expensive parts that are not necessary, such as element
-/// properties.
-class CompletionSuggestionLite {
-  final String completion;
-  final protocol.ElementKind? elementKind;
-  final int relevance;
-  final protocol.CompletionSuggestionKind kind;
-
-  CompletionSuggestionLite({
-    required this.completion,
-    required this.elementKind,
-    required this.relevance,
-    required this.kind,
-  });
-
-  factory CompletionSuggestionLite.fromBuilder(
-    CompletionSuggestionBuilder builder,
-  ) {
-    return CompletionSuggestionLite(
-      completion: builder.completion,
-      elementKind: builder.elementKind,
-      relevance: builder.relevance,
-      kind: builder.kind,
-    );
-  }
-
-  factory CompletionSuggestionLite.fromJson(Map<String, Object?> map) {
-    var elementKindStr = map['elementKind'] as String?;
-
-    return CompletionSuggestionLite(
-      completion: map['completion'] as String,
-      elementKind:
-          elementKindStr != null
-              ? protocol.ElementKind.fromJson(
-                ResponseDecoder(null),
-                '',
-                elementKindStr,
-              )
-              : null,
-      relevance: map['relevance'] as int,
-      kind: protocol.CompletionSuggestionKind.fromJson(
-        ResponseDecoder(null),
-        '',
-        map['kind'] as String,
-      ),
-    );
-  }
-
-  @override
-  int get hashCode => Object.hash(completion, kind);
-
-  @override
-  bool operator ==(Object other) {
-    return other is CompletionSuggestionLite &&
-        other.completion == completion &&
-        other.kind == kind &&
-        other.elementKind == elementKind &&
-        other.relevance == relevance;
-  }
-
-  /// Return a map used to represent this suggestion data in a JSON structure.
-  Map<String, Object?> toJson() {
-    return {
-      'completion': completion,
-      if (elementKind case var elementKind?) 'elementKind': elementKind.name,
-      'relevance': relevance,
-      'kind': kind.name,
-    };
-  }
-}
-
 /// The data to be printed on a single line in the table of mrr values per
 /// completion location.
 class LocationTableLine {
@@ -1931,7 +1851,7 @@ class MetricsSuggestionListener implements SuggestionListener {
     0.0,
   ];
 
-  Map<CompletionSuggestionLite, List<double>> featureMap = Map.identity();
+  Map<CandidateSuggestion, List<double>> featureMap = Map.identity();
 
   List<double> cachedFeatures = noFeatures;
 
@@ -1940,10 +1860,14 @@ class MetricsSuggestionListener implements SuggestionListener {
   String? missingCompletionLocationTable;
 
   @override
-  void builtSuggestion(CompletionSuggestionBuilder builder) {
-    var suggestion = CompletionSuggestionLite.fromBuilder(builder);
-    featureMap[suggestion] = cachedFeatures;
+  void builtCandidate(CandidateSuggestion candidate) {
+    featureMap[candidate] = cachedFeatures;
     cachedFeatures = noFeatures;
+  }
+
+  @override
+  void builtSuggestion(CompletionSuggestionBuilder builder) {
+    throw UnsupportedError('Unexpected use of SuggestionBuilder');
   }
 
   @override
@@ -2020,7 +1944,7 @@ class RelevanceTables {
 class ShadowedCompletion {
   final ExpectedCompletion expectedCompletion;
 
-  final CompletionSuggestionLite closeMatchSuggestion;
+  final CandidateSuggestion closeMatchSuggestion;
 
   ShadowedCompletion(this.expectedCompletion, this.closeMatchSuggestion);
 }
@@ -2028,7 +1952,7 @@ class ShadowedCompletion {
 /// The information being remembered about an individual suggestion.
 class SuggestionData {
   /// The suggestion that was produced.
-  CompletionSuggestionLite suggestion;
+  CandidateSuggestion suggestion;
 
   /// The values of the features used to compute the suggestion.
   List<double> features;
@@ -2037,17 +1961,17 @@ class SuggestionData {
 
   /// Return an instance extracted from the decoded JSON [map].
   factory SuggestionData.fromJson(Map<String, dynamic> map) {
-    return SuggestionData(
-      CompletionSuggestionLite.fromJson(
-        map['suggestion'] as Map<String, Object?>,
-      ),
-      (map['features'] as List<dynamic>).cast<double>(),
-    );
+    throw UnimplementedError();
+    // return SuggestionData(
+    //   CandidateSuggestion.fromJson(map['suggestion'] as Map<String, Object?>),
+    //   (map['features'] as List<dynamic>).cast<double>(),
+    // );
   }
 
   /// Return a map used to represent this suggestion data in a JSON structure.
   Map<String, dynamic> toJson() {
-    return {'suggestion': suggestion.toJson(), 'features': features};
+    throw UnimplementedError();
+    // return {'suggestion': suggestion.toJson(), 'features': features};
   }
 }
 
@@ -2091,6 +2015,14 @@ extension on CompletionGroup {
       case CompletionGroup.unknown:
         return 'unknown';
     }
+  }
+}
+
+extension on CandidateSuggestion {
+  /// The kind of element being suggested.
+  protocol.CompletionSuggestionKind? get kind {
+    // TODO(brianwilkerson): Implement this.
+    return null;
   }
 }
 

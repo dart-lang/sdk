@@ -21,7 +21,7 @@ class DocDirectiveArgumentWrongFormatTest extends PubPackageResolutionTest {
 /// {@animation 600 nan http://google.com}
 class C {}
 ''',
-      [error(WarningCode.DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT, 20, 3)],
+      [error(WarningCode.docDirectiveArgumentWrongFormat, 20, 3)],
     );
   }
 
@@ -38,7 +38,7 @@ class C {}
 /// {@animation nan 400 http://google.com}
 class C {}
 ''',
-      [error(WarningCode.DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT, 16, 3)],
+      [error(WarningCode.docDirectiveArgumentWrongFormat, 16, 3)],
     );
   }
 
@@ -48,7 +48,7 @@ class C {}
 /// {@youtube 600 nan https://www.youtube.com/watch?v=123}
 class C {}
 ''',
-      [error(WarningCode.DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT, 18, 3)],
+      [error(WarningCode.docDirectiveArgumentWrongFormat, 18, 3)],
     );
   }
 
@@ -58,7 +58,7 @@ class C {}
 /// {@youtube 600 400 http://google.com}
 class C {}
 ''',
-      [error(WarningCode.DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT, 22, 17)],
+      [error(WarningCode.docDirectiveArgumentWrongFormat, 22, 17)],
     );
   }
 
@@ -68,7 +68,7 @@ class C {}
 /// {@youtube nan 400 https://www.youtube.com/watch?v=123}
 class C {}
 ''',
-      [error(WarningCode.DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT, 14, 3)],
+      [error(WarningCode.docDirectiveArgumentWrongFormat, 14, 3)],
     );
   }
 }

@@ -176,10 +176,9 @@ class _Validator {
   Never fail(String message) {
     throw ValidationError(
       address: address,
-      instructionString:
-          address < ir.endAddress
-              ? ir.instructionToString(address)
-              : 'after last instruction',
+      instructionString: address < ir.endAddress
+          ? ir.instructionToString(address)
+          : 'after last instruction',
       message: message,
     );
   }

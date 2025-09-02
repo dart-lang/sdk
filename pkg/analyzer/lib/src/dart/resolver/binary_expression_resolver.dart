@@ -70,7 +70,7 @@ class BinaryExpressionResolver {
     if (operator != TokenType.BANG_EQ_EQ && operator != TokenType.EQ_EQ_EQ) {
       _diagnosticReporter.atToken(
         node.operator,
-        CompileTimeErrorCode.NOT_BINARY_OPERATOR,
+        CompileTimeErrorCode.notBinaryOperator,
         arguments: [operator.lexeme],
       );
     }
@@ -85,7 +85,7 @@ class BinaryExpressionResolver {
   }) {
     _resolver.boolExpressionVerifier.checkForNonBoolExpression(
       operand,
-      diagnosticCode: CompileTimeErrorCode.NON_BOOL_OPERAND,
+      diagnosticCode: CompileTimeErrorCode.nonBoolOperand,
       arguments: [operator],
       whyNotPromoted: whyNotPromoted,
     );
@@ -146,10 +146,9 @@ class BinaryExpressionResolver {
     );
 
     void reportNullComparison(SyntacticEntity start, SyntacticEntity end) {
-      var errorCode =
-          notEqual
-              ? WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE
-              : WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE;
+      var errorCode = notEqual
+          ? WarningCode.unnecessaryNullComparisonAlwaysNullFalse
+          : WarningCode.unnecessaryNullComparisonAlwaysNullTrue;
       var offset = start.offset;
       _diagnosticReporter.atOffset(
         offset: offset,
@@ -215,10 +214,9 @@ class BinaryExpressionResolver {
     var t = _typeSystem.leastUpperBound(nonNullT1, t2);
 
     // - Let `S` be the greatest closure of `K`.
-    var s =
-        _resolver.operations
-            .greatestClosureOfSchema(SharedTypeSchemaView(contextType))
-            .unwrapTypeView<TypeImpl>();
+    var s = _resolver.operations
+        .greatestClosureOfSchema(SharedTypeSchemaView(contextType))
+        .unwrapTypeView<TypeImpl>();
 
     DartType staticType;
     // If `inferenceUpdate3` is not enabled, then the type of `E` is `T`.
@@ -407,7 +405,7 @@ class BinaryExpressionResolver {
         // safe to assume `extension.name` is non-`null`.
         _diagnosticReporter.atToken(
           node.operator,
-          CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
+          CompileTimeErrorCode.undefinedExtensionOperator,
           arguments: [methodName, extension.name!],
         );
       }
@@ -421,7 +419,7 @@ class BinaryExpressionResolver {
     if (identical(leftType, NeverTypeImpl.instance)) {
       _resolver.diagnosticReporter.atNode(
         leftOperand,
-        WarningCode.RECEIVER_OF_TYPE_NEVER,
+        WarningCode.receiverOfTypeNever,
       );
       return;
     }
@@ -446,13 +444,13 @@ class BinaryExpressionResolver {
       if (leftOperand is SuperExpression) {
         _diagnosticReporter.atToken(
           node.operator,
-          CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR,
+          CompileTimeErrorCode.undefinedSuperOperator,
           arguments: [methodName, leftType],
         );
       } else {
         _diagnosticReporter.atToken(
           node.operator,
-          CompileTimeErrorCode.UNDEFINED_OPERATOR,
+          CompileTimeErrorCode.undefinedOperator,
           arguments: [methodName, leftType],
         );
       }
@@ -463,7 +461,7 @@ class BinaryExpressionResolver {
     var leftOperand = node.leftOperand;
 
     TypeImpl leftType;
-     if (leftOperand is ExtensionOverrideImpl) {
+    if (leftOperand is ExtensionOverrideImpl) {
       leftType = leftOperand.extendedType!;
     } else {
       leftType = leftOperand.typeOrThrow;

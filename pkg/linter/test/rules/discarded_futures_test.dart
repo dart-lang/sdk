@@ -272,7 +272,7 @@ Future<void> g() async {}
 ''',
       [
         // No lint.
-        error(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 13, 5),
+        error(CompileTimeErrorCode.awaitInWrongContext, 13, 5),
       ],
     );
   }
@@ -290,7 +290,7 @@ class C {
 ''',
       [
         // No lint.
-        error(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 27, 5),
+        error(CompileTimeErrorCode.awaitInWrongContext, 27, 5),
       ],
     );
   }

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -17,10 +18,13 @@ class PreferForeach extends LintRule {
   PreferForeach() : super(name: LintNames.prefer_foreach, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_foreach;
+  DiagnosticCode get diagnosticCode => LinterLintCode.preferForeach;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addForStatement(this, visitor);
   }
@@ -49,7 +53,7 @@ class _PreferForEachVisitor extends SimpleAstVisitor<void> {
   void visitForStatement(ForStatement node) {
     var loopParts = node.forLoopParts;
     if (loopParts is ForEachPartsWithDeclaration) {
-      var element = loopParts.loopVariable.declaredElement;
+      var element = loopParts.loopVariable.declaredFragment?.element;
       if (element != null) {
         forEachStatement = node;
         this.element = element;

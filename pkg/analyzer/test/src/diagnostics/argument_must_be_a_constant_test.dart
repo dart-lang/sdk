@@ -28,7 +28,7 @@ doThings() {
   f(8);
 }
 ''',
-      [error(FfiCode.ARGUMENT_MUST_BE_A_CONSTANT, 231, 6)],
+      [error(FfiCode.argumentMustBeAConstant, 231, 6)],
     );
   }
 
@@ -45,7 +45,7 @@ doThings() {
   f(8);
 }
 ''',
-      [error(FfiCode.ARGUMENT_MUST_BE_A_CONSTANT, 233, 6)],
+      [error(FfiCode.argumentMustBeAConstant, 233, 6)],
     );
   }
 
@@ -61,7 +61,7 @@ doThings(bool isLeaf) {
   f(8);
 }
 ''',
-      [error(FfiCode.ARGUMENT_MUST_BE_A_CONSTANT, 221, 6)],
+      [error(FfiCode.argumentMustBeAConstant, 221, 6)],
     );
   }
 
@@ -76,7 +76,7 @@ void testFromFunctionFunctionExceptionValueMustBeConst() {
   Pointer.fromFunction<NativeDoubleUnOp>(myTimesThree, notAConst);
 }
 ''',
-      [error(FfiCode.ARGUMENT_MUST_BE_A_CONSTANT, 250, 9)],
+      [error(FfiCode.argumentMustBeAConstant, 250, 9)],
     );
   }
 
@@ -91,7 +91,7 @@ doThings(bool isLeaf) {
   l.lookupFunction<Int8UnOp, IntUnOp>("timesFour", isLeaf:isLeaf);
 }
 ''',
-      [error(FfiCode.ARGUMENT_MUST_BE_A_CONSTANT, 230, 6)],
+      [error(FfiCode.argumentMustBeAConstant, 230, 6)],
     );
   }
 }

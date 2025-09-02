@@ -52,20 +52,20 @@ class ForwardingNode {
   final bool _declarationIsMixinApplication;
 
   ForwardingNode(
-      this.libraryBuilder,
-      this.declarationBuilder,
-      this.typeDeclaration,
-      this.indexedContainer,
-      this._combinedMemberSignature,
-      this.kind,
-      {ClassMember? superClassMember,
-      ClassMember? mixedInMember,
-      ClassMember? noSuchMethodTarget,
-      required bool declarationIsMixinApplication})
-      : this._superClassMember = superClassMember,
-        this._mixedInMember = mixedInMember,
-        this._noSuchMethodTarget = noSuchMethodTarget,
-        this._declarationIsMixinApplication = declarationIsMixinApplication;
+    this.libraryBuilder,
+    this.declarationBuilder,
+    this.typeDeclaration,
+    this.indexedContainer,
+    this._combinedMemberSignature,
+    this.kind, {
+    ClassMember? superClassMember,
+    ClassMember? mixedInMember,
+    ClassMember? noSuchMethodTarget,
+    required bool declarationIsMixinApplication,
+  }) : this._superClassMember = superClassMember,
+       this._mixedInMember = mixedInMember,
+       this._noSuchMethodTarget = noSuchMethodTarget,
+       this._declarationIsMixinApplication = declarationIsMixinApplication;
 
   /// Finishes handling of this node by propagating covariance and creating
   /// forwarding stubs, mixin stubs, member signature or noSuchMethod forwarders
@@ -75,8 +75,9 @@ class ForwardingNode {
   /// returned.
   Procedure? finalize() {
     ClassMember canonicalMember = _combinedMemberSignature.canonicalMember!;
-    Member interfaceMember =
-        canonicalMember.getMember(_combinedMemberSignature.membersBuilder);
+    Member interfaceMember = canonicalMember.getMember(
+      _combinedMemberSignature.membersBuilder,
+    );
 
     // If the class is a mixin application and the member is declared in the
     // mixin, we insert a mixin stub for the member:
@@ -103,10 +104,12 @@ class ForwardingNode {
       // forwarding stub.
       if (_combinedMemberSignature.neededLegacyErasure) {
         return _combinedMemberSignature.createMemberFromSignature(
-            typeDeclaration, indexedContainer,
-            // TODO(johnniwinther): Change member signatures to use location
-            // of origin.
-            copyLocation: false);
+          typeDeclaration,
+          indexedContainer,
+          // TODO(johnniwinther): Change member signatures to use location
+          // of origin.
+          copyLocation: false,
+        );
       } else {
         // Nothing to do.
         return null;
@@ -121,14 +124,15 @@ class ForwardingNode {
             _combinedMemberSignature.isCanonicalMemberDeclared);
     bool needsTypeOrCovarianceUpdate =
         _combinedMemberSignature.neededNnbdTopMerge ||
-            _combinedMemberSignature.neededLegacyErasure ||
-            _combinedMemberSignature.needsCovarianceMerging;
+        _combinedMemberSignature.neededLegacyErasure ||
+        _combinedMemberSignature.needsCovarianceMerging;
     bool needsSuperImpl = false;
     Member? superTarget;
     bool hasValidImplementation = false;
     if (_superClassMember != null) {
-      superTarget =
-          _superClassMember.getMember(_combinedMemberSignature.membersBuilder);
+      superTarget = _superClassMember.getMember(
+        _combinedMemberSignature.membersBuilder,
+      );
       if (superTarget is Procedure &&
           interfaceMember is Procedure &&
           (superTarget.function.positionalParameters.length <
@@ -166,16 +170,18 @@ class ForwardingNode {
           //       method2(num i); // A new noSuchMethod forwarder is needed.
           //     }
           //
-          DartType superTargetType =
-              _combinedMemberSignature.getMemberTypeForTarget(superTarget);
-          DartType interfaceMemberType =
-              _combinedMemberSignature.getMemberTypeForTarget(interfaceMember);
+          DartType superTargetType = _combinedMemberSignature
+              .getMemberTypeForTarget(superTarget);
+          DartType interfaceMemberType = _combinedMemberSignature
+              .getMemberTypeForTarget(interfaceMember);
           hasValidImplementation = superTargetType == interfaceMemberType;
         } else {
           // [superTarget] is a valid implementation for [interfaceMember] so
           // we need to add concrete forwarding stub of the variances differ.
-          needsSuperImpl = _superClassMember
-                  .getCovariance(_combinedMemberSignature.membersBuilder) !=
+          needsSuperImpl =
+              _superClassMember.getCovariance(
+                _combinedMemberSignature.membersBuilder,
+              ) !=
               _combinedMemberSignature.combinedMemberSignatureCovariance;
           hasValidImplementation = true;
         }
@@ -183,14 +189,17 @@ class ForwardingNode {
     }
     bool needsNoSuchMethodForwarder =
         hasNoSuchMethodTarget && !hasValidImplementation;
-    bool stubNeeded = cannotReuseExistingMember ||
+    bool stubNeeded =
+        cannotReuseExistingMember ||
         (canonicalMember.declarationBuilder != declarationBuilder &&
             (needsTypeOrCovarianceUpdate || needsNoSuchMethodForwarder)) ||
         needMixinStub;
     if (stubNeeded) {
       Procedure stub = _combinedMemberSignature.createMemberFromSignature(
-          typeDeclaration, indexedContainer,
-          copyLocation: false)!;
+        typeDeclaration,
+        indexedContainer,
+        copyLocation: false,
+      )!;
       bool needsForwardingStub =
           _combinedMemberSignature.needsCovarianceMerging || needsSuperImpl;
       if (needsForwardingStub || needMixinStub || needsNoSuchMethodForwarder) {
@@ -217,9 +226,10 @@ class ForwardingNode {
               // Coverage-ignore(suite): Not run.
               case ProcedureStubKind.RepresentationField:
                 assert(
-                    false,
-                    "Unexpected representation field as forwarding stub target "
-                    "$interfaceMember.");
+                  false,
+                  "Unexpected representation field as forwarding stub target "
+                  "$interfaceMember.",
+                );
                 finalTarget = interfaceMember;
                 break;
             }
@@ -228,21 +238,29 @@ class ForwardingNode {
           }
         } else {
           stubKind = ProcedureStubKind.AbstractMixinStub;
-          finalTarget = _mixedInMember!
-              .getMember(_combinedMemberSignature.membersBuilder);
+          finalTarget = _mixedInMember!.getMember(
+            _combinedMemberSignature.membersBuilder,
+          );
         }
 
         stub.stubKind = stubKind;
         stub.stubTarget = finalTarget;
         if (needsNoSuchMethodForwarder) {
           _createNoSuchMethodForwarder(
-              _noSuchMethodTarget.getMember(
-                  _combinedMemberSignature.membersBuilder) as Procedure,
-              stub);
+            _noSuchMethodTarget.getMember(
+                  _combinedMemberSignature.membersBuilder,
+                )
+                as Procedure,
+            stub,
+          );
         } else if (needsSuperImpl ||
             (needMixinStub && _superClassMember == _mixedInMember)) {
-          _createForwardingImplIfNeeded(stub.function, stub.name, superTarget,
-              isForwardingStub: needsForwardingStub);
+          _createForwardingImplIfNeeded(
+            stub.function,
+            stub.name,
+            superTarget,
+            isForwardingStub: needsForwardingStub,
+          );
         }
       }
 
@@ -254,27 +272,36 @@ class ForwardingNode {
             .applyCovariance(interfaceMember);
       }
       if (needsNoSuchMethodForwarder) {
-        assert(interfaceMember is Procedure,
-            "Unexpected abstract member: ${interfaceMember}");
+        assert(
+          interfaceMember is Procedure,
+          "Unexpected abstract member: ${interfaceMember}",
+        );
         (interfaceMember as Procedure).stubKind =
             ProcedureStubKind.NoSuchMethodForwarder;
         interfaceMember.stubTarget = null;
         _createNoSuchMethodForwarder(
-            _noSuchMethodTarget.getMember(
-                _combinedMemberSignature.membersBuilder) as Procedure,
-            interfaceMember);
+          _noSuchMethodTarget.getMember(_combinedMemberSignature.membersBuilder)
+              as Procedure,
+          interfaceMember,
+        );
       } else if (needsSuperImpl) {
         _createForwardingImplIfNeeded(
-            interfaceMember.function!, interfaceMember.name, superTarget,
-            isForwardingStub: true);
+          interfaceMember.function!,
+          interfaceMember.name,
+          superTarget,
+          isForwardingStub: true,
+        );
       }
       return null;
     }
   }
 
   void _createForwardingImplIfNeeded(
-      FunctionNode function, Name name, Member? superTarget,
-      {required bool isForwardingStub}) {
+    FunctionNode function,
+    Name name,
+    Member? superTarget, {
+    required bool isForwardingStub,
+  }) {
     if (function.body != null) {
       // There is already an implementation; nothing further needs to be done.
       return;
@@ -292,88 +319,114 @@ class ForwardingNode {
       superTarget = superTarget.memberSignatureOrigin ?? superTarget;
     }
     procedure.isAbstract = false;
-    FunctionType signatureType = procedure.function
-        .computeFunctionType(procedure.enclosingLibrary.nonNullable);
+    FunctionType signatureType = procedure.function.computeFunctionType(
+      procedure.enclosingLibrary.nonNullable,
+    );
     bool isForwardingSemiStub = isForwardingStub && !procedure.isSynthetic;
     bool needsSignatureType = false;
     Expression superCall;
     assert(
-        !superTarget.isAbstract,
-        "Abstract super target $superTarget found for '${name}' in "
-        "${typeDeclaration}.");
+      !superTarget.isAbstract,
+      "Abstract super target $superTarget found for '${name}' in "
+      "${typeDeclaration}.",
+    );
     switch (kind) {
       case ProcedureKind.Method:
       case ProcedureKind.Operator:
-        FunctionType type = _combinedMemberSignature
-            .getMemberTypeForTarget(superTarget) as FunctionType;
+        FunctionType type =
+            _combinedMemberSignature.getMemberTypeForTarget(superTarget)
+                as FunctionType;
         if (type.typeParameters.isNotEmpty) {
           type = FunctionTypeInstantiator.instantiate(
-              type,
-              function.typeParameters
-                  .map((TypeParameter parameter) =>
-                      new TypeParameterType.withDefaultNullability(parameter))
-                  .toList());
+            type,
+            function.typeParameters
+                .map(
+                  (TypeParameter parameter) =>
+                      new TypeParameterType.withDefaultNullability(parameter),
+                )
+                .toList(),
+          );
         }
         List<Expression> positionalArguments = new List.generate(
-            function.positionalParameters.length, (int index) {
-          VariableDeclaration parameter = function.positionalParameters[index];
-          int fileOffset = parameter.fileOffset;
-          Expression expression = new VariableGet(parameter)
-            ..fileOffset = fileOffset;
-          DartType superParameterType = type.positionalParameters[index];
-          if (isForwardingSemiStub) {
-            if (parameter.type != superParameterType) {
-              parameter.type = superParameterType;
-              needsSignatureType = true;
+          function.positionalParameters.length,
+          (int index) {
+            VariableDeclaration parameter =
+                function.positionalParameters[index];
+            int fileOffset = parameter.fileOffset;
+            Expression expression = new VariableGet(parameter)
+              ..fileOffset = fileOffset;
+            DartType superParameterType = type.positionalParameters[index];
+            if (isForwardingSemiStub) {
+              if (parameter.type != superParameterType) {
+                parameter.type = superParameterType;
+                needsSignatureType = true;
+              }
+            } else {
+              if (!_combinedMemberSignature.hierarchy.types.isSubtypeOf(
+                parameter.type,
+                superParameterType,
+              )) {
+                expression = new AsExpression(expression, superParameterType)
+                  ..fileOffset = fileOffset;
+              }
             }
-          } else {
-            if (!_combinedMemberSignature.hierarchy.types
-                .isSubtypeOf(parameter.type, superParameterType)) {
-              expression = new AsExpression(expression, superParameterType)
-                ..fileOffset = fileOffset;
+            return expression;
+          },
+          growable: true,
+        );
+        List<NamedExpression> namedArguments = new List.generate(
+          function.namedParameters.length,
+          (int index) {
+            VariableDeclaration parameter = function.namedParameters[index];
+            int fileOffset = parameter.fileOffset;
+            Expression expression = new VariableGet(parameter)
+              ..fileOffset = fileOffset;
+            DartType superParameterType = type.namedParameters
+                .singleWhere(
+                  (NamedType namedType) => namedType.name == parameter.name,
+                )
+                .type;
+            if (isForwardingSemiStub) {
+              if (parameter.type != superParameterType) {
+                parameter.type = superParameterType;
+                needsSignatureType = true;
+              }
+            } else {
+              if (!_combinedMemberSignature.hierarchy.types.isSubtypeOf(
+                parameter.type,
+                superParameterType,
+              )) {
+                expression = new AsExpression(expression, superParameterType)
+                  ..fileOffset = fileOffset;
+              }
             }
-          }
-          return expression;
-        }, growable: true);
-        List<NamedExpression> namedArguments =
-            new List.generate(function.namedParameters.length, (int index) {
-          VariableDeclaration parameter = function.namedParameters[index];
-          int fileOffset = parameter.fileOffset;
-          Expression expression = new VariableGet(parameter)
-            ..fileOffset = fileOffset;
-          DartType superParameterType = type.namedParameters
-              .singleWhere(
-                  (NamedType namedType) => namedType.name == parameter.name)
-              .type;
-          if (isForwardingSemiStub) {
-            if (parameter.type != superParameterType) {
-              parameter.type = superParameterType;
-              needsSignatureType = true;
-            }
-          } else {
-            if (!_combinedMemberSignature.hierarchy.types
-                .isSubtypeOf(parameter.type, superParameterType)) {
-              expression = new AsExpression(expression, superParameterType)
-                ..fileOffset = fileOffset;
-            }
-          }
-          return new NamedExpression(parameter.name!, expression);
-        }, growable: true);
+            return new NamedExpression(parameter.name!, expression);
+          },
+          growable: true,
+        );
         List<DartType> typeArguments = function.typeParameters
-            .map<DartType>((typeParameter) =>
-                new TypeParameterType.withDefaultNullability(typeParameter))
+            .map<DartType>(
+              (typeParameter) =>
+                  new TypeParameterType.withDefaultNullability(typeParameter),
+            )
             .toList();
-        Arguments arguments = new Arguments(positionalArguments,
-            types: typeArguments, named: namedArguments);
+        Arguments arguments = new Arguments(
+          positionalArguments,
+          types: typeArguments,
+          named: namedArguments,
+        );
         superCall = new SuperMethodInvocation(
-            name, arguments, superTarget as Procedure);
+          name,
+          arguments,
+          superTarget as Procedure,
+        );
         break;
       case ProcedureKind.Getter:
         superCall = new SuperPropertyGet(name, superTarget);
         break;
       case ProcedureKind.Setter:
-        DartType superParameterType =
-            _combinedMemberSignature.getMemberTypeForTarget(superTarget);
+        DartType superParameterType = _combinedMemberSignature
+            .getMemberTypeForTarget(superTarget);
         VariableDeclaration parameter = function.positionalParameters[0];
         int fileOffset = parameter.fileOffset;
         Expression expression = new VariableGet(parameter)
@@ -384,8 +437,10 @@ class ForwardingNode {
             needsSignatureType = true;
           }
         } else {
-          if (!_combinedMemberSignature.hierarchy.types
-              .isSubtypeOf(parameter.type, superParameterType)) {
+          if (!_combinedMemberSignature.hierarchy.types.isSubtypeOf(
+            parameter.type,
+            superParameterType,
+          )) {
             expression = new AsExpression(expression, superParameterType)
               ..fileOffset = fileOffset;
           }
@@ -410,7 +465,9 @@ class ForwardingNode {
   }
 
   void _createNoSuchMethodForwarder(
-      Procedure noSuchMethodInterface, Procedure procedure) {
+    Procedure noSuchMethodInterface,
+    Procedure procedure,
+  ) {
     bool shouldThrow = false;
     Name procedureName = procedure.name;
     if (procedureName.isPrivate) {
@@ -429,33 +486,41 @@ class ForwardingNode {
     String prefix = procedure.isGetter
         ? 'get:'
         : procedure.isSetter
-            ? 'set:'
-            : '';
+        ? 'set:'
+        : '';
     String invocationName = prefix + procedureName.text;
     if (procedure.isSetter) invocationName += '=';
     KernelTarget target = libraryBuilder.loader.target;
     CoreTypes coreTypes = target.loader.coreTypes;
     Expression invocation = target.backendTarget.instantiateInvocation(
-        coreTypes,
-        new ThisExpression(),
-        invocationName,
-        new Arguments.forwarded(procedure.function, libraryBuilder.library),
-        procedure.fileOffset,
-        /*isSuper=*/ false);
+      coreTypes,
+      new ThisExpression(),
+      invocationName,
+      new Arguments.forwarded(procedure.function, libraryBuilder.library),
+      procedure.fileOffset,
+      /*isSuper=*/ false,
+    );
     if (shouldThrow) {
       // Build `throw new NoSuchMethodError(this, invocation)`.
-      result = new Throw(new StaticInvocation(
-          coreTypes.noSuchMethodErrorDefaultConstructor,
-          new Arguments([new ThisExpression(), invocation])))
-        ..fileOffset = procedure.fileOffset
-        ..forErrorHandling = true;
+      result =
+          new Throw(
+              new StaticInvocation(
+                coreTypes.noSuchMethodErrorDefaultConstructor,
+                new Arguments([new ThisExpression(), invocation]),
+              ),
+            )
+            ..fileOffset = procedure.fileOffset
+            ..forErrorHandling = true;
     } else {
       // Build `this.noSuchMethod(invocation)`.
-      result = new InstanceInvocation(InstanceAccessKind.Instance,
-          new ThisExpression(), noSuchMethodName, new Arguments([invocation]),
-          functionType: noSuchMethodInterface.getterType as FunctionType,
-          interfaceTarget: noSuchMethodInterface)
-        ..fileOffset = procedure.fileOffset;
+      result = new InstanceInvocation(
+        InstanceAccessKind.Instance,
+        new ThisExpression(),
+        noSuchMethodName,
+        new Arguments([invocation]),
+        functionType: noSuchMethodInterface.getterType as FunctionType,
+        interfaceTarget: noSuchMethodInterface,
+      )..fileOffset = procedure.fileOffset;
       if (procedure.function.returnType is! VoidType) {
         result = new AsExpression(result, procedure.function.returnType)
           ..isTypeError = true
@@ -464,16 +529,19 @@ class ForwardingNode {
       }
     }
 
-    FunctionType signatureType = procedure.function
-        .computeFunctionType(procedure.enclosingLibrary.nonNullable);
+    FunctionType signatureType = procedure.function.computeFunctionType(
+      procedure.enclosingLibrary.nonNullable,
+    );
     List<VariableDeclaration> positionalParameters =
         procedure.function.positionalParameters;
     List<VariableDeclaration> namedParameters =
         procedure.function.namedParameters;
     int requiredParameterCount = procedure.function.requiredParameterCount;
     bool hasUpdate = false;
-    bool updateNullability(VariableDeclaration parameter,
-        {required bool isRequired}) {
+    bool updateNullability(
+      VariableDeclaration parameter, {
+      required bool isRequired,
+    }) {
       // Parameters in nnbd libraries that backends might not be able to pass
       // a non-null value for must be nullable. This allows backends to do the
       // appropriate parameter checks in the forwarder stub for null placeholder
@@ -489,16 +557,18 @@ class ForwardingNode {
       VariableDeclaration parameter = positionalParameters[i];
       bool isRequired = i < requiredParameterCount;
       if (updateNullability(parameter, isRequired: isRequired)) {
-        parameter.type =
-            parameter.type.withDeclaredNullability(Nullability.nullable);
+        parameter.type = parameter.type.withDeclaredNullability(
+          Nullability.nullable,
+        );
         hasUpdate = true;
       }
     }
 
     for (VariableDeclaration parameter in namedParameters) {
       if (updateNullability(parameter, isRequired: parameter.isRequired)) {
-        parameter.type =
-            parameter.type.withDeclaredNullability(Nullability.nullable);
+        parameter.type = parameter.type.withDeclaredNullability(
+          Nullability.nullable,
+        );
         hasUpdate = true;
       }
     }

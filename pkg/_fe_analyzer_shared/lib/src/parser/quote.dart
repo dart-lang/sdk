@@ -180,27 +180,25 @@ String unescape(
   switch (quote) {
     case Quote.Single:
     case Quote.Double:
-      result =
-          !string.contains("\\")
-              ? string
-              : unescapeCodeUnits(
-                string.codeUnits,
-                /* isRaw = */ false,
-                location,
-                listener,
-              );
+      result = !string.contains("\\")
+          ? string
+          : unescapeCodeUnits(
+              string.codeUnits,
+              /* isRaw = */ false,
+              location,
+              listener,
+            );
       break;
     case Quote.MultiLineSingle:
     case Quote.MultiLineDouble:
-      result =
-          !string.contains("\\") && !string.contains("\r")
-              ? string
-              : unescapeCodeUnits(
-                string.codeUnits,
-                /* isRaw = */ false,
-                location,
-                listener,
-              );
+      result = !string.contains("\\") && !string.contains("\r")
+          ? string
+          : unescapeCodeUnits(
+              string.codeUnits,
+              /* isRaw = */ false,
+              location,
+              listener,
+            );
       break;
     case Quote.RawSingle:
     case Quote.RawDouble:
@@ -208,15 +206,14 @@ String unescape(
       break;
     case Quote.RawMultiLineSingle:
     case Quote.RawMultiLineDouble:
-      result =
-          !string.contains("\r")
-              ? string
-              : unescapeCodeUnits(
-                string.codeUnits,
-                /* isRaw = */ true,
-                location,
-                listener,
-              );
+      result = !string.contains("\r")
+          ? string
+          : unescapeCodeUnits(
+              string.codeUnits,
+              /* isRaw = */ true,
+              location,
+              listener,
+            );
       break;
   }
   return considerCanonicalizeString(result);
@@ -245,7 +242,7 @@ String unescapeCodeUnits(
       if (codeUnits.length == ++i) {
         // This should only be reachable in error cases.
         listener.handleUnescapeError(
-          codes.messageInvalidEscapeStarted,
+          codes.codeInvalidEscapeStarted,
           location,
           i,
           /* length = */ 1,
@@ -279,7 +276,7 @@ String unescapeCodeUnits(
         int begin = i;
         if (codeUnits.length <= i + 2) {
           listener.handleUnescapeError(
-            codes.messageInvalidHexEscape,
+            codes.codeInvalidHexEscape,
             location,
             begin,
             codeUnits.length + 1 - begin,
@@ -291,7 +288,7 @@ String unescapeCodeUnits(
           int digit = codeUnits[++i];
           if (!isHexDigit(digit)) {
             listener.handleUnescapeError(
-              codes.messageInvalidHexEscape,
+              codes.codeInvalidHexEscape,
               location,
               begin,
               i + 1 - begin,
@@ -304,7 +301,7 @@ String unescapeCodeUnits(
         int begin = i;
         if (codeUnits.length == i + 1) {
           listener.handleUnescapeError(
-            codes.messageInvalidUnicodeEscapeUStarted,
+            codes.codeInvalidUnicodeEscapeUStarted,
             location,
             begin,
             codeUnits.length + 1 - begin,
@@ -317,7 +314,7 @@ String unescapeCodeUnits(
           // Expect 1-6 hex digits followed by '}'.
           if (codeUnits.length == ++i) {
             listener.handleUnescapeError(
-              codes.messageInvalidUnicodeEscapeUBracket,
+              codes.codeInvalidUnicodeEscapeUBracket,
               location,
               begin,
               i + 1 - begin,
@@ -328,7 +325,7 @@ String unescapeCodeUnits(
           for (int j = 0; j < 7; j++) {
             if (codeUnits.length == ++i) {
               listener.handleUnescapeError(
-                codes.messageInvalidUnicodeEscapeUBracket,
+                codes.codeInvalidUnicodeEscapeUBracket,
                 location,
                 begin,
                 i + 1 - begin,
@@ -344,7 +341,7 @@ String unescapeCodeUnits(
             }
             if (!isHexDigit(digit)) {
               listener.handleUnescapeError(
-                codes.messageInvalidUnicodeEscapeUBracket,
+                codes.codeInvalidUnicodeEscapeUBracket,
                 location,
                 begin,
                 i + 2 - begin,
@@ -355,7 +352,7 @@ String unescapeCodeUnits(
           }
           if (!foundEndBracket) {
             listener.handleUnescapeError(
-              codes.messageInvalidUnicodeEscapeUBracket,
+              codes.codeInvalidUnicodeEscapeUBracket,
               location,
               begin,
               i + 1 - begin,
@@ -365,7 +362,7 @@ String unescapeCodeUnits(
           // Expect exactly 4 hex digits.
           if (codeUnits.length <= i + 4) {
             listener.handleUnescapeError(
-              codes.messageInvalidUnicodeEscapeUNoBracket,
+              codes.codeInvalidUnicodeEscapeUNoBracket,
               location,
               begin,
               codeUnits.length + 1 - begin,
@@ -377,7 +374,7 @@ String unescapeCodeUnits(
             int digit = codeUnits[++i];
             if (!isHexDigit(digit)) {
               listener.handleUnescapeError(
-                codes.messageInvalidUnicodeEscapeUNoBracket,
+                codes.codeInvalidUnicodeEscapeUNoBracket,
                 location,
                 begin,
                 i + 1 - begin,
@@ -389,7 +386,7 @@ String unescapeCodeUnits(
         }
         if (code > 0x10FFFF) {
           listener.handleUnescapeError(
-            codes.messageInvalidCodePoint,
+            codes.codeInvalidCodePoint,
             location,
             begin,
             i + 1 - begin,

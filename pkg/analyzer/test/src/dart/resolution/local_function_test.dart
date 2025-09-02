@@ -53,7 +53,7 @@ f() {
     g() {}
 }
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 23, 1)],
+      [error(WarningCode.unusedElement, 23, 1)],
     );
     var node = findNode.functionDeclaration('g() {}');
     var fragment = node.declaredFragment!;

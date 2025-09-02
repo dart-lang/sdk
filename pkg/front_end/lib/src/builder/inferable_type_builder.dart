@@ -26,8 +26,11 @@ class InferableTypeUse implements InferableType {
 
   @override
   DartType inferType(ClassHierarchyBase hierarchy) {
-    return typeBuilder.build(sourceLibraryBuilder, typeUse,
-        hierarchy: hierarchy);
+    return typeBuilder.build(
+      sourceLibraryBuilder,
+      typeUse,
+      hierarchy: hierarchy,
+    );
   }
 }
 

@@ -94,7 +94,7 @@ abstract class TypeProviderBase implements TypeProvider {
   }
 }
 
-  class TypeProviderImpl extends TypeProviderBase {
+class TypeProviderImpl extends TypeProviderBase {
   final LibraryElementImpl _coreLibrary;
   final LibraryElementImpl _asyncLibrary;
 
@@ -212,10 +212,8 @@ abstract class TypeProviderBase implements TypeProvider {
     );
   }
 
-  InterfaceTypeImpl get doubleTypeQuestion =>
-      _doubleTypeQuestion ??= doubleType.withNullability(
-        NullabilitySuffix.question,
-      );
+  InterfaceTypeImpl get doubleTypeQuestion => _doubleTypeQuestion ??= doubleType
+      .withNullability(NullabilitySuffix.question);
 
   @override
   TypeImpl get dynamicType => DynamicTypeImpl.instance;

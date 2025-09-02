@@ -1,0 +1,7 @@
+Errors: {
+}
+static method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr(dart.core::_GrowableList<dart.core::String> list, dart.core::_OneByteString input) → dynamic
+  return #C1;
+constants  {
+  #C1 = "hello from foo"
+}

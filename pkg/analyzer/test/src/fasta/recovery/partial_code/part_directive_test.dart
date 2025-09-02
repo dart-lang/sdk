@@ -16,14 +16,14 @@ class PartDirectivesTest extends PartialCodeTest {
       TestDescriptor('keyword', 'part', [
         // TODO(danrubel): Consider an improved error message
         // ParserErrorCode.MISSING_URI,
-        ParserErrorCode.EXPECTED_STRING_LITERAL,
-        ParserErrorCode.EXPECTED_TOKEN,
+        ParserErrorCode.expectedStringLiteral,
+        ParserErrorCode.expectedToken,
       ], "part '';"),
       TestDescriptor('emptyUri', "part ''", [
-        ParserErrorCode.EXPECTED_TOKEN,
+        ParserErrorCode.expectedToken,
       ], "part '';"),
       TestDescriptor('uri', "part 'a.dart'", [
-        ParserErrorCode.EXPECTED_TOKEN,
+        ParserErrorCode.expectedToken,
       ], "part 'a.dart';"),
     ], PartialCodeTest.postPartSuffixes);
   }

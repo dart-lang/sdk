@@ -42,19 +42,19 @@ class RedeclareVerifier extends RecursiveAstVisitor<void> {
         case MethodElement():
           _errorReporter.atToken(
             node.name,
-            WarningCode.REDECLARE_ON_NON_REDECLARING_MEMBER,
+            WarningCode.redeclareOnNonRedeclaringMember,
             arguments: ['method'],
           );
         case GetterElement():
           _errorReporter.atToken(
             node.name,
-            WarningCode.REDECLARE_ON_NON_REDECLARING_MEMBER,
+            WarningCode.redeclareOnNonRedeclaringMember,
             arguments: ['getter'],
           );
         case SetterElement():
           _errorReporter.atToken(
             node.name,
-            WarningCode.REDECLARE_ON_NON_REDECLARING_MEMBER,
+            WarningCode.redeclareOnNonRedeclaringMember,
             arguments: ['setter'],
           );
       }

@@ -48,7 +48,7 @@ version: 1.0.0
 platforms:
   True:
 ''',
-      [PubspecWarningCode.UNKNOWN_PLATFORM],
+      [PubspecWarningCode.unknownPlatform],
     );
   }
 
@@ -60,7 +60,7 @@ version: 1.0.0
 platforms:
   browser: # the correct platform is "web"
 ''',
-      [PubspecWarningCode.UNKNOWN_PLATFORM],
+      [PubspecWarningCode.unknownPlatform],
     );
   }
 
@@ -72,7 +72,7 @@ version: 1.0.0
 platforms:
   33:
 ''',
-      [PubspecWarningCode.UNKNOWN_PLATFORM],
+      [PubspecWarningCode.unknownPlatform],
     );
   }
 
@@ -84,7 +84,7 @@ version: 1.0.0
 platforms:
   [1, 2]:
 ''',
-      [PubspecWarningCode.UNKNOWN_PLATFORM],
+      [PubspecWarningCode.unknownPlatform],
     );
   }
 
@@ -96,7 +96,7 @@ version: 1.0.0
 platforms:
   null:
 ''',
-      [PubspecWarningCode.UNKNOWN_PLATFORM],
+      [PubspecWarningCode.unknownPlatform],
     );
   }
 
@@ -108,7 +108,7 @@ version: 1.0.0
 platforms:
   win32: # the correct platform is "windows"
 ''',
-      [PubspecWarningCode.UNKNOWN_PLATFORM],
+      [PubspecWarningCode.unknownPlatform],
     );
   }
 }

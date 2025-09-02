@@ -11,8 +11,10 @@ void main() {
   File binaryMd = new File("$repoDir/pkg/kernel/binary.md");
   String binaryMdContent = binaryMd.readAsStringSync();
 
-  BinaryMdDillReader binaryMdReader =
-      new BinaryMdDillReader(binaryMdContent, []);
+  BinaryMdDillReader binaryMdReader = new BinaryMdDillReader(
+    binaryMdContent,
+    [],
+  );
   binaryMdReader.setup();
 
   for (int i = 0; i < 256; i++) {

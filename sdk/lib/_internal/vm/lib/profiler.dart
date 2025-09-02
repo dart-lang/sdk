@@ -26,10 +26,9 @@ final class _UserTag implements UserTag {
 
 @patch
 UserTag getCurrentTag() => _getCurrentTag();
-@pragma("vm:recognized", "asm-intrinsic")
-@pragma("vm:external-name", "Profiler_getCurrentTag")
+
+@pragma("vm:recognized", "other")
 external UserTag _getCurrentTag();
 
-@pragma("vm:recognized", "asm-intrinsic")
-@pragma("vm:external-name", "UserTag_defaultTag")
+@pragma("vm:recognized", "other")
 external UserTag _getDefaultTag();

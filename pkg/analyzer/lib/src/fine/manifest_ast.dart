@@ -23,7 +23,8 @@ enum ManifestAstElementKind {
   formalParameter,
   importPrefix,
   typeParameter,
-  regular;
+  regular,
+  multiplyDefined;
 
   static final _bitCount = values.length.bitLength;
   static final _bitMask = (1 << _bitCount) - 1;
@@ -97,10 +98,9 @@ class ManifestNode {
         isValid: true,
         tokenBuffer: buffer.toString(),
         tokenLengthList: Uint32List.fromList(lengthList),
-        elements:
-            collector.map.keys
-                .map((element) => ManifestElement.encode(context, element))
-                .toFixedList(),
+        elements: collector.map.keys
+            .map((element) => ManifestElement.encode(context, element))
+            .toFixedList(),
         elementIndexList: Uint32List.fromList(collector.elementIndexList),
       );
     } else {
@@ -141,6 +141,10 @@ class ManifestNode {
     var tokenOffset = 0;
     var token = node.beginToken;
     while (true) {
+      if (tokenIndex >= tokenLengthList.length) {
+        return false;
+      }
+
       var tokenLength = token.lexeme.length;
       if (tokenLengthList[tokenIndex++] != tokenLength) {
         return false;
@@ -155,6 +159,10 @@ class ManifestNode {
         break;
       }
       token = token.next ?? (throw StateError('endToken not found'));
+    }
+
+    if (tokenIndex != tokenLengthList.length) {
+      return false;
     }
 
     var collector = _ElementCollector(
@@ -432,6 +440,9 @@ class _ElementCollector extends GeneralizingAstVisitor<void> {
         rawIndex = 0;
       case DynamicElementImpl():
         kind = ManifestAstElementKind.dynamic_;
+        rawIndex = 0;
+      case MultiplyDefinedElementImpl():
+        kind = ManifestAstElementKind.multiplyDefined;
         rawIndex = 0;
       case FormalParameterElementImpl():
         kind = ManifestAstElementKind.formalParameter;

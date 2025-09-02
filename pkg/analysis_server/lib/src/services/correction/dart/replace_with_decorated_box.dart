@@ -119,7 +119,7 @@ class ReplaceWithDecoratedBox extends ResolvedCorrectionProducer {
     return unitResult.diagnostics.any((d) {
       var diagnosticCode = d.diagnosticCode;
       return diagnosticCode.type == DiagnosticType.LINT &&
-          diagnosticCode == LinterLintCode.use_decorated_box &&
+          diagnosticCode == LinterLintCode.useDecoratedBox &&
           d.offset == constructorName.offset &&
           d.length == constructorName.length;
     });

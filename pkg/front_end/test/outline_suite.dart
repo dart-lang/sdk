@@ -6,7 +6,9 @@ import 'utils/suite_utils.dart' show internalMain;
 import 'testing/suite.dart';
 
 Future<FastaContext> createContext(
-    Chain suite, Map<String, String> environment) {
+  Chain suite,
+  Map<String, String> environment,
+) {
   return FastaContext.create(suite, environment);
 }
 

@@ -12,12 +12,15 @@ import 'package:kernel/ast.dart';
 
 Future<void> main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-  await runTests<String>(dataDir,
-      args: args,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest:
-          runTestFor(const CovarianceCheckDataComputer(), [defaultCfeConfig]));
+  await runTests<String>(
+    dataDir,
+    args: args,
+    createUriForFileName: createUriForFileName,
+    onFailure: onFailure,
+    runTest: runTestFor(const CovarianceCheckDataComputer(), [
+      defaultCfeConfig,
+    ]),
+  );
 }
 
 class CovarianceCheckDataComputer extends CfeDataComputer<String> {
@@ -27,19 +30,31 @@ class CovarianceCheckDataComputer extends CfeDataComputer<String> {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeLibraryData(CfeTestResultData testResultData, Library library,
-      Map<Id, ActualData<String>> actualMap,
-      {bool? verbose}) {
-    new CovarianceCheckDataExtractor(testResultData.compilerResult, actualMap)
-        .computeForLibrary(library);
+  void computeLibraryData(
+    CfeTestResultData testResultData,
+    Library library,
+    Map<Id, ActualData<String>> actualMap, {
+    bool? verbose,
+  }) {
+    new CovarianceCheckDataExtractor(
+      testResultData.compilerResult,
+      actualMap,
+    ).computeForLibrary(library);
   }
 
   @override
-  void computeMemberData(CfeTestResultData testResultData, Member member,
-      Map<Id, ActualData<String>> actualMap,
-      {bool? verbose}) {
-    member.accept(new CovarianceCheckDataExtractor(
-        testResultData.compilerResult, actualMap));
+  void computeMemberData(
+    CfeTestResultData testResultData,
+    Member member,
+    Map<Id, ActualData<String>> actualMap, {
+    bool? verbose,
+  }) {
+    member.accept(
+      new CovarianceCheckDataExtractor(
+        testResultData.compilerResult,
+        actualMap,
+      ),
+    );
   }
 
   @override
@@ -47,9 +62,10 @@ class CovarianceCheckDataComputer extends CfeDataComputer<String> {
 }
 
 class CovarianceCheckDataExtractor extends CfeDataExtractor<String> {
-  CovarianceCheckDataExtractor(InternalCompilerResult compilerResult,
-      Map<Id, ActualData<String>> actualMap)
-      : super(compilerResult, actualMap);
+  CovarianceCheckDataExtractor(
+    InternalCompilerResult compilerResult,
+    Map<Id, ActualData<String>> actualMap,
+  ) : super(compilerResult, actualMap);
 
   @override
   String? computeNodeValue(Id id, TreeNode node) {

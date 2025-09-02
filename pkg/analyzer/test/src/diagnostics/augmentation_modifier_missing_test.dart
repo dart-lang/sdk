@@ -29,7 +29,7 @@ part of 'a.dart';
 
 augment class A {}
 ''',
-      [error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING, 19, 7)],
+      [error(CompileTimeErrorCode.augmentationModifierMissing, 19, 7)],
     );
   }
 
@@ -47,8 +47,8 @@ part of 'a.dart';
 augment class A {}
 ''',
       [
-        error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING, 19, 7),
-        error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING, 19, 7),
+        error(CompileTimeErrorCode.augmentationModifierMissing, 19, 7),
+        error(CompileTimeErrorCode.augmentationModifierMissing, 19, 7),
       ],
     );
   }
@@ -66,7 +66,7 @@ part of 'a.dart';
 
 augment class A {}
 ''',
-      [error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING, 19, 7)],
+      [error(CompileTimeErrorCode.augmentationModifierMissing, 19, 7)],
     );
   }
 
@@ -83,7 +83,7 @@ part of 'a.dart';
 
 augment class A {}
 ''',
-      [error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING, 19, 7)],
+      [error(CompileTimeErrorCode.augmentationModifierMissing, 19, 7)],
     );
   }
 
@@ -100,7 +100,7 @@ part of 'a.dart';
 
 augment class A {}
 ''',
-      [error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING, 19, 7)],
+      [error(CompileTimeErrorCode.augmentationModifierMissing, 19, 7)],
     );
   }
 
@@ -117,7 +117,7 @@ part of 'a.dart';
 
 augment class A {}
 ''',
-      [error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING, 19, 7)],
+      [error(CompileTimeErrorCode.augmentationModifierMissing, 19, 7)],
     );
   }
 
@@ -134,7 +134,7 @@ part of 'a.dart';
 
 augment class A {}
 ''',
-      [error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING, 19, 7)],
+      [error(CompileTimeErrorCode.augmentationModifierMissing, 19, 7)],
     );
   }
 
@@ -151,7 +151,7 @@ part of 'a.dart';
 
 augment mixin A {}
 ''',
-      [error(CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING, 19, 7)],
+      [error(CompileTimeErrorCode.augmentationModifierMissing, 19, 7)],
     );
   }
 }

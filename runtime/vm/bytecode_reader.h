@@ -40,12 +40,43 @@ class BytecodeLoader {
                              intptr_t* p_num_classes,
                              intptr_t* p_num_procedures);
 
+  void SetExpressionEvaluationLibrary(const Library& lib) {
+    ASSERT(expression_evaluation_library_ == nullptr);
+    expression_evaluation_library_ =
+        &Library::ZoneHandle(thread_->zone(), lib.ptr());
+  }
+  LibraryPtr GetExpressionEvaluationLibrary() const {
+    ASSERT(expression_evaluation_library_ != nullptr);
+    return expression_evaluation_library_->ptr();
+  }
+  void SetExpressionEvaluationRealClass(const Class& cls) {
+    ASSERT(expression_evaluation_real_classs_ == nullptr);
+    expression_evaluation_real_classs_ =
+        &Class::ZoneHandle(thread_->zone(), cls.ptr());
+  }
+  ClassPtr GetExpressionEvaluationRealClass() const {
+    ASSERT(expression_evaluation_real_classs_ != nullptr);
+    return expression_evaluation_real_classs_->ptr();
+  }
+  void SetExpressionEvaluationFunction(const Function& func) {
+    ASSERT(expression_evaluation_function_ == nullptr);
+    expression_evaluation_function_ =
+        &Function::ZoneHandle(thread_->zone(), func.ptr());
+  }
+  FunctionPtr GetExpressionEvaluationFunction() const {
+    ASSERT(expression_evaluation_function_ != nullptr);
+    return expression_evaluation_function_->ptr();
+  }
+
  private:
   Thread* thread_;
   const TypedDataBase& binary_;
   Array& bytecode_component_array_;
   const GrowableObjectArray& pending_classes_;
   Array& bytecode_offsets_map_;
+  Library* expression_evaluation_library_ = nullptr;
+  Class* expression_evaluation_real_classs_ = nullptr;
+  Function* expression_evaluation_function_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(BytecodeLoader);
 };
@@ -210,7 +241,8 @@ class BytecodeReaderHelper : public ValueObject {
   void ReadFunctionDeclarations(const Class& cls);
   void ReadClassDeclaration(const Class& cls);
   void ReadLibraryDeclaration(const Library& library,
-                              const GrowableObjectArray& pending_classes);
+                              const GrowableObjectArray& pending_classes,
+                              bool register_classes);
   void ReadLibraryDeclarations(intptr_t num_libraries,
                                const GrowableObjectArray& pending_classes,
                                bool load_code);

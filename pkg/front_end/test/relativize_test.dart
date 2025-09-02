@@ -48,37 +48,62 @@ void main() {
     c('/c:/BAR', '///c:/foo/', '///c:/BAR', true);
 
     c(
-        '../sdk/lib/_internal/compiler/implementation/dart2js.dart',
-        '///C:/Users/person/dart_checkout_for_stuff/dart/ReleaseIA32/dart.exe',
-        '///c:/Users/person/dart_checkout_for_stuff/dart/sdk/lib/_internal/compiler/'
-            'implementation/dart2js.dart',
-        true);
+      '../sdk/lib/_internal/compiler/implementation/dart2js.dart',
+      '///C:/Users/person/dart_checkout_for_stuff/dart/ReleaseIA32/dart.exe',
+      '///c:/Users/person/dart_checkout_for_stuff/dart/sdk/lib/_internal/compiler/'
+          'implementation/dart2js.dart',
+      true,
+    );
 
-    c('/Users/person/file.dart', '/users/person/', '/Users/person/file.dart',
-        false);
+    c(
+      '/Users/person/file.dart',
+      '/users/person/',
+      '/Users/person/file.dart',
+      false,
+    );
 
     c('file.dart', '/Users/person/', '/Users/person/file.dart', null);
 
     c('../person/file.dart', '/Users/other/', '/Users/person/file.dart', false);
 
-    c('/Users/person/file.dart', '/Users/other/', '/Users/person/file.dart',
-        true);
+    c(
+      '/Users/person/file.dart',
+      '/Users/other/',
+      '/Users/person/file.dart',
+      true,
+    );
 
     c('out.js.map', '/Users/person/out.js', '/Users/person/out.js.map', null);
 
-    c('../person/out.js.map', '/Users/other/out.js', '/Users/person/out.js.map',
-        false);
+    c(
+      '../person/out.js.map',
+      '/Users/other/out.js',
+      '/Users/person/out.js.map',
+      false,
+    );
 
-    c('/Users/person/out.js.map', '/Users/other/out.js',
-        '/Users/person/out.js.map', true);
+    c(
+      '/Users/person/out.js.map',
+      '/Users/other/out.js',
+      '/Users/person/out.js.map',
+      true,
+    );
 
     c('out.js', '/Users/person/out.js.map', '/Users/person/out.js', null);
 
-    c('../person/out.js', '/Users/other/out.js.map', '/Users/person/out.js',
-        false);
+    c(
+      '../person/out.js',
+      '/Users/other/out.js.map',
+      '/Users/person/out.js',
+      false,
+    );
 
-    c('/Users/person/out.js', '/Users/other/out.js.map', '/Users/person/out.js',
-        true);
+    c(
+      '/Users/person/out.js',
+      '/Users/other/out.js.map',
+      '/Users/person/out.js',
+      true,
+    );
 
     c('out.js', '/out.js.map', '/out.js', null);
   });

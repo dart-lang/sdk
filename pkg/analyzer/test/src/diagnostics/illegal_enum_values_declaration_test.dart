@@ -22,7 +22,7 @@ abstract class A implements Enum {
   int values = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION, 41, 6)],
+      [error(CompileTimeErrorCode.illegalEnumValuesDeclaration, 41, 6)],
     );
   }
 
@@ -41,7 +41,7 @@ abstract class A implements Enum {
   int get values => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION, 45, 6)],
+      [error(CompileTimeErrorCode.illegalEnumValuesDeclaration, 45, 6)],
     );
   }
 
@@ -60,7 +60,7 @@ abstract class A implements Enum {
   void values() {}
 }
 ''',
-      [error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION, 42, 6)],
+      [error(CompileTimeErrorCode.illegalEnumValuesDeclaration, 42, 6)],
     );
   }
 
@@ -79,7 +79,7 @@ abstract class A implements Enum {
   set values(int _) {}
 }
 ''',
-      [error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION, 41, 6)],
+      [error(CompileTimeErrorCode.illegalEnumValuesDeclaration, 41, 6)],
     );
   }
 
@@ -98,7 +98,7 @@ mixin M on Enum {
   int values = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION, 24, 6)],
+      [error(CompileTimeErrorCode.illegalEnumValuesDeclaration, 24, 6)],
     );
   }
 
@@ -117,7 +117,7 @@ mixin M on Enum {
   int get values => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION, 28, 6)],
+      [error(CompileTimeErrorCode.illegalEnumValuesDeclaration, 28, 6)],
     );
   }
 
@@ -136,7 +136,7 @@ mixin M on Enum {
   void values() {}
 }
 ''',
-      [error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION, 25, 6)],
+      [error(CompileTimeErrorCode.illegalEnumValuesDeclaration, 25, 6)],
     );
   }
 
@@ -155,7 +155,7 @@ mixin M on Enum {
   set values(int _) {}
 }
 ''',
-      [error(CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION, 24, 6)],
+      [error(CompileTimeErrorCode.illegalEnumValuesDeclaration, 24, 6)],
     );
   }
 

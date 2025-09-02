@@ -24,7 +24,7 @@ enum E {
   const E() : this.named(), super();
 }
 ''',
-      [error(CompileTimeErrorCode.SUPER_IN_ENUM_CONSTRUCTOR, 61, 5)],
+      [error(CompileTimeErrorCode.superInEnumConstructor, 61, 5)],
     );
   }
 
@@ -36,7 +36,7 @@ enum E {
   const E() : super();
 }
 ''',
-      [error(CompileTimeErrorCode.SUPER_IN_ENUM_CONSTRUCTOR, 28, 5)],
+      [error(CompileTimeErrorCode.superInEnumConstructor, 28, 5)],
     );
   }
 
@@ -49,8 +49,8 @@ enum E {
 }
 ''',
       [
-        error(CompileTimeErrorCode.SUPER_IN_ENUM_CONSTRUCTOR, 28, 5),
-        error(CompileTimeErrorCode.SUPER_IN_ENUM_CONSTRUCTOR, 37, 5),
+        error(CompileTimeErrorCode.superInEnumConstructor, 28, 5),
+        error(CompileTimeErrorCode.superInEnumConstructor, 37, 5),
       ],
     );
   }

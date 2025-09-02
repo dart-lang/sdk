@@ -27,9 +27,11 @@ Future<void> main(List<String> args) async {
     exit(1);
   }
   String? dynamicInterfacePath = argResults['dynamic-interface'] as String?;
-  File? dynamicInterface =
-      dynamicInterfacePath != null ? File(dynamicInterfacePath) : null;
-  await createTrimmedCopy(TrimOptions(
+  File? dynamicInterface = dynamicInterfacePath != null
+      ? File(dynamicInterfacePath)
+      : null;
+  await createTrimmedCopy(
+    TrimOptions(
       inputAppPath: argResults['input'] as String,
       inputPlatformPath: argResults['platform'] as String,
       outputAppPath: argResults['output'] as String,
@@ -38,35 +40,55 @@ Future<void> main(List<String> args) async {
       dynamicInterfaceContents: dynamicInterface?.readAsStringSync(),
       requiredUserLibraries:
           (argResults['required-user-libraries'] as List<String>).toSet(),
-      requiredDartLibraries:
-          FlutterTarget(TargetFlags()).extraRequiredLibraries.toSet(),
-      librariesToClear:
-          (argResults['clear-dart-library-body'] as List<String>).toSet()));
+      requiredDartLibraries: FlutterTarget(
+        TargetFlags(),
+      ).extraRequiredLibraries.toSet(),
+      librariesToClear: (argResults['clear-dart-library-body'] as List<String>)
+          .toSet(),
+    ),
+  );
 }
 
 final ArgParser _argParser = ArgParser()
-  ..addOption('input',
-      help: 'Input application dill file path', mandatory: true)
-  ..addOption('platform',
-      help: 'Input platform dill file path', mandatory: true)
-  ..addOption('output',
-      help: 'Output application dill file path', mandatory: true)
+  ..addOption(
+    'input',
+    help: 'Input application dill file path',
+    mandatory: true,
+  )
+  ..addOption(
+    'platform',
+    help: 'Input platform dill file path',
+    mandatory: true,
+  )
+  ..addOption(
+    'output',
+    help: 'Output application dill file path',
+    mandatory: true,
+  )
   ..addOption('output-platform', help: 'Output platform dill file path')
-  ..addOption('dynamic-interface',
-      help: 'Path to the dynamic_interface.yaml file')
-  ..addMultiOption('clear-dart-library-body',
-      abbr: 'c',
-      help: 'List of `dart:` that, even though are required, can be cleared '
-          'internally since they are only included for compatibility with '
-          '"extraRequiredLibraries", but are not needed for compilation',
-      defaultsTo: defaultNonProductionLibraries)
-  ..addMultiOption('required-user-libraries',
-      abbr: 'u',
-      help: 'Alternative to providing a dynamic_interface.yaml input. '
-          'Specifies the list of necessary user written '
-          'libraries. Can be a full `package:` URI or a prefix pattern, '
-          'like `package:foo/*`.',
-      defaultsTo: const []);
+  ..addOption(
+    'dynamic-interface',
+    help: 'Path to the dynamic_interface.yaml file',
+  )
+  ..addMultiOption(
+    'clear-dart-library-body',
+    abbr: 'c',
+    help:
+        'List of `dart:` that, even though are required, can be cleared '
+        'internally since they are only included for compatibility with '
+        '"extraRequiredLibraries", but are not needed for compilation',
+    defaultsTo: defaultNonProductionLibraries,
+  )
+  ..addMultiOption(
+    'required-user-libraries',
+    abbr: 'u',
+    help:
+        'Alternative to providing a dynamic_interface.yaml input. '
+        'Specifies the list of necessary user written '
+        'libraries. Can be a full `package:` URI or a prefix pattern, '
+        'like `package:foo/*`.',
+    defaultsTo: const [],
+  );
 
 /// Libraries that are not needed for production builds and that should
 /// be possible to clear when trimming .dill files.

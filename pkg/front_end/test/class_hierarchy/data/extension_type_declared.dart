@@ -30,7 +30,7 @@ extension type ExtensionType(int id) {
    extensionTypeBuilder=ExtensionType,
    isSourceDeclaration
   */
-  int operator[] (int index) => id;
+  int operator [](int index) => id;
 
   /*member: ExtensionType.staticField:
    extensionTypeBuilder=ExtensionType,

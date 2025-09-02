@@ -27,6 +27,7 @@ class ImportElementsComputerTest extends AbstractContextTest {
   late SourceFileEdit? sourceFileEdit;
 
   void assertChanges(String expectedContent) {
+    expectedContent = normalizeSource(expectedContent);
     var resultCode = SourceEdit.applySequence(
       originalContent,
       sourceFileEdit!.edits,
@@ -51,6 +52,7 @@ class ImportElementsComputerTest extends AbstractContextTest {
   }
 
   Future<void> createBuilder(String content) async {
+    content = normalizeSource(content);
     originalContent = content;
     var file = newFile(path, content);
     var result = await getResolvedUnit(file);
@@ -59,7 +61,6 @@ class ImportElementsComputerTest extends AbstractContextTest {
 
   @override
   void setUp() {
-    useLineEndingsForPlatform = false;
     super.setUp();
     path = convertPath('$testPackageLibPath/test.dart');
   }

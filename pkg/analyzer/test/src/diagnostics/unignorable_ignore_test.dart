@@ -39,7 +39,7 @@ class UnignorableIgnoreTest extends PubPackageResolutionTest
 // ignore_for_file: undefined_annotation
 @x int a = 0;
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_ANNOTATION, 41, 2)],
+      [error(CompileTimeErrorCode.undefinedAnnotation, 41, 2)],
     );
   }
 
@@ -52,7 +52,7 @@ class UnignorableIgnoreTest extends PubPackageResolutionTest
 // ignore_for_file: UNDEFINED_ANNOTATION
 @x int a = 0;
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_ANNOTATION, 41, 2)],
+      [error(CompileTimeErrorCode.undefinedAnnotation, 41, 2)],
     );
   }
 
@@ -65,7 +65,7 @@ class UnignorableIgnoreTest extends PubPackageResolutionTest
 // ignore: undefined_annotation
 @x int a = 0;
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_ANNOTATION, 32, 2)],
+      [error(CompileTimeErrorCode.undefinedAnnotation, 32, 2)],
     );
   }
 

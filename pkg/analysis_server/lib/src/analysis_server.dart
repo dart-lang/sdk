@@ -20,6 +20,7 @@ import 'package:analysis_server/src/lsp/handlers/handler_execute_command.dart'
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart' as lsp;
 import 'package:analysis_server/src/lsp/handlers/handlers.dart' as lsp;
 import 'package:analysis_server/src/plugin/notification_manager.dart';
+import 'package:analysis_server/src/plugin/plugin_isolate.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_watcher.dart';
 import 'package:analysis_server/src/protocol_server.dart'
@@ -103,9 +104,6 @@ typedef UserPromptSender =
 /// Implementations of [AnalysisServer] implement a server that listens
 /// on an [AbstractNotificationManager] for analysis messages and process them.
 abstract class AnalysisServer {
-  /// A flag indicating whether plugins are supported in this build.
-  static final bool supportsPlugins = true;
-
   /// The options of this server instance.
   AnalysisServerOptions options;
 
@@ -338,19 +336,15 @@ abstract class AnalysisServer {
     );
     performance = performanceDuringStartup;
 
-    PluginWatcher? pluginWatcher;
-    if (supportsPlugins) {
-      this.pluginManager =
-          pluginManager ??= PluginManager(
-            resourceProvider,
-            resourceProvider.byteStorePath,
-            sdkManager.defaultSdkDirectory,
-            notificationManager,
-            instrumentationService,
-          );
-
-      pluginWatcher = PluginWatcher(resourceProvider, pluginManager);
-    }
+    this.pluginManager =
+        pluginManager ??= PluginManager(
+          resourceProvider,
+          resourceProvider.byteStorePath,
+          sdkManager.defaultSdkDirectory,
+          notificationManager,
+          instrumentationService,
+        );
+    var pluginWatcher = PluginWatcher(resourceProvider, pluginManager);
 
     var logName = options.newAnalysisDriverLog;
     if (logName != null) {
@@ -515,12 +509,12 @@ abstract class AnalysisServer {
   /// [driver]. Return a list containing futures that will complete when each of
   /// the plugins have sent a response, or an empty list if no [driver] is
   /// provided.
-  Map<PluginInfo, Future<Response>> broadcastRequestToPlugins(
+  Map<PluginIsolate, Future<Response>> broadcastRequestToPlugins(
     analyzer_plugin.RequestParams requestParams,
     analysis.AnalysisDriver? driver,
   ) {
-    if (driver == null || !AnalysisServer.supportsPlugins) {
-      return <PluginInfo, Future<Response>>{};
+    if (driver == null) {
+      return <PluginIsolate, Future<Response>>{};
     }
     return pluginManager.broadcastRequest(
       requestParams,
@@ -1074,9 +1068,8 @@ abstract class AnalysisServer {
     // For now we record plugins only on shutdown. We might want to record them
     // every time the set of plugins changes, in which case we'll need to listen
     // to the `PluginManager.pluginsChanged` stream.
-    if (supportsPlugins) {
-      analyticsManager.changedPlugins(pluginManager);
-    }
+    analyticsManager.changedPlugins(pluginManager);
+
     // For now we record context-dependent information only on shutdown. We
     // might want to record it on start-up as well.
     analyticsManager.createdAnalysisContexts(contextManager.analysisContexts);
@@ -1139,9 +1132,7 @@ abstract class CommonServerContextManagerCallbacks
   void broadcastWatchEvent(WatchEvent event) {
     analysisServer.notifyDeclarationsTracker(event.path);
     analysisServer.notifyFlutterWidgetDescriptions(event.path);
-    if (AnalysisServer.supportsPlugins) {
-      analysisServer.pluginManager.broadcastWatchEvent(event);
-    }
+    analysisServer.pluginManager.broadcastWatchEvent(event);
   }
 
   void flushResults(List<String> files);

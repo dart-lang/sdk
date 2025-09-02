@@ -18,11 +18,15 @@ import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/scope.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/src/utilities/extensions/resolved_unit_result.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// Returns the [SourceRange] to find conflicting locals in.
@@ -43,16 +47,48 @@ SourceRange _getLocalsConflictingRange(AstNode node) {
 
 /// Returns the source which should replace given invocation with given
 /// arguments.
-String _getMethodSourceForInvocation(
+Future<String> _getMethodSourceForInvocation(
   RefactoringStatus status,
+  ChangeBuilder builder,
+  String file,
+  Map<TypeParameterElement, DartType> argumentTypes,
+  Map<TypeParameterElement, DartType> instanceArgumentTypes,
   _SourcePart part,
   CorrectionUtils utils,
   AstNode contextNode,
   Expression? targetExpression,
   List<Expression> arguments,
-) {
+) async {
   // prepare edits to replace parameters with arguments
   var edits = <SourceEdit>[];
+  await builder.addDartFileEdit(file, (builder) {
+    part._typeParameters.forEach((
+      TypeParameterElement element,
+      List<SourceRange> typeRange,
+    ) {
+      for (var range in typeRange) {
+        builder.addReplacement(range, (builder) {
+          builder.writeType(argumentTypes[element], shouldWriteDynamic: true);
+        });
+      }
+    });
+    part._instanceTypeParameters.forEach((
+      TypeParameterElement element,
+      List<SourceRange> typeRange,
+    ) {
+      for (var range in typeRange) {
+        builder.addReplacement(range, (builder) {
+          builder.writeType(
+            instanceArgumentTypes[element],
+            shouldWriteDynamic: true,
+            typeParametersInScope:
+                contextNode.enclosingExecutableElement?.typeParameters,
+          );
+        });
+      }
+    });
+  });
+  edits.addAll(builder.sourceChange.edits.expand((edit) => edit.edits));
   part._parameters.forEach((
     FormalParameterElement parameter,
     List<_ParameterOccurrence> occurrences,
@@ -211,7 +247,7 @@ Set<String> _getNamesConflictingAt(AstNode node) {
 class InlineMethodRefactoringImpl extends RefactoringImpl
     implements InlineMethodRefactoring {
   final SearchEngine searchEngine;
-  final ResolvedUnitResult resolveResult;
+  final ResolvedUnitResult unitResult;
   final int offset;
   final AnalysisSessionHelper sessionHelper;
   final CorrectionUtils utils;
@@ -234,12 +270,9 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   final List<_ReferenceProcessor> _referenceProcessors = [];
   final Set<Element> _alreadyMadeAsync = <Element>{};
 
-  InlineMethodRefactoringImpl(
-    this.searchEngine,
-    this.resolveResult,
-    this.offset,
-  ) : sessionHelper = AnalysisSessionHelper(resolveResult.session),
-      utils = CorrectionUtils(resolveResult);
+  InlineMethodRefactoringImpl(this.searchEngine, this.unitResult, this.offset)
+    : sessionHelper = AnalysisSessionHelper(unitResult.session),
+      utils = CorrectionUtils(unitResult);
 
   @override
   String? get className {
@@ -265,7 +298,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   }
 
   @override
-  Future<RefactoringStatus> checkFinalConditions() {
+  Future<RefactoringStatus> checkFinalConditions() async {
     change = SourceChange(refactoringName);
     var result = RefactoringStatus();
     // check for compatibility of "deleteSource" and "inlineAll"
@@ -274,7 +307,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     }
     // prepare changes
     for (var processor in _referenceProcessors) {
-      processor._process(result);
+      await processor._process(result);
     }
     // delete method
     if (deleteSource && inlineAll) {
@@ -290,7 +323,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
       );
     }
     // done
-    return Future.value(result);
+    return result;
   }
 
   @override
@@ -329,7 +362,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     }
 
     // analyze method body
-    result.addStatus(_prepareMethodParts());
+    result.addStatus(await _prepareMethodParts());
     // process references
     var references = await searchEngine.searchReferences(methodElement);
     _referenceProcessors.clear();
@@ -357,7 +390,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
       'Method declaration or reference must be selected to activate this refactoring.',
     );
 
-    var selectedNode = resolveResult.unit.nodeCovering(offset: offset);
+    var selectedNode = unitResult.unit.nodeCovering(offset: offset);
     Element? element;
 
     if (selectedNode is FunctionDeclaration) {
@@ -389,13 +422,36 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     return RefactoringStatus();
   }
 
-  _SourcePart _createSourcePart(SourceRange range) {
+  Future<_SourcePart> _createSourcePart(SourceRange range) async {
     var source = _methodUtils.getRangeText(range);
 
-    var prefix = resolveResult.linePrefix(range.offset);
+    var prefix = unitResult.linePrefix(range.offset);
     var result = _SourcePart(range.offset, source, prefix);
+    var unit = await sessionHelper.getResolvedUnitByElement(_methodElement!);
+    var inliningMethod = unit?.unit.nodeCovering(
+      offset: _methodElement!.firstFragment.offset,
+    );
+    if (inliningMethod == null) {
+      return result;
+    }
+    Scope? scope;
+    if (inliningMethod
+        case MethodDeclaration(:var body) ||
+            FunctionDeclaration(
+              functionExpression: FunctionExpression(:var body),
+            ) ||
+            FunctionDeclarationStatement(
+              functionDeclaration: FunctionDeclaration(
+                functionExpression: FunctionExpression(:var body),
+              ),
+            ) when body is BlockFunctionBody) {
+      scope = ScopeResolverVisitor.getNodeNameScope(body.block);
+    }
     // Remember parameters and variables occurrences.
-    _methodUnit.accept(_VariablesVisitor(_methodElement!, range, result));
+    _methodUnit.accept(
+      _VariablesVisitor(_methodElement!, range, result, scope),
+    );
+
     // Done.
     return result;
   }
@@ -413,7 +469,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     );
 
     // prepare selected SimpleIdentifier
-    var selectedNode = resolveResult.unit.nodeCovering(offset: offset);
+    var selectedNode = unitResult.unit.nodeCovering(offset: offset);
     Element? element;
     if (selectedNode is FunctionDeclaration) {
       element = selectedNode.declaredFragment?.element;
@@ -464,13 +520,13 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
 
   /// Analyze [_methodBody] to fill [_methodExpressionPart] and
   /// [_methodStatementsPart].
-  RefactoringStatus _prepareMethodParts() {
+  Future<RefactoringStatus> _prepareMethodParts() async {
     var result = RefactoringStatus();
     if (_methodBody is ExpressionFunctionBody) {
       var body = _methodBody as ExpressionFunctionBody;
       _methodExpression = body.expression;
       var methodExpressionRange = range.node(_methodExpression!);
-      _methodExpressionPart = _createSourcePart(methodExpressionRange);
+      _methodExpressionPart = await _createSourcePart(methodExpressionRange);
     } else if (_methodBody is BlockFunctionBody) {
       var body = (_methodBody as BlockFunctionBody).block;
       List<Statement> statements = body.statements;
@@ -481,7 +537,9 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
           _methodExpression = lastStatement.expression;
           if (_methodExpression != null) {
             var methodExpressionRange = range.node(_methodExpression!);
-            _methodExpressionPart = _createSourcePart(methodExpressionRange);
+            _methodExpressionPart = await _createSourcePart(
+              methodExpressionRange,
+            );
           }
           // exclude "return" statement from statements
           statements = statements.sublist(0, statements.length - 1);
@@ -491,7 +549,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
           var statementsRange = _methodUtils.getLinesRangeStatements(
             statements,
           );
-          _methodStatementsPart = _createSourcePart(statementsRange);
+          _methodStatementsPart = await _createSourcePart(statementsRange);
         }
       }
       // check if more than one return
@@ -521,6 +579,8 @@ class _ParameterOccurrence {
 class _ReferenceProcessor {
   final InlineMethodRefactoringImpl ref;
   final SearchMatch reference;
+  final Map<TypeParameterElement, DartType> _argumentTypes = {};
+  final Map<TypeParameterElement, DartType> _instanceArgumentTypes = {};
 
   late Element refElement;
   late CorrectionUtils _refUtils;
@@ -595,13 +655,13 @@ class _ReferenceProcessor {
     return false;
   }
 
-  void _inlineMethodInvocation(
+  Future<void> _inlineMethodInvocation(
     RefactoringStatus status,
     Expression usage,
     bool cascaded,
     Expression? target,
     List<Expression> arguments,
-  ) {
+  ) async {
     // we don't support cascade
     if (cascaded) {
       status.addError(
@@ -614,8 +674,15 @@ class _ReferenceProcessor {
       // insert non-return statements
       if (ref._methodStatementsPart != null) {
         // prepare statements source for invocation
-        var source = _getMethodSourceForInvocation(
+        var source = await _getMethodSourceForInvocation(
           status,
+          ChangeBuilder(
+            session: ref.sessionHelper.session,
+            defaultEol: _refUtils.endOfLine,
+          ),
+          ref.unitResult.path,
+          _argumentTypes,
+          _instanceArgumentTypes,
           ref._methodStatementsPart!,
           _refUtils,
           usage,
@@ -639,8 +706,15 @@ class _ReferenceProcessor {
       // replace invocation with return expression
       if (ref._methodExpressionPart != null) {
         // prepare expression source for invocation
-        var source = _getMethodSourceForInvocation(
+        var source = await _getMethodSourceForInvocation(
           status,
+          ChangeBuilder(
+            session: ref.sessionHelper.session,
+            defaultEol: _refUtils.endOfLine,
+          ),
+          ref.unitResult.path,
+          _argumentTypes,
+          _instanceArgumentTypes,
           ref._methodExpressionPart!,
           _refUtils,
           usage,
@@ -678,6 +752,11 @@ class _ReferenceProcessor {
           // remove the duplicate await keyword and the following whitespace.
           source = source.substring(awaitKeyword.length + 1);
         }
+        source = _refUtils.replaceSourceIndent(
+          source,
+          ref._methodExpressionPart!._prefix,
+          _refPrefix,
+        );
         var edit = newSourceEdit_range(nodeToReplaceRange, source);
         _addRefEdit(edit);
       } else {
@@ -701,7 +780,7 @@ class _ReferenceProcessor {
     _addRefEdit(edit);
   }
 
-  void _process(RefactoringStatus status) {
+  Future<void> _process(RefactoringStatus status) async {
     var nodeParent = _node.parent;
     // may be only single place should be inlined
     if (!_shouldProcess()) {
@@ -712,6 +791,7 @@ class _ReferenceProcessor {
     if (nodeParent is Combinator) {
       return;
     }
+    _processTypeArguments(_node);
     // If the element being inlined is async, ensure that the function
     // body that encloses the method is also async.
     if (ref._methodElement!.firstFragment.isAsynchronous) {
@@ -747,7 +827,7 @@ class _ReferenceProcessor {
       var invocation = nodeParent;
       var target = invocation.target;
       List<Expression> arguments = invocation.argumentList.arguments;
-      _inlineMethodInvocation(
+      await _inlineMethodInvocation(
         status,
         invocation,
         invocation.isCascaded,
@@ -789,7 +869,13 @@ class _ReferenceProcessor {
           arguments.add(assignment.rightHandSide);
         }
         // inline body
-        _inlineMethodInvocation(status, usage, cascade, target, arguments);
+        await _inlineMethodInvocation(
+          status,
+          usage,
+          cascade,
+          target,
+          arguments,
+        );
         return;
       }
       // not invocation, just reference to function
@@ -815,6 +901,28 @@ class _ReferenceProcessor {
       // do insert
       var edit = newSourceEdit_range(range.node(_node), source);
       _addRefEdit(edit);
+    }
+  }
+
+  void _processTypeArguments(SimpleIdentifier node) {
+    if (node.parent case MethodInvocation(:var typeArgumentTypes?)) {
+      _argumentTypes.addAll({
+        for (var (index, element) in ref._methodElement!.typeParameters.indexed)
+          element: typeArgumentTypes[index],
+      });
+    }
+    if (node.parent case MethodInvocation(
+      realTarget: Expression(
+        staticType: ParameterizedType(
+          :var typeArguments,
+          :TypeParameterizedElement element,
+        ),
+      ),
+    )) {
+      _instanceArgumentTypes.addAll({
+        for (var (index, element) in element.typeParameters.indexed)
+          element: typeArguments[index],
+      });
     }
   }
 
@@ -862,6 +970,11 @@ class _SourcePart {
   final Map<FormalParameterElement, List<_ParameterOccurrence>> _parameters =
       {};
 
+  final Map<TypeParameterElement, List<SourceRange>> _typeParameters = {};
+
+  final Map<TypeParameterElement, List<SourceRange>> _instanceTypeParameters =
+      {};
+
   /// The occurrences of the method local variables.
   final Map<VariableElement, List<SourceRange>> _variables = {};
 
@@ -881,16 +994,21 @@ class _SourcePart {
   }
 
   void addImplicitClassNameOffset(String className, int offset) {
-    var offsets = _implicitClassNameOffsets[className];
-    if (offsets == null) {
-      offsets = [];
-      _implicitClassNameOffsets[className] = offsets;
-    }
-    offsets.add(offset - _base);
+    _implicitClassNameOffsets
+        .putIfAbsent(className, () => [])
+        .add(offset - _base);
   }
 
   void addImplicitThisOffset(int offset) {
     _implicitThisOffsets.add(offset - _base);
+  }
+
+  void addInstanceTypeParameter(
+    TypeParameterElement element,
+    SourceRange identifierRange,
+  ) {
+    identifierRange = range.offsetBy(identifierRange, -_base);
+    _instanceTypeParameters.putIfAbsent(element, () => []).add(identifierRange);
   }
 
   void addParameterOccurrence({
@@ -899,29 +1017,29 @@ class _SourcePart {
     required Precedence parentPrecedence,
     required bool inStringInterpolation,
   }) {
-    var occurrences = _parameters[parameter];
-    if (occurrences == null) {
-      occurrences = [];
-      _parameters[parameter] = occurrences;
-    }
-    occurrences.add(
-      _ParameterOccurrence(
-        baseOffset: _base,
-        parentPrecedence: parentPrecedence,
-        identifier: identifier,
-        inStringInterpolation: inStringInterpolation,
-      ),
-    );
+    _parameters
+        .putIfAbsent(parameter, () => [])
+        .add(
+          _ParameterOccurrence(
+            baseOffset: _base,
+            parentPrecedence: parentPrecedence,
+            identifier: identifier,
+            inStringInterpolation: inStringInterpolation,
+          ),
+        );
+  }
+
+  void addTypeParameter(
+    TypeParameterElement element,
+    SourceRange identifierRange,
+  ) {
+    identifierRange = range.offsetBy(identifierRange, -_base);
+    _typeParameters.putIfAbsent(element, () => []).add(identifierRange);
   }
 
   void addVariable(VariableElement element, SourceRange identifierRange) {
-    var ranges = _variables[element];
-    if (ranges == null) {
-      ranges = [];
-      _variables[element] = ranges;
-    }
     identifierRange = range.offsetBy(identifierRange, -_base);
-    ranges.add(identifierRange);
+    _variables.putIfAbsent(element, () => []).add(identifierRange);
   }
 }
 
@@ -936,7 +1054,15 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
   /// The [_SourcePart] to record reference into.
   final _SourcePart result;
 
-  _VariablesVisitor(this.methodElement, this.bodyRange, this.result);
+  /// The body [Scope] of the method being inlined.
+  final Scope? scope;
+
+  _VariablesVisitor(
+    this.methodElement,
+    this.bodyRange,
+    this.result,
+    this.scope,
+  );
 
   @override
   void visitNode(AstNode node) {
@@ -953,7 +1079,7 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
     if (bodyRange.covers(nodeRange)) {
       _addMemberQualifier(node);
       _addParameter(node);
-      _addVariable(node);
+      _addVariable(getLocalVariableElement(node), node);
     }
   }
 
@@ -966,13 +1092,29 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitTypeAnnotation(TypeAnnotation node) {
+    var nodeRange = range.node(node);
+    InstanceElement? instanceElement;
+    if (methodElement case MethodElement(:InstanceElement enclosingElement)) {
+      instanceElement = enclosingElement;
+    }
+    if (node.typeOrThrow case TypeParameterType(
+      :var element,
+    ) when bodyRange.covers(nodeRange)) {
+      if (methodElement.typeParameters.contains(element)) {
+        result.addTypeParameter(element, nodeRange);
+      } else if (instanceElement?.typeParameters.contains(element) ?? false) {
+        result.addInstanceTypeParameter(element, nodeRange);
+      }
+    }
+    super.visitTypeAnnotation(node);
+  }
+
+  @override
   void visitVariableDeclaration(VariableDeclaration node) {
     var nameRange = range.token(node.name);
     if (bodyRange.covers(nameRange)) {
-      var declaredElement = node.declaredFragment?.element;
-      if (declaredElement != null) {
-        result.addVariable(declaredElement, nameRange);
-      }
+      _addVariable(node.declaredFragment?.element, node);
     }
 
     super.visitVariableDeclaration(node);
@@ -1028,11 +1170,26 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
     );
   }
 
-  void _addVariable(SimpleIdentifier node) {
-    var variableElement = getLocalVariableElement(node);
-    if (variableElement != null) {
-      var nodeRange = range.node(node);
-      result.addVariable(variableElement, nodeRange);
+  void _addVariable(VariableElement? element, AstNode node) {
+    if (element is LocalVariableElement) {
+      if (scope == null) {
+        // No block scope so all variables will be self-contained
+        return;
+      }
+      if (scope!.lookup(element.displayName) case ScopeLookupResult(
+        :var getter,
+        :var setter,
+      ) when getter == null && setter == null) {
+        // No variable with the same name at the block scope
+        return;
+      }
+
+      // Here we found a variable with that name in the block scope
+      var nodeRange =
+          node is VariableDeclaration
+              ? range.token(node.name)
+              : range.node(node);
+      result.addVariable(element, nodeRange);
     }
   }
 }

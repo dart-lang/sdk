@@ -37,7 +37,7 @@ class DocCommentVerifier {
     if (deferredKeyword != null) {
       _diagnosticReporter.atToken(
         deferredKeyword,
-        WarningCode.DOC_IMPORT_CANNOT_BE_DEFERRED,
+        WarningCode.docImportCannotBeDeferred,
       );
     }
     var configurations = docImport.import.configurations;
@@ -45,7 +45,7 @@ class DocCommentVerifier {
       _diagnosticReporter.atOffset(
         offset: configurations.first.offset,
         length: configurations.last.end - configurations.first.offset,
-        diagnosticCode: WarningCode.DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS,
+        diagnosticCode: WarningCode.docImportCannotHaveConfigurations,
       );
     }
 
@@ -55,7 +55,7 @@ class DocCommentVerifier {
       _diagnosticReporter.atOffset(
         offset: combinators.first.offset,
         length: combinators.last.end - combinators.first.offset,
-        diagnosticCode: WarningCode.DOC_IMPORT_CANNOT_HAVE_COMBINATORS,
+        diagnosticCode: WarningCode.docImportCannotHaveCombinators,
       );
     }
 
@@ -67,7 +67,7 @@ class DocCommentVerifier {
       _diagnosticReporter.atOffset(
         offset: prefix.offset,
         length: prefix.end - prefix.offset,
-        diagnosticCode: WarningCode.DOC_IMPORT_CANNOT_HAVE_PREFIX,
+        diagnosticCode: WarningCode.docImportCannotHavePrefix,
       );
     }
   }
@@ -83,7 +83,7 @@ class DocCommentVerifier {
         _diagnosticReporter.atOffset(
           offset: tag.offset,
           length: tag.end - tag.offset,
-          diagnosticCode: WarningCode.DOC_DIRECTIVE_MISSING_ONE_ARGUMENT,
+          diagnosticCode: WarningCode.docDirectiveMissingOneArgument,
           arguments: [tag.type.name, required.last.name],
         );
       } else if (gap == 2) {
@@ -94,7 +94,7 @@ class DocCommentVerifier {
         _diagnosticReporter.atOffset(
           offset: tag.offset,
           length: tag.end - tag.offset,
-          diagnosticCode: WarningCode.DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS,
+          diagnosticCode: WarningCode.docDirectiveMissingTwoArguments,
           arguments: [tag.type.name, ...missingArguments],
         );
       } else if (gap == 3) {
@@ -106,7 +106,7 @@ class DocCommentVerifier {
         _diagnosticReporter.atOffset(
           offset: tag.offset,
           length: tag.end - tag.offset,
-          diagnosticCode: WarningCode.DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS,
+          diagnosticCode: WarningCode.docDirectiveMissingThreeArguments,
           arguments: [tag.type.name, ...missingArguments],
         );
       }
@@ -124,7 +124,7 @@ class DocCommentVerifier {
       _diagnosticReporter.atOffset(
         offset: errorOffset,
         length: errorLength,
-        diagnosticCode: WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS,
+        diagnosticCode: WarningCode.docDirectiveHasExtraArguments,
         arguments: [tag.type.name, positionalArgumentCount, requiredCount],
       );
     }
@@ -134,8 +134,7 @@ class DocCommentVerifier {
         _diagnosticReporter.atOffset(
           offset: namedArgument.offset,
           length: namedArgument.end - namedArgument.offset,
-          diagnosticCode:
-              WarningCode.DOC_DIRECTIVE_HAS_UNEXPECTED_NAMED_ARGUMENT,
+          diagnosticCode: WarningCode.docDirectiveHasUnexpectedNamedArgument,
           arguments: [tag.type.name, namedArgument.name],
         );
       }
@@ -156,7 +155,7 @@ class DocCommentVerifier {
         _diagnosticReporter.atOffset(
           offset: argument.offset,
           length: argument.end - argument.offset,
-          diagnosticCode: WarningCode.DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT,
+          diagnosticCode: WarningCode.docDirectiveArgumentWrongFormat,
           arguments: [parameter.name, parameter.expectedFormat.displayString],
         );
       }

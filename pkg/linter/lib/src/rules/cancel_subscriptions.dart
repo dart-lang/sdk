@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
@@ -17,10 +18,13 @@ class CancelSubscriptions extends LintRule {
     : super(name: LintNames.cancel_subscriptions, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.cancel_subscriptions;
+  DiagnosticCode get diagnosticCode => LinterLintCode.cancelSubscriptions;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addFieldDeclaration(this, visitor);
     registry.addVariableDeclarationStatement(this, visitor);

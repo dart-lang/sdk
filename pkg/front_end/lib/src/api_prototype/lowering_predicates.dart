@@ -126,9 +126,12 @@ Name extractFieldNameFromLateLoweredIsSetField(Field node) {
     prefix = '$prefix${node.enclosingClass!.name}#';
   }
   return new Name(
-      node.name.text.substring(
-          prefix.length, node.name.text.length - lateIsSetSuffix.length),
-      node.name.library);
+    node.name.text.substring(
+      prefix.length,
+      node.name.text.length - lateIsSetSuffix.length,
+    ),
+    node.name.library,
+  );
 }
 
 // Coverage-ignore(suite): Not run.
@@ -155,13 +158,17 @@ bool isLateLoweredFieldGetter(Procedure node) {
   if (node.kind == ProcedureKind.Getter) {
     TreeNode? parent = node.parent;
     if (parent is Class) {
-      return parent.fields.any((Field field) =>
-          isLateLoweredField(field) &&
-          field.name.text.endsWith(node.name.text));
+      return parent.fields.any(
+        (Field field) =>
+            isLateLoweredField(field) &&
+            field.name.text.endsWith(node.name.text),
+      );
     } else if (parent is Library) {
-      return parent.fields.any((Field field) =>
-          isLateLoweredField(field) &&
-          field.name.text.endsWith(node.name.text));
+      return parent.fields.any(
+        (Field field) =>
+            isLateLoweredField(field) &&
+            field.name.text.endsWith(node.name.text),
+      );
     }
   }
   return false;
@@ -216,13 +223,17 @@ bool isLateLoweredFieldSetter(Procedure node) {
   if (node.kind == ProcedureKind.Setter) {
     TreeNode? parent = node.parent;
     if (parent is Class) {
-      return parent.fields.any((Field field) =>
-          isLateLoweredField(field) &&
-          field.name.text.endsWith(node.name.text));
+      return parent.fields.any(
+        (Field field) =>
+            isLateLoweredField(field) &&
+            field.name.text.endsWith(node.name.text),
+      );
     } else if (parent is Library) {
-      return parent.fields.any((Field field) =>
-          isLateLoweredField(field) &&
-          field.name.text.endsWith(node.name.text));
+      return parent.fields.any(
+        (Field field) =>
+            isLateLoweredField(field) &&
+            field.name.text.endsWith(node.name.text),
+      );
     }
   }
   return false;
@@ -399,7 +410,8 @@ Expression? getLateFieldInitializer(Member node) {
       }
     }
     throw new UnsupportedError(
-        'Unrecognized late getter encoding for $lateFieldGetter: ${body}');
+      'Unrecognized late getter encoding for $lateFieldGetter: ${body}',
+    );
   }
 
   return null;
@@ -433,9 +445,12 @@ Procedure? _getLateFieldTarget(Member node) {
     } else if (parent is Library) {
       procedures = parent.procedures;
     }
-    return procedures!.singleWhere((Procedure procedure) =>
-        isLateLoweredFieldGetter(procedure) &&
-        extractFieldNameFromLateLoweredFieldGetter(procedure) == lateFieldName);
+    return procedures!.singleWhere(
+      (Procedure procedure) =>
+          isLateLoweredFieldGetter(procedure) &&
+          extractFieldNameFromLateLoweredFieldGetter(procedure) ==
+              lateFieldName,
+    );
   }
   return null;
 }
@@ -487,9 +502,11 @@ Field? getLateFieldTarget(Member node) {
     } else if (parent is Library) {
       fields = parent.fields;
     }
-    return fields!.singleWhere((Field field) =>
-        isLateLoweredField(field) &&
-        extractFieldNameFromLateLoweredField(field) == lateFieldName);
+    return fields!.singleWhere(
+      (Field field) =>
+          isLateLoweredField(field) &&
+          extractFieldNameFromLateLoweredField(field) == lateFieldName,
+    );
   }
   return null;
 }
@@ -578,7 +595,9 @@ bool isLateLoweredIsSetLocalName(String name) {
 /// This method assumes that `isLateLoweredIsSetName(name)` is `true`.
 String extractLocalNameFromLateLoweredIsSet(String name) {
   return name.substring(
-      lateLocalPrefix.length, name.length - lateIsSetSuffix.length);
+    lateLocalPrefix.length,
+    name.length - lateIsSetSuffix.length,
+  );
 }
 
 // Coverage-ignore(suite): Not run.
@@ -618,7 +637,9 @@ bool isLateLoweredLocalGetterName(String name) {
 /// This method assumes that `isLateLoweredGetterName(name)` is `true`.
 String extractLocalNameFromLateLoweredGetter(String name) {
   return name.substring(
-      lateLocalPrefix.length, name.length - lateLocalGetterSuffix.length);
+    lateLocalPrefix.length,
+    name.length - lateLocalGetterSuffix.length,
+  );
 }
 
 // Coverage-ignore(suite): Not run.
@@ -659,7 +680,9 @@ bool isLateLoweredLocalSetterName(String name) {
 /// This method assumes that `isLateLoweredSetterName(name)` is `true`.
 String extractLocalNameFromLateLoweredSetter(String name) {
   return name.substring(
-      lateLocalPrefix.length, name.length - lateLocalSetterSuffix.length);
+    lateLocalPrefix.length,
+    name.length - lateLocalSetterSuffix.length,
+  );
 }
 
 /// Returns `true` if [node] is the synthetic parameter holding the `this` value
@@ -677,8 +700,10 @@ String extractLocalNameFromLateLoweredSetter(String name) {
 ///
 /// where '#this' is the synthetic "extension this" parameter.
 bool isExtensionThis(VariableDeclaration node) {
-  assert(node.isLowered || node.name == null || !isExtensionThisName(node.name),
-      "$node has name ${node.name} and node.isLowered = ${node.isLowered}");
+  assert(
+    node.isLowered || node.name == null || !isExtensionThisName(node.name),
+    "$node has name ${node.name} and node.isLowered = ${node.isLowered}",
+  );
   return node.isLowered && isExtensionThisName(node.name);
 }
 
@@ -690,6 +715,13 @@ const String syntheticThisName = '#this';
 /// `this` value in the encoding of extension instance members.
 bool isExtensionThisName(String? name) {
   return name == syntheticThisName;
+}
+
+// Coverage-ignore(suite): Not run.
+bool hasUnnamedExtensionNamePrefix(String? name) {
+  if (name == null) return false;
+  if (name.startsWith(NameScheme.unnamedExtensionNamePrefix)) return true;
+  return false;
 }
 
 // Coverage-ignore(suite): Not run.
@@ -893,11 +925,13 @@ String? extractQualifiedNameFromExtensionMethodName(String? methodName) {
   if (extensionName.startsWith(NameScheme.unnamedExtensionNamePrefix)) {
     extensionName = unnamedExtensionSentinel;
   }
-  String memberName = methodName
-      .substring(delimiterIndex + NameScheme.extensionNameDelimiter.length);
+  String memberName = methodName.substring(
+    delimiterIndex + NameScheme.extensionNameDelimiter.length,
+  );
   if (memberName.startsWith(NameScheme.extensionTypeConstructorPrefix)) {
-    memberName =
-        memberName.substring(NameScheme.extensionTypeConstructorPrefix.length);
+    memberName = memberName.substring(
+      NameScheme.extensionTypeConstructorPrefix.length,
+    );
   }
   if (memberName.startsWith(NameScheme.extensionGetterPrefix)) {
     memberName = memberName.substring(NameScheme.extensionGetterPrefix.length);

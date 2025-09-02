@@ -14,6 +14,7 @@ import 'package:dartdev/src/native_assets_macos.dart';
 import 'package:dartdev/src/sdk.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show Verbosity;
+import 'package:hooks_runner/hooks_runner.dart';
 import 'package:path/path.dart' as path;
 
 import '../core.dart';
@@ -124,15 +125,21 @@ then that is used instead.''',
     // AOT compilation isn't supported on ia32. Currently, generating an
     // executable only supports AOT runtimes, so these commands are disabled.
     if (Platform.version.contains('ia32')) {
-      stderr.write("'dart build' is not supported on x86 architectures");
+      stderr.write("'dart build' is not supported on x86 architectures.");
       return 64;
     }
     final args = argResults!;
 
+    var target = args.option('target');
+    if (target == null) {
+      stderr.write(
+        'There are multiple possible targets in the `bin/` directory, '
+        "and the 'target' argument wasn't specified.",
+      );
+      return 255;
+    }
     final sourceUri =
-        File.fromUri(Uri.file(args.option('target')!).normalizePath())
-            .absolute
-            .uri;
+        File.fromUri(Uri.file(target).normalizePath()).absolute.uri;
     if (!checkFile(sourceUri.toFilePath())) {
       return genericErrorExitCode;
     }
@@ -146,38 +153,84 @@ then that is used instead.''',
       stderr.writeln('Requested output directory: ${outputUri.toFilePath()}');
       return 128;
     }
-    final outputDir = Directory.fromUri(outputUri);
-    if (await outputDir.exists()) {
-      stdout.writeln('Deleting output directory: ${outputUri.toFilePath()}.');
-      await outputDir.delete(recursive: true);
-    }
-    final bundleDirectory = Directory.fromUri(outputUri.resolve('bundle/'));
-    final binDirectory = Directory.fromUri(bundleDirectory.uri.resolve('bin/'));
-    await binDirectory.create(recursive: true);
-
-    final outputExeUri = binDirectory.uri.resolve(
-      targetOS.executableFileName(
-        path.basenameWithoutExtension(sourceUri.path),
-      ),
-    );
+    final verbosity = args.option('verbosity')!;
+    final enabledExperiments = args.enabledExperiments;
 
     stdout.writeln('''The `dart build cli` command is in preview at the moment.
 See documentation on https://dart.dev/interop/c-interop#native-assets.
 ''');
-
-    stdout.writeln('Building native assets.');
     final packageConfigUri = await DartNativeAssetsBuilder.ensurePackageConfig(
       sourceUri,
     );
+    final pubspecUri =
+        await DartNativeAssetsBuilder.findWorkspacePubspec(packageConfigUri);
+    final executableName = path.basenameWithoutExtension(sourceUri.path);
+
+    return await doBuild(
+      executables: [(name: executableName, sourceEntryPoint: sourceUri)],
+      enabledExperiments: enabledExperiments,
+      outputUri: outputUri,
+      packageConfigUri: packageConfigUri!,
+      pubspecUri: pubspecUri,
+      recordUseEnabled: recordUseEnabled,
+      verbose: verbose,
+      verbosity: verbosity,
+    );
+  }
+
+  static Future<int> doBuild({
+    required DartBuildExecutables executables,
+    required Uri outputUri,
+    required Uri packageConfigUri,
+    required Uri? pubspecUri,
+    required bool recordUseEnabled,
+    required List<String> enabledExperiments,
+    required bool verbose,
+    required String verbosity,
+  }) async {
+    if (executables.length >= 2 && recordUseEnabled) {
+      // Multiple entry points can lead to multiple different tree-shakings.
+      // We either need to generate a new entry point that combines all entry
+      // points and combine that into a single executable and have wrappers
+      // around that executable. Or, we need to merge the recorded uses for the
+      // various entrypoints. The former will lead to smaller bundle-size
+      // overall.
+      stderr.writeln(
+        'Multiple executables together with record use is not yet supported.',
+      );
+      return 255;
+    }
+    final outputDir = Directory.fromUri(outputUri);
+    if (await outputDir.exists()) {
+      stdout.writeln('Deleting output directory: ${outputUri.toFilePath()}.');
+      try {
+        await outputDir.delete(recursive: true);
+      } on PathAccessException {
+        stderr.writeln(
+          'Failed to delete: ${outputUri.toFilePath()}. '
+          'The application might be in use.',
+        );
+        return 255;
+      }
+    }
+
+    // Place the bundle in a subdir so that we can potentially put debug symbols
+    // next to it.
+    final bundleDirectory = Directory.fromUri(outputUri.resolve('bundle/'));
+    final binDirectory = Directory.fromUri(bundleDirectory.uri.resolve('bin/'));
+    await binDirectory.create(recursive: true);
+
+    stdout.writeln('Building native assets.');
+
     final packageConfig =
-        await DartNativeAssetsBuilder.loadPackageConfig(packageConfigUri!);
+        await DartNativeAssetsBuilder.loadPackageConfig(packageConfigUri);
     if (packageConfig == null) {
       return compileErrorExitCode;
     }
     final runPackageName = await DartNativeAssetsBuilder.findRootPackageName(
-      sourceUri,
+      executables.first.sourceEntryPoint,
     );
-    final pubspecUri =
+    pubspecUri ??=
         await DartNativeAssetsBuilder.findWorkspacePubspec(packageConfigUri);
     final builder = DartNativeAssetsBuilder(
       pubspecUri: pubspecUri,
@@ -195,75 +248,89 @@ See documentation on https://dart.dev/interop/c-interop#native-assets.
 
     final tempDir = Directory.systemTemp.createTempSync();
     try {
-      String? recordedUsagesPath;
-      if (recordUseEnabled) {
-        recordedUsagesPath = path.join(tempDir.path, 'recorded_usages.json');
-      }
-      final generator = KernelGenerator(
-        genSnapshot: sdk.genSnapshot,
-        targetDartAotRuntime: sdk.dartAotRuntime,
-        kind: Kind.exe,
-        sourceFile: sourceUri.toFilePath(),
-        outputFile: outputExeUri.toFilePath(),
-        verbose: verbose,
-        verbosity: args.option('verbosity')!,
-        defines: [],
-        packages: packageConfigUri.toFilePath(),
-        targetOS: targetOS,
-        enableExperiment: args.enabledExperiments.join(','),
-        tempDir: tempDir,
-      );
-
-      final snapshotGenerator = await generator.generate(
-        recordedUsagesFile: recordedUsagesPath,
-      );
-
-      final linkResult = await builder.linkNativeAssetsAOT(
-        recordedUsagesPath: recordedUsagesPath,
-        buildResult: buildResult,
-      );
-      if (linkResult == null) {
-        stderr.writeln('Native assets link failed.');
-        return 255;
-      }
-
-      final allAssets = [
-        ...buildResult.encodedAssets,
-        ...linkResult.encodedAssets
-      ];
-
-      final staticAssets = allAssets
-          .where((e) => e.isCodeAsset)
-          .map(CodeAsset.fromEncoded)
-          .where((e) => e.linkMode == StaticLinking());
-      if (staticAssets.isNotEmpty) {
-        stderr.write(
-            """'dart build' does not yet support CodeAssets with static linking.
-Use linkMode as dynamic library instead.""");
-        return 255;
-      }
-
+      var first = true;
       Uri? nativeAssetsYamlUri;
-      if (allAssets.isNotEmpty) {
-        final kernelAssets = await bundleNativeAssets(
-          allAssets,
-          builder.target,
-          binDirectory.uri,
-          relocatable: true,
-          verbose: true,
+      LinkResult? linkResult;
+      for (final e in executables) {
+        String? recordedUsagesPath;
+        if (recordUseEnabled) {
+          recordedUsagesPath = path.join(tempDir.path, 'recorded_usages.json');
+        }
+        final outputExeUri = binDirectory.uri.resolve(
+          targetOS.executableFileName(e.name),
         );
-        nativeAssetsYamlUri =
-            await writeNativeAssetsYaml(kernelAssets, tempDir.uri);
-      }
+        final generator = KernelGenerator(
+          genSnapshot: sdk.genSnapshot,
+          targetDartAotRuntime: sdk.dartAotRuntime,
+          kind: Kind.exe,
+          sourceFile: e.sourceEntryPoint.toFilePath(),
+          outputFile: outputExeUri.toFilePath(),
+          verbose: verbose,
+          verbosity: verbosity,
+          defines: [],
+          packages: packageConfigUri.toFilePath(),
+          targetOS: targetOS,
+          enableExperiment: enabledExperiments.join(','),
+          tempDir: tempDir,
+        );
 
-      await snapshotGenerator.generate(
-        nativeAssets: nativeAssetsYamlUri?.toFilePath(),
-      );
+        final snapshotGenerator = await generator.generate(
+          recordedUsagesFile: recordedUsagesPath,
+        );
 
-      if (targetOS == OS.macOS) {
-        // The dylibs are opened with a relative path to the executable.
-        // MacOS prevents opening dylibs that are not on the include path.
-        await rewriteInstallPath(outputExeUri);
+        if (first) {
+          // Multiple executables are only supported with recorded uses
+          // disabled, so don't re-invoke link hooks.
+          linkResult = await builder.linkNativeAssetsAOT(
+            recordedUsagesPath: recordedUsagesPath,
+            buildResult: buildResult,
+          );
+        }
+        if (linkResult == null) {
+          stderr.writeln('Native assets link failed.');
+          return 255;
+        }
+
+        final allAssets = [
+          ...buildResult.encodedAssets,
+          ...linkResult.encodedAssets
+        ];
+
+        final staticAssets = allAssets
+            .where((e) => e.isCodeAsset)
+            .map(CodeAsset.fromEncoded)
+            .where((e) => e.linkMode == StaticLinking());
+        if (staticAssets.isNotEmpty) {
+          stderr.write(
+              """'dart build' does not yet support CodeAssets with static linking.
+Use linkMode as dynamic library instead.""");
+          return 255;
+        }
+
+        if (allAssets.isNotEmpty && first) {
+          // Without tree-shaking, the assets after linking must be identical
+          // for all entry points.
+          final kernelAssets = await bundleNativeAssets(
+            allAssets,
+            builder.target,
+            binDirectory.uri,
+            relocatable: true,
+            verbose: true,
+          );
+          nativeAssetsYamlUri =
+              await writeNativeAssetsYaml(kernelAssets, tempDir.uri);
+        }
+
+        await snapshotGenerator.generate(
+          nativeAssets: nativeAssetsYamlUri?.toFilePath(),
+        );
+
+        if (targetOS == OS.macOS) {
+          // The dylibs are opened with a relative path to the executable.
+          // MacOS prevents opening dylibs that are not on the include path.
+          await rewriteInstallPath(outputExeUri);
+        }
+        first = false;
       }
     } finally {
       await tempDir.delete(recursive: true);
@@ -277,3 +344,13 @@ extension on String {
   String makeFolder() => endsWith('\\') || endsWith('/') ? this : '$this/';
   String removeDotDart() => replaceFirst(RegExp(r'\.dart$'), '');
 }
+
+/// The executables to build in a `dart build cli` app bundle.
+///
+/// All entry points must be in the same package.
+///
+/// The names are typically taken from the `executables` section of the
+/// `pubspec.yaml` file.
+///
+/// Recorded usages and multiple executables are not supported yet.
+typedef DartBuildExecutables = List<({String name, Uri sourceEntryPoint})>;

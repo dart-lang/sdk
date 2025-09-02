@@ -23,7 +23,7 @@ void f() {
   try {} catch () {}
 }
 ''',
-      [error(ParserErrorCode.CATCH_SYNTAX, 27, 1)],
+      [error(ParserErrorCode.catchSyntax, 27, 1)],
     );
 
     var node = findNode.singleTryStatement;
@@ -57,8 +57,8 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_CATCH_STACK, 30, 1),
-        error(ParserErrorCode.CATCH_SYNTAX_EXTRA_PARAMETERS, 31, 1),
+        error(WarningCode.unusedCatchStack, 30, 1),
+        error(ParserErrorCode.catchSyntaxExtraParameters, 31, 1),
       ],
     );
 
@@ -99,8 +99,8 @@ void f() {
 }
 ''',
       [
-        error(ParserErrorCode.CATCH_SYNTAX, 30, 1),
-        error(WarningCode.UNUSED_CATCH_STACK, 31, 2),
+        error(ParserErrorCode.catchSyntax, 30, 1),
+        error(WarningCode.unusedCatchStack, 31, 2),
       ],
     );
 
@@ -141,8 +141,8 @@ void f() {
 }
 ''',
       [
-        error(ParserErrorCode.CATCH_SYNTAX, 30, 1),
-        error(WarningCode.UNUSED_CATCH_STACK, 31, 2),
+        error(ParserErrorCode.catchSyntax, 30, 1),
+        error(WarningCode.unusedCatchStack, 31, 2),
       ],
     );
 
@@ -182,7 +182,7 @@ void f() {
   try {} catch (e, st) {}
 }
 ''',
-      [error(WarningCode.UNUSED_CATCH_STACK, 30, 2)],
+      [error(WarningCode.unusedCatchStack, 30, 2)],
     );
 
     var node = findNode.singleTryStatement;
@@ -221,7 +221,7 @@ void f() {
   try {} on int catch (e, st) {}
 }
 ''',
-      [error(WarningCode.UNUSED_CATCH_STACK, 37, 2)],
+      [error(WarningCode.unusedCatchStack, 37, 2)],
     );
 
     var node = findNode.singleTryStatement;

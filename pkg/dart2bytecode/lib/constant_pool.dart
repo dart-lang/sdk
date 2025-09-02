@@ -31,6 +31,7 @@ enum ConstantTag {
   kInstantiatedInterfaceCall,
   kDynamicCall,
   kExternalCall,
+  kFfiCall,
 }
 
 String constantTagToString(ConstantTag tag) =>
@@ -87,6 +88,8 @@ abstract class ConstantPoolEntry {
         return new ConstantDynamicCall.read(reader);
       case ConstantTag.kExternalCall:
         return new ConstantExternalCall.read(reader);
+      case ConstantTag.kFfiCall:
+        return new ConstantFfiCall.read(reader);
     }
     throw 'Unexpected constant tag $tag';
   }
@@ -530,6 +533,29 @@ class ConstantExternalCall extends ConstantPoolEntry {
   bool operator ==(other) => identical(this, other);
 }
 
+class ConstantFfiCall extends ConstantPoolEntry {
+  ConstantFfiCall();
+
+  @override
+  ConstantTag get tag => ConstantTag.kFfiCall;
+
+  @override
+  void writeValue(BufferedWriter writer) {}
+
+  ConstantFfiCall.read(BufferedReader reader);
+
+  @override
+  String toString() => 'FfiCall';
+
+  // Do not merge ConstantFfiCall entries.
+
+  @override
+  int get hashCode => identityHashCode(this);
+
+  @override
+  bool operator ==(other) => identical(this, other);
+}
+
 /// Reserved constant pool entry.
 class _ReservedConstantPoolEntry extends ConstantPoolEntry {
   const _ReservedConstantPoolEntry();
@@ -607,6 +633,8 @@ class ConstantPool {
 
   int addExternalCall() => _add(ConstantExternalCall());
 
+  int addFfiCall() => _add(ConstantFfiCall());
+
   int addStaticField(Field field) =>
       _add(new ConstantStaticField(objectTable.getHandle(field)!));
 
@@ -635,8 +663,12 @@ class ConstantPool {
 
   int addEmptyTypeArguments() => _add(const ConstantEmptyTypeArguments());
 
-  int addObjectRef(Node? node) =>
-      _add(new ConstantObjectRef(objectTable.getHandle(node)));
+  int addObjectRef(Node? node) {
+    // Constant objects should not depend on the type parameters of
+    // the enclosing function.
+    return objectTable.withoutEnclosingFunctionTypeParameters(
+        () => _add(new ConstantObjectRef(objectTable.getHandle(node))));
+  }
 
   int addSelectorName(Name name, InvocationKind invocationKind) =>
       _add(new ConstantObjectRef(objectTable.getSelectorNameHandle(name,

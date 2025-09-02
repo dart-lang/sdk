@@ -40,13 +40,7 @@ void f(int e) {
   }
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY,
-          81,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.patternConstantFromDeferredLibrary, 81, 1)],
     );
   }
 }
@@ -78,8 +72,7 @@ void f(int e) {
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY,
+          CompileTimeErrorCode.nonConstantCaseExpressionFromDeferredLibrary,
           74,
           1,
         ),
@@ -101,11 +94,10 @@ const int c = 0;
     switch (_variant) {
       case _Variant.nullSafe:
         expectedDiagnosticCode =
-            CompileTimeErrorCode
-                .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY;
+            CompileTimeErrorCode.nonConstantCaseExpressionFromDeferredLibrary;
       case _Variant.patterns:
         expectedDiagnosticCode =
-            CompileTimeErrorCode.PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY;
+            CompileTimeErrorCode.patternConstantFromDeferredLibrary;
     }
 
     await assertErrorsInCode(
@@ -132,11 +124,10 @@ class A {}
     switch (_variant) {
       case _Variant.nullSafe:
         expectedDiagnosticCode =
-            CompileTimeErrorCode
-                .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY;
+            CompileTimeErrorCode.nonConstantCaseExpressionFromDeferredLibrary;
       case _Variant.patterns:
         expectedDiagnosticCode =
-            CompileTimeErrorCode.PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY;
+            CompileTimeErrorCode.patternConstantFromDeferredLibrary;
     }
 
     await assertErrorsInCode(

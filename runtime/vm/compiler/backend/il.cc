@@ -4682,8 +4682,8 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(OffsetInBytes() >= 0);  // Field is finalized.
   // For fields on Dart objects, the offset must point after the header.
   ASSERT(OffsetInBytes() != 0 || slot().has_untagged_instance());
-
   auto const rep = slot().representation();
+
   if (calls_initializer()) {
     __ LoadFromSlot(locs()->out(0).reg(), instance_reg, slot(), memory_order_);
     EmitNativeCodeForInitializerCall(compiler);
@@ -7283,6 +7283,151 @@ Definition* InvokeMathCFunctionInstr::Canonicalize(FlowGraph* flow_graph) {
   return this;
 }
 
+LocationSummary* TsanFuncEntryExitInstr::MakeLocationSummary(Zone* zone,
+                                                             bool opt) const {
+  const intptr_t kNumTemps = 1;
+  LocationSummary* result = new (zone) LocationSummary(
+      zone, InputCount(), kNumTemps, LocationSummary::kNativeLeafCall);
+  result->set_temp(0, Location::RegisterLocation(CALLEE_SAVED_TEMP));
+  return result;
+}
+
+const RuntimeEntry& TsanFuncEntryExitInstr::TargetFunction() const {
+  if (kind_ == kEntry) {
+    return kTsanFuncEntryRuntimeEntry;
+  } else {
+    return kTsanFuncExitRuntimeEntry;
+  }
+}
+
+void TsanFuncEntryExitInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (!compiler->flow_graph().graph_entry()->NeedsFrame()) return;
+
+  const Register saved_sp = locs()->temp(0).reg();
+  ASSERT(IsCalleeSavedRegister(saved_sp));
+  ASSERT(IsCalleeSavedRegister(THR));
+  ASSERT(IsCalleeSavedRegister(PP));
+  ASSERT(IsCalleeSavedRegister(CODE_REG));
+#if defined(TARGET_ARCH_ARM64)
+  ASSERT(IsCalleeSavedRegister(NULL_REG));
+  ASSERT(IsCalleeSavedRegister(HEAP_BITS));
+  ASSERT(IsCalleeSavedRegister(DISPATCH_TABLE_REG));
+#elif defined(TARGET_ARCH_RISCV64)
+  ASSERT(IsCalleeSavedRegister(NULL_REG));
+  ASSERT(IsCalleeSavedRegister(WRITE_BARRIER_STATE));
+  ASSERT(IsCalleeSavedRegister(DISPATCH_TABLE_REG));
+#endif
+
+  __ MoveRegister(saved_sp, SPREG);
+#if defined(TARGET_ARCH_ARM64)
+  __ AndImmediate(CSP, SP, ~(OS::ActivationFrameAlignment() - 1));
+#else
+  __ ReserveAlignedFrameSpace(0);
+#endif
+  if (kind_ == kEntry) {
+    __ Load(CallingConventions::ArgumentRegisters[0],
+            compiler::Address(
+                FPREG, compiler::target::frame_layout.saved_caller_pc_from_fp *
+                           compiler::target::kWordSize));
+  }
+  __ Load(TMP, compiler::Address(THR, TargetFunction().OffsetFromThread()));
+  __ Store(TMP,
+           compiler::Address(THR, compiler::target::Thread::vm_tag_offset()));
+  __ CallCFunction(TMP);
+  __ LoadImmediate(TMP, VMTag::kDartTagId);
+  __ Store(TMP,
+           compiler::Address(THR, compiler::target::Thread::vm_tag_offset()));
+  __ MoveRegister(SPREG, saved_sp);
+#if defined(TARGET_ARCH_ARM64)
+  __ SetupCSPFromThread(THR);
+#endif
+}
+
+LocationSummary* TsanReadWriteInstr::MakeLocationSummary(Zone* zone,
+                                                         bool opt) const {
+  const intptr_t kNumTemps = 1;
+  LocationSummary* result = new (zone) LocationSummary(
+      zone, InputCount(), kNumTemps, LocationSummary::kNativeLeafCall);
+  result->set_temp(0, Location::RegisterLocation(CALLEE_SAVED_TEMP));
+  result->set_in(0, Location::RequiresRegister());
+  return result;
+}
+
+const RuntimeEntry& TsanReadWriteInstr::TargetFunction() const {
+  intptr_t size = RepresentationUtils::ValueSize(slot().representation());
+  if (kind_ == Kind::kRead) {
+    switch (size) {
+      case 1:
+        return kTsanRead1RuntimeEntry;
+      case 2:
+        return kTsanRead2RuntimeEntry;
+      case 4:
+        return kTsanRead4RuntimeEntry;
+      case 8:
+        return kTsanRead8RuntimeEntry;
+      case 16:
+        return kTsanRead16RuntimeEntry;
+      default:
+        UNREACHABLE();
+    }
+  } else if (kind_ == kWrite) {
+    switch (size) {
+      case 1:
+        return kTsanWrite1RuntimeEntry;
+      case 2:
+        return kTsanWrite2RuntimeEntry;
+      case 4:
+        return kTsanWrite4RuntimeEntry;
+      case 8:
+        return kTsanWrite8RuntimeEntry;
+      case 16:
+        return kTsanWrite16RuntimeEntry;
+      default:
+        UNREACHABLE();
+    }
+  }
+  UNREACHABLE();
+}
+
+void TsanReadWriteInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register saved_sp = locs()->temp(0).reg();
+  ASSERT(IsCalleeSavedRegister(saved_sp));
+  ASSERT(IsCalleeSavedRegister(THR));
+  ASSERT(IsCalleeSavedRegister(PP));
+  ASSERT(IsCalleeSavedRegister(CODE_REG));
+#if defined(TARGET_ARCH_ARM64)
+  ASSERT(IsCalleeSavedRegister(NULL_REG));
+  ASSERT(IsCalleeSavedRegister(HEAP_BITS));
+  ASSERT(IsCalleeSavedRegister(DISPATCH_TABLE_REG));
+#elif defined(TARGET_ARCH_RISCV64)
+  ASSERT(IsCalleeSavedRegister(NULL_REG));
+  ASSERT(IsCalleeSavedRegister(WRITE_BARRIER_STATE));
+  ASSERT(IsCalleeSavedRegister(DISPATCH_TABLE_REG));
+#endif
+
+  __ MoveRegister(saved_sp, SPREG);
+#if defined(TARGET_ARCH_ARM64)
+  __ AndImmediate(CSP, SP, ~(OS::ActivationFrameAlignment() - 1));
+#else
+  __ ReserveAlignedFrameSpace(0);
+#endif
+  const Register instance_reg = locs()->in(0).reg();
+  intptr_t tag = slot().has_untagged_instance() ? 0 : kHeapObjectTag;
+  __ AddImmediate(CallingConventions::ArgumentRegisters[0], instance_reg,
+                  slot().offset_in_bytes() - tag);
+  __ Load(TMP, compiler::Address(THR, TargetFunction().OffsetFromThread()));
+  __ Store(TMP,
+           compiler::Address(THR, compiler::target::Thread::vm_tag_offset()));
+  __ CallCFunction(TMP);
+  __ LoadImmediate(TMP, VMTag::kDartTagId);
+  __ Store(TMP,
+           compiler::Address(THR, compiler::target::Thread::vm_tag_offset()));
+  __ MoveRegister(SPREG, saved_sp);
+#if defined(TARGET_ARCH_ARM64)
+  __ SetupCSPFromThread(THR);
+#endif
+}
+
 bool DoubleToIntegerInstr::SupportsFloorAndCeil() {
 #if defined(TARGET_ARCH_X64)
   return CompilerState::Current().is_aot() || FLAG_target_unknown_cpu;
@@ -7809,8 +7954,8 @@ void StoreFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(OffsetInBytes() >= 0);  // Field is finalized.
   // For fields on Dart objects, the offset must point after the header.
   ASSERT(OffsetInBytes() != 0 || slot().has_untagged_instance());
-
   const Representation rep = slot().representation();
+
 #if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV32) ||              \
     defined(TARGET_ARCH_RISCV64)
   if (locs()->in(kValuePos).IsConstant() &&

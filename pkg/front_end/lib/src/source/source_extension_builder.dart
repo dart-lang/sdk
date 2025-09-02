@@ -60,26 +60,26 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
 
   final List<ExtensionFragment> _augmentations;
 
-  SourceExtensionBuilder(
-      {required SourceLibraryBuilder enclosingLibraryBuilder,
-      required this.fileUri,
-      required int startOffset,
-      required int nameOffset,
-      required int endOffset,
-      required DeclarationNameSpaceBuilder nameSpaceBuilder,
-      required ExtensionFragment introductory,
-      required List<ExtensionFragment> augmentations,
-      required Reference? reference})
-      : _introductory = introductory,
-        _augmentations = augmentations,
-        _reference = reference ?? new Reference(),
-        _nameOffset = nameOffset,
-        libraryBuilder = enclosingLibraryBuilder,
-        _modifiers = introductory.modifiers,
-        extensionName = introductory.extensionName,
-        typeParameters = introductory.typeParameters?.builders,
-        onType = introductory.onType,
-        _nameSpaceBuilder = nameSpaceBuilder {
+  SourceExtensionBuilder({
+    required SourceLibraryBuilder enclosingLibraryBuilder,
+    required this.fileUri,
+    required int startOffset,
+    required int nameOffset,
+    required int endOffset,
+    required DeclarationNameSpaceBuilder nameSpaceBuilder,
+    required ExtensionFragment introductory,
+    required List<ExtensionFragment> augmentations,
+    required Reference? reference,
+  }) : _introductory = introductory,
+       _augmentations = augmentations,
+       _reference = reference ?? new Reference(),
+       _nameOffset = nameOffset,
+       libraryBuilder = enclosingLibraryBuilder,
+       _modifiers = introductory.modifiers,
+       extensionName = introductory.extensionName,
+       typeParameters = introductory.typeParameters?.builders,
+       onType = introductory.onType,
+       _nameSpaceBuilder = nameSpaceBuilder {
     _introductory.builder = this;
     _introductory.bodyScope.declarationBuilder = this;
     for (ExtensionFragment augmentation in _augmentations) {
@@ -89,15 +89,18 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
 
     // TODO(johnniwinther): Move this to the [build] once augmentations are
     // handled through fragments.
-    _extension = new Extension(
-        name: extensionName.name,
-        fileUri: fileUri,
-        typeParameters:
-            SourceNominalParameterBuilder.typeParametersFromBuilders(
-                typeParameters),
-        reference: _reference)
-      ..isUnnamedExtension = extensionName.isUnnamedExtension
-      ..fileOffset = _nameOffset;
+    _extension =
+        new Extension(
+            name: extensionName.name,
+            fileUri: fileUri,
+            typeParameters:
+                SourceNominalParameterBuilder.typeParametersFromBuilders(
+                  typeParameters,
+                ),
+            reference: _reference,
+          )
+          ..isUnnamedExtension = extensionName.isUnnamedExtension
+          ..fileOffset = _nameOffset;
     extensionName.attachExtension(_extension);
   }
 
@@ -106,20 +109,24 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
       _memberBuilders.iterator;
 
   @override
-  Iterator<T> filteredMembersIterator<T extends MemberBuilder>(
-          {required bool includeDuplicates}) =>
-      new FilteredIterator<T>(_memberBuilders.iterator,
-          includeDuplicates: includeDuplicates);
+  Iterator<T> filteredMembersIterator<T extends MemberBuilder>({
+    required bool includeDuplicates,
+  }) => new FilteredIterator<T>(
+    _memberBuilders.iterator,
+    includeDuplicates: includeDuplicates,
+  );
 
   @override
   Iterator<SourceMemberBuilder> get unfilteredConstructorsIterator =>
       _constructorBuilders.iterator;
 
   @override
-  Iterator<T> filteredConstructorsIterator<T extends MemberBuilder>(
-          {required bool includeDuplicates}) =>
-      new FilteredIterator<T>(_constructorBuilders.iterator,
-          includeDuplicates: includeDuplicates);
+  Iterator<T> filteredConstructorsIterator<T extends MemberBuilder>({
+    required bool includeDuplicates,
+  }) => new FilteredIterator<T>(
+    _constructorBuilders.iterator,
+    includeDuplicates: includeDuplicates,
+  );
 
   @override
   int get fileOffset => _nameOffset;
@@ -139,19 +146,20 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
     _constructorBuilders = [];
     _memberBuilders = [];
     _nameSpace = _nameSpaceBuilder.buildNameSpace(
-        loader: libraryBuilder.loader,
-        problemReporting: libraryBuilder,
-        enclosingLibraryBuilder: libraryBuilder,
-        declarationBuilder: this,
-        indexedLibrary: libraryBuilder.indexedLibrary,
-        // Extensions do not have a corresponding [IndexedContainer] since their
-        // members are stored in the enclosing library.
-        indexedContainer: null,
-        containerType: ContainerType.Extension,
-        containerName: extensionName,
-        constructorBuilders: _constructorBuilders,
-        memberBuilders: _memberBuilders,
-        typeParameterFactory: libraryBuilder.typeParameterFactory);
+      loader: libraryBuilder.loader,
+      problemReporting: libraryBuilder,
+      enclosingLibraryBuilder: libraryBuilder,
+      declarationBuilder: this,
+      indexedLibrary: libraryBuilder.indexedLibrary,
+      // Extensions do not have a corresponding [IndexedContainer] since their
+      // members are stored in the enclosing library.
+      indexedContainer: null,
+      containerType: ContainerType.Extension,
+      containerName: extensionName,
+      constructorBuilders: _constructorBuilders,
+      memberBuilders: _memberBuilders,
+      typeParameterFactory: libraryBuilder.typeParameterFactory,
+    );
   }
 
   @override
@@ -177,64 +185,93 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   /// another library member. In this case, the extension member should not be
   /// added to the library to avoid name clashes with other members in the
   /// library.
-  Extension build(LibraryBuilder coreLibrary,
-      {required bool addMembersToLibrary}) {
+  Extension build(
+    LibraryBuilder coreLibrary, {
+    required bool addMembersToLibrary,
+  }) {
     _extension.onType = onType.build(libraryBuilder, TypeUse.extensionOnType);
 
     buildInternal(coreLibrary, addMembersToLibrary: addMembersToLibrary);
     return _extension;
   }
 
-  void _buildOutlineExpressionsForFragment(ExtensionFragment fragment,
-      ClassHierarchy classHierarchy, BodyBuilderContext bodyBuilderContext) {
+  void _buildOutlineExpressionsForFragment(
+    ExtensionFragment fragment,
+    ClassHierarchy classHierarchy,
+    BodyBuilderContext bodyBuilderContext,
+  ) {
     MetadataBuilder.buildAnnotations(
-        annotatable: extension,
-        annotatableFileUri: extension.fileUri,
-        metadata: fragment.metadata,
-        bodyBuilderContext: bodyBuilderContext,
-        libraryBuilder: libraryBuilder,
-        scope: fragment.enclosingScope);
+      annotatable: extension,
+      annotatableFileUri: extension.fileUri,
+      metadata: fragment.metadata,
+      bodyBuilderContext: bodyBuilderContext,
+      libraryBuilder: libraryBuilder,
+      scope: fragment.enclosingScope,
+    );
   }
 
-  void buildOutlineExpressions(ClassHierarchy classHierarchy,
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
+  void buildOutlineExpressions(
+    ClassHierarchy classHierarchy,
+    List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+  ) {
     BodyBuilderContext bodyBuilderContext = _createBodyBuilderContext();
     _buildOutlineExpressionsForFragment(
-        _introductory, classHierarchy, bodyBuilderContext);
+      _introductory,
+      classHierarchy,
+      bodyBuilderContext,
+    );
     for (ExtensionFragment augmentation in _augmentations) {
       _buildOutlineExpressionsForFragment(
-          augmentation, classHierarchy, bodyBuilderContext);
+        augmentation,
+        classHierarchy,
+        bodyBuilderContext,
+      );
     }
 
     if (typeParameters != null) {
       for (int i = 0; i < typeParameters!.length; i++) {
         typeParameters![i].buildOutlineExpressions(
-            libraryBuilder, bodyBuilderContext, classHierarchy);
+          libraryBuilder,
+          bodyBuilderContext,
+          classHierarchy,
+        );
       }
     }
 
-    Iterator<SourceMemberBuilder> iterator =
-        filteredMembersIterator(includeDuplicates: false);
+    Iterator<SourceMemberBuilder> iterator = filteredMembersIterator(
+      includeDuplicates: false,
+    );
     while (iterator.moveNext()) {
-      iterator.current
-          .buildOutlineExpressions(classHierarchy, delayedDefaultValueCloners);
+      iterator.current.buildOutlineExpressions(
+        classHierarchy,
+        delayedDefaultValueCloners,
+      );
     }
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  void addMemberInternal(SourceMemberBuilder memberBuilder,
-      BuiltMemberKind memberKind, Member member, Member? tearOff) {
-    unhandled("${memberBuilder.runtimeType}:${memberKind}", "addMemberInternal",
-        memberBuilder.fileOffset, memberBuilder.fileUri);
+  void addMemberInternal(
+    SourceMemberBuilder memberBuilder,
+    BuiltMemberKind memberKind,
+    Member member,
+    Member? tearOff,
+  ) {
+    unhandled(
+      "${memberBuilder.runtimeType}:${memberKind}",
+      "addMemberInternal",
+      memberBuilder.fileOffset,
+      memberBuilder.fileUri,
+    );
   }
 
   @override
   void addMemberDescriptorInternal(
-      SourceMemberBuilder memberBuilder,
-      BuiltMemberKind memberKind,
-      Reference memberReference,
-      Reference? tearOffReference) {
+    SourceMemberBuilder memberBuilder,
+    BuiltMemberKind memberKind,
+    Reference memberReference,
+    Reference? tearOffReference,
+  ) {
     String name = memberBuilder.name;
     ExtensionMemberKind kind;
     bool isInternalImplementation = false;
@@ -254,10 +291,11 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
       case BuiltMemberKind.ExtensionTypeRepresentationField:
         // Coverage-ignore(suite): Not run.
         unhandled(
-            "$memberBuilder(${memberBuilder.runtimeType}):${memberKind}",
-            "addMemberDescriptorInternal",
-            memberBuilder.fileOffset,
-            memberBuilder.fileUri);
+          "$memberBuilder(${memberBuilder.runtimeType}):${memberKind}",
+          "addMemberDescriptorInternal",
+          memberBuilder.fileOffset,
+          memberBuilder.fileUri,
+        );
       case BuiltMemberKind.ExtensionField:
         kind = ExtensionMemberKind.Field;
         break;
@@ -281,13 +319,16 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
         kind = ExtensionMemberKind.Operator;
         break;
     }
-    extension.memberDescriptors.add(new ExtensionMemberDescriptor(
+    extension.memberDescriptors.add(
+      new ExtensionMemberDescriptor(
         name: new Name(name, libraryBuilder.library),
         memberReference: memberReference,
         tearOffReference: tearOffReference,
         isStatic: memberBuilder.isStatic,
         isInternalImplementation: isInternalImplementation,
-        kind: kind));
+        kind: kind,
+      ),
+    );
   }
 
   @override

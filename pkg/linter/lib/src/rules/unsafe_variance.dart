@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_state.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -10,7 +12,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/element/element.dart' // ignore: implementation_imports
     show TypeParameterElementImpl;
-import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 import '../util/variance_checker.dart';
@@ -26,10 +27,13 @@ class UnsafeVariance extends LintRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unsafe_variance;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unsafeVariance;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addMethodDeclaration(this, visitor);
     registry.addVariableDeclarationList(this, visitor);
@@ -52,7 +56,7 @@ class _UnsafeVarianceChecker extends VarianceChecker {
         return;
       }
       if (typeParameterElement is TypeParameterElementImpl) {
-        if (typeParameterElement.firstFragment.isLegacyCovariant &&
+        if (typeParameterElement.isLegacyCovariant &&
             variance != Variance.out) {
           rule.reportAtNode(typeAnnotation);
         }

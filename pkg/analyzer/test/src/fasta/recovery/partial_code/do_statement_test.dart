@@ -11,8 +11,9 @@ main() {
 }
 
 class DoStatementTest extends PartialCodeTest {
-  final allExceptEof =
-      PartialCodeTest.statementSuffixes.map((ts) => ts.name).toList();
+  final allExceptEof = PartialCodeTest.statementSuffixes
+      .map((ts) => ts.name)
+      .toList();
   buildAll() {
     buildTests(
       'do_statement',
@@ -21,13 +22,13 @@ class DoStatementTest extends PartialCodeTest {
           'keyword',
           'do',
           [
-            ParserErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.MISSING_IDENTIFIER,
-            ParserErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.expectedToken,
+            ParserErrorCode.expectedToken,
+            ParserErrorCode.expectedToken,
+            ParserErrorCode.expectedToken,
+            ParserErrorCode.missingIdentifier,
+            ParserErrorCode.expectedToken,
+            ParserErrorCode.expectedToken,
           ],
           "do {} while (_s_);",
           allFailing: true,
@@ -36,11 +37,11 @@ class DoStatementTest extends PartialCodeTest {
           'leftBrace',
           'do {',
           [
-            ScannerErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.MISSING_IDENTIFIER,
-            ParserErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.EXPECTED_TOKEN,
+            ScannerErrorCode.expectedToken,
+            ParserErrorCode.expectedToken,
+            ParserErrorCode.missingIdentifier,
+            ParserErrorCode.expectedToken,
+            ParserErrorCode.expectedToken,
           ],
           "do {} while (_s_);",
           failing: allExceptEof,
@@ -49,26 +50,26 @@ class DoStatementTest extends PartialCodeTest {
           'rightBrace',
           'do {}',
           [
-            ParserErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.MISSING_IDENTIFIER,
-            ParserErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.expectedToken,
+            ParserErrorCode.missingIdentifier,
+            ParserErrorCode.expectedToken,
+            ParserErrorCode.expectedToken,
           ],
           "do {} while (_s_);",
           failing: ['while'],
         ),
         TestDescriptor('while', 'do {} while', [
-          ParserErrorCode.EXPECTED_TOKEN,
-          ParserErrorCode.MISSING_IDENTIFIER,
-          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.expectedToken,
+          ParserErrorCode.missingIdentifier,
+          ParserErrorCode.expectedToken,
         ], "do {} while (_s_);"),
         TestDescriptor(
           'leftParen',
           'do {} while (',
           [
-            ParserErrorCode.MISSING_IDENTIFIER,
-            ParserErrorCode.EXPECTED_TOKEN,
-            ScannerErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.missingIdentifier,
+            ParserErrorCode.expectedToken,
+            ScannerErrorCode.expectedToken,
           ],
           "do {} while (_s_);",
           failing: [
@@ -82,11 +83,11 @@ class DoStatementTest extends PartialCodeTest {
           ],
         ),
         TestDescriptor('condition', 'do {} while (a', [
-          ParserErrorCode.EXPECTED_TOKEN,
-          ScannerErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.expectedToken,
+          ScannerErrorCode.expectedToken,
         ], "do {} while (a);"),
         TestDescriptor('rightParen', 'do {} while (a)', [
-          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.expectedToken,
         ], "do {} while (a);"),
       ],
       PartialCodeTest.statementSuffixes,

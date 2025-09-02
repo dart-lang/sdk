@@ -383,11 +383,8 @@ lsp.CompletionItem? toLspCompletionItem(
   }
 
   var isDeprecated =
-      suggestion is ElementBasedSuggestion
-          ? (suggestion as ElementBasedSuggestion)
-              .element
-              .hasOrInheritsDeprecated
-          : false;
+      suggestion is ElementBasedSuggestion &&
+      (suggestion as ElementBasedSuggestion).element.hasOrInheritsDeprecated;
 
   // Because we potentially send thousands of these items, we should minimise
   // the generated JSON as much as possible - for example using nulls in place

@@ -349,13 +349,13 @@ class AstRewriter {
     if (receiverIdentifier is SimpleIdentifierImpl) {
       element = nameScope.lookup(receiverIdentifier.name).getter;
     } else if (receiverIdentifier is PrefixedIdentifierImpl) {
-      var prefixElement =
-          nameScope.lookup(receiverIdentifier.prefix.name).getter;
+      var prefixElement = nameScope
+          .lookup(receiverIdentifier.prefix.name)
+          .getter;
       if (prefixElement is PrefixElement) {
-        element =
-            prefixElement.scope
-                .lookup(receiverIdentifier.identifier.name)
-                .getter;
+        element = prefixElement.scope
+            .lookup(receiverIdentifier.identifier.name)
+            .getter;
       } else {
         // This expression is something like `foo.List<int>.filled` where `foo`
         // is not an import prefix.
@@ -435,7 +435,7 @@ class AstRewriter {
     if (typeArguments != null) {
       _diagnosticReporter.atNode(
         typeArguments,
-        CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+        CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
         arguments: [typeNameIdentifier.toString(), constructorIdentifier.name],
       );
     }
@@ -469,10 +469,9 @@ class AstRewriter {
     required InterfaceElement classElement,
   }) {
     var name = node.identifier.name;
-    var constructorElement =
-        name == 'new'
-            ? classElement.unnamedConstructor
-            : classElement.getNamedConstructor(name);
+    var constructorElement = name == 'new'
+        ? classElement.unnamedConstructor
+        : classElement.getNamedConstructor(name);
     if (constructorElement == null) {
       return node;
     }
@@ -502,10 +501,9 @@ class AstRewriter {
     required InterfaceElement classElement,
   }) {
     var name = node.propertyName.name;
-    var constructorElement =
-        name == 'new'
-            ? classElement.unnamedConstructor
-            : classElement.getNamedConstructor(name);
+    var constructorElement = name == 'new'
+        ? classElement.unnamedConstructor
+        : classElement.getNamedConstructor(name);
     if (constructorElement == null && typeArguments == null) {
       // If there is no constructor by this name, and no type arguments,
       // do not rewrite the node. If there _are_ type arguments (like
@@ -602,7 +600,7 @@ class AstRewriter {
     if (typeArguments != null) {
       _diagnosticReporter.atNode(
         typeArguments,
-        CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+        CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
         arguments: [typeIdentifier.name, constructorIdentifier.name],
       );
     }

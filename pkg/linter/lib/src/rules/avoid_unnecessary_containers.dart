@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
@@ -18,10 +19,13 @@ class AvoidUnnecessaryContainers extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoid_unnecessary_containers;
+      LinterLintCode.avoidUnnecessaryContainers;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this);
 
     registry.addInstanceCreationExpression(this, visitor);
@@ -42,8 +46,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (parent is NamedExpression && parent.name.label.name == 'child') {
       var args = parent.thisOrAncestorOfType<ArgumentList>();
       if (args?.arguments.length == 1) {
-        var parentCreation =
-            parent.thisOrAncestorOfType<InstanceCreationExpression>();
+        var parentCreation = parent
+            .thisOrAncestorOfType<InstanceCreationExpression>();
         if (parentCreation != null) {
           if (isExactWidgetTypeContainer(parentCreation.staticType)) {
             rule.reportAtNode(parentCreation.constructorName);

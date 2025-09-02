@@ -116,8 +116,11 @@ Future<void> main(List<String> args) async {
     arguments.addAll(scriptArguments);
 
     print('Running: ${dartVm} ${arguments.join(' ')}');
-    Process process = await Process.start(dartVm, arguments,
-        mode: ProcessStartMode.inheritStdio);
+    Process process = await Process.start(
+      dartVm,
+      arguments,
+      mode: ProcessStartMode.inheritStdio,
+    );
     exitCode = await process.exitCode;
   } else {
     // Run within the same VM if no VM arguments are provided.

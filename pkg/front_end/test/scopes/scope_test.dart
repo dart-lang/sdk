@@ -15,14 +15,19 @@ import 'package:kernel/src/printer.dart' show AstPrinter, AstTextStrategy;
 
 Future<void> main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-  await runTests<Features>(dataDir,
-      args: args,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest: runTestFor(const ScopeDataComputer(), [
-        new CfeTestConfig(cfeMarker, 'cfe',
-            explicitExperimentalFlags: {ExperimentalFlag.inlineClass: true}),
-      ]));
+  await runTests<Features>(
+    dataDir,
+    args: args,
+    createUriForFileName: createUriForFileName,
+    onFailure: onFailure,
+    runTest: runTestFor(const ScopeDataComputer(), [
+      new CfeTestConfig(
+        cfeMarker,
+        'cfe',
+        explicitExperimentalFlags: {ExperimentalFlag.inlineClass: true},
+      ),
+    ]),
+  );
 }
 
 class Tags {
@@ -37,11 +42,20 @@ class ScopeDataComputer extends CfeDataComputer<Features> {
   const ScopeDataComputer();
 
   @override
-  void computeMemberData(CfeTestResultData testResultData, Member member,
-      Map<Id, ActualData<Features>> actualMap,
-      {bool? verbose}) {
-    member.accept(ScopeDataExtractor(member.enclosingLibrary,
-        member.enclosingClass, testResultData.compilerResult, actualMap));
+  void computeMemberData(
+    CfeTestResultData testResultData,
+    Member member,
+    Map<Id, ActualData<Features>> actualMap, {
+    bool? verbose,
+  }) {
+    member.accept(
+      ScopeDataExtractor(
+        member.enclosingLibrary,
+        member.enclosingClass,
+        testResultData.compilerResult,
+        actualMap,
+      ),
+    );
   }
 
   @override
@@ -54,7 +68,11 @@ class ScopeDataExtractor extends CfeDataExtractor<Features> {
   final Class? cls;
 
   ScopeDataExtractor(
-      this.library, this.cls, super.compilerResult, super.actualMap);
+    this.library,
+    this.cls,
+    super.compilerResult,
+    super.actualMap,
+  );
 
   Component get component => compilerResult.component!;
 
@@ -66,7 +84,11 @@ class ScopeDataExtractor extends CfeDataExtractor<Features> {
       Location? location = node.location;
       if (location != null) {
         DartScope scope = DartScopeBuilder2.findScopeFromOffsetAndClass(
-            library, location.file, cls, node.fileOffset);
+          library,
+          location.file,
+          cls,
+          node.fileOffset,
+        );
         Features features = Features();
         if (scope.cls != null) {
           features[Tags.cls] = scope.cls!.name;
@@ -78,14 +100,17 @@ class ScopeDataExtractor extends CfeDataExtractor<Features> {
           features.add(Tags.isStatic);
         }
         for (TypeParameter typeParameter in scope.typeParameters) {
-          AstPrinter printer = new AstPrinter(const AstTextStrategy(
+          AstPrinter printer = new AstPrinter(
+            const AstTextStrategy(
               useQualifiedTypeParameterNames: true,
               useQualifiedTypeParameterNamesRecurseOnNamedLocalFunctions: true,
-              includeLibraryNamesInTypes: false));
+              includeLibraryNamesInTypes: false,
+            ),
+          );
           printer.writeTypeParameterName(typeParameter);
           features.addElement(Tags.typeParameter, printer.getText());
         }
-        for (String variable in scope.definitions.keys) {
+        for (String variable in scope.variables.keys) {
           features.addElement(Tags.variables, variable);
         }
         return features;

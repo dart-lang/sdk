@@ -13,7 +13,8 @@ import '../incremental_suite.dart' show normalCompileToBytes;
 
 main() async {
   Uint8List bytes = await normalCompileToBytes(
-      Platform.script.resolve("load_dill_twice_lib_1.dart"));
+    Platform.script.resolve("load_dill_twice_lib_1.dart"),
+  );
 
   Component c = new Component();
   new BinaryBuilder(bytes).readComponent(c);
@@ -31,8 +32,10 @@ main() async {
     List<String> linesTwice = loadedTwiceString.split("\n");
 
     if (linesOnce.length != linesTwice.length) {
-      print("Number of lines differ! "
-          "(${linesOnce.length} vs ${linesTwice.length})");
+      print(
+        "Number of lines differ! "
+        "(${linesOnce.length} vs ${linesTwice.length})",
+      );
     }
 
     // Do some simple and stupid diff.

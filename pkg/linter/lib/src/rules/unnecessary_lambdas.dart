@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -24,10 +25,13 @@ class UnnecessaryLambdas extends LintRule {
     : super(name: LintNames.unnecessary_lambdas, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_lambdas;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryLambdas;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addFunctionExpression(this, visitor);
   }
@@ -186,8 +190,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    var parameters =
-        nodeToLintParams.map((e) => e.declaredFragment?.element).toSet();
+    var parameters = nodeToLintParams
+        .map((e) => e.declaredFragment?.element)
+        .toSet();
     if (node is FunctionExpressionInvocation) {
       if (node.function.mightBeDeferred) return;
 
@@ -209,8 +214,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (argType == null) return;
         if (!typeSystem.isSubtypeOf(tearoffType, argType)) return;
       } else if (parent is VariableDeclaration) {
-        var variableElement =
-            parent.declaredElement ?? parent.declaredFragment?.element;
+        var variableElement = parent.declaredFragment?.element;
         var variableType = variableElement?.type;
         if (variableType == null) return;
         if (!typeSystem.isSubtypeOf(tearoffType, variableType)) return;

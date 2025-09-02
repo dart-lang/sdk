@@ -88,7 +88,7 @@ extension type E(Object o) {
 ''',
       [
         // No lint.
-        error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 46, 1),
+        error(CompileTimeErrorCode.duplicateConstructorDefault, 46, 1),
       ],
     );
   }

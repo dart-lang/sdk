@@ -92,7 +92,7 @@ class _TestServerPlugin extends MockServerPlugin with FixesMixin {
       source: MockSource(),
       offset: 0,
       length: 0,
-      diagnosticCode: CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT,
+      diagnosticCode: CompileTimeErrorCode.awaitInWrongContext,
     );
     var result = MockResolvedUnitResult(
         lineInfo: LineInfo([0, 20]), errors: [diagnostic]);

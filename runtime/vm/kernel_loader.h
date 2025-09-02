@@ -186,8 +186,7 @@ class KernelLoader : public ValueObject {
 
   // Returns the function which will evaluate the expression, or a failure
   // object if there was an error.
-  ObjectPtr LoadExpressionEvaluationFunction(const String& library_url,
-                                             const String& klass);
+  ObjectPtr LoadExpressionEvaluationFunction(const Class& real_class);
 
   // Finds all libraries that have been modified in this incremental
   // version of the kernel program file.
@@ -233,8 +232,10 @@ class KernelLoader : public ValueObject {
   using FfiNativePragma =
       BitField<uint32_t, bool, DeeplyImmutablePragma::kNextBit>;
   using SharedPragma = BitField<uint32_t, bool, FfiNativePragma::kNextBit>;
-  using DynModuleExtendablePragma =
+  using NoSanitizeThreadPragma =
       BitField<uint32_t, bool, SharedPragma::kNextBit>;
+  using DynModuleExtendablePragma =
+      BitField<uint32_t, bool, NoSanitizeThreadPragma::kNextBit>;
   using DynModuleImplicitlyExtendablePragma =
       BitField<uint32_t, bool, DynModuleExtendablePragma::kNextBit>;
   using DynModuleCanBeOverriddenPragma =

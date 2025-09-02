@@ -9,21 +9,19 @@ extension Extension on int {
    extensionThis,
    name=this
   */
-      instanceMethod() => this;
+  instanceMethod() => this;
 
   /*member: Extension|get#instanceGetter:extensionName=Extension.instanceGetter*/
   int get /*
    extensionThis,
    name=this
-  */
-      instanceGetter => this;
+  */ instanceGetter => this;
 
   /*member: Extension|set#instanceSetter:extensionName=Extension.instanceSetter*/
   void set /*
    extensionThis,
    name=this
-  */
-      instanceSetter(int value) {}
+  */ instanceSetter(int value) {}
 
   /*member: Extension|staticMethod:extensionName=Extension.staticMethod*/
   static int staticMethod() => 42;
@@ -42,21 +40,19 @@ extension on int {
    extensionThis,
    name=this
   */
-      instanceMethod() => this;
+  instanceMethod() => this;
 
   /*member: _extension#1|get#instanceGetter:extensionName=<unnamed extension>.instanceGetter*/
   int get /*
    extensionThis,
    name=this
-  */
-      instanceGetter => this;
+  */ instanceGetter => this;
 
   /*member: _extension#1|set#instanceSetter:extensionName=<unnamed extension>.instanceSetter*/
   void set /*
    extensionThis,
    name=this
-  */
-      instanceSetter(int value) {}
+  */ instanceSetter(int value) {}
 
   /*member: _extension#1|staticMethod:extensionName=<unnamed extension>.staticMethod*/
   static int staticMethod() => 42;

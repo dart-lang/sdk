@@ -22,11 +22,11 @@ class Test1 {
     var /*@type=int*/ v7 = /*@target=Test1.t*/ /*@target=Test1.t*/ t /*@target=num.+*/ +=
         getInt();
 
-    var /*@type=int*/ v10 = /*@target=num.+*/ ++ /*@target=Test1.t*/ /*@target=Test1.t*/ t;
+    var /*@type=int*/ v10 = /*@target=num.+*/ ++   /*@target=Test1.t*//*@target=Test1.t*/t;
 
     var /*@type=int*/ v11 =
-        /*@type=int*/ /*@target=Test1.t*/ /*@target=Test1.t*/
-        /*@type=int*/ t /*@target=num.+*/ ++;
+          
+         /*@target=Test1.t*//*@target=Test1.t*/t /*@target=num.+*/ ++;
   }
 }
 
@@ -59,11 +59,11 @@ class Test2 {
     var /*@type=double*/ v9 = /*@target=Test2.t*/ /*@target=Test2.t*/ t /*@target=num.+*/ +=
         getDouble();
 
-    var /*@type=num*/ v10 = /*@target=num.+*/ ++ /*@target=Test2.t*/ /*@target=Test2.t*/ t;
+    var /*@type=num*/ v10 = /*@target=num.+*/ ++   /*@target=Test2.t*//*@target=Test2.t*/t;
 
     var /*@type=num*/ v11 =
-        /*@type=num*/ /*@target=Test2.t*/ /*@target=Test2.t*/
-        /*@type=num*/ t /*@target=num.+*/ ++;
+          
+         /*@target=Test2.t*//*@target=Test2.t*/t /*@target=num.+*/ ++;
   }
 }
 
@@ -81,11 +81,11 @@ class Test3 {
         getDouble();
 
     var /*@type=double*/ v10 =
-        /*@target=double.+*/ ++ /*@target=Test3.t*/ /*@target=Test3.t*/ t;
+        /*@target=double.+*/ ++   /*@target=Test3.t*//*@target=Test3.t*/t;
 
     var /*@type=double*/ v11 =
-        /*@type=double*/ /*@target=Test3.t*/ /*@target=Test3.t*/
-        /*@type=double*/ t /*@target=double.+*/ ++;
+          
+         /*@target=Test3.t*//*@target=Test3.t*/t /*@target=double.+*/ ++;
   }
 }
 

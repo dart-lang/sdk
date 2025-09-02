@@ -3302,6 +3302,9 @@ class Function : public Object {
            (awaiter_link().depth != UntaggedClosureData::kNoAwaiterLinkDepth);
   }
 
+  void set_does_close_over_only_final_and_shared_vars(bool value) const;
+  bool does_close_over_only_final_and_shared_vars() const;
+
   // Enclosing function of this local function.
   FunctionPtr parent_function() const;
 
@@ -4393,6 +4396,9 @@ class ClosureData : public Object {
   Function::AwaiterLink awaiter_link() const;
   void set_awaiter_link(Function::AwaiterLink link) const;
 
+  bool does_close_over_only_final_and_shared_vars() const;
+  void set_does_close_over_only_final_and_shared_vars(bool value) const;
+
   // Enclosing function of this local function.
   PRECOMPILER_WSR_FIELD_DECLARATION(Function, parent_function)
 
@@ -4536,6 +4542,13 @@ class Field : public Object {
     untag()->kind_bits_.UpdateBool<SharedBit>(value);
   }
   bool is_shared() const { return untag()->kind_bits_.Read<SharedBit>(); }
+
+  void set_is_no_sanitize_thread(bool value) const {
+    untag()->kind_bits_.UpdateBool<NoSanitizeThreadBit>(value);
+  }
+  bool is_no_sanitize_thread() const {
+    return untag()->kind_bits_.Read<NoSanitizeThreadBit>();
+  }
 
 #if defined(DART_DYNAMIC_MODULES)
   bool is_declared_in_bytecode() const;
@@ -4948,6 +4961,8 @@ class Field : public Object {
   using SharedBit = BitField<decltype(UntaggedField::kind_bits_),
                              bool,
                              HasInitializerBit::kNextBit>;
+  using NoSanitizeThreadBit =
+      BitField<decltype(UntaggedField::kind_bits_), bool, SharedBit::kNextBit>;
 
   // Force this field's guard to be dynamic and deoptimize dependent code.
   void ForceDynamicGuardedCidAndLength() const;
@@ -7913,7 +7928,10 @@ class SubtypeTestCache : public Object {
   intptr_t NumberOfChecks() const;
 
   // Retrieves the number of entries (occupied or unoccupied) in the cache.
-  intptr_t NumEntries() const;
+  intptr_t NumEntries() const {
+    ASSERT(!IsNull());
+    return NumEntries(untag()->cache_);
+  }
 
   // Adds a check, returning the index of the new entry in the cache.
   intptr_t AddCheck(
@@ -8002,7 +8020,10 @@ class SubtypeTestCache : public Object {
   bool Equals(const SubtypeTestCache& other) const;
 
   // Returns whether the cache backed by the given storage is hash-based.
-  bool IsHash() const;
+  bool IsHash() const {
+    if (IsNull()) return false;
+    return IsHash(untag()->cache_);
+  }
 
   // Creates a separate copy of the current STC contents.
   SubtypeTestCachePtr Copy(Thread* thread) const;
@@ -8066,13 +8087,13 @@ class SubtypeTestCache : public Object {
 
   // Retrieves the number of entries (occupied or unoccupied) in a cache
   // backed by the given array.
-  static intptr_t NumEntries(const Array& array);
+  static intptr_t NumEntries(const ArrayPtr array);
 
   // Returns whether the cache backed by the given storage is linear.
-  static bool IsLinear(const Array& array) { return !IsHash(array); }
+  static bool IsLinear(const ArrayPtr array) { return !IsHash(array); }
 
   // Returns whether the cache backed by the given storage is hash-based.
-  static bool IsHash(const Array& array);
+  static bool IsHash(const ArrayPtr array);
 
   struct KeyLocation {
     // The entry index if [present] is true, otherwise where the entry would
@@ -8099,6 +8120,22 @@ class SubtypeTestCache : public Object {
       const TypeArguments& function_type_arguments,
       const TypeArguments& instance_parent_function_type_arguments,
       const TypeArguments& instance_delayed_type_arguments);
+
+  // The main loop of FindKeyOrUnused() after the initial probe index has
+  // been calculated. Used by both FindKeyOrUnused and by the bytecode
+  // interpreter, so uses tagged pointers instead of handles.
+  static KeyLocation FindKeyOrUnusedFromProbe(
+      ArrayPtr array,
+      intptr_t num_inputs,
+      intptr_t probe,
+      ObjectPtr instance_class_id_or_signature,
+      AbstractTypePtr destination_type,
+      TypeArgumentsPtr instance_type_arguments,
+      TypeArgumentsPtr instantiator_type_arguments,
+      TypeArgumentsPtr function_type_arguments,
+      TypeArgumentsPtr instance_parent_function_type_arguments,
+      TypeArgumentsPtr instance_delayed_type_arguments,
+      BoolPtr* test_result = nullptr);
 
   // If the given array can contain the requested number of entries, returns
   // the same array and sets [was_grown] to false.
@@ -8163,6 +8200,7 @@ class SubtypeTestCache : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(SubtypeTestCache, Object);
   friend class Class;
   friend class FieldInvalidator;
+  friend class Interpreter;
   friend class VMSerializationRoots;
   friend class VMDeserializationRoots;
 };
@@ -11042,9 +11080,14 @@ class Array : public Instance {
   }
 
   template <std::memory_order order = std::memory_order_relaxed>
+  static ObjectPtr ElementAt(ArrayPtr array, intptr_t index) {
+    ASSERT((0 <= index) && (index < LengthOf(array)));
+    return array->untag()->element<order>(index);
+  }
+
+  template <std::memory_order order = std::memory_order_relaxed>
   ObjectPtr At(intptr_t index) const {
-    ASSERT((0 <= index) && (index < Length()));
-    return untag()->element<order>(index);
+    return ElementAt<order>(ptr(), index);
   }
   template <std::memory_order order = std::memory_order_relaxed>
   void SetAt(intptr_t index, const Object& value) const {
@@ -11059,8 +11102,7 @@ class Array : public Instance {
 
   // Access to the array with acquire release semantics.
   ObjectPtr AtAcquire(intptr_t index) const {
-    ASSERT((0 <= index) && (index < Length()));
-    return untag()->element<std::memory_order_acquire>(index);
+    return ElementAt<std::memory_order_acquire>(ptr(), index);
   }
   void SetAtRelease(intptr_t index, const Object& value) const {
     ASSERT((0 <= index) && (index < Length()));
@@ -12966,7 +13008,9 @@ class RegExp : public Instance {
   intptr_t num_bracket_expressions() const {
     return untag()->num_bracket_expressions_;
   }
-  ArrayPtr capture_name_map() const { return untag()->capture_name_map(); }
+  ArrayPtr capture_name_map() const {
+    return untag()->capture_name_map<std::memory_order_acquire>();
+  }
 
   TypedDataPtr bytecode(bool is_one_byte, bool sticky) const {
     if (sticky) {
@@ -13326,11 +13370,6 @@ class UserTag : public Instance {
     StoreNonPointer(&untag()->tag_, t);
   }
 
-  bool streamable() const { return untag()->streamable(); }
-  void set_streamable(bool streamable) {
-    StoreNonPointer(&untag()->streamable_, streamable);
-  }
-
   static intptr_t tag_offset() { return OFFSET_OF(UntaggedUserTag, tag_); }
 
   StringPtr label() const { return untag()->label(); }
@@ -13341,18 +13380,20 @@ class UserTag : public Instance {
     return RoundedAllocationSize(sizeof(UntaggedUserTag));
   }
 
-  static UserTagPtr New(const String& label, Heap::Space space = Heap::kOld);
-  static UserTagPtr DefaultTag();
+  static UserTagPtr New(Thread* thread,
+                        const String& label,
+                        Heap::Space space = Heap::kOld);
+  static UserTagPtr DefaultTag(Thread* thread);
 
   static bool TagTableIsFull(Thread* thread);
-  static UserTagPtr FindTagById(const Isolate* isolate, uword tag_id);
-  static UserTagPtr FindTagInIsolate(Isolate* isolate,
-                                     Thread* thread,
-                                     const String& label);
+  static UserTagPtr FindTagById(const IsolateGroup* isolate_group,
+                                uword tag_id);
+  static UserTagPtr FindTagInIsolateGroup(IsolateGroup* isolate_group,
+                                          Thread* thread,
+                                          const String& label);
 
  private:
-  static UserTagPtr FindTagInIsolate(Thread* thread, const String& label);
-  static void AddTagToIsolate(Thread* thread, const UserTag& tag);
+  static void AddTagToIsolateGroup(Thread* thread, const UserTag& tag);
 
   void set_label(const String& tag_label) const {
     untag()->set_label(tag_label.ptr());

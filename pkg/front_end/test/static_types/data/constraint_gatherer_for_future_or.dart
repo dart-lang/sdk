@@ -14,7 +14,8 @@ import 'dart:async';
 void func1() {
   void foo<S>(FutureOr<S> bar) {}
 
-  /*invoke: void*/ foo/*<Null>*/(/*Null*/ null);
+  /*invoke: void*/
+  foo /*<Null>*/ (/*Null*/ null);
 }
 
 // -----------------------------------------------------------------------------
@@ -23,7 +24,8 @@ void func1() {
 void func2() {
   void foo<S>(Future<S> bar) {}
 
-  /*invoke: void*/ foo/*<dynamic>*/(/*Never*/ throw /*int!*/ 42);
+  /*invoke: void*/
+  foo /*<dynamic>*/ (/*Never*/ throw /*int!*/ 42);
 }
 
 // -----------------------------------------------------------------------------
@@ -32,7 +34,8 @@ void func2() {
 void func3() {
   void foo<S>(S bar) {}
 
-  /*invoke: void*/ foo/*<Null>*/(/*Null*/ null);
+  /*invoke: void*/
+  foo /*<Null>*/ (/*Null*/ null);
 }
 
 // -----------------------------------------------------------------------------
@@ -40,7 +43,8 @@ void func3() {
 void func4() {
   void foo<S>(FutureOr<FutureOr<S>> bar) {}
 
-  /*invoke: void*/ foo/*<Null>*/(/*Null*/ null);
+  /*invoke: void*/
+  foo /*<Null>*/ (/*Null*/ null);
 }
 
 // -----------------------------------------------------------------------------
@@ -49,7 +53,8 @@ void func4() {
 void func5() {
   void foo<S>(FutureOr<S> bar) {}
 
-  /*invoke: void*/ foo/*<int!>*/(/*int!*/ 42);
+  /*invoke: void*/
+  foo /*<int!>*/ (/*int!*/ 42);
 }
 
 // -----------------------------------------------------------------------------
@@ -58,7 +63,8 @@ void func5() {
 void func6() {
   void foo<S>(S bar) {}
 
-  /*invoke: void*/ foo/*<int!>*/(/*int!*/ 42);
+  /*invoke: void*/
+  foo /*<int!>*/ (/*int!*/ 42);
 }
 
 // -----------------------------------------------------------------------------
@@ -66,7 +72,8 @@ void func6() {
 void func7() {
   void foo<S>(FutureOr<FutureOr<S>> bar) {}
 
-  /*invoke: void*/ foo/*<int!>*/(/*int!*/ 42);
+  /*invoke: void*/
+  foo /*<int!>*/ (/*int!*/ 42);
 }
 
 // -----------------------------------------------------------------------------

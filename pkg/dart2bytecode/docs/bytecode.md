@@ -647,7 +647,7 @@ type ClosureDeclaration {
   UInt flags = (hasOptionalPositionalParams, hasOptionalNamedParams,
                 hasTypeParams, hasSourcePositions,
                 isAsync, isAsyncStar, isSyncStar, isDebuggable,
-                hasParameterFlags)
+                hasParameterFlags, hasAnnotations, hasPragma)
 
   // Member or Closure.
   PackedObject parent;
@@ -672,6 +672,11 @@ type ClosureDeclaration {
     List<UInt> parameterFlags;
 
   PackedObject returnType;
+
+ if hasAnnotations
+   // Offset of closure annotations in ‘annotations’ section of
+   // component, followed by parameter annotations.
+   UInt annotationsOffset;
 }
 
 type ClosureCode {
@@ -795,6 +800,10 @@ type ConstantDynamicCall extends ConstantPoolEntry {
 // Occupies 2 entries in the constant pool
 type ConstantExternalCall extends ConstantPoolEntry {
   Byte tag = 15;
+}
+
+type ConstantFfiCall extends ConstantPoolEntry {
+  Byte tag = 16;
 }
 ```
 
@@ -1261,6 +1270,11 @@ arguments descriptor.
 
 Invoke body of an external method.
 ContantPool[D] is a ConstantExternalCall.
+
+#### FfiCall D
+
+Invoke native target of FFI call.
+ContantPool[D] is a ConstantFfiCall.
 
 #### ReturnTOS
 

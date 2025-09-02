@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -21,10 +22,13 @@ class AvoidShadowingTypeParameters extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoid_shadowing_type_parameters;
+      LinterLintCode.avoidShadowingTypeParameters;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addFunctionDeclarationStatement(this, visitor);
     registry.addGenericTypeAlias(this, visitor);
@@ -116,10 +120,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    var ancestorTypeParameterNames =
-        ancestorTypeParameters.typeParameters
-            .map((tp) => tp.name.lexeme)
-            .toSet();
+    var ancestorTypeParameterNames = ancestorTypeParameters.typeParameters
+        .map((tp) => tp.name.lexeme)
+        .toSet();
 
     for (var parameter in typeParameters.typeParameters) {
       var lexeme = parameter.name.lexeme;

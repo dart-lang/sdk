@@ -12,6 +12,7 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:test/test.dart';
 
 /// A description of a message that is expected to be reported with an error.
@@ -235,6 +236,35 @@ class GatheringDiagnosticListener implements DiagnosticListener {
           buffer.write(', correctionContains: ');
           buffer.write(json.encode(expected.correctionContains.toString()));
         }
+        if (expected.expectedContextMessages.isNotEmpty) {
+          buffer.write(', contextMessages: [');
+          for (var i = 0; i < expected.expectedContextMessages.length; i++) {
+            var contextMessage = expected.expectedContextMessages[i];
+            if (i > 0) {
+              buffer.write(', ');
+            }
+            buffer.write('message(');
+            buffer.write(contextMessage.file.path);
+            buffer.write(', ');
+            buffer.write(contextMessage.offset);
+            buffer.write(', ');
+            buffer.write(contextMessage.length);
+            if (contextMessage.text != null) {
+              buffer.write(', text: ');
+              buffer.write(json.encode(contextMessage.text));
+            }
+            if (contextMessage.textContains.isNotEmpty) {
+              buffer.write(', textContains: ');
+              buffer.write(
+                json.encode([
+                  for (var pattern in contextMessage.textContains)
+                    pattern.toString(),
+                ]),
+              );
+            }
+            buffer.write(')');
+          }
+        }
         buffer.writeln(']');
       }
     }
@@ -256,6 +286,30 @@ class GatheringDiagnosticListener implements DiagnosticListener {
           buffer.write(', ');
           buffer.write(json.encode(actual.correctionMessage));
         }
+        if (actual.contextMessages.isNotEmpty) {
+          buffer.write(', contextMessages: [');
+          for (var i = 0; i < actual.contextMessages.length; i++) {
+            var message = actual.contextMessages[i];
+            if (i > 0) {
+              buffer.write(', ');
+            }
+            buffer.write('message(');
+            // Special case for `testFile`, used very often.
+            switch (message.filePath) {
+              case '/home/test/lib/test.dart':
+                buffer.write('testFile');
+              case var filePath:
+                buffer.write("'$filePath'");
+            }
+            buffer.write(', ');
+            buffer.write(message.offset);
+            buffer.write(', ');
+            buffer.write(message.length);
+            buffer.write(', ');
+            buffer.write(json.encode(message.messageText(includeUrl: false)));
+            buffer.write(')');
+          }
+        }
         buffer.writeln(']');
       }
     }
@@ -271,7 +325,7 @@ class GatheringDiagnosticListener implements DiagnosticListener {
         for (Diagnostic actual in diagnostics) {
           List<DiagnosticMessage> contextMessages = actual.contextMessages;
           buffer.write('  error(');
-          buffer.write(actual.diagnosticCode);
+          buffer.write(actual.diagnosticCode.constantName);
           buffer.write(', ');
           buffer.write(actual.offset);
           buffer.write(', ');
@@ -553,4 +607,20 @@ class TestSourceWithUri extends TestSource {
     }
     return false;
   }
+}
+
+extension on DiagnosticCode {
+  /// The name of the constant in the analyzer package (or other related
+  /// package) that represents this diagnostic code.
+  ///
+  /// This string is used when generating test failure messages that suggest how
+  /// to change test expectations to match the current behavior.
+  ///
+  /// For example, if the unique name is `TestClass.MY_ERROR`, this method will
+  /// return `TestClass.myError`.
+  String get constantName => switch (uniqueName.split('.')) {
+    [var className, var snakeCaseName] =>
+      '$className.${snakeCaseName.toCamelCase()}',
+    _ => throw StateError('Malformed DiagnosticCode: $uniqueName'),
+  };
 }

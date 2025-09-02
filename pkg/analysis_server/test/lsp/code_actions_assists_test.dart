@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/extensions/code_action.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
@@ -34,7 +33,6 @@ class AssistsCodeActionsTest extends AbstractLspAnalysisServerTest
   Future<void> test_plugin() async {
     failTestOnErrorDiagnostic = false;
 
-    if (!AnalysisServer.supportsPlugins) return;
     // This code should get an assist to replace 'foo' with 'bar'.'
     const content = '''
 [!foo!]
@@ -80,7 +78,6 @@ bar
   Future<void> test_plugin_sortsWithServer() async {
     setSupportedCodeActionKinds([CodeActionKind.Refactor]);
 
-    if (!AnalysisServer.supportsPlugins) return;
     // Produces a server assist of "Convert to single quoted string" (with a
     // priority of 30).
     var code = TestCode.parse('import "[!dart:async!]";');

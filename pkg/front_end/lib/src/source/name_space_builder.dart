@@ -35,29 +35,31 @@ class DeclarationNameSpaceBuilder {
   DeclarationNameSpaceBuilder(this._nominalParameterNameSpace, this._fragments);
 
   DeclarationNameSpaceBuilder.empty()
-      : _nominalParameterNameSpace = null,
-        _fragments = const [];
+    : _nominalParameterNameSpace = null,
+      _fragments = const [];
 
-  SourceDeclarationNameSpace buildNameSpace(
-      {required SourceLoader loader,
-      required ProblemReporting problemReporting,
-      required SourceLibraryBuilder enclosingLibraryBuilder,
-      required DeclarationBuilder declarationBuilder,
-      required IndexedLibrary? indexedLibrary,
-      required IndexedContainer? indexedContainer,
-      required ContainerType containerType,
-      required ContainerName containerName,
-      required List<SourceMemberBuilder> constructorBuilders,
-      required List<SourceMemberBuilder> memberBuilders,
-      required TypeParameterFactory typeParameterFactory,
-      Map<String, SyntheticDeclaration>? syntheticDeclarations}) {
+  SourceDeclarationNameSpace buildNameSpace({
+    required SourceLoader loader,
+    required ProblemReporting problemReporting,
+    required SourceLibraryBuilder enclosingLibraryBuilder,
+    required DeclarationBuilder declarationBuilder,
+    required IndexedLibrary? indexedLibrary,
+    required IndexedContainer? indexedContainer,
+    required ContainerType containerType,
+    required ContainerName containerName,
+    required List<SourceMemberBuilder> constructorBuilders,
+    required List<SourceMemberBuilder> memberBuilders,
+    required TypeParameterFactory typeParameterFactory,
+    Map<String, SyntheticDeclaration>? syntheticDeclarations,
+  }) {
     _DeclarationBuilderRegistry builderRegistry =
         new _DeclarationBuilderRegistry(
-            problemReporting: problemReporting,
-            enclosingLibraryBuilder: enclosingLibraryBuilder,
-            declarationBuilder: declarationBuilder,
-            constructorBuilders: constructorBuilders,
-            memberBuilders: memberBuilders);
+          problemReporting: problemReporting,
+          enclosingLibraryBuilder: enclosingLibraryBuilder,
+          declarationBuilder: declarationBuilder,
+          constructorBuilders: constructorBuilders,
+          memberBuilders: memberBuilders,
+        );
 
     Map<String, List<Fragment>> fragmentsByName = {};
     for (Fragment fragment in _fragments) {
@@ -65,62 +67,81 @@ class DeclarationNameSpaceBuilder {
     }
 
     BuilderFactory builderFactory = new BuilderFactory(
-        loader: loader,
-        problemReporting: problemReporting,
-        enclosingLibraryBuilder: enclosingLibraryBuilder,
-        builderRegistry: builderRegistry,
-        declarationBuilder: declarationBuilder,
-        typeParameterFactory: typeParameterFactory,
-        // TODO(johnniwinther): Avoid passing this:
-        mixinApplications: const {},
-        indexedLibrary: indexedLibrary,
-        indexedContainer: indexedContainer,
-        containerType: containerType,
-        containerName: containerName);
+      loader: loader,
+      problemReporting: problemReporting,
+      enclosingLibraryBuilder: enclosingLibraryBuilder,
+      builderRegistry: builderRegistry,
+      declarationBuilder: declarationBuilder,
+      typeParameterFactory: typeParameterFactory,
+      // TODO(johnniwinther): Avoid passing this:
+      mixinApplications: const {},
+      indexedLibrary: indexedLibrary,
+      indexedContainer: indexedContainer,
+      containerType: containerType,
+      containerName: containerName,
+    );
     for (MapEntry<String, List<Fragment>> entry in fragmentsByName.entries) {
       String name = entry.key;
-      builderFactory.computeBuildersByName(name,
-          fragments: entry.value,
-          syntheticDeclaration: syntheticDeclarations?.remove(name));
+      builderFactory.computeBuildersByName(
+        name,
+        fragments: entry.value,
+        syntheticDeclaration: syntheticDeclarations?.remove(name),
+      );
     }
     if (syntheticDeclarations != null) {
       for (MapEntry<String, SyntheticDeclaration> entry
           in syntheticDeclarations.entries) {
         String name = entry.key;
-        builderFactory.computeBuildersByName(name,
-            syntheticDeclaration: entry.value);
+        builderFactory.computeBuildersByName(
+          name,
+          syntheticDeclaration: entry.value,
+        );
       }
     }
 
     void checkConflicts(NamedBuilder member) {
       checkTypeParameterConflict(
-          problemReporting, member.name, member, member.fileUri!);
+        problemReporting,
+        member.name,
+        member,
+        member.fileUri!,
+      );
     }
 
     memberBuilders.forEach(checkConflicts);
     constructorBuilders.forEach(checkConflicts);
 
     return new SourceDeclarationNameSpace(
-        content: builderRegistry.content,
-        constructors: builderRegistry.constructors);
+      content: builderRegistry.content,
+      constructors: builderRegistry.constructors,
+    );
   }
 
-  void checkTypeParameterConflict(ProblemReporting _problemReporting,
-      String name, NamedBuilder memberBuilder, Uri fileUri) {
+  void checkTypeParameterConflict(
+    ProblemReporting _problemReporting,
+    String name,
+    NamedBuilder memberBuilder,
+    Uri fileUri,
+  ) {
     if (memberBuilder.isDuplicate) return;
     if (_nominalParameterNameSpace != null) {
-      NominalParameterBuilder? tv =
-          _nominalParameterNameSpace.getTypeParameter(name);
+      NominalParameterBuilder? tv = _nominalParameterNameSpace.getTypeParameter(
+        name,
+      );
       if (tv != null) {
         _problemReporting.addProblem(
-            templateConflictsWithTypeParameter.withArguments(name),
-            memberBuilder.fileOffset,
-            name.length,
-            fileUri,
-            context: [
-              messageConflictsWithTypeParameterCause.withLocation(
-                  tv.fileUri!, tv.fileOffset, name.length)
-            ]);
+          codeConflictsWithTypeParameter.withArguments(name),
+          memberBuilder.fileOffset,
+          name.length,
+          fileUri,
+          context: [
+            codeConflictsWithTypeParameterCause.withLocation(
+              tv.fileUri!,
+              tv.fileOffset,
+              name.length,
+            ),
+          ],
+        );
       }
     }
   }
@@ -151,9 +172,10 @@ class LibraryNameSpaceBuilder {
     required List<NamedBuilder> memberBuilders,
   }) {
     _LibraryBuilderRegistry builderRegistry = new _LibraryBuilderRegistry(
-        problemReporting: problemReporting,
-        enclosingLibraryBuilder: enclosingLibraryBuilder,
-        memberBuilders: memberBuilders);
+      problemReporting: problemReporting,
+      enclosingLibraryBuilder: enclosingLibraryBuilder,
+      memberBuilders: memberBuilders,
+    );
 
     Map<String, List<Fragment>> fragmentsByName = {};
     for (Fragment fragment in _fragments) {
@@ -161,21 +183,23 @@ class LibraryNameSpaceBuilder {
     }
 
     BuilderFactory builderFactory = new BuilderFactory(
-        loader: enclosingLibraryBuilder.loader,
-        builderRegistry: builderRegistry,
-        problemReporting: problemReporting,
-        enclosingLibraryBuilder: enclosingLibraryBuilder,
-        typeParameterFactory: typeParameterFactory,
-        mixinApplications: mixinApplications,
-        indexedLibrary: indexedLibrary,
-        containerType: ContainerType.Library);
+      loader: enclosingLibraryBuilder.loader,
+      builderRegistry: builderRegistry,
+      problemReporting: problemReporting,
+      enclosingLibraryBuilder: enclosingLibraryBuilder,
+      typeParameterFactory: typeParameterFactory,
+      mixinApplications: mixinApplications,
+      indexedLibrary: indexedLibrary,
+      containerType: ContainerType.Library,
+    );
 
     for (MapEntry<String, List<Fragment>> entry in fragmentsByName.entries) {
       builderFactory.computeBuildersByName(entry.key, fragments: entry.value);
     }
     return new LibraryNameSpace(
-        content: builderRegistry.content,
-        extensions: builderRegistry.extensions);
+      content: builderRegistry.content,
+      extensions: builderRegistry.extensions,
+    );
   }
 }
 
@@ -188,22 +212,26 @@ class _DeclarationBuilderRegistry implements BuilderRegistry {
   final List<SourceMemberBuilder> constructorBuilders;
   final List<SourceMemberBuilder> memberBuilders;
 
-  _DeclarationBuilderRegistry(
-      {required this.problemReporting,
-      required this.enclosingLibraryBuilder,
-      required this.declarationBuilder,
-      required this.constructorBuilders,
-      required this.memberBuilders});
+  _DeclarationBuilderRegistry({
+    required this.problemReporting,
+    required this.enclosingLibraryBuilder,
+    required this.declarationBuilder,
+    required this.constructorBuilders,
+    required this.memberBuilders,
+  });
 
   @override
-  void registerBuilder(
-      {required covariant MemberBuilder declaration,
-      required UriOffsetLength uriOffset,
-      required bool inPatch}) {
+  void registerBuilder({
+    required covariant MemberBuilder declaration,
+    required UriOffsetLength uriOffset,
+    required bool inPatch,
+  }) {
     String name = declaration.name;
 
-    assert(declaration.next == null,
-        "Unexpected declaration.next ${declaration.next} on $declaration");
+    assert(
+      declaration.next == null,
+      "Unexpected declaration.next ${declaration.next} on $declaration",
+    );
 
     bool isConstructor =
         declaration is ConstructorBuilder || declaration is FactoryBuilder;
@@ -212,13 +240,13 @@ class _DeclarationBuilderRegistry implements BuilderRegistry {
       // better specialize the message.
       if (declarationBuilder.isEnum && name == 'values') {
         problemReporting.addProblem(
-            messageEnumWithNameValues,
-            declarationBuilder.fileOffset,
-            name.length,
-            declarationBuilder.fileUri);
+          codeEnumWithNameValues,
+          declarationBuilder.fileOffset,
+          name.length,
+          declarationBuilder.fileUri,
+        );
       } else {
-        problemReporting.addProblem2(
-            messageMemberWithSameNameAsClass, uriOffset);
+        problemReporting.addProblem2(codeMemberWithSameNameAsClass, uriOffset);
       }
     }
     if (isConstructor) {
@@ -233,16 +261,21 @@ class _DeclarationBuilderRegistry implements BuilderRegistry {
       // TODO(johnniwinther): Test adding a no-name constructor in the
       //  patch, either as an injected or duplicated constructor.
       problemReporting.addProblem2(
-          templatePatchInjectionFailed.withArguments(
-              name, enclosingLibraryBuilder.importUri),
-          uriOffset);
+        codePatchInjectionFailed.withArguments(
+          name,
+          enclosingLibraryBuilder.importUri,
+        ),
+        uriOffset,
+      );
     }
 
     if (isConstructor) {
       MemberLookupResult? existingResult = constructors[name];
 
-      assert(existingResult != declaration,
-          "Unexpected existing declaration $existingResult");
+      assert(
+        existingResult != declaration,
+        "Unexpected existing declaration $existingResult",
+      );
 
       if (existingResult == null) {
         constructors[name] = declaration as MemberBuilder;
@@ -252,8 +285,10 @@ class _DeclarationBuilderRegistry implements BuilderRegistry {
       } else {
         MemberBuilder existingDeclaration = existingResult.getable!;
         declaration.next = existingDeclaration;
-        constructors[name] =
-            new DuplicateMemberLookupResult([existingDeclaration, declaration]);
+        constructors[name] = new DuplicateMemberLookupResult([
+          existingDeclaration,
+          declaration,
+        ]);
       }
     } else {
       MemberLookupResult? existingResult = content[name];
@@ -269,14 +304,16 @@ class _DeclarationBuilderRegistry implements BuilderRegistry {
         content[name] = new DuplicateMemberLookupResult([
           if (existingGetable != null) existingGetable,
           if (existingSetable != null) existingSetable,
-          declaration
+          declaration,
         ]);
       }
     }
   }
 
   bool _allowInjectedPublicMember(
-      SourceLibraryBuilder enclosingLibraryBuilder, Builder newBuilder) {
+    SourceLibraryBuilder enclosingLibraryBuilder,
+    Builder newBuilder,
+  ) {
     if (enclosingLibraryBuilder.importUri.isScheme("dart") &&
         enclosingLibraryBuilder.importUri.path.startsWith("_")) {
       return true;
@@ -296,20 +333,24 @@ class _LibraryBuilderRegistry implements BuilderRegistry {
   final SourceLibraryBuilder enclosingLibraryBuilder;
   final List<NamedBuilder> memberBuilders;
 
-  _LibraryBuilderRegistry(
-      {required this.problemReporting,
-      required this.enclosingLibraryBuilder,
-      required this.memberBuilders});
+  _LibraryBuilderRegistry({
+    required this.problemReporting,
+    required this.enclosingLibraryBuilder,
+    required this.memberBuilders,
+  });
 
   @override
-  void registerBuilder(
-      {required NamedBuilder declaration,
-      required UriOffsetLength uriOffset,
-      required bool inPatch}) {
+  void registerBuilder({
+    required NamedBuilder declaration,
+    required UriOffsetLength uriOffset,
+    required bool inPatch,
+  }) {
     String name = declaration.name;
 
-    assert(declaration.next == null,
-        "Unexpected declaration.next ${declaration.next} on $declaration");
+    assert(
+      declaration.next == null,
+      "Unexpected declaration.next ${declaration.next} on $declaration",
+    );
 
     memberBuilders.add(declaration);
 
@@ -324,42 +365,54 @@ class _LibraryBuilderRegistry implements BuilderRegistry {
     } else {
       // Coverage-ignore-block(suite): Not run.
       // Prefix builders are added when computing the import scope.
-      assert(declaration is! PrefixBuilder,
-          "Unexpected prefix builder $declaration.");
-      unhandled("${declaration.runtimeType}", "addBuilder",
-          uriOffset.fileOffset, uriOffset.fileUri);
+      assert(
+        declaration is! PrefixBuilder,
+        "Unexpected prefix builder $declaration.",
+      );
+      unhandled(
+        "${declaration.runtimeType}",
+        "addBuilder",
+        uriOffset.fileOffset,
+        uriOffset.fileUri,
+      );
     }
 
     assert(
-        !(declaration is FunctionBuilder &&
-            // Coverage-ignore(suite): Not run.
-            (declaration is ConstructorBuilder ||
-                declaration is FactoryBuilder)),
-        "Unexpected constructor in library: $declaration.");
+      !(declaration is FunctionBuilder &&
+          // Coverage-ignore(suite): Not run.
+          (declaration is ConstructorBuilder || declaration is FactoryBuilder)),
+      "Unexpected constructor in library: $declaration.",
+    );
 
     if (inPatch &&
         !name.startsWith('_') &&
         !_allowInjectedPublicMember(enclosingLibraryBuilder, declaration)) {
       problemReporting.addProblem2(
-          templatePatchInjectionFailed.withArguments(
-              name, enclosingLibraryBuilder.importUri),
-          uriOffset);
+        codePatchInjectionFailed.withArguments(
+          name,
+          enclosingLibraryBuilder.importUri,
+        ),
+        uriOffset,
+      );
     }
 
     LookupResult? existingResult = content[name];
     NamedBuilder? existing = existingResult?.getable ?? existingResult?.setable;
 
     assert(
-        existing != declaration, "Unexpected existing declaration $existing");
+      existing != declaration,
+      "Unexpected existing declaration $existing",
+    );
 
     if (declaration.next != null &&
         // Coverage-ignore(suite): Not run.
         declaration.next != existing) {
       unexpected(
-          "${declaration.next!.fileUri}@${declaration.next!.fileOffset}",
-          "${existing?.fileUri}@${existing?.fileOffset}",
-          declaration.fileOffset,
-          declaration.fileUri);
+        "${declaration.next!.fileUri}@${declaration.next!.fileOffset}",
+        "${existing?.fileUri}@${existing?.fileOffset}",
+        declaration.fileOffset,
+        declaration.fileUri,
+      );
     }
     declaration.next = existing;
     if (declaration is SourceExtensionBuilder && !declaration.isDuplicate) {
@@ -373,7 +426,9 @@ class _LibraryBuilderRegistry implements BuilderRegistry {
   }
 
   bool _allowInjectedPublicMember(
-      SourceLibraryBuilder enclosingLibraryBuilder, Builder newBuilder) {
+    SourceLibraryBuilder enclosingLibraryBuilder,
+    Builder newBuilder,
+  ) {
     return enclosingLibraryBuilder.importUri.isScheme("dart") &&
         enclosingLibraryBuilder.importUri.path.startsWith("_");
   }

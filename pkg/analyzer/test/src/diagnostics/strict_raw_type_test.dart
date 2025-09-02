@@ -92,7 +92,7 @@ void f() {
   <List<E>>[];
 }
 ''',
-      [error(WarningCode.STRICT_RAW_TYPE, 50, 1)],
+      [error(WarningCode.strictRawType, 50, 1)],
     );
   }
 
@@ -111,7 +111,7 @@ void f() {
       r'''
 extension type E(List<int> i) implements Iterable {}
 ''',
-      [error(WarningCode.STRICT_RAW_TYPE, 41, 8)],
+      [error(WarningCode.strictRawType, 41, 8)],
     );
   }
 
@@ -123,7 +123,7 @@ extension type E<T>(Iterable<T> i) {}
 
 extension type F(List<int> j) implements E {}
 ''',
-      [error(WarningCode.STRICT_RAW_TYPE, 81, 1)],
+      [error(WarningCode.strictRawType, 81, 1)],
     );
   }
 
@@ -132,7 +132,7 @@ extension type F(List<int> j) implements E {}
       r'''
 extension type E(List i) {}
 ''',
-      [error(WarningCode.STRICT_RAW_TYPE, 17, 4)],
+      [error(WarningCode.strictRawType, 17, 4)],
     );
   }
 
@@ -144,8 +144,8 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-        error(WarningCode.STRICT_RAW_TYPE, 22, 4),
+        error(WarningCode.unusedLocalVariable, 17, 1),
+        error(WarningCode.strictRawType, 22, 4),
       ],
     );
   }
@@ -157,7 +157,7 @@ void f() {
   var a = <List<int>>[];
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1)],
+      [error(WarningCode.unusedLocalVariable, 17, 1)],
     );
   }
 
@@ -189,8 +189,8 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.STRICT_RAW_TYPE, 48, 1),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 50, 1),
+        error(WarningCode.strictRawType, 48, 1),
+        error(WarningCode.unusedLocalVariable, 50, 1),
       ],
     );
   }
@@ -204,7 +204,7 @@ void f() {
   E<int> e = E<int>(1);
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 55, 1)],
+      [error(WarningCode.unusedLocalVariable, 55, 1)],
     );
   }
 
@@ -216,8 +216,8 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.STRICT_RAW_TYPE, 13, 4),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
+        error(WarningCode.strictRawType, 13, 4),
+        error(WarningCode.unusedLocalVariable, 18, 1),
       ],
     );
   }
@@ -237,7 +237,7 @@ void f() {
 mixin class C<T> {}
 class D = Object with C;
 ''',
-      [error(WarningCode.STRICT_RAW_TYPE, 42, 1)],
+      [error(WarningCode.strictRawType, 42, 1)],
     );
   }
 
@@ -263,7 +263,7 @@ void f(List2<int> a) {}
 typedef List2<T> = List<T>;
 void f(List2 a) {}
 ''',
-      [error(WarningCode.STRICT_RAW_TYPE, 35, 5)],
+      [error(WarningCode.strictRawType, 35, 5)],
     );
   }
 
@@ -294,7 +294,7 @@ void f(Object o) {
       r'''
 void f(List a) {}
 ''',
-      [error(WarningCode.STRICT_RAW_TYPE, 7, 4)],
+      [error(WarningCode.strictRawType, 7, 4)],
     );
   }
 
@@ -303,7 +303,7 @@ void f(List a) {}
       r'''
 List f(int a) => [1, 2, 3];
 ''',
-      [error(WarningCode.STRICT_RAW_TYPE, 0, 4)],
+      [error(WarningCode.strictRawType, 0, 4)],
     );
   }
 
@@ -313,7 +313,7 @@ List f(int a) => [1, 2, 3];
 mixin class C<T> {}
 class D extends Object with C {}
 ''',
-      [error(WarningCode.STRICT_RAW_TYPE, 48, 1)],
+      [error(WarningCode.strictRawType, 48, 1)],
     );
   }
 
@@ -329,7 +329,7 @@ class D extends Object with C<int> {}
       r'''
 List a = [];
 ''',
-      [error(WarningCode.STRICT_RAW_TYPE, 0, 4)],
+      [error(WarningCode.strictRawType, 0, 4)],
     );
   }
 
@@ -358,7 +358,7 @@ void set s(List<double> a) {}
       r'''
 List get g => [];
 ''',
-      [error(WarningCode.STRICT_RAW_TYPE, 0, 4)],
+      [error(WarningCode.strictRawType, 0, 4)],
     );
   }
 
@@ -367,7 +367,7 @@ List get g => [];
       r'''
 void set s(List a) {}
 ''',
-      [error(WarningCode.STRICT_RAW_TYPE, 11, 4)],
+      [error(WarningCode.strictRawType, 11, 4)],
     );
   }
 
@@ -377,7 +377,7 @@ void set s(List a) {}
 typedef T F1<T>(T _);
 F1 func = (a) => a;
 ''',
-      [error(WarningCode.STRICT_RAW_TYPE, 22, 2)],
+      [error(WarningCode.strictRawType, 22, 2)],
     );
   }
 
@@ -387,7 +387,7 @@ F1 func = (a) => a;
 typedef F1<T> = T Function(T);
 F1 func = (a) => a;
 ''',
-      [error(WarningCode.STRICT_RAW_TYPE, 31, 2)],
+      [error(WarningCode.strictRawType, 31, 2)],
     );
   }
 
@@ -445,7 +445,7 @@ var d = C.named();
       r'''
 extension on List {}
 ''',
-      [error(WarningCode.STRICT_RAW_TYPE, 13, 4)],
+      [error(WarningCode.strictRawType, 13, 4)],
     );
   }
 
@@ -454,7 +454,7 @@ extension on List {}
       r'''
 extension E on List {}
 ''',
-      [error(WarningCode.STRICT_RAW_TYPE, 15, 4)],
+      [error(WarningCode.strictRawType, 15, 4)],
     );
   }
 
@@ -482,7 +482,7 @@ extension F on List<int> {}
 class C<T> {}
 class D implements C {}
 ''',
-      [error(WarningCode.STRICT_RAW_TYPE, 33, 1)],
+      [error(WarningCode.strictRawType, 33, 1)],
     );
   }
 
@@ -499,7 +499,7 @@ class D implements C<int> {}
 class C<T> {}
 class D extends C {}
 ''',
-      [error(WarningCode.STRICT_RAW_TYPE, 30, 1)],
+      [error(WarningCode.strictRawType, 30, 1)],
     );
   }
 
@@ -516,7 +516,7 @@ class D extends C<int> {}
 class C<T> {}
 class D<T extends C> {}
 ''',
-      [error(WarningCode.STRICT_RAW_TYPE, 32, 1)],
+      [error(WarningCode.strictRawType, 32, 1)],
     );
   }
 

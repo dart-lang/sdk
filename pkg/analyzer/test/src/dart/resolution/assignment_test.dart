@@ -637,6 +637,111 @@ AssignmentExpression
 ''');
   }
 
+  test_indexExpression_nullShorting_assignable() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  B get b;
+}
+abstract class B {
+  operator []=(String s, int i);
+}
+test(A? a, String s) {
+  a?.b[s] = 0;
+}
+''');
+
+    var node = findNode.assignment('= 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: PropertyAccess
+      target: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::test::@formalParameter::a
+        staticType: A?
+      operator: ?.
+      propertyName: SimpleIdentifier
+        token: b
+        element: <testLibrary>::@class::A::@getter::b
+        staticType: B
+      staticType: B
+    leftBracket: [
+    index: SimpleIdentifier
+      token: s
+      correspondingParameter: <testLibrary>::@class::B::@method::[]=::@formalParameter::s
+      element: <testLibrary>::@function::test::@formalParameter::s
+      staticType: String
+    rightBracket: ]
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@class::B::@method::[]=::@formalParameter::i
+    staticType: int
+  readElement2: <null>
+  readType: null
+  writeElement2: <testLibrary>::@class::B::@method::[]=
+  writeType: int
+  element: <null>
+  staticType: int?
+''');
+  }
+
+  test_indexExpression_nullShorting_notAssignable() async {
+    await assertErrorsInCode(
+      '''
+abstract class A {
+  B get b;
+}
+abstract class B {
+  operator []=(String s, int i);
+}
+test(A? a, String s) {
+  a?.b[s] = null;
+}
+''',
+      [error(CompileTimeErrorCode.invalidAssignment, 121, 4)],
+    );
+
+    var node = findNode.assignment('= null');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: PropertyAccess
+      target: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::test::@formalParameter::a
+        staticType: A?
+      operator: ?.
+      propertyName: SimpleIdentifier
+        token: b
+        element: <testLibrary>::@class::A::@getter::b
+        staticType: B
+      staticType: B
+    leftBracket: [
+    index: SimpleIdentifier
+      token: s
+      correspondingParameter: <testLibrary>::@class::B::@method::[]=::@formalParameter::s
+      element: <testLibrary>::@function::test::@formalParameter::s
+      staticType: String
+    rightBracket: ]
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: NullLiteral
+    literal: null
+    correspondingParameter: <testLibrary>::@class::B::@method::[]=::@formalParameter::i
+    staticType: Null
+  readElement2: <null>
+  readType: null
+  writeElement2: <testLibrary>::@class::B::@method::[]=
+  writeType: int
+  element: <null>
+  staticType: Null
+''');
+  }
+
   test_indexExpression_super_compound() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -731,8 +836,8 @@ void f(int c) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 18, 1),
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 20, 1),
+        error(CompileTimeErrorCode.undefinedIdentifier, 18, 1),
+        error(CompileTimeErrorCode.undefinedIdentifier, 20, 1),
       ],
     );
 
@@ -777,8 +882,8 @@ void f(int a, int c) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 26, 3),
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 27, 1),
+        error(CompileTimeErrorCode.undefinedOperator, 26, 3),
+        error(CompileTimeErrorCode.undefinedIdentifier, 27, 1),
       ],
     );
 
@@ -826,7 +931,7 @@ void f(A a, int c) {
   a[b] = c;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 73, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 73, 1)],
     );
 
     var assignment = findNode.assignment('a[b] = c');
@@ -873,8 +978,8 @@ void f(A a) {
 }
 ''',
       [
-        error(ParserErrorCode.MISSING_IDENTIFIER, 30, 7),
-        error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 67, 3),
+        error(ParserErrorCode.missingIdentifier, 30, 7),
+        error(CompileTimeErrorCode.undefinedOperator, 67, 3),
       ],
     );
   }
@@ -886,7 +991,7 @@ void f() {
   a[0] += 1;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 13, 1)],
     );
 
     var node = findNode.singleAssignmentExpression;
@@ -929,8 +1034,8 @@ class A {
 }
 ''',
       [
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 27, 5),
-        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 27, 5),
+        error(ParserErrorCode.missingAssignableSelector, 27, 5),
+        error(ParserErrorCode.illegalAssignmentToNonAssignable, 27, 5),
       ],
     );
 
@@ -962,8 +1067,8 @@ void f(int a, int b, double c) {
 }
 ''',
       [
-        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 35, 5),
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 35, 5),
+        error(ParserErrorCode.illegalAssignmentToNonAssignable, 35, 5),
+        error(ParserErrorCode.missingAssignableSelector, 35, 5),
       ],
     );
 
@@ -1008,8 +1113,8 @@ void f(int a, int b, double c) {
 }
 ''',
       [
-        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 35, 7),
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 35, 7),
+        error(ParserErrorCode.illegalAssignmentToNonAssignable, 35, 7),
+        error(ParserErrorCode.missingAssignableSelector, 35, 7),
       ],
     );
 
@@ -1059,11 +1164,11 @@ void f(int a, double b) {
 ''',
       [
         error(
-          CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT,
+          CompileTimeErrorCode.patternTypeMismatchInIrrefutableContext,
           29,
           1,
         ),
-        error(ParserErrorCode.EXPECTED_TOKEN, 31, 1),
+        error(ParserErrorCode.expectedToken, 31, 1),
       ],
     );
 
@@ -1097,8 +1202,8 @@ void f(int a, double b) {
 }
 ''',
       [
-        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 44, 7),
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 44, 7),
+        error(ParserErrorCode.illegalAssignmentToNonAssignable, 44, 7),
+        error(ParserErrorCode.missingAssignableSelector, 44, 7),
       ],
     );
 
@@ -1145,8 +1250,8 @@ void f(num x, int y) {
 }
 ''',
       [
-        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
+        error(ParserErrorCode.illegalAssignmentToNonAssignable, 25, 3),
+        error(ParserErrorCode.missingAssignableSelector, 25, 3),
       ],
     );
 
@@ -1189,8 +1294,8 @@ void f(num x, int y) {
 }
 ''',
       [
-        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
+        error(ParserErrorCode.illegalAssignmentToNonAssignable, 25, 3),
+        error(ParserErrorCode.missingAssignableSelector, 25, 3),
       ],
     );
 
@@ -1233,8 +1338,8 @@ void f(num x, int y) {
 }
 ''',
       [
-        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
+        error(ParserErrorCode.illegalAssignmentToNonAssignable, 25, 3),
+        error(ParserErrorCode.missingAssignableSelector, 25, 3),
       ],
     );
 
@@ -1277,8 +1382,8 @@ void f(num x, int y) {
 }
 ''',
       [
-        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
+        error(ParserErrorCode.illegalAssignmentToNonAssignable, 25, 3),
+        error(ParserErrorCode.missingAssignableSelector, 25, 3),
       ],
     );
 
@@ -1321,8 +1426,8 @@ void f(num x, int y) {
 }
 ''',
       [
-        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
+        error(ParserErrorCode.illegalAssignmentToNonAssignable, 25, 3),
+        error(ParserErrorCode.missingAssignableSelector, 25, 3),
       ],
     );
 
@@ -1365,8 +1470,8 @@ void f(num x, int y) {
 }
 ''',
       [
-        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
+        error(ParserErrorCode.illegalAssignmentToNonAssignable, 25, 3),
+        error(ParserErrorCode.missingAssignableSelector, 25, 3),
       ],
     );
 
@@ -1412,7 +1517,7 @@ void f() {
   C = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 47, 1)],
+      [error(CompileTimeErrorCode.ambiguousImport, 47, 1)],
     );
 
     var assignment = findNode.assignment('C = 0');
@@ -1448,7 +1553,7 @@ void f() {
   C = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 25, 1)],
+      [error(CompileTimeErrorCode.assignmentToType, 25, 1)],
     );
 
     var assignment = findNode.assignment('C = 0');
@@ -1647,7 +1752,7 @@ void f(A a) {
   a.x = 2;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 49, 1)],
+      [error(CompileTimeErrorCode.assignmentToFinalNoSetter, 49, 1)],
     );
 
     var assignment = findNode.assignment('x = 2');
@@ -1700,7 +1805,7 @@ void f(A a) {
   a.foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 46, 3)],
+      [error(CompileTimeErrorCode.assignmentToFinalNoSetter, 46, 3)],
     );
 
     var node = findNode.singleAssignmentExpression;
@@ -1869,7 +1974,7 @@ void f() {
   A.foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 43, 3)],
+      [error(CompileTimeErrorCode.assignmentToFinalNoSetter, 43, 3)],
     );
 
     var node = findNode.singleAssignmentExpression;
@@ -2171,7 +2276,7 @@ void f() {
   A.x = 2;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 53, 1)],
+      [error(CompileTimeErrorCode.assignmentToFinalNoSetter, 53, 1)],
     );
 
     var assignment = findNode.assignment('x = 2');
@@ -2298,7 +2403,7 @@ void f(int c) {
   a.b = c;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 18, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 18, 1)],
     );
 
     var assignment = findNode.assignment('a.b = c');
@@ -2340,8 +2445,8 @@ void f(int a, int c) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_GETTER, 27, 1),
-        error(CompileTimeErrorCode.UNDEFINED_SETTER, 27, 1),
+        error(CompileTimeErrorCode.undefinedGetter, 27, 1),
+        error(CompileTimeErrorCode.undefinedSetter, 27, 1),
       ],
     );
 
@@ -2651,6 +2756,105 @@ AssignmentExpression
 ''');
   }
 
+  test_propertyAccess_nullShorting_assignable() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  B get b;
+}
+abstract class B {
+  set setter(int i);
+}
+test(A? a) {
+  a?.b.setter = 0;
+}
+''');
+
+    var node = findNode.assignment('= 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: PropertyAccess
+      target: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::test::@formalParameter::a
+        staticType: A?
+      operator: ?.
+      propertyName: SimpleIdentifier
+        token: b
+        element: <testLibrary>::@class::A::@getter::b
+        staticType: B
+      staticType: B
+    operator: .
+    propertyName: SimpleIdentifier
+      token: setter
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@class::B::@setter::setter::@formalParameter::i
+    staticType: int
+  readElement2: <null>
+  readType: null
+  writeElement2: <testLibrary>::@class::B::@setter::setter
+  writeType: int
+  element: <null>
+  staticType: int?
+''');
+  }
+
+  test_propertyAccess_nullShorting_notAssignable() async {
+    await assertErrorsInCode(
+      '''
+abstract class A {
+  B get b;
+}
+abstract class B {
+  set setter(int i);
+}
+test(A? a) {
+  a?.b.setter = null;
+}
+''',
+      [error(CompileTimeErrorCode.invalidAssignment, 103, 4)],
+    );
+
+    var node = findNode.assignment('= null');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: PropertyAccess
+      target: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::test::@formalParameter::a
+        staticType: A?
+      operator: ?.
+      propertyName: SimpleIdentifier
+        token: b
+        element: <testLibrary>::@class::A::@getter::b
+        staticType: B
+      staticType: B
+    operator: .
+    propertyName: SimpleIdentifier
+      token: setter
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: NullLiteral
+    literal: null
+    correspondingParameter: <testLibrary>::@class::B::@setter::setter::@formalParameter::i
+    staticType: Null
+  readElement2: <null>
+  readType: null
+  writeElement2: <testLibrary>::@class::B::@setter::setter
+  writeType: int
+  element: <null>
+  staticType: Null
+''');
+  }
+
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_propertyAccess_ofClass_setterAugmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
@@ -2778,8 +2982,8 @@ void f(({int bar}) r) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_GETTER, 28, 3),
-        error(CompileTimeErrorCode.UNDEFINED_SETTER, 28, 3),
+        error(CompileTimeErrorCode.undefinedGetter, 28, 3),
+        error(CompileTimeErrorCode.undefinedSetter, 28, 3),
       ],
     );
 
@@ -2822,7 +3026,7 @@ void f(({int bar}) r) {
   r.foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 28, 3)],
+      [error(CompileTimeErrorCode.undefinedSetter, 28, 3)],
     );
 
     var node = findNode.assignment('= 0');
@@ -2868,7 +3072,7 @@ void f(({int bar}) r) {
   r.foo += 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 80, 3)],
+      [error(CompileTimeErrorCode.undefinedGetter, 80, 3)],
     );
 
     var node = findNode.assignment('+= 0');
@@ -2957,7 +3161,7 @@ void f(({int bar}) r) {
   r.foo += 0;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 80, 3)],
+      [error(CompileTimeErrorCode.assignmentToFinalNoSetter, 80, 3)],
     );
 
     var node = findNode.assignment('+= 0');
@@ -3003,7 +3207,7 @@ void f(({int bar}) r) {
   r.foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 80, 3)],
+      [error(CompileTimeErrorCode.assignmentToFinalNoSetter, 80, 3)],
     );
 
     var node = findNode.assignment('= 0');
@@ -3133,7 +3337,7 @@ void f(({int foo, String bar}) r) {
   r.foo += 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 40, 3)],
+      [error(CompileTimeErrorCode.undefinedSetter, 40, 3)],
     );
 
     var node = findNode.assignment('+= 0');
@@ -3175,7 +3379,7 @@ void f(({int foo, String bar}) r) {
   r.foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 40, 3)],
+      [error(CompileTimeErrorCode.undefinedSetter, 40, 3)],
     );
 
     var node = findNode.assignment('= 0');
@@ -3221,7 +3425,7 @@ void f(({int foo, String bar}) r) {
   r.foo += 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 104, 3)],
+      [error(CompileTimeErrorCode.undefinedSetter, 104, 3)],
     );
 
     var node = findNode.assignment('+= 0');
@@ -3267,7 +3471,7 @@ void f(({int foo, String bar}) r) {
   r.foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 104, 3)],
+      [error(CompileTimeErrorCode.undefinedSetter, 104, 3)],
     );
 
     var node = findNode.assignment('= 0');
@@ -3313,7 +3517,7 @@ void f(({int foo, String bar}) r) {
   r.foo += 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 104, 3)],
+      [error(CompileTimeErrorCode.undefinedSetter, 104, 3)],
     );
 
     var node = findNode.assignment('+= 0');
@@ -3359,7 +3563,7 @@ void f(({int foo, String bar}) r) {
   r.foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 104, 3)],
+      [error(CompileTimeErrorCode.undefinedSetter, 104, 3)],
     );
 
     var node = findNode.assignment('= 0');
@@ -3406,7 +3610,7 @@ void f(({int foo, String bar}) r) {
   r.foo += 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 124, 3)],
+      [error(CompileTimeErrorCode.undefinedSetter, 124, 3)],
     );
 
     var node = findNode.assignment('+= 0');
@@ -3453,7 +3657,7 @@ void f(({int foo, String bar}) r) {
   r.foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 124, 3)],
+      [error(CompileTimeErrorCode.undefinedSetter, 124, 3)],
     );
 
     var node = findNode.assignment('= 0');
@@ -3496,8 +3700,8 @@ void f((int, String) r) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 2),
-        error(CompileTimeErrorCode.UNDEFINED_SETTER, 30, 2),
+        error(CompileTimeErrorCode.undefinedGetter, 30, 2),
+        error(CompileTimeErrorCode.undefinedSetter, 30, 2),
       ],
     );
 
@@ -3540,7 +3744,7 @@ void f((int, String) r) {
   r.$4 = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 30, 2)],
+      [error(CompileTimeErrorCode.undefinedSetter, 30, 2)],
     );
 
     var node = findNode.assignment('= 0');
@@ -3586,7 +3790,7 @@ void f((int, String) r) {
   r.$3 += 0;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 83, 2)],
+      [error(CompileTimeErrorCode.assignmentToFinalNoSetter, 83, 2)],
     );
 
     var node = findNode.assignment('+= 0');
@@ -3632,7 +3836,7 @@ void f((int, String) r) {
   r.$3 = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 83, 2)],
+      [error(CompileTimeErrorCode.assignmentToFinalNoSetter, 83, 2)],
     );
 
     var node = findNode.assignment('= 0');
@@ -3674,7 +3878,7 @@ void f((int, String) r) {
   r.$1 += 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 30, 2)],
+      [error(CompileTimeErrorCode.undefinedSetter, 30, 2)],
     );
 
     var node = findNode.assignment('+= 0');
@@ -3716,7 +3920,7 @@ void f((int, String) r) {
   r.$1 = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 30, 2)],
+      [error(CompileTimeErrorCode.undefinedSetter, 30, 2)],
     );
 
     var node = findNode.assignment('= 0');
@@ -3762,7 +3966,7 @@ void f((int, String) r) {
   r.$1 += 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 83, 2)],
+      [error(CompileTimeErrorCode.undefinedSetter, 83, 2)],
     );
 
     var node = findNode.assignment('+= 0');
@@ -3808,7 +4012,7 @@ void f((int, String) r) {
   r.$1 = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 83, 2)],
+      [error(CompileTimeErrorCode.undefinedSetter, 83, 2)],
     );
 
     var node = findNode.assignment('= 0');
@@ -3931,7 +4135,7 @@ void f(int c) {
   (a).b = c;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 19, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 19, 1)],
     );
 
     var assignment = findNode.assignment('(a).b = c');
@@ -3975,7 +4179,7 @@ void f(int a, int c) {
   (a).b = c;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 29, 1)],
+      [error(CompileTimeErrorCode.undefinedSetter, 29, 1)],
     );
 
     var assignment = findNode.assignment('(a).b = c');
@@ -4021,7 +4225,7 @@ class A {
   }
 }
 ''',
-      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 39, 5)],
+      [error(ParserErrorCode.missingAssignableSelector, 39, 5)],
     );
 
     var node = findNode.singleAssignmentExpression;
@@ -4121,7 +4325,7 @@ class C {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 46, 1)],
+      [error(CompileTimeErrorCode.assignmentToFinalNoSetter, 46, 1)],
     );
 
     var assignment = findNode.assignment('x = 2');
@@ -4157,7 +4361,7 @@ class C {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 53, 1)],
+      [error(CompileTimeErrorCode.assignmentToFinalNoSetter, 53, 1)],
     );
 
     var assignment = findNode.assignment('x = 2');
@@ -4191,7 +4395,7 @@ void f() {
   x = 2;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 30, 1)],
+      [error(CompileTimeErrorCode.assignmentToFinal, 30, 1)],
     );
 
     var assignment = findNode.assignment('x = 2');
@@ -4231,13 +4435,7 @@ class B extends A {
   }
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
-          85,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.prefixIdentifierNotFollowedByDot, 85, 1)],
     );
 
     var assignment = findNode.assignment('x = 2');
@@ -4271,13 +4469,7 @@ main() {
   x = 2;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
-          37,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.prefixIdentifierNotFollowedByDot, 37, 1)],
     );
 
     var assignment = findNode.assignment('x = 2');
@@ -4373,7 +4565,7 @@ void f() {
   x = 2;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_CONST, 66, 1)],
+      [error(CompileTimeErrorCode.assignmentToConst, 66, 1)],
     );
 
     var assignment = findNode.assignment('x = 2');
@@ -4407,7 +4599,7 @@ void f() {
   x = 2;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 66, 1)],
+      [error(CompileTimeErrorCode.assignmentToFinalLocal, 66, 1)],
     );
 
     var assignment = findNode.assignment('x = 2');
@@ -4472,7 +4664,7 @@ void f(B? x) {
   x ??= C();
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 77, 3)],
+      [error(CompileTimeErrorCode.invalidAssignment, 77, 3)],
     );
 
     var assignment = findNode.assignment('x ??=');
@@ -4512,7 +4704,7 @@ void f(double? a, int b) {
   a ??= b;
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 35, 1)],
+      [error(CompileTimeErrorCode.invalidAssignment, 35, 1)],
     );
 
     var assignment = findNode.assignment('a ??=');
@@ -4549,10 +4741,10 @@ void f(int x) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 23, 3),
-        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 35, 3),
-        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 47, 3),
-        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 59, 3),
+        error(CompileTimeErrorCode.invalidAssignment, 23, 3),
+        error(CompileTimeErrorCode.invalidAssignment, 35, 3),
+        error(CompileTimeErrorCode.invalidAssignment, 47, 3),
+        error(CompileTimeErrorCode.invalidAssignment, 59, 3),
       ],
     );
     assertType(findNode.assignment('+='), 'double');
@@ -4645,7 +4837,7 @@ void f(int x) {
   x = true;
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 22, 4)],
+      [error(CompileTimeErrorCode.invalidAssignment, 22, 4)],
     );
 
     var assignment = findNode.assignment('x = true');
@@ -4677,7 +4869,7 @@ void f(final int x) {
   x = 2;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 24, 1)],
+      [error(CompileTimeErrorCode.assignmentToFinalLocal, 24, 1)],
     );
 
     var assignment = findNode.assignment('x = 2');
@@ -4718,8 +4910,8 @@ class B extends A {
 }
 ''',
       [
-        error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 68, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 94, 1),
+        error(CompileTimeErrorCode.conflictingStaticAndInstance, 68, 1),
+        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 94, 1),
       ],
     );
 
@@ -4761,8 +4953,8 @@ class B extends A {
 }
 ''',
       [
-        error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 65, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 90, 1),
+        error(CompileTimeErrorCode.conflictingStaticAndInstance, 65, 1),
+        error(CompileTimeErrorCode.assignmentToMethod, 90, 1),
       ],
     );
 
@@ -4830,7 +5022,7 @@ void f(int y) {
   = y;
 }
 ''',
-      [error(ParserErrorCode.MISSING_IDENTIFIER, 18, 1)],
+      [error(ParserErrorCode.missingIdentifier, 18, 1)],
     );
 
     var assignment = findNode.assignment('= y');
@@ -5018,7 +5210,7 @@ class B extends A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 86, 1)],
+      [error(CompileTimeErrorCode.assignmentToFinal, 86, 1)],
     );
 
     var assignment = findNode.assignment('x = 2');
@@ -5089,7 +5281,7 @@ class C extends A {}
 B? get x => B();
 set x(B? _) {}
 ''',
-      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 19, 3)],
+      [error(CompileTimeErrorCode.invalidAssignment, 19, 3)],
     );
 
     var assignment = findNode.assignment('x ??=');
@@ -5196,7 +5388,7 @@ void f() {
   x = true;
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 29, 4)],
+      [error(CompileTimeErrorCode.invalidAssignment, 29, 4)],
     );
 
     var assignment = findNode.assignment('x = true');
@@ -5230,7 +5422,7 @@ void f() {
   x = 2;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 31, 1)],
+      [error(CompileTimeErrorCode.assignmentToFinal, 31, 1)],
     );
 
     var assignment = findNode.assignment('x = 2');
@@ -5262,7 +5454,7 @@ void f() {
   int += 3;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 13, 3)],
+      [error(CompileTimeErrorCode.assignmentToType, 13, 3)],
     );
 
     var assignment = findNode.assignment('int += 3');
@@ -5294,7 +5486,7 @@ void f() {
   int = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 13, 3)],
+      [error(CompileTimeErrorCode.assignmentToType, 13, 3)],
     );
 
     var assignment = findNode.assignment('int = 0');
@@ -5326,7 +5518,7 @@ void f() {
   x += 1;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 13, 1)],
     );
 
     var assignment = findNode.assignment('x += 1');
@@ -5358,7 +5550,7 @@ void f(int a) {
   x = a;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 18, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 18, 1)],
     );
 
     var assignment = findNode.assignment('x = a');

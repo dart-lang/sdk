@@ -14,7 +14,6 @@ import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:linter/src/analyzer.dart';
-import 'package:linter/src/test_utilities/analysis_error_info.dart';
 import 'package:path/path.dart' as path;
 
 import '../../test/mocks.dart';
@@ -78,7 +77,7 @@ class Driver {
         resourceProvider: resourceProvider,
       );
 
-      var errors = <DiagnosticInfo>[];
+      var diagnostics = <Diagnostic>[];
 
       for (var context in collection.contexts) {
         // Add lints.
@@ -95,13 +94,7 @@ class Driver {
             try {
               var result = await context.currentSession.getErrors(filePath);
               if (result is ErrorsResult) {
-                var filtered =
-                    result.diagnostics
-                        .where((e) => e.diagnosticCode.name != 'TODO')
-                        .toList();
-                if (filtered.isNotEmpty) {
-                  errors.add(DiagnosticInfo(filtered, result.lineInfo));
-                }
+                diagnostics.addAll(result.diagnostics);
               }
             } on Exception catch (e) {
               _print('Exception caught analyzing: $filePath');
@@ -110,11 +103,9 @@ class Driver {
           }
         }
       }
-      ReportFormatter(errors, silent ? MockIOSink() : io.stdout).write();
+      ReportFormatter(diagnostics, silent ? MockIOSink() : io.stdout).write();
 
-      for (var info in errors) {
-        failedChecks.addAll(info.diagnostics);
-      }
+      failedChecks.addAll(diagnostics);
     }
 
     // Unregister our checks.

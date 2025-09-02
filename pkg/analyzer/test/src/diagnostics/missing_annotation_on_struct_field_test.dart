@@ -23,7 +23,7 @@ final class C extends Struct {
   external int x;
 }
 ''',
-      [error(FfiCode.MISSING_ANNOTATION_ON_STRUCT_FIELD, 61, 3)],
+      [error(FfiCode.missingAnnotationOnStructField, 61, 3)],
     );
   }
 

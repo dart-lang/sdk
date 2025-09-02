@@ -50,29 +50,24 @@ DynamicLibrary dlopenPlatformSpecific(String name) {
   return DynamicLibrary.open('$_dylibPrefix$name$_dylibExtension');
 }
 
-class NativeLibrary {
-  late final FnRunnerType callFunctionOnSameThread;
-  late final FnRunnerType callFunctionOnNewThreadBlocking;
-  late final FnRunnerType callFunctionOnNewThreadNonBlocking;
-  late final TwoIntFnType callTwoIntFunction;
-  late final FnSleepType sleep;
+DynamicLibrary get ffiTestFunctions =>
+    dlopenPlatformSpecific("ffi_test_functions");
 
-  NativeLibrary(DynamicLibrary ffiTestFunctions) {
-    callFunctionOnNewThreadNonBlocking = ffiTestFunctions
-        .lookupFunction<FnRunnerNativeType, FnRunnerType>(
-          "CallFunctionOnNewThreadNonBlocking",
-        );
-    callFunctionOnNewThreadBlocking = ffiTestFunctions
-        .lookupFunction<FnRunnerNativeType, FnRunnerType>(
-          "CallFunctionOnNewThreadBlocking",
-        );
-    callTwoIntFunction = ffiTestFunctions
-        .lookupFunction<TwoIntFnNativeType, TwoIntFnType>("CallTwoIntFunction");
-    sleep = ffiTestFunctions.lookupFunction<FnSleepNativeType, FnSleepType>(
-      "SleepFor",
+FnRunnerType get callFunctionOnNewThreadNonBlocking =>
+    ffiTestFunctions.lookupFunction<FnRunnerNativeType, FnRunnerType>(
+      "CallFunctionOnNewThreadNonBlocking",
     );
-  }
-}
+
+FnRunnerType get callFunctionOnNewThreadBlocking =>
+    ffiTestFunctions.lookupFunction<FnRunnerNativeType, FnRunnerType>(
+      "CallFunctionOnNewThreadBlocking",
+    );
+
+TwoIntFnType get callTwoIntFunction => ffiTestFunctions
+    .lookupFunction<TwoIntFnNativeType, TwoIntFnType>("CallTwoIntFunction");
+
+FnSleepType get sleep =>
+    ffiTestFunctions.lookupFunction<FnSleepNativeType, FnSleepType>("SleepFor");
 
 @pragma('vm:shared')
 late Mutex mutexCondvar;
@@ -88,16 +83,14 @@ const int sleepForMs = 1000;
 
 void simpleFunction(int a, int b) {
   result += (a * b);
-  final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
-  final lib = NativeLibrary(ffiTestFunctions);
-  lib.sleep(sleepForMs);
+  sleep(sleepForMs);
   mutexCondvar.runLocked(() {
     resultIsReady = true;
     conditionVariable.notify();
   });
 }
 
-Future<void> testNativeCallableHelloWorld(NativeLibrary lib) async {
+Future<void> testNativeCallableHelloWorld() async {
   mutexCondvar = Mutex();
   conditionVariable = ConditionVariable();
   final callback = NativeCallable<CallbackNativeType>.isolateGroupBound(
@@ -106,7 +99,7 @@ Future<void> testNativeCallableHelloWorld(NativeLibrary lib) async {
 
   result = 42;
   resultIsReady = false;
-  lib.callFunctionOnNewThreadNonBlocking(1001, callback.nativeFunction);
+  callFunctionOnNewThreadNonBlocking(1001, callback.nativeFunction);
 
   mutexCondvar.runLocked(() {
     while (!resultIsReady) {
@@ -118,7 +111,7 @@ Future<void> testNativeCallableHelloWorld(NativeLibrary lib) async {
   Expect.equals(42 + (1001 * 123), result);
 
   resultIsReady = false;
-  lib.callFunctionOnNewThreadNonBlocking(1001, callback.nativeFunction);
+  callFunctionOnNewThreadNonBlocking(1001, callback.nativeFunction);
   mutexCondvar.runLocked(() {
     while (!resultIsReady) {
       conditionVariable.wait(mutexCondvar, 10 * sleepForMs);
@@ -134,7 +127,7 @@ void simpleFunctionThatThrows(int a, int b) {
   throw 'hello, world';
 }
 
-Future<void> testNativeCallableThrows(NativeLibrary lib) async {
+Future<void> testNativeCallableThrows() async {
   mutexCondvar = Mutex();
   conditionVariable = ConditionVariable();
   final callback = NativeCallable<CallbackNativeType>.isolateGroupBound(
@@ -147,7 +140,7 @@ Future<void> testNativeCallableThrows(NativeLibrary lib) async {
   // race between invoking the callback and closing it few lines down below.
   // So the main thing this test checks is condition variable timeout,
   // which is still valuable.
-  lib.callFunctionOnNewThreadBlocking(1001, callback.nativeFunction);
+  callFunctionOnNewThreadBlocking(1001, callback.nativeFunction);
 
   mutexCondvar.runLocked(() {
     // Just have short one second sleep - the condition variable is not
@@ -158,7 +151,24 @@ Future<void> testNativeCallableThrows(NativeLibrary lib) async {
   callback.close();
 }
 
-Future<void> testNativeCallableHelloWorldClosure(NativeLibrary lib) async {
+@pragma('vm:shared')
+SendPort? sp;
+
+Future<void> testFailToCaptureReceivePort() async {
+  final rp = ReceivePort();
+  Expect.throws(
+    () {
+      NativeCallable<CallbackNativeType>.isolateGroupBound((int a, int b) {
+        sp = rp.sendPort;
+      });
+    },
+    (e) =>
+        e is ArgumentError && e.toString().contains('Only trivially-immutable'),
+  );
+  rp.close();
+}
+
+Future<void> testNativeCallableHelloWorldClosure() async {
   mutexCondvar = Mutex();
   conditionVariable = ConditionVariable();
   final callback = NativeCallable<CallbackNativeType>.isolateGroupBound((
@@ -166,7 +176,7 @@ Future<void> testNativeCallableHelloWorldClosure(NativeLibrary lib) async {
     int b,
   ) {
     result += (a * b);
-    lib.sleep(sleepForMs);
+    sleep(sleepForMs);
     mutexCondvar.runLocked(() {
       resultIsReady = true;
       conditionVariable.notify();
@@ -175,7 +185,7 @@ Future<void> testNativeCallableHelloWorldClosure(NativeLibrary lib) async {
 
   result = 42;
   resultIsReady = false;
-  lib.callFunctionOnNewThreadNonBlocking(1001, callback.nativeFunction);
+  callFunctionOnNewThreadNonBlocking(1001, callback.nativeFunction);
 
   mutexCondvar.runLocked(() {
     while (!resultIsReady) {
@@ -186,7 +196,7 @@ Future<void> testNativeCallableHelloWorldClosure(NativeLibrary lib) async {
   Expect.equals(42 + (1001 * 123), result);
 
   resultIsReady = false;
-  lib.callFunctionOnNewThreadNonBlocking(1001, callback.nativeFunction);
+  callFunctionOnNewThreadNonBlocking(1001, callback.nativeFunction);
   mutexCondvar.runLocked(() {
     while (!resultIsReady) {
       conditionVariable.wait(mutexCondvar);
@@ -196,7 +206,7 @@ Future<void> testNativeCallableHelloWorldClosure(NativeLibrary lib) async {
   callback.close();
 }
 
-void testNativeCallableSync(NativeLibrary lib) {
+void testNativeCallableSync() {
   final callback =
       NativeCallable<CallbackReturningIntNativeType>.isolateGroupBound((
         int a,
@@ -205,14 +215,11 @@ void testNativeCallableSync(NativeLibrary lib) {
         return a + b;
       }, exceptionalReturn: 1111);
 
-  Expect.equals(
-    1234,
-    lib.callTwoIntFunction(callback.nativeFunction, 1000, 234),
-  );
+  Expect.equals(1234, callTwoIntFunction(callback.nativeFunction, 1000, 234));
   callback.close();
 }
 
-void testNativeCallableSyncThrows(NativeLibrary lib) {
+void testNativeCallableSyncThrows() {
   final callback =
       NativeCallable<CallbackReturningIntNativeType>.isolateGroupBound(
         (int a, int b) {
@@ -222,16 +229,13 @@ void testNativeCallableSyncThrows(NativeLibrary lib) {
         exceptionalReturn: 1111,
       );
 
-  Expect.equals(
-    1111,
-    lib.callTwoIntFunction(callback.nativeFunction, 1000, 234),
-  );
+  Expect.equals(1111, callTwoIntFunction(callback.nativeFunction, 1000, 234));
   callback.close();
 }
 
 int isolateVar = 10;
 
-void testNativeCallableAccessNonSharedVar(NativeLibrary lib) {
+void testNativeCallableAccessNonSharedVar() {
   final callback =
       NativeCallable<CallbackReturningIntNativeType>.isolateGroupBound((
         int a,
@@ -241,10 +245,7 @@ void testNativeCallableAccessNonSharedVar(NativeLibrary lib) {
       }, exceptionalReturn: 1111);
 
   isolateVar = 42;
-  Expect.equals(
-    1111,
-    lib.callTwoIntFunction(callback.nativeFunction, 1000, 234),
-  );
+  Expect.equals(1111, callTwoIntFunction(callback.nativeFunction, 1000, 234));
   callback.close();
 }
 
@@ -304,14 +305,13 @@ Future<void> testKeepIsolateAliveFalse() async {
 main(args, message) async {
   asyncStart();
   // Simple tests.
-  final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
-  final lib = NativeLibrary(ffiTestFunctions);
-  await testNativeCallableHelloWorld(lib);
-  await testNativeCallableThrows(lib);
-  await testNativeCallableHelloWorldClosure(lib);
-  testNativeCallableSync(lib);
-  testNativeCallableSyncThrows(lib);
-  testNativeCallableAccessNonSharedVar(lib);
+  await testNativeCallableHelloWorld();
+  await testNativeCallableThrows();
+  await testFailToCaptureReceivePort();
+  await testNativeCallableHelloWorldClosure();
+  testNativeCallableSync();
+  testNativeCallableSyncThrows();
+  testNativeCallableAccessNonSharedVar();
   await testKeepIsolateAliveTrue();
   await testKeepIsolateAliveFalse();
   asyncEnd();

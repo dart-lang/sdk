@@ -11,46 +11,17 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(CreateFunctionTearoffTest);
     defineReflectiveTests(CreateFunctionTest);
   });
 }
 
 @reflectiveTest
-class CreateFunctionTest extends FixProcessorTest {
+class CreateFunctionTearoffTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_FUNCTION;
+  FixKind get kind => DartFixKind.CREATE_FUNCTION_TEAROFF;
 
-  Future<void> assert_returnType_bool(String lineWithTest) async {
-    await resolveTestCode('''
-void f(bool b) {
-  $lineWithTest
-  print(b);
-}
-''');
-    await assertHasFix('''
-void f(bool b) {
-  $lineWithTest
-  print(b);
-}
-
-bool test() {
-}
-''');
-  }
-
-  Future<void> test_assignment_invocation() async {
-    await resolveTestCode('''
-bool Function() f = g();
-''');
-    await assertHasFix('''
-bool Function() f = g();
-
-bool Function() g() {
-}
-''');
-  }
-
-  Future<void> test_assignment_tearoff() async {
+  Future<void> test_assignment() async {
     await resolveTestCode('''
 bool Function() f = g;
 ''');
@@ -58,224 +29,6 @@ bool Function() f = g;
 bool Function() f = g;
 
 bool g() {
-}
-''');
-  }
-
-  Future<void> test_await_infer_from_parent() async {
-    await resolveTestCode('''
-Future<void> f() async {
-  if (await myUndefinedFunction()) {}
-}
-''');
-    await assertHasFix('''
-Future<void> f() async {
-  if (await myUndefinedFunction()) {}
-}
-
-Future<bool> myUndefinedFunction() async {
-}
-''');
-  }
-
-  Future<void> test_await_no_assignment() async {
-    await resolveTestCode('''
-Future<void> f() async {
-  await myUndefinedFunction();
-}
-''');
-    await assertHasFix('''
-Future<void> f() async {
-  await myUndefinedFunction();
-}
-
-Future<void> myUndefinedFunction() async {
-}
-''');
-  }
-
-  Future<void> test_await_variable_assignment() async {
-    await resolveTestCode('''
-int x = 1;
-Future<void> f() async {
-  x = await myUndefinedFunction();
-  print(x);
-}
-''');
-    await assertHasFix('''
-int x = 1;
-Future<void> f() async {
-  x = await myUndefinedFunction();
-  print(x);
-}
-
-Future<int> myUndefinedFunction() async {
-}
-''');
-  }
-
-  Future<void> test_await_variable_declaration() async {
-    await resolveTestCode('''
-Future<void> f() async {
-  var x = await myUndefinedFunction();
-  print(x);
-}
-''');
-    await assertHasFix('''
-Future<void> f() async {
-  var x = await myUndefinedFunction();
-  print(x);
-}
-
-Future myUndefinedFunction() async {
-}
-''');
-  }
-
-  Future<void> test_await_variable_plusEq() async {
-    await resolveTestCode('''
-String x = 'hello';
-Future<void> f() async {
-  x += await myUndefinedFunction();
-  print(x);
-}
-''');
-    await assertHasFix('''
-String x = 'hello';
-Future<void> f() async {
-  x += await myUndefinedFunction();
-  print(x);
-}
-
-Future<String> myUndefinedFunction() async {
-}
-''');
-  }
-
-  Future<void> test_bottomArgument() async {
-    await resolveTestCode('''
-void f() {
-  test(throw 42);
-}
-''');
-    await assertHasFix('''
-void f() {
-  test(throw 42);
-}
-
-void test(param0) {
-}
-''');
-  }
-
-  Future<void> test_duplicateArgumentNames() async {
-    await resolveTestCode('''
-class C {
-  int x = 0;
-}
-
-foo(C c1, C c2) {
-  bar(c1.x, c2.x);
-}
-''');
-    await assertHasFix('''
-class C {
-  int x = 0;
-}
-
-foo(C c1, C c2) {
-  bar(c1.x, c2.x);
-}
-
-void bar(int x, int x2) {
-}
-''');
-  }
-
-  Future<void> test_dynamicArgument() async {
-    await resolveTestCode('''
-void f() {
-  dynamic v;
-  test(v);
-}
-''');
-    await assertHasFix('''
-void f() {
-  dynamic v;
-  test(v);
-}
-
-void test(v) {
-}
-''');
-  }
-
-  Future<void> test_dynamicReturnType() async {
-    await resolveTestCode('''
-void f() {
-  dynamic v = test();
-  print(v);
-}
-''');
-    await assertHasFix('''
-void f() {
-  dynamic v = test();
-  print(v);
-}
-
-test() {
-}
-''');
-  }
-
-  Future<void> test_expressionFunctionBody() async {
-    await resolveTestCode('''
-int f1() => f2();
-''');
-    await assertHasFix('''
-int f1() => f2();
-
-int f2() {
-}
-''');
-  }
-
-  Future<void> test_fromFunction() async {
-    await resolveTestCode('''
-void f() {
-  int v = myUndefinedFunction(1, 2.0, '3');
-    print(v);
-}
-''');
-    await assertHasFix('''
-void f() {
-  int v = myUndefinedFunction(1, 2.0, '3');
-    print(v);
-}
-
-int myUndefinedFunction(int i, double d, String s) {
-}
-''');
-  }
-
-  Future<void> test_fromMethod() async {
-    await resolveTestCode('''
-class A {
-  void f() {
-    int v = myUndefinedFunction(1, 2.0, '3');
-    print(v);
-  }
-}
-''');
-    await assertHasFix('''
-class A {
-  void f() {
-    int v = myUndefinedFunction(1, 2.0, '3');
-    print(v);
-  }
-}
-
-int myUndefinedFunction(int i, double d, String s) {
 }
 ''');
   }
@@ -453,6 +206,356 @@ int f3(int p1) {
 ''');
   }
 
+  Future<void> test_functionType_inside_conditional_operator_else() async {
+    await resolveTestCode('''
+void f1(int i) {
+  f2(i == 0 ? (v) => v : f3);
+}
+
+void f2(int Function(int) f) {}
+''');
+    await assertHasFix('''
+void f1(int i) {
+  f2(i == 0 ? (v) => v : f3);
+}
+
+void f2(int Function(int) f) {}
+
+int f3(int p1) {
+}
+''');
+  }
+
+  Future<void> test_functionType_inside_record_functionType() async {
+    await resolveTestCode('''
+void f1(int i) {
+  f2((0, f3));
+}
+
+void f2((int, int Function(int)) f) {}
+''');
+    await assertHasFix('''
+void f1(int i) {
+  f2((0, f3));
+}
+
+void f2((int, int Function(int)) f) {}
+
+int f3(int p1) {
+}
+''');
+  }
+
+  Future<void> test_functionType_inside_record_functionType_named() async {
+    await resolveTestCode('''
+void f1(int i) {
+  f2((f: f3));
+}
+
+void f2(({int Function(int) f}) f) {}
+''');
+    await assertHasFix('''
+void f1(int i) {
+  f2((f: f3));
+}
+
+void f2(({int Function(int) f}) f) {}
+
+int f3(int p1) {
+}
+''');
+  }
+
+  Future<void> test_record_tearoff() async {
+    await resolveTestCode('''
+(bool Function(),) f = (g,);
+''');
+    await assertHasFix('''
+(bool Function(),) f = (g,);
+
+bool g() {
+}
+''');
+  }
+
+  Future<void> test_returnType_typeAlias_function() async {
+    await resolveTestCode('''
+typedef A<T> = void Function(T a);
+
+void f(A<int> Function() a) {}
+
+void g() {
+  f(test);
+}
+''');
+    await assertHasFix('''
+typedef A<T> = void Function(T a);
+
+void f(A<int> Function() a) {}
+
+void g() {
+  f(test);
+}
+
+A<int> test() {
+}
+''');
+  }
+}
+
+@reflectiveTest
+class CreateFunctionTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.CREATE_FUNCTION;
+
+  Future<void> assert_returnType_bool(String lineWithTest) async {
+    await resolveTestCode('''
+void f(bool b) {
+  $lineWithTest
+  print(b);
+}
+''');
+    await assertHasFix('''
+void f(bool b) {
+  $lineWithTest
+  print(b);
+}
+
+bool test() {
+}
+''');
+  }
+
+  Future<void> test_assignment_invocation() async {
+    await resolveTestCode('''
+bool Function() f = g();
+''');
+    await assertHasFix('''
+bool Function() f = g();
+
+bool Function() g() {
+}
+''');
+  }
+
+  Future<void> test_await_infer_from_parent() async {
+    await resolveTestCode('''
+Future<void> f() async {
+  if (await myUndefinedFunction()) {}
+}
+''');
+    await assertHasFix('''
+Future<void> f() async {
+  if (await myUndefinedFunction()) {}
+}
+
+Future<bool> myUndefinedFunction() async {
+}
+''');
+  }
+
+  Future<void> test_await_no_assignment() async {
+    await resolveTestCode('''
+Future<void> f() async {
+  await myUndefinedFunction();
+}
+''');
+    await assertHasFix('''
+Future<void> f() async {
+  await myUndefinedFunction();
+}
+
+Future<void> myUndefinedFunction() async {
+}
+''');
+  }
+
+  Future<void> test_await_variable_assignment() async {
+    await resolveTestCode('''
+int x = 1;
+Future<void> f() async {
+  x = await myUndefinedFunction();
+  print(x);
+}
+''');
+    await assertHasFix('''
+int x = 1;
+Future<void> f() async {
+  x = await myUndefinedFunction();
+  print(x);
+}
+
+Future<int> myUndefinedFunction() async {
+}
+''');
+  }
+
+  Future<void> test_await_variable_declaration() async {
+    await resolveTestCode('''
+Future<void> f() async {
+  var x = await myUndefinedFunction();
+  print(x);
+}
+''');
+    await assertHasFix('''
+Future<void> f() async {
+  var x = await myUndefinedFunction();
+  print(x);
+}
+
+Future<dynamic> myUndefinedFunction() async {
+}
+''');
+  }
+
+  Future<void> test_await_variable_plusEq() async {
+    await resolveTestCode('''
+String x = 'hello';
+Future<void> f() async {
+  x += await myUndefinedFunction();
+  print(x);
+}
+''');
+    await assertHasFix('''
+String x = 'hello';
+Future<void> f() async {
+  x += await myUndefinedFunction();
+  print(x);
+}
+
+Future<String> myUndefinedFunction() async {
+}
+''');
+  }
+
+  Future<void> test_bottomArgument() async {
+    await resolveTestCode('''
+void f() {
+  test(throw 42);
+}
+''');
+    await assertHasFix('''
+void f() {
+  test(throw 42);
+}
+
+void test(param0) {
+}
+''');
+  }
+
+  Future<void> test_duplicateArgumentNames() async {
+    await resolveTestCode('''
+class C {
+  int x = 0;
+}
+
+foo(C c1, C c2) {
+  bar(c1.x, c2.x);
+}
+''');
+    await assertHasFix('''
+class C {
+  int x = 0;
+}
+
+foo(C c1, C c2) {
+  bar(c1.x, c2.x);
+}
+
+void bar(int x, int x2) {
+}
+''');
+  }
+
+  Future<void> test_dynamicArgument() async {
+    await resolveTestCode('''
+void f() {
+  dynamic v;
+  test(v);
+}
+''');
+    await assertHasFix('''
+void f() {
+  dynamic v;
+  test(v);
+}
+
+void test(v) {
+}
+''');
+  }
+
+  Future<void> test_dynamicReturnType() async {
+    await resolveTestCode('''
+void f() {
+  dynamic v = test();
+  print(v);
+}
+''');
+    await assertHasFix('''
+void f() {
+  dynamic v = test();
+  print(v);
+}
+
+test() {
+}
+''');
+  }
+
+  Future<void> test_expressionFunctionBody() async {
+    await resolveTestCode('''
+int f1() => f2();
+''');
+    await assertHasFix('''
+int f1() => f2();
+
+int f2() {
+}
+''');
+  }
+
+  Future<void> test_fromFunction() async {
+    await resolveTestCode('''
+void f() {
+  int v = myUndefinedFunction(1, 2.0, '3');
+    print(v);
+}
+''');
+    await assertHasFix('''
+void f() {
+  int v = myUndefinedFunction(1, 2.0, '3');
+    print(v);
+}
+
+int myUndefinedFunction(int i, double d, String s) {
+}
+''');
+  }
+
+  Future<void> test_fromMethod() async {
+    await resolveTestCode('''
+class A {
+  void f() {
+    int v = myUndefinedFunction(1, 2.0, '3');
+    print(v);
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  void f() {
+    int v = myUndefinedFunction(1, 2.0, '3');
+    print(v);
+  }
+}
+
+int myUndefinedFunction(int i, double d, String s) {
+}
+''');
+  }
+
   Future<void> test_functionType_inside_conditional_operator_condition() async {
     await resolveTestCode('''
 void f1(int i) {
@@ -482,26 +585,6 @@ bool f3() {
 }
 
 void f2(int Function(int) f) {}
-''');
-  }
-
-  Future<void> test_functionType_inside_conditional_operator_else() async {
-    await resolveTestCode('''
-void f1(int i) {
-  f2(i == 0 ? (v) => v : f3);
-}
-
-void f2(int Function(int) f) {}
-''');
-    await assertHasFix('''
-void f1(int i) {
-  f2(i == 0 ? (v) => v : f3);
-}
-
-void f2(int Function(int) f) {}
-
-int f3(int p1) {
-}
 ''');
   }
 
@@ -544,46 +627,6 @@ int f3() {
 }
 
 void f2(int p) {}
-''');
-  }
-
-  Future<void> test_functionType_inside_record_functionType() async {
-    await resolveTestCode('''
-void f1(int i) {
-  f2((0, f3));
-}
-
-void f2((int, int Function(int)) f) {}
-''');
-    await assertHasFix('''
-void f1(int i) {
-  f2((0, f3));
-}
-
-void f2((int, int Function(int)) f) {}
-
-int f3(int p1) {
-}
-''');
-  }
-
-  Future<void> test_functionType_inside_record_functionType_named() async {
-    await resolveTestCode('''
-void f1(int i) {
-  f2((f: f3));
-}
-
-void f2(({int Function(int) f}) f) {}
-''');
-    await assertHasFix('''
-void f1(int i) {
-  f2((f: f3));
-}
-
-void f2(({int Function(int) f}) f) {}
-
-int f3(int p1) {
-}
 ''');
   }
 
@@ -646,7 +689,7 @@ class A<T> {
   }
 }
 
-void process(Map items) {
+void process(Map<int, Object?> items) {
 }
 ''');
   }
@@ -669,7 +712,7 @@ void f() {
   test(getFuture());
 }
 
-void test(Future future) {
+void test(Future<dynamic> future) {
 }
 ''');
   }
@@ -720,18 +763,6 @@ void bar(int i) {
 ''');
     await assertHasFix('''
 (bool,) f = (g(),);
-
-bool g() {
-}
-''');
-  }
-
-  Future<void> test_record_tearoff() async {
-    await resolveTestCode('''
-(bool Function(),) f = (g,);
-''');
-    await assertHasFix('''
-(bool Function(),) f = (g,);
 
 bool g() {
 }
@@ -914,30 +945,6 @@ int f() {
 }
 
 int myUndefinedFunction() {
-}
-''');
-  }
-
-  Future<void> test_returnType_typeAlias_function() async {
-    await resolveTestCode('''
-typedef A<T> = void Function(T a);
-
-void f(A<int> Function() a) {}
-
-void g() {
-  f(test);
-}
-''');
-    await assertHasFix('''
-typedef A<T> = void Function(T a);
-
-void f(A<int> Function() a) {}
-
-void g() {
-  f(test);
-}
-
-A<int> test() {
 }
 ''');
   }

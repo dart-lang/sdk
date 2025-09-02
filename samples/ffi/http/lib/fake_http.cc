@@ -34,15 +34,27 @@ Content-Type: text/html; charset=UTF-8
 DART_EXPORT void http_get(const char* uri, void (*onResponse)(const char*)) {
   std::thread([onResponse]() {
     std::this_thread::sleep_for(std::chrono::seconds(3));
-    onResponse(strdup(kExampleResponse));
+    onResponse(kExampleResponse);
   }).detach();
 }
 
-DART_EXPORT void http_serve(void (*onRequest)(const char*)) {
-  std::thread([onRequest]() {
-    while (true) {
+std::atomic<bool> stop_requested = false;
+std::thread* server = nullptr;
+
+DART_EXPORT void http_start_serving(void (*onRequest)(const char*)) {
+  server = new std::thread([onRequest]() {
+    while (!stop_requested) {
       std::this_thread::sleep_for(std::chrono::seconds(1));
-      onRequest(strdup(kExampleRequest));
+      onRequest(kExampleRequest);
     }
-  }).detach();
+  });
+}
+
+DART_EXPORT void http_stop_serving() {
+  if (server != nullptr) {
+    stop_requested = true;
+    server->join();
+    delete server;
+    server = nullptr;
+  }
 }

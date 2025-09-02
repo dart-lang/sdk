@@ -131,14 +131,12 @@ class LineInfoTest {
   void test_linestarts() {
     String source = "var\r\ni\n=\n1;\n";
     GatheringDiagnosticListener listener = GatheringDiagnosticListener();
-    Scanner scanner = Scanner(
-      TestSource(),
-      CharSequenceReader(source),
-      listener,
-    )..configureFeatures(
-      featureSetForOverriding: featureSet,
-      featureSet: featureSet,
-    );
+    Scanner scanner =
+        Scanner(TestSource(), CharSequenceReader(source), listener)
+          ..configureFeatures(
+            featureSetForOverriding: featureSet,
+            featureSet: featureSet,
+          );
     var token = scanner.tokenize();
     expect(token.lexeme, 'var');
     var lineStarts = scanner.lineStarts;
@@ -151,14 +149,12 @@ class LineInfoTest {
     // See https://github.com/dart-lang/sdk/issues/30320
     String source = '<!-- @Component(';
     GatheringDiagnosticListener listener = GatheringDiagnosticListener();
-    Scanner scanner = Scanner(
-      TestSource(),
-      CharSequenceReader(source),
-      listener,
-    )..configureFeatures(
-      featureSetForOverriding: featureSet,
-      featureSet: featureSet,
-    );
+    Scanner scanner =
+        Scanner(TestSource(), CharSequenceReader(source), listener)
+          ..configureFeatures(
+            featureSetForOverriding: featureSet,
+            featureSet: featureSet,
+          );
     Token token = scanner.tokenize(reportScannerErrors: false);
     expect(token, TypeMatcher<UnmatchedToken>());
     token = token.next!;
@@ -194,14 +190,12 @@ class LineInfoTest {
   }
 
   Token _scanWithListener(String source, GatheringDiagnosticListener listener) {
-    Scanner scanner = Scanner(
-      TestSource(),
-      CharSequenceReader(source),
-      listener,
-    )..configureFeatures(
-      featureSetForOverriding: featureSet,
-      featureSet: featureSet,
-    );
+    Scanner scanner =
+        Scanner(TestSource(), CharSequenceReader(source), listener)
+          ..configureFeatures(
+            featureSetForOverriding: featureSet,
+            featureSet: featureSet,
+          );
     Token result = scanner.tokenize();
     LineInfo lineInfo = LineInfo(scanner.lineStarts);
     listener.setLineInfo(TestSource(), lineInfo);

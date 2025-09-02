@@ -15,15 +15,19 @@ Future<void> main() async {
   Completer completer = new Completer();
   BytesBuilder bb = new BytesBuilder();
   late StreamSubscription<List<int>> subscription;
-  subscription = stdin.listen((List<int> data) {
-    bb.add(data);
-  }, onDone: () {
-    subscription.cancel();
-    completer.complete();
-  }, onError: (_) {
-    subscription.cancel();
-    completer.complete();
-  });
+  subscription = stdin.listen(
+    (List<int> data) {
+      bb.add(data);
+    },
+    onDone: () {
+      subscription.cancel();
+      completer.complete();
+    },
+    onError: (_) {
+      subscription.cancel();
+      completer.complete();
+    },
+  );
   await completer.future;
   GCInfo gcInfo = parseVerboseGcText(utf8.decode(bb.takeBytes()).split("\n"));
   print(gcInfo.combinedTime);

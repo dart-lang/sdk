@@ -70,7 +70,7 @@ class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 95, 3)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 95, 3)],
     );
   }
 
@@ -87,7 +87,7 @@ String f() {
   return v();
 }
 ''',
-      [error(WarningCode.RETURN_OF_DO_NOT_STORE, 97, 2)],
+      [error(WarningCode.returnOfDoNotStore, 97, 2)],
     );
   }
 
@@ -109,14 +109,9 @@ String getV2() => v;
 String getV3() => v;
 ''',
       [
+        error(WarningCode.returnOfDoNotStore, 92, 1, messageContains: ['getV']),
         error(
-          WarningCode.RETURN_OF_DO_NOT_STORE,
-          92,
-          1,
-          messageContains: ['getV'],
-        ),
-        error(
-          WarningCode.RETURN_OF_DO_NOT_STORE,
+          WarningCode.returnOfDoNotStore,
           116,
           1,
           messageContains: ['getV2'],
@@ -143,18 +138,8 @@ String get v2 => _v;
 String get v3 => _v;
 ''',
       [
-        error(
-          WarningCode.RETURN_OF_DO_NOT_STORE,
-          92,
-          2,
-          messageContains: ['v'],
-        ),
-        error(
-          WarningCode.RETURN_OF_DO_NOT_STORE,
-          116,
-          2,
-          messageContains: ['v2'],
-        ),
+        error(WarningCode.returnOfDoNotStore, 92, 2, messageContains: ['v']),
+        error(WarningCode.returnOfDoNotStore, 116, 2, messageContains: ['v2']),
       ],
     );
   }
@@ -173,18 +158,8 @@ String? get _v2 => '';
 String? get v => _v ?? _v2;
 ''',
       [
-        error(
-          WarningCode.RETURN_OF_DO_NOT_STORE,
-          122,
-          2,
-          messageContains: ['_v'],
-        ),
-        error(
-          WarningCode.RETURN_OF_DO_NOT_STORE,
-          128,
-          3,
-          messageContains: ['_v2'],
-        ),
+        error(WarningCode.returnOfDoNotStore, 122, 2, messageContains: ['_v']),
+        error(WarningCode.returnOfDoNotStore, 128, 3, messageContains: ['_v2']),
       ],
     );
   }
@@ -214,8 +189,8 @@ var b = true;
 String get v => b ? _v : _v2;
 ''',
       [
-        error(WarningCode.RETURN_OF_DO_NOT_STORE, 138, 2),
-        error(WarningCode.RETURN_OF_DO_NOT_STORE, 143, 3),
+        error(WarningCode.returnOfDoNotStore, 138, 2),
+        error(WarningCode.returnOfDoNotStore, 143, 3),
       ],
     );
   }
@@ -241,13 +216,13 @@ class A {
 ''',
       [
         error(
-          WarningCode.RETURN_OF_DO_NOT_STORE,
+          WarningCode.returnOfDoNotStore,
           111,
           2,
           messageContains: ['getV'],
         ),
         error(
-          WarningCode.RETURN_OF_DO_NOT_STORE,
+          WarningCode.returnOfDoNotStore,
           140,
           2,
           messageContains: ['getV2'],

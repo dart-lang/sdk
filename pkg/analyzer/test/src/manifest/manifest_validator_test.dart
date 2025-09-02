@@ -467,7 +467,7 @@ class ManifestValidatorTest with ResourceProviderMixin {
     <uses-permission android:name="android.permission.CAMERA" />
 </manifest>
 ''',
-      [ManifestWarningCode.CAMERA_PERMISSIONS_INCOMPATIBLE],
+      [ManifestWarningCode.cameraPermissionsIncompatible],
     );
   }
 
@@ -491,7 +491,7 @@ class ManifestValidatorTest with ResourceProviderMixin {
     <uses-feature android:name="android.hardware.touchscreen" />
 </manifest>
 ''',
-      [ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE],
+      [ManifestWarningCode.unsupportedChromeOsHardware],
     );
   }
 
@@ -504,7 +504,7 @@ class ManifestValidatorTest with ResourceProviderMixin {
     <uses-feature android:name="android.software.home_screen" />
 </manifest>
 ''',
-      [ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE],
+      [ManifestWarningCode.unsupportedChromeOsHardware],
     );
   }
 
@@ -528,7 +528,7 @@ class ManifestValidatorTest with ResourceProviderMixin {
     xmlns:android="http://schemas.android.com/apk/res/android">
 </manifest>
 ''',
-      [ManifestWarningCode.NO_TOUCHSCREEN_FEATURE],
+      [ManifestWarningCode.noTouchscreenFeature],
     );
   }
 
@@ -546,7 +546,7 @@ class ManifestValidatorTest with ResourceProviderMixin {
   </application>
 </manifest>
 ''',
-      [ManifestWarningCode.NON_RESIZABLE_ACTIVITY],
+      [ManifestWarningCode.nonResizableActivity],
     );
   }
 
@@ -564,7 +564,7 @@ class ManifestValidatorTest with ResourceProviderMixin {
   </application>
 </manifest>
 ''',
-      [ManifestWarningCode.SETTING_ORIENTATION_ON_ACTIVITY],
+      [ManifestWarningCode.settingOrientationOnActivity],
     );
   }
 
@@ -576,7 +576,7 @@ class ManifestValidatorTest with ResourceProviderMixin {
     <uses-feature android:name="android.hardware.touchscreen" android:required="true"/>
 </manifest>
 ''',
-      [ManifestWarningCode.UNSUPPORTED_CHROME_OS_FEATURE],
+      [ManifestWarningCode.unsupportedChromeOsFeature],
     );
   }
 }

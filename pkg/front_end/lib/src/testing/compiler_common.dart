@@ -29,12 +29,14 @@ import '../compute_platform_binaries_location.dart'
 /// compiles the entry whose name is [fileName].
 ///
 /// Wraps [kernelForProgram] with some default testing options (see [setup]).
-Future<CompilerResult?> compileScript(dynamic scriptOrSources,
-    {String fileName = 'main.dart',
-    List<String> additionalDills = const [],
-    CompilerOptions? options,
-    bool retainDataForTesting = false,
-    bool requireMain = true}) async {
+Future<CompilerResult?> compileScript(
+  dynamic scriptOrSources, {
+  String fileName = 'main.dart',
+  List<String> additionalDills = const [],
+  CompilerOptions? options,
+  bool retainDataForTesting = false,
+  bool requireMain = true,
+}) async {
   options ??= new CompilerOptions();
   Map<String, dynamic> sources;
   if (scriptOrSources is String) {
@@ -44,33 +46,48 @@ Future<CompilerResult?> compileScript(dynamic scriptOrSources,
     sources = scriptOrSources;
   }
   await setup(options, sources, additionalDills: additionalDills);
-  return await kernelForProgramInternal(toTestUri(fileName), options,
-      retainDataForTesting: retainDataForTesting, requireMain: requireMain);
+  return await kernelForProgramInternal(
+    toTestUri(fileName),
+    options,
+    retainDataForTesting: retainDataForTesting,
+    requireMain: requireMain,
+  );
 }
 
 /// Generate a component for a modular compilation unit.
 ///
 /// Wraps [kernelForModule] with some default testing options (see [setup]).
 Future<Component?> compileUnit(
-    List<String> inputs, Map<String, dynamic> sources,
-    {List<String> additionalDills = const [], CompilerOptions? options}) async {
+  List<String> inputs,
+  Map<String, dynamic> sources, {
+  List<String> additionalDills = const [],
+  CompilerOptions? options,
+}) async {
   options ??= new CompilerOptions();
   await setup(options, sources, additionalDills: additionalDills);
-  return (await kernelForModule(inputs.map(toTestUri).toList(), options))
-      .component;
+  return (await kernelForModule(
+    inputs.map(toTestUri).toList(),
+    options,
+  )).component;
 }
 
 /// Generate a summary for a modular compilation unit.
 ///
 /// Wraps [summaryFor] with some default testing options (see [setup]).
-Future<Uint8List?> summarize(List<String> inputs, Map<String, dynamic> sources,
-    {List<String> additionalDills = const [],
-    CompilerOptions? options,
-    bool truncate = false}) async {
+Future<Uint8List?> summarize(
+  List<String> inputs,
+  Map<String, dynamic> sources, {
+  List<String> additionalDills = const [],
+  CompilerOptions? options,
+  bool truncate = false,
+}) async {
   options ??= new CompilerOptions();
   await setup(options, sources, additionalDills: additionalDills);
-  return await summaryFor(inputs.map(toTestUri).toList(), options,
-      truncate: truncate);
+  return await summaryFor(
+    inputs.map(toTestUri).toList(),
+    options,
+    truncate: truncate,
+  );
 }
 
 /// Defines a default set of options for testing:
@@ -84,8 +101,11 @@ Future<Uint8List?> summarize(List<String> inputs, Map<String, dynamic> sources,
 ///     sources).
 ///
 ///   * specify the location of the sdk summaries.
-Future<Null> setup(CompilerOptions options, Map<String, dynamic> sources,
-    {List<String> additionalDills = const []}) async {
+Future<Null> setup(
+  CompilerOptions options,
+  Map<String, dynamic> sources, {
+  List<String> additionalDills = const [],
+}) async {
   MemoryFileSystem fs = createMemoryFileSystem();
   sources.forEach((name, data) {
     MemoryFileSystemEntity entity = fs.entityForUri(toTestUri(name));
@@ -95,8 +115,9 @@ Future<Null> setup(CompilerOptions options, Map<String, dynamic> sources,
       entity.writeAsBytesSync(data);
     }
   });
-  MemoryFileSystemEntity packageConfigFile =
-      fs.entityForUri(toTestUri('.dart_tool/package_config.json'));
+  MemoryFileSystemEntity packageConfigFile = fs.entityForUri(
+    toTestUri('.dart_tool/package_config.json'),
+  );
   if (!await packageConfigFile.exists()) {
     packageConfigFile.writeAsStringSync('{"configVersion": 2, "packages": []}');
   }
@@ -152,6 +173,7 @@ bool isDartCore(Uri uri) => uri.isScheme('dart') && uri.path == 'core';
 
 /// Find a library in [component] whose Uri ends with the given [suffix]
 Library findLibrary(Component component, String suffix) {
-  return component.libraries
-      .firstWhere((lib) => lib.importUri.path.endsWith(suffix));
+  return component.libraries.firstWhere(
+    (lib) => lib.importUri.path.endsWith(suffix),
+  );
 }

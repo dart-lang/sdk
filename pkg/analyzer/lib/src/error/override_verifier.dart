@@ -47,7 +47,7 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
 
         _errorReporter.atToken(
           field.name,
-          WarningCode.OVERRIDE_ON_NON_OVERRIDING_FIELD,
+          WarningCode.overrideOnNonOverridingField,
         );
       }
     }
@@ -61,17 +61,17 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
         case MethodElement():
           _errorReporter.atToken(
             node.name,
-            WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD,
+            WarningCode.overrideOnNonOverridingMethod,
           );
         case GetterElement():
           _errorReporter.atToken(
             node.name,
-            WarningCode.OVERRIDE_ON_NON_OVERRIDING_GETTER,
+            WarningCode.overrideOnNonOverridingGetter,
           );
         case SetterElement():
           _errorReporter.atToken(
             node.name,
-            WarningCode.OVERRIDE_ON_NON_OVERRIDING_SETTER,
+            WarningCode.overrideOnNonOverridingSetter,
           );
       }
     }

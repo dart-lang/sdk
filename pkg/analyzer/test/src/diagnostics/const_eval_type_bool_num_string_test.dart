@@ -34,7 +34,7 @@ class A {
 const a = A();
 const b = a == 0;
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING, 67, 6)],
+      [error(CompileTimeErrorCode.constEvalTypeBoolNumString, 67, 6)],
     );
   }
 
@@ -57,7 +57,7 @@ class A {
 const a = A();
 const b = a != 0;
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING, 67, 6)],
+      [error(CompileTimeErrorCode.constEvalTypeBoolNumString, 67, 6)],
     );
   }
 
@@ -66,7 +66,7 @@ const b = a != 0;
       r'''
 const x = '${const [2]}';
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING, 11, 12)],
+      [error(CompileTimeErrorCode.constEvalTypeBoolNumString, 11, 12)],
     );
   }
 }

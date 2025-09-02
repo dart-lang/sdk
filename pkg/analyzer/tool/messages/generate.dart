@@ -19,6 +19,7 @@ library;
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_testing/package_root.dart' as pkg_root;
 import 'package:analyzer_utilities/tools.dart';
 import 'package:collection/collection.dart';
@@ -44,7 +45,7 @@ List<GeneratedContent> _analyzerGeneratedFiles() {
   for (var errorClassInfo in errorClasses) {
     (classesByFile[errorClassInfo.file] ??= []).add(errorClassInfo);
   }
-  var generatedCodes = <String>[];
+  var generatedCodes = <(String, String)>[];
   return [
     for (var entry in classesByFile.entries)
       GeneratedFile(entry.key.path, (pkgRoot) async {
@@ -72,7 +73,7 @@ class _AnalyzerErrorGenerator {
 
   final List<ErrorClassInfo> errorClasses;
 
-  final List<String> generatedCodes;
+  final List<(String, String)> generatedCodes;
 
   final StringBuffer out = StringBuffer('''
 // Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
@@ -86,43 +87,29 @@ class _AnalyzerErrorGenerator {
 
 // While transitioning `HintCodes` to `WarningCodes`, we refer to deprecated
 // codes here.
-// ignore_for_file: deprecated_member_use_from_same_package
-// 
-// Generated comments don't quite align with flutter style.
-// ignore_for_file: flutter_style_todos
 ''');
 
   _AnalyzerErrorGenerator(this.file, this.errorClasses, this.generatedCodes);
 
   void generate() {
+    out.writeln('// ignore_for_file: deprecated_member_use_from_same_package');
+    if (file.shouldIgnorePreferSingleQuotes) {
+      out.writeln('// ignore_for_file: prefer_single_quotes');
+    }
+    out.write('''
+// 
+// Generated comments don't quite align with flutter style.
+// ignore_for_file: flutter_style_todos
+''');
     out.writeln();
     out.write('''
-/// @docImport 'package:analyzer/src/dart/error/syntactic_errors.g.dart';
-/// @docImport 'package:analyzer/src/error/inference_error.dart';
-@Deprecated(
-  // This library is deprecated to prevent it from being accidentally imported
-  // It should only be imported by the corresponding non-code-generated library
-  // (which suppresses the deprecation warning using an "ignore" comment).
-  'Use ${file.preferredImportUri} instead',
-)
-library;
+part of ${json.encode(file.parentLibrary)};
 ''');
-    var imports = {'package:_fe_analyzer_shared/src/base/errors.dart'};
     bool shouldGenerateFastaAnalyzerErrorCodes = false;
     for (var errorClass in errorClasses) {
-      imports.addAll(errorClass.extraImports);
       if (errorClass.includeCfeMessages) {
         shouldGenerateFastaAnalyzerErrorCodes = true;
       }
-      analyzerMessages[errorClass.name]!.forEach((_, errorCodeInfo) {
-        if (errorCodeInfo is AliasErrorCodeInfo) {
-          imports.add(errorCodeInfo.aliasForFilePath.toPackageUri);
-        }
-      });
-    }
-    out.writeln();
-    for (var importPath in imports.toList()..sort()) {
-      out.writeln("import ${json.encode(importPath)};");
     }
     if (shouldGenerateFastaAnalyzerErrorCodes) {
       out.writeln();
@@ -131,81 +118,133 @@ library;
     for (var errorClass
         in errorClasses.toList()..sort((a, b) => a.name.compareTo(b.name))) {
       out.writeln();
-      out.write('class ${errorClass.name} extends ${errorClass.superclass} {');
+      if (errorClass.comment.isNotEmpty) {
+        errorClass.comment.trimRight().split('\n').forEach((line) {
+          out.writeln('/// $line');
+        });
+      }
+      out.write(
+        'class ${errorClass.name} extends DiagnosticCodeWithExpectedTypes {',
+      );
+      var memberAccumulator = MemberAccumulator();
       var entries = [
         ...analyzerMessages[errorClass.name]!.entries,
         if (errorClass.includeCfeMessages)
           ...cfeToAnalyzerErrorCodeTables.analyzerCodeToInfo.entries,
-      ].where((error) => !error.value.isRemoved).sortedBy((e) => e.key);
+      ].where((error) => !error.value.isRemoved);
       for (var entry in entries) {
         var errorName = entry.key;
         var errorCodeInfo = entry.value;
 
-        out.writeln();
-        out.write(errorCodeInfo.toAnalyzerComments(indent: '  '));
-        var deprecatedMessage = errorCodeInfo.deprecatedMessage;
-        if (deprecatedMessage != null) {
-          out.writeln('  @Deprecated("$deprecatedMessage")');
-        }
-        if (errorCodeInfo is AliasErrorCodeInfo) {
-          out.writeln(
-            '  static const ${errorCodeInfo.aliasForClass} $errorName =',
+        try {
+          if (errorCodeInfo is! AliasErrorCodeInfo &&
+              errorClass.includeInDiagnosticCodeValues) {
+            generatedCodes.add((errorClass.name, errorName));
+          }
+          errorCodeInfo.toAnalyzerCode(
+            errorClass,
+            errorName,
+            memberAccumulator: memberAccumulator,
           );
-          out.writeln('${errorCodeInfo.aliasFor};');
-        } else {
-          generatedCodes.add('${errorClass.name}.$errorName');
-          out.writeln('  static const ${errorClass.name} $errorName =');
-          out.writeln(
-            errorCodeInfo.toAnalyzerCode(
-              errorClass,
-              errorName,
-              useExplicitConst: file.shouldUseExplicitConst,
-            ),
+        } catch (e, st) {
+          Error.throwWithStackTrace(
+            'While processing ${errorClass.name}.$errorName: $e',
+            st,
           );
         }
       }
-      out.writeln();
-      out.writeln(
+
+      var constructor = StringBuffer();
+      constructor.writeln(
         '/// Initialize a newly created error code to have the given '
         '[name].',
       );
-      out.writeln(
+      constructor.writeln(
         'const ${errorClass.name}(String name, String problemMessage, {',
       );
-      out.writeln('super.correctionMessage,');
-      out.writeln('super.hasPublishedDocs = false,');
-      out.writeln('super.isUnresolvedIdentifier = false,');
-      out.writeln('String? uniqueName,');
-      out.writeln('}) : super(');
-      out.writeln('name: name,');
-      out.writeln('problemMessage: problemMessage,');
-      out.writeln("uniqueName: '${errorClass.name}.\${uniqueName ?? name}',");
-      out.writeln(');');
-      out.writeln();
-      out.writeln('@override');
-      out.writeln(
-        'DiagnosticSeverity get severity => '
-        '${errorClass.severityCode};',
+      constructor.writeln('super.correctionMessage,');
+      constructor.writeln('super.hasPublishedDocs = false,');
+      constructor.writeln('super.isUnresolvedIdentifier = false,');
+      constructor.writeln('String? uniqueName,');
+      constructor.writeln('required super.expectedTypes,');
+      constructor.writeln('}) : super(');
+      constructor.writeln('name: name,');
+      constructor.writeln('problemMessage: problemMessage,');
+      constructor.writeln(
+        "uniqueName: '${errorClass.name}.\${uniqueName ?? name}',",
       );
-      out.writeln();
-      out.writeln('@override');
-      out.writeln('DiagnosticType get type => ${errorClass.typeCode};');
+      constructor.writeln(');');
+      memberAccumulator.constructors[''] = constructor.toString();
+
+      memberAccumulator.accessors['severity'] =
+          '''
+@override
+DiagnosticSeverity get severity => ${errorClass.severityCode};
+''';
+      memberAccumulator.accessors['type'] =
+          '''
+@override
+DiagnosticType get type => ${errorClass.typeCode};
+''';
+
+      memberAccumulator.writeTo(out);
       out.writeln('}');
+
+      if (literateApiEnabled) {
+        out.writeln();
+        _outputDerivedClass(errorClass, withArguments: true);
+        out.writeln();
+        _outputDerivedClass(errorClass, withArguments: false);
+      }
     }
   }
 
   void _generateFastaAnalyzerErrorCodeList() {
     out.writeln('final fastaAnalyzerErrorCodes = <DiagnosticCode?>[');
     for (var entry in cfeToAnalyzerErrorCodeTables.indexToInfo) {
-      var name = cfeToAnalyzerErrorCodeTables.infoToAnalyzerCode[entry];
+      var name = cfeToAnalyzerErrorCodeTables.infoToAnalyzerCode[entry]
+          ?.toCamelCase();
       out.writeln('${name == null ? 'null' : 'ParserErrorCode.$name'},');
     }
     out.writeln('];');
   }
+
+  void _outputDerivedClass(
+    ErrorClassInfo errorClass, {
+    required bool withArguments,
+  }) {
+    var className = withArguments
+        ? errorClass.templateName
+        : errorClass.withoutArgumentsName;
+    out.writeln('final class $className');
+    if (withArguments) out.writeln('<T extends Function>');
+    out.writeln('    extends ${errorClass.name}');
+    if (!withArguments) out.writeln('    with DiagnosticWithoutArguments');
+    out.writeln('{');
+    if (withArguments) {
+      out.writeln('final T withArguments;');
+      out.writeln();
+    }
+    out.writeln(
+      '/// Initialize a newly created error code to have the given '
+      '[name].',
+    );
+    out.writeln('const $className(');
+    out.writeln('super.name,');
+    out.writeln('super.problemMessage, {');
+    out.writeln('super.correctionMessage,');
+    out.writeln('super.hasPublishedDocs = false,');
+    out.writeln('super.isUnresolvedIdentifier = false,');
+    out.writeln('super.uniqueName,');
+    out.writeln('required super.expectedTypes,');
+    if (withArguments) out.writeln('required this.withArguments,');
+    out.writeln('});');
+    out.writeln('}');
+  }
 }
 
 class _DiagnosticCodeValuesGenerator {
-  final List<String> generatedCodes;
+  final List<(String, String)> generatedCodes;
 
   final StringBuffer out = StringBuffer('''
 // Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
@@ -229,15 +268,7 @@ class _DiagnosticCodeValuesGenerator {
   _DiagnosticCodeValuesGenerator(this.generatedCodes);
 
   void generate() {
-    // The scanner error codes are not yet being generated, so we need to add
-    // them to the list explicitly.
-    generatedCodes.addAll([
-      'TodoCode.TODO',
-      'TodoCode.FIXME',
-      'TodoCode.HACK',
-      'TodoCode.UNDONE',
-    ]);
-    generatedCodes.sort();
+    generatedCodes.sortBy((x) => '${x.$1}.${x.$2}');
 
     out.writeln();
     out.writeln(r'''
@@ -254,8 +285,9 @@ import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
       "@AnalyzerPublicApi(message: 'exported by lib/error/error.dart')",
     );
     out.writeln('const List<DiagnosticCode> diagnosticCodeValues = [');
-    for (var name in generatedCodes) {
-      out.writeln('  $name,');
+    for (var (className, errorName) in generatedCodes) {
+      errorName = errorName.toCamelCase();
+      out.writeln('  $className.$errorName,');
     }
     out.writeln('];');
     out.writeln();
@@ -278,20 +310,18 @@ class _SyntacticErrorGenerator {
       join(pkg_root.packageRoot, '_fe_analyzer_shared'),
     );
 
-    String errorConverterSource =
-        File(
-          join(
-            analyzerPkgPath,
-            joinAll(posix.split('lib/src/fasta/error_converter.dart')),
-          ),
-        ).readAsStringSync();
-    String parserSource =
-        File(
-          join(
-            frontEndSharedPkgPath,
-            joinAll(posix.split('lib/src/parser/parser.dart')),
-          ),
-        ).readAsStringSync();
+    String errorConverterSource = File(
+      join(
+        analyzerPkgPath,
+        joinAll(posix.split('lib/src/fasta/error_converter.dart')),
+      ),
+    ).readAsStringSync();
+    String parserSource = File(
+      join(
+        frontEndSharedPkgPath,
+        joinAll(posix.split('lib/src/parser/parser.dart')),
+      ),
+    ).readAsStringSync();
 
     return _SyntacticErrorGenerator._(errorConverterSource, parserSource);
   }
@@ -333,7 +363,7 @@ class _SyntacticErrorGenerator {
     var messageToName = <String, String>{};
     for (var entry in analyzerMessages['ParserErrorCode']!.entries) {
       String message = entry.value.problemMessage.replaceAll(
-        RegExp(r'\{\d+\}'),
+        placeholderPattern,
         '',
       );
       messageToName[message] = entry.key;
@@ -384,11 +414,4 @@ class _SyntacticErrorGenerator {
       }
     }
   }
-}
-
-extension on String {
-  String get toPackageUri => switch (this.split('/')) {
-    [var pkgName, 'lib', ...var rest] => 'package:$pkgName/${rest.join('/')}',
-    _ => 'Cannot convert to a package URI: $this',
-  };
 }

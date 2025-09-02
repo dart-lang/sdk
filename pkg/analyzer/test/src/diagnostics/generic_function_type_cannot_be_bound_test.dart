@@ -41,13 +41,7 @@ typedef F = S Function<S>(S);
 import 'a.dart';
 late T Function<T extends F>(T) fun;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND,
-          57,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.genericFunctionTypeCannotBeBound, 57, 1)],
     );
   }
 
@@ -80,13 +74,7 @@ class GenericFunctionTypeCannotBeBoundWithoutGenericMetadataTest
 class C<T extends S Function<S>(S)> {
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND,
-          32,
-          16,
-        ),
-      ],
+      [error(CompileTimeErrorCode.genericFunctionTypeCannotBeBound, 32, 16)],
     );
   }
 
@@ -96,13 +84,7 @@ class C<T extends S Function<S>(S)> {
 // @dart=2.12
 late T Function<T extends S Function<S>(S)>(T) fun;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND,
-          40,
-          16,
-        ),
-      ],
+      [error(CompileTimeErrorCode.genericFunctionTypeCannotBeBound, 40, 16)],
     );
   }
 
@@ -112,13 +94,7 @@ late T Function<T extends S Function<S>(S)>(T) fun;
 // @dart=2.12
 typedef foo = T Function<T extends S Function<S>(S)>(T t);
 ''',
-      [
-        error(
-          CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND,
-          49,
-          16,
-        ),
-      ],
+      [error(CompileTimeErrorCode.genericFunctionTypeCannotBeBound, 49, 16)],
     );
   }
 
@@ -134,13 +110,7 @@ class C<T extends void Function(S Function<S>(S))> {}
 // @dart=2.12
 typedef T foo<T extends S Function<S>(S)>(T t);
 ''',
-      [
-        error(
-          CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND,
-          38,
-          16,
-        ),
-      ],
+      [error(CompileTimeErrorCode.genericFunctionTypeCannotBeBound, 38, 16)],
     );
   }
 }

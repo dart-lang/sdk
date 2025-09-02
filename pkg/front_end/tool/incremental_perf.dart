@@ -66,8 +66,9 @@ ${argParser.usage}""";
 
   var entryUri = _resolveOverlayUri(options.rest[0]);
   var editsUri = Uri.base.resolve(options.rest[1]);
-  var changeSets =
-      parse(jsonDecode(new File.fromUri(editsUri).readAsStringSync()));
+  var changeSets = parse(
+    jsonDecode(new File.fromUri(editsUri).readAsStringSync()),
+  );
   bool verbose = options["verbose"];
   bool verboseCompilation = options["verbose-compilation"];
   bool isFlutter = options["target"] == "flutter";
@@ -76,32 +77,34 @@ ${argParser.usage}""";
 
   for (int i = 0; i < 8; i++) {
     await benchmark(
-        collector,
-        entryUri,
-        isFlutter,
-        useMinimalGenerator,
-        verbose,
-        verboseCompilation,
-        changeSets,
-        options["sdk-summary"],
-        options["sdk-library-specification"],
-        options["cache"]);
+      collector,
+      entryUri,
+      isFlutter,
+      useMinimalGenerator,
+      verbose,
+      verboseCompilation,
+      changeSets,
+      options["sdk-summary"],
+      options["sdk-library-specification"],
+      options["cache"],
+    );
     if (!options["loop"]) break;
   }
   collector.printTimings();
 }
 
 Future benchmark(
-    TimingsCollector collector,
-    Uri entryUri,
-    bool isFlutter,
-    bool useMinimalGenerator,
-    bool verbose,
-    bool verboseCompilation,
-    List<ChangeSet> changeSets,
-    String? sdkSummary,
-    String? sdkLibrarySpecification,
-    String cache) async {
+  TimingsCollector collector,
+  Uri entryUri,
+  bool isFlutter,
+  bool useMinimalGenerator,
+  bool verbose,
+  bool verboseCompilation,
+  List<ChangeSet> changeSets,
+  String? sdkSummary,
+  String? sdkLibrarySpecification,
+  String cache,
+) async {
   var overlayFs = new OverlayFileSystem();
   var compilerOptions = new CompilerOptions()
     ..verbose = verboseCompilation
@@ -113,14 +116,17 @@ Future benchmark(
     compilerOptions.sdkSummary = _resolveOverlayUri(sdkSummary);
   }
   if (sdkLibrarySpecification != null) {
-    compilerOptions.librariesSpecificationUri =
-        _resolveOverlayUri(sdkLibrarySpecification);
+    compilerOptions.librariesSpecificationUri = _resolveOverlayUri(
+      sdkLibrarySpecification,
+    );
   }
 
   var dir = Directory.systemTemp.createTempSync("ikg-cache");
 
-  final processedOptions =
-      new ProcessedOptions(options: compilerOptions, inputs: [entryUri]);
+  final processedOptions = new ProcessedOptions(
+    options: compilerOptions,
+    inputs: [entryUri],
+  );
   final UriTranslator uriTranslator = await processedOptions.getUriTranslator();
 
   collector.start("Initial compilation");
@@ -139,14 +145,21 @@ Future benchmark(
   for (final ChangeSet changeSet in changeSets) {
     String name = "Change '${changeSet.name}' - Incremental compilation";
     await applyEdits(
-        changeSet.edits, overlayFs, generator, uriTranslator, verbose);
+      changeSet.edits,
+      overlayFs,
+      generator,
+      uriTranslator,
+      verbose,
+    );
     collector.start(name);
     compilerResult = await generator.computeDelta();
     component = compilerResult.component;
     collector.stop(name);
     if (verbose) {
-      print("Change '${changeSet.name}' - "
-          "Libraries changed: ${component.libraries.length}");
+      print(
+        "Change '${changeSet.name}' - "
+        "Libraries changed: ${component.libraries.length}",
+      );
     }
     if (component.libraries.length < 1) {
       throw "No libraries were changed";
@@ -159,11 +172,12 @@ Future benchmark(
 /// Apply all edits of a single iteration by updating the copy of the file in
 /// the memory file system.
 Future<void> applyEdits(
-    List<Edit> edits,
-    OverlayFileSystem fs,
-    IncrementalKernelGenerator generator,
-    UriTranslator uriTranslator,
-    bool verbose) async {
+  List<Edit> edits,
+  OverlayFileSystem fs,
+  IncrementalKernelGenerator generator,
+  UriTranslator uriTranslator,
+  bool verbose,
+) async {
   for (var edit in edits) {
     if (verbose) {
       print('edit $edit');
@@ -175,7 +189,8 @@ Future<void> applyEdits(
         fs.entityForUri(uri) as OverlayFileSystemEntity;
     var contents = await entity.readAsString();
     entity.writeAsStringSync(
-        contents.replaceAll(edit.original, edit.replacement));
+      contents.replaceAll(edit.original, edit.replacement),
+    );
   }
 }
 
@@ -207,8 +222,9 @@ List<ChangeSet> parse(List json) {
 ///
 ///   file:///path/to/file.dart
 class OverlayFileSystem implements FileSystem {
-  final MemoryFileSystem memory =
-      new MemoryFileSystem(Uri.parse('org-dartlang-overlay:///'));
+  final MemoryFileSystem memory = new MemoryFileSystem(
+    Uri.parse('org-dartlang-overlay:///'),
+  );
   final StandardFileSystem physical = StandardFileSystem.instance;
 
   @override
@@ -274,7 +290,7 @@ class Edit {
   final String replacement;
 
   Edit(String uriString, this.original, this.replacement)
-      : uri = _resolveOverlayUri(uriString);
+    : uri = _resolveOverlayUri(uriString);
 
   @override
   String toString() => 'Edit($uri, "$original" -> "$replacement")';
@@ -299,27 +315,43 @@ Uri _resolveOverlayUri(String uriString) {
 }
 
 ArgParser argParser = new ArgParser()
-  ..addFlag('verbose-compilation',
-      help: 'make the compiler verbose', defaultsTo: false)
+  ..addFlag(
+    'verbose-compilation',
+    help: 'make the compiler verbose',
+    defaultsTo: false,
+  )
   ..addFlag('verbose', help: 'print additional information', defaultsTo: false)
   ..addFlag('loop', help: 'run benchmark 8 times', defaultsTo: true)
-  ..addOption('target',
-      help: 'target platform', defaultsTo: 'vm', allowed: ['vm', 'flutter'])
-  ..addOption('cache',
-      help: 'caching policy used by the compiler',
-      defaultsTo: 'protected',
-      allowed: ['evicting', 'memory', 'protected'])
+  ..addOption(
+    'target',
+    help: 'target platform',
+    defaultsTo: 'vm',
+    allowed: ['vm', 'flutter'],
+  )
+  ..addOption(
+    'cache',
+    help: 'caching policy used by the compiler',
+    defaultsTo: 'protected',
+    allowed: ['evicting', 'memory', 'protected'],
+  )
   // TODO(johnniwinther): Remove mode option. Legacy mode is no longer
   // supported.
-  ..addOption('mode',
-      help: 'whether to run in strong or legacy mode',
-      defaultsTo: 'strong',
-      allowed: ['legacy', 'strong'])
-  ..addOption('implementation',
-      help: 'incremental compiler implementation to use',
-      defaultsTo: 'default',
-      allowed: ['default', 'minimal'])
+  ..addOption(
+    'mode',
+    help: 'whether to run in strong or legacy mode',
+    defaultsTo: 'strong',
+    allowed: ['legacy', 'strong'],
+  )
+  ..addOption(
+    'implementation',
+    help: 'incremental compiler implementation to use',
+    defaultsTo: 'default',
+    allowed: ['default', 'minimal'],
+  )
   ..addOption('sdk-summary', help: 'Location of the sdk outline.dill file')
-  ..addOption('sdk-library-specification',
-      help: 'Location of the '
-          'sdk/lib/libraries.json file');
+  ..addOption(
+    'sdk-library-specification',
+    help:
+        'Location of the '
+        'sdk/lib/libraries.json file',
+  );

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -10,25 +11,23 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:linter/src/analyzer.dart';
 
-const _desc = r"Declare 'visit' methods for all registered node types.";
-
 class VisitRegisteredNodes extends LintRule {
-  static const LintCode code = LintCode(
-    'visit_registered_nodes',
-    _desc,
-    correctionMessage:
-        "Try declaring a 'visit' method for all registered node types.",
-    hasPublishedDocs: true,
-  );
+  static const LintCode code = LinterLintCode.visitRegisteredNodes;
 
   VisitRegisteredNodes()
-    : super(name: 'visit_registered_nodes', description: _desc);
+    : super(
+        name: 'visit_registered_nodes',
+        description: "Declare 'visit' methods for all registered node types.",
+      );
 
   @override
   DiagnosticCode get diagnosticCode => code;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addMethodDeclaration(this, visitor);
   }

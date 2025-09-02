@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
@@ -20,10 +21,13 @@ class PreferFunctionDeclarationsOverVariables extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.prefer_function_declarations_over_variables;
+      LinterLintCode.preferFunctionDeclarationsOverVariables;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addVariableDeclaration(this, visitor);
   }
@@ -46,7 +50,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           rule.reportAtNode(node);
         }
       } else {
-        var declaredElement = node.declaredElement;
+        var declaredElement = node.declaredFragment?.element;
         if (declaredElement != null &&
             !function.isPotentiallyMutatedInScope(declaredElement)) {
           rule.reportAtNode(node);

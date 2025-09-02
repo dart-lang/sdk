@@ -127,7 +127,7 @@ class TypePropertyResolver {
       CompileTimeErrorCode errorCode;
       List<String> arguments;
       if (parentNode == null) {
-        errorCode = CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE;
+        errorCode = CompileTimeErrorCode.uncheckedInvocationOfNullableValue;
         arguments = [];
       } else {
         if (parentNode is CascadeExpression) {
@@ -135,22 +135,19 @@ class TypePropertyResolver {
         }
         if (parentNode is BinaryExpression || parentNode is RelationalPattern) {
           errorCode =
-              CompileTimeErrorCode
-                  .UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE;
+              CompileTimeErrorCode.uncheckedOperatorInvocationOfNullableValue;
           arguments = [name];
         } else if (parentNode is MethodInvocation ||
             parentNode is MethodReferenceExpression) {
           errorCode =
-              CompileTimeErrorCode
-                  .UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE;
+              CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue;
           arguments = [name];
         } else if (parentNode is FunctionExpressionInvocation) {
-          errorCode =
-              CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE;
+          errorCode = CompileTimeErrorCode.uncheckedInvocationOfNullableValue;
           arguments = [];
         } else {
           errorCode =
-              CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE;
+              CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue;
           arguments = [name];
         }
       }

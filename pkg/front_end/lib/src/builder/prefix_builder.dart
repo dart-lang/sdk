@@ -27,8 +27,10 @@ class PrefixBuilder extends NamedBuilderImpl
   final ComputedMutableNameSpace _prefixNameSpace =
       new ComputedMutableNameSpace();
 
-  late final LookupScope _prefixScope =
-      new NameSpaceLookupScope(_prefixNameSpace, ScopeKind.library);
+  late final LookupScope _prefixScope = new NameSpaceLookupScope(
+    _prefixNameSpace,
+    ScopeKind.library,
+  );
 
   @override
   final SourceLibraryBuilder parent;
@@ -45,17 +47,27 @@ class PrefixBuilder extends NamedBuilderImpl
 
   final bool isWildcard;
 
-  PrefixBuilder(this.name, this.deferred, this.parent, this.loadLibraryBuilder,
-      {required this.fileUri,
-      required int prefixOffset,
-      required int importOffset})
-      : fileOffset = prefixOffset,
-        isWildcard = name == '_' {
-    assert(deferred == (loadLibraryBuilder != null),
-        "LoadLibraryBuilder must be provided iff prefix is deferred.");
+  PrefixBuilder(
+    this.name,
+    this.deferred,
+    this.parent,
+    this.loadLibraryBuilder, {
+    required this.fileUri,
+    required int prefixOffset,
+    required int importOffset,
+  }) : fileOffset = prefixOffset,
+       isWildcard = name == '_' {
+    assert(
+      deferred == (loadLibraryBuilder != null),
+      "LoadLibraryBuilder must be provided iff prefix is deferred.",
+    );
     if (loadLibraryBuilder != null) {
-      addToPrefixScope(loadLibraryBuilder!.name, loadLibraryBuilder!,
-          importOffset: importOffset, prefixOffset: prefixOffset);
+      addToPrefixScope(
+        loadLibraryBuilder!.name,
+        loadLibraryBuilder!,
+        importOffset: importOffset,
+        prefixOffset: prefixOffset,
+      );
     }
   }
 
@@ -72,22 +84,35 @@ class PrefixBuilder extends NamedBuilderImpl
     return _prefixScope.lookup(name);
   }
 
-  void addToPrefixScope(String name, NamedBuilder member,
-      {required int importOffset, required int prefixOffset}) {
+  void addToPrefixScope(
+    String name,
+    NamedBuilder member, {
+    required int importOffset,
+    required int prefixOffset,
+  }) {
     if (deferred && member is ExtensionBuilder) {
-      parent.addProblem(templateDeferredExtensionImport.withArguments(name),
-          importOffset, noLength, fileUri);
+      parent.addProblem(
+        codeDeferredExtensionImport.withArguments(name),
+        importOffset,
+        noLength,
+        fileUri,
+      );
     }
 
     bool isSetter = isMappedAsSetter(member);
 
     LookupResult? existingResult = _prefixNameSpace.lookup(name);
-    NamedBuilder? existing =
-        isSetter ? existingResult?.setable : existingResult?.getable;
+    NamedBuilder? existing = isSetter
+        ? existingResult?.setable
+        : existingResult?.getable;
     if (existing != null) {
       NamedBuilder result = computeAmbiguousDeclarationForImport(
-          parent, name, existing, member,
-          uriOffset: new UriOffset(fileUri, prefixOffset));
+        parent,
+        name,
+        existing,
+        member,
+        uriOffset: new UriOffset(fileUri, prefixOffset),
+      );
       _prefixNameSpace.replaceLocalMember(name, result, setter: isSetter);
     } else {
       _prefixNameSpace.addLocalMember(name, member, setter: isSetter);
@@ -135,19 +160,24 @@ class PrefixFragment {
     LoadLibraryBuilder? loadLibraryBuilder;
     if (deferred) {
       loadLibraryBuilder = new LoadLibraryBuilder(
-          importer.libraryBuilder,
-          prefixOffset,
-          imported!,
-          name,
-          importOffset,
-          toCombinators(combinators));
+        importer.libraryBuilder,
+        prefixOffset,
+        imported!,
+        name,
+        importOffset,
+        toCombinators(combinators),
+      );
     }
 
     return builder = new PrefixBuilder(
-        name, deferred, importer.libraryBuilder, loadLibraryBuilder,
-        fileUri: fileUri,
-        prefixOffset: prefixOffset,
-        importOffset: importOffset);
+      name,
+      deferred,
+      importer.libraryBuilder,
+      loadLibraryBuilder,
+      fileUri: fileUri,
+      prefixOffset: prefixOffset,
+      importOffset: importOffset,
+    );
   }
 
   PrefixBuilder get builder {

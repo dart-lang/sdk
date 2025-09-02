@@ -12,6 +12,8 @@ static method subs<A extends core::Object? = dynamic>(core::List<self::subs::A%>
     final synthesized core::List<self::subs::A%> #0#0 = list;
     synthesized core::int #0#1;
     synthesized core::bool #0#1#isSet = false;
+    final const synthesized core::int #0#2 = #C1;
+    final const synthesized core::int #0#4 = #C2;
     #L1:
     {
       {

@@ -30,7 +30,7 @@ const cc = []..addAll(thangs);
       [
         // No lint
         error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          CompileTimeErrorCode.constInitializedWithNonConstantValue,
           30,
           18,
         ),

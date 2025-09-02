@@ -184,7 +184,7 @@ ConstantPool {
   [1] = DirectCall 'DART_SDK/pkg/dart2bytecode/testcases/super_calls.dart::Base1::get:bar', ArgDesc num-args 1, num-type-args 0, names []
   [2] = Reserved
   [3] = ObjectRef 'param'
-  [4] = DynamicCall 'call', ArgDesc num-args 2, num-type-args 1, names []
+  [4] = DynamicCall 'implicit:call', ArgDesc num-args 2, num-type-args 1, names []
   [5] = Reserved
 }
 
@@ -404,7 +404,7 @@ ConstantPool {
   [6] = DirectCall 'dart:core::Object::noSuchMethod', ArgDesc num-args 2, num-type-args 0, names []
   [7] = Reserved
   [8] = ObjectRef 'param'
-  [9] = DynamicCall 'call', ArgDesc num-args 2, num-type-args 1, names []
+  [9] = DynamicCall 'implicit:call', ArgDesc num-args 2, num-type-args 1, names []
   [10] = Reserved
 }
 

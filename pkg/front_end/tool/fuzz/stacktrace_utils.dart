@@ -6,8 +6,9 @@ import 'package:_fe_analyzer_shared/src/scanner/characters.dart';
 
 String categorize(StackTrace st) {
   List<StackTraceLine> lines = parseStackTrace(st);
-  List<StackTraceLine> notSdk =
-      lines.where((l) => l.uri.scheme != "dart").toList();
+  List<StackTraceLine> notSdk = lines
+      .where((l) => l.uri.scheme != "dart")
+      .toList();
   return "${notSdk.first.uri.pathSegments.last}/${notSdk.first.line}";
 }
 
@@ -55,7 +56,12 @@ List<StackTraceLine> parseStackTrace(StackTrace st) {
         uriPart = uriEtc;
       }
       StackTraceLine stLine = new StackTraceLine(
-          method, Uri.parse(uriPart), line, column, lines[i]);
+        method,
+        Uri.parse(uriPart),
+        line,
+        column,
+        lines[i],
+      );
       result.add(stLine);
     } else {
       throw "Unexpected line: '$s' in stacktrace: $st";

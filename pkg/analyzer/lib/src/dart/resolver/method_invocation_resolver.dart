@@ -7,7 +7,6 @@ import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -18,6 +17,7 @@ import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scope_helpers.dart';
@@ -227,7 +227,7 @@ class MethodInvocationResolver with ScopeHelpers {
       // of a function type).
       _resolver.diagnosticReporter.atNode(
         nameNode,
-        CompileTimeErrorCode.UNDEFINED_METHOD_ON_FUNCTION_TYPE,
+        CompileTimeErrorCode.undefinedMethodOnFunctionType,
         arguments: [name, receiver.type.qualifiedName],
       );
       _setInvalidTypeResolution(
@@ -262,8 +262,9 @@ class MethodInvocationResolver with ScopeHelpers {
   }) {
     _invocation = node;
 
-    TypeImpl dotShorthandContextType =
-        _resolver.getDotShorthandContext().unwrapTypeSchemaView();
+    TypeImpl dotShorthandContextType = _resolver
+        .getDotShorthandContext()
+        .unwrapTypeSchemaView();
 
     // The static namespace denoted by `S` is also the namespace denoted by
     // `FutureOr<S>`.
@@ -286,7 +287,7 @@ class MethodInvocationResolver with ScopeHelpers {
 
     _resolver.diagnosticReporter.atNode(
       node.memberName,
-      CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION,
+      CompileTimeErrorCode.dotShorthandUndefinedInvocation,
       arguments: [node.memberName.name, contextType.getDisplayString()],
     );
     _setInvalidTypeResolutionForDotShorthand(
@@ -321,14 +322,13 @@ class MethodInvocationResolver with ScopeHelpers {
       if (_resolver.enclosingExtension != null) {
         _resolver.diagnosticReporter.atNode(
           nameNode,
-          CompileTimeErrorCode
-              .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE,
+          CompileTimeErrorCode.unqualifiedReferenceToStaticMemberOfExtendedType,
           arguments: [enclosingElement.displayString()],
         );
       } else {
         _resolver.diagnosticReporter.atNode(
           nameNode,
-          CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
+          CompileTimeErrorCode.unqualifiedReferenceToNonLocalStaticMember,
           arguments: [enclosingElement.displayString()],
         );
       }
@@ -336,8 +336,7 @@ class MethodInvocationResolver with ScopeHelpers {
         enclosingElement.name == null) {
       _resolver.diagnosticReporter.atNode(
         nameNode,
-        CompileTimeErrorCode
-            .INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION,
+        CompileTimeErrorCode.instanceAccessToStaticMemberOfUnnamedExtension,
         arguments: [nameNode.name, element.kind.displayName],
       );
     } else {
@@ -345,7 +344,7 @@ class MethodInvocationResolver with ScopeHelpers {
       // it can only be `null` for extensions, and we handle that case above.
       _resolver.diagnosticReporter.atNode(
         nameNode,
-        CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
+        CompileTimeErrorCode.instanceAccessToStaticMember,
         arguments: [
           nameNode.name,
           element.kind.displayName,
@@ -361,7 +360,7 @@ class MethodInvocationResolver with ScopeHelpers {
   void _reportInvocationOfNonFunction(SimpleIdentifierImpl methodName) {
     _resolver.diagnosticReporter.atNode(
       methodName,
-      CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION,
+      CompileTimeErrorCode.invocationOfNonFunction,
       arguments: [methodName.name],
     );
   }
@@ -369,7 +368,7 @@ class MethodInvocationResolver with ScopeHelpers {
   void _reportPrefixIdentifierNotFollowedByDot(SimpleIdentifier target) {
     _resolver.diagnosticReporter.atNode(
       target,
-      CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+      CompileTimeErrorCode.prefixIdentifierNotFollowedByDot,
       arguments: [target.name],
     );
   }
@@ -381,7 +380,7 @@ class MethodInvocationResolver with ScopeHelpers {
     if (!element.isStatic) {
       _resolver.diagnosticReporter.atNode(
         nameNode,
-        CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER,
+        CompileTimeErrorCode.staticAccessToInstanceMember,
         arguments: [nameNode.name],
       );
     }
@@ -406,7 +405,7 @@ class MethodInvocationResolver with ScopeHelpers {
 
     _resolver.diagnosticReporter.atNode(
       node.methodName,
-      CompileTimeErrorCode.UNDEFINED_FUNCTION,
+      CompileTimeErrorCode.undefinedFunction,
       arguments: [node.methodName.name],
     );
   }
@@ -420,7 +419,7 @@ class MethodInvocationResolver with ScopeHelpers {
       if (_resolver.isConstructorTearoffsEnabled) {
         _resolver.diagnosticReporter.atNode(
           methodName,
-          CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
+          CompileTimeErrorCode.newWithUndefinedConstructorDefault,
           arguments: [receiver.displayName],
         );
       } else {
@@ -430,7 +429,7 @@ class MethodInvocationResolver with ScopeHelpers {
     } else {
       _resolver.diagnosticReporter.atNode(
         methodName,
-        CompileTimeErrorCode.UNDEFINED_METHOD,
+        CompileTimeErrorCode.undefinedMethod,
         arguments: [methodName.name, receiver.displayName],
       );
     }
@@ -439,7 +438,7 @@ class MethodInvocationResolver with ScopeHelpers {
   void _reportUseOfVoidType(AstNode errorNode) {
     _resolver.diagnosticReporter.atNode(
       errorNode,
-      CompileTimeErrorCode.USE_OF_VOID_RESULT,
+      CompileTimeErrorCode.useOfVoidResult,
     );
   }
 
@@ -546,7 +545,7 @@ class MethodInvocationResolver with ScopeHelpers {
     // `extension.name` is non-`null`.
     _resolver.diagnosticReporter.atNode(
       nameNode,
-      CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD,
+      CompileTimeErrorCode.undefinedExtensionMethod,
       arguments: [name, extension.name!],
     );
     return null;
@@ -578,7 +577,7 @@ class MethodInvocationResolver with ScopeHelpers {
       // assume `override.staticElement!.name` is non-`null`.
       _resolver.diagnosticReporter.atNode(
         nameNode,
-        CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD,
+        CompileTimeErrorCode.undefinedExtensionMethod,
         arguments: [name, override.element.name!],
       );
       return null;
@@ -587,7 +586,7 @@ class MethodInvocationResolver with ScopeHelpers {
     if (member.isStatic) {
       _resolver.diagnosticReporter.atNode(
         nameNode,
-        CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
+        CompileTimeErrorCode.extensionOverrideAccessToStaticMember,
       );
     }
 
@@ -595,7 +594,7 @@ class MethodInvocationResolver with ScopeHelpers {
       // Report this error and recover by treating it like a non-cascade.
       _resolver.diagnosticReporter.atToken(
         override.name,
-        CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE,
+        CompileTimeErrorCode.extensionOverrideWithCascade,
       );
     }
 
@@ -723,7 +722,7 @@ class MethodInvocationResolver with ScopeHelpers {
 
       _resolver.diagnosticReporter.atNode(
         receiver,
-        WarningCode.RECEIVER_OF_TYPE_NEVER,
+        WarningCode.receiverOfTypeNever,
       );
 
       node.methodName.setPseudoExpressionStaticType(_dynamicType);
@@ -856,7 +855,7 @@ class MethodInvocationResolver with ScopeHelpers {
         };
         _resolver.diagnosticReporter.atNode(
           nameNode,
-          CompileTimeErrorCode.UNDEFINED_METHOD,
+          CompileTimeErrorCode.undefinedMethod,
           arguments: [name, receiverTypeName],
         );
         return null;
@@ -1025,10 +1024,10 @@ class MethodInvocationResolver with ScopeHelpers {
         contextType: contextType,
       );
 
-      _resolver.diagnosticReporter.atNode(
-        nameNode,
-        CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
-        arguments: [target.kind.displayName, name],
+      _resolver.diagnosticReporter.report(
+        CompileTimeErrorCode.abstractSuperMemberReference
+            .withArguments(memberKind: target.kind.displayName, name: name)
+            .at(nameNode),
       );
       return null;
     }
@@ -1041,7 +1040,7 @@ class MethodInvocationResolver with ScopeHelpers {
     );
     _resolver.diagnosticReporter.atNode(
       nameNode,
-      CompileTimeErrorCode.UNDEFINED_SUPER_METHOD,
+      CompileTimeErrorCode.undefinedSuperMethod,
       arguments: [name, enclosingClass.firstFragment.displayName],
     );
     return null;
@@ -1165,7 +1164,7 @@ class MethodInvocationResolver with ScopeHelpers {
     if (!nameNode.isSynthetic) {
       _resolver.diagnosticReporter.atNode(
         nameNode,
-        CompileTimeErrorCode.UNDEFINED_METHOD,
+        CompileTimeErrorCode.undefinedMethod,
         arguments: [name, receiverClassName],
       );
     }
@@ -1271,7 +1270,7 @@ class MethodInvocationResolver with ScopeHelpers {
       } else {
         _resolver.diagnosticReporter.atNode(
           nameNode,
-          CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION,
+          CompileTimeErrorCode.dotShorthandUndefinedInvocation,
           arguments: [nameNode.name, receiver.displayName],
         );
         _setInvalidTypeResolutionForDotShorthand(
@@ -1305,7 +1304,7 @@ class MethodInvocationResolver with ScopeHelpers {
 
     _resolver.diagnosticReporter.atNode(
       nameNode,
-      CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION,
+      CompileTimeErrorCode.dotShorthandUndefinedInvocation,
       arguments: [nameNode.name, receiver.displayName],
     );
     _setInvalidTypeResolutionForDotShorthand(
@@ -1468,8 +1467,9 @@ class MethodInvocationResolver with ScopeHelpers {
     var typeArgumentList = _invocation!.typeArguments;
     if (typeArgumentList != null) {
       var arguments = typeArgumentList.arguments;
-      _invocation!.typeArgumentTypes =
-          arguments.map((n) => n.typeOrThrow).toList();
+      _invocation!.typeArgumentTypes = arguments
+          .map((n) => n.typeOrThrow)
+          .toList();
     } else {
       _invocation!.typeArgumentTypes = [];
     }

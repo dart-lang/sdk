@@ -21,7 +21,6 @@ import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
-import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/manifest/manifest_validator.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/source/path_filter.dart';
@@ -157,16 +156,15 @@ class Driver implements CommandLineStarter {
   /// Perform analysis according to the given [options].
   Future<DiagnosticSeverity> _analyzeAll(CommandLineOptions options) async {
     if (!options.jsonFormat && !options.machineFormat) {
-      var fileNames =
-          options.sourceFiles.map((String file) {
-            file = path.normalize(file);
-            if (file == '.') {
-              file = path.basename(path.current);
-            } else if (file == '..') {
-              file = path.basename(path.normalize(path.absolute(file)));
-            }
-            return file;
-          }).toList();
+      var fileNames = options.sourceFiles.map((String file) {
+        file = path.normalize(file);
+        if (file == '.') {
+          file = path.basename(path.current);
+        } else if (file == '..') {
+          file = path.basename(path.normalize(path.absolute(file)));
+        }
+        return file;
+      }).toList();
 
       outSink.writeln("Analyzing ${fileNames.join(', ')}...");
     }
@@ -238,8 +236,8 @@ class Driver implements CommandLineStarter {
     for (var sourcePath in pathList) {
       _analysisContextProvider.configureForPath(sourcePath);
       analysisContext = _analysisContextProvider.analysisContext;
-      final analysisDriver =
-          this.analysisDriver = _analysisContextProvider.analysisDriver;
+      final analysisDriver = this.analysisDriver =
+          _analysisContextProvider.analysisDriver;
       pathFilter = _analysisContextProvider.pathFilter;
 
       // Add all the files to be analyzed en masse to the context. Skip any
@@ -274,14 +272,16 @@ class Driver implements CommandLineStarter {
           var contextRoot =
               analysisDriver.currentSession.analysisContext.contextRoot;
           var package = contextRoot.workspace.findPackageFor(file.path);
-          var sdkVersionConstraint =
-              (package is PubPackage) ? package.sdkVersionConstraint : null;
+          var sdkVersionConstraint = (package is PubPackage)
+              ? package.sdkVersionConstraint
+              : null;
           var errors = analyzeAnalysisOptions(
             FileSource(file),
             content,
             analysisDriver.sourceFactory,
             contextRoot.root.path,
             sdkVersionConstraint,
+            resourceProvider,
           );
           var analysisOptions = fileResult.analysisOptions;
           await formatter.formatErrors([
@@ -328,12 +328,11 @@ class Driver implements CommandLineStarter {
             }
             if (diagnostics.isNotEmpty) {
               for (var error in diagnostics) {
-                var severity =
-                    determineProcessedSeverity(
-                      error,
-                      options,
-                      analysisOptions,
-                    )!;
+                var severity = determineProcessedSeverity(
+                  error,
+                  options,
+                  analysisOptions,
+                )!;
                 allResult = allResult.max(severity);
               }
               var lineInfo = LineInfo.fromContent(content);
@@ -382,8 +381,11 @@ class Driver implements CommandLineStarter {
               ),
             ]);
             for (var error in errors) {
-              var severity =
-                  determineProcessedSeverity(error, options, analysisOptions)!;
+              var severity = determineProcessedSeverity(
+                error,
+                options,
+                analysisOptions,
+              )!;
               allResult = allResult.max(severity);
             }
           } catch (exception) {
@@ -614,7 +616,7 @@ class _AnalysisContextProvider {
       packagesFile: _commandLineOptions!.defaultPackagesPath,
       resourceProvider: _resourceProvider,
       sdkPath: _commandLineOptions!.dartSdkPath,
-      updateAnalysisOptions3: _updateAnalysisOptions,
+      updateAnalysisOptions4: _updateAnalysisOptions,
       fileContentCache: _fileContentCache,
     );
     _toDispose.add(_collection!);
@@ -649,10 +651,7 @@ class _AnalysisContextProvider {
     _analysisContext = _collection!.contextFor(path);
   }
 
-  void _updateAnalysisOptions({
-    required AnalysisOptionsImpl analysisOptions,
-    required DartSdk sdk,
-  }) {
+  void _updateAnalysisOptions({required AnalysisOptionsImpl analysisOptions}) {
     _commandLineOptions!.updateAnalysisOptions(analysisOptions);
   }
 }

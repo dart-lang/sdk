@@ -503,8 +503,9 @@ class TypedLiteralResolver {
     );
 
     // Also use upwards information to infer the type.
-    List<TypeImpl> elementTypes =
-        node.elements.map(_computeElementType).toList();
+    List<TypeImpl> elementTypes = node.elements
+        .map(_computeElementType)
+        .toList();
     var syntheticParameter = FormalParameterElementImpl.synthetic(
       'element',
       genericElementType,
@@ -519,7 +520,7 @@ class TypedLiteralResolver {
       // as the types of those elements are considered resolved.
       _diagnosticReporter.atNode(
         node,
-        WarningCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL,
+        WarningCode.inferenceFailureOnCollectionLiteral,
         arguments: ['List'],
       );
     }
@@ -636,12 +637,12 @@ class TypedLiteralResolver {
     if (mustBeAMap && mustBeASet) {
       _diagnosticReporter.atNode(
         literal,
-        CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH,
+        CompileTimeErrorCode.ambiguousSetOrMapLiteralBoth,
       );
     } else {
       _diagnosticReporter.atNode(
         literal,
-        CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER,
+        CompileTimeErrorCode.ambiguousSetOrMapLiteralEither,
       );
     }
     return _typeProvider.dynamicType;
@@ -790,7 +791,7 @@ class TypedLiteralResolver {
       // as the types of those elements are considered resolved.
       _diagnosticReporter.atNode(
         node,
-        WarningCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL,
+        WarningCode.inferenceFailureOnCollectionLiteral,
         arguments: [node.isMap ? 'Map' : 'Set'],
       );
     }

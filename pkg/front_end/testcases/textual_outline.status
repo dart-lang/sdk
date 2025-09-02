@@ -24,7 +24,6 @@ general/issue45700.crash: FormatterCrash
 general/issue48919: FormatterCrash
 inference/property_set_bad_setter: FormatterCrash
 nnbd/instance_duplicates: FormatterCrash
-nnbd_mixed/issue41597: FormatterCrash
 regress/erroneous_setter: FormatterCrash
 regress/issue_30994: FormatterCrash
 regress/issue_31198: FormatterCrash

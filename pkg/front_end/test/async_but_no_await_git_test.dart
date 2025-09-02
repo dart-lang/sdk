@@ -41,14 +41,17 @@ Future<void> main(List<String> args) async {
 
   Stopwatch stopwatch = new Stopwatch()..start();
 
-  IncrementalCompiler compiler =
-      new IncrementalCompiler(new CompilerContext(options));
+  IncrementalCompiler compiler = new IncrementalCompiler(
+    new CompilerContext(options),
+  );
   IncrementalCompilerResult compilerResult = await compiler.computeDelta();
   Component component = compilerResult.component;
   component.accept(new AsyncNoAwaitVisitor());
 
-  print("Done in ${stopwatch.elapsedMilliseconds} ms. "
-      "Found $errorCount errors.");
+  print(
+    "Done in ${stopwatch.elapsedMilliseconds} ms. "
+    "Found $errorCount errors.",
+  );
   if (errorCount > 0) {
     throw "Found $errorCount errors.";
   }
@@ -65,8 +68,10 @@ class AsyncNoAwaitVisitor extends RecursiveVisitor {
     if (!sawAwait) {
       Location? location = node.location;
       if (location?.file.path.contains("/pkg/front_end/") == true) {
-        print("$node (${node.location}) is async "
-            "but doesn't use 'await' anywhere.");
+        print(
+          "$node (${node.location}) is async "
+          "but doesn't use 'await' anywhere.",
+        );
         errorCount++;
       }
     }
@@ -108,15 +113,16 @@ class TestVmTarget extends VmTarget with NoTransformationsMixin {
 mixin NoTransformationsMixin on Target {
   @override
   void performModularTransformationsOnLibraries(
-      Component component,
-      CoreTypes coreTypes,
-      ClassHierarchy hierarchy,
-      List<Library> libraries,
-      Map<String, String>? environmentDefines,
-      DiagnosticReporter diagnosticReporter,
-      ReferenceFromIndex? referenceFromIndex,
-      {void Function(String msg)? logger,
-      ChangedStructureNotifier? changedStructureNotifier}) {
+    Component component,
+    CoreTypes coreTypes,
+    ClassHierarchy hierarchy,
+    List<Library> libraries,
+    Map<String, String>? environmentDefines,
+    DiagnosticReporter diagnosticReporter,
+    ReferenceFromIndex? referenceFromIndex, {
+    void Function(String msg)? logger,
+    ChangedStructureNotifier? changedStructureNotifier,
+  }) {
     // We don't want to do the transformations because we need to await
     // statements.
   }

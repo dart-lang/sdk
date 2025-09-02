@@ -67,7 +67,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+          CompileTimeErrorCode.notInitializedNonNullableInstanceField,
           16,
           1,
         ),
@@ -151,7 +151,7 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+          CompileTimeErrorCode.notInitializedNonNullableInstanceField,
           61,
           1,
         ),
@@ -168,7 +168,7 @@ mixin M {
 ''',
       [
         error(
-          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+          CompileTimeErrorCode.notInitializedNonNullableInstanceField,
           16,
           1,
         ),
@@ -198,7 +198,7 @@ class A {
       [
         error(
           CompileTimeErrorCode
-              .NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR,
+              .notInitializedNonNullableInstanceFieldConstructor,
           38,
           1,
         ),
@@ -218,7 +218,7 @@ class A {
       [
         error(
           CompileTimeErrorCode
-              .NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR,
+              .notInitializedNonNullableInstanceFieldConstructor,
           28,
           1,
         ),
@@ -259,7 +259,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+          CompileTimeErrorCode.notInitializedNonNullableInstanceField,
           18,
           1,
         ),
@@ -284,7 +284,7 @@ class A<T> {
 ''',
       [
         error(
-          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+          CompileTimeErrorCode.notInitializedNonNullableInstanceField,
           17,
           1,
         ),

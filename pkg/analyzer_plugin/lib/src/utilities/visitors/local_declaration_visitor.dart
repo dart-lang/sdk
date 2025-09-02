@@ -82,7 +82,7 @@ abstract class LocalDeclarationVisitor extends UnifyingAstVisitor {
     if (exceptionParameter != null) {
       declaredParam(
         exceptionParameter.name,
-        exceptionParameter.declaredElement,
+        exceptionParameter.declaredFragment?.element,
         node.exceptionType,
       );
     }
@@ -91,7 +91,7 @@ abstract class LocalDeclarationVisitor extends UnifyingAstVisitor {
     if (stackTraceParameter != null) {
       declaredParam(
         stackTraceParameter.name,
-        stackTraceParameter.declaredElement,
+        stackTraceParameter.declaredFragment?.element,
         null,
       );
     }
@@ -133,13 +133,13 @@ abstract class LocalDeclarationVisitor extends UnifyingAstVisitor {
     var forLoopParts = node.forLoopParts;
     if (forLoopParts is ForEachPartsWithDeclaration) {
       var loopVariable = forLoopParts.loopVariable;
-      declaredLocalVar(
-          loopVariable.name, loopVariable.type, loopVariable.declaredElement!);
+      declaredLocalVar(loopVariable.name, loopVariable.type,
+          loopVariable.declaredFragment!.element);
     } else if (forLoopParts is ForPartsWithDeclarations) {
       var varList = forLoopParts.variables;
       for (var varDecl in varList.variables) {
         declaredLocalVar(varDecl.name, varList.type,
-            varDecl.declaredElement as LocalVariableElement);
+            varDecl.declaredFragment!.element as LocalVariableElement);
       }
     }
     visitNode(node);
@@ -150,13 +150,13 @@ abstract class LocalDeclarationVisitor extends UnifyingAstVisitor {
     var forLoopParts = node.forLoopParts;
     if (forLoopParts is ForEachPartsWithDeclaration) {
       var loopVariable = forLoopParts.loopVariable;
-      declaredLocalVar(
-          loopVariable.name, loopVariable.type, loopVariable.declaredElement!);
+      declaredLocalVar(loopVariable.name, loopVariable.type,
+          loopVariable.declaredFragment!.element);
     } else if (forLoopParts is ForPartsWithDeclarations) {
       var varList = forLoopParts.variables;
       for (var varDecl in varList.variables) {
         declaredLocalVar(varDecl.name, varList.type,
-            varDecl.declaredElement as LocalVariableElement);
+            varDecl.declaredFragment!.element as LocalVariableElement);
       }
     }
     visitNode(node);
@@ -412,7 +412,7 @@ abstract class LocalDeclarationVisitor extends UnifyingAstVisitor {
 
   /// Visit the given [pattern] without visiting any of its parents.
   void _visitDeclaredVariablePattern(DeclaredVariablePattern pattern) {
-    var declaredElement = pattern.declaredElement;
+    var declaredElement = pattern.declaredFragment?.element;
     if (declaredElement != null) {
       declaredLocalVar(pattern.name, pattern.type, declaredElement);
     }
@@ -448,7 +448,7 @@ abstract class LocalDeclarationVisitor extends UnifyingAstVisitor {
           for (var varDecl in varList.variables) {
             if (varDecl.end < offset) {
               declaredLocalVar(varDecl.name, varList.type,
-                  varDecl.declaredElement as LocalVariableElement);
+                  varDecl.declaredFragment?.element as LocalVariableElement);
             }
           }
         } else if (stmt is FunctionDeclarationStatement) {

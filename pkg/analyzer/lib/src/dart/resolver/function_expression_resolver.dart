@@ -106,10 +106,9 @@ class FunctionExpressionResolver {
         // corresponding parameter in the context type schema with type
         // schema `K`, the parameter is given an inferred type `T` where `T`
         // is derived from `K` as follows.
-        inferredType =
-            _resolver.operations
-                .greatestClosureOfSchema(SharedTypeSchemaView(inferredType))
-                .unwrapTypeView<TypeImpl>();
+        inferredType = _resolver.operations
+            .greatestClosureOfSchema(SharedTypeSchemaView(inferredType))
+            .unwrapTypeView<TypeImpl>();
 
         // If the greatest closure of `K` is `S` and `S` is a subtype of
         // `Null`, then `T` is `Object?`. Otherwise, `T` is `S`.
@@ -124,15 +123,13 @@ class FunctionExpressionResolver {
 
     var nodeParameterFragments = node.parameterFragments.nonNulls;
     {
-      var nodePositional =
-          nodeParameterFragments
-              .map((fragment) => fragment.element)
-              .where((element) => element.isPositional)
-              .iterator;
-      var contextPositional =
-          contextType.formalParameters
-              .where((element) => element.isPositional)
-              .iterator;
+      var nodePositional = nodeParameterFragments
+          .map((fragment) => fragment.element)
+          .where((element) => element.isPositional)
+          .iterator;
+      var contextPositional = contextType.formalParameters
+          .where((element) => element.isPositional)
+          .iterator;
       while (nodePositional.moveNext() && contextPositional.moveNext()) {
         inferType(
           nodePositional.current as FormalParameterElementImpl,

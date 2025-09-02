@@ -32,7 +32,9 @@ Future<void> main(List<String> args) async {
   if (serviceProtocolInfo.serverUri == null) {
     startedServiceProtocol = true;
     serviceProtocolInfo = await developer.Service.controlWebServer(
-        enable: true, silenceOutput: true);
+      enable: true,
+      silenceOutput: true,
+    );
   }
 
   Uri? serverUri = serviceProtocolInfo.serverUri;
@@ -42,24 +44,25 @@ Future<void> main(List<String> args) async {
   String path = serverUri.path;
   if (!path.endsWith('/')) path += '/';
   String wsUriString = 'ws://${serverUri.authority}${path}ws';
-  vmService.VmService serviceClient =
-      await vmServiceIo.vmServiceConnectUri(wsUriString);
+  vmService.VmService serviceClient = await vmServiceIo.vmServiceConnectUri(
+    wsUriString,
+  );
 
   await compile(
-      inputs: args.isNotEmpty
-          ? args.map(nativeToUri).toList()
-          : [
-              Uri.base
-                  .resolve('pkg/front_end/test/token_leak_test_helper.dart'),
-            ],
-      compileSdk: compileSdk,
-      kernelTargetCreator: (CompilerContext compilerContext,
+    inputs: args.isNotEmpty
+        ? args.map(nativeToUri).toList()
+        : [Uri.base.resolve('pkg/front_end/test/token_leak_test_helper.dart')],
+    compileSdk: compileSdk,
+    kernelTargetCreator:
+        (
+          CompilerContext compilerContext,
           api.FileSystem fileSystem,
           bool includeComments,
           DillTarget dillTarget,
           UriTranslator uriTranslator,
-          BodyBuilderCreator bodyBuilderCreator) {
-        return new KernelTargetTester(
+          BodyBuilderCreator bodyBuilderCreator,
+        ) {
+          return new KernelTargetTester(
             compilerContext,
             fileSystem,
             includeComments,
@@ -67,14 +70,18 @@ Future<void> main(List<String> args) async {
             uriTranslator,
             bodyBuilderCreator,
             serviceClient,
-            classesInUris);
-      });
+            classesInUris,
+          );
+        },
+  );
 
   await serviceClient.dispose();
 
   if (startedServiceProtocol) {
     await developer.Service.controlWebServer(
-        enable: false, silenceOutput: true);
+      enable: false,
+      silenceOutput: true,
+    );
   }
 }
 
@@ -91,8 +98,14 @@ class KernelTargetTester extends KernelTargetTest {
     BodyBuilderCreator bodyBuilderCreator,
     this.serviceClient,
     this.classesInUris,
-  ) : super(compilerContext, fileSystem, includeComments, dillTarget,
-            uriTranslator, bodyBuilderCreator);
+  ) : super(
+        compilerContext,
+        fileSystem,
+        includeComments,
+        dillTarget,
+        uriTranslator,
+        bodyBuilderCreator,
+      );
 
   @override
   Future<BuildResult> buildOutlines({CanonicalName? nameRoot}) async {
@@ -107,20 +120,22 @@ class KernelTargetTester extends KernelTargetTest {
     String isolateId = isolateRef.id!;
 
     throwOnLeaksOrNoFinds(
-        await findAndPrintRetainingPaths(
-            serviceClient, isolateId, classesInUris),
-        "buildOutlines",
-        classesInUris);
+      await findAndPrintRetainingPaths(serviceClient, isolateId, classesInUris),
+      "buildOutlines",
+      classesInUris,
+    );
     return buildResult;
   }
 
   @override
-  Future<BuildResult> buildComponent(
-      {bool verify = false,
-      bool allowVerificationErrorForTesting = false}) async {
+  Future<BuildResult> buildComponent({
+    bool verify = false,
+    bool allowVerificationErrorForTesting = false,
+  }) async {
     BuildResult buildResult = await super.buildComponent(
-        verify: verify,
-        allowVerificationErrorForTesting: allowVerificationErrorForTesting);
+      verify: verify,
+      allowVerificationErrorForTesting: allowVerificationErrorForTesting,
+    );
     print('buildComponent complete');
     vmService.VM vm = await serviceClient.getVM();
     if (vm.isolates!.length != 1) {
@@ -131,16 +146,19 @@ class KernelTargetTester extends KernelTargetTest {
     String isolateId = isolateRef.id!;
 
     throwOnLeaksOrNoFinds(
-        await findAndPrintRetainingPaths(
-            serviceClient, isolateId, classesInUris),
-        "buildComponent",
-        classesInUris);
+      await findAndPrintRetainingPaths(serviceClient, isolateId, classesInUris),
+      "buildComponent",
+      classesInUris,
+    );
     return buildResult;
   }
 }
 
-void throwOnLeaksOrNoFinds(Map<vmService.Class, int> foundInstances,
-    String afterWhat, Map<String, List<Uri>> classesInUris) {
+void throwOnLeaksOrNoFinds(
+  Map<vmService.Class, int> foundInstances,
+  String afterWhat,
+  Map<String, List<Uri>> classesInUris,
+) {
   Map<String, List<Uri>> notFound = {};
   for (MapEntry<String, List<Uri>> entry in classesInUris.entries) {
     notFound[entry.key] = new List.of(entry.value);
@@ -162,8 +180,10 @@ void throwOnLeaksOrNoFinds(Map<vmService.Class, int> foundInstances,
         continue;
       }
       sb ??= new StringBuffer();
-      sb.writeln('Found ${entry.value} instances of ${entry.key} '
-          'after $afterWhat');
+      sb.writeln(
+        'Found ${entry.value} instances of ${entry.key} '
+        'after $afterWhat',
+      );
     }
   }
   if (sb != null) {
@@ -174,18 +194,21 @@ void throwOnLeaksOrNoFinds(Map<vmService.Class, int> foundInstances,
   }
   for (MapEntry<String, List<Uri>> notFoundData in notFound.entries) {
     if (notFoundData.value.isNotEmpty) {
-      print("WARNING: Didn't find ${notFoundData.key}' in "
-          "${notFoundData.value.join(" and ")}");
+      print(
+        "WARNING: Didn't find ${notFoundData.key}' in "
+        "${notFoundData.value.join(" and ")}",
+      );
     }
   }
 }
 
 Future<Map<vmService.Class, int>> findAndPrintRetainingPaths(
-    vmService.VmService serviceClient,
-    String isolateId,
-    Map<String, List<Uri>> classesInUrisFilter) async {
-  vmService.AllocationProfile allocationProfile =
-      await serviceClient.getAllocationProfile(isolateId, gc: true);
+  vmService.VmService serviceClient,
+  String isolateId,
+  Map<String, List<Uri>> classesInUrisFilter,
+) async {
+  vmService.AllocationProfile allocationProfile = await serviceClient
+      .getAllocationProfile(isolateId, gc: true);
 
   Map<vmService.Class, int> foundInstances = {};
 
@@ -206,30 +229,38 @@ Future<Map<vmService.Class, int>> findAndPrintRetainingPaths(
       }
     }
     if (!foundMatch) continue;
-    vmService.Class c = await serviceClient.getObject(
-        isolateId, member.classRef!.id!) as vmService.Class;
+    vmService.Class c =
+        await serviceClient.getObject(isolateId, member.classRef!.id!)
+            as vmService.Class;
     int? instancesCurrent = member.instancesCurrent;
     if (instancesCurrent == null) continue;
     foundInstances[c] = instancesCurrent;
     if (instancesCurrent == 0) continue;
 
     print("Found ${c.name} (location: ${c.location})");
-    print("${member.classRef!.name}: "
-        "(instancesCurrent: ${member.instancesCurrent})");
+    print(
+      "${member.classRef!.name}: "
+      "(instancesCurrent: ${member.instancesCurrent})",
+    );
     print("");
 
-    vmService.InstanceSet instances =
-        await serviceClient.getInstances(isolateId, member.classRef!.id!, 100);
+    vmService.InstanceSet instances = await serviceClient.getInstances(
+      isolateId,
+      member.classRef!.id!,
+      100,
+    );
     print(" => Got ${instances.instances!.length} instances");
     print("");
 
     for (vmService.ObjRef instance in instances.instances!) {
       try {
-        vmService.Obj receivedObject =
-            await serviceClient.getObject(isolateId, instance.id!);
+        vmService.Obj receivedObject = await serviceClient.getObject(
+          isolateId,
+          instance.id!,
+        );
         print("Instance: $receivedObject");
-        vmService.RetainingPath retainingPath =
-            await serviceClient.getRetainingPath(isolateId, instance.id!, 1000);
+        vmService.RetainingPath retainingPath = await serviceClient
+            .getRetainingPath(isolateId, instance.id!, 1000);
 
         print("Retaining path: (length ${retainingPath.length})");
         print(retainingPath.gcRootType);

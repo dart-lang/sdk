@@ -32,7 +32,7 @@ void f(Future<int> future) {
   });
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 69, 6)],
+      [error(CompileTimeErrorCode.returnWithoutValue, 69, 6)],
     );
   }
 
@@ -65,7 +65,7 @@ void f(Future<int> future) {
   });
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 63, 6)],
+      [error(CompileTimeErrorCode.returnWithoutValue, 63, 6)],
     );
   }
 
@@ -92,7 +92,7 @@ void f(Future<int> future) {
   });
 }
 ''',
-      [error(WarningCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR, 119, 3)],
+      [error(WarningCode.returnOfInvalidTypeFromCatchError, 119, 3)],
     );
   }
 
@@ -129,7 +129,7 @@ void f(Future<int> future) {
   future.catchError((e, st) => 'c');
 }
 ''',
-      [error(WarningCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR, 60, 3)],
+      [error(WarningCode.returnOfInvalidTypeFromCatchError, 60, 3)],
     );
   }
 
@@ -150,7 +150,7 @@ void f(Future<int?> future) {
   });
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_WITHOUT_VALUE, 64, 6)],
+      [error(CompileTimeErrorCode.returnWithoutValue, 64, 6)],
     );
   }
 
@@ -161,7 +161,7 @@ void f(Future<int?> future) {
   future.catchError((e, st) => '');
 }
 ''',
-      [error(WarningCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR, 61, 2)],
+      [error(WarningCode.returnOfInvalidTypeFromCatchError, 61, 2)],
     );
   }
 
@@ -188,7 +188,7 @@ void f(Future<int> future, void Function() g) {
   future.catchError((e, st) => g());
 }
 ''',
-      [error(WarningCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR, 79, 3)],
+      [error(WarningCode.returnOfInvalidTypeFromCatchError, 79, 3)],
     );
   }
 }

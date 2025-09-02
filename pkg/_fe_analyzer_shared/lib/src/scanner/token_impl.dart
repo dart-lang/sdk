@@ -66,10 +66,9 @@ class StringTokenImpl extends SimpleToken implements StringToken {
   }) : super(type, charOffset, precedingComments) {
     int length = end - start;
     if (!allowLazy || length <= LAZY_THRESHOLD) {
-      valueOrLazySubstring =
-          canonicalize
-              ? canonicalizeSubString(data, start, end)
-              : data.substring(start, end);
+      valueOrLazySubstring = canonicalize
+          ? canonicalizeSubString(data, start, end)
+          : data.substring(start, end);
     } else {
       valueOrLazySubstring = new _LazySubstring(
         data,

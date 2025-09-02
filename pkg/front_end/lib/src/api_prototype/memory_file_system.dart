@@ -25,14 +25,16 @@ class MemoryFileSystem implements FileSystem {
   Uri currentDirectory;
 
   MemoryFileSystem(Uri currentDirectory)
-      : currentDirectory = _addTrailingSlash(currentDirectory) {
+    : currentDirectory = _addTrailingSlash(currentDirectory) {
     _directories.add(currentDirectory);
   }
 
   @override
   MemoryFileSystemEntity entityForUri(Uri uri) {
     return new MemoryFileSystemEntity._(
-        this, currentDirectory.resolveUri(uri).normalizePath());
+      this,
+      currentDirectory.resolveUri(uri).normalizePath(),
+    );
   }
 
   String get debugString {
@@ -83,8 +85,9 @@ class MemoryFileSystemEntity implements FileSystemEntity {
 
   @override
   Future<bool> exists() {
-    return new Future.value(_fileSystem._files[uri] != null ||
-        _fileSystem._directories.contains(uri));
+    return new Future.value(
+      _fileSystem._files[uri] != null || _fileSystem._directories.contains(uri),
+    );
   }
 
   @override
@@ -92,13 +95,13 @@ class MemoryFileSystemEntity implements FileSystemEntity {
   Future<bool> existsAsyncIfPossible() => exists();
 
   @override
-  // Coverage-ignore(suite): Not run.
   Future<Uint8List> readAsBytes() {
     Uint8List? contents = _fileSystem._files[uri];
     if (contents == null) {
       return new Future.error(
-          new FileSystemException(uri, 'File $uri does not exist.'),
-          StackTrace.current);
+        new FileSystemException(uri, 'File $uri does not exist.'),
+        StackTrace.current,
+      );
     }
     return new Future.value(contents);
   }
@@ -118,7 +121,6 @@ class MemoryFileSystemEntity implements FileSystemEntity {
     }
   }
 
-  // Coverage-ignore(suite): Not run.
   /// Writes the given raw bytes to this file system entity.
   ///
   /// If no file exists, one is created.  If a file exists already, it is
@@ -127,11 +129,11 @@ class MemoryFileSystemEntity implements FileSystemEntity {
     if (bytes is Uint8List) {
       _update(uri, bytes);
     } else {
+      // Coverage-ignore-block(suite): Not run.
       _update(uri, new Uint8List.fromList(bytes));
     }
   }
 
-  // Coverage-ignore(suite): Not run.
   /// Writes the given string to this file system entity.
   ///
   /// The string is encoded as UTF-8.
@@ -142,7 +144,6 @@ class MemoryFileSystemEntity implements FileSystemEntity {
     _update(uri, utf8.encode(s));
   }
 
-  // Coverage-ignore(suite): Not run.
   void _update(Uri uri, Uint8List data) {
     if (_fileSystem._directories.contains(uri)) {
       throw new FileSystemException(uri, 'Entry $uri is a directory.');

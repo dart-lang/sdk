@@ -25,13 +25,7 @@ abstract class A implements Enum {
   int hashCode = 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
-          41,
-          8,
-        ),
-      ],
+      [error(CompileTimeErrorCode.illegalConcreteEnumMemberDeclaration, 41, 8)],
     );
   }
 
@@ -42,13 +36,7 @@ abstract class A implements Enum {
   int get hashCode => 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
-          45,
-          8,
-        ),
-      ],
+      [error(CompileTimeErrorCode.illegalConcreteEnumMemberDeclaration, 45, 8)],
     );
   }
 
@@ -75,13 +63,7 @@ abstract class A implements Enum {
   int index = 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
-          41,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.illegalConcreteEnumMemberDeclaration, 41, 5)],
     );
   }
 
@@ -92,13 +74,7 @@ abstract class A implements Enum {
   int get index => 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
-          45,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.illegalConcreteEnumMemberDeclaration, 45, 5)],
     );
   }
 
@@ -125,13 +101,7 @@ abstract class A implements Enum {
   bool operator ==(Object other) => false;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
-          51,
-          2,
-        ),
-      ],
+      [error(CompileTimeErrorCode.illegalConcreteEnumMemberDeclaration, 51, 2)],
     );
   }
 }
@@ -147,13 +117,7 @@ enum E {
   final int index = 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
-          26,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.illegalConcreteEnumMemberDeclaration, 26, 5)],
     );
   }
 
@@ -166,13 +130,7 @@ enum E {
   const E();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
-          26,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.illegalConcreteEnumMemberDeclaration, 26, 5)],
     );
   }
 
@@ -184,13 +142,7 @@ enum E {
   int get index => 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
-          24,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.illegalConcreteEnumMemberDeclaration, 24, 5)],
     );
   }
 
@@ -220,13 +172,7 @@ enum E {
   bool operator ==(Object other) => false;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
-          30,
-          2,
-        ),
-      ],
+      [error(CompileTimeErrorCode.illegalConcreteEnumMemberDeclaration, 30, 2)],
     );
   }
 }
@@ -241,13 +187,7 @@ mixin M on Enum {
   int index = 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
-          24,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.illegalConcreteEnumMemberDeclaration, 24, 5)],
     );
   }
 
@@ -258,13 +198,7 @@ mixin M on Enum {
   int get index => 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
-          28,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.illegalConcreteEnumMemberDeclaration, 28, 5)],
     );
   }
 
@@ -291,13 +225,7 @@ mixin M on Enum {
   bool operator ==(Object other) => false;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
-          34,
-          2,
-        ),
-      ],
+      [error(CompileTimeErrorCode.illegalConcreteEnumMemberDeclaration, 34, 2)],
     );
   }
 }

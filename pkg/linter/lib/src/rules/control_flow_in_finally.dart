@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
@@ -16,10 +17,13 @@ class ControlFlowInFinally extends LintRule {
     : super(name: LintNames.control_flow_in_finally, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.control_flow_in_finally;
+  DiagnosticCode get diagnosticCode => LinterLintCode.controlFlowInFinally;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addBreakStatement(this, visitor);
     registry.addContinueStatement(this, visitor);

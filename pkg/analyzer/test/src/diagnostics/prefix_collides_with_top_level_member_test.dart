@@ -22,9 +22,9 @@ import 'dart:math' as foo;
 typedef foo = void Function();
 ''',
       [
-        error(WarningCode.UNUSED_IMPORT, 7, 11),
+        error(WarningCode.unusedImport, 7, 11),
         error(
-          CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER,
+          CompileTimeErrorCode.prefixCollidesWithTopLevelMember,
           22,
           3,
           contextMessages: [message(testFile, 35, 3)],
@@ -39,7 +39,7 @@ typedef foo = void Function();
 import 'dart:math' as foo;
 void bar() {}
 ''',
-      [error(WarningCode.UNUSED_IMPORT, 7, 11)],
+      [error(WarningCode.unusedImport, 7, 11)],
     );
   }
 
@@ -50,9 +50,9 @@ import 'dart:math' as foo;
 void foo() {}
 ''',
       [
-        error(WarningCode.UNUSED_IMPORT, 7, 11),
+        error(WarningCode.unusedImport, 7, 11),
         error(
-          CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER,
+          CompileTimeErrorCode.prefixCollidesWithTopLevelMember,
           22,
           3,
           contextMessages: [message(testFile, 32, 3)],
@@ -68,9 +68,9 @@ import 'dart:math' as foo;
 int get foo => 0;
 ''',
       [
-        error(WarningCode.UNUSED_IMPORT, 7, 11),
+        error(WarningCode.unusedImport, 7, 11),
         error(
-          CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER,
+          CompileTimeErrorCode.prefixCollidesWithTopLevelMember,
           22,
           3,
           contextMessages: [message(testFile, 35, 3)],
@@ -86,9 +86,9 @@ import 'dart:math' as foo;
 set foo(int _) {}
 ''',
       [
-        error(WarningCode.UNUSED_IMPORT, 7, 11),
+        error(WarningCode.unusedImport, 7, 11),
         error(
-          CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER,
+          CompileTimeErrorCode.prefixCollidesWithTopLevelMember,
           22,
           3,
           contextMessages: [message(testFile, 31, 3)],
@@ -104,9 +104,9 @@ import 'dart:math' as foo;
 var foo = 0;
 ''',
       [
-        error(WarningCode.UNUSED_IMPORT, 7, 11),
+        error(WarningCode.unusedImport, 7, 11),
         error(
-          CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER,
+          CompileTimeErrorCode.prefixCollidesWithTopLevelMember,
           22,
           3,
           contextMessages: [message(testFile, 31, 3)],
@@ -122,9 +122,9 @@ import 'dart:math' as foo;
 class foo {}
 ''',
       [
-        error(WarningCode.UNUSED_IMPORT, 7, 11),
+        error(WarningCode.unusedImport, 7, 11),
         error(
-          CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER,
+          CompileTimeErrorCode.prefixCollidesWithTopLevelMember,
           22,
           3,
           contextMessages: [message(testFile, 33, 3)],
@@ -145,9 +145,9 @@ part of 'a.dart';
 import 'dart:math' as foo;
 ''',
       [
-        error(WarningCode.UNUSED_IMPORT, 25, 11),
+        error(WarningCode.unusedImport, 25, 11),
         error(
-          CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER,
+          CompileTimeErrorCode.prefixCollidesWithTopLevelMember,
           40,
           3,
           contextMessages: [message(a, 23, 3)],
@@ -168,9 +168,9 @@ import 'dart:math' as foo;
 void foo() {}
 ''',
       [
-        error(WarningCode.UNUSED_IMPORT, 25, 11),
+        error(WarningCode.unusedImport, 25, 11),
         error(
-          CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER,
+          CompileTimeErrorCode.prefixCollidesWithTopLevelMember,
           40,
           3,
           contextMessages: [message(testFile, 50, 3)],
@@ -196,9 +196,9 @@ part of 'a.dart';
 import 'dart:math' as foo;
 ''',
       [
-        error(WarningCode.UNUSED_IMPORT, 25, 11),
+        error(WarningCode.unusedImport, 25, 11),
         error(
-          CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER,
+          CompileTimeErrorCode.prefixCollidesWithTopLevelMember,
           40,
           3,
           contextMessages: [message(b, 23, 3)],

@@ -90,7 +90,7 @@ int 6
       '''
 const int x = 'foo';
 ''',
-      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 14, 5)],
+      [error(CompileTimeErrorCode.invalidAssignment, 14, 5)],
     );
   }
 
@@ -143,12 +143,8 @@ class A {
 const v = .new() == A();
 ''',
       [
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          36,
-          6,
-        ),
-        error(CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION, 37, 3),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 36, 6),
+        error(CompileTimeErrorCode.dotShorthandUndefinedInvocation, 37, 3),
       ],
     );
   }
@@ -179,12 +175,8 @@ class A {
 const v = A() == .method();
 ''',
       [
-        error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 51, 3),
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          51,
-          3,
-        ),
+        error(CompileTimeErrorCode.constWithNonConst, 51, 3),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 51, 3),
       ],
     );
   }
@@ -197,7 +189,7 @@ class A {
 }
 const A a = .method();
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, 52, 9)],
+      [error(CompileTimeErrorCode.constEvalMethodInvocation, 52, 9)],
     );
   }
 
@@ -207,12 +199,8 @@ const A a = .method();
 const a = .new();
 ''',
       [
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          10,
-          6,
-        ),
-        error(CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION, 11, 3),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 10, 6),
+        error(CompileTimeErrorCode.dotShorthandUndefinedInvocation, 11, 3),
       ],
     );
   }
@@ -223,12 +211,8 @@ const a = .new();
 const a = .id;
 ''',
       [
-        error(CompileTimeErrorCode.DOT_SHORTHAND_MISSING_CONTEXT, 10, 3),
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          10,
-          3,
-        ),
+        error(CompileTimeErrorCode.dotShorthandMissingContext, 10, 3),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 10, 3),
       ],
     );
   }
@@ -277,7 +261,7 @@ enum E {
   final Iterable<String> strings;
 }
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, 21, 22)],
+      [error(CompileTimeErrorCode.constEvalMethodInvocation, 21, 22)],
     );
   }
 
@@ -537,12 +521,8 @@ bool false
 const v = a == 1;
 ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 10, 1),
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          10,
-          1,
-        ),
+        error(CompileTimeErrorCode.undefinedIdentifier, 10, 1),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 10, 1),
       ],
     );
   }
@@ -553,12 +533,8 @@ const v = a == 1;
 const v = 1 == a;
 ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 15, 1),
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          15,
-          1,
-        ),
+        error(CompileTimeErrorCode.undefinedIdentifier, 15, 1),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 15, 1),
       ],
     );
   }
@@ -695,7 +671,7 @@ class A {
 
 const v = A() == 0;
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY, 72, 8)],
+      [error(CompileTimeErrorCode.constEvalPrimitiveEquality, 72, 8)],
     );
     var result = _topLevelVar('v');
     _assertNull(result);
@@ -711,7 +687,7 @@ class A {
 
 const v = A() == 0;
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY, 61, 8)],
+      [error(CompileTimeErrorCode.constEvalPrimitiveEquality, 61, 8)],
     );
     var result = _topLevelVar('v');
     _assertNull(result);
@@ -743,7 +719,7 @@ class A {
 
 const v = A() == 0;
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING, 52, 8)],
+      [error(CompileTimeErrorCode.constEvalTypeBoolNumString, 52, 8)],
     );
     var result = _topLevelVar('v');
     _assertNull(result);
@@ -775,7 +751,7 @@ class A {
 
 const v = A() == A();
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY, 72, 10)],
+      [error(CompileTimeErrorCode.constEvalPrimitiveEquality, 72, 10)],
     );
   }
 
@@ -1422,8 +1398,8 @@ class A<X> {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 49, 1),
-        error(CompileTimeErrorCode.CONST_TYPE_PARAMETER, 53, 1),
+        error(WarningCode.unusedLocalVariable, 49, 1),
+        error(CompileTimeErrorCode.constTypeParameter, 53, 1),
       ],
     );
     var result = _localVar('x');
@@ -1440,7 +1416,7 @@ extension on Object {
 const Object v1 = 0;
 const v2 = v1 + v1;
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD, 94, 7)],
+      [error(CompileTimeErrorCode.constEvalExtensionMethod, 94, 7)],
     );
     var result = _topLevelVar('v2');
     _assertNull(result);
@@ -1456,7 +1432,7 @@ extension type const A(int it) {
 const v1 = A(1);
 const v2 = v1 + 2;
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD, 101, 6)],
+      [error(CompileTimeErrorCode.constEvalExtensionTypeMethod, 101, 6)],
     );
     var result = _topLevelVar('v2');
     _assertNull(result);
@@ -1537,7 +1513,7 @@ int 0
       '''
 const c = 0xFFFFFFFF >>> -2;
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 10, 17)],
+      [error(CompileTimeErrorCode.constEvalThrowsException, 10, 17)],
     );
     var result = _topLevelVar('c');
     _assertNull(result);
@@ -1594,7 +1570,7 @@ int 0
       '''
 const c = 0xFF >>> -2;
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 10, 11)],
+      [error(CompileTimeErrorCode.constEvalThrowsException, 10, 11)],
     );
     var result = _topLevelVar('c');
     _assertNull(result);
@@ -1641,13 +1617,9 @@ final x = 0;
 const c = x ?? 1;
 ''',
       [
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          23,
-          1,
-        ),
-        error(WarningCode.DEAD_CODE, 25, 4),
-        error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 28, 1),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 23, 1),
+        error(WarningCode.deadCode, 25, 4),
+        error(StaticWarningCode.deadNullAwareExpression, 28, 1),
       ],
     );
   }
@@ -1659,13 +1631,9 @@ final x = 1;
 const c = 0 ?? x;
 ''',
       [
-        error(WarningCode.DEAD_CODE, 25, 4),
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          28,
-          1,
-        ),
-        error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 28, 1),
+        error(WarningCode.deadCode, 25, 4),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 28, 1),
+        error(StaticWarningCode.deadNullAwareExpression, 28, 1),
       ],
     );
   }
@@ -1676,8 +1644,8 @@ const c = 0 ?? x;
 const c = null ? 1 : 0;
 ''',
       [
-        error(CompileTimeErrorCode.NON_BOOL_CONDITION, 10, 4),
-        error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL, 10, 4),
+        error(CompileTimeErrorCode.nonBoolCondition, 10, 4),
+        error(CompileTimeErrorCode.constEvalTypeBool, 10, 4),
       ],
     );
   }
@@ -1726,12 +1694,8 @@ class A {
 }
 ''',
       [
-        error(CompileTimeErrorCode.INVALID_CONSTANT, 76, 1),
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          76,
-          1,
-        ),
+        error(CompileTimeErrorCode.invalidConstant, 76, 1),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 76, 1),
       ],
     );
     var result = _topLevelVar('x');
@@ -1745,13 +1709,9 @@ const bool kIsWeb = identical(0, 0.0);
 const x = kIsWeb ? a : b;
 ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 58, 1),
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          58,
-          1,
-        ),
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 62, 1),
+        error(CompileTimeErrorCode.undefinedIdentifier, 58, 1),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 58, 1),
+        error(CompileTimeErrorCode.undefinedIdentifier, 62, 1),
       ],
     );
     var result = _topLevelVar('x');
@@ -1767,7 +1727,7 @@ class A {
 }
 
 ''',
-      [error(CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR, 31, 1)],
+      [error(CompileTimeErrorCode.recursiveConstantConstructor, 31, 1)],
     );
   }
 
@@ -1794,8 +1754,8 @@ class EmptyInjector extends BaseInjector implements Injector {
 }
 ''',
       [
-        error(CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR, 110, 12),
-        error(CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR, 344, 13),
+        error(CompileTimeErrorCode.recursiveConstantConstructor, 110, 12),
+        error(CompileTimeErrorCode.recursiveConstantConstructor, 344, 13),
       ],
     );
   }
@@ -1811,8 +1771,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
+          CompileTimeErrorCode.constConstructorWithFieldInitializedByNonConst,
           27,
           5,
         ),
@@ -2175,7 +2134,7 @@ class C<T> {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
+          CompileTimeErrorCode.constWithTypeParametersFunctionTearoff,
           83,
           1,
         ),
@@ -2238,7 +2197,7 @@ void Function(int)
 void f<T extends num>(T a) {}
 const g = f<String>;
 ''',
-      [error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 42, 6)],
+      [error(CompileTimeErrorCode.typeArgumentNotMatchingBounds, 42, 6)],
     );
     var result = _topLevelVar('g');
     assertDartObjectText(result, r'''
@@ -2257,10 +2216,10 @@ void foo<T>(T a) {}
 const g = foo<true>;
 ''',
       [
-        error(CompileTimeErrorCode.CONST_EVAL_TYPE_NUM, 30, 8),
-        error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 33, 1),
-        error(ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND, 38, 1),
-        error(ParserErrorCode.MISSING_IDENTIFIER, 39, 1),
+        error(CompileTimeErrorCode.constEvalTypeNum, 30, 8),
+        error(CompileTimeErrorCode.undefinedOperator, 33, 1),
+        error(ParserErrorCode.equalityCannotBeEqualityOperand, 38, 1),
+        error(ParserErrorCode.missingIdentifier, 39, 1),
       ],
     );
     var result = _topLevelVar('g');
@@ -2273,13 +2232,7 @@ const g = foo<true>;
 void foo<T, U>(T a, U b) {}
 const g = foo<int>;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,
-          41,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsFunction, 41, 5)],
     );
     var result = _topLevelVar('g');
     _assertNull(result);
@@ -2291,13 +2244,7 @@ const g = foo<int>;
 void foo<T>(T a) {}
 const g = foo<int, String>;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,
-          33,
-          13,
-        ),
-      ],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsFunction, 33, 13)],
     );
     var result = _topLevelVar('g');
     _assertNull(result);
@@ -2315,9 +2262,9 @@ class C<U> {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 55, 1),
+        error(WarningCode.unusedLocalVariable, 55, 1),
         error(
-          CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
+          CompileTimeErrorCode.constWithTypeParametersFunctionTearoff,
           61,
           1,
         ),
@@ -2567,13 +2514,9 @@ test() {
 }
 ''',
       [
-        error(WarningCode.DEAD_CODE, 11, 11),
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 35, 1),
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          35,
-          1,
-        ),
+        error(WarningCode.deadCode, 11, 11),
+        error(CompileTimeErrorCode.undefinedIdentifier, 35, 1),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 35, 1),
       ],
     );
   }
@@ -2594,12 +2537,8 @@ class A {
 const a = A(x: false);
 ''',
       [
-        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 58, 5),
-        error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
-          55,
-          8,
-        ),
+        error(CompileTimeErrorCode.argumentTypeNotAssignable, 58, 5),
+        error(CompileTimeErrorCode.constConstructorParamTypeMismatch, 55, 8),
       ],
     );
   }
@@ -2616,12 +2555,8 @@ class B extends A {
 const a = B(x: false);
 ''',
       [
-        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 113, 5),
-        error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
-          110,
-          8,
-        ),
+        error(CompileTimeErrorCode.argumentTypeNotAssignable, 113, 5),
+        error(CompileTimeErrorCode.constConstructorParamTypeMismatch, 110, 8),
       ],
     );
   }
@@ -2635,12 +2570,8 @@ class A {
 const a = A(false);
 ''',
       [
-        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 42, 5),
-        error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
-          42,
-          5,
-        ),
+        error(CompileTimeErrorCode.argumentTypeNotAssignable, 42, 5),
+        error(CompileTimeErrorCode.constConstructorParamTypeMismatch, 42, 5),
       ],
     );
   }
@@ -2657,12 +2588,8 @@ class B extends A {
 const a = B(false);
 ''',
       [
-        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 84, 5),
-        error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
-          84,
-          5,
-        ),
+        error(CompileTimeErrorCode.argumentTypeNotAssignable, 84, 5),
+        error(CompileTimeErrorCode.constConstructorParamTypeMismatch, 84, 5),
       ],
     );
   }
@@ -2675,7 +2602,7 @@ class A {
 }
 const a = A();
 ''',
-      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 52, 1)],
+      [error(CompileTimeErrorCode.missingRequiredArgument, 52, 1)],
     );
   }
 
@@ -2691,14 +2618,14 @@ class B extends A {
 const a = B();
 ''',
       [
-        error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 106, 1),
+        error(CompileTimeErrorCode.missingRequiredArgument, 106, 1),
         error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          CompileTimeErrorCode.constInitializedWithNonConstantValue,
           106,
           3,
         ),
         error(
-          CompileTimeErrorCode.INVALID_CONSTANT,
+          CompileTimeErrorCode.invalidConstant,
           106,
           3,
           contextMessages: [message(testFile, 88, 1)],
@@ -2717,7 +2644,7 @@ const a = A();
 ''',
       [
         error(
-          CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR,
+          CompileTimeErrorCode.notEnoughPositionalArgumentsNameSingular,
           42,
           1,
         ),
@@ -2738,17 +2665,13 @@ const a = B();
 ''',
       [
         error(
-          CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR,
+          CompileTimeErrorCode.notEnoughPositionalArgumentsNameSingular,
           84,
           1,
         ),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 82, 3),
         error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          82,
-          3,
-        ),
-        error(
-          CompileTimeErrorCode.INVALID_CONSTANT,
+          CompileTimeErrorCode.invalidConstant,
           82,
           3,
           contextMessages: [message(testFile, 66, 1)],
@@ -2780,12 +2703,8 @@ class A {}
 const a = A();
 ''',
       [
-        error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 21, 3),
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          21,
-          3,
-        ),
+        error(CompileTimeErrorCode.constWithNonConst, 21, 3),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 21, 3),
       ],
     );
   }
@@ -2821,16 +2740,12 @@ const x = C<int>.();
         // TODO(kallentu): This should not be reported.
         // https://github.com/dart-lang/sdk/issues/50441
         error(
-          CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER,
+          CompileTimeErrorCode.classInstantiationAccessToUnknownMember,
           45,
           8,
         ),
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          45,
-          8,
-        ),
-        error(ParserErrorCode.MISSING_IDENTIFIER, 52, 1),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 45, 8),
+        error(ParserErrorCode.missingIdentifier, 52, 1),
       ],
     );
   }
@@ -2840,7 +2755,7 @@ const x = C<int>.();
       r'''
 const x = '${const [2]}';
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING, 11, 12)],
+      [error(CompileTimeErrorCode.constEvalTypeBoolNumString, 11, 12)],
     );
   }
 
@@ -2850,7 +2765,7 @@ const x = '${const [2]}';
 void foo(int a) {}
 const c = foo is void Function(int);
 ''',
-      [error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 29, 25)],
+      [error(WarningCode.unnecessaryTypeCheckTrue, 29, 25)],
     );
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
@@ -2868,7 +2783,7 @@ class A {
   const A();
 }
 ''',
-      [error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 31, 6)],
+      [error(WarningCode.unnecessaryTypeCheckTrue, 31, 6)],
     );
     var result = _topLevelVar('b');
     assertDartObjectText(result, r'''
@@ -2889,7 +2804,7 @@ class B extends A {
   const B();
 }
 ''',
-      [error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 31, 6)],
+      [error(WarningCode.unnecessaryTypeCheckTrue, 31, 6)],
     );
     var result = _topLevelVar('b');
     assertDartObjectText(result, r'''
@@ -2945,7 +2860,7 @@ class A {
   const A();
 }
 ''',
-      [error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 31, 7)],
+      [error(WarningCode.unnecessaryTypeCheckFalse, 31, 7)],
     );
     var result = _topLevelVar('b');
     assertDartObjectText(result, r'''
@@ -2966,7 +2881,7 @@ class B extends A {
   const B();
 }
 ''',
-      [error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 31, 7)],
+      [error(WarningCode.unnecessaryTypeCheckFalse, 31, 7)],
     );
     var result = _topLevelVar('b');
     assertDartObjectText(result, r'''
@@ -2995,11 +2910,11 @@ const x = [for (int i = 0; i < 3; i++) i];
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          CompileTimeErrorCode.constInitializedWithNonConstantValue,
           10,
           31,
         ),
-        error(CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, 11, 29),
+        error(CompileTimeErrorCode.constEvalForElement, 11, 29),
       ],
     );
     var result = _topLevelVar('x');
@@ -3012,7 +2927,7 @@ const x = [for (int i = 0; i < 3; i++) i];
 const dynamic c = 2;
 const x = [1, if (c) 2 else 3, 4];
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_CONDITION, 39, 1)],
+      [error(CompileTimeErrorCode.nonBoolCondition, 39, 1)],
     );
     var result = _topLevelVar('x');
     _assertNull(result);
@@ -3023,7 +2938,7 @@ const x = [1, if (c) 2 else 3, 4];
       r'''
 const x = [1, if (1) 2 else 3, 4];
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_CONDITION, 18, 1)],
+      [error(CompileTimeErrorCode.nonBoolCondition, 18, 1)],
     );
     var result = _topLevelVar('x');
     _assertNull(result);
@@ -3066,7 +2981,7 @@ class A {
   List<String> foo() => const [bar];
 }
 ''',
-      [error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 79, 3)],
+      [error(CompileTimeErrorCode.nonConstantListElement, 79, 3)],
     );
   }
 
@@ -3122,7 +3037,7 @@ List
 const dynamic a = 5;
 const x = <int>[...a];
 ''',
-      [error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET, 40, 1)],
+      [error(CompileTimeErrorCode.constSpreadExpectedListOrSet, 40, 1)],
     );
     var result = _topLevelVar('x');
     _assertNull(result);
@@ -3173,7 +3088,7 @@ int f() {
 }
 const a = f();
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, 34, 3)],
+      [error(CompileTimeErrorCode.constEvalMethodInvocation, 34, 3)],
     );
   }
 
@@ -3184,7 +3099,7 @@ void f<T>(Object? x) {
   if (x case const (T)) {}
 }
 ''',
-      [error(CompileTimeErrorCode.CONST_TYPE_PARAMETER, 43, 1)],
+      [error(CompileTimeErrorCode.constTypeParameter, 43, 1)],
     );
   }
 
@@ -3195,7 +3110,7 @@ void f<T>(Object? x) {
   if (x case const (List<T>)) {}
 }
 ''',
-      [error(CompileTimeErrorCode.CONST_TYPE_PARAMETER, 43, 7)],
+      [error(CompileTimeErrorCode.constTypeParameter, 43, 7)],
     );
   }
 
@@ -3292,7 +3207,7 @@ class RequiresNonEmptyList {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS,
+          CompileTimeErrorCode.constEvalPropertyAccess,
           16,
           31,
           contextMessages: [
@@ -3330,7 +3245,7 @@ extension on Object {
 const Object v1 = 1;
 const v2 = -v1;
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD, 82, 3)],
+      [error(CompileTimeErrorCode.constEvalExtensionMethod, 82, 3)],
     );
     var result = _topLevelVar('v2');
     _assertNull(result);
@@ -3346,7 +3261,7 @@ extension type const A(int it) {
 const v1 = A(1);
 const v2 = -v1;
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD, 89, 3)],
+      [error(CompileTimeErrorCode.constEvalExtensionTypeMethod, 89, 3)],
     );
     var result = _topLevelVar('v2');
     _assertNull(result);
@@ -3383,8 +3298,8 @@ bool false
 const c = -true;
 ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 10, 1),
-        error(CompileTimeErrorCode.CONST_EVAL_TYPE_NUM, 10, 5),
+        error(CompileTimeErrorCode.undefinedOperator, 10, 1),
+        error(CompileTimeErrorCode.constEvalTypeNum, 10, 5),
       ],
     );
   }
@@ -3544,7 +3459,7 @@ Record({int f1, int f2})
 final bar = '';
 ({String bar, }) foo() => const (bar: bar, );
 ''',
-      [error(CompileTimeErrorCode.NON_CONSTANT_RECORD_FIELD, 54, 3)],
+      [error(CompileTimeErrorCode.nonConstantRecordField, 54, 3)],
     );
   }
 
@@ -3595,7 +3510,7 @@ Record(int, int, int)
 final bar = '';
 (String, ) foo() => const (bar, );
 ''',
-      [error(CompileTimeErrorCode.NON_CONSTANT_RECORD_FIELD, 43, 3)],
+      [error(CompileTimeErrorCode.nonConstantRecordField, 43, 3)],
     );
   }
 
@@ -3621,7 +3536,7 @@ Record(int, String, {bool c})
 const l = [];
 const ambiguous = {...l, 1: 2};
 ''',
-      [error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH, 32, 12)],
+      [error(CompileTimeErrorCode.ambiguousSetOrMapLiteralBoth, 32, 12)],
     );
   }
 
@@ -3631,7 +3546,7 @@ const ambiguous = {...l, 1: 2};
 const int? i = 1;
 const res  = {...?i};
 ''',
-      [error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER, 31, 7)],
+      [error(CompileTimeErrorCode.ambiguousSetOrMapLiteralEither, 31, 7)],
     );
   }
 
@@ -3641,7 +3556,7 @@ const res  = {...?i};
 const m = {1: 1};
 const res = {...m, 2};
 ''',
-      [error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH, 30, 9)],
+      [error(CompileTimeErrorCode.ambiguousSetOrMapLiteralBoth, 30, 9)],
     );
   }
 
@@ -3652,7 +3567,7 @@ const l = [];
 const ambiguous = {...l, 1: 2};
 const anotherList = [...ambiguous];
 ''',
-      [error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH, 32, 12)],
+      [error(CompileTimeErrorCode.ambiguousSetOrMapLiteralBoth, 32, 12)],
     );
   }
 
@@ -3692,11 +3607,11 @@ const x = {1: null, for (final i in const []) i: null};
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          CompileTimeErrorCode.constInitializedWithNonConstantValue,
           10,
           44,
         ),
-        error(CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, 20, 33),
+        error(CompileTimeErrorCode.constEvalForElement, 20, 33),
       ],
     );
     var result = _topLevelVar('x');
@@ -3710,11 +3625,11 @@ const x = {1: null, if (true) for (final i in const []) i: null};
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          CompileTimeErrorCode.constInitializedWithNonConstantValue,
           10,
           54,
         ),
-        error(CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, 30, 33),
+        error(CompileTimeErrorCode.constEvalForElement, 30, 33),
       ],
     );
     var result = _topLevelVar('x');
@@ -3727,7 +3642,7 @@ const x = {1: null, if (true) for (final i in const []) i: null};
 const dynamic nonBool = null;
 const c = const {if (nonBool) 'a' : 1};
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_CONDITION, 51, 7)],
+      [error(CompileTimeErrorCode.nonBoolCondition, 51, 7)],
     );
     var result = _topLevelVar('c');
     _assertNull(result);
@@ -3783,8 +3698,8 @@ const Map<String, int> alwaysInclude = {
 };
 ''',
       [
-        error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP, 90, 1),
-        error(CompileTimeErrorCode.NOT_MAP_SPREAD, 90, 1),
+        error(CompileTimeErrorCode.constSpreadExpectedMap, 90, 1),
+        error(CompileTimeErrorCode.notMapSpread, 90, 1),
       ],
     );
   }
@@ -3850,11 +3765,11 @@ const x = {for (final i in set) i};
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          CompileTimeErrorCode.constInitializedWithNonConstantValue,
           30,
           24,
         ),
-        error(CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, 31, 22),
+        error(CompileTimeErrorCode.constEvalForElement, 31, 22),
       ],
     );
     var result = _topLevelVar('x');
@@ -3867,7 +3782,7 @@ const x = {for (final i in set) i};
 const dynamic nonBool = 'a';
 const c = const {if (nonBool) 3};
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_CONDITION, 50, 7)],
+      [error(CompileTimeErrorCode.nonBoolCondition, 50, 7)],
     );
     var result = _topLevelVar('c');
     _assertNull(result);
@@ -4065,7 +3980,7 @@ extension type const A(int it) {
 const v1 = A(1);
 const v2 = -v1;
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD, 89, 3)],
+      [error(CompileTimeErrorCode.constEvalExtensionTypeMethod, 89, 3)],
     );
     var result = _topLevelVar('v2');
     _assertNull(result);
@@ -4357,7 +4272,7 @@ class B extends A {
   const B();
 }
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 31, 6)],
+      [error(CompileTimeErrorCode.constEvalThrowsException, 31, 6)],
     );
     var result = _topLevelVar('b');
     _assertNull(result);
@@ -4375,7 +4290,7 @@ class B {
   const B();
 }
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 31, 6)],
+      [error(CompileTimeErrorCode.constEvalThrowsException, 31, 6)],
     );
     var result = _topLevelVar('b');
     _assertNull(result);
@@ -4416,8 +4331,8 @@ class C {
 const c = C() + 1;
 ''',
       [
-        error(CompileTimeErrorCode.CONST_EVAL_TYPE_NUM_STRING, 80, 7),
-        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 86, 1),
+        error(CompileTimeErrorCode.constEvalTypeNumString, 80, 7),
+        error(CompileTimeErrorCode.argumentTypeNotAssignable, 86, 1),
       ],
     );
   }
@@ -4462,12 +4377,8 @@ final a = false;
 const c = false && a;
 ''',
       [
-        error(WarningCode.DEAD_CODE, 33, 4),
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          36,
-          1,
-        ),
+        error(WarningCode.deadCode, 33, 4),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 36, 1),
       ],
     );
   }
@@ -4478,13 +4389,7 @@ const c = false && a;
 final a = false;
 const c = a && false;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          27,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 27, 1)],
     );
   }
 
@@ -4494,13 +4399,7 @@ const c = a && false;
 final a = false;
 const c = a && true;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          27,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 27, 1)],
     );
   }
 
@@ -4527,13 +4426,7 @@ const c = false & b;
 final a = false;
 const c = true && a;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          27,
-          9,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 27, 9)],
     );
   }
 
@@ -4573,8 +4466,8 @@ int 10
 const c = 3 & false;
 ''',
       [
-        error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT, 10, 9),
-        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 14, 5),
+        error(CompileTimeErrorCode.constEvalTypeBoolInt, 10, 9),
+        error(CompileTimeErrorCode.argumentTypeNotAssignable, 14, 5),
       ],
     );
   }
@@ -4628,7 +4521,7 @@ double Infinity
       '''
 const c = double.nan == 2.3;
 ''',
-      [error(WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE, 10, 13)],
+      [error(WarningCode.unnecessaryNanComparisonFalse, 10, 13)],
     );
     // This test case produces a warning, but the value of the constant should
     // be `false`.
@@ -4644,7 +4537,7 @@ bool false
       '''
 const c = 2.3 == double.nan;
 ''',
-      [error(WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE, 14, 13)],
+      [error(WarningCode.unnecessaryNanComparisonFalse, 14, 13)],
     );
     // This test case produces a warning, but the value of the constant should
     // be `false`.
@@ -4705,12 +4598,8 @@ bool true
 const c = a != 3;
 ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 10, 1),
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          10,
-          1,
-        ),
+        error(CompileTimeErrorCode.undefinedIdentifier, 10, 1),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 10, 1),
       ],
     );
   }
@@ -4721,12 +4610,8 @@ const c = a != 3;
 const c = 2 != a;
 ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 15, 1),
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          15,
-          1,
-        ),
+        error(CompileTimeErrorCode.undefinedIdentifier, 15, 1),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 15, 1),
       ],
     );
   }
@@ -4750,7 +4635,7 @@ const c = false || a;
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          CompileTimeErrorCode.constInitializedWithNonConstantValue,
           27,
           10,
         ),
@@ -4764,13 +4649,7 @@ const c = false || a;
 final a = false;
 const c = a || false;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          27,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 27, 1)],
     );
   }
 
@@ -4780,13 +4659,7 @@ const c = a || false;
 final a = false;
 const c = a || true;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          27,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 27, 1)],
     );
   }
 
@@ -4814,12 +4687,8 @@ final a = false;
 const c = true || a;
 ''',
       [
-        error(WarningCode.DEAD_CODE, 32, 4),
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          35,
-          1,
-        ),
+        error(WarningCode.deadCode, 32, 4),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 35, 1),
       ],
     );
   }
@@ -4856,7 +4725,7 @@ const c = 3 | 5;
       '''
 const c = true || false;
 ''',
-      [error(WarningCode.DEAD_CODE, 15, 8)],
+      [error(WarningCode.deadCode, 15, 8)],
     );
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
@@ -4871,8 +4740,8 @@ bool true
 const c = 3 | false;
 ''',
       [
-        error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT, 10, 9),
-        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 14, 5),
+        error(CompileTimeErrorCode.constEvalTypeBoolInt, 10, 9),
+        error(CompileTimeErrorCode.argumentTypeNotAssignable, 14, 5),
       ],
     );
   }
@@ -4892,13 +4761,7 @@ const c = 'a' ?? 'b';
 const c = null ?? new C();
 class C {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          18,
-          7,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 18, 7)],
     );
   }
 
@@ -4969,8 +4832,8 @@ const c = 3 ^ 5;
 const c = 3 ^ false;
 ''',
       [
-        error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT, 10, 9),
-        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 14, 5),
+        error(CompileTimeErrorCode.constEvalTypeBoolInt, 10, 9),
+        error(CompileTimeErrorCode.argumentTypeNotAssignable, 14, 5),
       ],
     );
   }
@@ -5004,7 +4867,7 @@ bool true
       '''
 const c = false ? 1 : 0;
 ''',
-      [error(WarningCode.DEAD_CODE, 18, 1)],
+      [error(WarningCode.deadCode, 18, 1)],
     );
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
@@ -5018,7 +4881,7 @@ int 0
       '''
 const c = true ? 1 : 0;
 ''',
-      [error(WarningCode.DEAD_CODE, 21, 1)],
+      [error(WarningCode.deadCode, 21, 1)],
     );
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
@@ -5033,13 +4896,9 @@ int 1
 const c = true ? 1 : x;
 ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 21, 1),
-        error(WarningCode.DEAD_CODE, 21, 1),
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          21,
-          1,
-        ),
+        error(CompileTimeErrorCode.undefinedIdentifier, 21, 1),
+        error(WarningCode.deadCode, 21, 1),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 21, 1),
       ],
     );
   }
@@ -5050,13 +4909,9 @@ const c = true ? 1 : x;
 const c = true ? x : 0;
 ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 17, 1),
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          17,
-          1,
-        ),
-        error(WarningCode.DEAD_CODE, 21, 1),
+        error(CompileTimeErrorCode.undefinedIdentifier, 17, 1),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 17, 1),
+        error(WarningCode.deadCode, 21, 1),
       ],
     );
   }
@@ -5066,7 +4921,7 @@ const c = true ? x : 0;
       '''
 const c = false ? 1 : 0;
 ''',
-      [error(WarningCode.DEAD_CODE, 18, 1)],
+      [error(WarningCode.deadCode, 18, 1)],
     );
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
@@ -5081,13 +4936,9 @@ int 0
 const c = false ? 1 : new C();
 ''',
       [
-        error(WarningCode.DEAD_CODE, 18, 1),
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          22,
-          7,
-        ),
-        error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 26, 1),
+        error(WarningCode.deadCode, 18, 1),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 22, 7),
+        error(CompileTimeErrorCode.newWithNonType, 26, 1),
       ],
     );
   }
@@ -5098,13 +4949,9 @@ const c = false ? 1 : new C();
 const c = false ? new C() : 0;
 ''',
       [
-        error(WarningCode.DEAD_CODE, 18, 7),
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          18,
-          7,
-        ),
-        error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 22, 1),
+        error(WarningCode.deadCode, 18, 7),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 18, 7),
+        error(CompileTimeErrorCode.newWithNonType, 22, 1),
       ],
     );
   }
@@ -5115,8 +4962,8 @@ const c = false ? new C() : 0;
 const c = 3 ? 1 : 0;
 ''',
       [
-        error(CompileTimeErrorCode.NON_BOOL_CONDITION, 10, 1),
-        error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL, 10, 1),
+        error(CompileTimeErrorCode.nonBoolCondition, 10, 1),
+        error(CompileTimeErrorCode.constEvalTypeBool, 10, 1),
       ],
     );
   }
@@ -5126,7 +4973,7 @@ const c = 3 ? 1 : 0;
       '''
 const c = true ? 1 : 0;
 ''',
-      [error(WarningCode.DEAD_CODE, 21, 1)],
+      [error(WarningCode.deadCode, 21, 1)],
     );
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
@@ -5141,13 +4988,9 @@ int 1
 const c = true ? 1: new C();
 ''',
       [
-        error(WarningCode.DEAD_CODE, 20, 7),
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          20,
-          7,
-        ),
-        error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 24, 1),
+        error(WarningCode.deadCode, 20, 7),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 20, 7),
+        error(CompileTimeErrorCode.newWithNonType, 24, 1),
       ],
     );
   }
@@ -5159,12 +5002,8 @@ const c = true ? new C() : 0;
 class C {}
 ''',
       [
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          17,
-          7,
-        ),
-        error(WarningCode.DEAD_CODE, 27, 1),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 17, 7),
+        error(WarningCode.deadCode, 27, 1),
       ],
     );
   }
@@ -5176,7 +5015,7 @@ const c = identical(0, 0.0) ? 1 : new Object();
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          CompileTimeErrorCode.constInitializedWithNonConstantValue,
           34,
           12,
         ),
@@ -5191,7 +5030,7 @@ const c = identical(0, 0.0) ? 1 : new Object();
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          CompileTimeErrorCode.constInitializedWithNonConstantValue,
           34,
           12,
         ),
@@ -5296,7 +5135,7 @@ const a = null;
 const b = a is dynamic;
 class A {}
 ''',
-      [error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 26, 12)],
+      [error(WarningCode.unnecessaryTypeCheckTrue, 26, 12)],
     );
     var result = _topLevelVar('b');
     assertDartObjectText(result, r'''
@@ -5312,7 +5151,7 @@ const a = null;
 const b = a is Null;
 class A {}
 ''',
-      [error(WarningCode.TYPE_CHECK_IS_NULL, 26, 9)],
+      [error(WarningCode.typeCheckIsNull, 26, 9)],
     );
     var result = _topLevelVar('b');
     assertDartObjectText(result, r'''
@@ -5415,7 +5254,7 @@ const b = B('');
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD,
+          CompileTimeErrorCode.constEvalExtensionMethod,
           128,
           5,
           contextMessages: [
@@ -5442,7 +5281,7 @@ extension type const A(String it) {
 const v1 = A('');
 const v2 = v1.length;
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD, 91, 9)],
+      [error(CompileTimeErrorCode.constEvalExtensionTypeMethod, 91, 9)],
     );
     var result = _topLevelVar('v2');
     _assertNull(result);
@@ -5474,7 +5313,7 @@ const y = B(x);
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_EVAL_TYPE_STRING,
+          CompileTimeErrorCode.constEvalTypeString,
           70,
           4,
           contextMessages: [
@@ -5487,8 +5326,8 @@ const y = B(x);
             ),
           ],
         ),
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 72, 1),
-        error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 72, 1),
+        error(CompileTimeErrorCode.undefinedIdentifier, 72, 1),
+        error(CompileTimeErrorCode.constWithNonConstantArgument, 72, 1),
       ],
     );
   }
@@ -5550,18 +5389,9 @@ test() {
 }
 ''',
       [
-        error(
-          WarningCode.UNUSED_LOCAL_VARIABLE,
-          35,
-          1,
-          messageContains: ["'c'"],
-        ),
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 39, 1),
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          39,
-          1,
-        ),
+        error(WarningCode.unusedLocalVariable, 35, 1, messageContains: ["'c'"]),
+        error(CompileTimeErrorCode.undefinedIdentifier, 39, 1),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 39, 1),
       ],
     );
   }
@@ -5601,12 +5431,8 @@ String abc
 const c = 'a${f()}c';
 ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 14, 1),
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          14,
-          3,
-        ),
+        error(CompileTimeErrorCode.undefinedFunction, 14, 1),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 14, 3),
       ],
     );
   }
@@ -5666,8 +5492,9 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
     var expressionConstant = constantVisitor.evaluateAndReportInvalidConstant(
       expression,
     );
-    var result =
-        expressionConstant is DartObjectImpl ? expressionConstant : null;
+    var result = expressionConstant is DartObjectImpl
+        ? expressionConstant
+        : null;
     if (diagnosticCodes == null) {
       errorListener.assertNoErrors();
     } else {
@@ -5716,9 +5543,9 @@ class A {
 const a = const A(null);
 ''',
       [
-        error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 31, 9),
+        error(WarningCode.unnecessaryTypeCheckFalse, 31, 9),
         error(
-          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          CompileTimeErrorCode.constEvalThrowsException,
           56,
           13,
           contextMessages: [
@@ -5731,7 +5558,7 @@ const a = const A(null);
             ),
           ],
         ),
-        error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 64, 4),
+        error(CompileTimeErrorCode.extraPositionalArguments, 64, 4),
       ],
     );
   }
@@ -5747,7 +5574,7 @@ const a = const A<int?>();
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          CompileTimeErrorCode.constEvalThrowsException,
           60,
           15,
           contextMessages: [
@@ -5773,7 +5600,7 @@ class A {
 
 const a = const A(null);
 ''',
-      [error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 67, 4)],
+      [error(CompileTimeErrorCode.extraPositionalArguments, 67, 4)],
     );
     var result = _topLevelVar('a');
     assertDartObjectText(result, '''
@@ -5797,7 +5624,7 @@ const c = const A(E.a);
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          CompileTimeErrorCode.constEvalThrowsException,
           73,
           12,
           contextMessages: [
@@ -5854,7 +5681,7 @@ main() {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          CompileTimeErrorCode.constEvalThrowsException,
           124,
           10,
           contextMessages: [
@@ -5886,7 +5713,7 @@ class A {
 }
 const a = const A(0);
 ''',
-      [error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 38, 11)],
+      [error(WarningCode.unnecessaryTypeCheckTrue, 38, 11)],
     );
     var result = _topLevelVar('a');
     assertDartObjectText(result, '''
@@ -5909,7 +5736,7 @@ const a = const A(1);
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          CompileTimeErrorCode.constEvalThrowsException,
           71,
           10,
           contextMessages: [
@@ -5954,7 +5781,7 @@ const a = const A();
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          CompileTimeErrorCode.constEvalThrowsException,
           56,
           9,
           contextMessages: [
@@ -5979,7 +5806,7 @@ class A {
 }
 const a = const A();
 ''',
-      [error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 30, 8)],
+      [error(WarningCode.unnecessaryTypeCheckTrue, 30, 8)],
     );
     var result = _topLevelVar('a');
     assertDartObjectText(result, '''
@@ -6003,7 +5830,7 @@ const b = const B();
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          CompileTimeErrorCode.constEvalThrowsException,
           101,
           9,
           contextMessages: [
@@ -6038,7 +5865,7 @@ class B extends A {
 }
 const b = const B();
 ''',
-      [error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 30, 8)],
+      [error(WarningCode.unnecessaryTypeCheckTrue, 30, 8)],
     );
     var result = _topLevelVar('b');
     assertDartObjectText(result, '''
@@ -6062,7 +5889,7 @@ const a = const A(0);
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          CompileTimeErrorCode.constEvalThrowsException,
           55,
           10,
           contextMessages: [
@@ -6089,7 +5916,7 @@ const a = const A(0);
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          CompileTimeErrorCode.constEvalThrowsException,
           84,
           10,
           contextMessages: [
@@ -6115,11 +5942,11 @@ class A {
 const a = const A(0);
 ''',
       [
-        error(CompileTimeErrorCode.INVALID_CONSTANT, 45, 8),
-        error(CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION, 45, 8),
-        error(WarningCode.DEAD_CODE, 54, 3),
+        error(CompileTimeErrorCode.invalidConstant, 45, 8),
+        error(CompileTimeErrorCode.constConstructorThrowsException, 45, 8),
+        error(WarningCode.deadCode, 54, 3),
         error(
-          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          CompileTimeErrorCode.constEvalThrowsException,
           70,
           10,
           contextMessages: [
@@ -6309,7 +6136,7 @@ class A {
   const A(List<int> p);
 }
 ''',
-      [error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 91, 1)],
+      [error(CompileTimeErrorCode.nonConstantListElement, 91, 1)],
     );
   }
 
@@ -6374,7 +6201,7 @@ class A {
   const A(List<int> p);
 }
 ''',
-      [error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 98, 1)],
+      [error(CompileTimeErrorCode.nonConstantListElement, 98, 1)],
     );
   }
 
@@ -6401,7 +6228,7 @@ class A {
   const A((int, ) p);
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_CONSTANT, 84, 1)],
+      [error(CompileTimeErrorCode.invalidConstant, 84, 1)],
     );
   }
 
@@ -6431,9 +6258,9 @@ class A {
 const A a = .new();
 ''',
       [
-        error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 31, 9),
+        error(WarningCode.unnecessaryTypeCheckFalse, 31, 9),
         error(
-          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          CompileTimeErrorCode.constEvalThrowsException,
           58,
           6,
           contextMessages: [
@@ -6478,7 +6305,7 @@ const A a = .new(.a);
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          CompileTimeErrorCode.constEvalThrowsException,
           74,
           8,
           contextMessages: [
@@ -6530,7 +6357,7 @@ class B extends A {
 }
 const B b = .new();
 ''',
-      [error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 30, 8)],
+      [error(WarningCode.unnecessaryTypeCheckTrue, 30, 8)],
     );
     var result = _topLevelVar('b');
     assertDartObjectText(result, '''
@@ -6610,6 +6437,68 @@ A
 ''');
   }
 
+  test_dotShorthand_constructor_import_namedParameter() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class C {
+  final int one;
+  const C({this.one = 1});
+}
+''');
+    await assertNoErrorsInCode('''
+import 'a.dart';
+const C c = .new();
+''');
+
+    var result = _topLevelVar('c');
+    assertDartObjectText(result, '''
+C
+  one: int 1
+  constructorInvocation
+    constructor: package:test/a.dart::@class::C::@constructor::new
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_dotShorthand_constructor_import_namedParameter_positional() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class C {
+  final int one;
+  const C(int x, {this.one = 1});
+}
+''');
+    await assertNoErrorsInCode('''
+import 'a.dart';
+const C c = .new(1);
+''');
+
+    var result = _topLevelVar('c');
+    assertDartObjectText(result, '''
+C
+  one: int 1
+  constructorInvocation
+    constructor: package:test/a.dart::@class::C::@constructor::new
+    positionalArguments
+      0: int 1
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_dotShorthand_constructor_import_namedParameter_required() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class C {
+  final int one;
+  const C({required this.one});
+}
+''');
+    await assertErrorsInCode(
+      '''
+import 'a.dart';
+const C c = .new();
+''',
+      [error(CompileTimeErrorCode.missingRequiredArgument, 30, 3)],
+    );
+  }
+
   test_dotShorthand_nonConstantArgument_issue60963() async {
     await assertErrorsInCode(
       '''
@@ -6622,9 +6511,9 @@ extension type const B(A a) {}
 const B b = .new(A());
 ''',
       [
-        error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 108, 3),
+        error(CompileTimeErrorCode.constWithNonConst, 108, 3),
         error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          CompileTimeErrorCode.constInitializedWithNonConstantValue,
           108,
           3,
         ),
@@ -6655,7 +6544,7 @@ main() {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_CONSTANT_FROM_DEFERRED_LIBRARY,
+          CompileTimeErrorCode.constConstructorConstantFromDeferredLibrary,
           93,
           2,
         ),
@@ -6778,9 +6667,9 @@ class A<T> {
 const a = const A<int>();
 ''',
       [
-        error(CompileTimeErrorCode.INVALID_CONSTANT, 62, 1),
+        error(CompileTimeErrorCode.invalidConstant, 62, 1),
         error(
-          CompileTimeErrorCode.INVALID_CONSTANT,
+          CompileTimeErrorCode.invalidConstant,
           77,
           14,
           contextMessages: [
@@ -6794,7 +6683,7 @@ const a = const A<int>();
           ],
         ),
         error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          CompileTimeErrorCode.constInitializedWithNonConstantValue,
           77,
           14,
         ),
@@ -6864,12 +6753,8 @@ int bar = 2;
 const a = const Foo(bar);
 ''',
       [
-        error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 88, 3),
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          88,
-          3,
-        ),
+        error(CompileTimeErrorCode.constWithNonConstantArgument, 88, 3),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 88, 3),
       ],
     );
   }
@@ -6886,7 +6771,7 @@ void main() {
   const C(() {});
 }
 ''',
-      [error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 83, 5)],
+      [error(CompileTimeErrorCode.constWithNonConstantArgument, 83, 5)],
     );
   }
 
@@ -6906,7 +6791,7 @@ void main() {
       [
         // TODO(kallentu): Fix [InvalidConstant.genericError] to handle
         // NamedExpressions.
-        error(CompileTimeErrorCode.INVALID_CONSTANT, 148, 4),
+        error(CompileTimeErrorCode.invalidConstant, 148, 4),
       ],
     );
   }
@@ -6922,7 +6807,7 @@ class A {
   const A(List<int> p);
 }
 ''',
-      [error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 28, 1)],
+      [error(CompileTimeErrorCode.nonConstantListElement, 28, 1)],
     );
   }
 
@@ -7341,7 +7226,7 @@ const f = const E('0.0');
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          CompileTimeErrorCode.constEvalThrowsException,
           153,
           14,
           contextMessages: [
@@ -7461,12 +7346,8 @@ class A {
 }
 ''',
       [
-        error(CompileTimeErrorCode.INVALID_CONSTANT, 63, 1),
-        error(
-          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
-          63,
-          1,
-        ),
+        error(CompileTimeErrorCode.invalidConstant, 63, 1),
+        error(CompileTimeErrorCode.implicitThisReferenceInInitializer, 63, 1),
       ],
     );
   }

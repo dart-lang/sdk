@@ -24,7 +24,7 @@ class A {
 }
 class B {}
 ''',
-      [error(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 12, 1)],
+      [error(ParserErrorCode.invalidConstructorName, 12, 1)],
     );
   }
 
@@ -37,7 +37,7 @@ class B {
   B.foo();
 }
 ''',
-      [error(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 23, 1)],
+      [error(ParserErrorCode.invalidConstructorName, 23, 1)],
     );
   }
 
@@ -51,7 +51,7 @@ class B {
   B();
 }
 ''',
-      [error(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 24, 1)],
+      [error(ParserErrorCode.invalidConstructorName, 24, 1)],
     );
   }
 
@@ -62,7 +62,7 @@ class A {
   B() : super();
 }
 ''',
-      [error(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 12, 1)],
+      [error(ParserErrorCode.invalidConstructorName, 12, 1)],
     );
   }
 
@@ -78,8 +78,8 @@ enum E {
 }
 ''',
       [
-        error(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 40, 1),
-        error(WarningCode.UNUSED_ELEMENT, 59, 3),
+        error(ParserErrorCode.invalidConstructorName, 40, 1),
+        error(WarningCode.unusedElement, 59, 3),
       ],
     );
   }

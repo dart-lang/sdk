@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class InconsistentLanguageVersionOverrideTest extends PubPackageResolutionTest {
   CompileTimeErrorCode get _errorCode =>
-      CompileTimeErrorCode.INCONSISTENT_LANGUAGE_VERSION_OVERRIDE;
+      CompileTimeErrorCode.inconsistentLanguageVersionOverride;
 
   test_both_different() async {
     await _checkLibraryAndPart(

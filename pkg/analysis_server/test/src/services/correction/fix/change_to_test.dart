@@ -494,7 +494,7 @@ void f(A a) {
 }
 ''',
       errorFilter:
-          (e) => e.diagnosticCode == CompileTimeErrorCode.UNDEFINED_GETTER,
+          (e) => e.diagnosticCode == CompileTimeErrorCode.undefinedGetter,
     );
   }
 
@@ -521,7 +521,7 @@ void f() {
 }
 ''',
       errorFilter:
-          (e) => e.diagnosticCode == CompileTimeErrorCode.UNDEFINED_GETTER,
+          (e) => e.diagnosticCode == CompileTimeErrorCode.undefinedGetter,
     );
   }
 

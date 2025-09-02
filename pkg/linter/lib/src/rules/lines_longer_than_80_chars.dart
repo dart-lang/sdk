@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -26,11 +27,13 @@ class LinesLongerThan80Chars extends LintRule {
     : super(name: LintNames.lines_longer_than_80_chars, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.lines_longer_than_80_chars;
+  DiagnosticCode get diagnosticCode => LinterLintCode.linesLongerThan80Chars;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
   }
@@ -114,14 +117,13 @@ class _AllowedLongLineVisitor extends RecursiveAstVisitor<void> {
     if (node.isMultiline) {
       _handleMultilines(node);
     } else {
-      var value =
-          node.elements.map((e) {
-            if (e is InterpolationString) return e.value;
-            if (e is InterpolationExpression) return ' ' * e.length;
-            throw ArgumentError(
-              'Unhandled string interpolation element: ${node.runtimeType}',
-            );
-          }).join();
+      var value = node.elements.map((e) {
+        if (e is InterpolationString) return e.value;
+        if (e is InterpolationExpression) return ' ' * e.length;
+        throw ArgumentError(
+          'Unhandled string interpolation element: ${node.runtimeType}',
+        );
+      }).join();
       _handleSingleLine(node, value);
     }
   }

@@ -35,6 +35,9 @@ class LibraryManifest {
   final Map<LookupName, TopLevelFunctionItem> declaredFunctions;
   final Map<LookupName, TopLevelVariableItem> declaredVariables;
 
+  /// All exported (declared or re-exported) extensions.
+  ManifestItemIdList exportedExtensions;
+
   LibraryManifest({
     required this.reExportMap,
     required this.declaredClasses,
@@ -47,6 +50,7 @@ class LibraryManifest {
     required this.declaredSetters,
     required this.declaredFunctions,
     required this.declaredVariables,
+    required this.exportedExtensions,
   });
 
   factory LibraryManifest.read(SummaryDataReader reader) {
@@ -82,6 +86,7 @@ class LibraryManifest {
       declaredVariables: reader.readLookupNameMap(
         readValue: () => TopLevelVariableItem.read(reader),
       ),
+      exportedExtensions: ManifestItemIdList.read(reader),
     );
   }
 
@@ -105,9 +110,9 @@ class LibraryManifest {
     ]);
   }
 
-  /// Returns the ID of a top-level element either declared or re-exported,
-  /// or `null` if there is no such element.
-  ManifestItemId? getExportedId(LookupName name) {
+  /// Returns the ID of a declared top-level element, or `null` if there is no
+  /// such element.
+  ManifestItemId? getDeclaredId(LookupName name) {
     return declaredClasses[name]?.id ??
         declaredEnums[name]?.id ??
         declaredExtensions[name]?.id ??
@@ -116,8 +121,13 @@ class LibraryManifest {
         declaredTypeAliases[name]?.id ??
         declaredGetters[name]?.id ??
         declaredSetters[name]?.id ??
-        declaredFunctions[name]?.id ??
-        reExportMap[name];
+        declaredFunctions[name]?.id;
+  }
+
+  /// Returns the ID of a top-level element either declared or re-exported,
+  /// or `null` if there is no such element.
+  ManifestItemId? getExportedId(LookupName name) {
+    return getDeclaredId(name) ?? reExportMap[name];
   }
 
   void write(BufferedSink sink) {
@@ -132,6 +142,7 @@ class LibraryManifest {
     declaredSetters.write(sink);
     declaredFunctions.write(sink);
     declaredVariables.write(sink);
+    exportedExtensions.write(sink);
   }
 }
 
@@ -185,6 +196,7 @@ class LibraryManifestBuilder {
     _fillItemMapFromInputManifests(performance: performance);
 
     _buildManifests();
+    _addExportedExtensions();
     _addReExports();
     assert(_assertSerialization());
 
@@ -301,6 +313,31 @@ class LibraryManifestBuilder {
         interfaceItem: enumItem,
       );
     });
+  }
+
+  void _addExportedExtensions() {
+    for (var libraryElement in libraryElements) {
+      var manifest = libraryElement.manifest!;
+
+      var extensionIds = <ManifestItemId>{};
+
+      var exportedExtensionElements = libraryElement
+          .exportNamespace
+          .definedNames2
+          .values
+          .whereType<ExtensionElementImpl>();
+      for (var extensionElement in exportedExtensionElements) {
+        var extensionName = extensionElement.lookupName?.asLookupName;
+        var extensionLibraryManifest = extensionElement.library.manifest!;
+        var extensionItem =
+            extensionLibraryManifest.declaredExtensions[extensionName]!;
+        extensionIds.add(extensionItem.id);
+      }
+
+      manifest.exportedExtensions = ManifestItemIdList(
+        extensionIds.toList(growable: false)..sort(),
+      );
+    }
   }
 
   void _addExtension({
@@ -812,6 +849,7 @@ class LibraryManifestBuilder {
         declaredSetters: newTopLevelSetters,
         declaredFunctions: newTopLevelFunctions,
         declaredVariables: newTopLevelVariables,
+        exportedExtensions: ManifestItemIdList([]),
       );
       libraryElement.manifest = newManifest;
       newManifests[libraryUri] = newManifest;
@@ -850,18 +888,16 @@ class LibraryManifestBuilder {
 
       var combinedCandidates = interface.combinedSignatures[entry.key];
       if (combinedCandidates != null) {
-        var candidateElements =
-            combinedCandidates
-                .map((candidate) => candidate.baseElement)
-                .toSet()
-                .toList();
+        var candidateElements = combinedCandidates
+            .map((candidate) => candidate.baseElement)
+            .toSet()
+            .toList();
         if (candidateElements.length == 1) {
           executable = candidateElements[0];
         } else {
-          var candidateIds =
-              candidateElements.map((candidate) {
-                return _getInterfaceElementMemberId(candidate);
-              }).toList();
+          var candidateIds = candidateElements.map((candidate) {
+            return _getInterfaceElementMemberId(candidate);
+          }).toList();
           var idList = ManifestItemIdList(candidateIds);
           var id = item.interface.combinedIdsTemp[idList];
           id ??= ManifestItemId.generate();
@@ -881,10 +917,15 @@ class LibraryManifestBuilder {
   void _fillInterfaceElementsInterface() {
     var librarySet = libraryElements.toSet();
     var interfaceSet = <InterfaceElementImpl>{};
+    var interfaceList = <InterfaceElementImpl>[];
 
     void addInterfacesToFill(InterfaceElementImpl element) {
       // If not in this bundle, it has interface ready.
       if (!librarySet.contains(element.library)) {
+        return;
+      }
+
+      if (!interfaceSet.add(element)) {
         return;
       }
 
@@ -893,7 +934,7 @@ class LibraryManifestBuilder {
         addInterfacesToFill(superType.element);
       }
 
-      interfaceSet.add(element);
+      interfaceList.add(element);
     }
 
     for (var libraryElement in libraryElements) {
@@ -908,7 +949,7 @@ class LibraryManifestBuilder {
     // So that if there are synthetic top-merged members in interfaces of
     // supertypes (these members are not included into declared), we can
     // get corresponding IDs.
-    for (var element in interfaceSet) {
+    for (var element in interfaceList) {
       _fillInterfaceElementInterface(element);
     }
   }
@@ -992,6 +1033,7 @@ class LibraryManifestBuilder {
           declaredSetters: {},
           declaredFunctions: {},
           declaredVariables: {},
+          exportedExtensions: ManifestItemIdList([]),
         );
   }
 
@@ -1119,8 +1161,10 @@ class _LibraryMatch {
             structureMismatched.add(element);
           }
         case ExtensionElementImpl():
-          if (!_matchExtension(name: name, element: element)) {
-            structureMismatched.add(element);
+          if (name != null) {
+            if (!_matchExtension(name: name, element: element)) {
+              structureMismatched.add(element);
+            }
           }
         case ExtensionTypeElementImpl():
           if (!_matchExtensionType(name: name, element: element)) {

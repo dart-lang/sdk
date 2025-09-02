@@ -167,10 +167,9 @@ class FunctionType extends Type implements SharedFunctionType {
     }
     if (typeParametersShared.isNotEmpty) {
       // Check if types are equal under a consistent renaming of type formals
-      var freshTypeParameterGenerator =
-          FreshTypeParameterGenerator()
-            ..excludeNamesUsedIn(this)
-            ..excludeNamesUsedIn(other);
+      var freshTypeParameterGenerator = FreshTypeParameterGenerator()
+        ..excludeNamesUsedIn(this)
+        ..excludeNamesUsedIn(other);
       var thisSubstitution = <TypeParameter, Type>{};
       var otherSubstitution = <TypeParameter, Type>{};
       var thisTypeFormalBounds = <Type>[];
@@ -893,16 +892,13 @@ abstract class Type implements SharedType, _Substitutable<Type> {
   /// - A function type (e.g. `void Function()`)
   /// - A promoted type variable type (e.g. `T&int`)
   @override
-  String toString({bool parenthesizeIfComplex = false}) =>
-      isQuestionType
-          ? _parenthesizeIf(
-            parenthesizeIfComplex,
-            '${_toStringWithoutSuffix(parenthesizeIfComplex: true)}'
-            '?',
-          )
-          : _toStringWithoutSuffix(
-            parenthesizeIfComplex: parenthesizeIfComplex,
-          );
+  String toString({bool parenthesizeIfComplex = false}) => isQuestionType
+      ? _parenthesizeIf(
+          parenthesizeIfComplex,
+          '${_toStringWithoutSuffix(parenthesizeIfComplex: true)}'
+          '?',
+        )
+      : _toStringWithoutSuffix(parenthesizeIfComplex: parenthesizeIfComplex);
 
   /// Returns a string representation of the portion of this string that
   /// precedes the nullability suffix.
@@ -967,6 +963,14 @@ class TypeParameter extends TypeNameInfo implements SharedTypeParameter {
 
   @override
   String toString() => name;
+
+  @override
+  // TODO(paulberry): Implement isLegacyCovariant.
+  bool get isLegacyCovariant => true;
+
+  @override
+  // TODO(paulberry): Implement variance.
+  Variance get variance => Variance.covariant;
 }
 
 /// Representation of a type parameter type suitable for unit testing of code in
@@ -1217,11 +1221,10 @@ class TypeSystem {
     'Future': (_) => [Type('Object')],
     'int': (_) => [Type('num'), Type('Object')],
     'Iterable': (_) => [Type('Object')],
-    'List':
-        (args) => [
-          PrimaryType(TypeRegistry.iterable, args: args),
-          Type('Object'),
-        ],
+    'List': (args) => [
+      PrimaryType(TypeRegistry.iterable, args: args),
+      Type('Object'),
+    ],
     'Map': (_) => [Type('Object')],
     'Object': (_) => [],
     'num': (_) => [Type('Object')],
@@ -2423,10 +2426,10 @@ extension on List<NamedFunctionParameter> {
         newType == null
             ? namedFunctionParameter
             : NamedFunctionParameter(
-              isRequired: namedFunctionParameter.isRequired,
-              name: namedFunctionParameter.name,
-              type: newType,
-            ),
+                isRequired: namedFunctionParameter.isRequired,
+                name: namedFunctionParameter.name,
+                type: newType,
+              ),
       );
     }
     return newList;
@@ -2450,10 +2453,10 @@ extension on List<NamedFunctionParameter> {
         newType == null
             ? namedFunctionParameter
             : NamedFunctionParameter(
-              isRequired: namedFunctionParameter.isRequired,
-              name: namedFunctionParameter.name,
-              type: newType,
-            ),
+                isRequired: namedFunctionParameter.isRequired,
+                name: namedFunctionParameter.name,
+                type: newType,
+              ),
       );
     }
     return newList;

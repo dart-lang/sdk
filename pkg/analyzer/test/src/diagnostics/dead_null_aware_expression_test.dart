@@ -36,8 +36,8 @@ f(int x) {
 }
 ''',
       [
-        error(WarningCode.DEAD_CODE, 19, 2),
-        error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 19, 1),
+        error(WarningCode.deadCode, 19, 2),
+        error(StaticWarningCode.deadNullAwareExpression, 19, 1),
       ],
     );
   }
@@ -58,8 +58,8 @@ f(int x) {
 }
 ''',
       [
-        error(WarningCode.DEAD_CODE, 15, 4),
-        error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 18, 1),
+        error(WarningCode.deadCode, 15, 4),
+        error(StaticWarningCode.deadNullAwareExpression, 18, 1),
       ],
     );
   }

@@ -20,7 +20,7 @@ class NameNotStringTest extends PubspecDiagnosticTest {
       '''
 name: 42
 ''',
-      [PubspecWarningCode.NAME_NOT_STRING],
+      [PubspecWarningCode.nameNotString],
     );
   }
 

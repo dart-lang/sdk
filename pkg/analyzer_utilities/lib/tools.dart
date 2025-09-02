@@ -11,6 +11,7 @@ import 'dart:io';
 import 'package:analyzer_utilities/html_dom.dart' as dom;
 import 'package:analyzer_utilities/html_generator.dart';
 import 'package:analyzer_utilities/text_formatter.dart';
+import 'package:collection/collection.dart';
 import 'package:path/path.dart';
 
 final RegExp trailingSpacesInLineRegExp = RegExp(r' +$', multiLine: true);
@@ -157,7 +158,8 @@ mixin CodeGenerator {
   void outputHeader({bool javaStyle = false, String? year}) {
     String header;
     if (codeGeneratorSettings.languageName == 'java') {
-      header = '''
+      header =
+          '''
 /*
  * Copyright (c) ${year ?? '2019'}, the Dart project authors. Please see the AUTHORS file
  * for details. All rights reserved. Use of this source code is governed by a
@@ -167,7 +169,8 @@ mixin CodeGenerator {
  * To regenerate the file, use the script "pkg/analysis_server/tool/spec/generate_files".
  */''';
     } else if (codeGeneratorSettings.languageName == 'python') {
-      header = '''
+      header =
+          '''
 # Copyright (c) ${year ?? '2014'}, the Dart project authors. Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
@@ -177,7 +180,8 @@ mixin CodeGenerator {
 # "pkg/analysis_server/tool/spec/generate_files".
 ''';
     } else {
-      header = '''
+      header =
+          '''
 // Copyright (c) ${year ?? '2014'}, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -416,6 +420,45 @@ mixin HtmlCodeGenerator {
   /// Output text, ending the current line.
   void writeln([Object obj = '']) {
     _state.write('$obj\n');
+  }
+}
+
+/// Helper class that can accumulate members of a generated class and then
+/// output them in sorted order.
+///
+/// To use this class, accumulate the desired members into the maps [constants],
+/// [constructors], [accessors], and [staticMethods], and then call [writeTo].
+/// The members will be sorted by map key prior to output them, so the map keys
+/// should be the member names.
+class MemberAccumulator {
+  final Map<String, String> constants = {};
+  final Map<String, String> constructors = {};
+  final Map<String, String> accessors = {};
+  final Map<String, String> staticMethods = {};
+
+  /// Writes the accumulated members to [out].
+  void writeTo(StringBuffer out) {
+    Iterable<String> sortMembers(Map<String, String> nameToMemberMap) =>
+        nameToMemberMap.entries
+            .sortedBy((e) => e.key.toLowerCase())
+            .map((e) => e.value);
+
+    var members = [
+      ...sortMembers(constants),
+      ...sortMembers(constructors),
+      ...sortMembers(accessors),
+      ...sortMembers(staticMethods),
+    ];
+
+    var blankLineNeeded = false;
+    for (var member in members) {
+      if (blankLineNeeded) {
+        out.writeln();
+      } else {
+        blankLineNeeded = true;
+      }
+      out.write(member);
+    }
   }
 }
 

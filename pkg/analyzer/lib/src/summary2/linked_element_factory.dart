@@ -96,37 +96,6 @@ class LinkedElementFactory {
     return Namespace(exportedNames);
   }
 
-  LibraryElementImpl createLibraryElementForReading(Uri uri) {
-    var sourceFactory = analysisContext.sourceFactory;
-    var librarySource = sourceFactory.forUri2(uri)!;
-
-    var reader = _libraryReaders[uri];
-    if (reader == null) {
-      var rootChildren = rootReference.children.map((e) => e.name).toList();
-      if (rootChildren.length > 50) {
-        rootChildren = [
-          ...rootChildren.take(50),
-          '... (${rootChildren.length} total)',
-        ];
-      }
-      var readers = _libraryReaders.keys.map((uri) => uri.toString()).toList();
-      if (readers.length > 50) {
-        readers = [...readers.take(50), '... (${readers.length} total)'];
-      }
-      throw ArgumentError(
-        'Missing library: $uri\n'
-        'Libraries: $uriListWithLibraryElements\n'
-        'Root children: $rootChildren\n'
-        'Readers: $readers\n'
-        'Log: ${_logRing.join('\n')}\n',
-      );
-    }
-
-    var libraryElement = reader.readElement(librarySource: librarySource);
-    setLibraryTypeSystem(libraryElement);
-    return libraryElement;
-  }
-
   void createTypeProviders(
     LibraryElementImpl dartCore,
     LibraryElementImpl dartAsync,
@@ -165,7 +134,9 @@ class LinkedElementFactory {
 
     if (reference.isLibrary) {
       var uri = uriCache.parse(reference.name);
-      return createLibraryElementForReading(uri);
+      var result = _createLibraryElementForReading(uri);
+      result ?? _reportMissingLibrary(uri);
+      return result;
     }
 
     var parentRef = reference.parentNotContainer;
@@ -173,10 +144,7 @@ class LinkedElementFactory {
 
     // Only classes delay creating children.
     if (parentElement is ClassElementImpl) {
-      var firstFragment = parentElement.firstFragment;
-      // TODO(scheglov): directly ask to read all?
-      firstFragment.constructors;
-      parentElement.constructors;
+      parentElement.ensureReadMembers();
     }
 
     var element = reference.element;
@@ -191,15 +159,12 @@ class LinkedElementFactory {
     if (reference.element case LibraryElementImpl element) {
       return element;
     }
-    return createLibraryElementForReading(uri);
+    return _createLibraryElementForReading(uri);
   }
 
   LibraryElementImpl libraryOfUri2(Uri uri) {
     var element = libraryOfUri(uri);
-    if (element == null) {
-      libraryOfUri(uri);
-      throw StateError('No library: $uri');
-    }
+    element ?? _reportMissingLibrary(uri);
     return element;
   }
 
@@ -269,5 +234,43 @@ class LinkedElementFactory {
     libraryElement.hasTypeProviderSystemSet = true;
   }
 
+  LibraryElementImpl? _createLibraryElementForReading(Uri uri) {
+    var sourceFactory = analysisContext.sourceFactory;
+    var librarySource = sourceFactory.forUri2(uri);
+    if (librarySource == null) {
+      return null;
+    }
+
+    var reader = _libraryReaders[uri];
+    if (reader == null) {
+      return null;
+    }
+
+    var libraryElement = reader.readElement(librarySource: librarySource);
+    setLibraryTypeSystem(libraryElement);
+    return libraryElement;
+  }
+
   void _disposeLibrary(ElementImpl? libraryElement) {}
+
+  Never _reportMissingLibrary(Uri uri) {
+    var rootChildren = rootReference.children.map((e) => e.name).toList();
+    if (rootChildren.length > 50) {
+      rootChildren = [
+        ...rootChildren.take(50),
+        '... (${rootChildren.length} total)',
+      ];
+    }
+    var readers = _libraryReaders.keys.map((uri) => uri.toString()).toList();
+    if (readers.length > 50) {
+      readers = [...readers.take(50), '... (${readers.length} total)'];
+    }
+    throw ArgumentError(
+      'Missing library: $uri\n'
+      'Libraries: $uriListWithLibraryElements\n'
+      'Root children: $rootChildren\n'
+      'Readers: $readers\n'
+      'Log: ${_logRing.join('\n')}\n',
+    );
+  }
 }

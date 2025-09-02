@@ -42,9 +42,9 @@ class Test extends Base {
     super
         . /*@target=Base.member*/ member /*@target=B.&*/ &= /*@typeArgs=A*/ f();
 
-    /*@target=B.-*/ --super. /*@target=Base.member*/ member;
+    /*@target=B.-*/ --super.  member;
 
-    super. /*@target=Base.member*/ member /*@target=B.-*/ --;
+    super.  member /*@target=B.-*/ --;
 
     var /*@type=B*/ v1 = super.member = /*@typeArgs=B*/ f();
 
@@ -61,11 +61,11 @@ class Test extends Base {
         . /*@target=Base.member*/ member /*@target=B.&*/ &= /*@typeArgs=A*/ f();
 
     var /*@type=B*/ v6 =
-        /*@target=B.-*/ --super. /*@target=Base.member*/ member;
+        /*@target=B.-*/ --super.  member;
 
     var /*@type=B*/ v7 = super
-        . /*@type=B*/ /*@target=Base.member*/
-        /*@type=B*/ member /*@target=B.-*/ --;
+        .  
+         member /*@target=B.-*/ --;
   }
 }
 

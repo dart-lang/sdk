@@ -52,8 +52,8 @@ class A {
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 20, 5),
-      error(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 26, 8),
+      error(ParserErrorCode.modifierOutOfOrder, 20, 5),
+      error(ParserErrorCode.modifierOutOfOrder, 26, 8),
     ]);
 
     var node = parseResult.findNode.constructor('A()');
@@ -1170,11 +1170,10 @@ E f() => g;
     var body = method.body as BlockFunctionBody;
     Statement statement = body.block.statements[0];
 
-    var missing =
-        parseString(
-          content: 'missing',
-          throwIfDiagnostics: false,
-        ).unit.beginToken;
+    var missing = parseString(
+      content: 'missing',
+      throwIfDiagnostics: false,
+    ).unit.beginToken;
     expect(statement.findPrevious(missing), null);
   }
 

@@ -23,7 +23,7 @@ bool f(int left, bool right) {
   return left && right;
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_OPERAND, 40, 4)],
+      [error(CompileTimeErrorCode.nonBoolOperand, 40, 4)],
     );
   }
 
@@ -34,7 +34,7 @@ main() {
   new Object() && true;
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_OPERAND, 11, 12)],
+      [error(CompileTimeErrorCode.nonBoolOperand, 11, 12)],
     );
   }
 
@@ -45,7 +45,7 @@ bool f(List<int> left, bool right) {
   return left && right;
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_OPERAND, 46, 4)],
+      [error(CompileTimeErrorCode.nonBoolOperand, 46, 4)],
     );
   }
 
@@ -56,7 +56,7 @@ bool f(Object left, bool right) {
   return left && right;
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_OPERAND, 43, 4)],
+      [error(CompileTimeErrorCode.nonBoolOperand, 43, 4)],
     );
   }
 
@@ -68,7 +68,7 @@ m() {
   if(x && true) {}
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_OPERAND, 21, 1)],
+      [error(CompileTimeErrorCode.nonBoolOperand, 21, 1)],
     );
   }
 
@@ -79,7 +79,7 @@ bool f(bool left, String right) {
   return left && right;
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_OPERAND, 51, 5)],
+      [error(CompileTimeErrorCode.nonBoolOperand, 51, 5)],
     );
   }
 
@@ -90,7 +90,7 @@ bool f(List<int> left, bool right) {
   return left || right;
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_OPERAND, 46, 4)],
+      [error(CompileTimeErrorCode.nonBoolOperand, 46, 4)],
     );
   }
 
@@ -102,7 +102,7 @@ m() {
   if(x || false) {}
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_OPERAND, 21, 1)],
+      [error(CompileTimeErrorCode.nonBoolOperand, 21, 1)],
     );
   }
 
@@ -113,7 +113,7 @@ bool f(bool left, double right) {
   return left || right;
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_OPERAND, 51, 5)],
+      [error(CompileTimeErrorCode.nonBoolOperand, 51, 5)],
     );
   }
 }
@@ -128,7 +128,7 @@ void f(dynamic a) {
   if(a && true) {}
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_OPERAND, 25, 1)],
+      [error(CompileTimeErrorCode.nonBoolOperand, 25, 1)],
     );
   }
 }

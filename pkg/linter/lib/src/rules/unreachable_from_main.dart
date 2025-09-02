@@ -5,12 +5,13 @@
 import 'dart:collection';
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_state.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -28,10 +29,13 @@ class UnreachableFromMain extends LintRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unreachable_from_main;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unreachableFromMain;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
   }
@@ -515,14 +519,13 @@ class _Visitor extends SimpleAstVisitor<void> {
     unitDeclarationGatherer.addDeclarations(node);
     var unitDeclarations = unitDeclarationGatherer.declarations;
     var unusedDeclarations = unitDeclarations.difference(usedMembers);
-    var unusedMembers =
-        unusedDeclarations.where((declaration) {
-          var element = declaration.declaredFragment?.element;
-          return element != null &&
-              element.isPublic &&
-              !element.hasVisibleForTesting &&
-              !element.hasWidgetPreview;
-        }).toList();
+    var unusedMembers = unusedDeclarations.where((declaration) {
+      var element = declaration.declaredFragment?.element;
+      return element != null &&
+          element.isPublic &&
+          !element.hasVisibleForTesting &&
+          !element.hasWidgetPreview;
+    }).toList();
 
     for (var member in unusedMembers) {
       if (member is ConstructorDeclaration) {

@@ -13,8 +13,10 @@ mixin TypeSchemaStandardBounds on StandardBounds {
   DartType greatestClosureForLowerBound(DartType typeSchema) {
     //  - We replace all uses of `T1 <: T2` in the `DOWN` algorithm by `S1 <:
     //  S2` where `Si` is the greatest closure of `Ti` with respect to `_`.
-    return greatestClosure(typeSchema,
-        topType: coreTypes.objectNullableRawType);
+    return greatestClosure(
+      typeSchema,
+      topType: coreTypes.objectNullableRawType,
+    );
   }
 
   @override

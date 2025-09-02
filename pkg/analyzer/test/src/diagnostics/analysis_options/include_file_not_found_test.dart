@@ -20,7 +20,31 @@ class IncludeFileNotFoundTest extends AbstractAnalysisOptionsTest {
       '''
 include: "./analysis_options.yaml"
 ''',
-      [error(AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE, 9, 25)],
+      [error(AnalysisOptionsWarningCode.recursiveIncludeFile, 9, 25)],
+    );
+  }
+
+  Future<void> test_notFound_existent_list_first() async {
+    newFile('/included1.yaml', '');
+    await assertErrorsInCode(
+      '''
+include:
+  - ./analysis_options.yaml
+  - included1.yaml
+''',
+      [error(AnalysisOptionsWarningCode.recursiveIncludeFile, 13, 23)],
+    );
+  }
+
+  Future<void> test_notFound_existent_list_second() async {
+    newFile('/included1.yaml', '');
+    await assertErrorsInCode(
+      '''
+include:
+  - included1.yaml
+  - ./analysis_options.yaml
+''',
+      [error(AnalysisOptionsWarningCode.recursiveIncludeFile, 32, 23)],
     );
   }
 
@@ -29,7 +53,7 @@ include: "./analysis_options.yaml"
       '''
 include: ./analysis_options.yaml
 ''',
-      [error(AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE, 9, 23)],
+      [error(AnalysisOptionsWarningCode.recursiveIncludeFile, 9, 23)],
     );
   }
 
@@ -38,7 +62,7 @@ include: ./analysis_options.yaml
       '''
 include: './analysis_options.yaml'
 ''',
-      [error(AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE, 9, 25)],
+      [error(AnalysisOptionsWarningCode.recursiveIncludeFile, 9, 25)],
     );
   }
 
@@ -50,12 +74,59 @@ include: "package:pedantic/analysis_options.yaml"
 ''',
       [
         error(
-          AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND,
+          AnalysisOptionsWarningCode.includeFileNotFound,
           74,
           40,
           text:
               "The include file 'package:pedantic/analysis_options.yaml'"
-              " in '${convertPath('/analysis_options.yaml')}' can't be found when analyzing '/'.",
+              " in '${convertPath('/analysis_options.yaml')}' can't be found "
+              "when analyzing '/'.",
+        ),
+      ],
+    );
+  }
+
+  Future<void> test_notFound_nonexistent_list_first() async {
+    newFile('/included1.yaml', '');
+    await assertErrorsInCode(
+      '''
+# We don't depend on pedantic, but we should consider adding it.
+include:
+  - package:pedantic/analysis_options.yaml
+  - included1.yaml
+''',
+      [
+        error(
+          AnalysisOptionsWarningCode.includeFileNotFound,
+          78,
+          38,
+          text:
+              "The include file 'package:pedantic/analysis_options.yaml'"
+              " in '${convertPath('/analysis_options.yaml')}' can't be found "
+              "when analyzing '/'.",
+        ),
+      ],
+    );
+  }
+
+  Future<void> test_notFound_nonexistent_list_second() async {
+    newFile('/included1.yaml', '');
+    await assertErrorsInCode(
+      '''
+# We don't depend on pedantic, but we should consider adding it.
+include:
+  - included1.yaml
+  - package:pedantic/analysis_options.yaml
+''',
+      [
+        error(
+          AnalysisOptionsWarningCode.includeFileNotFound,
+          97,
+          38,
+          text:
+              "The include file 'package:pedantic/analysis_options.yaml'"
+              " in '${convertPath('/analysis_options.yaml')}' can't be found "
+              "when analyzing '/'.",
         ),
       ],
     );
@@ -69,12 +140,13 @@ include: package:pedantic/analysis_options.yaml
 ''',
       [
         error(
-          AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND,
+          AnalysisOptionsWarningCode.includeFileNotFound,
           74,
           38,
           text:
               "The include file 'package:pedantic/analysis_options.yaml'"
-              " in '${convertPath('/analysis_options.yaml')}' can't be found when analyzing '/'.",
+              " in '${convertPath('/analysis_options.yaml')}' can't be found "
+              "when analyzing '/'.",
         ),
       ],
     );
@@ -88,12 +160,13 @@ include: 'package:pedantic/analysis_options.yaml'
 ''',
       [
         error(
-          AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND,
+          AnalysisOptionsWarningCode.includeFileNotFound,
           74,
           40,
           text:
               "The include file 'package:pedantic/analysis_options.yaml'"
-              " in '${convertPath('/analysis_options.yaml')}' can't be found when analyzing '/'.",
+              " in '${convertPath('/analysis_options.yaml')}' can't be found "
+              "when analyzing '/'.",
         ),
       ],
     );

@@ -4,25 +4,30 @@
 
 forInDynamicList(dynamic list) {
   /*current: dynamic*/
-  for (var e in
+  for (var e
+      in
       /*as: Iterable<dynamic>!*/
       /*dynamic*/ list) {
-    /*dynamic*/ e;
+    /*dynamic*/
+    e;
   }
 }
 
 forInDynamic(List<dynamic> list) {
   /*current: dynamic*/
-  for (var e in
+  for (var e
+      in
       /*List<dynamic>!*/
       list) {
-    /*dynamic*/ e;
+    /*dynamic*/
+    e;
   }
 }
 
 forInInt(List<int> list) {
   /*current: int!*/
-  for (var e in
+  for (var e
+      in
       /*List<int!>!*/
       list) {
     /*int!*/
@@ -32,7 +37,8 @@ forInInt(List<int> list) {
 
 forInIntToNum(List<int> list) {
   /*current: int!*/
-  for (num e in
+  for (num e
+      in
       /*List<int!>!*/
       list) {
     /*num!*/
@@ -43,27 +49,32 @@ forInIntToNum(List<int> list) {
 /*member: asyncForInDynamicStream:futureValueType=dynamic*/
 asyncForInDynamicStream(dynamic stream) async {
   /*current: dynamic*/
-  await for (var e in
+  await for (var e
+      in
       /*as: Stream<dynamic>!*/
       /*dynamic*/ stream) {
-    /*dynamic*/ e;
+    /*dynamic*/
+    e;
   }
 }
 
 /*member: asyncForInDynamic:futureValueType=dynamic*/
 asyncForInDynamic(Stream<dynamic> stream) async {
   /*current: dynamic*/
-  await for (var e in
+  await for (var e
+      in
       /*Stream<dynamic>!*/
       stream) {
-    /*dynamic*/ e;
+    /*dynamic*/
+    e;
   }
 }
 
 /*member: asyncForInInt:futureValueType=dynamic*/
 asyncForInInt(Stream<int> stream) async {
   /*current: int!*/
-  await for (var e in
+  await for (var e
+      in
       /*Stream<int!>!*/
       stream) {
     /*int!*/
@@ -74,7 +85,8 @@ asyncForInInt(Stream<int> stream) async {
 /*member: asyncForInIntToNum:futureValueType=dynamic*/
 asyncForInIntToNum(Stream<int> stream) async {
   /*current: int!*/
-  await for (num e in
+  await for (num e
+      in
       /*Stream<int!>!*/
       stream) {
     /*num!*/
@@ -88,7 +100,8 @@ abstract class CustomIterable implements Iterable<num> {
 
 customIterable(CustomIterable iterable) {
   /*current: num!*/
-  for (var e in
+  for (var e
+      in
       /*CustomIterable!*/
       iterable) {
     /*num!*/
@@ -103,7 +116,8 @@ abstract class CustomStream implements Stream<num> {
 /*member: customStream:futureValueType=dynamic*/
 customStream(CustomStream stream) async {
   /*current: num!*/
-  await for (var e in
+  await for (var e
+      in
       /*CustomStream!*/
       stream) {
     /*num!*/
@@ -121,7 +135,8 @@ abstract class CustomIterator implements Iterator<num> {
 
 customIterableIterator(IterableWithCustomIterator iterable) {
   /*current: num!*/
-  for (var e in
+  for (var e
+      in
       /*IterableWithCustomIterator!*/
       iterable) {
     /*num!*/
@@ -136,7 +151,8 @@ abstract class StreamWithCustomIterator implements Stream<num> {
 /*member: customStreamIterator:futureValueType=dynamic*/
 customStreamIterator(StreamWithCustomIterator stream) async {
   /*current: num!*/
-  await for (var e in
+  await for (var e
+      in
       /*StreamWithCustomIterator!*/
       stream) {
     /*num!*/
@@ -146,19 +162,23 @@ customStreamIterator(StreamWithCustomIterator stream) async {
 
 void genericIterable<T extends Iterable<T>>(T x) {
   /*current: T!*/
-  for (var y in
+  for (var y
+      in
       /*T!*/
       x) {
-    /*T!*/ y;
+    /*T!*/
+    y;
   }
 }
 
 /*member: genericStream:futureValueType=void*/
 void genericStream<T extends Stream<T>>(T x) async {
   /*current: T!*/
-  await for (var y in
+  await for (var y
+      in
       /*T!*/
       x) {
-    /*T!*/ y;
+    /*T!*/
+    y;
   }
 }

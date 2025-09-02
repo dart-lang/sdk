@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../base/lookup_result.dart';
-import '../base/messages.dart' show noLength, templateConstructorNotFound;
+import '../base/messages.dart' show noLength, codeConstructorNotFound;
 import '../base/scope.dart';
 import 'builder.dart';
 import 'declaration_builders.dart';
@@ -25,8 +25,13 @@ class ConstructorReferenceBuilder {
 
   MemberLookupResult? target;
 
-  ConstructorReferenceBuilder(this.typeName, this.typeArguments, this.suffix,
-      this.fileUri, this.charOffset);
+  ConstructorReferenceBuilder(
+    this.typeName,
+    this.typeArguments,
+    this.suffix,
+    this.fileUri,
+    this.charOffset,
+  );
 
   String get fullNameForErrors {
     return "${typeName.fullName}"
@@ -48,8 +53,10 @@ class ConstructorReferenceBuilder {
         PrefixBuilder prefix = declaration;
         declaration = prefix.lookup(middle)?.getable;
       } else if (declaration is DeclarationBuilder) {
-        MemberLookupResult? result =
-            declaration.findConstructorOrFactory(middle, accessingLibrary);
+        MemberLookupResult? result = declaration.findConstructorOrFactory(
+          middle,
+          accessingLibrary,
+        );
         if (suffix == null) {
           target = result;
           return;
@@ -63,15 +70,18 @@ class ConstructorReferenceBuilder {
       }
     }
     if (declaration is DeclarationBuilder) {
-      target =
-          declaration.findConstructorOrFactory(suffix ?? "", accessingLibrary);
+      target = declaration.findConstructorOrFactory(
+        suffix ?? "",
+        accessingLibrary,
+      );
     }
     if (target == null) {
       accessingLibrary.addProblem(
-          templateConstructorNotFound.withArguments(fullNameForErrors),
-          charOffset,
-          noLength,
-          fileUri);
+        codeConstructorNotFound.withArguments(fullNameForErrors),
+        charOffset,
+        noLength,
+        fileUri,
+      );
     }
   }
 }

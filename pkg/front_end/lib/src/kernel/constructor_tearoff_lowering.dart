@@ -19,16 +19,20 @@ export 'package:kernel/constructor_tearoff_lowering.dart';
 ///
 /// If constructor tear off lowering is not enabled, `null` is returned.
 Procedure? createConstructorTearOffProcedure(
-    MemberName tearOffName,
-    SourceLibraryBuilder compilationUnit,
-    Uri fileUri,
-    int fileOffset,
-    Reference? reference,
-    {required bool forAbstractClassOrEnumOrMixin,
-    bool forceCreateLowering = false}) {
+  MemberName tearOffName,
+  SourceLibraryBuilder compilationUnit,
+  Uri fileUri,
+  int fileOffset,
+  Reference? reference, {
+  required bool forAbstractClassOrEnumOrMixin,
+  bool forceCreateLowering = false,
+}) {
   if (!forAbstractClassOrEnumOrMixin &&
       (forceCreateLowering ||
-          compilationUnit.loader.target.backendTarget
+          compilationUnit
+              .loader
+              .target
+              .backendTarget
               .isConstructorTearOffLoweringEnabled)) {
     return _createTearOffProcedure(tearOffName, fileUri, fileOffset, reference);
   }
@@ -40,15 +44,19 @@ Procedure? createConstructorTearOffProcedure(
 ///
 /// If constructor tear off lowering is not enabled, `null` is returned.
 Procedure? createFactoryTearOffProcedure(
-    MemberName tearOffName,
-    SourceLibraryBuilder compilationUnit,
-    Uri fileUri,
-    int fileOffset,
-    Reference? reference,
-    {bool forceCreateLowering = false}) {
+  MemberName tearOffName,
+  SourceLibraryBuilder compilationUnit,
+  Uri fileUri,
+  int fileOffset,
+  Reference? reference, {
+  bool forceCreateLowering = false,
+}) {
   if (forceCreateLowering ||
       compilationUnit
-          .loader.target.backendTarget.isFactoryTearOffLoweringEnabled) {
+          .loader
+          .target
+          .backendTarget
+          .isFactoryTearOffLoweringEnabled) {
     return _createTearOffProcedure(tearOffName, fileUri, fileOffset, reference);
   }
   return null;
@@ -58,14 +66,17 @@ Procedure? createFactoryTearOffProcedure(
 /// constructor of the given [name] in with the typedef defined in
 /// [libraryBuilder].
 Procedure createTypedefTearOffProcedure(
-    String typedefName,
-    String name,
-    SourceLibraryBuilder libraryBuilder,
-    Uri fileUri,
-    int fileOffset,
-    Reference? reference) {
+  String typedefName,
+  String name,
+  SourceLibraryBuilder libraryBuilder,
+  Uri fileUri,
+  int fileOffset,
+  Reference? reference,
+) {
   MemberName tearOffName = new MemberName(
-      libraryBuilder.libraryName, typedefTearOffName(typedefName, name));
+    libraryBuilder.libraryName,
+    typedefTearOffName(typedefName, name),
+  );
   return _createTearOffProcedure(tearOffName, fileUri, fileOffset, reference);
 }
 
@@ -76,28 +87,31 @@ Procedure createTypedefTearOffProcedure(
 /// The [declarationConstructor] is the origin constructor and
 /// [implementationConstructor] is the augmentation constructor, if augmented,
 /// otherwise it is the [declarationConstructor].
-DelayedDefaultValueCloner buildConstructorTearOffProcedure(
-    {required Procedure tearOff,
-    required Member declarationConstructor,
-    required Member implementationConstructor,
-    List<TypeParameter>? enclosingDeclarationTypeParameters,
-    required SourceLibraryBuilder libraryBuilder}) {
+DelayedDefaultValueCloner buildConstructorTearOffProcedure({
+  required Procedure tearOff,
+  required Member declarationConstructor,
+  required Member implementationConstructor,
+  List<TypeParameter>? enclosingDeclarationTypeParameters,
+  required SourceLibraryBuilder libraryBuilder,
+}) {
   assert(
-      declarationConstructor is Constructor ||
-          (declarationConstructor is Procedure &&
-              declarationConstructor.isFactory) ||
-          (declarationConstructor is Procedure &&
-              declarationConstructor.isStatic),
-      "Unexpected constructor tear off target $declarationConstructor "
-      "(${declarationConstructor.runtimeType}).");
+    declarationConstructor is Constructor ||
+        (declarationConstructor is Procedure &&
+            declarationConstructor.isFactory) ||
+        (declarationConstructor is Procedure &&
+            declarationConstructor.isStatic),
+    "Unexpected constructor tear off target $declarationConstructor "
+    "(${declarationConstructor.runtimeType}).",
+  );
   assert(
-      declarationConstructor is Constructor ||
-          (declarationConstructor is Procedure &&
-              declarationConstructor.isFactory) ||
-          (declarationConstructor is Procedure &&
-              declarationConstructor.isStatic),
-      "Unexpected constructor tear off target $declarationConstructor "
-      "(${declarationConstructor.runtimeType}).");
+    declarationConstructor is Constructor ||
+        (declarationConstructor is Procedure &&
+            declarationConstructor.isFactory) ||
+        (declarationConstructor is Procedure &&
+            declarationConstructor.isStatic),
+    "Unexpected constructor tear off target $declarationConstructor "
+    "(${declarationConstructor.runtimeType}).",
+  );
 
   FunctionNode function = implementationConstructor.function!;
 
@@ -110,17 +124,20 @@ DelayedDefaultValueCloner buildConstructorTearOffProcedure(
   List<TypeParameter> declarationTypeParameters =
       enclosingDeclarationTypeParameters ?? function.typeParameters;
 
-  FreshTypeParameters freshTypeParameters =
-      _createFreshTypeParameters(declarationTypeParameters, tearOff.function);
+  FreshTypeParameters freshTypeParameters = _createFreshTypeParameters(
+    declarationTypeParameters,
+    tearOff.function,
+  );
 
   List<DartType> typeArguments = freshTypeParameters.freshTypeArguments;
   Substitution substitution = freshTypeParameters.substitution;
   DelayedDefaultValueCloner delayedDefaultValueCloner = _createParameters(
-      tearOff,
-      implementationConstructor,
-      function,
-      substitution,
-      libraryBuilder);
+    tearOff,
+    implementationConstructor,
+    function,
+    substitution,
+    libraryBuilder,
+  );
   Arguments arguments = _createArguments(tearOff, typeArguments, fileOffset);
   _createTearOffBody(tearOff, declarationConstructor, arguments);
   tearOff.function.fileOffset = tearOff.fileOffset;
@@ -136,30 +153,33 @@ DelayedDefaultValueCloner buildConstructorTearOffProcedure(
 /// The [declarationConstructor] is the origin constructor and
 /// [implementationConstructor] is the augmentation constructor, if augmented,
 /// otherwise it is the [declarationConstructor].
-DelayedDefaultValueCloner buildTypedefTearOffProcedure(
-    {required Procedure tearOff,
-    required Member declarationConstructor,
-    required Member implementationConstructor,
-    required TypeDeclaration enclosingTypeDeclaration,
-    required List<TypeParameter> typeParameters,
-    required List<DartType> typeArguments,
-    required SourceLibraryBuilder libraryBuilder}) {
+DelayedDefaultValueCloner buildTypedefTearOffProcedure({
+  required Procedure tearOff,
+  required Member declarationConstructor,
+  required Member implementationConstructor,
+  required TypeDeclaration enclosingTypeDeclaration,
+  required List<TypeParameter> typeParameters,
+  required List<DartType> typeArguments,
+  required SourceLibraryBuilder libraryBuilder,
+}) {
   assert(
-      declarationConstructor is Constructor ||
-          (declarationConstructor is Procedure &&
-              declarationConstructor.isFactory) ||
-          (declarationConstructor is Procedure &&
-              declarationConstructor.isStatic),
-      "Unexpected constructor tear off target $declarationConstructor "
-      "(${declarationConstructor.runtimeType}).");
+    declarationConstructor is Constructor ||
+        (declarationConstructor is Procedure &&
+            declarationConstructor.isFactory) ||
+        (declarationConstructor is Procedure &&
+            declarationConstructor.isStatic),
+    "Unexpected constructor tear off target $declarationConstructor "
+    "(${declarationConstructor.runtimeType}).",
+  );
   assert(
-      implementationConstructor is Constructor ||
-          (implementationConstructor is Procedure &&
-              implementationConstructor.isFactory) ||
-          (implementationConstructor is Procedure &&
-              implementationConstructor.isStatic),
-      "Unexpected constructor tear off target $implementationConstructor "
-      "(${declarationConstructor.runtimeType}).");
+    implementationConstructor is Constructor ||
+        (implementationConstructor is Procedure &&
+            implementationConstructor.isFactory) ||
+        (implementationConstructor is Procedure &&
+            implementationConstructor.isStatic),
+    "Unexpected constructor tear off target $implementationConstructor "
+    "(${declarationConstructor.runtimeType}).",
+  );
 
   FunctionNode function = implementationConstructor.function!;
 
@@ -176,23 +196,28 @@ DelayedDefaultValueCloner buildTypedefTearOffProcedure(
     declarationTypeParameters = function.typeParameters;
   }
 
-  FreshTypeParameters freshTypeParameters =
-      _createFreshTypeParameters(typeParameters, tearOff.function);
+  FreshTypeParameters freshTypeParameters = _createFreshTypeParameters(
+    typeParameters,
+    tearOff.function,
+  );
 
   Substitution substitution = freshTypeParameters.substitution;
   if (!substitution.isEmpty) {
     if (typeArguments.isNotEmpty) {
       // Translate [typeArgument] into the context of the synthesized procedure.
-      typeArguments = new List<DartType>.generate(typeArguments.length,
-          (int index) => substitution.substituteType(typeArguments[index]));
+      typeArguments = new List<DartType>.generate(
+        typeArguments.length,
+        (int index) => substitution.substituteType(typeArguments[index]),
+      );
     }
   }
   DelayedDefaultValueCloner delayedDefaultValueCloner = _createParameters(
-      tearOff,
-      implementationConstructor,
-      function,
-      Substitution.fromPairs(declarationTypeParameters, typeArguments),
-      libraryBuilder);
+    tearOff,
+    implementationConstructor,
+    function,
+    Substitution.fromPairs(declarationTypeParameters, typeArguments),
+    libraryBuilder,
+  );
   Arguments arguments = _createArguments(tearOff, typeArguments, fileOffset);
   _createTearOffBody(tearOff, declarationConstructor, arguments);
   tearOff.function.fileOffset = tearOff.fileOffset;
@@ -207,21 +232,25 @@ DelayedDefaultValueCloner buildTypedefTearOffProcedure(
 /// and [implementationConstructorFunctionNode] is the [FunctionNode] for the
 /// implementation constructor. If the constructor is augmented, these are not
 /// connected until [Builder.buildBodyNodes].
-FreshTypeParameters buildRedirectingFactoryTearOffProcedureParameters(
-    {required Procedure tearOff,
-    required Procedure implementationConstructor,
-    required SourceLibraryBuilder libraryBuilder,
-    List<DelayedDefaultValueCloner>? delayedDefaultValueCloners}) {
+FreshTypeParameters buildRedirectingFactoryTearOffProcedureParameters({
+  required Procedure tearOff,
+  required Procedure implementationConstructor,
+  required SourceLibraryBuilder libraryBuilder,
+  List<DelayedDefaultValueCloner>? delayedDefaultValueCloners,
+}) {
   FunctionNode function = implementationConstructor.function;
-  FreshTypeParameters freshTypeParameters =
-      _createFreshTypeParameters(function.typeParameters, tearOff.function);
+  FreshTypeParameters freshTypeParameters = _createFreshTypeParameters(
+    function.typeParameters,
+    tearOff.function,
+  );
   Substitution substitution = freshTypeParameters.substitution;
   DelayedDefaultValueCloner delayedDefaultValueCloner = _createParameters(
-      tearOff,
-      implementationConstructor,
-      function,
-      substitution,
-      libraryBuilder);
+    tearOff,
+    implementationConstructor,
+    function,
+    substitution,
+    libraryBuilder,
+  );
   // Coverage-ignore(suite): Not run.
   delayedDefaultValueCloners?.add(delayedDefaultValueCloner);
   tearOff.function.fileOffset = tearOff.fileOffset;
@@ -235,11 +264,12 @@ FreshTypeParameters buildRedirectingFactoryTearOffProcedureParameters(
 /// Returns the [DelayedDefaultValueCloner] object need to perform default value
 /// computation.
 DelayedDefaultValueCloner buildRedirectingFactoryTearOffBody(
-    Procedure tearOff,
-    Member target,
-    List<DartType> typeArguments,
-    FreshTypeParameters freshTypeParameters,
-    LibraryBuilder libraryBuilder) {
+  Procedure tearOff,
+  Member target,
+  List<DartType> typeArguments,
+  FreshTypeParameters freshTypeParameters,
+  LibraryBuilder libraryBuilder,
+) {
   int fileOffset = tearOff.fileOffset;
 
   List<TypeParameter> typeParameters;
@@ -253,34 +283,52 @@ DelayedDefaultValueCloner buildRedirectingFactoryTearOffBody(
     if (typeArguments.length != typeParameters.length) {
       // Error case: Use default types as type arguments.
       typeArguments = new List<DartType>.generate(
-          typeParameters.length,
-          // Coverage-ignore(suite): Not run.
-          (int index) => typeParameters[index].defaultType);
+        typeParameters.length,
+        // Coverage-ignore(suite): Not run.
+        (int index) => typeParameters[index].defaultType,
+      );
     }
     if (typeArguments.isNotEmpty) {
       // Translate [typeArgument] into the context of the synthesized procedure.
       typeArguments = new List<DartType>.generate(
-          typeArguments.length,
-          (int index) => freshTypeParameters.substitution
-              .substituteType(typeArguments[index]));
+        typeArguments.length,
+        (int index) => freshTypeParameters.substitution.substituteType(
+          typeArguments[index],
+        ),
+      );
     }
   }
   Arguments arguments = _createArguments(tearOff, typeArguments, fileOffset);
   _createTearOffBody(tearOff, target, arguments);
-  return new DelayedDefaultValueCloner(target, tearOff,
-      identicalSignatures: false, libraryBuilder: libraryBuilder);
+  return new DelayedDefaultValueCloner(
+    target,
+    tearOff,
+    identicalSignatures: false,
+    libraryBuilder: libraryBuilder,
+  );
 }
 
 /// Creates the synthesized [Procedure] node for a tear off lowering by the
 /// given [name].
 Procedure _createTearOffProcedure(
-    MemberName tearOffName, Uri fileUri, int fileOffset, Reference? reference) {
-  Procedure tearOff = new Procedure(
-      dummyName, ProcedureKind.Method, new FunctionNode(null),
-      fileUri: fileUri, isStatic: true, isSynthetic: true, reference: reference)
-    ..fileStartOffset = fileOffset
-    ..fileOffset = fileOffset
-    ..fileEndOffset = fileOffset;
+  MemberName tearOffName,
+  Uri fileUri,
+  int fileOffset,
+  Reference? reference,
+) {
+  Procedure tearOff =
+      new Procedure(
+          dummyName,
+          ProcedureKind.Method,
+          new FunctionNode(null),
+          fileUri: fileUri,
+          isStatic: true,
+          isSynthetic: true,
+          reference: reference,
+        )
+        ..fileStartOffset = fileOffset
+        ..fileOffset = fileOffset
+        ..fileEndOffset = fileOffset;
   tearOffName.attachMember(tearOff);
   return tearOff;
 }
@@ -289,7 +337,9 @@ Procedure _createTearOffProcedure(
 /// parameters are based [originalTypeParameters] and are inserted into
 /// [newFunctionNode]. The created [FreshTypeParameters] is returned.
 FreshTypeParameters _createFreshTypeParameters(
-    List<TypeParameter> originalTypeParameters, FunctionNode newFunctionNode) {
+  List<TypeParameter> originalTypeParameters,
+  FunctionNode newFunctionNode,
+) {
   FreshTypeParameters freshTypeParameters;
   if (originalTypeParameters.isNotEmpty) {
     freshTypeParameters = getFreshTypeParameters(originalTypeParameters);
@@ -307,69 +357,91 @@ FreshTypeParameters _createFreshTypeParameters(
 /// in [constructor] and using the [substitution] to compute the parameter and
 /// return types.
 DelayedDefaultValueCloner _createParameters(
-    Procedure tearOff,
-    Member constructor,
-    FunctionNode function,
-    Substitution substitution,
-    SourceLibraryBuilder libraryBuilder) {
+  Procedure tearOff,
+  Member constructor,
+  FunctionNode function,
+  Substitution substitution,
+  SourceLibraryBuilder libraryBuilder,
+) {
   for (VariableDeclaration constructorParameter
       in function.positionalParameters) {
     VariableDeclaration tearOffParameter = new VariableDeclaration(
-        constructorParameter.name,
-        type: substitution.substituteType(constructorParameter.type))
-      ..fileOffset = constructorParameter.fileOffset;
+      constructorParameter.name,
+      type: substitution.substituteType(constructorParameter.type),
+    )..fileOffset = constructorParameter.fileOffset;
     tearOff.function.positionalParameters.add(tearOffParameter);
     tearOffParameter.parent = tearOff.function;
   }
   for (VariableDeclaration constructorParameter in function.namedParameters) {
     VariableDeclaration tearOffParameter = new VariableDeclaration(
-        constructorParameter.name,
-        type: substitution.substituteType(constructorParameter.type),
-        isRequired: constructorParameter.isRequired)
-      ..fileOffset = constructorParameter.fileOffset;
+      constructorParameter.name,
+      type: substitution.substituteType(constructorParameter.type),
+      isRequired: constructorParameter.isRequired,
+    )..fileOffset = constructorParameter.fileOffset;
     tearOff.function.namedParameters.add(tearOffParameter);
     tearOffParameter.parent = tearOff.function;
   }
-  tearOff.function.returnType =
-      substitution.substituteType(function.returnType);
+  tearOff.function.returnType = substitution.substituteType(
+    function.returnType,
+  );
   tearOff.function.requiredParameterCount = function.requiredParameterCount;
   libraryBuilder.loader.registerTypeDependency(
+    tearOff,
+    new TypeDependency(
       tearOff,
-      new TypeDependency(tearOff, constructor, substitution,
-          copyReturnType: true));
-  return new DelayedDefaultValueCloner(constructor, tearOff,
-      identicalSignatures: true, libraryBuilder: libraryBuilder);
+      constructor,
+      substitution,
+      copyReturnType: true,
+    ),
+  );
+  return new DelayedDefaultValueCloner(
+    constructor,
+    tearOff,
+    identicalSignatures: true,
+    libraryBuilder: libraryBuilder,
+  );
 }
 
 /// Creates the [Arguments] for passing the parameters from [tearOff] to its
 /// target, using [typeArguments] as the passed type arguments.
 Arguments _createArguments(
-    Procedure tearOff, List<DartType> typeArguments, int fileOffset) {
+  Procedure tearOff,
+  List<DartType> typeArguments,
+  int fileOffset,
+) {
   List<Expression> positionalArguments = [];
   for (VariableDeclaration tearOffParameter
       in tearOff.function.positionalParameters) {
-    positionalArguments
-        .add(new VariableGet(tearOffParameter)..fileOffset = fileOffset);
+    positionalArguments.add(
+      new VariableGet(tearOffParameter)..fileOffset = fileOffset,
+    );
   }
   List<NamedExpression> namedArguments = [];
   for (VariableDeclaration tearOffParameter
       in tearOff.function.namedParameters) {
-    namedArguments.add(new NamedExpression(tearOffParameter.name!,
-        new VariableGet(tearOffParameter)..fileOffset = fileOffset)
-      ..fileOffset = fileOffset);
+    namedArguments.add(
+      new NamedExpression(
+        tearOffParameter.name!,
+        new VariableGet(tearOffParameter)..fileOffset = fileOffset,
+      )..fileOffset = fileOffset,
+    );
   }
-  Arguments arguments = new Arguments(positionalArguments,
-      named: namedArguments, types: typeArguments)
-    ..fileOffset = tearOff.fileOffset;
+  Arguments arguments = new Arguments(
+    positionalArguments,
+    named: namedArguments,
+    types: typeArguments,
+  )..fileOffset = tearOff.fileOffset;
   return arguments;
 }
 
 /// Creates the tear of body for [tearOff] which calls [target] with
 /// [arguments].
 void _createTearOffBody(Procedure tearOff, Member target, Arguments arguments) {
-  assert(target is Constructor ||
-      (target is Procedure && target.isFactory) ||
-      (target is Procedure && target.isStatic));
+  assert(
+    target is Constructor ||
+        (target is Procedure && target.isFactory) ||
+        (target is Procedure && target.isStatic),
+  );
   Expression constructorInvocation;
   if (target is Constructor) {
     constructorInvocation = new ConstructorInvocation(target, arguments)
@@ -390,7 +462,10 @@ class LoweredTypedefTearOff {
   List<DartType> typeArguments;
 
   LoweredTypedefTearOff(
-      this.typedefTearOff, this.targetTearOff, this.typeArguments);
+    this.typedefTearOff,
+    this.targetTearOff,
+    this.typeArguments,
+  );
 
   /// Reverse engineers [expression] to a [LoweredTypedefTearOff] if
   /// [expression] is the encoding of a lowered typedef tear off.
@@ -413,7 +488,9 @@ class LoweredTypedefTearOff {
         if (target != null) {
           Class cls = target.enclosingClass!;
           Name tearOffName = new Name(
-              constructorTearOffName(target.name.text), cls.enclosingLibrary);
+            constructorTearOffName(target.name.text),
+            cls.enclosingLibrary,
+          );
           for (Procedure procedure in cls.procedures) {
             if (procedure.name == tearOffName) {
               target = procedure;
@@ -429,7 +506,10 @@ class LoweredTypedefTearOff {
             targetTearOff = new StaticTearOff(target as Procedure);
           }
           return new LoweredTypedefTearOff(
-              typedefTearOff, targetTearOff, typeArguments!);
+            typedefTearOff,
+            targetTearOff,
+            typeArguments!,
+          );
         }
       }
     }

@@ -26,7 +26,7 @@ FutureOr<void> Function() v = () async {
   return 0;
 };
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 72, 1)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromClosure, 72, 1)],
     );
     _assertReturnType('() async {', 'Future<void>');
   }
@@ -38,7 +38,7 @@ Future<void> Function() v = () async {
   return 0;
 };
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 48, 1)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromClosure, 48, 1)],
     );
     _assertReturnType('() async {', 'Future<void>');
   }
@@ -327,7 +327,7 @@ void Function() v = () {
   return 0;
 };
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE, 34, 1)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromClosure, 34, 1)],
     );
     _assertReturnType('() {', 'void');
   }
@@ -536,7 +536,7 @@ void f() {
   final v = <T>(T a) => <T>[a];
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1)],
+      [error(WarningCode.unusedLocalVariable, 19, 1)],
     );
 
     var node = findNode.functionExpression('<T>(');
@@ -659,6 +659,55 @@ var v = () async* {
 };
 ''');
     _assertReturnType('() async* {', 'Stream<int>');
+  }
+
+  test_noContext_returnType_asyncStar_blockBody_hasReturn_empty() async {
+    await resolveTestCode(r'''
+var v = () async* {
+  yield 0;
+  return;
+};
+''');
+    _assertReturnType('() async* {', 'Stream<int>');
+  }
+
+  test_noContext_returnType_asyncStar_blockBody_hasReturn_noYield() async {
+    await resolveTestCode(r'''
+var v = () async* {
+  return;
+};
+''');
+    _assertReturnType('() async* {', 'Stream<dynamic>');
+  }
+
+  test_noContext_returnType_asyncStar_blockBody_lubNum() async {
+    await resolveTestCode(r'''
+var v = () async* {
+  yield 0;
+  yield 1.1;
+};
+''');
+    _assertReturnType('() async* {', 'Stream<num>');
+  }
+
+  test_noContext_returnType_asyncStar_blockBody_lubObject() async {
+    await resolveTestCode(r'''
+var v = () async* {
+  yield 0;
+  yield '';
+};
+''');
+    _assertReturnType('() async* {', 'Stream<Object>');
+  }
+
+  test_noContext_returnType_asyncStar_blockBody_lubWithNull() async {
+    await resolveTestCode(r'''
+var v = () async* {
+  yield 0;
+  yield null;
+};
+''');
+    _assertReturnType('() async* {', 'Stream<int?>');
   }
 
   test_noContext_returnType_sync_blockBody() async {
@@ -875,6 +924,55 @@ var v = () sync* {
     _assertReturnType('() sync* {', 'Iterable<int>');
   }
 
+  test_noContext_returnType_syncStar_blockBody_hasReturn_empty() async {
+    await resolveTestCode(r'''
+var v = () sync* {
+  yield 0;
+  return;
+};
+''');
+    _assertReturnType('() sync* {', 'Iterable<int>');
+  }
+
+  test_noContext_returnType_syncStar_blockBody_hasReturn_noYield() async {
+    await resolveTestCode(r'''
+var v = () sync* {
+  return;
+};
+''');
+    _assertReturnType('() sync* {', 'Iterable<dynamic>');
+  }
+
+  test_noContext_returnType_syncStar_blockBody_lubNum() async {
+    await resolveTestCode(r'''
+var v = () sync* {
+  yield 0;
+  yield 1.1;
+};
+''');
+    _assertReturnType('() sync* {', 'Iterable<num>');
+  }
+
+  test_noContext_returnType_syncStar_blockBody_lubObject() async {
+    await resolveTestCode(r'''
+var v = () sync* {
+  yield 0;
+  yield '';
+};
+''');
+    _assertReturnType('() sync* {', 'Iterable<Object>');
+  }
+
+  test_noContext_returnType_syncStar_blockBody_lubWithNull() async {
+    await resolveTestCode(r'''
+var v = () sync* {
+  yield 0;
+  yield null;
+};
+''');
+    _assertReturnType('() sync* {', 'Iterable<int?>');
+  }
+
   test_targetBoundedByFunctionType_argumentTypeMismatch() async {
     await assertErrorsInCode(
       r'''
@@ -882,7 +980,7 @@ int test<T extends int Function(int)>(T Function() createT) {
   return createT()('');
 }
 ''',
-      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 81, 2)],
+      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 81, 2)],
     );
 
     var node = findNode.functionExpressionInvocation("('')");

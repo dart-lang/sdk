@@ -28,6 +28,7 @@ import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
+import 'package:collection/collection.dart';
 
 class DefiningLinkingUnit extends LinkingUnit {
   DefiningLinkingUnit({required super.node, required super.element});
@@ -154,10 +155,7 @@ class LibraryBuilder {
       if (classElement.isMixinApplication) continue;
       if (classElement.constructors.isNotEmpty) continue;
 
-      var fragment = ConstructorFragmentImpl(
-        name: 'new',
-        firstTokenOffset: null,
-      )..isSynthetic = true;
+      var fragment = ConstructorFragmentImpl(name: 'new')..isSynthetic = true;
       fragment.typeName = classElement.name;
       classElement.firstFragment.constructors = [fragment].toFixedList();
 
@@ -211,7 +209,7 @@ class LibraryBuilder {
   void buildEnumChildren() {
     var typeProvider = element.typeProvider;
     for (var enum_ in implicitEnumNodes.values) {
-      enum_.element.supertype =
+      enum_.element.element.supertype =
           typeProvider.enumType ?? typeProvider.objectType;
       var valuesType = typeProvider.listType(
         element.typeSystem.instantiateInterfaceToBounds(
@@ -238,10 +236,9 @@ class LibraryBuilder {
       if (enumFragment is! EnumFragmentImpl) continue;
       if (hasConstructor(enumFragment)) continue;
 
-      var fragment =
-          ConstructorFragmentImpl(name: 'new', firstTokenOffset: null)
-            ..isConst = true
-            ..isSynthetic = true;
+      var fragment = ConstructorFragmentImpl(name: 'new')
+        ..isConst = true
+        ..isSynthetic = true;
       fragment.typeName = enumFragment.name;
 
       var element = ConstructorElementImpl(
@@ -253,8 +250,10 @@ class LibraryBuilder {
       );
       enumFragment.element.addConstructor(element);
 
-      enumFragment.constructors =
-          [...enumFragment.constructors, fragment].toFixedList();
+      enumFragment.constructors = [
+        ...enumFragment.constructors,
+        fragment,
+      ].toFixedList();
     }
   }
 
@@ -279,7 +278,7 @@ class LibraryBuilder {
             }
           }
           var fragment = declaration.declaredFragment!;
-          fragment.superInvokedNames = names.toList();
+          fragment.superInvokedNames = names.sorted();
         }
       }
     }
@@ -381,16 +380,18 @@ class LibraryBuilder {
     for (var interfaceFragment in element.topLevelElements) {
       switch (interfaceFragment) {
         case ClassFragmentImpl():
-          if (interfaceFragment.element.isDartCoreObject) continue;
-          if (interfaceFragment.supertype == null) {
-            shouldResetClassHierarchies = true;
-            interfaceFragment.supertype = objectType;
+          var element = interfaceFragment.element;
+          if (!element.isDartCoreObject) {
+            if (element.supertype == null) {
+              shouldResetClassHierarchies = true;
+              element.supertype = objectType;
+            }
           }
         case MixinFragmentImpl():
           var element = interfaceFragment.element;
           if (element.superclassConstraints.isEmpty) {
             shouldResetClassHierarchies = true;
-            interfaceFragment.superclassConstraints = [objectType];
+            element.superclassConstraints = [objectType];
           }
       }
     }
@@ -442,27 +443,21 @@ class LibraryBuilder {
     required FileKind kind,
     required LibraryFragmentImpl containerUnit,
   }) {
-    containerUnit.libraryExports =
-        kind.libraryExports.map((state) {
-          return _buildLibraryExport(state);
-        }).toFixedList();
+    containerUnit.libraryExports = kind.libraryExports.map((state) {
+      return _buildLibraryExport(state);
+    }).toFixedList();
 
-    containerUnit.libraryImports =
-        kind.libraryImports.map((state) {
-          return _buildLibraryImport(
-            containerUnit: containerUnit,
-            state: state,
-          );
-        }).toFixedList();
+    containerUnit.libraryImports = kind.libraryImports.map((state) {
+      return _buildLibraryImport(containerUnit: containerUnit, state: state);
+    }).toFixedList();
 
-    containerUnit.parts =
-        kind.partIncludes.map((partState) {
-          return _buildPartInclude(
-            containerLibrary: element,
-            containerUnit: containerUnit,
-            state: partState,
-          );
-        }).toFixedList();
+    containerUnit.parts = kind.partIncludes.map((partState) {
+      return _buildPartInclude(
+        containerLibrary: element,
+        containerUnit: containerUnit,
+        state: partState,
+      );
+    }).toFixedList();
   }
 
   LibraryExportImpl _buildLibraryExport(LibraryExportState state) {
@@ -712,7 +707,10 @@ class LibraryBuilder {
         }
     }
 
-    return PartIncludeImpl(uri: directiveUri);
+    return PartIncludeImpl(
+      partKeywordOffset: state.unlinked.partKeywordOffset,
+      uri: directiveUri,
+    );
   }
 
   /// We want to have stable references for `loadLibrary` function. But we

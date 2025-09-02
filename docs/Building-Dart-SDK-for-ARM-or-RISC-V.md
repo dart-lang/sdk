@@ -21,7 +21,7 @@ $ sudo apt-get install g++-riscv64-linux-gnu    # To target riscv64
 
 ## Android
 
-Follow instructions under ["One-time Setup" under Android](Building-the-Dart-VM-for-Android)
+Follow instructions under ["One-time Setup" under Android](https://github.com/dart-lang/sdk/blob/main/docs/Building-the-Dart-VM-for-Android.md)
 
 # Building
 
@@ -61,8 +61,7 @@ $ ./tools/build.py --mode=release --arch=riscv64 --os=android create_sdk
 You can create Debian packages targeting ARM or RISC-V as follows:
 
 ```
-$ ./tools/linux_dist_support/create_tarball.py
-$ ./tools/linux_dist_support/create_debian_packages.py -a {x64, arm, arm64, riscv64}
+$ ./tools/build.py --mode=release --arch=arm,arm64,riscv64 debian_package
 ```
 
 # Testing

@@ -23,7 +23,9 @@ class C<X extends core::Object? = dynamic> extends core::Object /*hasConstConstr
 static method m<X extends core::Object? = dynamic>(self::m::X% x) → void {}
 static method main() → void {
   #C4;
+  const self::B<core::String> b = #C6;
   core::print((#C6.{self::B::f}{(core::String) → void} as{TypeError,CovarianceCheck} (core::String) → void).{core::Object::runtimeType}{core::Type});
+  const self::C<core::String> c = #C7;
   core::print(#C7.{self::C::f}{dynamic}.{core::Object::runtimeType}{<object>}.{core::Type});
 }
 

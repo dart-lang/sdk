@@ -1,0 +1,9 @@
+package:front_end/main.dart: 50% (3 misses)
+package:front_end/main.dart:3:
+In 'main':
+    if (2 + 2 == 5) {
+          ^   ^^     
+package:front_end/main.dart:4:
+In 'main':
+      print("The inner if is never executed.");
+      ^^^^^

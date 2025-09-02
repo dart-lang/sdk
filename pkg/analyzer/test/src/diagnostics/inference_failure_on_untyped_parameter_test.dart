@@ -46,7 +46,7 @@ void fn(String cb(int x)) => print(cb(7));
       r'''
 void fn(String cb(var x)) => print(cb(7));
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 18, 5)],
+      [error(WarningCode.inferenceFailureOnUntypedParameter, 18, 5)],
     );
   }
 
@@ -61,7 +61,7 @@ void fn({int a = 0}) => print(a);
       r'''
 void fn({var a}) => print(a);
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 9, 5)],
+      [error(WarningCode.inferenceFailureOnUntypedParameter, 9, 5)],
     );
   }
 
@@ -76,7 +76,7 @@ void fn({var a}) {}
       r'''
 void fn(a) => print(a);
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 8, 1)],
+      [error(WarningCode.inferenceFailureOnUntypedParameter, 8, 1)],
     );
   }
 
@@ -89,7 +89,7 @@ class C {
   }
 }
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 14, 5)],
+      [error(WarningCode.inferenceFailureOnUntypedParameter, 14, 5)],
     );
   }
 
@@ -122,7 +122,7 @@ class C {
   C(var a) : assert(a != null);
 }
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 14, 5)],
+      [error(WarningCode.inferenceFailureOnUntypedParameter, 14, 5)],
     );
   }
 
@@ -150,8 +150,8 @@ void fn() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
-        error(WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 23, 5),
+        error(WarningCode.unusedLocalVariable, 18, 1),
+        error(WarningCode.inferenceFailureOnUntypedParameter, 23, 5),
       ],
     );
   }
@@ -193,7 +193,7 @@ class C {
   void fn(var a) => print(a);
 }
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 20, 5)],
+      [error(WarningCode.inferenceFailureOnUntypedParameter, 20, 5)],
     );
   }
 
@@ -204,7 +204,7 @@ abstract class C {
   void fn(var a);
 }
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 29, 5)],
+      [error(WarningCode.inferenceFailureOnUntypedParameter, 29, 5)],
     );
   }
 
@@ -286,7 +286,7 @@ class D extends C {
       r'''
 typedef void cb(a);
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 16, 1)],
+      [error(WarningCode.inferenceFailureOnUntypedParameter, 16, 1)],
     );
   }
 
@@ -301,7 +301,7 @@ typedef cb = void Function(int a);
       r'''
 void fn(a) => print(a);
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 8, 1)],
+      [error(WarningCode.inferenceFailureOnUntypedParameter, 8, 1)],
     );
   }
 
@@ -322,7 +322,7 @@ void fn([int a = 7]) => print(a);
       r'''
 void fn(var a) => print(a);
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 8, 5)],
+      [error(WarningCode.inferenceFailureOnUntypedParameter, 8, 5)],
     );
   }
 
@@ -331,7 +331,7 @@ void fn(var a) => print(a);
       r'''
 void fn([var a = 7]) => print(a);
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER, 9, 5)],
+      [error(WarningCode.inferenceFailureOnUntypedParameter, 9, 5)],
     );
   }
 }

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
@@ -39,7 +40,7 @@ class AvoidWebLibrariesInFlutter extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoid_web_libraries_in_flutter;
+      LinterLintCode.avoidWebLibrariesInFlutter;
 
   bool hasFlutterDep(File? pubspec) {
     if (pubspec == null) {
@@ -73,7 +74,10 @@ class AvoidWebLibrariesInFlutter extends LintRule {
   }
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     bool hasFlutter(String root) {
       var hasFlutter = _rootHasFlutterCache[root];
       if (hasFlutter == null) {

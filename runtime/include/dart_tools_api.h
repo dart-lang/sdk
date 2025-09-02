@@ -535,14 +535,14 @@ Dart_IsolateGroupHeapNewExternalMetric(Dart_IsolateGroup group);  // Byte
  */
 
 /*
- * Gets the current isolate's currently set UserTag instance.
+ * Gets the current Dart thread's currently set UserTag instance.
  *
  * \return The currently set UserTag instance.
  */
 DART_EXPORT Dart_Handle Dart_GetCurrentUserTag();
 
 /*
- * Gets the current isolate's default UserTag instance.
+ * Gets the current Dart thread's default UserTag instance.
  *
  * \return The default UserTag with label 'Default'
  */
@@ -558,7 +558,7 @@ DART_EXPORT Dart_Handle Dart_GetDefaultUserTag();
 DART_EXPORT Dart_Handle Dart_NewUserTag(const char* label);
 
 /*
- * Updates the current isolate's UserTag to a new value.
+ * Updates the current Dart thread's UserTag to a new value.
  *
  * \param user_tag The UserTag to be set as the current UserTag.
  *

@@ -15,8 +15,11 @@ import 'dill_member_builder.dart';
 abstract class DillExtensionMemberBuilder extends DillMemberBuilder {
   final ExtensionMemberDescriptor _descriptor;
 
-  DillExtensionMemberBuilder(this._descriptor, super.libraryBuilder,
-      DillExtensionBuilder super.declarationBuilder);
+  DillExtensionMemberBuilder(
+    this._descriptor,
+    super.libraryBuilder,
+    DillExtensionBuilder super.declarationBuilder,
+  );
 
   @override
   bool get isStatic => _descriptor.isStatic;
@@ -31,8 +34,12 @@ class DillExtensionFieldBuilder extends DillExtensionMemberBuilder
     implements PropertyBuilder {
   final Field _field;
 
-  DillExtensionFieldBuilder(this._field, super.descriptor, super.libraryBuilder,
-      super.declarationBuilder);
+  DillExtensionFieldBuilder(
+    this._field,
+    super.descriptor,
+    super.libraryBuilder,
+    super.declarationBuilder,
+  );
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -65,8 +72,10 @@ class DillExtensionFieldBuilder extends DillExtensionMemberBuilder
 
   @override
   // Coverage-ignore(suite): Not run.
-  Iterable<Reference> get exportedMemberReferences =>
-      [_field.getterReference, if (_field.hasSetter) _field.setterReference!];
+  Iterable<Reference> get exportedMemberReferences => [
+    _field.getterReference,
+    if (_field.hasSetter) _field.setterReference!,
+  ];
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -101,9 +110,12 @@ class DillExtensionSetterBuilder extends DillExtensionMemberBuilder
     implements PropertyBuilder {
   final Procedure procedure;
 
-  DillExtensionSetterBuilder(this.procedure, super.descriptor,
-      super.libraryBuilder, super.declarationBuilder)
-      : assert(descriptor.kind == ExtensionMemberKind.Setter);
+  DillExtensionSetterBuilder(
+    this.procedure,
+    super.descriptor,
+    super.libraryBuilder,
+    super.declarationBuilder,
+  ) : assert(descriptor.kind == ExtensionMemberKind.Setter);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -142,9 +154,12 @@ class DillExtensionGetterBuilder extends DillExtensionMemberBuilder
     implements PropertyBuilder {
   final Procedure _procedure;
 
-  DillExtensionGetterBuilder(this._procedure, super.descriptor,
-      super.libraryBuilder, super.declarationBuilder)
-      : assert(descriptor.kind == ExtensionMemberKind.Getter);
+  DillExtensionGetterBuilder(
+    this._procedure,
+    super.descriptor,
+    super.libraryBuilder,
+    super.declarationBuilder,
+  ) : assert(descriptor.kind == ExtensionMemberKind.Getter);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -190,9 +205,12 @@ class DillExtensionOperatorBuilder extends DillExtensionMemberBuilder
     implements MethodBuilder {
   final Procedure _procedure;
 
-  DillExtensionOperatorBuilder(this._procedure, super.descriptor,
-      super.libraryBuilder, super.declarationBuilder)
-      : assert(descriptor.kind == ExtensionMemberKind.Operator);
+  DillExtensionOperatorBuilder(
+    this._procedure,
+    super.descriptor,
+    super.libraryBuilder,
+    super.declarationBuilder,
+  ) : assert(descriptor.kind == ExtensionMemberKind.Operator);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -215,8 +233,11 @@ class DillExtensionOperatorBuilder extends DillExtensionMemberBuilder
 
   @override
   // Coverage-ignore(suite): Not run.
-  UriOffsetLength get uriOffset => new UriOffsetLength(fileUri, fileOffset,
-      _descriptor.name == unaryMinusName ? 1 : _descriptor.name.text.length);
+  UriOffsetLength get uriOffset => new UriOffsetLength(
+    fileUri,
+    fileOffset,
+    _descriptor.name == unaryMinusName ? 1 : _descriptor.name.text.length,
+  );
 }
 
 class DillExtensionStaticMethodBuilder extends DillExtensionMemberBuilder
@@ -224,10 +245,13 @@ class DillExtensionStaticMethodBuilder extends DillExtensionMemberBuilder
     implements MethodBuilder {
   final Procedure _procedure;
 
-  DillExtensionStaticMethodBuilder(this._procedure, super.descriptor,
-      super.libraryBuilder, super.declarationBuilder)
-      : assert(descriptor.kind == ExtensionMemberKind.Method),
-        assert(descriptor.isStatic);
+  DillExtensionStaticMethodBuilder(
+    this._procedure,
+    super.descriptor,
+    super.libraryBuilder,
+    super.declarationBuilder,
+  ) : assert(descriptor.kind == ExtensionMemberKind.Method),
+      assert(descriptor.isStatic);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -268,10 +292,14 @@ class DillExtensionInstanceMethodBuilder extends DillExtensionMemberBuilder
 
   final Procedure _extensionTearOff;
 
-  DillExtensionInstanceMethodBuilder(this._procedure, super.descriptor,
-      super.libraryBuilder, super.declarationBuilder, this._extensionTearOff)
-      : assert(descriptor.kind == ExtensionMemberKind.Method),
-        assert(!descriptor.isStatic);
+  DillExtensionInstanceMethodBuilder(
+    this._procedure,
+    super.descriptor,
+    super.libraryBuilder,
+    super.declarationBuilder,
+    this._extensionTearOff,
+  ) : assert(descriptor.kind == ExtensionMemberKind.Method),
+      assert(!descriptor.isStatic);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -283,8 +311,10 @@ class DillExtensionInstanceMethodBuilder extends DillExtensionMemberBuilder
 
   @override
   // Coverage-ignore(suite): Not run.
-  Iterable<Reference> get exportedMemberReferences =>
-      [_procedure.reference, _extensionTearOff.reference];
+  Iterable<Reference> get exportedMemberReferences => [
+    _procedure.reference,
+    _extensionTearOff.reference,
+  ];
 
   @override
   Member get readTarget => _extensionTearOff;

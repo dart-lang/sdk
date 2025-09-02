@@ -2,12 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+int counter = 1;
+
+void reset() {
+  counter = 1;
+}
+
+int t(int value) {
+  if (counter != value) {
+    throw 'Expected $counter, actual $value';
+  }
+  counter++;
+  return value;
+}
+
 class A {
   A(int x, int y, {required int z});
 
   factory A.foo(int x, int y, {required int z}) => new A(x, y, z: z);
 
-  void Function(int x, int y, {required int z}) get property => throw 42;
+  void Function(int x, int y, {required int z}) get property =>
+          (int x, int y, {required int z}) {};
 
   void bar(int x, int y, {required int z}) {}
 }
@@ -16,11 +31,15 @@ typedef B = A;
 
 foo(int x, int y, {required int z}) {}
 
-extension E on A {
+extension E on int {
   method1() {
-    method2(foo: 1, 2); // This call.
-    staticMethod2(foo: 1, 2);
+    reset();
+    method2(foo: t(1), t(2)); // This call.
+
+    reset();
+    staticMethod2(foo: t(1), t(2));
   }
+
   method2(int bar, {int? foo}) {}
 
   static staticMethod2(int bar, {int? foo}) {}
@@ -30,69 +49,126 @@ test(dynamic d, Function f, A a) {
   void local(int x, int y, {required int z}) {}
 
   // StaticInvocation.
-  foo(1, 2, z: 3);
-  foo(1, z: 2, 3);
-  foo(z: 1, 2, 3);
+  reset();
+  foo(t(1), t(2), z: t(3));
+  reset();
+  foo(t(1), z: t(2), t(3));
+  reset();
+  foo(z: t(1), t(2), t(3));
 
   // FactoryConstructorInvocation.
-  new A.foo(1, 2, z: 3);
-  new A.foo(1, z: 2, 3);
-  new A.foo(z: 1, 2, 3);
-  new B.foo(1, 2, z: 3);
-  new B.foo(1, z: 2, 3);
-  new B.foo(z: 1, 2, 3);
+  reset();
+  new A.foo(t(1), t(2), z: t(3));
+  reset();
+  new A.foo(t(1), z: t(2), t(3));
+  reset();
+  new A.foo(z: t(1), t(2), t(3));
+  reset();
+  new B.foo(t(1), t(2), z: t(3));
+  reset();
+  new B.foo(t(1), z: t(2), t(3));
+  reset();
+  new B.foo(z: t(1), t(2), t(3));
 
   // ConstructorInvocation.
-  new A(1, 2, z: 3);
-  new A(1, z: 2, 3);
-  new A(z: 1, 2, 3);
-  new B(1, 2, z: 3);
-  new B(1, z: 2, 3);
-  new B(z: 1, 2, 3);
+  reset();
+  new A(t(1), t(2), z: t(3));
+  reset();
+  new A(t(1), z: t(2), t(3));
+  reset();
+  new A(z: t(1), t(2), t(3));
+  reset();
+  new B(t(1), t(2), z: t(3));
+  reset();
+  new B(t(1), z: t(2), t(3));
+  reset();
+  new B(z: t(1), t(2), t(3));
 
   // DynamicInvocation.
-  d(1, 2, z: 3);
-  d(1, z: 2, 3);
-  d(z: 1, 2, 3);
+  reset();
+  d(t(1), t(2), z: t(3));
+  reset();
+  d(t(1), z: t(2), t(3));
+  reset();
+  d(z: t(1), t(2), t(3));
 
   // FunctionInvocation.
-  f(1, 2, z: 3);
-  f(1, z: 2, 3);
-  f(z: 1, 2, 3);
+  reset();
+  f(t(1), t(2), z: t(3));
+  reset();
+  f(t(1), z: t(2), t(3));
+  reset();
+  f(z: t(1), t(2), t(3));
 
   // InstanceGetterInvocation.
-  a.property(1, 2, z: 3);
-  a.property(1, z: 2, 3);
-  a.property(z: 1, 2, 3);
+  reset();
+  a.property(t(1), t(2), z: t(3));
+  reset();
+  a.property(t(1), z: t(2), t(3));
+  reset();
+  a.property(z: t(1), t(2), t(3));
 
   // InstanceInvocation.
-  a.bar(1, 2, z: 3);
-  a.bar(1, z: 2, 3);
-  a.bar(z: 1, 2, 3);
+  reset();
+  a.bar(t(1), t(2), z: t(3));
+  reset();
+  a.bar(t(1), z: t(2), t(3));
+  reset();
+  a.bar(z: t(1), t(2), t(3));
 
   // LocalFunctionInvocation.
-  local(1, 2, z: 3);
-  local(1, z: 2, 3);
-  local(z: 1, 2, 3);
+  reset();
+  local(t(1), t(2), z: t(3));
+  reset();
+  local(t(1), z: t(2), t(3));
+  reset();
+  local(z: t(1), t(2), t(3));
 
   // Implicit extension instance call.
-  a.method2(foo: 1, 2);
+  reset();
+  t(1).method2(foo: t(2), t(3));
+  reset();
+  t(1).method2(t(2), foo: t(3));
 
   // Explicit extension instance call.
-  E(a).method2(foo: 1, 2);
+  reset();
+  E(t(1)).method2(foo: t(2), t(3));
+  reset();
+  E(t(1)).method2(t(2), foo: t(3));
 
   // Explicit extension static call.
-  E.staticMethod2(foo: 1, 2);
+  reset();
+  E.staticMethod2(foo: t(1), t(2));
+  reset();
+  E.staticMethod2(t(1), foo: t(2));
 }
 
 class Test extends A {
-  Test() : super(1, 2, z: 3);
+  Test() : super(t(1), t(2), z: t(3));
+  Test.c1() : super(t(1), z: t(2), t(3));
+  Test.c2() : super(z: t(1), t(2), t(3));
 
   test() {
-    super.bar(1, 2, z: 3);
-    super.bar(1, z: 2, 3);
-    super.bar(z: 1, 2, 3);
+    reset();
+    super.bar(t(1), t(2), z: t(3));
+    reset();
+    super.bar(t(1), z: t(2), t(3));
+    reset();
+    super.bar(z: t(1), t(2), t(3));
   }
 }
 
-main() {}
+main() {
+  reset();
+  Test().test();
+
+  reset();
+  Test.c1();
+  reset();
+  Test.c2();
+
+  var a = A(-1, -1, z: -1);
+  var f = (int x, int y, {required int z}) {};
+  test(f, f, a);
+  0.method1();
+}

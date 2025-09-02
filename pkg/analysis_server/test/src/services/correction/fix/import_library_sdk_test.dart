@@ -13,6 +13,7 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImportLibrarySdkPrefixedTest);
     defineReflectiveTests(ImportLibrarySdkPrefixedWithShowTest);
+    defineReflectiveTests(ImportLibrarySdkPriorityTest);
     defineReflectiveTests(ImportLibrarySdkTest);
     defineReflectiveTests(ImportLibrarySdkWithShowTest);
   });
@@ -61,6 +62,43 @@ void f() {
   print('\$c');
 }
 ''');
+  }
+}
+
+@reflectiveTest
+class ImportLibrarySdkPriorityTest extends FixPriorityTest {
+  Future<void> test_sdksFirst_prefixed() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+int max(int a) => a;
+''');
+    await resolveTestCode('''
+import 'lib.dart' as lib;
+
+void f() {
+  math.max();
+}
+''');
+    await assertFixPriorityOrder([
+      DartFixKind.IMPORT_LIBRARY_SDK_PREFIXED,
+      DartFixKind.IMPORT_LIBRARY_SDK_PREFIXED_SHOW,
+      DartFixKind.IMPORT_LIBRARY_PREFIX,
+    ]);
+  }
+
+  Future<void> test_sdksFirst_project1() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+int max(int a) => a;
+''');
+    await resolveTestCode('''
+void f() {
+  max();
+}
+''');
+    await assertFixPriorityOrder([
+      DartFixKind.IMPORT_LIBRARY_SDK,
+      DartFixKind.IMPORT_LIBRARY_SDK_SHOW,
+      DartFixKind.IMPORT_LIBRARY_PROJECT1,
+    ]);
   }
 }
 
@@ -269,8 +307,7 @@ class MyAnnotation {
 void f() {}
 ''',
       errorFilter: (error) {
-        return error.diagnosticCode ==
-            CompileTimeErrorCode.UNDEFINED_IDENTIFIER;
+        return error.diagnosticCode == CompileTimeErrorCode.undefinedIdentifier;
       },
     );
   }

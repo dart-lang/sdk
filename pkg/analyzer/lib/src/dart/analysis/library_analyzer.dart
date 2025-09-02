@@ -9,6 +9,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/file_source.dart';
+import 'package:analyzer/src/analysis_rule/rule_context.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/file_analysis.dart';
@@ -49,7 +50,6 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/hint/sdk_constraint_verifier.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/lint/analysis_rule_timers.dart';
-import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/version.dart';
@@ -157,8 +157,8 @@ class LibraryAnalyzer {
     return performance.run('resolve', (performance) {
       TypeConstraintGenerationDataForTesting? inferenceDataForTesting =
           _testingData != null
-              ? TypeConstraintGenerationDataForTesting()
-              : null;
+          ? TypeConstraintGenerationDataForTesting()
+          : null;
 
       // TODO(scheglov): We don't need to do this for the whole unit.
       parsedUnit.accept(
@@ -282,7 +282,7 @@ class LibraryAnalyzer {
             if (shouldReport) {
               libraryUnitAnalysis.diagnosticReporter.atNode(
                 directive.uri,
-                CompileTimeErrorCode.INCONSISTENT_LANGUAGE_VERSION_OVERRIDE,
+                CompileTimeErrorCode.inconsistentLanguageVersionOverride,
               );
             }
           }
@@ -366,9 +366,10 @@ class LibraryAnalyzer {
 
     // This must happen after all other diagnostics have been computed but
     // before the list of diagnostics has been filtered.
-    for (var fileAnalysis in _libraryFiles.values
-    // Only validate non-generated files.
-    .whereNot((f) => f.file.source.isGenerated)) {
+    for (var fileAnalysis
+        in _libraryFiles.values
+        // Only validate non-generated files.
+        .whereNot((f) => f.file.source.isGenerated)) {
       IgnoreValidator(
         fileAnalysis.diagnosticReporter,
         fileAnalysis.diagnosticListener.diagnostics,
@@ -414,8 +415,9 @@ class LibraryAnalyzer {
     );
 
     for (var linter in _analysisOptions.lintRules) {
-      var timer =
-          _enableLintRuleTiming ? analysisRuleTimers.getTimer(linter) : null;
+      var timer = _enableLintRuleTiming
+          ? analysisRuleTimers.getTimer(linter)
+          : null;
       timer?.start();
       linter.registerNodeProcessors(nodeRegistry, context);
       timer?.stop();
@@ -547,8 +549,9 @@ class LibraryAnalyzer {
     // the SDK constraints specified in analysis options.
     //
     var package = fileAnalysis.file.workspacePackage;
-    var sdkVersionConstraint =
-        (package is PubPackage) ? package.sdkVersionConstraint : null;
+    var sdkVersionConstraint = (package is PubPackage)
+        ? package.sdkVersionConstraint
+        : null;
     if (sdkVersionConstraint != null) {
       SdkConstraintVerifier verifier = SdkConstraintVerifier(
         diagnosticReporter,
@@ -609,29 +612,28 @@ class LibraryAnalyzer {
   }
 
   bool _hasDiagnosticReportedThatPreventsImportWarnings() {
-    var errorCodes =
-        _libraryFiles.values.map((analysis) {
-          return analysis.diagnosticListener.diagnostics.map(
-            (e) => e.diagnosticCode,
-          );
-        }).flattenedToSet;
+    var errorCodes = _libraryFiles.values.map((analysis) {
+      return analysis.diagnosticListener.diagnostics.map(
+        (e) => e.diagnosticCode,
+      );
+    }).flattenedToSet;
 
     for (var errorCode in errorCodes) {
       if (const {
-        CompileTimeErrorCode.AMBIGUOUS_IMPORT,
-        CompileTimeErrorCode.CONST_WITH_NON_TYPE,
-        CompileTimeErrorCode.EXTENDS_NON_CLASS,
-        CompileTimeErrorCode.IMPLEMENTS_NON_CLASS,
-        CompileTimeErrorCode.MIXIN_OF_NON_CLASS,
-        CompileTimeErrorCode.NEW_WITH_NON_TYPE,
-        CompileTimeErrorCode.NOT_A_TYPE,
-        CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
-        CompileTimeErrorCode.UNDEFINED_ANNOTATION,
-        CompileTimeErrorCode.UNDEFINED_CLASS,
-        CompileTimeErrorCode.UNDEFINED_FUNCTION,
-        CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
-        CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME,
-        WarningCode.DEPRECATED_EXPORT_USE,
+        CompileTimeErrorCode.ambiguousImport,
+        CompileTimeErrorCode.constWithNonType,
+        CompileTimeErrorCode.extendsNonClass,
+        CompileTimeErrorCode.implementsNonClass,
+        CompileTimeErrorCode.mixinOfNonClass,
+        CompileTimeErrorCode.newWithNonType,
+        CompileTimeErrorCode.notAType,
+        CompileTimeErrorCode.prefixIdentifierNotFollowedByDot,
+        CompileTimeErrorCode.undefinedAnnotation,
+        CompileTimeErrorCode.undefinedClass,
+        CompileTimeErrorCode.undefinedFunction,
+        CompileTimeErrorCode.undefinedIdentifier,
+        CompileTimeErrorCode.undefinedPrefixedName,
+        WarningCode.deprecatedExportUse,
       }.contains(errorCode)) {
         return true;
       }
@@ -696,25 +698,23 @@ class LibraryAnalyzer {
       if (selectedUriStr.startsWith('dart-ext:')) {
         diagnosticReporter.atNode(
           directive.uri,
-          CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION,
+          CompileTimeErrorCode.useOfNativeExtension,
         );
       } else if (state.importedSource == null) {
-        var errorCode =
-            state.isDocImport
-                ? WarningCode.URI_DOES_NOT_EXIST_IN_DOC_IMPORT
-                : CompileTimeErrorCode.URI_DOES_NOT_EXIST;
+        var errorCode = state.isDocImport
+            ? WarningCode.uriDoesNotExistInDocImport
+            : CompileTimeErrorCode.uriDoesNotExist;
         diagnosticReporter.atNode(
           directive.uri,
           errorCode,
           arguments: [selectedUriStr],
         );
       } else if (state is LibraryImportWithFile && !state.importedFile.exists) {
-        var errorCode =
-            state.isDocImport
-                ? WarningCode.URI_DOES_NOT_EXIST_IN_DOC_IMPORT
-                : state.importedSource.isGenerated
-                ? CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED
-                : CompileTimeErrorCode.URI_DOES_NOT_EXIST;
+        var errorCode = state.isDocImport
+            ? WarningCode.uriDoesNotExistInDocImport
+            : state.importedSource.isGenerated
+            ? CompileTimeErrorCode.uriHasNotBeenGenerated
+            : CompileTimeErrorCode.uriDoesNotExist;
         diagnosticReporter.atNode(
           directive.uri,
           errorCode,
@@ -723,20 +723,20 @@ class LibraryAnalyzer {
       } else if (state.importedLibrarySource == null) {
         diagnosticReporter.atNode(
           directive.uri,
-          CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,
+          CompileTimeErrorCode.importOfNonLibrary,
           arguments: [selectedUriStr],
         );
       }
     } else if (state is LibraryImportWithUriStr) {
       diagnosticReporter.atNode(
         directive.uri,
-        CompileTimeErrorCode.INVALID_URI,
+        CompileTimeErrorCode.invalidUri,
         arguments: [state.selectedUri.relativeUriStr],
       );
     } else {
       diagnosticReporter.atNode(
         directive.uri,
-        CompileTimeErrorCode.URI_WITH_INTERPOLATION,
+        CompileTimeErrorCode.uriWithInterpolation,
       );
     }
   }
@@ -790,12 +790,11 @@ class LibraryAnalyzer {
       }
     }
 
-    var docImports =
-        containerUnit.directives
-            .whereType<LibraryDirective>()
-            .firstOrNull
-            ?.documentationComment
-            ?.docImports;
+    var docImports = containerUnit.directives
+        .whereType<LibraryDirective>()
+        .firstOrNull
+        ?.documentationComment
+        ?.docImports;
     if (docImports != null) {
       for (var i = 0; i < docImports.length; i++) {
         _resolveLibraryDocImportDirective(
@@ -920,19 +919,18 @@ class LibraryAnalyzer {
       if (selectedUriStr.startsWith('dart-ext:')) {
         diagnosticReporter.atNode(
           directive.uri,
-          CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION,
+          CompileTimeErrorCode.useOfNativeExtension,
         );
       } else if (state.exportedSource == null) {
         diagnosticReporter.atNode(
           directive.uri,
-          CompileTimeErrorCode.URI_DOES_NOT_EXIST,
+          CompileTimeErrorCode.uriDoesNotExist,
           arguments: [selectedUriStr],
         );
       } else if (state is LibraryExportWithFile && !state.exportedFile.exists) {
-        var errorCode =
-            isGeneratedSource(state.exportedSource)
-                ? CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED
-                : CompileTimeErrorCode.URI_DOES_NOT_EXIST;
+        var errorCode = isGeneratedSource(state.exportedSource)
+            ? CompileTimeErrorCode.uriHasNotBeenGenerated
+            : CompileTimeErrorCode.uriDoesNotExist;
         diagnosticReporter.atNode(
           directive.uri,
           errorCode,
@@ -941,20 +939,20 @@ class LibraryAnalyzer {
       } else if (state.exportedLibrarySource == null) {
         diagnosticReporter.atNode(
           directive.uri,
-          CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
+          CompileTimeErrorCode.exportOfNonLibrary,
           arguments: [selectedUriStr],
         );
       }
     } else if (state is LibraryExportWithUriStr) {
       diagnosticReporter.atNode(
         directive.uri,
-        CompileTimeErrorCode.INVALID_URI,
+        CompileTimeErrorCode.invalidUri,
         arguments: [state.selectedUri.relativeUriStr],
       );
     } else {
       diagnosticReporter.atNode(
         directive.uri,
-        CompileTimeErrorCode.URI_WITH_INTERPOLATION,
+        CompileTimeErrorCode.uriWithInterpolation,
       );
     }
   }
@@ -1001,13 +999,13 @@ class LibraryAnalyzer {
     }
 
     if (partState is! PartIncludeWithUriStr) {
-      reportOnDirectiveUri(CompileTimeErrorCode.URI_WITH_INTERPOLATION);
+      reportOnDirectiveUri(CompileTimeErrorCode.uriWithInterpolation);
       return;
     }
 
     if (partState is! PartIncludeWithUri) {
       reportOnDirectiveUri(
-        CompileTimeErrorCode.INVALID_URI,
+        CompileTimeErrorCode.invalidUri,
         arguments: [partState.selectedUri.relativeUriStr],
       );
       return;
@@ -1015,7 +1013,7 @@ class LibraryAnalyzer {
 
     if (partState is! PartIncludeWithFile) {
       reportOnDirectiveUri(
-        CompileTimeErrorCode.URI_DOES_NOT_EXIST,
+        CompileTimeErrorCode.uriDoesNotExist,
         arguments: [partState.selectedUri.relativeUriStr],
       );
       return;
@@ -1027,11 +1025,11 @@ class LibraryAnalyzer {
     if (includedKind is! PartFileKind) {
       DiagnosticCode diagnosticCode;
       if (includedFile.exists) {
-        diagnosticCode = CompileTimeErrorCode.PART_OF_NON_PART;
+        diagnosticCode = CompileTimeErrorCode.partOfNonPart;
       } else if (isGeneratedSource(includedFile.source)) {
-        diagnosticCode = CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED;
+        diagnosticCode = CompileTimeErrorCode.uriHasNotBeenGenerated;
       } else {
-        diagnosticCode = CompileTimeErrorCode.URI_DOES_NOT_EXIST;
+        diagnosticCode = CompileTimeErrorCode.uriDoesNotExist;
       }
       reportOnDirectiveUri(diagnosticCode, arguments: [includedFile.uriStr]);
       return;
@@ -1042,7 +1040,7 @@ class LibraryAnalyzer {
     //
     if (_libraryFiles.containsKey(includedFile)) {
       reportOnDirectiveUri(
-        CompileTimeErrorCode.DUPLICATE_PART,
+        CompileTimeErrorCode.duplicatePart,
         arguments: [includedFile.uri],
       );
       return;
@@ -1057,19 +1055,19 @@ class LibraryAnalyzer {
             var libraryName = _libraryElement.name;
             if (libraryName.isEmpty) {
               reportOnDirectiveUri(
-                CompileTimeErrorCode.PART_OF_UNNAMED_LIBRARY,
+                CompileTimeErrorCode.partOfUnnamedLibrary,
                 arguments: [name],
               );
             } else {
               reportOnDirectiveUri(
-                CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY,
+                CompileTimeErrorCode.partOfDifferentLibrary,
                 arguments: [libraryName, name],
               );
             }
           }
         case PartOfUriFileKind():
           reportOnDirectiveUri(
-            CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY,
+            CompileTimeErrorCode.partOfDifferentLibrary,
             arguments: [enclosingFile.file.uriStr, includedFile.uriStr],
           );
       }

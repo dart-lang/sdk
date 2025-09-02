@@ -5,13 +5,15 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_testing/package_root.dart' as pkg_root;
+import 'package:analyzer_utilities/tools.dart';
 import 'package:path/path.dart';
 import 'package:yaml/yaml.dart' show loadYaml;
 
 const codesFile = GeneratedErrorCodeFile(
   path: 'analyzer/lib/src/error/codes.g.dart',
-  preferredImportUri: 'package:analyzer/src/error/codes.dart',
+  parentLibrary: 'package:analyzer/src/error/codes.dart',
 );
 
 /// Information about all the classes derived from `DiagnosticCode` that are
@@ -64,6 +66,9 @@ const List<ErrorClassInfo> errorClasses = [
     type: 'SYNTACTIC_ERROR',
     severity: 'ERROR',
     includeCfeMessages: true,
+    deprecatedSnakeCaseNames: {
+      'UNEXPECTED_TOKEN', // Referenced by `package:dart_style`.
+    },
   ),
   ErrorClassInfo(
     file: manifestWarningCodeFile,
@@ -77,44 +82,93 @@ const List<ErrorClassInfo> errorClasses = [
     type: 'STATIC_WARNING',
     severity: 'WARNING',
   ),
+  ErrorClassInfo(
+    file: todoCodesFile,
+    name: 'TodoCode',
+    type: 'TODO',
+    severity: 'INFO',
+    comment: '''
+The error code indicating a marker in code for work that needs to be finished
+or revisited.
+''',
+  ),
+  ErrorClassInfo(
+    file: transformSetErrorCodeFile,
+    name: 'TransformSetErrorCode',
+    type: 'COMPILE_TIME_ERROR',
+    severity: 'ERROR',
+    includeInDiagnosticCodeValues: false,
+    comment: '''
+An error code representing a problem in a file containing an encoding of a
+transform set.
+''',
+  ),
 ];
 
 const ffiCodesFile = GeneratedErrorCodeFile(
   path: 'analyzer/lib/src/dart/error/ffi_code.g.dart',
-  preferredImportUri: 'package:analyzer/src/dart/error/ffi_code.dart',
+  parentLibrary: 'package:analyzer/src/dart/error/ffi_code.dart',
 );
 
 const hintCodesFile = GeneratedErrorCodeFile(
   path: 'analyzer/lib/src/dart/error/hint_codes.g.dart',
-  preferredImportUri: 'package:analyzer/src/dart/error/hint_codes.dart',
+  parentLibrary: 'package:analyzer/src/dart/error/hint_codes.dart',
 );
+
+/// If `true`, the new literate API should be generated.
+///
+/// This flag exists as a temporary measure, so that the literate API generation
+/// logic can be introduced in steps:
+/// - First, the logic to generate templates is introduced, but disabled; it can
+///   be easily verified that this change is safe because it doesn't change the
+///   generated code.
+/// - Then, this constant is turned on, causing templates to be generated;
+///   although this causes a lot of generated code to change, it can be verified
+///   that this change is safe by inspecting the code that refers to this
+///   constant.
+/// - Then, this constant is inlined.
+const literateApiEnabled = true;
 
 const manifestWarningCodeFile = GeneratedErrorCodeFile(
   path: 'analyzer/lib/src/manifest/manifest_warning_code.g.dart',
-  preferredImportUri:
-      'package:analyzer/src/manifest/manifest_warning_code.dart',
+  parentLibrary: 'package:analyzer/src/manifest/manifest_warning_code.dart',
 );
 
 const optionCodesFile = GeneratedErrorCodeFile(
   path: 'analyzer/lib/src/analysis_options/error/option_codes.g.dart',
-  preferredImportUri:
+  parentLibrary:
       'package:analyzer/src/analysis_options/error/option_codes.dart',
 );
 
 const pubspecWarningCodeFile = GeneratedErrorCodeFile(
   path: 'analyzer/lib/src/pubspec/pubspec_warning_code.g.dart',
-  preferredImportUri: 'package:analyzer/src/pubspec/pubspec_warning_code.dart',
+  parentLibrary: 'package:analyzer/src/pubspec/pubspec_warning_code.dart',
 );
 
 const scannerErrorFile = GeneratedErrorCodeFile(
   path: '_fe_analyzer_shared/lib/src/scanner/errors.g.dart',
-  preferredImportUri: 'package:_fe_analyzer_shared/src/scanner/errors.dart',
-  shouldUseExplicitConst: true,
+  parentLibrary: 'package:_fe_analyzer_shared/src/scanner/errors.dart',
+  shouldUseExplicitNewOrConst: true,
 );
 
 const syntacticErrorsFile = GeneratedErrorCodeFile(
   path: 'analyzer/lib/src/dart/error/syntactic_errors.g.dart',
-  preferredImportUri: 'package:analyzer/src/dart/error/syntactic_errors.dart',
+  parentLibrary: 'package:analyzer/src/dart/error/syntactic_errors.dart',
+);
+
+const todoCodesFile = GeneratedErrorCodeFile(
+  path: 'analyzer/lib/src/dart/error/todo_codes.g.dart',
+  parentLibrary: 'package:analyzer/src/dart/error/todo_codes.dart',
+);
+
+const transformSetErrorCodeFile = GeneratedErrorCodeFile(
+  path:
+      'analysis_server/lib/src/services/correction/fix/data_driven/'
+      'transform_set_error_code.g.dart',
+  parentLibrary:
+      'package:analysis_server/src/services/correction/fix/data_driven/'
+      'transform_set_error_code.dart',
+  shouldIgnorePreferSingleQuotes: true,
 );
 
 /// Decoded messages from the analyzer's `messages.yaml` file.
@@ -146,19 +200,26 @@ final String linterPkgPath = normalize(join(pkg_root.packageRoot, 'linter'));
 final Map<String, Map<String, AnalyzerErrorCodeInfo>> lintMessages =
     _loadLintMessages();
 
-/// Pattern used by the front end to identify placeholders in error message
-/// strings.
+/// Pattern formerly used by the analyzer to identify placeholders in error
+/// message strings.
+///
+/// (This pattern is still used internally by the analyzer implementation, but
+/// it is no longer supported in `messages.yaml`.)
+final RegExp oldPlaceholderPattern = RegExp(r'\{\d+\}');
+
+/// Pattern for placeholders in error message strings.
 // TODO(paulberry): share this regexp (and the code for interpreting
 // it) between the CFE and analyzer.
-final RegExp _placeholderPattern = RegExp(
+final RegExp placeholderPattern = RegExp(
   '#([-a-zA-Z0-9_]+)(?:%([0-9]*).([0-9]+))?',
 );
 
-/// Convert a CFE template string (which uses placeholders like `#string`) to
-/// an analyzer template string (which uses placeholders like `{0}`).
+/// Convert a template string (which uses placeholders matching
+/// [placeholderPattern]) to an analyzer internal template string (which uses
+/// placeholders like `{0}`).
 String convertTemplate(Map<String, int> placeholderToIndexMap, String entry) {
   return entry.replaceAllMapped(
-    _placeholderPattern,
+    placeholderPattern,
     (match) => '{${placeholderToIndexMap[match.group(0)!]}}',
   );
 }
@@ -207,9 +268,8 @@ Map<String, Map<String, AnalyzerErrorCodeInfo>> decodeAnalyzerMessagesYaml(
 
       AnalyzerErrorCodeInfo errorCodeInfo;
       try {
-        errorCodeInfo =
-            (result[className] ??=
-                {})[errorName] = AnalyzerErrorCodeInfo.fromYaml(errorValue);
+        errorCodeInfo = (result[className] ??= {})[errorName] =
+            AnalyzerErrorCodeInfo.fromYaml(errorValue);
       } catch (e, st) {
         Error.throwWithStackTrace(
           'while processing $className.$errorName, $e',
@@ -337,28 +397,29 @@ class AliasErrorCodeInfo extends AnalyzerErrorCodeInfo {
 
   String get aliasForClass => aliasFor.split('.').first;
 
-  String get aliasForFilePath =>
-      errorClasses
-          .firstWhere((element) => element.name == aliasForClass)
-          .file
-          .path;
+  String get aliasForFilePath => errorClasses
+      .firstWhere((element) => element.name == aliasForClass)
+      .file
+      .path;
+
+  @override
+  void toAnalyzerCode(
+    ErrorClassInfo errorClassInfo,
+    String diagnosticCode, {
+    String? sharedNameReference,
+    required MemberAccumulator memberAccumulator,
+  }) {
+    var constant = StringBuffer();
+    _outputConstantHeader(constant);
+    constant.writeln('  static const $aliasForClass $diagnosticCode =');
+    constant.writeln('$aliasFor;');
+    memberAccumulator.constants[diagnosticCode] = constant.toString();
+  }
 }
 
 /// In-memory representation of error code information obtained from the
 /// analyzer's `messages.yaml` file.
 class AnalyzerErrorCodeInfo extends ErrorCodeInfo {
-  AnalyzerErrorCodeInfo({
-    super.comment,
-    super.correctionMessage,
-    super.deprecatedMessage,
-    super.documentation,
-    super.hasPublishedDocs,
-    super.isUnresolvedIdentifier,
-    required super.problemMessage,
-    super.removedIn,
-    super.sharedName,
-  });
-
   factory AnalyzerErrorCodeInfo.fromYaml(Map<Object?, Object?> yaml) {
     if (yaml['aliasFor'] case var aliasFor?) {
       return AliasErrorCodeInfo._fromYaml(yaml, aliasFor: aliasFor as String);
@@ -367,7 +428,13 @@ class AnalyzerErrorCodeInfo extends ErrorCodeInfo {
     }
   }
 
-  AnalyzerErrorCodeInfo._fromYaml(super.yaml) : super.fromYaml();
+  AnalyzerErrorCodeInfo._fromYaml(super.yaml) : super.fromYaml() {
+    _check();
+  }
+
+  void _check() {
+    if (parameters == null) throw StateError('Missing `parameters` entry.');
+  }
 }
 
 /// Data tables mapping between CFE errors and their corresponding automatically
@@ -450,10 +517,6 @@ pkg/front_end/tool/fasta generate-messages
 
 /// Information about a code generated class derived from `ErrorCode`.
 class ErrorClassInfo {
-  /// A list of additional import URIs that are needed by the code generated
-  /// for this class.
-  final List<String> extraImports;
-
   /// The generated file containing this class.
   final GeneratedErrorCodeFile file;
 
@@ -471,20 +534,32 @@ class ErrorClassInfo {
   /// based on the [type] of the error.
   final String? severity;
 
-  /// The superclass of this class.
-  final String superclass;
-
   /// The type of errors in this class.
   final String type;
 
+  /// The names of any errors which are relied upon by analyzer clients, and
+  /// therefore will need their "snake case" form preserved (with a deprecation
+  /// notice) after migration to camel case error codes.
+  final Set<String> deprecatedSnakeCaseNames;
+
+  /// If `true` (the default), error codes of this class will be included in the
+  /// automatically-generated `diagnosticCodeValues` list.
+  final bool includeInDiagnosticCodeValues;
+
+  /// Documentation comment to generate for the error class.
+  ///
+  /// If no documentation comment is needed, this should be the empty string.
+  final String comment;
+
   const ErrorClassInfo({
-    this.extraImports = const [],
     required this.file,
     this.includeCfeMessages = false,
     required this.name,
     this.severity,
-    this.superclass = 'DiagnosticCode',
     required this.type,
+    this.deprecatedSnakeCaseNames = const {},
+    this.includeInDiagnosticCodeValues = true,
+    this.comment = '',
   });
 
   /// Generates the code to compute the severity of errors of this class.
@@ -497,8 +572,21 @@ class ErrorClassInfo {
     }
   }
 
+  String get templateName => '${_baseName}Template';
+
   /// Generates the code to compute the type of errors of this class.
   String get typeCode => 'DiagnosticType.$type';
+
+  String get withoutArgumentsName => '${_baseName}WithoutArguments';
+
+  String get _baseName {
+    const suffix = 'Code';
+    if (name.endsWith(suffix)) {
+      return name.substring(0, name.length - suffix.length);
+    } else {
+      throw StateError("Can't infer base name for class $name");
+    }
+  }
 }
 
 /// In-memory representation of error code information obtained from either the
@@ -544,6 +632,13 @@ abstract class ErrorCodeInfo {
   /// [previousName] to its current name (or [sharedName]).
   final String? previousName;
 
+  /// A list of [ErrorCodeParameter] objects describing the parameters for this
+  /// error code, obtained from the `parameters` entry in the yaml file.
+  ///
+  /// If `null`, then there is no `parameters` entry, meaning the error code
+  /// hasn't been translated from the old placeholder format yet.
+  final List<ErrorCodeParameter>? parameters;
+
   ErrorCodeInfo({
     this.comment,
     this.documentation,
@@ -555,7 +650,21 @@ abstract class ErrorCodeInfo {
     this.deprecatedMessage,
     this.previousName,
     this.removedIn,
-  });
+    this.parameters,
+  }) {
+    for (var MapEntry(:key, :value) in {
+      'problemMessage': problemMessage,
+      'correctionMessage': correctionMessage,
+    }.entries) {
+      if (value == null) continue;
+      if (value.contains(oldPlaceholderPattern)) {
+        throw StateError(
+          '$key is ${json.encode(value)}, which contains an old-style analyzer '
+          'placeholder pattern. Please convert to #NAME format.',
+        );
+      }
+    }
+  }
 
   /// Decodes an [ErrorCodeInfo] object from its YAML representation.
   ErrorCodeInfo.fromYaml(Map<Object?, Object?> yaml)
@@ -571,6 +680,7 @@ abstract class ErrorCodeInfo {
         sharedName: yaml['sharedName'] as String?,
         removedIn: yaml['removedIn'] as String?,
         previousName: yaml['previousName'] as String?,
+        parameters: _decodeParameters(yaml['parameters']),
       );
 
   /// If this error is no longer reported and
@@ -580,37 +690,98 @@ abstract class ErrorCodeInfo {
   /// Given a messages.yaml entry, come up with a mapping from placeholder
   /// patterns in its message strings to their corresponding indices.
   Map<String, int> computePlaceholderToIndexMap() {
-    var mapping = <String, int>{};
-    for (var value in [problemMessage, correctionMessage]) {
-      if (value is! String) continue;
-      for (Match match in _placeholderPattern.allMatches(value)) {
-        // CFE supports a bunch of formatting options that analyzer doesn't;
-        // make sure none of those are used.
-        if (match.group(0) != '#${match.group(1)}') {
-          throw 'Template string ${json.encode(value)} contains unsupported '
-              'placeholder pattern ${json.encode(match.group(0))}';
-        }
+    if (parameters case var parameters?) {
+      // Parameters were explicitly specified, so the mapping is determined by
+      // the order in which they were specified.
+      return {
+        for (var (index, parameter) in parameters.indexed)
+          '#${parameter.name}': index,
+      };
+    } else {
+      // Parameters are not explicitly specified, so it's necessary to invent a
+      // mapping by searching the problemMessage and correctionMessage for
+      // placeholders.
+      var mapping = <String, int>{};
+      for (var value in [problemMessage, correctionMessage]) {
+        if (value is! String) continue;
+        for (Match match in placeholderPattern.allMatches(value)) {
+          // CFE supports a bunch of formatting options that analyzer doesn't;
+          // make sure none of those are used.
+          if (match.group(0) != '#${match.group(1)}') {
+            throw 'Template string ${json.encode(value)} contains unsupported '
+                'placeholder pattern ${json.encode(match.group(0))}';
+          }
 
-        mapping[match.group(0)!] ??= mapping.length;
+          mapping[match.group(0)!] ??= mapping.length;
+        }
       }
+      return mapping;
     }
-    return mapping;
   }
 
   /// Generates a dart declaration for this error code, suitable for inclusion
   /// in the error class [className].
   ///
   /// [diagnosticCode] is the name of the error code to be generated.
-  String toAnalyzerCode(
+  void toAnalyzerCode(
     ErrorClassInfo errorClassInfo,
     String diagnosticCode, {
     String? sharedNameReference,
-    required bool useExplicitConst,
+    required MemberAccumulator memberAccumulator,
   }) {
-    var out = StringBuffer();
-    if (useExplicitConst) out.writeln('const ');
-    out.writeln('${errorClassInfo.name}(');
-    out.writeln(
+    var correctionMessage = this.correctionMessage;
+    var parameters = this.parameters;
+    var usesParameters = [
+      problemMessage,
+      correctionMessage,
+    ].any((value) => value != null && value.contains(placeholderPattern));
+    var constantName = diagnosticCode.toCamelCase();
+    String className;
+    String templateParameters = '';
+    String? withArgumentsName;
+    if (parameters != null && parameters.isNotEmpty && !usesParameters) {
+      throw StateError(
+        "Error code declares parameters using a `parameters` entry, but "
+        "doesn't use them",
+      );
+    } else if (!literateApiEnabled || parameters == null) {
+      // Do not generate literate API yet.
+      className = errorClassInfo.name;
+    } else if (parameters.isNotEmpty) {
+      // Parameters are present so generate a diagnostic template (with
+      // `.withArguments` support).
+      className = errorClassInfo.templateName;
+      var withArgumentsParams = parameters
+          .map((p) => 'required ${p.type.analyzerName} ${p.name}')
+          .join(', ');
+      var argumentNames = parameters.map((p) => p.name).join(', ');
+      var pascalCaseName = diagnosticCode.toPascalCase();
+      withArgumentsName = '_withArguments$pascalCaseName';
+      templateParameters =
+          '<LocatableDiagnostic Function({$withArgumentsParams})>';
+      var newIfNeeded = errorClassInfo.file.shouldUseExplicitNewOrConst
+          ? 'new '
+          : '';
+      memberAccumulator.staticMethods[withArgumentsName] =
+          '''
+static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
+  return ${newIfNeeded}LocatableDiagnosticImpl($constantName, [$argumentNames]);
+}''';
+    } else {
+      // Parameters are not present so generate a "withoutArguments" constant.
+      className = errorClassInfo.withoutArgumentsName;
+    }
+
+    var constant = StringBuffer();
+    _outputConstantHeader(constant);
+    constant.writeln(
+      '  static const $className$templateParameters $constantName =',
+    );
+    if (errorClassInfo.file.shouldUseExplicitNewOrConst) {
+      constant.writeln('const ');
+    }
+    constant.writeln('$className(');
+    constant.writeln(
       '${sharedNameReference ?? "'${sharedName ?? diagnosticCode}'"},',
     );
     var maxWidth = 80 - 8 /* indentation */ - 2 /* quotes */ - 1 /* comma */;
@@ -621,35 +792,74 @@ abstract class ErrorCodeInfo {
       maxWidth: maxWidth,
       firstLineWidth: maxWidth + 4,
     );
-    out.writeln('${messageLines.map(_encodeString).join('\n')},');
-    var correctionMessage = this.correctionMessage;
+    constant.writeln('${messageLines.map(_encodeString).join('\n')},');
     if (correctionMessage is String) {
-      out.write('correctionMessage: ');
+      constant.write('correctionMessage: ');
       var code = convertTemplate(placeholderToIndexMap, correctionMessage);
       var codeLines = _splitText(code, maxWidth: maxWidth);
-      out.writeln('${codeLines.map(_encodeString).join('\n')},');
+      constant.writeln('${codeLines.map(_encodeString).join('\n')},');
     }
     if (hasPublishedDocs ?? false) {
-      out.writeln('hasPublishedDocs:true,');
+      constant.writeln('hasPublishedDocs:true,');
     }
     if (isUnresolvedIdentifier) {
-      out.writeln('isUnresolvedIdentifier:true,');
+      constant.writeln('isUnresolvedIdentifier:true,');
     }
     if (sharedName != null) {
-      out.writeln("uniqueName: '$diagnosticCode',");
+      constant.writeln("uniqueName: '$diagnosticCode',");
     }
-    out.write(');');
-    return out.toString();
+    if (withArgumentsName != null) {
+      constant.writeln('withArguments: $withArgumentsName,');
+    }
+    constant.writeln('expectedTypes: ${_computeExpectedTypes()},');
+    constant.writeln(');');
+    memberAccumulator.constants[constantName] = constant.toString();
+
+    if (errorClassInfo.deprecatedSnakeCaseNames.contains(diagnosticCode)) {
+      memberAccumulator.constants[diagnosticCode] =
+          '''
+  @Deprecated("Please use $constantName")
+  static const ${errorClassInfo.name} $diagnosticCode = $constantName;
+''';
+    }
   }
 
   /// Generates doc comments for this error code.
   String toAnalyzerComments({String indent = ''}) {
+    // Start with the comment specified in `messages.yaml`.
     var out = StringBuffer();
-    var comment = this.comment;
-    if (comment != null) {
-      for (var line in comment.split('\n')) {
-        out.writeln('$indent/// ${line.isEmpty ? '' : ' '}$line');
-      }
+    List<String> commentLines = switch (comment) {
+      null || '' => [],
+      var c => c.split('\n'),
+    };
+
+    // Add a `Parameters:` section to the bottom of the comment if appropriate.
+    switch (parameters) {
+      case []:
+        if (commentLines.isNotEmpty) commentLines.add('');
+        commentLines.add('No parameters.');
+      case var parameters?:
+        if (commentLines.isNotEmpty) commentLines.add('');
+        commentLines.add('Parameters:');
+        for (var p in parameters) {
+          var prefix = '${p.type.analyzerName} ${p.name}: ';
+          var extraIndent = ' ' * prefix.length;
+          var firstLineWidth = 80 - 4 - indent.length;
+          var lines = _splitText(
+            '$prefix${p.comment}',
+            maxWidth: firstLineWidth - prefix.length,
+            firstLineWidth: firstLineWidth,
+          );
+          commentLines.add(lines[0]);
+          for (var line in lines.skip(1)) {
+            commentLines.add('$extraIndent$line');
+          }
+        }
+    }
+
+    // Indent the result and prefix with `///`.
+    for (var line in commentLines) {
+      out.writeln('$indent///${line.isEmpty ? '' : ' '}$line');
     }
     return out.toString();
   }
@@ -666,12 +876,103 @@ abstract class ErrorCodeInfo {
     if (documentation != null) 'documentation': documentation,
   };
 
+  String _computeExpectedTypes() {
+    if (parameters case var parameters?) {
+      var expectedTypes = [
+        for (var parameter in parameters) 'ExpectedType.${parameter.type.name}',
+      ];
+      return '[${expectedTypes.join(', ')}]';
+    } else {
+      return 'null';
+    }
+  }
+
   String _encodeString(String s) {
     // JSON encoding gives us mostly what we need.
     var jsonEncoded = json.encode(s);
     // But we also need to escape `$`.
     return jsonEncoded.replaceAll(r'$', r'\$');
   }
+
+  void _outputConstantHeader(StringSink out) {
+    out.write(toAnalyzerComments(indent: '  '));
+    if (deprecatedMessage != null) {
+      out.writeln('  @Deprecated("$deprecatedMessage")');
+    }
+  }
+
+  static List<ErrorCodeParameter>? _decodeParameters(Object? yaml) {
+    if (yaml == null) return null;
+    if (yaml == 'none') return const [];
+    yaml as Map<Object?, Object?>;
+    var result = <ErrorCodeParameter>[];
+    for (var MapEntry(:key, :value) in yaml.entries) {
+      switch ((key as String).split(' ')) {
+        case [var type, var name]:
+          result.add(
+            ErrorCodeParameter(
+              type: ErrorCodeParameterType.fromMessagesYamlName(type),
+              name: name,
+              comment: value as String,
+            ),
+          );
+        default:
+          throw StateError(
+            'Malformed parameter key (should be `TYPE NAME`): '
+            '${json.encode(key)}',
+          );
+      }
+    }
+    return result;
+  }
+}
+
+/// In-memory representation of a single key/value pair from the `parameters`
+/// map for an error code.
+class ErrorCodeParameter {
+  final ErrorCodeParameterType type;
+  final String name;
+  final String comment;
+
+  ErrorCodeParameter({
+    required this.type,
+    required this.name,
+    required this.comment,
+  });
+}
+
+/// In-memory representation of the type of a single diagnostic code's
+/// parameter.
+enum ErrorCodeParameterType {
+  element(messagesYamlName: 'Element', analyzerName: 'Element'),
+  int(messagesYamlName: 'int', analyzerName: 'int'),
+  object(messagesYamlName: 'Object', analyzerName: 'Object'),
+  string(messagesYamlName: 'String', analyzerName: 'String'),
+  type(messagesYamlName: 'Type', analyzerName: 'DartType'),
+  uri(messagesYamlName: 'Uri', analyzerName: 'Uri');
+
+  /// Map from [messagesYamlName] to the enum constant.
+  ///
+  /// Used for decoding parameter types from `messages.yaml`.
+  static final _messagesYamlNameToValue = {
+    for (var value in values) value.messagesYamlName: value,
+  };
+
+  /// Name of this type as it appears in `messages.yaml`.
+  final String messagesYamlName;
+
+  /// Name of this type as it appears in Dart source code.
+  final String analyzerName;
+
+  const ErrorCodeParameterType({
+    required this.messagesYamlName,
+    required this.analyzerName,
+  });
+
+  /// Decodes a type name from `messages.yaml` into an [ErrorCodeParameterName].
+  factory ErrorCodeParameterType.fromMessagesYamlName(String name) =>
+      _messagesYamlNameToValue[name] ??
+      (throw StateError('Unknown type name: $name'));
 }
 
 /// In-memory representation of error code information obtained from the front
@@ -724,20 +1025,19 @@ class GeneratedErrorCodeFile {
   /// file.
   final String path;
 
-  /// The URI that should be imported instead of importing the generated file
-  /// directly.
-  ///
-  /// The generated file will include a deprecation warning to tell users which
-  /// file they should import.
-  final String preferredImportUri;
+  /// The URI of the library that the generated file will be a part of.
+  final String parentLibrary;
 
-  /// Whether the generated file should use the `const` keyword when generating
-  /// constructor invocations.
-  final bool shouldUseExplicitConst;
+  /// Whether the generated file should use the `new` and `const` keywords when
+  /// generating constructor invocations.
+  final bool shouldUseExplicitNewOrConst;
+
+  final bool shouldIgnorePreferSingleQuotes;
 
   const GeneratedErrorCodeFile({
     required this.path,
-    required this.preferredImportUri,
-    this.shouldUseExplicitConst = false,
+    required this.parentLibrary,
+    this.shouldUseExplicitNewOrConst = false,
+    this.shouldIgnorePreferSingleQuotes = false,
   });
 }

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart.io;
+part of "dart:io";
 
 class _Platform {
   external static int _numberOfProcessors();
@@ -33,8 +33,11 @@ class _Platform {
   external static String _localeName();
   external static Uri _script();
 
+  @pragma("vm:shared")
   static String executable = _executable();
+  @pragma("vm:shared")
   static String resolvedExecutable = _resolvedExecutable();
+  @pragma("vm:shared")
   static String? packageConfig = _packageConfig();
 
   @pragma("vm:entry-point")

@@ -15,8 +15,11 @@ import '../builder/compilation_unit.dart';
 ///       <main-uri> => <intermediate-uri1> => <intermediate-uri2> => <uri>
 ///
 Set<String> computeImportChainsFor(
-    Uri entryPoint, LoadedLibraries loadedLibraries, Uri uri,
-    {required bool verbose}) {
+  Uri entryPoint,
+  LoadedLibraries loadedLibraries,
+  Uri uri, {
+  required bool verbose,
+}) {
   // TODO(johnniwinther): Move computation of dependencies to the library
   // loader.
   Set<String> importChains = new Set<String>();
@@ -25,61 +28,69 @@ Set<String> computeImportChainsFor(
   // The maximum number of imports chains to show.
   final int compactChainLimit = verbose ? 20 : 10;
   int chainCount = 0;
-  loadedLibraries.forEachImportChain(uri,
-      callback: (Link<Uri> importChainReversed) {
-    // The import chain is provided in reverse order, from the target to the
-    // entry point. To reverse it, we create a new chain, prepending the uris
-    // of the reversed chain.
-    Link<CodeLocation> compactImportChain = const Link<CodeLocation>();
-    CodeLocation currentCodeLocation =
-        new UriLocation(importChainReversed.head);
-    compactImportChain = compactImportChain.prepend(currentCodeLocation);
-    for (Link<Uri> link = importChainReversed.tail!;
+  loadedLibraries.forEachImportChain(
+    uri,
+    callback: (Link<Uri> importChainReversed) {
+      // The import chain is provided in reverse order, from the target to the
+      // entry point. To reverse it, we create a new chain, prepending the uris
+      // of the reversed chain.
+      Link<CodeLocation> compactImportChain = const Link<CodeLocation>();
+      CodeLocation currentCodeLocation = new UriLocation(
+        importChainReversed.head,
+      );
+      compactImportChain = compactImportChain.prepend(currentCodeLocation);
+      for (
+        Link<Uri> link = importChainReversed.tail!;
         !link.isEmpty;
-        link = link.tail!) {
-      Uri uri = link.head;
-      if (!currentCodeLocation.inSameLocation(uri)) {
-        // When [verbose] is `false` we use the [CodeLocation] of the [uri]
-        // rather than the [UriLocation], which means that we group all
-        // libraries with the same package into one location, thereby shortening
-        // the path from, for instance,
-        //
-        //     package:foo/foo1.dart => package:foo/foo2.dart =>
-        //     package:bar/bar1.dart => package:bar/bar2.dart =>
-        //     package:baz/baz1.dart => package:baz/baz2.dart
-        //
-        // to
-        //
-        //     package:foo => package:bar => package:baz
-        //
-        currentCodeLocation =
-            verbose ? new UriLocation(uri) : new CodeLocation(uri);
-        compactImportChain = compactImportChain.prepend(currentCodeLocation);
+        link = link.tail!
+      ) {
+        Uri uri = link.head;
+        if (!currentCodeLocation.inSameLocation(uri)) {
+          // When [verbose] is `false` we use the [CodeLocation] of the [uri]
+          // rather than the [UriLocation], which means that we group all
+          // libraries with the same package into one location, thereby
+          // shortening the path from, for instance,
+          //
+          //     package:foo/foo1.dart => package:foo/foo2.dart =>
+          //     package:bar/bar1.dart => package:bar/bar2.dart =>
+          //     package:baz/baz1.dart => package:baz/baz2.dart
+          //
+          // to
+          //
+          //     package:foo => package:bar => package:baz
+          //
+          currentCodeLocation = verbose
+              ? new UriLocation(uri)
+              : new CodeLocation(uri);
+          compactImportChain = compactImportChain.prepend(currentCodeLocation);
+        }
       }
-    }
-    String importChain = compactImportChain.map((CodeLocation codeLocation) {
-      return codeLocation.relativize(entryPoint);
-    }).join(' => ');
+      String importChain = compactImportChain
+          .map((CodeLocation codeLocation) {
+            return codeLocation.relativize(entryPoint);
+          })
+          .join(' => ');
 
-    if (!importChains.contains(importChain)) {
-      if (importChains.length > compactChainLimit) {
+      if (!importChains.contains(importChain)) {
+        if (importChains.length > compactChainLimit) {
+          // Coverage-ignore-block(suite): Not run.
+          importChains.add('...');
+          return false;
+        } else {
+          importChains.add(importChain);
+        }
+      }
+
+      chainCount++;
+      if (chainCount > chainLimit) {
         // Coverage-ignore-block(suite): Not run.
+        // Assume there are more import chains.
         importChains.add('...');
         return false;
-      } else {
-        importChains.add(importChain);
       }
-    }
-
-    chainCount++;
-    if (chainCount > chainLimit) {
-      // Coverage-ignore-block(suite): Not run.
-      // Assume there are more import chains.
-      importChains.add('...');
-      return false;
-    }
-    return true;
-  });
+      return true;
+    },
+  );
   return importChains;
 }
 
@@ -94,8 +105,10 @@ abstract class LoadedLibraries {
   ///
   /// [callback] is called once for each chain of imports leading to [uri] until
   /// [callback] returns `false`.
-  void forEachImportChain(Uri uri,
-      {required bool callback(Link<Uri> importChainReversed)});
+  void forEachImportChain(
+    Uri uri, {
+    required bool callback(Link<Uri> importChainReversed),
+  });
 }
 
 class LoadedLibrariesImpl implements LoadedLibraries {
@@ -104,15 +117,19 @@ class LoadedLibrariesImpl implements LoadedLibraries {
   final Map<Uri, CompilationUnit> compilationUnits = {};
 
   LoadedLibrariesImpl(
-      this.rootCompilationUnits, Iterable<CompilationUnit> compilationUnits) {
+    this.rootCompilationUnits,
+    Iterable<CompilationUnit> compilationUnits,
+  ) {
     compilationUnits.forEach((CompilationUnit compilationUnit) {
       this.compilationUnits[compilationUnit.importUri] = compilationUnit;
     });
   }
 
   @override
-  void forEachImportChain(Uri targetUri,
-      {required bool callback(Link<Uri> importChainReversed)}) {
+  void forEachImportChain(
+    Uri targetUri, {
+    required bool callback(Link<Uri> importChainReversed),
+  }) {
     bool aborted = false;
 
     /// Map from compilation units to the set of (unreversed) paths to
@@ -137,8 +154,9 @@ class LoadedLibrariesImpl implements LoadedLibraries {
       if (targetUri != canonicalUri) {
         /// Process the import (or export) of [importedLibrary].
         void processCompilationUnit(CompilationUnit importedLibrary) {
-          bool suffixesArePrecomputed =
-              suffixChainMap.containsKey(importedLibrary);
+          bool suffixesArePrecomputed = suffixChainMap.containsKey(
+            importedLibrary,
+          );
 
           if (!suffixesArePrecomputed) {
             computeSuffixes(importedLibrary, prefix);

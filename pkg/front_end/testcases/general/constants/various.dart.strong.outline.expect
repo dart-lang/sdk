@@ -247,12 +247,12 @@ const y1 = --y;
 static const field invalid-type y2 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:83:14: Error: Setter not found: 'y'.
 const y2 = ++y;
              ^";
-static const field core::int y3 = let final core::int #t4 = self::y in let final invalid-type #t5 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:84:12: Error: Setter not found: 'y'.
+static const field invalid-type y3 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:84:12: Error: Setter not found: 'y'.
 const y3 = y--;
-           ^" in #t4;
-static const field core::int y4 = let final core::int #t6 = self::y in let final invalid-type #t7 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:85:12: Error: Setter not found: 'y'.
+           ^";
+static const field invalid-type y4 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:85:12: Error: Setter not found: 'y'.
 const y4 = y++;
-           ^" in #t6;
+           ^";
 static field self::AbstractClassWithConstructor abstractClassWithConstructor;
 static const field self::ExtendsFoo1 extendsFoo1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:128:39: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 Try using a constructor or factory that is 'const'.
@@ -346,10 +346,6 @@ Evaluated: DynamicInvocation @ org-dartlang-testcase:///various.dart:71:49 -> St
 Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:72:31 -> StringConstant("hello")
 Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:72:46 -> IntConstant(42)
 Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:73:37 -> StringConstant("hello")
-Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:84:12 -> IntConstant(1)
-Evaluated: VariableGet @ org-dartlang-testcase:///various.dart:84:12 -> IntConstant(1)
-Evaluated: StaticGet @ org-dartlang-testcase:///various.dart:85:12 -> IntConstant(1)
-Evaluated: VariableGet @ org-dartlang-testcase:///various.dart:85:12 -> IntConstant(1)
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:136:24 -> InstanceConstant(const Foo{Foo.x: 42, Foo.y: 5})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///various.dart:137:24 -> InstanceConstant(const Foo{Foo.x: 42, Foo.y: 5})
 Evaluated: StaticInvocation @ org-dartlang-testcase:///various.dart:138:28 -> BoolConstant(true)
@@ -384,4 +380,4 @@ Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:228:25 
 Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:229:40 -> BoolConstant(false)
 Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:230:25 -> NullConstant(null)
 Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:231:40 -> BoolConstant(false)
-Extra constant evaluation: evaluated: 133, effectively constant: 71
+Extra constant evaluation: evaluated: 125, effectively constant: 67

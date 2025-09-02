@@ -157,7 +157,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
           );
           _errorReporter.atEntity(
             errorEntity,
-            CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT,
+            CompileTimeErrorCode.missingRequiredArgument,
             arguments: [parameterName],
           );
         }
@@ -175,13 +175,13 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
             if (reason != null) {
               _errorReporter.atEntity(
                 errorEntity,
-                WarningCode.MISSING_REQUIRED_PARAM_WITH_DETAILS,
+                WarningCode.missingRequiredParamWithDetails,
                 arguments: [parameterName, reason],
               );
             } else {
               _errorReporter.atEntity(
                 errorEntity,
-                WarningCode.MISSING_REQUIRED_PARAM,
+                WarningCode.missingRequiredParam,
                 arguments: [parameterName],
               );
             }

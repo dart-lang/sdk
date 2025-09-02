@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/plugin2/analyzer_version.g.dart';
-import 'package:analyzer/dart/analysis/analysis_options.dart';
+import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 
 /// This class can generate various files to make up the shared plugin package.
 class PluginPackageGenerator {
@@ -12,9 +11,15 @@ class PluginPackageGenerator {
   ///
   /// This typically stems from plugin configuration in an analysis options
   /// file.
-  final List<PluginConfiguration> _pluginConfigurations;
+  final List<PluginConfiguration> _configurations;
 
-  PluginPackageGenerator(this._pluginConfigurations);
+  final String? _dependencyOverrides;
+
+  PluginPackageGenerator({
+    required List<PluginConfiguration> configurations,
+    String? dependencyOverrides,
+  }) : _configurations = configurations,
+       _dependencyOverrides = dependencyOverrides;
 
   /// Generates the Dart entrpoint file which is to be spawned in a Dart
   /// isolate by the analysis server.
@@ -23,7 +28,7 @@ class PluginPackageGenerator {
       "'package:analysis_server_plugin/src/plugin_server.dart'",
       "'package:analyzer/file_system/physical_file_system.dart'",
       "'package:analyzer_plugin/src/channel/isolate_channel.dart'",
-      for (var configuration in _pluginConfigurations)
+      for (var configuration in _configurations)
         "'package:${configuration.name}/main.dart' as ${configuration.name}",
     ];
 
@@ -39,7 +44,7 @@ Future<void> main(List<String> args, SendPort sendPort) async {
     plugins: [
 ''');
     // TODO(srawlins): Format with the formatter, for readability.
-    for (var configuration in _pluginConfigurations) {
+    for (var configuration in _configurations) {
       buffer.writeln('      ${configuration.name}.plugin,');
     }
     buffer.write('''
@@ -64,11 +69,20 @@ version: 0.0.1
 environment:
   sdk: ^3.6.0
 dependencies:
-  analysis_server_plugin: '$analysisServerPluginVersion'
+  # The version of the analysis_server_plugin package that matches the protocol
+  # used by the active analysis_server.
+  analysis_server_plugin: ^0.2.0
 ''');
 
-    for (var configuration in _pluginConfigurations) {
+    for (var configuration in _configurations) {
       buffer.write(configuration.sourceYaml());
+    }
+
+    if (_dependencyOverrides != null) {
+      buffer.write('''
+dependency_overrides:
+$_dependencyOverrides
+''');
     }
 
     return buffer.toString();

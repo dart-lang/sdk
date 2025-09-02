@@ -363,7 +363,9 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
 #endif
       cache_mutex_(),
       handler_info_cache_(),
-      catch_entry_moves_cache_() {
+      catch_entry_moves_cache_(),
+      tag_table_lock_(),
+      tag_table_(GrowableObjectArray::null()) {
   FlagsCopyFrom(api_flags);
   if (!is_vm_isolate) {
     intptr_t max_worker_threads;
@@ -959,6 +961,10 @@ void IsolateGroup::ClearCatchEntryMovesCacheLocked() {
   catch_entry_moves_cache_.Clear();
 }
 
+void IsolateGroup::set_tag_table(const GrowableObjectArray& value) {
+  tag_table_ = value.ptr();
+}
+
 void IsolateGroup::RehashConstants(Become* become) {
   // Even though no individual constant contains a cycle, there can be "cycles"
   // between the canonical tables if some const instances of A have fields that
@@ -1269,9 +1275,9 @@ ErrorPtr IsolateMessageHandler::HandleLibMessage(const Array& message) {
       if (!obj.IsSmi()) return Error::null();
       const intptr_t priority = Smi::Cast(obj).Value();
       if (priority == Isolate::kImmediateAction) {
-        Thread::Current()->StartUnwindError();
         obj = message.At(2);
         if (I->VerifyTerminateCapability(obj)) {
+          Thread::Current()->StartUnwindError();
           // We will kill the current isolate by returning an UnwindError.
           if (msg_type == Isolate::kKillMsg) {
             const String& msg = String::Handle(
@@ -1820,9 +1826,7 @@ class LibraryPrefixMapTraits {
 // that shared monitor.
 Isolate::Isolate(IsolateGroup* isolate_group,
                  const Dart_IsolateFlags& api_flags)
-    : current_tag_(UserTag::null()),
-      default_tag_(UserTag::null()),
-      field_table_(new FieldTable(/*isolate=*/this)),
+    : field_table_(new FieldTable(/*isolate=*/this)),
       finalizers_(GrowableObjectArray::null()),
       isolate_group_(isolate_group),
       isolate_object_store_(new IsolateObjectStore()),
@@ -1845,17 +1849,12 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       random_(),
       mutex_(),
       owner_thread_(OSThread::kInvalidThreadId),
-      tag_table_(GrowableObjectArray::null()),
       sticky_error_(Error::null()),
       spawn_count_monitor_(),
       wake_pause_event_handler_count_(0),
       loaded_prefixes_set_storage_(nullptr) {
   FlagsCopyFrom(api_flags);
   SetErrorsFatal(true);
-  // TODO(asiva): A Thread is not available here, need to figure out
-  // how the vm_tag (kEmbedderTagId) can be set, these tags need to
-  // move to the OSThread structure.
-  set_user_tag(UserTags::kDefaultUserTag);
 }
 
 #undef REUSABLE_HANDLE_SCOPE_INIT
@@ -2774,9 +2773,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
 
   visitor->clear_gc_root_type();
   // Visit the objects directly referenced from the isolate structure.
-  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&current_tag_));
-  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&default_tag_));
-  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&tag_table_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&sticky_error_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&finalizers_));
 #if !defined(PRODUCT)
@@ -2950,6 +2946,8 @@ void IsolateGroup::VisitObjectPointers(ObjectPointerVisitor* visitor,
     isolate->VisitObjectPointers(visitor, validate_frames);
   }
   VisitStackPointers(visitor, validate_frames);
+
+  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&tag_table_));
 }
 
 void IsolateGroup::VisitSharedPointers(ObjectPointerVisitor* visitor,
@@ -3310,21 +3308,6 @@ void Isolate::PrintPauseEventJSON(JSONStream* stream) {
 }
 
 #endif  // !defined(PRODUCT)
-
-void Isolate::set_tag_table(const GrowableObjectArray& value) {
-  tag_table_ = value.ptr();
-}
-
-void Isolate::set_current_tag(const UserTag& tag) {
-  uword user_tag = tag.tag();
-  ASSERT(user_tag < kUwordMax);
-  set_user_tag(user_tag);
-  current_tag_ = tag.ptr();
-}
-
-void Isolate::set_default_tag(const UserTag& tag) {
-  default_tag_ = tag.ptr();
-}
 
 ErrorPtr Isolate::StealStickyError() {
   NoSafepointScope no_safepoint;

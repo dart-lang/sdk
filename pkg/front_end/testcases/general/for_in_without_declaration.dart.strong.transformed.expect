@@ -280,6 +280,7 @@ Try correcting the name to the name of an existing setter, or defining a setter 
         }
       }
     }
+    const core::int constant = #C1;
     {
       synthesized core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
@@ -296,3 +297,7 @@ Try correcting the name to the name of an existing setter, or defining a setter 
 static field core::bool topLevelField = true;
 static field dynamic untypedTopLevelField;
 static method main() → dynamic {}
+
+constants  {
+  #C1 = 0
+}

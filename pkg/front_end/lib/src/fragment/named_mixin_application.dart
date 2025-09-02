@@ -26,25 +26,29 @@ class NamedMixinApplicationFragment implements Fragment {
   SourceClassBuilder? _builder;
 
   @override
-  late final UriOffsetLength uriOffset =
-      new UriOffsetLength(fileUri, nameOffset, name.length);
+  late final UriOffsetLength uriOffset = new UriOffsetLength(
+    fileUri,
+    nameOffset,
+    name.length,
+  );
 
-  NamedMixinApplicationFragment(
-      {required this.name,
-      required this.fileUri,
-      required this.startOffset,
-      required this.nameOffset,
-      required this.endOffset,
-      required this.modifiers,
-      required this.metadata,
-      required this.typeParameters,
-      required this.typeParameterScope,
-      required this.nominalParameterNameSpace,
-      required this.supertype,
-      required this.mixins,
-      required this.interfaces,
-      required this.enclosingScope,
-      required this.enclosingCompilationUnit});
+  NamedMixinApplicationFragment({
+    required this.name,
+    required this.fileUri,
+    required this.startOffset,
+    required this.nameOffset,
+    required this.endOffset,
+    required this.modifiers,
+    required this.metadata,
+    required this.typeParameters,
+    required this.typeParameterScope,
+    required this.nominalParameterNameSpace,
+    required this.supertype,
+    required this.mixins,
+    required this.interfaces,
+    required this.enclosingScope,
+    required this.enclosingCompilationUnit,
+  });
 
   @override
   // Coverage-ignore(suite): Not run.

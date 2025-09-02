@@ -183,7 +183,11 @@ import 'package:test/a.dart';
 
 f(A a) => a.b();
 ''');
-    await assertNoFix();
+    await assertHasFix('''
+import 'package:test/a.dart';
+
+Object f(A a) => a.b();
+''');
   }
 
   Future<void> test_topLevelFunction_async_hasReturns() async {

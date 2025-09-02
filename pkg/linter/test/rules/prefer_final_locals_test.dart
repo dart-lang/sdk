@@ -607,7 +607,7 @@ f() {
 ''',
       [
         // No lint.
-        error(WarningCode.UNNECESSARY_WILDCARD_PATTERN, 79, 5),
+        error(WarningCode.unnecessaryWildcardPattern, 79, 5),
       ],
     );
   }

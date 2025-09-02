@@ -24,8 +24,8 @@ class A {
 }
 ''',
       [
-        error(WarningCode.UNUSED_FIELD, 16, 2),
-        error(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, 30, 2),
+        error(WarningCode.unusedField, 16, 2),
+        error(CompileTimeErrorCode.privateOptionalParameter, 30, 2),
       ],
     );
   }
@@ -35,7 +35,7 @@ class A {
       '''
 f({var _p}) {}
 ''',
-      [error(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, 7, 2)],
+      [error(CompileTimeErrorCode.privateOptionalParameter, 7, 2)],
     );
   }
 
@@ -44,7 +44,7 @@ f({var _p}) {}
       '''
 f({_p = 0}) {}
 ''',
-      [error(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, 3, 2)],
+      [error(CompileTimeErrorCode.privateOptionalParameter, 3, 2)],
     );
   }
 }

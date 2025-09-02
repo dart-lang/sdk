@@ -6,8 +6,8 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show
         LocatedMessage,
         Message,
-        templateExperimentNotEnabled,
-        templateInternalProblemUnsupported;
+        codeExperimentNotEnabled,
+        codeInternalProblemUnsupported;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart';
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
@@ -307,7 +307,7 @@ class MiniAstBuilder extends StackListener {
     debugEvent("ConditionalUris");
     if (count != 0) {
       internalProblem(
-        templateInternalProblemUnsupported.withArguments("Conditional URIs"),
+        codeInternalProblemUnsupported.withArguments("Conditional URIs"),
         -1,
         null,
       );
@@ -726,7 +726,7 @@ class MiniAstBuilder extends StackListener {
       assert(optional('?', questionMark));
       var feature = ExperimentalFeatures.non_nullable;
       handleRecoverableError(
-        templateExperimentNotEnabled.withArguments(
+        codeExperimentNotEnabled.withArguments(
           feature.enableString,
           _versionAsString(ExperimentStatus.currentVersion),
         ),
@@ -739,7 +739,7 @@ class MiniAstBuilder extends StackListener {
   void reportNonNullAssertExpressionNotEnabled(Token bang) {
     var feature = ExperimentalFeatures.non_nullable;
     handleRecoverableError(
-      templateExperimentNotEnabled.withArguments(
+      codeExperimentNotEnabled.withArguments(
         feature.enableString,
         _versionAsString(ExperimentStatus.currentVersion),
       ),

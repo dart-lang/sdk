@@ -25,7 +25,7 @@ class B extends A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 70, 1)],
+      [error(CompileTimeErrorCode.undefinedSuperOperator, 70, 1)],
     );
   }
 
@@ -40,8 +40,8 @@ class B extends A {
 }
 ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 70, 7),
-        error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 70, 7),
+        error(CompileTimeErrorCode.undefinedSuperOperator, 70, 7),
+        error(CompileTimeErrorCode.undefinedSuperOperator, 70, 7),
       ],
     );
   }
@@ -56,7 +56,7 @@ class B extends A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 70, 11)],
+      [error(CompileTimeErrorCode.undefinedSuperOperator, 70, 11)],
     );
   }
 
@@ -70,7 +70,7 @@ class B extends A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 71, 7)],
+      [error(CompileTimeErrorCode.undefinedSuperOperator, 71, 7)],
     );
   }
 
@@ -84,7 +84,7 @@ enum E {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 37, 1)],
+      [error(CompileTimeErrorCode.undefinedSuperOperator, 37, 1)],
     );
   }
 
@@ -114,8 +114,8 @@ enum E {
 }
 ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 36, 3),
-        error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 36, 3),
+        error(CompileTimeErrorCode.undefinedSuperOperator, 36, 3),
+        error(CompileTimeErrorCode.undefinedSuperOperator, 36, 3),
       ],
     );
   }
@@ -146,7 +146,7 @@ enum E {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 36, 3)],
+      [error(CompileTimeErrorCode.undefinedSuperOperator, 36, 3)],
     );
   }
 
@@ -160,7 +160,7 @@ enum E {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR, 36, 3)],
+      [error(CompileTimeErrorCode.undefinedSuperOperator, 36, 3)],
     );
   }
 }

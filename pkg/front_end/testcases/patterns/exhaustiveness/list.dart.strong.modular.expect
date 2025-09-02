@@ -121,6 +121,8 @@ static method exhaustive1a(core::List<core::num> list) → dynamic
     final synthesized core::List<core::num> #0#0 = list;
     synthesized core::int #0#1;
     synthesized core::bool #0#1#isSet = false;
+    final const synthesized core::int #0#2 = #C1;
+    final const synthesized core::int #0#4 = #C2;
     #L2:
     {
       {
@@ -143,6 +145,8 @@ static method exhaustive1b(core::List<core::num> list) → dynamic
     final synthesized core::List<core::num> #0#0 = list;
     synthesized core::int #0#1;
     synthesized core::bool #0#1#isSet = false;
+    final const synthesized core::int #0#2 = #C1;
+    final const synthesized core::int #0#4 = #C2;
     #L3:
     {
       {
@@ -165,6 +169,9 @@ static method exhaustive2a(core::List<core::num> list) → dynamic
     final synthesized core::List<core::num> #0#0 = list;
     synthesized core::int #0#1;
     synthesized core::bool #0#1#isSet = false;
+    final const synthesized core::int #0#2 = #C1;
+    final const synthesized core::int #0#4 = #C2;
+    final const synthesized core::int #0#7 = #C3;
     #L4:
     {
       {
@@ -193,6 +200,9 @@ static method exhaustive2b(core::List<core::num> list) → dynamic
     final synthesized core::List<core::num> #0#0 = list;
     synthesized core::int #0#1;
     synthesized core::bool #0#1#isSet = false;
+    final const synthesized core::int #0#2 = #C1;
+    final const synthesized core::int #0#4 = #C2;
+    final const synthesized core::int #0#7 = #C3;
     #L5:
     {
       {
@@ -221,6 +231,9 @@ static method exhaustive2c(core::List<core::num> list) → dynamic
     final synthesized core::List<core::num> #0#0 = list;
     synthesized core::int #0#1;
     synthesized core::bool #0#1#isSet = false;
+    final const synthesized core::int #0#2 = #C1;
+    final const synthesized core::int #0#4 = #C2;
+    final const synthesized core::int #0#7 = #C3;
     #L6:
     {
       {
@@ -247,6 +260,7 @@ static method nonExhaustive1aMissing(core::List<core::num> list) → dynamic
   return block {
     core::int #t20;
     final synthesized core::List<core::num> #0#0 = list;
+    final const synthesized core::int #0#2 = #C2;
     #L7:
     {
       {
@@ -261,6 +275,7 @@ static method nonExhaustive1bMissing(core::List<core::num> list) → dynamic
   return block {
     core::int #t21;
     final synthesized core::List<core::num> #0#0 = list;
+    final const synthesized core::int #0#2 = #C2;
     #L8:
     {
       {
@@ -277,6 +292,8 @@ static method nonExhaustive2aMissing(core::List<core::num> list) → dynamic
     final synthesized core::List<core::num> #0#0 = list;
     synthesized core::int #0#1;
     synthesized core::bool #0#1#isSet = false;
+    final const synthesized core::int #0#2 = #C1;
+    final const synthesized core::int #0#4 = #C3;
     #L9:
     {
       {
@@ -299,6 +316,8 @@ static method nonExhaustive2bMissing(core::List<core::num> list) → dynamic
     final synthesized core::List<core::num> #0#0 = list;
     synthesized core::int #0#1;
     synthesized core::bool #0#1#isSet = false;
+    final const synthesized core::int #0#2 = #C1;
+    final const synthesized core::int #0#4 = #C3;
     #L10:
     {
       {
@@ -321,6 +340,8 @@ static method nonExhaustive2cMissing(core::List<core::num> list) → dynamic
     final synthesized core::List<core::num> #0#0 = list;
     synthesized core::int #0#1;
     synthesized core::bool #0#1#isSet = false;
+    final const synthesized core::int #0#2 = #C1;
+    final const synthesized core::int #0#4 = #C3;
     #L11:
     {
       {
@@ -357,6 +378,8 @@ static method nonExhaustive1aRestrictedValue(core::List<core::num> list) → dyn
     final synthesized core::List<core::num> #0#0 = list;
     synthesized core::int #0#1;
     synthesized core::bool #0#1#isSet = false;
+    final const synthesized core::int #0#2 = #C1;
+    final const synthesized core::int #0#4 = #C2;
     #L13:
     {
       {
@@ -379,6 +402,8 @@ static method nonExhaustive1aRestrictedType(core::List<core::num> list) → dyna
     final synthesized core::List<core::num> #0#0 = list;
     synthesized core::int #0#2;
     synthesized core::bool #0#2#isSet = false;
+    final const synthesized core::int #0#3 = #C1;
+    final const synthesized core::int #0#6 = #C2;
     #L14:
     {
       {
@@ -401,6 +426,8 @@ static method nonExhaustive1bRestrictedValue(core::List<core::num> list) → dyn
     final synthesized core::List<core::num> #0#0 = list;
     synthesized core::int #0#1;
     synthesized core::bool #0#1#isSet = false;
+    final const synthesized core::int #0#2 = #C1;
+    final const synthesized core::int #0#4 = #C2;
     #L15:
     {
       {
@@ -423,6 +450,8 @@ static method nonExhaustive1bRestrictedType(core::List<core::num> list) → dyna
     final synthesized core::List<core::num> #0#0 = list;
     synthesized core::int #0#1;
     synthesized core::bool #0#1#isSet = false;
+    final const synthesized core::int #0#2 = #C1;
+    final const synthesized core::int #0#4 = #C2;
     #L16:
     {
       {
@@ -445,6 +474,9 @@ static method nonExhaustive2aRestrictedValue(core::List<core::num> list) → dyn
     final synthesized core::List<core::num> #0#0 = list;
     synthesized core::int #0#1;
     synthesized core::bool #0#1#isSet = false;
+    final const synthesized core::int #0#2 = #C1;
+    final const synthesized core::int #0#4 = #C2;
+    final const synthesized core::int #0#8 = #C3;
     #L17:
     {
       {
@@ -473,6 +505,9 @@ static method nonExhaustive2bRestrictedValue(core::List<core::num> list) → dyn
     final synthesized core::List<core::num> #0#0 = list;
     synthesized core::int #0#1;
     synthesized core::bool #0#1#isSet = false;
+    final const synthesized core::int #0#2 = #C1;
+    final const synthesized core::int #0#4 = #C2;
+    final const synthesized core::int #0#7 = #C3;
     #L18:
     {
       {
@@ -501,6 +536,9 @@ static method nonExhaustive2cRestrictedValue(core::List<core::num> list) → dyn
     final synthesized core::List<core::num> #0#0 = list;
     synthesized core::int #0#1;
     synthesized core::bool #0#1#isSet = false;
+    final const synthesized core::int #0#2 = #C1;
+    final const synthesized core::int #0#4 = #C2;
+    final const synthesized core::int #0#7 = #C3;
     #L19:
     {
       {
@@ -529,6 +567,9 @@ static method nonExhaustive2dRestrictedValue(core::List<core::num> list) → dyn
     final synthesized core::List<core::num> #0#0 = list;
     synthesized core::int #0#1;
     synthesized core::bool #0#1#isSet = false;
+    final const synthesized core::int #0#2 = #C1;
+    final const synthesized core::int #0#4 = #C2;
+    final const synthesized core::int #0#7 = #C3;
     #L20:
     {
       {
@@ -557,6 +598,9 @@ static method nonExhaustive2eRestrictedValue(core::List<core::num> list) → dyn
     final synthesized core::List<core::num> #0#0 = list;
     synthesized core::int #0#1;
     synthesized core::bool #0#1#isSet = false;
+    final const synthesized core::int #0#2 = #C1;
+    final const synthesized core::int #0#4 = #C2;
+    final const synthesized core::int #0#7 = #C3;
     #L21:
     {
       {
@@ -585,6 +629,9 @@ static method nonExhaustive2fRestrictedValue(core::List<core::num> list) → dyn
     final synthesized core::List<core::num> #0#0 = list;
     synthesized core::int #0#1;
     synthesized core::bool #0#1#isSet = false;
+    final const synthesized core::int #0#2 = #C1;
+    final const synthesized core::int #0#4 = #C2;
+    final const synthesized core::int #0#7 = #C3;
     #L22:
     {
       {

@@ -34,10 +34,10 @@ void f(C c) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 94, 3),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 107, 3),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 121, 3),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 134, 3),
+        error(CompileTimeErrorCode.assignmentToMethod, 94, 3),
+        error(CompileTimeErrorCode.assignmentToMethod, 107, 3),
+        error(CompileTimeErrorCode.assignmentToMethod, 121, 3),
+        error(CompileTimeErrorCode.assignmentToMethod, 134, 3),
       ],
     );
   }
@@ -57,10 +57,10 @@ void f(A a) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 47, 3),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 60, 3),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 74, 3),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 87, 3),
+        error(CompileTimeErrorCode.assignmentToMethod, 47, 3),
+        error(CompileTimeErrorCode.assignmentToMethod, 60, 3),
+        error(CompileTimeErrorCode.assignmentToMethod, 74, 3),
+        error(CompileTimeErrorCode.assignmentToMethod, 87, 3),
       ],
     );
   }
@@ -80,10 +80,10 @@ void f(A a) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 49, 3),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 64, 3),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 80, 3),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 95, 3),
+        error(CompileTimeErrorCode.assignmentToMethod, 49, 3),
+        error(CompileTimeErrorCode.assignmentToMethod, 64, 3),
+        error(CompileTimeErrorCode.assignmentToMethod, 80, 3),
+        error(CompileTimeErrorCode.assignmentToMethod, 95, 3),
       ],
     );
   }
@@ -103,7 +103,7 @@ extension E on C {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 91, 3)],
+      [error(CompileTimeErrorCode.assignmentToMethod, 91, 3)],
     );
   }
 }

@@ -33,13 +33,7 @@ class C {
   static int foo = 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD,
-          14,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.conflictingConstructorAndStaticField, 14, 3)],
     );
   }
 
@@ -53,7 +47,7 @@ class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER,
+          CompileTimeErrorCode.conflictingConstructorAndStaticGetter,
           14,
           3,
         ),
@@ -72,7 +66,7 @@ class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER,
+          CompileTimeErrorCode.conflictingConstructorAndStaticGetter,
           14,
           3,
         ),
@@ -101,7 +95,7 @@ class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER,
+          CompileTimeErrorCode.conflictingConstructorAndStaticSetter,
           14,
           3,
         ),
@@ -117,13 +111,7 @@ enum E {
   const E.foo();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD,
-          32,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.conflictingConstructorAndStaticField, 32, 3)],
     );
   }
 
@@ -146,13 +134,7 @@ enum E {
   static int foo = 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD,
-          30,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.conflictingConstructorAndStaticField, 30, 3)],
     );
   }
 
@@ -167,7 +149,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER,
+          CompileTimeErrorCode.conflictingConstructorAndStaticGetter,
           30,
           3,
         ),
@@ -186,7 +168,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER,
+          CompileTimeErrorCode.conflictingConstructorAndStaticSetter,
           30,
           3,
         ),
@@ -209,13 +191,7 @@ extension type A.foo(int it) {
   static int foo = 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD,
-          17,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.conflictingConstructorAndStaticField, 17, 3)],
     );
   }
 
@@ -227,13 +203,7 @@ extension type A(int it) {
   static int foo = 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD,
-          31,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.conflictingConstructorAndStaticField, 31, 3)],
     );
   }
 
@@ -246,7 +216,7 @@ extension type A.foo(int it) {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER,
+          CompileTimeErrorCode.conflictingConstructorAndStaticGetter,
           17,
           3,
         ),
@@ -263,7 +233,7 @@ extension type A.foo(int it) {
 ''',
       [
         error(
-          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER,
+          CompileTimeErrorCode.conflictingConstructorAndStaticSetter,
           17,
           3,
         ),

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart._http;
+part of "dart:_http";
 
 abstract final class HttpProfiler {
   static final Map<String, _HttpProfileData> _profile = {};
@@ -290,6 +290,7 @@ class _CopyingBytesBuilder implements BytesBuilder {
   // Start with 1024 bytes.
   static const int _INIT_SIZE = 1024;
 
+  @pragma("vm:shared")
   static final _emptyList = Uint8List(0);
 
   int _length = 0;

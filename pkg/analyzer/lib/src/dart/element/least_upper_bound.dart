@@ -4,8 +4,7 @@
 
 import 'dart:math' show max;
 
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
-    show Variance;
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart' show Variance;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -694,10 +693,9 @@ class LeastUpperBoundHelper {
             parameters.add(
               fParameter.copyWith(
                 type: _parameterType(fParameter, gParameter),
-                kind:
-                    fParameter.isRequiredNamed || gParameter.isRequiredNamed
-                        ? ParameterKind.NAMED_REQUIRED
-                        : ParameterKind.NAMED,
+                kind: fParameter.isRequiredNamed || gParameter.isRequiredNamed
+                    ? ParameterKind.NAMED_REQUIRED
+                    : ParameterKind.NAMED,
               ),
             );
           } else if (compareNames < 0) {
@@ -747,25 +745,21 @@ class LeastUpperBoundHelper {
   }
 
   TypeImpl? _futureOr(TypeImpl T1, TypeImpl T2) {
-    var T1_futureOr =
-        T1 is InterfaceTypeImpl && T1.isDartAsyncFutureOr
-            ? T1.typeArguments[0]
-            : null;
+    var T1_futureOr = T1 is InterfaceTypeImpl && T1.isDartAsyncFutureOr
+        ? T1.typeArguments[0]
+        : null;
 
-    var T1_future =
-        T1 is InterfaceTypeImpl && T1.isDartAsyncFuture
-            ? T1.typeArguments[0]
-            : null;
+    var T1_future = T1 is InterfaceTypeImpl && T1.isDartAsyncFuture
+        ? T1.typeArguments[0]
+        : null;
 
-    var T2_futureOr =
-        T2 is InterfaceTypeImpl && T2.isDartAsyncFutureOr
-            ? T2.typeArguments[0]
-            : null;
+    var T2_futureOr = T2 is InterfaceTypeImpl && T2.isDartAsyncFutureOr
+        ? T2.typeArguments[0]
+        : null;
 
-    var T2_future =
-        T2 is InterfaceTypeImpl && T2.isDartAsyncFuture
-            ? T2.typeArguments[0]
-            : null;
+    var T2_future = T2 is InterfaceTypeImpl && T2.isDartAsyncFuture
+        ? T2.typeArguments[0]
+        : null;
 
     // UP(FutureOr<T1>, FutureOr<T2>) = FutureOr<T3> where T3 = UP(T1, T2)
     if (T1_futureOr != null && T2_futureOr != null) {

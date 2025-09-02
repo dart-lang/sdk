@@ -252,7 +252,7 @@ int f(E x) {
       errorFilter:
           (e) =>
               e.diagnosticCode ==
-              CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION,
+              CompileTimeErrorCode.nonExhaustiveSwitchExpression,
     );
   }
 
@@ -369,7 +369,7 @@ class AddMissingSwitchCasesTest_SwitchStatement extends FixProcessorTest {
     return (diagnostic) {
       if (!hasError &&
           diagnostic.diagnosticCode ==
-              CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT) {
+              CompileTimeErrorCode.nonExhaustiveSwitchStatement) {
         hasError = true;
         return true;
       }
@@ -522,7 +522,7 @@ void f(E e) {
       errorFilter:
           (e) =>
               e.diagnosticCode ==
-              CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT,
+              CompileTimeErrorCode.nonExhaustiveSwitchStatement,
     );
   }
 

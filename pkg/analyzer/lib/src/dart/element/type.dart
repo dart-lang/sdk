@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:collection/collection.dart';
 
 /// Returns a [List] of fixed length with given types.
@@ -155,10 +156,9 @@ class FunctionTypeImpl extends TypeImpl
         }
       }
     }
-    sortedNamedParameters =
-        firstNamedParameterIndex == null
-            ? const []
-            : parameters.sublist(firstNamedParameterIndex, parameters.length);
+    sortedNamedParameters = firstNamedParameterIndex == null
+        ? const []
+        : parameters.sublist(firstNamedParameterIndex, parameters.length);
     if (!namedParametersAlreadySorted) {
       // Sort named parameters.
       sortedNamedParameters.sort(
@@ -325,13 +325,11 @@ class FunctionTypeImpl extends TypeImpl
     return FunctionTypeImpl(
       returnType: substitution.substituteType(returnType),
       typeParameters: const [],
-      parameters:
-          parameters
-              .map(
-                (p) =>
-                    SubstitutedFormalParameterElementImpl.from(p, substitution),
-              )
-              .toFixedList(),
+      parameters: parameters
+          .map(
+            (p) => SubstitutedFormalParameterElementImpl.from(p, substitution),
+          )
+          .toFixedList(),
       nullabilitySuffix: nullabilitySuffix,
     );
   }
@@ -443,9 +441,7 @@ class FunctionTypeImpl extends TypeImpl
     for (int i = 0; i < count; i++) {
       TypeParameterElement p1 = params1[i];
       TypeParameterElement p2 = params2[i];
-      TypeParameterFragmentImpl pFresh = TypeParameterFragmentImpl.synthetic(
-        name: p2.name,
-      );
+      var pFresh = p2.freshCopy();
 
       TypeParameterTypeImpl variableFresh = pFresh.instantiate(
         nullabilitySuffix: NullabilitySuffix.none,
@@ -470,7 +466,7 @@ class FunctionTypeImpl extends TypeImpl
       }
 
       if (bound2 is! DynamicType) {
-        pFresh.bound = bound2;
+        pFresh.bound = bound2 as TypeImpl;
       }
     }
     return variablesFresh;
@@ -585,10 +581,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (element.name == 'FutureOr' && element.library.isDartAsync) {
       return FutureOrTypeImpl(
         element: element,
-        typeArgument:
-            typeArguments.isNotEmpty
-                ? typeArguments[0]
-                : InvalidTypeImpl.instance,
+        typeArgument: typeArguments.isNotEmpty
+            ? typeArguments[0]
+            : InvalidTypeImpl.instance,
         nullabilitySuffix: nullabilitySuffix,
         alias: alias,
       );
@@ -640,10 +635,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   List<InternalConstructorElement> get constructors {
-    return _constructors ??=
-        element.constructors.map((constructor) {
-          return SubstitutedConstructorElementImpl.from2(constructor, this);
-        }).toFixedList();
+    return _constructors ??= element.constructors.map((constructor) {
+      return SubstitutedConstructorElementImpl.from2(constructor, this);
+    }).toFixedList();
   }
 
   @Deprecated('Use constructors instead')
@@ -656,10 +650,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   List<InternalGetterElement> get getters {
-    return _getters ??=
-        element.getters.map((e) {
-          return SubstitutedGetterElementImpl.forTargetType(e, this);
-        }).toFixedList();
+    return _getters ??= element.getters.map((e) {
+      return SubstitutedGetterElementImpl.forTargetType(e, this);
+    }).toFixedList();
   }
 
   @override
@@ -760,10 +753,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   List<InternalMethodElement> get methods {
-    return _methods ??=
-        element.methods.map((e) {
-          return SubstitutedMethodElementImpl.forTargetType(e, this);
-        }).toFixedList();
+    return _methods ??= element.methods.map((e) {
+      return SubstitutedMethodElementImpl.forTargetType(e, this);
+    }).toFixedList();
   }
 
   @Deprecated('Use methods instead')
@@ -791,10 +783,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   List<InternalSetterElement> get setters {
-    return _setters ??=
-        element.setters.map((e) {
-          return SubstitutedSetterElementImpl.forTargetType(e, this);
-        }).toFixedList();
+    return _setters ??= element.setters.map((e) {
+      return SubstitutedSetterElementImpl.forTargetType(e, this);
+    }).toFixedList();
   }
 
   @override
@@ -906,6 +897,13 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   InternalMethodElement? getMethod2(String methodName) {
     return getMethod(methodName);
+  }
+
+  InternalConstructorElement? getNamedConstructor(String name) {
+    var base = element.getNamedConstructor(name);
+    return base != null
+        ? SubstitutedConstructorElementImpl.from2(base, this)
+        : null;
   }
 
   @override
@@ -1149,10 +1147,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
     List<InterfaceTypeImpl> results = [];
     for (var definedType in definedTypes) {
-      var result =
-          substitution != null
-              ? substitution.substituteType(definedType)
-              : definedType;
+      var result = substitution != null
+          ? substitution.substituteType(definedType)
+          : definedType;
       result as InterfaceTypeImpl;
       result = result.withNullability(nullabilitySuffix);
       results.add(result);

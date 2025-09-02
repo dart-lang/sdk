@@ -38,7 +38,7 @@ void f(Object? x) {
 }
 ''');
     await assertHasFixAllFix(
-      CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY,
+      CompileTimeErrorCode.switchCaseCompletesNormally,
       '''
 void f(Object? x) {
   switch (x) {

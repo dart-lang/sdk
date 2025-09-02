@@ -2,78 +2,78 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/issue45204.dart:29:8: Error: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/general/issue45204.dart:29:12: Error: Too few positional arguments: 1 required, 0 given.
 //   S(3).test();
-//        ^
+//            ^
 // pkg/front_end/testcases/general/issue45204.dart:6:8: Context: Found this candidate, but the arguments don't match.
 //   void test(int x) {}
-//        ^^^^^^
+//        ^^^^
 //
-// pkg/front_end/testcases/general/issue45204.dart:30:8: Error: Too many positional arguments: 1 allowed, but 2 found.
+// pkg/front_end/testcases/general/issue45204.dart:30:12: Error: Too many positional arguments: 1 allowed, but 2 found.
 // Try removing the extra positional arguments.
 //   S(4).test(5, 6);
-//        ^
+//            ^
 // pkg/front_end/testcases/general/issue45204.dart:6:8: Context: Found this candidate, but the arguments don't match.
 //   void test(int x) {}
-//        ^^^^^^
+//        ^^^^
 //
 // pkg/front_end/testcases/general/issue45204.dart:31:8: Error: Expected 0 type arguments.
 //   S(5).test<int>(6);
 //        ^
 // pkg/front_end/testcases/general/issue45204.dart:6:8: Context: Found this candidate, but the arguments don't match.
 //   void test(int x) {}
-//        ^^^^^^
+//        ^^^^
 //
-// pkg/front_end/testcases/general/issue45204.dart:33:9: Error: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/general/issue45204.dart:33:14: Error: Too few positional arguments: 1 required, 0 given.
 //   S2(3).test2();
-//         ^
+//              ^
 // pkg/front_end/testcases/general/issue45204.dart:10:8: Context: Found this candidate, but the arguments don't match.
 //   void test2(int x) {}
-//        ^^^^^^^^
+//        ^^^^^
 //
-// pkg/front_end/testcases/general/issue45204.dart:34:9: Error: Too many positional arguments: 1 allowed, but 2 found.
+// pkg/front_end/testcases/general/issue45204.dart:34:14: Error: Too many positional arguments: 1 allowed, but 2 found.
 // Try removing the extra positional arguments.
 //   S2(4).test2(5, 6);
-//         ^
+//              ^
 // pkg/front_end/testcases/general/issue45204.dart:10:8: Context: Found this candidate, but the arguments don't match.
 //   void test2(int x) {}
-//        ^^^^^^^^
+//        ^^^^^
 //
-// pkg/front_end/testcases/general/issue45204.dart:35:9: Error: Expected 1 type arguments.
+// pkg/front_end/testcases/general/issue45204.dart:35:9: Error: Expected 0 type arguments.
 //   S2(5).test2<int>(6);
 //         ^
 // pkg/front_end/testcases/general/issue45204.dart:10:8: Context: Found this candidate, but the arguments don't match.
 //   void test2(int x) {}
-//        ^^^^^^^^
+//        ^^^^^
 //
-// pkg/front_end/testcases/general/issue45204.dart:37:9: Error: Too few positional arguments: 1 required, 0 given.
+// pkg/front_end/testcases/general/issue45204.dart:37:14: Error: Too few positional arguments: 1 required, 0 given.
 //   S2(3).test3();
-//         ^
+//              ^
 // pkg/front_end/testcases/general/issue45204.dart:11:8: Context: Found this candidate, but the arguments don't match.
 //   void test3<Y>(Y y) {}
-//        ^^^^^^^^
+//        ^^^^^
 //
-// pkg/front_end/testcases/general/issue45204.dart:38:9: Error: Too many positional arguments: 1 allowed, but 2 found.
+// pkg/front_end/testcases/general/issue45204.dart:38:14: Error: Too many positional arguments: 1 allowed, but 2 found.
 // Try removing the extra positional arguments.
 //   S2(4).test3(5, 6);
-//         ^
+//              ^
 // pkg/front_end/testcases/general/issue45204.dart:11:8: Context: Found this candidate, but the arguments don't match.
 //   void test3<Y>(Y y) {}
-//        ^^^^^^^^
+//        ^^^^^
 //
-// pkg/front_end/testcases/general/issue45204.dart:40:9: Error: Expected 2 type arguments.
+// pkg/front_end/testcases/general/issue45204.dart:40:9: Error: Expected 1 type arguments.
 //   S2(6).test3<int, int>(7);
 //         ^
 // pkg/front_end/testcases/general/issue45204.dart:11:8: Context: Found this candidate, but the arguments don't match.
 //   void test3<Y>(Y y) {}
-//        ^^^^^^^^
+//        ^^^^^
 //
-// pkg/front_end/testcases/general/issue45204.dart:41:9: Error: Expected 2 type arguments.
+// pkg/front_end/testcases/general/issue45204.dart:41:9: Error: Expected 1 type arguments.
 //   S2(7).test3<int, int, int>(8);
 //         ^
 // pkg/front_end/testcases/general/issue45204.dart:11:8: Context: Found this candidate, but the arguments don't match.
 //   void test3<Y>(Y y) {}
-//        ^^^^^^^^
+//        ^^^^^
 //
 // pkg/front_end/testcases/general/issue45204.dart:15:9: Error: Too few positional arguments: 1 required, 0 given.
 //   3.test();
@@ -175,38 +175,38 @@ Try removing the extra positional arguments.
   invalid-expression "pkg/front_end/testcases/general/issue45204.dart:27:5: Error: Expected 1 type arguments.
   7.test3<int, int, int>(8);
     ^" in self::S2|test3<dynamic, core::int, core::int, core::int>(7, 8);
-  invalid-expression "pkg/front_end/testcases/general/issue45204.dart:29:8: Error: Too few positional arguments: 1 required, 0 given.
+  invalid-expression "pkg/front_end/testcases/general/issue45204.dart:29:12: Error: Too few positional arguments: 1 required, 0 given.
   S(3).test();
-       ^";
-  invalid-expression "pkg/front_end/testcases/general/issue45204.dart:30:8: Error: Too many positional arguments: 1 allowed, but 2 found.
+           ^";
+  invalid-expression "pkg/front_end/testcases/general/issue45204.dart:30:12: Error: Too many positional arguments: 1 allowed, but 2 found.
 Try removing the extra positional arguments.
   S(4).test(5, 6);
-       ^";
+           ^";
   invalid-expression "pkg/front_end/testcases/general/issue45204.dart:31:8: Error: Expected 0 type arguments.
   S(5).test<int>(6);
        ^";
-  invalid-expression "pkg/front_end/testcases/general/issue45204.dart:33:9: Error: Too few positional arguments: 1 required, 0 given.
+  invalid-expression "pkg/front_end/testcases/general/issue45204.dart:33:14: Error: Too few positional arguments: 1 required, 0 given.
   S2(3).test2();
-        ^";
-  invalid-expression "pkg/front_end/testcases/general/issue45204.dart:34:9: Error: Too many positional arguments: 1 allowed, but 2 found.
+             ^";
+  invalid-expression "pkg/front_end/testcases/general/issue45204.dart:34:14: Error: Too many positional arguments: 1 allowed, but 2 found.
 Try removing the extra positional arguments.
   S2(4).test2(5, 6);
-        ^";
-  invalid-expression "pkg/front_end/testcases/general/issue45204.dart:35:9: Error: Expected 1 type arguments.
+             ^";
+  invalid-expression "pkg/front_end/testcases/general/issue45204.dart:35:9: Error: Expected 0 type arguments.
   S2(5).test2<int>(6);
         ^";
-  invalid-expression "pkg/front_end/testcases/general/issue45204.dart:37:9: Error: Too few positional arguments: 1 required, 0 given.
+  invalid-expression "pkg/front_end/testcases/general/issue45204.dart:37:14: Error: Too few positional arguments: 1 required, 0 given.
   S2(3).test3();
-        ^";
-  invalid-expression "pkg/front_end/testcases/general/issue45204.dart:38:9: Error: Too many positional arguments: 1 allowed, but 2 found.
+             ^";
+  invalid-expression "pkg/front_end/testcases/general/issue45204.dart:38:14: Error: Too many positional arguments: 1 allowed, but 2 found.
 Try removing the extra positional arguments.
   S2(4).test3(5, 6);
-        ^";
+             ^";
   self::S2|test3<dynamic, core::int>(5, 6);
-  invalid-expression "pkg/front_end/testcases/general/issue45204.dart:40:9: Error: Expected 2 type arguments.
+  invalid-expression "pkg/front_end/testcases/general/issue45204.dart:40:9: Error: Expected 1 type arguments.
   S2(6).test3<int, int>(7);
         ^";
-  invalid-expression "pkg/front_end/testcases/general/issue45204.dart:41:9: Error: Expected 2 type arguments.
+  invalid-expression "pkg/front_end/testcases/general/issue45204.dart:41:9: Error: Expected 1 type arguments.
   S2(7).test3<int, int, int>(8);
         ^";
 }

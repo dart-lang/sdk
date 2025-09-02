@@ -25,8 +25,8 @@ import 'package:path/path.dart' as path;
 mixin ResourceProviderMixin {
   late final ResourceProvider resourceProvider =
       Platform.environment['TEST_ANALYZER_WINDOWS_PATHS'] == 'true'
-          ? MemoryResourceProvider(context: path.windows)
-          : MemoryResourceProvider();
+      ? MemoryResourceProvider(context: path.windows)
+      : MemoryResourceProvider();
 
   /// The path context of [resourceProvider].
   path.Context get pathContext => resourceProvider.pathContext;
@@ -159,8 +159,8 @@ mixin ResourceProviderMixin {
     required String packagePath,
     required String name,
   }) {
-    var builder =
-        PackageConfigFileBuilder()..add(name: name, rootPath: packagePath);
+    var builder = PackageConfigFileBuilder()
+      ..add(name: name, rootPath: packagePath);
     newPackageConfigJsonFileFromBuilder(packagePath, builder);
   }
 

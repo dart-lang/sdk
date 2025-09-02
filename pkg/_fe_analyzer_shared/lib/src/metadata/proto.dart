@@ -1052,12 +1052,12 @@ class ConstructorProto extends Proto {
   Proto invoke(List<Argument>? arguments) {
     return arguments != null
         ? new ExpressionProto(
-          new ConstructorInvocation(
-            new NamedTypeAnnotation(type, typeArguments),
-            reference,
-            arguments,
-          ),
-        )
+            new ConstructorInvocation(
+              new NamedTypeAnnotation(type, typeArguments),
+              reference,
+              arguments,
+            ),
+          )
         : this;
   }
 
@@ -1141,8 +1141,8 @@ class FunctionProto extends Proto {
   Proto invoke(List<Argument>? arguments) {
     return arguments != null
         ? new ExpressionProto(
-          new StaticInvocation(reference, const [], arguments),
-        )
+            new StaticInvocation(reference, const [], arguments),
+          )
         : this;
   }
 
@@ -1185,8 +1185,8 @@ class FunctionInstantiationProto extends Proto {
   Proto invoke(List<Argument>? arguments) {
     return arguments != null
         ? new ExpressionProto(
-          new StaticInvocation(reference, typeArguments, arguments),
-        )
+            new StaticInvocation(reference, typeArguments, arguments),
+          )
         : this;
   }
 
@@ -1383,8 +1383,12 @@ class ExpressionInstantiationProto extends Proto {
   Proto invoke(List<Argument>? arguments) {
     return arguments != null
         ? new ExpressionProto(
-          new ImplicitInvocation(receiver.toExpression(), const [], arguments),
-        )
+            new ImplicitInvocation(
+              receiver.toExpression(),
+              const [],
+              arguments,
+            ),
+          )
         : this;
   }
 
@@ -1591,8 +1595,8 @@ class ExpressionProto extends Proto {
   Proto invoke(List<Argument>? arguments) {
     return arguments != null
         ? new ExpressionProto(
-          new ImplicitInvocation(expression, const [], arguments),
-        )
+            new ImplicitInvocation(expression, const [], arguments),
+          )
         : this;
   }
 
@@ -1633,8 +1637,8 @@ class FunctionTypeParameterProto extends Proto {
   Proto invoke(List<Argument>? arguments) {
     return arguments != null
         ? new ExpressionProto(
-          new ImplicitInvocation(toExpression(), const [], arguments),
-        )
+            new ImplicitInvocation(toExpression(), const [], arguments),
+          )
         : this;
   }
 

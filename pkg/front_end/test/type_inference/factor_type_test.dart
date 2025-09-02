@@ -31,9 +31,16 @@ class FactorTypeTest extends Object with FactorTypeTestMixin<DartType> {
 
   @override
   void expect(
-      DartType T, DartType S, String actualResult, String expectedResult) {
+    DartType T,
+    DartType S,
+    String actualResult,
+    String expectedResult,
+  ) {
     Expect.equals(
-        expectedResult, actualResult, "Unexpected result for factor($T, $S)");
+      expectedResult,
+      actualResult,
+      "Unexpected result for factor($T, $S)",
+    );
   }
 
   @override
@@ -90,11 +97,15 @@ class FactorTypeTest extends Object with FactorTypeTestMixin<DartType> {
 Future<void> main() async {
   CompilerOptions options = new CompilerOptions()
     ..explicitExperimentalFlags[ExperimentalFlag.nonNullable] = true;
-  InternalCompilerResult result = await compileScript('',
-      options: options,
-      requireMain: false,
-      retainDataForTesting: true) as InternalCompilerResult;
+  InternalCompilerResult result =
+      await compileScript(
+            '',
+            options: options,
+            requireMain: false,
+            retainDataForTesting: true,
+          )
+          as InternalCompilerResult;
   new FactorTypeTest(
-          new TypeEnvironment(result.coreTypes!, result.classHierarchy!))
-      .run();
+    new TypeEnvironment(result.coreTypes!, result.classHierarchy!),
+  ).run();
 }

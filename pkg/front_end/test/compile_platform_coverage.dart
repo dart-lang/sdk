@@ -11,8 +11,9 @@ Future<void> main(List<String> arguments) async {
   Uri? coverageUri;
   for (String argument in arguments) {
     if (argument.startsWith("--coverage=")) {
-      coverageUri = Uri.base
-          .resolveUri(Uri.file(argument.substring("--coverage=".length)));
+      coverageUri = Uri.base.resolveUri(
+        Uri.file(argument.substring("--coverage=".length)),
+      );
     } else {
       throw "Unsupported argument: $argument";
     }
@@ -21,8 +22,9 @@ Future<void> main(List<String> arguments) async {
     throw "Need --coverage=<dir>/ argument";
   }
 
-  Directory tmp =
-      Directory.systemTemp.createTempSync("compile_platform_coverage");
+  Directory tmp = Directory.systemTemp.createTempSync(
+    "compile_platform_coverage",
+  );
   String outlinePath = tmp.uri.resolve("vm_outline.dill").toFilePath();
   String platformPath = tmp.uri.resolve("vm_platform.dill").toFilePath();
 
@@ -44,6 +46,8 @@ Future<void> main(List<String> arguments) async {
   File f = new File.fromUri(coverageUri.resolve("$displayName.coverage"));
   // Force compiling seems to add something like 1 second to the collection
   // time, but we get rid of uncompiled functions so it seems to be worth it.
-  (await collectCoverage(displayName: displayName, forceCompile: true))
-      ?.writeToFile(f);
+  (await collectCoverage(
+    displayName: displayName,
+    forceCompile: true,
+  ))?.writeToFile(f);
 }

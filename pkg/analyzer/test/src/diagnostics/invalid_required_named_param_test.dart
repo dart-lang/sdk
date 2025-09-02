@@ -28,7 +28,7 @@ import 'package:meta/meta.dart';
 
 m({@required a = 1}) => null;
 ''',
-      [error(WarningCode.INVALID_REQUIRED_NAMED_PARAM, 37, 15)],
+      [error(WarningCode.invalidRequiredNamedParam, 37, 15)],
     );
   }
 
@@ -39,7 +39,7 @@ import 'package:meta/meta.dart';
 
 m(a, {@required b = 1}) => null;
 ''',
-      [error(WarningCode.INVALID_REQUIRED_NAMED_PARAM, 40, 15)],
+      [error(WarningCode.invalidRequiredNamedParam, 40, 15)],
     );
   }
 

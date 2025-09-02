@@ -32,12 +32,12 @@ List<int> f() {
       [
         // No lints, since `x` is not promotable.
         error(
-          CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY,
+          CompileTimeErrorCode.listElementTypeNotAssignableNullability,
           84,
           1,
         ),
         error(
-          CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY,
+          CompileTimeErrorCode.listElementTypeNotAssignableNullability,
           106,
           1,
         ),

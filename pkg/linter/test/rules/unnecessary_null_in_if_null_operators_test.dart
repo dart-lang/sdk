@@ -25,8 +25,8 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.DEAD_CODE, 23, 4),
-        error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 26, 1),
+        error(WarningCode.deadCode, 23, 4),
+        error(StaticWarningCode.deadNullAwareExpression, 26, 1),
       ],
     );
   }
@@ -50,9 +50,9 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.DEAD_CODE, 23, 7),
+        error(WarningCode.deadCode, 23, 7),
         lint(26, 4),
-        error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 26, 4),
+        error(StaticWarningCode.deadNullAwareExpression, 26, 4),
       ],
     );
   }
@@ -68,9 +68,9 @@ class C {
 }
 ''',
       [
-        error(WarningCode.DEAD_CODE, 32, 7),
+        error(WarningCode.deadCode, 32, 7),
         lint(35, 4),
-        error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 35, 4),
+        error(StaticWarningCode.deadNullAwareExpression, 35, 4),
         lint(53, 4),
       ],
     );
@@ -87,8 +87,8 @@ class C {
 ''',
       [
         // No lint.
-        error(WarningCode.DEAD_CODE, 32, 4),
-        error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 35, 1),
+        error(WarningCode.deadCode, 32, 4),
+        error(StaticWarningCode.deadNullAwareExpression, 35, 1),
       ],
     );
   }
@@ -100,9 +100,9 @@ var x = 1 ?? null;
 var y = null ?? 1;
 ''',
       [
-        error(WarningCode.DEAD_CODE, 10, 7),
+        error(WarningCode.deadCode, 10, 7),
         lint(13, 4),
-        error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 13, 4),
+        error(StaticWarningCode.deadNullAwareExpression, 13, 4),
         lint(27, 4),
       ],
     );
@@ -115,8 +115,8 @@ var x = 1 ?? 1;
 ''',
       [
         // No lint.
-        error(WarningCode.DEAD_CODE, 10, 4),
-        error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 13, 1),
+        error(WarningCode.deadCode, 10, 4),
+        error(StaticWarningCode.deadNullAwareExpression, 13, 1),
       ],
     );
   }
@@ -127,8 +127,8 @@ var x = 1 ?? 1;
 var x = 1 ?? 1;
 ''',
       [
-        error(WarningCode.DEAD_CODE, 10, 4),
-        error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 13, 1),
+        error(WarningCode.deadCode, 10, 4),
+        error(StaticWarningCode.deadNullAwareExpression, 13, 1),
       ],
     );
   }
@@ -148,9 +148,9 @@ var x = null ?? 1;
 var x = 1 ?? null;
 ''',
       [
-        error(WarningCode.DEAD_CODE, 10, 7),
+        error(WarningCode.deadCode, 10, 7),
         lint(13, 4),
-        error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 13, 4),
+        error(StaticWarningCode.deadNullAwareExpression, 13, 4),
       ],
     );
   }

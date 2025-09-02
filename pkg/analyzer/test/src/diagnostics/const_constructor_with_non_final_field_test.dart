@@ -53,13 +53,7 @@ class A {
   const A.a();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD,
-          31,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constConstructorWithNonFinalField, 31, 3)],
     );
   }
 
@@ -71,13 +65,7 @@ class A {
   const A();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD,
-          31,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constConstructorWithNonFinalField, 31, 1)],
     );
   }
 }

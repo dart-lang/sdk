@@ -22,7 +22,7 @@ class AsExpressionResolutionTest extends PubPackageResolutionTest {
 const num a = 1.2;
 const int b = a as int;
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 33, 8)],
+      [error(CompileTimeErrorCode.constEvalThrowsException, 33, 8)],
     );
 
     var node = findNode.asExpression('as int');
@@ -74,7 +74,7 @@ class A<T> {
   }
 }
 ''',
-      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 30, 5)],
+      [error(ParserErrorCode.missingAssignableSelector, 30, 5)],
     );
 
     var node = findNode.singleAsExpression;

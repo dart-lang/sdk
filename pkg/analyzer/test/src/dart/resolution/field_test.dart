@@ -24,7 +24,7 @@ class A {
   late Object f = super;
 }
 ''',
-      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 28, 5)],
+      [error(ParserErrorCode.missingAssignableSelector, 28, 5)],
     );
 
     var node = findNode.singleFieldDeclaration;
@@ -86,13 +86,7 @@ class A {
   final int b = a;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
-          45,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.implicitThisReferenceInInitializer, 45, 1)],
     );
 
     var node = findNode.fieldDeclaration('b =');
@@ -126,13 +120,7 @@ class A {
   final int b = a;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
-          44,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.implicitThisReferenceInInitializer, 44, 1)],
     );
 
     var node = findNode.fieldDeclaration('b =');
@@ -166,13 +154,7 @@ class A {
   final int b = a();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
-          42,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.implicitThisReferenceInInitializer, 42, 1)],
     );
 
     var node = findNode.fieldDeclaration('b =');
@@ -211,7 +193,7 @@ class A {
   final a = this;
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 22, 4)],
+      [error(CompileTimeErrorCode.invalidReferenceToThis, 22, 4)],
     );
 
     var node = findNode.singleFieldDeclaration;

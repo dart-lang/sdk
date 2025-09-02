@@ -5,7 +5,9 @@
 /// @docImport 'package:analyzer/src/error/deprecated_member_use_verifier.dart';
 library;
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -14,6 +16,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/element/extensions.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/error/deprecated_member_use_verifier.dart' // ignore: implementation_imports
     show BaseDeprecatedMemberUseVerifier;
+import 'package:analyzer/src/utilities/extensions/ast.dart'; // ignore: implementation_imports
 import 'package:analyzer/workspace/workspace.dart';
 
 import '../analyzer.dart';
@@ -31,12 +34,15 @@ class DeprecatedMemberUseFromSamePackage extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.deprecated_member_use_from_same_package_with_message,
-    LinterLintCode.deprecated_member_use_from_same_package_without_message,
+    LinterLintCode.deprecatedMemberUseFromSamePackageWithMessage,
+    LinterLintCode.deprecatedMemberUseFromSamePackageWithoutMessage,
   ];
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
   }
@@ -71,8 +77,7 @@ class _DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
         errorEntity.length,
         arguments: [displayName],
         diagnosticCode:
-            LinterLintCode
-                .deprecated_member_use_from_same_package_without_message,
+            LinterLintCode.deprecatedMemberUseFromSamePackageWithoutMessage,
       );
     } else {
       if (!normalizedMessage.endsWith('.') &&
@@ -85,7 +90,7 @@ class _DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
         errorEntity.length,
         arguments: [displayName, normalizedMessage],
         diagnosticCode:
-            LinterLintCode.deprecated_member_use_from_same_package_with_message,
+            LinterLintCode.deprecatedMemberUseFromSamePackageWithMessage,
       );
     }
   }
@@ -132,7 +137,7 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
     if (library == null) {
       return;
     }
-    _deprecatedVerifier.pushInDeprecatedValue(library.metadata.hasDeprecated);
+    _deprecatedVerifier.pushInDeprecatedValue(library.isUseDeprecated);
 
     super.visitCompilationUnit(node);
   }
@@ -192,7 +197,9 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
-    _deprecatedVerifier.pushInDeprecatedMetadata(node.metadata);
+    _deprecatedVerifier.pushInDeprecatedValue(
+      node.firstVariableElement.isUseDeprecated,
+    );
 
     try {
       super.visitFieldDeclaration(node);
@@ -320,7 +327,9 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    _deprecatedVerifier.pushInDeprecatedMetadata(node.metadata);
+    _deprecatedVerifier.pushInDeprecatedValue(
+      node.firstVariableElement.isUseDeprecated,
+    );
 
     try {
       super.visitTopLevelVariableDeclaration(node);

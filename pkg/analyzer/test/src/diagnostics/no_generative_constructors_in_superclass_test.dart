@@ -26,13 +26,7 @@ class B extends A {
   B() : super();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS,
-          55,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.noGenerativeConstructorsInSuperclass, 55, 1)],
     );
   }
 
@@ -47,13 +41,7 @@ class B extends A {
   factory B.second() => throw '';
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS,
-          55,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.noGenerativeConstructorsInSuperclass, 55, 1)],
     );
   }
 
@@ -90,13 +78,7 @@ class B extends A {
   B();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS,
-          55,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.noGenerativeConstructorsInSuperclass, 55, 1)],
     );
   }
 
@@ -109,13 +91,7 @@ class A {
 class B extends A {
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS,
-          55,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.noGenerativeConstructorsInSuperclass, 55, 1)],
     );
   }
 }

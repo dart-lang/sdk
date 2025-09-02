@@ -5,7 +5,7 @@
 import 'package:front_end/src/api_prototype/front_end.dart'
     show CompilerOptions, CfeDiagnosticMessage;
 import 'package:front_end/src/codes/cfe_codes.dart'
-    show FormattedMessage, messageMissingMain;
+    show FormattedMessage, codeMissingMain;
 import 'package:front_end/src/kernel/utils.dart' show serializeComponent;
 import 'package:front_end/src/testing/compiler_common.dart'
     show
@@ -35,12 +35,14 @@ void main() {
       var options = new CompilerOptions()
         ..librariesSpecificationUri = invalidCoreLibsSpecUri
         ..sdkSummary = null
-        ..compileSdk = true // To prevent FE from loading an sdk-summary.
+        ..compileSdk =
+            true // To prevent FE from loading an sdk-summary.
         ..onDiagnostic = errors.add;
 
-      Component? component =
-          (await compileScript('main() => print("hi");', options: options))
-              ?.component;
+      Component? component = (await compileScript(
+        'main() => print("hi");',
+        options: options,
+      ))?.component;
       expect(component, isNotNull);
       expect(errors, isNotEmpty);
     });
@@ -48,54 +50,64 @@ void main() {
     test('compiler fails if it cannot find sdk summary', () async {
       var errors = [];
       var options = new CompilerOptions()
-        ..sdkSummary =
-            Uri.parse('org-dartlang-test:///not_existing_summary_file')
+        ..sdkSummary = Uri.parse(
+          'org-dartlang-test:///not_existing_summary_file',
+        )
         ..onDiagnostic = errors.add;
 
-      Component? component =
-          (await compileScript('main() => print("hi");', options: options))
-              ?.component;
+      Component? component = (await compileScript(
+        'main() => print("hi");',
+        options: options,
+      ))?.component;
       expect(component, isNotNull);
       expect(errors, isNotEmpty);
     });
 
-    test('by default component is compiled using the full platform file',
-        () async {
-      var options = new CompilerOptions()
-        // Note: we define [librariesSpecificationUri] with a specification that
-        // contains broken URIs to ensure we do not attempt to lookup for
-        // sources of the sdk directly.
-        ..librariesSpecificationUri = invalidCoreLibsSpecUri;
-      Component component =
-          (await compileScript('main() => print("hi");', options: options))!
-              .component!;
-      var core = component.libraries.firstWhere(isDartCoreLibrary);
-      var printMember = core.members.firstWhere((m) => m.name.text == 'print');
+    test(
+      'by default component is compiled using the full platform file',
+      () async {
+        var options = new CompilerOptions()
+          // Note: we define [librariesSpecificationUri] with a specification
+          // that contains broken URIs to ensure we do not attempt to lookup for
+          // sources of the sdk directly.
+          ..librariesSpecificationUri = invalidCoreLibsSpecUri;
+        Component component = (await compileScript(
+          'main() => print("hi");',
+          options: options,
+        ))!.component!;
+        var core = component.libraries.firstWhere(isDartCoreLibrary);
+        var printMember = core.members.firstWhere(
+          (m) => m.name.text == 'print',
+        );
 
-      // Note: summaries created by the SDK today contain empty statements as
-      // method bodies.
-      expect(printMember.function!.body is! EmptyStatement, isTrue);
-    });
+        // Note: summaries created by the SDK today contain empty statements as
+        // method bodies.
+        expect(printMember.function!.body is! EmptyStatement, isTrue);
+      },
+    );
 
     test('compiler requires a main method', () async {
       var errors = <CfeDiagnosticMessage>[];
       var options = new CompilerOptions()..onDiagnostic = errors.add;
       await compileScript('a() => print("hi");', options: options);
-      expect((errors.first as FormattedMessage).problemMessage,
-          messageMissingMain.problemMessage);
+      expect(
+        (errors.first as FormattedMessage).problemMessage,
+        codeMissingMain.problemMessage,
+      );
     });
 
     test('generated program contains source-info', () async {
       Component component = (await compileScript(
-              'a() => print("hi"); main() {}',
-              fileName: 'a.dart'))!
-          .component!;
+        'a() => print("hi"); main() {}',
+        fileName: 'a.dart',
+      ))!.component!;
       // Kernel always store an empty '' key in the map, so there is always at
       // least one. Having more means that source-info is added.
       expect(component.uriToSource.keys.length, greaterThan(1));
       expect(
-          component.uriToSource[Uri.parse('org-dartlang-test:///a/b/c/a.dart')],
-          isNotNull);
+        component.uriToSource[Uri.parse('org-dartlang-test:///a/b/c/a.dart')],
+        isNotNull,
+      );
     });
 
     // TODO(sigmund): add tests discovering libraries.json
@@ -105,20 +117,22 @@ void main() {
     test('compiler does not require a main method', () async {
       var errors = [];
       var options = new CompilerOptions()..onDiagnostic = errors.add;
-      await compileUnit(['a.dart'], {'a.dart': 'a() => print("hi");'},
-          options: options);
+      await compileUnit(
+        ['a.dart'],
+        {'a.dart': 'a() => print("hi");'},
+        options: options,
+      );
       expect(errors, isEmpty);
     });
 
     test('compiler is not hermetic by default', () async {
       var errors = [];
       var options = new CompilerOptions()..onDiagnostic = errors.add;
-      await compileUnit([
-        'a.dart'
-      ], {
-        'a.dart': 'import "b.dart"; a() => print("hi");',
-        'b.dart': ''
-      }, options: options);
+      await compileUnit(
+        ['a.dart'],
+        {'a.dart': 'import "b.dart"; a() => print("hi");', 'b.dart': ''},
+        options: options,
+      );
       expect(errors, isEmpty);
     });
 
@@ -134,8 +148,11 @@ void main() {
       // Pretend that the compiled code is a summary
       sources['a.dill'] = serializeComponent(unitA!);
 
-      var unitBC = await compileUnit(['b.dart', 'c.dart'], sources,
-          additionalDills: ['a.dill']);
+      var unitBC = await compileUnit(
+        ['b.dart', 'c.dart'],
+        sources,
+        additionalDills: ['a.dill'],
+      );
 
       // Pretend that the compiled code is a summary
       sources['bc.dill'] = serializeComponent(unitBC!);
@@ -151,12 +168,18 @@ void main() {
         expect(callTarget, same(cLib.procedures.first));
       }
 
-      var unitD1 = await compileUnit(['d.dart'], sources,
-          additionalDills: ['a.dill', 'bc.dill']);
+      var unitD1 = await compileUnit(
+        ['d.dart'],
+        sources,
+        additionalDills: ['a.dill', 'bc.dill'],
+      );
       checkDCallsC(unitD1!);
 
-      var unitD2 = await compileUnit(['d.dart'], sources,
-          additionalDills: ['bc.dill', 'a.dill']);
+      var unitD2 = await compileUnit(
+        ['d.dart'],
+        sources,
+        additionalDills: ['bc.dill', 'a.dill'],
+      );
       checkDCallsC(unitD2!);
     });
 

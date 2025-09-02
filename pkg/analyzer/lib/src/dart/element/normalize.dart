@@ -44,9 +44,9 @@ class NormalizeHelper {
   FunctionTypeImpl _functionType(FunctionTypeImpl functionType) {
     var fresh = getFreshTypeParameters(functionType.typeParameters);
     for (var typeParameter in fresh.freshTypeParameters) {
-      var bound = typeParameter.firstFragment.bound;
+      var bound = typeParameter.bound;
       if (bound != null) {
-        typeParameter.firstFragment.bound = _normalize(bound);
+        typeParameter.bound = _normalize(bound);
       }
     }
 
@@ -54,10 +54,9 @@ class NormalizeHelper {
 
     return FunctionTypeImpl.v2(
       typeParameters: functionType.typeParameters,
-      formalParameters:
-          functionType.formalParameters.map((e) {
-            return e.copyWith(type: _normalize(e.type));
-          }).toFixedList(),
+      formalParameters: functionType.formalParameters.map((e) {
+        return e.copyWith(type: _normalize(e.type));
+      }).toFixedList(),
       returnType: _normalize(functionType.returnType),
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -149,19 +148,15 @@ class NormalizeHelper {
     // NORM(Record(T0, ..., Tn)) = Record(R0, ..., Rn) where Ri is NORM(Ti)
     if (T is RecordTypeImpl) {
       return RecordTypeImpl(
-        positionalFields:
-            T.positionalFields.map((field) {
-              return RecordTypePositionalFieldImpl(
-                type: _normalize(field.type),
-              );
-            }).toFixedList(),
-        namedFields:
-            T.namedFields.map((field) {
-              return RecordTypeNamedFieldImpl(
-                name: field.name,
-                type: _normalize(field.type),
-              );
-            }).toFixedList(),
+        positionalFields: T.positionalFields.map((field) {
+          return RecordTypePositionalFieldImpl(type: _normalize(field.type));
+        }).toFixedList(),
+        namedFields: T.namedFields.map((field) {
+          return RecordTypeNamedFieldImpl(
+            name: field.name,
+            type: _normalize(field.type),
+          );
+        }).toFixedList(),
         nullabilitySuffix: NullabilitySuffix.none,
       );
     }

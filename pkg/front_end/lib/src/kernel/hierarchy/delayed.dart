@@ -26,9 +26,11 @@ class DelayedOverrideCheck implements DelayedCheck {
   final ClassMember? _localMember;
 
   DelayedOverrideCheck(
-      this._classBuilder, this._declaredMember, this._overriddenMembers,
-      {required ClassMember? localMember})
-      : this._localMember = localMember;
+    this._classBuilder,
+    this._declaredMember,
+    this._overriddenMembers, {
+    required ClassMember? localMember,
+  }) : this._localMember = localMember;
 
   @override
   void check(ClassMembersBuilder membersBuilder) {
@@ -72,15 +74,23 @@ class DelayedOverrideCheck implements DelayedCheck {
     ///
 
     void callback(Member interfaceMember, bool isSetter) {
-      _classBuilder.checkOverride(membersBuilder.hierarchyBuilder.types,
-          membersBuilder, declaredMember, interfaceMember, isSetter, callback,
-          isInterfaceCheck: !_classBuilder.isMixinApplication,
-          localMember: localMember);
+      _classBuilder.checkOverride(
+        membersBuilder.hierarchyBuilder.types,
+        membersBuilder,
+        declaredMember,
+        interfaceMember,
+        isSetter,
+        callback,
+        isInterfaceCheck: !_classBuilder.isMixinApplication,
+        localMember: localMember,
+      );
     }
 
     for (ClassMember overriddenMember in _overriddenMembers) {
       callback(
-          overriddenMember.getMember(membersBuilder), _declaredMember.isSetter);
+        overriddenMember.getMember(membersBuilder),
+        _declaredMember.isSetter,
+      );
     }
   }
 }
@@ -90,10 +100,8 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
 
   LibraryBuilder get libraryBuilder => declarationBuilder.libraryBuilder;
 
-  // Coverage-ignore(suite): Not run.
   int get declarationOffset => declarationBuilder.fileOffset;
 
-  // Coverage-ignore(suite): Not run.
   Uri get declarationUri => declarationBuilder.fileUri;
 
   void _checkGetterSetter({
@@ -119,78 +127,96 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
       if (!isValid) {
         if (getterIsDeclared && setterIsDeclared) {
           libraryBuilder.addProblem(
-              templateInvalidGetterSetterType.withArguments(
-                  getterType, getterFullName, setterType, setterFullName),
-              getterOffset,
-              name.text.length,
-              getterUri,
-              context: [
-                templateInvalidGetterSetterTypeSetterContext
-                    .withArguments(setterFullName)
-                    .withLocation(setterUri, setterOffset, name.text.length)
-              ]);
+            codeInvalidGetterSetterType.withArguments(
+              getterType,
+              getterFullName,
+              setterType,
+              setterFullName,
+            ),
+            getterOffset,
+            name.text.length,
+            getterUri,
+            context: [
+              codeInvalidGetterSetterTypeSetterContext
+                  .withArguments(setterFullName)
+                  .withLocation(setterUri, setterOffset, name.text.length),
+            ],
+          );
         } else if (getterIsDeclared) {
-          // Coverage-ignore-block(suite): Not run.
           Template<Message Function(DartType, String, DartType, String)>
-              template = templateInvalidGetterSetterTypeSetterInheritedGetter;
+          template = codeInvalidGetterSetterTypeSetterInheritedGetter;
           if (getterIsField) {
-            template = templateInvalidGetterSetterTypeSetterInheritedField;
+            template = codeInvalidGetterSetterTypeSetterInheritedField;
           }
           libraryBuilder.addProblem(
-              template.withArguments(
-                  getterType, getterFullName, setterType, setterFullName),
-              getterOffset,
-              name.text.length,
-              getterUri,
-              context: [
-                templateInvalidGetterSetterTypeSetterContext
-                    .withArguments(setterFullName)
-                    .withLocation(setterUri, setterOffset, name.text.length)
-              ]);
+            template.withArguments(
+              getterType,
+              getterFullName,
+              setterType,
+              setterFullName,
+            ),
+            getterOffset,
+            name.text.length,
+            getterUri,
+            context: [
+              codeInvalidGetterSetterTypeSetterContext
+                  .withArguments(setterFullName)
+                  .withLocation(setterUri, setterOffset, name.text.length),
+            ],
+          );
         } else if (setterIsDeclared) {
           Template<Message Function(DartType, String, DartType, String)>
-              template = templateInvalidGetterSetterTypeGetterInherited;
+          template = codeInvalidGetterSetterTypeGetterInherited;
           Template<Message Function(String)> context =
-              templateInvalidGetterSetterTypeGetterContext;
+              codeInvalidGetterSetterTypeGetterContext;
           if (getterIsField) {
-            template = templateInvalidGetterSetterTypeFieldInherited;
-            context = templateInvalidGetterSetterTypeFieldContext;
+            template = codeInvalidGetterSetterTypeFieldInherited;
+            context = codeInvalidGetterSetterTypeFieldContext;
           }
           libraryBuilder.addProblem(
-              template.withArguments(
-                  getterType, getterFullName, setterType, setterFullName),
-              setterOffset,
-              name.text.length,
-              setterUri,
-              context: [
-                context
-                    .withArguments(getterFullName)
-                    .withLocation(getterUri, getterOffset, name.text.length)
-              ]);
+            template.withArguments(
+              getterType,
+              getterFullName,
+              setterType,
+              setterFullName,
+            ),
+            setterOffset,
+            name.text.length,
+            setterUri,
+            context: [
+              context
+                  .withArguments(getterFullName)
+                  .withLocation(getterUri, getterOffset, name.text.length),
+            ],
+          );
         } else {
-          // Coverage-ignore-block(suite): Not run.
           Template<Message Function(DartType, String, DartType, String)>
-              template = templateInvalidGetterSetterTypeBothInheritedGetter;
+          template = codeInvalidGetterSetterTypeBothInheritedGetter;
           Template<Message Function(String)> context =
-              templateInvalidGetterSetterTypeGetterContext;
+              codeInvalidGetterSetterTypeGetterContext;
           if (getterIsField) {
-            template = templateInvalidGetterSetterTypeBothInheritedField;
-            context = templateInvalidGetterSetterTypeFieldContext;
+            template = codeInvalidGetterSetterTypeBothInheritedField;
+            context = codeInvalidGetterSetterTypeFieldContext;
           }
           libraryBuilder.addProblem(
-              template.withArguments(
-                  getterType, getterFullName, setterType, setterFullName),
-              declarationOffset,
-              noLength,
-              declarationUri,
-              context: [
-                context
-                    .withArguments(getterFullName)
-                    .withLocation(getterUri, getterOffset, name.text.length),
-                templateInvalidGetterSetterTypeSetterContext
-                    .withArguments(setterFullName)
-                    .withLocation(setterUri, setterOffset, name.text.length)
-              ]);
+            template.withArguments(
+              getterType,
+              getterFullName,
+              setterType,
+              setterFullName,
+            ),
+            declarationOffset,
+            noLength,
+            declarationUri,
+            context: [
+              context
+                  .withArguments(getterFullName)
+                  .withLocation(getterUri, getterOffset, name.text.length),
+              codeInvalidGetterSetterTypeSetterContext
+                  .withArguments(setterFullName)
+                  .withLocation(setterUri, setterOffset, name.text.length),
+            ],
+          );
         }
       }
     }
@@ -204,7 +230,11 @@ class DelayedClassGetterSetterCheck extends DelayedGetterSetterCheck {
   final ClassMember setable;
 
   DelayedClassGetterSetterCheck(
-      this.classBuilder, this.name, this.getable, this.setable);
+    this.classBuilder,
+    this.name,
+    this.getable,
+    this.setable,
+  );
 
   @override
   DeclarationBuilder get declarationBuilder => classBuilder;
@@ -227,41 +257,48 @@ class DelayedClassGetterSetterCheck extends DelayedGetterSetterCheck {
     DartType getterType = getter.getterType;
     if (getter.enclosingClass!.typeParameters.isNotEmpty) {
       getterType = Substitution.fromPairs(
-              getter.enclosingClass!.typeParameters,
-              types.hierarchy.getTypeArgumentsAsInstanceOf(
-                  thisType, getter.enclosingClass!)!)
-          .substituteType(getterType);
+        getter.enclosingClass!.typeParameters,
+        types.hierarchy.getTypeArgumentsAsInstanceOf(
+          thisType,
+          getter.enclosingClass!,
+        )!,
+      ).substituteType(getterType);
     }
 
     DartType setterType = setter.setterType;
     if (setter.enclosingClass!.typeParameters.isNotEmpty) {
       setterType = Substitution.fromPairs(
-              setter.enclosingClass!.typeParameters,
-              types.hierarchy.getTypeArgumentsAsInstanceOf(
-                  thisType, setter.enclosingClass!)!)
-          .substituteType(setterType);
+        setter.enclosingClass!.typeParameters,
+        types.hierarchy.getTypeArgumentsAsInstanceOf(
+          thisType,
+          setter.enclosingClass!,
+        )!,
+      ).substituteType(setterType);
     }
     Member getterOrigin = getter.memberSignatureOrigin ?? getter;
     Member setterOrigin = setter.memberSignatureOrigin ?? setter;
-    String getterMemberName = '${getterOrigin.enclosingClass!.name}'
+    String getterMemberName =
+        '${getterOrigin.enclosingClass!.name}'
         '.${getterOrigin.name.text}';
-    String setterMemberName = '${setterOrigin.enclosingClass!.name}'
+    String setterMemberName =
+        '${setterOrigin.enclosingClass!.name}'
         '.${setterOrigin.name.text}';
 
     _checkGetterSetter(
-        types: types,
-        name: name,
-        getterType: getterType,
-        getterFullName: getterMemberName,
-        getterOffset: getterOrigin.fileOffset,
-        getterUri: getterOrigin.fileUri,
-        getterIsDeclared: getterOrigin.enclosingClass == cls,
-        getterIsField: getterOrigin is Field,
-        setterType: setterType,
-        setterFullName: setterMemberName,
-        setterOffset: setterOrigin.fileOffset,
-        setterUri: setterOrigin.fileUri,
-        setterIsDeclared: setterOrigin.enclosingClass == cls);
+      types: types,
+      name: name,
+      getterType: getterType,
+      getterFullName: getterMemberName,
+      getterOffset: getterOrigin.fileOffset,
+      getterUri: getterOrigin.fileUri,
+      getterIsDeclared: getterOrigin.enclosingClass == cls,
+      getterIsField: getterOrigin is Field,
+      setterType: setterType,
+      setterFullName: setterMemberName,
+      setterOffset: setterOrigin.fileOffset,
+      setterUri: setterOrigin.fileUri,
+      setterIsDeclared: setterOrigin.enclosingClass == cls,
+    );
   }
 }
 
@@ -272,8 +309,12 @@ class DelayedExtensionTypeGetterSetterCheck extends DelayedGetterSetterCheck {
   final ClassMember getable;
   final ClassMember setable;
 
-  DelayedExtensionTypeGetterSetterCheck(this.extensionTypeDeclarationBuilder,
-      this.name, this.getable, this.setable);
+  DelayedExtensionTypeGetterSetterCheck(
+    this.extensionTypeDeclarationBuilder,
+    this.name,
+    this.getable,
+    this.setable,
+  );
 
   @override
   DeclarationBuilder get declarationBuilder => extensionTypeDeclarationBuilder;
@@ -289,29 +330,33 @@ class DelayedExtensionTypeGetterSetterCheck extends DelayedGetterSetterCheck {
 
     Types types = membersBuilder.hierarchyBuilder.types;
     ExtensionType thisType = types.coreTypes.thisExtensionType(
-        extensionTypeDeclarationBuilder.extensionTypeDeclaration,
-        Nullability.nonNullable);
+      extensionTypeDeclarationBuilder.extensionTypeDeclaration,
+      Nullability.nonNullable,
+    );
 
     DartType getterType = getterResult.getMemberType(membersBuilder, thisType);
 
     DartType setterType = setterResult.getMemberType(membersBuilder, thisType);
 
     _checkGetterSetter(
-        types: types,
-        name: name,
-        getterType: getterType,
-        getterFullName: getterResult.fullName,
-        getterOffset: getterResult.fileOffset,
-        getterUri: getterResult.fileUri,
-        getterIsDeclared: getable.isSourceDeclaration &&
-            getable.declarationBuilder == declarationBuilder,
-        getterIsField: getterResult.isDeclaredAsField,
-        setterType: setterType,
-        setterFullName: setterResult.fullName,
-        setterOffset: setterResult.fileOffset,
-        setterUri: setterResult.fileUri,
-        setterIsDeclared: setable.isSourceDeclaration &&
-            setable.declarationBuilder == declarationBuilder);
+      types: types,
+      name: name,
+      getterType: getterType,
+      getterFullName: getterResult.fullName,
+      getterOffset: getterResult.fileOffset,
+      getterUri: getterResult.fileUri,
+      getterIsDeclared:
+          getable.isSourceDeclaration &&
+          getable.declarationBuilder == declarationBuilder,
+      getterIsField: getterResult.isDeclaredAsField,
+      setterType: setterType,
+      setterFullName: setterResult.fullName,
+      setterOffset: setterResult.fileOffset,
+      setterUri: setterResult.fileUri,
+      setterIsDeclared:
+          setable.isSourceDeclaration &&
+          setable.declarationBuilder == declarationBuilder,
+    );
   }
 }
 
@@ -322,8 +367,10 @@ class DelayedTypeComputation {
   bool _computed = false;
 
   DelayedTypeComputation(
-      this.builder, this.declaredMember, this.overriddenMembers)
-      : assert(declaredMember.isSourceDeclaration);
+    this.builder,
+    this.declaredMember,
+    this.overriddenMembers,
+  ) : assert(declaredMember.isSourceDeclaration);
 
   void compute(ClassMembersBuilder membersBuilder) {
     if (_computed) return;
@@ -331,14 +378,21 @@ class DelayedTypeComputation {
     _computed = true;
     if (declaredMember.isProperty) {
       builder.inferPropertySignature(
-          membersBuilder, declaredMember, overriddenMembers);
+        membersBuilder,
+        declaredMember,
+        overriddenMembers,
+      );
     } else {
       builder.inferMethodSignature(
-          membersBuilder, declaredMember, overriddenMembers);
+        membersBuilder,
+        declaredMember,
+        overriddenMembers,
+      );
     }
   }
 
   @override
-  String toString() => 'DelayedTypeComputation('
+  String toString() =>
+      'DelayedTypeComputation('
       '${builder.classBuilder.name},$declaredMember,$overriddenMembers)';
 }

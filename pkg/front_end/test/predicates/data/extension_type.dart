@@ -3,15 +3,20 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*member: ExtensionType|constructor#:extensionName=ExtensionType.new*/
-extension type ExtensionType(int /*
+extension type ExtensionType(
+  int /*
  extensionThis,
  name=this
-*/it) {
+*/
+  it
+) {
   /*member: ExtensionType|constructor#constructor:extensionName=ExtensionType.constructor*/
-  ExtensionType.constructor(this./*
+  ExtensionType.constructor(
+    this. /*
    extensionThis,
    name=this
-  */it);
+  */ it,
+  );
 
   /*member: ExtensionType|constructor#factory:extensionName=ExtensionType.factory*/
   factory ExtensionType.factory(int value) => ExtensionType(value);
@@ -24,21 +29,19 @@ extension type ExtensionType(int /*
    extensionThis,
    name=this
   */
-      instanceMethod() => this.it;
+  instanceMethod() => this.it;
 
   /*member: ExtensionType|get#instanceGetter:extensionName=ExtensionType.instanceGetter*/
   int get /*
    extensionThis,
    name=this
-  */
-      instanceGetter => this.it;
+  */ instanceGetter => this.it;
 
   /*member: ExtensionType|set#instanceSetter:extensionName=ExtensionType.instanceSetter*/
   void set /*
    extensionThis,
    name=this
-  */
-      instanceSetter(int value) {}
+  */ instanceSetter(int value) {}
 
   /*member: ExtensionType|staticMethod:extensionName=ExtensionType.staticMethod*/
   static int staticMethod() => 42;

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart._http;
+part of "dart:_http";
 
 /// Stubs and class aliases which make private names available for use in
 /// tests.  These should never be exported publically.

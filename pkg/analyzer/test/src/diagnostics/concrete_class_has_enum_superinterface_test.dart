@@ -27,13 +27,7 @@ abstract class A implements Enum {}
       '''
 class A implements Enum {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE,
-          19,
-          4,
-        ),
-      ],
+      [error(CompileTimeErrorCode.concreteClassHasEnumSuperinterface, 19, 4)],
     );
   }
 
@@ -43,13 +37,7 @@ class A implements Enum {}
 abstract class A implements Enum {}
 class B implements A {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE,
-          42,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.concreteClassHasEnumSuperinterface, 42, 1)],
     );
   }
 
@@ -59,13 +47,7 @@ class B implements A {}
 class M {}
 class A = Object with M implements Enum;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE,
-          46,
-          4,
-        ),
-      ],
+      [error(CompileTimeErrorCode.concreteClassHasEnumSuperinterface, 46, 4)],
     );
   }
 
@@ -76,13 +58,7 @@ mixin M {}
 abstract class A implements Enum {}
 class B = Object with M implements A;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE,
-          53,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.concreteClassHasEnumSuperinterface, 53, 1)],
     );
   }
 

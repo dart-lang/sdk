@@ -17,6 +17,18 @@ extension Extension2 on Class {
   num genericMethod<T extends num>(T t) => field2 + t;
 }
 
+extension on int {
+  method1() {}
+  method2<T>(
+    List<T> a,
+    List<int> b,
+    void Function(T) c,
+    void Function()? d,
+  ) {}
+}
+
+test(Class c) {}
+
 main() {}
 
 expect(expected, actual) {}

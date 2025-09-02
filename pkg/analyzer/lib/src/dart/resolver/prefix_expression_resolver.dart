@@ -104,7 +104,7 @@ class PrefixExpressionResolver {
     )) {
       _resolver.diagnosticReporter.atNode(
         node,
-        CompileTimeErrorCode.INVALID_ASSIGNMENT,
+        CompileTimeErrorCode.invalidAssignment,
         arguments: [type, operandWriteType],
       );
     }
@@ -162,7 +162,7 @@ class PrefixExpressionResolver {
           // safely assume `element.name` is non-`null`.
           _diagnosticReporter.atToken(
             node.operator,
-            CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
+            CompileTimeErrorCode.undefinedExtensionOperator,
             arguments: [methodName, element.name!],
           );
         }
@@ -177,7 +177,7 @@ class PrefixExpressionResolver {
       if (identical(readType, NeverTypeImpl.instance)) {
         _resolver.diagnosticReporter.atNode(
           operand,
-          WarningCode.RECEIVER_OF_TYPE_NEVER,
+          WarningCode.receiverOfTypeNever,
         );
         return;
       }
@@ -196,13 +196,13 @@ class PrefixExpressionResolver {
         if (operand is SuperExpression) {
           _diagnosticReporter.atToken(
             operator,
-            CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR,
+            CompileTimeErrorCode.undefinedSuperOperator,
             arguments: [methodName, readType],
           );
         } else {
           _diagnosticReporter.atToken(
             operator,
-            CompileTimeErrorCode.UNDEFINED_OPERATOR,
+            CompileTimeErrorCode.undefinedOperator,
             arguments: [methodName, readType],
           );
         }
@@ -249,7 +249,6 @@ class PrefixExpressionResolver {
       }
       node.recordStaticType(staticType, resolver: _resolver);
     }
-    _resolver.nullShortingTermination(node);
   }
 
   void _resolveNegation(PrefixExpressionImpl node) {

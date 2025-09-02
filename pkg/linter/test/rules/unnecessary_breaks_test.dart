@@ -70,7 +70,7 @@ f(bool c) {
 ''',
       [
         // No lint.
-        error(WarningCode.DEAD_CODE, 86, 8),
+        error(WarningCode.deadCode, 86, 8),
       ],
     );
   }
@@ -188,7 +188,7 @@ f(bool c) {
 ''',
       [
         // No lint.
-        error(WarningCode.DEAD_CODE, 58, 8),
+        error(WarningCode.deadCode, 58, 8),
       ],
     );
   }

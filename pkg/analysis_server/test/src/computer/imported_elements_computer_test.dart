@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/computer/imported_elements_computer.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -46,21 +47,19 @@ class ImportedElementsComputerTest extends AbstractContextTest {
 
   @override
   void setUp() {
-    useLineEndingsForPlatform = false;
     super.setUp();
     sourcePath = convertPath('$testPackageLibPath/test.dart');
   }
 
   Future<void> test_dartAsync_noPrefix() async {
-    var selection = 'Future<String> f = null;';
     var content = '''
 import 'dart:async';
 printer() {
-  $selection
+  [!Future<String> f = null;!]
   print(await f);
 }
 ''';
-    await _computeElements(content, selection);
+    await _computeElements(content);
     assertElements([
       ImportedElements('/sdk/lib/core/core.dart', '', ['String']),
       ImportedElements('/sdk/lib/async/async.dart', '', ['Future']),
@@ -68,15 +67,14 @@ printer() {
   }
 
   Future<void> test_dartAsync_prefix() async {
-    var selection = 'a.Future<String> f = null;';
     var content = '''
 import 'dart:async' as a;
 printer() {
-  $selection
+  [!a.Future<String> f = null;!]
   print(await f);
 }
 ''';
-    await _computeElements(content, selection);
+    await _computeElements(content);
     assertElements([
       ImportedElements('/sdk/lib/core/core.dart', '', ['String']),
       ImportedElements('/sdk/lib/async/async.dart', 'a', ['Future']),
@@ -84,89 +82,83 @@ printer() {
   }
 
   Future<void> test_dartCore_noPrefix() async {
-    var selection = "String s = '';";
     var content = '''
 blankLine() {
-  $selection
+  [!String s = '';!]
   print(s);
 }
 ''';
-    await _computeElements(content, selection);
+    await _computeElements(content);
     assertElements([
       ImportedElements('/sdk/lib/core/core.dart', '', ['String']),
     ]);
   }
 
   Future<void> test_dartCore_prefix() async {
-    var selection = "core.String s = '';";
     var content = '''
 import 'dart:core' as core;
 blankLine() {
-  $selection
+  [!core.String s = '';!]
   print(s);
 }
 ''';
-    await _computeElements(content, selection);
+    await _computeElements(content);
     assertElements([
       ImportedElements('/sdk/lib/core/core.dart', 'core', ['String']),
     ]);
   }
 
   Future<void> test_dartMath_noPrefix() async {
-    var selection = 'new Random();';
     var content = '''
 import 'dart:math';
 bool randomBool() {
-  Random r = $selection
+  Random r = [!new Random();!]
   return r.nextBool();
 }
 ''';
-    await _computeElements(content, selection);
+    await _computeElements(content);
     assertElements([
       ImportedElements('/sdk/lib/math/math.dart', '', ['Random']),
     ]);
   }
 
   Future<void> test_import_simple() async {
-    var selection = "import 'dart:math';";
     var content = '''
-$selection
+[!import 'dart:math';!]
 bool randomBool() {
   Random r = new Random();
   return r.nextBool();
 }
 ''';
-    await _computeElements(content, selection);
+    await _computeElements(content);
     expect(importedElements, hasLength(0));
   }
 
   Future<void> test_import_simple_show() async {
-    var selection = "import 'dart:math' show Random;";
     var content = '''
-$selection
+[!import 'dart:math' show Random;!]
 bool randomBool() {
   Random r = new Random();
   return r.nextBool();
 }
 ''';
-    await _computeElements(content, selection);
+    await _computeElements(content);
     expect(importedElements, hasLength(0));
   }
 
   Future<void> test_multiple() async {
-    var selection = r'''
+    var content = '''
+import 'dart:math';
+
+[!
 void f() {
   Random r = new Random();
   String s = r.nextBool().toString();
   print(s);
 }
+!]
 ''';
-    var content = '''
-import 'dart:math';
-
-$selection
-''';
-    await _computeElements(content, selection);
+    await _computeElements(content);
     assertElements([
       ImportedElements('/sdk/lib/core/core.dart', '', ['String', 'print']),
       ImportedElements('/sdk/lib/math/math.dart', '', ['Random']),
@@ -174,52 +166,48 @@ $selection
   }
 
   Future<void> test_none_comment() async {
-    var selection = 'comment';
     var content = '''
-// Method $selection.
+// Method [!comment!].
 blankLine() {
   print('');
 }
 ''';
-    await _computeElements(content, selection);
+    await _computeElements(content);
     expect(importedElements, hasLength(0));
   }
 
   Future<void> test_none_constructorDeclarationReturnType() async {
-    var selection = r'''
+    var content = '''
+[!
 class A {
   A();
   A.named();
 }
+!]
 ''';
-    var content = '''
-$selection
-''';
-    await _computeElements(content, selection);
+    await _computeElements(content);
     expect(importedElements, hasLength(0));
   }
 
   Future<void> test_none_partialNames() async {
-    var selection = 'x + y';
     var content = '''
 plusThree(int xx) {
   int yy = 2;
-  print(x${selection}y);
+  print(x[!x + y!]y);
 }
 ''';
-    await _computeElements(content, selection);
+    await _computeElements(content);
     expect(importedElements, hasLength(0));
   }
 
   Future<void> test_none_wholeNames() async {
-    var selection = 'x + y + 1';
     var content = '''
 plusThree(int x) {
   int y = 2;
-  print($selection);
+  print([!x + y + 1!]);
 }
 ''';
-    await _computeElements(content, selection);
+    await _computeElements(content);
     expect(importedElements, hasLength(0));
   }
 
@@ -240,14 +228,13 @@ class B {
             ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
     );
 
-    var selection = 'A.a + B.b';
     var content = '''
 import 'package:foo/foo.dart';
 blankLine() {
-  print($selection);
+  print([!A.a + B.b!]);
 }
 ''';
-    await _computeElements(content, selection);
+    await _computeElements(content);
     assertElements([
       ImportedElements(fooPath, '', ['A', 'B']),
     ]);
@@ -267,14 +254,13 @@ class Foo {
             ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
     );
 
-    var selection = 'Foo.first';
     var content = '''
 import 'package:foo/foo.dart';
 blankLine() {
-  print($selection);
+  print([!Foo.first!]);
 }
 ''';
-    await _computeElements(content, selection);
+    await _computeElements(content);
     assertElements([
       ImportedElements(fooPath, '', ['Foo']),
     ]);
@@ -294,14 +280,13 @@ class Foo {
             ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
     );
 
-    var selection = 'f.Foo.first';
     var content = '''
 import 'package:foo/foo.dart' as f;
 blankLine() {
-  print($selection);
+  print([!f.Foo.first!]);
 }
 ''';
-    await _computeElements(content, selection);
+    await _computeElements(content);
     assertElements([
       ImportedElements(fooPath, 'f', ['Foo']),
     ]);
@@ -319,14 +304,13 @@ String foo() => '';
             ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
     );
 
-    var selection = 'f.foo()';
     var content = '''
 import 'package:foo/foo.dart' as f;
 blankLine() {
-  print($selection);
+  print([!f.foo()!]);
 }
 ''';
-    await _computeElements(content, selection);
+    await _computeElements(content);
     assertElements([
       ImportedElements(fooPath, 'f', ['foo']),
     ]);
@@ -344,14 +328,13 @@ String foo = '';
             ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
     );
 
-    var selection = 'f.foo';
     var content = '''
 import 'package:foo/foo.dart' as f;
 blankLine() {
-  print($selection);
+  print([!f.foo!]);
 }
 ''';
-    await _computeElements(content, selection);
+    await _computeElements(content);
     assertElements([
       ImportedElements(fooPath, 'f', ['foo']),
     ]);
@@ -369,14 +352,13 @@ String foo = '';
             ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
     );
 
-    var selection = 'prefix.foo';
     var content = '''
 import 'package:foo/foo.dart' as prefix;
 void f() {
-  $selection = '';
+  [!prefix.foo!] = '';
 }
 ''';
-    await _computeElements(content, selection);
+    await _computeElements(content);
     assertElements([
       ImportedElements(fooPath, 'prefix', ['foo']),
     ]);
@@ -396,14 +378,13 @@ class Foo {
             ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
     );
 
-    var selection = 'Foo.first';
     var content = '''
 import 'package:foo/foo.dart' as f;
 blankLine() {
-  print(f.$selection);
+  print(f.[!Foo.first!]);
 }
 ''';
-    await _computeElements(content, selection);
+    await _computeElements(content);
     assertElements([
       ImportedElements(fooPath, '', ['Foo']),
     ]);
@@ -424,15 +405,14 @@ class Foo {
             ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
     );
 
-    var selection = 'f.Foo.first + Foo.second';
     var content = '''
 import 'package:foo/foo.dart';
 import 'package:foo/foo.dart' as f;
 blankLine() {
-  print($selection);
+  print([!f.Foo.first + Foo.second!]);
 }
 ''';
-    await _computeElements(content, selection);
+    await _computeElements(content);
     assertElements([
       ImportedElements(fooPath, '', ['Foo']),
       ImportedElements(fooPath, 'f', ['Foo']),
@@ -440,13 +420,12 @@ blankLine() {
   }
 
   Future<void> test_self() async {
-    var selection = 'A parent;';
     var content = '''
 class A {
-  $selection
+  [!A parent;!]
 }
 ''';
-    await _computeElements(content, selection);
+    await _computeElements(content);
     assertElements([
       ImportedElements(sourcePath, '', ['A']),
     ]);
@@ -454,12 +433,14 @@ class A {
 
   Future<void> test_wholeFile_noImports() async {
     var content = '''
+[!
 blankLine() {
   String s = '';
   print(s);
 }
+!]
 ''';
-    await _computeElements(content, content);
+    await _computeElements(content);
     assertElements([
       ImportedElements('/sdk/lib/core/core.dart', '', ['String', 'print']),
     ]);
@@ -467,24 +448,26 @@ blankLine() {
 
   Future<void> test_wholeFile_withImports() async {
     var content = '''
+[!
 import 'dart:math';
 bool randomBool() {
   Random r = new Random();
   return r.nextBool();
 }
+!]
 ''';
-    await _computeElements(content, content);
+    await _computeElements(content);
     expect(importedElements, hasLength(0));
   }
 
-  Future<void> _computeElements(String content, String selection) async {
-    // TODO(brianwilkerson): Automatically extract the selection from the content.
-    var file = newFile(sourcePath, content);
+  Future<void> _computeElements(String content) async {
+    var code = TestCode.parseNormalized(content);
+    var file = newFile(sourcePath, code.code);
     var result = await getResolvedUnit(file);
     var computer = ImportedElementsComputer(
       result.unit,
-      content.indexOf(selection),
-      selection.length,
+      code.range.sourceRange.offset,
+      code.range.sourceRange.length,
     );
     importedElements = computer.compute();
   }

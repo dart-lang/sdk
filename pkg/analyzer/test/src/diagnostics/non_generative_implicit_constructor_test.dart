@@ -43,7 +43,7 @@ class A {
 class B extends A {
 }
 ''',
-      [error(CompileTimeErrorCode.NON_GENERATIVE_IMPLICIT_CONSTRUCTOR, 57, 1)],
+      [error(CompileTimeErrorCode.nonGenerativeImplicitConstructor, 57, 1)],
     );
   }
 }

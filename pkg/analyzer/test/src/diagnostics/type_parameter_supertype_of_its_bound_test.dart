@@ -21,7 +21,7 @@ class TypeParameterSupertypeOfItsBoundTest extends PubPackageResolutionTest {
 class A<T extends T> {
 }
 ''',
-      [error(CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 8, 1)],
+      [error(CompileTimeErrorCode.typeParameterSupertypeOfItsBound, 8, 1)],
     );
   }
 
@@ -33,13 +33,7 @@ void m() {
   local;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
-          24,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.typeParameterSupertypeOfItsBound, 24, 1)],
     );
   }
 
@@ -53,13 +47,7 @@ void m() {
   local;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
-          54,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.typeParameterSupertypeOfItsBound, 54, 1)],
     );
   }
 
@@ -72,7 +60,7 @@ class A<T extends T> {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 8, 1)],
+      [error(CompileTimeErrorCode.typeParameterSupertypeOfItsBound, 8, 1)],
     );
   }
 
@@ -83,13 +71,7 @@ extension type A<T>(T it) {}
 
 class B<U extends A<U>> {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
-          38,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.typeParameterSupertypeOfItsBound, 38, 1)],
     );
   }
 
@@ -104,16 +86,8 @@ void m() {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
-          54,
-          2,
-        ),
-        error(
-          CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
-          72,
-          2,
-        ),
+        error(CompileTimeErrorCode.typeParameterSupertypeOfItsBound, 54, 2),
+        error(CompileTimeErrorCode.typeParameterSupertypeOfItsBound, 72, 2),
       ],
     );
   }
@@ -126,16 +100,8 @@ extension type A<T>(T it) {}
 class B<T1 extends A<T2>, T2 extends T1> {}
 ''',
       [
-        error(
-          CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
-          38,
-          2,
-        ),
-        error(
-          CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
-          56,
-          2,
-        ),
+        error(CompileTimeErrorCode.typeParameterSupertypeOfItsBound, 38, 2),
+        error(CompileTimeErrorCode.typeParameterSupertypeOfItsBound, 56, 2),
       ],
     );
   }
@@ -147,12 +113,8 @@ class A<T1 extends T3, T2, T3 extends T1> {
 }
 ''',
       [
-        error(CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 8, 2),
-        error(
-          CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
-          27,
-          2,
-        ),
+        error(CompileTimeErrorCode.typeParameterSupertypeOfItsBound, 8, 2),
+        error(CompileTimeErrorCode.typeParameterSupertypeOfItsBound, 27, 2),
       ],
     );
   }
@@ -166,16 +128,8 @@ void m() {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
-          24,
-          2,
-        ),
-        error(
-          CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
-          43,
-          2,
-        ),
+        error(CompileTimeErrorCode.typeParameterSupertypeOfItsBound, 24, 2),
+        error(CompileTimeErrorCode.typeParameterSupertypeOfItsBound, 43, 2),
       ],
     );
   }

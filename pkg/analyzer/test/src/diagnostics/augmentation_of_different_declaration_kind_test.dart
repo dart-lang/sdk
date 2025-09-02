@@ -32,7 +32,7 @@ augment enum A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
           19,
           7,
         ),
@@ -55,7 +55,7 @@ augment extension A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
           19,
           7,
         ),
@@ -78,7 +78,7 @@ augment extension type A(int it) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
           19,
           7,
         ),
@@ -101,7 +101,7 @@ augment void A() {}
 ''',
       [
         error(
-          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
           19,
           7,
         ),
@@ -124,7 +124,7 @@ augment mixin A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
           19,
           7,
         ),
@@ -147,7 +147,7 @@ augment typedef A = int;
 ''',
       [
         error(
-          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
           19,
           7,
         ),
@@ -170,7 +170,7 @@ augment int A = 0;
 ''',
       [
         error(
-          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
           19,
           7,
         ),
@@ -215,7 +215,7 @@ augment class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
           39,
           7,
         ),
@@ -242,7 +242,7 @@ augment class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
           39,
           7,
         ),
@@ -269,7 +269,7 @@ augment class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
           39,
           7,
         ),
@@ -296,7 +296,7 @@ augment class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
           39,
           7,
         ),
@@ -323,7 +323,7 @@ augment class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
           39,
           7,
         ),
@@ -386,7 +386,7 @@ augment class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
           39,
           7,
         ),
@@ -431,7 +431,7 @@ augment class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
           39,
           7,
         ),
@@ -458,7 +458,7 @@ augment class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
           39,
           7,
         ),
@@ -485,7 +485,7 @@ augment class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
           39,
           7,
         ),
@@ -512,7 +512,7 @@ augment class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
           39,
           7,
         ),
@@ -557,7 +557,7 @@ augment class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
           39,
           7,
         ),
@@ -584,7 +584,7 @@ augment class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
           39,
           7,
         ),
@@ -607,7 +607,7 @@ augment class A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
           19,
           7,
         ),
@@ -652,7 +652,7 @@ augment enum A {;
 ''',
       [
         error(
-          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
           39,
           7,
         ),
@@ -680,7 +680,7 @@ augment enum A {
 ''',
       [
         error(
-          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
           38,
           7,
         ),
@@ -703,7 +703,7 @@ augment class A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
           19,
           7,
         ),
@@ -726,7 +726,7 @@ augment class A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
           19,
           7,
         ),
@@ -749,7 +749,7 @@ augment class A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
           19,
           7,
         ),
@@ -772,7 +772,7 @@ augment class foo {}
 ''',
       [
         error(
-          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
           19,
           7,
         ),
@@ -795,7 +795,7 @@ augment class foo {}
 ''',
       [
         error(
-          CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND,
+          CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
           19,
           7,
         ),
@@ -816,7 +816,7 @@ part of 'a.dart';
 
 augment class foo {}
 ''',
-      [error(CompileTimeErrorCode.AUGMENTATION_WITHOUT_DECLARATION, 19, 7)],
+      [error(CompileTimeErrorCode.augmentationWithoutDeclaration, 19, 7)],
     );
   }
 }

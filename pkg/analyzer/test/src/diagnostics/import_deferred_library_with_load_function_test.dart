@@ -29,7 +29,7 @@ void main() {
   p.f();
 }
 ''',
-      [error(HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION, 0, 30)],
+      [error(HintCode.importDeferredLibraryWithLoadFunction, 0, 30)],
     );
   }
 
@@ -61,7 +61,7 @@ void main() {
   p.f();
 }
 ''',
-      [error(HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION, 0, 38)],
+      [error(HintCode.importDeferredLibraryWithLoadFunction, 0, 38)],
     );
   }
 

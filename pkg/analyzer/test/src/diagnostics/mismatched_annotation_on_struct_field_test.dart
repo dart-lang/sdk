@@ -24,7 +24,7 @@ final class C extends Struct {
   external int x;
 }
 ''',
-      [error(FfiCode.MISMATCHED_ANNOTATION_ON_STRUCT_FIELD, 52, 9)],
+      [error(FfiCode.mismatchedAnnotationOnStructField, 52, 9)],
     );
   }
 
@@ -37,7 +37,7 @@ final class C extends Struct {
   external double x;
 }
 ''',
-      [error(FfiCode.MISMATCHED_ANNOTATION_ON_STRUCT_FIELD, 52, 8)],
+      [error(FfiCode.mismatchedAnnotationOnStructField, 52, 8)],
     );
   }
 }

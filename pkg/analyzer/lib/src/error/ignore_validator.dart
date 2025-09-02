@@ -14,8 +14,9 @@ import 'package:analyzer/src/lint/registry.dart';
 class IgnoreValidator {
   /// A list of known diagnostic codes used to ensure we don't over-report
   /// `unnecessary_ignore`s on error codes that may be contributed by a plugin.
-  static final Set<String> _validDiagnosticCodeNames =
-      diagnosticCodeValues.map((d) => d.name.toLowerCase()).toSet();
+  static final Set<String> _validDiagnosticCodeNames = diagnosticCodeValues
+      .map((d) => d.name.toLowerCase())
+      .toSet();
 
   /// Diagnostic codes used to report `unnecessary_ignore`s.
   ///
@@ -172,7 +173,7 @@ class IgnoreValidator {
         _diagnosticReporter.atOffset(
           offset: ignoredElement.offset,
           length: name.length,
-          diagnosticCode: WarningCode.DUPLICATE_IGNORE,
+          diagnosticCode: WarningCode.duplicateIgnore,
           arguments: [name],
         );
         list.remove(ignoredElement);
@@ -180,7 +181,7 @@ class IgnoreValidator {
         _diagnosticReporter.atOffset(
           offset: ignoredElement.offset,
           length: ignoredElement.length,
-          diagnosticCode: WarningCode.DUPLICATE_IGNORE,
+          diagnosticCode: WarningCode.duplicateIgnore,
           arguments: [ignoredElement.type],
         );
         list.remove(ignoredElement);
@@ -213,7 +214,7 @@ class IgnoreValidator {
             var replacedBy = state.replacedBy;
             if (replacedBy != null) {
               _diagnosticReporter.atOffset(
-                diagnosticCode: WarningCode.REPLACED_LINT_USE,
+                diagnosticCode: WarningCode.replacedLintUse,
                 offset: ignoredName.offset,
                 length: name.length,
                 arguments: [name, since, replacedBy],
@@ -221,7 +222,7 @@ class IgnoreValidator {
               continue;
             } else {
               _diagnosticReporter.atOffset(
-                diagnosticCode: WarningCode.REMOVED_LINT_USE,
+                diagnosticCode: WarningCode.removedLintUse,
                 offset: ignoredName.offset,
                 length: name.length,
                 arguments: [name, since],
@@ -263,15 +264,13 @@ class IgnoreValidator {
 
         late DiagnosticCode lintCode;
         if (forFile) {
-          lintCode =
-              diagnosticsOnLine > 1
-                  ? unnecessaryIgnoreNameFileLintCode
-                  : unnecessaryIgnoreFileLintCode;
+          lintCode = diagnosticsOnLine > 1
+              ? unnecessaryIgnoreNameFileLintCode
+              : unnecessaryIgnoreFileLintCode;
         } else {
-          lintCode =
-              diagnosticsOnLine > 1
-                  ? unnecessaryIgnoreNameLocationLintCode
-                  : unnecessaryIgnoreLocationLintCode;
+          lintCode = diagnosticsOnLine > 1
+              ? unnecessaryIgnoreNameLocationLintCode
+              : unnecessaryIgnoreLocationLintCode;
         }
 
         _diagnosticReporter.atOffset(

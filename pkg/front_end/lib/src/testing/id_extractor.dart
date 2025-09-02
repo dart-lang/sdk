@@ -50,8 +50,9 @@ abstract class DataExtractor<T> extends VisitorDefault<void>
   ///
   /// If `null` is returned, [extensionTypeDeclaration] has no associated data.
   T? computeExtensionTypeDeclarationValue(
-          Id id, ExtensionTypeDeclaration extensionTypeDeclaration) =>
-      null;
+    Id id,
+    ExtensionTypeDeclaration extensionTypeDeclaration,
+  ) => null;
 
   /// Implement this to compute the data corresponding to [extension].
   ///
@@ -86,20 +87,29 @@ abstract class DataExtractor<T> extends VisitorDefault<void>
     ClassId id = new ClassId(extension.name);
     T? value = computeExtensionValue(id, extension);
     registerValue(
-        extension.fileUri, extension.fileOffset, id, value, extension);
+      extension.fileUri,
+      extension.fileOffset,
+      id,
+      value,
+      extension,
+    );
   }
 
   void computeForExtensionTypeDeclaration(
-      ExtensionTypeDeclaration extensionTypeDeclaration) {
+    ExtensionTypeDeclaration extensionTypeDeclaration,
+  ) {
     ClassId id = new ClassId(extensionTypeDeclaration.name);
-    T? value =
-        computeExtensionTypeDeclarationValue(id, extensionTypeDeclaration);
+    T? value = computeExtensionTypeDeclarationValue(
+      id,
+      extensionTypeDeclaration,
+    );
     registerValue(
-        extensionTypeDeclaration.fileUri,
-        extensionTypeDeclaration.fileOffset,
-        id,
-        value,
-        extensionTypeDeclaration);
+      extensionTypeDeclaration.fileUri,
+      extensionTypeDeclaration.fileOffset,
+      id,
+      value,
+      extensionTypeDeclaration,
+    );
   }
 
   void computeForMember(Member member) {
@@ -112,47 +122,66 @@ abstract class DataExtractor<T> extends VisitorDefault<void>
     if (id == null) return;
     T? value = computeNodeValue(id, node);
     TreeNode nodeWithOffset = computeTreeNodeWithOffset(node)!;
-    registerValue(nodeWithOffset.location!.file, nodeWithOffset.fileOffset, id,
-        value, node);
+    registerValue(
+      nodeWithOffset.location!.file,
+      nodeWithOffset.fileOffset,
+      id,
+      value,
+      node,
+    );
   }
 
-  NodeId? computeDefaultNodeId(TreeNode node,
-      {bool skipNodeWithNoOffset = false}) {
+  NodeId? computeDefaultNodeId(
+    TreeNode node, {
+    bool skipNodeWithNoOffset = false,
+  }) {
     if (skipNodeWithNoOffset && node.fileOffset == TreeNode.noOffset) {
       return null;
     }
-    assert(node.fileOffset != TreeNode.noOffset,
-        "No fileOffset on $node (${node.runtimeType})");
+    assert(
+      node.fileOffset != TreeNode.noOffset,
+      "No fileOffset on $node (${node.runtimeType})",
+    );
     return new NodeId(node.fileOffset, IdKind.node);
   }
 
   NodeId createInvokeId(TreeNode node) {
-    assert(node.fileOffset != TreeNode.noOffset,
-        "No fileOffset on ${node} (${node.runtimeType})");
+    assert(
+      node.fileOffset != TreeNode.noOffset,
+      "No fileOffset on ${node} (${node.runtimeType})",
+    );
     return new NodeId(node.fileOffset, IdKind.invoke);
   }
 
   NodeId createUpdateId(TreeNode node) {
-    assert(node.fileOffset != TreeNode.noOffset,
-        "No fileOffset on ${node} (${node.runtimeType})");
+    assert(
+      node.fileOffset != TreeNode.noOffset,
+      "No fileOffset on ${node} (${node.runtimeType})",
+    );
     return new NodeId(node.fileOffset, IdKind.update);
   }
 
   NodeId createIteratorId(ForInStatement node) {
-    assert(node.fileOffset != TreeNode.noOffset,
-        "No fileOffset on ${node} (${node.runtimeType})");
+    assert(
+      node.fileOffset != TreeNode.noOffset,
+      "No fileOffset on ${node} (${node.runtimeType})",
+    );
     return new NodeId(node.fileOffset, IdKind.iterator);
   }
 
   NodeId createCurrentId(ForInStatement node) {
-    assert(node.fileOffset != TreeNode.noOffset,
-        "No fileOffset on ${node} (${node.runtimeType})");
+    assert(
+      node.fileOffset != TreeNode.noOffset,
+      "No fileOffset on ${node} (${node.runtimeType})",
+    );
     return new NodeId(node.fileOffset, IdKind.current);
   }
 
   NodeId createMoveNextId(ForInStatement node) {
-    assert(node.fileOffset != TreeNode.noOffset,
-        "No fileOffset on ${node} (${node.runtimeType})");
+    assert(
+      node.fileOffset != TreeNode.noOffset,
+      "No fileOffset on ${node} (${node.runtimeType})",
+    );
     return new NodeId(node.fileOffset, IdKind.moveNext);
   }
 
@@ -239,8 +268,10 @@ abstract class DataExtractor<T> extends VisitorDefault<void>
 
   @override
   void visitLocalFunctionInvocation(LocalFunctionInvocation node) {
-    computeForNode(node,
-        node.fileOffset == TreeNode.noOffset ? null : createInvokeId(node));
+    computeForNode(
+      node,
+      node.fileOffset == TreeNode.noOffset ? null : createInvokeId(node),
+    );
     super.visitLocalFunctionInvocation(node);
   }
 
@@ -307,10 +338,13 @@ abstract class DataExtractor<T> extends VisitorDefault<void>
     if (node.name != null && node.parent is! FunctionDeclaration) {
       // Skip synthetic variables and function declaration variables.
       computeForNode(
+        node,
+        computeDefaultNodeId(
           node,
-          computeDefaultNodeId(node,
-              // Some synthesized nodes don't have an offset.
-              skipNodeWithNoOffset: true));
+          // Some synthesized nodes don't have an offset.
+          skipNodeWithNoOffset: true,
+        ),
+      );
     }
     // Avoid visiting annotations.
     node.initializer?.accept(this);
@@ -319,11 +353,14 @@ abstract class DataExtractor<T> extends VisitorDefault<void>
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     computeForNode(
+      node,
+      computeDefaultNodeId(
         node,
-        computeDefaultNodeId(node,
-            // TODO(johnniwinther): Remove this when synthesized local functions
-            //  can have (same) offsets without breaking the VM.
-            skipNodeWithNoOffset: true));
+        // TODO(johnniwinther): Remove this when synthesized local functions
+        //  can have (same) offsets without breaking the VM.
+        skipNodeWithNoOffset: true,
+      ),
+    );
     super.visitFunctionDeclaration(node);
   }
 
@@ -338,10 +375,13 @@ abstract class DataExtractor<T> extends VisitorDefault<void>
     if (node.variable.name != null && !node.variable.isInitializingFormal) {
       // Skip use of synthetic variables.
       computeForNode(
+        node,
+        computeDefaultNodeId(
           node,
-          computeDefaultNodeId(node,
-              // Some synthesized nodes don't have an offset.
-              skipNodeWithNoOffset: true));
+          // Some synthesized nodes don't have an offset.
+          skipNodeWithNoOffset: true,
+        ),
+      );
     }
     super.visitVariableGet(node);
   }
@@ -428,7 +468,9 @@ abstract class DataExtractor<T> extends VisitorDefault<void>
   @override
   void visitBreakStatement(BreakStatement node) {
     computeForNode(
-        node, node.fileOffset == TreeNode.noOffset ? null : createGotoId(node));
+      node,
+      node.fileOffset == TreeNode.noOffset ? null : createGotoId(node),
+    );
     super.visitBreakStatement(node);
   }
 
@@ -458,7 +500,9 @@ abstract class DataExtractor<T> extends VisitorDefault<void>
     // default values) and synthetic constants (for instance in noSuchMethod
     // forwarders) have no offset.
     computeForNode(
-        node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
+      node,
+      computeDefaultNodeId(node, skipNodeWithNoOffset: true),
+    );
     super.visitConstantExpression(node);
   }
 
@@ -467,7 +511,9 @@ abstract class DataExtractor<T> extends VisitorDefault<void>
     // Synthetic null literals, for instance in locals and fields without
     // initializers, have no offset.
     computeForNode(
-        node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
+      node,
+      computeDefaultNodeId(node, skipNodeWithNoOffset: true),
+    );
     super.visitNullLiteral(node);
   }
 
@@ -476,7 +522,9 @@ abstract class DataExtractor<T> extends VisitorDefault<void>
     // Some synthetic bool literals, for instance inside some lets,
     // have no offset.
     computeForNode(
-        node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
+      node,
+      computeDefaultNodeId(node, skipNodeWithNoOffset: true),
+    );
     super.visitBoolLiteral(node);
   }
 
@@ -484,7 +532,9 @@ abstract class DataExtractor<T> extends VisitorDefault<void>
   void visitIntLiteral(IntLiteral node) {
     // Synthetic ints literals, for instance in enum fields, have no offset.
     computeForNode(
-        node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
+      node,
+      computeDefaultNodeId(node, skipNodeWithNoOffset: true),
+    );
     super.visitIntLiteral(node);
   }
 
@@ -498,7 +548,9 @@ abstract class DataExtractor<T> extends VisitorDefault<void>
   void visitStringLiteral(StringLiteral node) {
     // Synthetic string literals, for instance in enum fields, have no offset.
     computeForNode(
-        node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
+      node,
+      computeDefaultNodeId(node, skipNodeWithNoOffset: true),
+    );
     super.visitStringLiteral(node);
   }
 
@@ -507,7 +559,9 @@ abstract class DataExtractor<T> extends VisitorDefault<void>
     // Synthetic list literals,for instance in noSuchMethod forwarders, have no
     // offset.
     computeForNode(
-        node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
+      node,
+      computeDefaultNodeId(node, skipNodeWithNoOffset: true),
+    );
     super.visitListLiteral(node);
   }
 
@@ -516,7 +570,9 @@ abstract class DataExtractor<T> extends VisitorDefault<void>
     // Synthetic map literals, for instance in noSuchMethod forwarders, have no
     // offset.
     computeForNode(
-        node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
+      node,
+      computeDefaultNodeId(node, skipNodeWithNoOffset: true),
+    );
     super.visitMapLiteral(node);
   }
 
@@ -553,7 +609,9 @@ abstract class DataExtractor<T> extends VisitorDefault<void>
     // TODO(johnniwinther): Can [skipNodeWithNoOffset] be removed when dart2js
     // no longer test with cfe constants?
     computeForNode(
-        node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
+      node,
+      computeDefaultNodeId(node, skipNodeWithNoOffset: true),
+    );
     super.visitConstructorInvocation(node);
   }
 
@@ -599,7 +657,9 @@ abstract class DataExtractor<T> extends VisitorDefault<void>
       computeForNode(node, createImplicitAsId(node));
     } else {
       computeForNode(
-          node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
+        node,
+        computeDefaultNodeId(node, skipNodeWithNoOffset: true),
+      );
     }
     return super.visitAsExpression(node);
   }
@@ -607,21 +667,27 @@ abstract class DataExtractor<T> extends VisitorDefault<void>
   @override
   void visitArguments(Arguments node) {
     computeForNode(
-        node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
+      node,
+      computeDefaultNodeId(node, skipNodeWithNoOffset: true),
+    );
     return super.visitArguments(node);
   }
 
   @override
   void visitBlock(Block node) {
     computeForNode(
-        node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
+      node,
+      computeDefaultNodeId(node, skipNodeWithNoOffset: true),
+    );
     return super.visitBlock(node);
   }
 
   @override
   void visitBlockExpression(BlockExpression node) {
     computeForNode(
-        node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
+      node,
+      computeDefaultNodeId(node, skipNodeWithNoOffset: true),
+    );
     return super.visitBlockExpression(node);
   }
 
@@ -634,7 +700,9 @@ abstract class DataExtractor<T> extends VisitorDefault<void>
   @override
   void visitLogicalExpression(LogicalExpression node) {
     computeForNode(
-        node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
+      node,
+      computeDefaultNodeId(node, skipNodeWithNoOffset: true),
+    );
     return super.visitLogicalExpression(node);
   }
 
@@ -655,7 +723,9 @@ abstract class DataExtractor<T> extends VisitorDefault<void>
     // Invalid expressions produced in the constant evaluator don't have a
     // file offset.
     computeForNode(
-        node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
+      node,
+      computeDefaultNodeId(node, skipNodeWithNoOffset: true),
+    );
     return super.visitInvalidExpression(node);
   }
 }

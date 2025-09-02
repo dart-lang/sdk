@@ -201,6 +201,10 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub() {
   __ jmp(EBX);
 }
 
+void StubCodeCompiler::GenerateFfiCallTrampolineStub() {
+  __ Breakpoint();  // Not implemented.
+}
+
 void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   Label ret_4;
 

@@ -47,9 +47,9 @@ void f() {
 }
 ''');
 
-    await assertErrorsInFile2(lib1, [error(WarningCode.UNUSED_FIELD, 66, 2)]);
+    await assertErrorsInFile2(lib1, [error(WarningCode.unusedField, 66, 2)]);
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 38, 13),
+      error(WarningCode.invalidUseOfVisibleForTemplateMember, 38, 13),
     ]);
   }
 
@@ -72,9 +72,9 @@ void f() {
 }
 ''');
 
-    await assertErrorsInFile2(lib1, [error(WarningCode.UNUSED_FIELD, 66, 2)]);
+    await assertErrorsInFile2(lib1, [error(WarningCode.unusedField, 66, 2)]);
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 38, 1),
+      error(WarningCode.invalidUseOfVisibleForTemplateMember, 38, 1),
     ]);
   }
 
@@ -116,7 +116,7 @@ void f(A a) {
 
     await assertErrorsInFile2(lib1, []);
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 39, 3),
+      error(WarningCode.invalidUseOfVisibleForTemplateMember, 39, 3),
     ]);
   }
 
@@ -164,7 +164,7 @@ void f(A a) {
 
     await assertErrorsInFile2(lib1, []);
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 39, 3),
+      error(WarningCode.invalidUseOfVisibleForTemplateMember, 39, 3),
     ]);
   }
 
@@ -209,7 +209,7 @@ void f(C c) {
 
     await assertErrorsInFile2(lib1, []);
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 39, 3),
+      error(WarningCode.invalidUseOfVisibleForTemplateMember, 39, 3),
     ]);
   }
 
@@ -303,7 +303,7 @@ void f(A a) {
 
     await assertErrorsInFile2(lib1, []);
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 39, 3),
+      error(WarningCode.invalidUseOfVisibleForTemplateMember, 39, 3),
     ]);
   }
 
@@ -349,7 +349,7 @@ void f() {
 
     await assertErrorsInFile2(lib1, []);
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 36, 1),
+      error(WarningCode.invalidUseOfVisibleForTemplateMember, 36, 1),
     ]);
   }
 
@@ -434,7 +434,7 @@ void f() {
 
     await assertErrorsInFile2(lib1, []);
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 73, 3),
+      error(WarningCode.invalidUseOfVisibleForTemplateMember, 73, 3),
     ]);
   }
 
@@ -457,7 +457,7 @@ class B extends A {
 
     await assertErrorsInFile2(lib1, []);
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 63, 3),
+      error(WarningCode.invalidUseOfVisibleForTemplateMember, 63, 3),
     ]);
   }
 
@@ -534,7 +534,7 @@ void f() {
 
     await assertErrorsInFile2(lib1, []);
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 40, 3),
+      error(WarningCode.invalidUseOfVisibleForTemplateMember, 40, 3),
     ]);
   }
 
@@ -664,7 +664,7 @@ void f() {
 
     await assertErrorsInFile2(lib1, []);
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 34, 3),
+      error(WarningCode.invalidUseOfVisibleForTemplateMember, 34, 3),
     ]);
   }
 
@@ -685,7 +685,7 @@ void f() {
 
     await assertErrorsInFile2(lib1, []);
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 34, 3),
+      error(WarningCode.invalidUseOfVisibleForTemplateMember, 34, 3),
     ]);
   }
 }

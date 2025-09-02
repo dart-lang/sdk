@@ -50,7 +50,7 @@ void f([int? _]) {
 ''',
       [
         // No lint.
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 21, 1),
+        error(CompileTimeErrorCode.undefinedIdentifier, 21, 1),
       ],
     );
   }
@@ -149,9 +149,9 @@ void f([int? optional]) {
 }
 ''',
       [
-        error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 59, 2),
+        error(StaticWarningCode.deadNullAwareExpression, 59, 2),
         lint(46, 15),
-        error(WarningCode.DEAD_CODE, 59, 3),
+        error(WarningCode.deadCode, 59, 3),
       ],
     );
   }
@@ -306,7 +306,7 @@ void f([int p = 42]) {
   p ??= 8;
 }
 ''',
-      [lint(65, 7), error(WarningCode.DEAD_CODE, 71, 2)],
+      [lint(65, 7), error(WarningCode.deadCode, 71, 2)],
     );
   }
 
@@ -318,7 +318,7 @@ void f({int p = 42}) {
   p ??= 8;
 }
 ''',
-      [lint(65, 7), error(WarningCode.DEAD_CODE, 71, 2)],
+      [lint(65, 7), error(WarningCode.deadCode, 71, 2)],
     );
   }
 
@@ -347,7 +347,7 @@ void f([int? p]) {
   p ??= 16;
 }
 ''',
-      [lint(72, 8), error(WarningCode.DEAD_CODE, 78, 3)],
+      [lint(72, 8), error(WarningCode.deadCode, 78, 3)],
     );
   }
 

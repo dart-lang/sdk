@@ -13,36 +13,54 @@ class InputOutputData<T, U> {
   const InputOutputData(this.input, this.output);
 }
 
-const Strategy simpleAddStrategy =
-    Strategy('simpleAddStrategy', 'simple-add', '''
-Add entries to a list one at a time.''');
+const Strategy simpleAddStrategy = Strategy(
+  'simpleAddStrategy',
+  'simple-add',
+  '''
+Add entries to a list one at a time.''',
+);
 
 const Strategy mapToSetStrategy = Strategy('mapToSetStrategy', 'mapToSet', '''
 Create the set via new Set.from([...].map([...]).''');
 
-const Strategy listGenerateGrowableStrategy =
-    Strategy('listGenerateGrowableStrategy', 'list-generate-growable', '''
-Create list via List.generate with growable = true.''');
+const Strategy listGenerateGrowableStrategy = Strategy(
+  'listGenerateGrowableStrategy',
+  'list-generate-growable',
+  '''
+Create list via List.generate with growable = true.''',
+);
 
 const Strategy listGenerateNotGrowableStrategy = Strategy(
-    'listGenerateNotGrowableStrategy', 'list-generate-not-growable', '''
-Create list via List.generate with growable = false.''');
+  'listGenerateNotGrowableStrategy',
+  'list-generate-not-growable',
+  '''
+Create list via List.generate with growable = false.''',
+);
 
-const Strategy listFilledGrowableStrategy =
-    Strategy('listFilledGrowableStrategy', 'list-filled-growable', '''
-Create list via List.generate with growable = true.''');
+const Strategy listFilledGrowableStrategy = Strategy(
+  'listFilledGrowableStrategy',
+  'list-filled-growable',
+  '''
+Create list via List.generate with growable = true.''',
+);
 
-const Strategy listFilledNotGrowableStrategy =
-    Strategy('listFilledNotGrowableStrategy', 'list-filled-not-growable', '''
-Create list via List.generate with growable = false.''');
+const Strategy listFilledNotGrowableStrategy = Strategy(
+  'listFilledNotGrowableStrategy',
+  'list-filled-not-growable',
+  '''
+Create list via List.generate with growable = false.''',
+);
 
 const Scenario emptyScenario = Scenario('emptyScenario', 'empty', '''
 The input and output is empty.''');
 const Scenario oneEntryScenario = Scenario('oneEntryScenario', 'one', '''
 The input is one entry.''');
-const Scenario severalEntriesScenario =
-    Scenario('severalEntriesScenario', 'several', '''
-The input has several entries.''');
+const Scenario severalEntriesScenario = Scenario(
+  'severalEntriesScenario',
+  'several',
+  '''
+The input has several entries.''',
+);
 
 class Input {
   final String content;
@@ -54,22 +72,8 @@ Map<Scenario, InputOutputData<Input, String>> scenarios = {
   emptyScenario: const InputOutputData([], {}),
   oneEntryScenario: const InputOutputData([Input("a")], {"a"}),
   severalEntriesScenario: const InputOutputData(
-    [
-      Input("a"),
-      Input("b"),
-      Input("c"),
-      Input("d"),
-      Input("e"),
-      Input("f"),
-    ],
-    {
-      "a",
-      "b",
-      "c",
-      "d",
-      "e",
-      "f",
-    },
+    [Input("a"), Input("b"), Input("c"), Input("d"), Input("e"), Input("f")],
+    {"a", "b", "c", "d", "e", "f"},
   ),
 };
 
@@ -79,8 +83,15 @@ class Test<T, U> {
 
   const Test(this.size, this.strategies);
 
-  void _test(Registry registry, SeriesKey key, int runs, int iterations,
-      List<T> input, Set<U> expectedResult, TestFunction<T, U> testFunction) {
+  void _test(
+    Registry registry,
+    SeriesKey key,
+    int runs,
+    int iterations,
+    List<T> input,
+    Set<U> expectedResult,
+    TestFunction<T, U> testFunction,
+  ) {
     for (int run = 0; run < runs; run++) {
       Stopwatch sw = new Stopwatch();
       for (int i = 0; i < iterations; i++) {
@@ -100,18 +111,26 @@ class Test<T, U> {
     if (copy.isNotEmpty) throw "Not same content";
   }
 
-  void performTest(
-      {required Registry registry,
-      required int runs,
-      required int iterations,
-      required Map<Scenario, InputOutputData<T, U>> scenarios}) {
+  void performTest({
+    required Registry registry,
+    required int runs,
+    required int iterations,
+    required Map<Scenario, InputOutputData<T, U>> scenarios,
+  }) {
     for (MapEntry<Scenario, InputOutputData<T, U>> scenario
         in scenarios.entries) {
       List<T> scenarioInput = scenario.value.input;
       Set<U> scenarioExpectedOutput = scenario.value.output;
       for (MapEntry<Strategy, TestFunction<T, U>> entry in strategies.entries) {
-        _test(registry, new SeriesKey(entry.key, scenario.key), runs,
-            iterations, scenarioInput, scenarioExpectedOutput, entry.value);
+        _test(
+          registry,
+          new SeriesKey(entry.key, scenario.key),
+          runs,
+          iterations,
+          scenarioInput,
+          scenarioExpectedOutput,
+          entry.value,
+        );
       }
     }
   }
@@ -138,15 +157,23 @@ Set<String> simplyAdd(List<Input> input) {
 }
 
 Set<String> listGenerateGrowable(List<Input> input) {
-  return Set<String>.from(List<String>.generate(
-      input.length, (index) => input[index].content,
-      growable: true));
+  return Set<String>.from(
+    List<String>.generate(
+      input.length,
+      (index) => input[index].content,
+      growable: true,
+    ),
+  );
 }
 
 Set<String> listGenerateNotGrowable(List<Input> input) {
-  return Set<String>.from(List<String>.generate(
-      input.length, (index) => input[index].content,
-      growable: false));
+  return Set<String>.from(
+    List<String>.generate(
+      input.length,
+      (index) => input[index].content,
+      growable: false,
+    ),
+  );
 }
 
 Set<String> listFilledGrowable(List<Input> input) {
@@ -173,16 +200,21 @@ void main() {
   // Dry run
   for (Test test in tests) {
     test.performTest(
-        registry: new Registry(),
-        runs: 5,
-        iterations: 10,
-        scenarios: scenarios);
+      registry: new Registry(),
+      runs: 5,
+      iterations: 10,
+      scenarios: scenarios,
+    );
   }
   // Actual test
   Registry registry = new Registry();
   for (Test test in tests) {
     test.performTest(
-        registry: registry, runs: 10, iterations: 100000, scenarios: scenarios);
+      registry: registry,
+      runs: 10,
+      iterations: 100000,
+      scenarios: scenarios,
+    );
   }
   SeriesSet seriesSet = registry.generateSeriesSet();
   print('== Raw data ==');

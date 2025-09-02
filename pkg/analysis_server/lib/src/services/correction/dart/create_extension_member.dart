@@ -81,13 +81,19 @@ class CreateExtensionGetter extends _CreateExtensionMember {
     // Try to find the type of the field.
     var fieldTypeNode = climbPropertyAccess(nameNode);
     var fieldType = inferUndefinedExpressionType(fieldTypeNode);
+    if (fieldType is InvalidType) {
+      return;
+    }
 
     void writeGetter(DartEditBuilder builder) {
       if (inStaticContext) {
         builder.write('static ');
       }
       if (fieldType != null) {
-        builder.writeType(fieldType, methodBeingCopied: methodBeingCopied);
+        builder.writeType(
+          fieldType,
+          typeParametersInScope: methodBeingCopied?.typeParameters,
+        );
         builder.write(' ');
       }
       builder.write('get $_getterName => ');
@@ -198,6 +204,9 @@ class CreateExtensionMethod extends _CreateExtensionMember {
     if (invocation ?? parent case Expression exp) {
       returnType = inferUndefinedExpressionType(exp);
     }
+    if (returnType is InvalidType) {
+      return;
+    }
 
     if (returnType is InterfaceType && returnType.isDartCoreFunction) {
       returnType = FunctionTypeImpl(
@@ -222,7 +231,7 @@ class CreateExtensionMethod extends _CreateExtensionMember {
       if (builder.writeType(
         isInvocation ? returnType : functionType?.returnType,
         groupName: 'RETURN_TYPE',
-        methodBeingCopied: methodBeingCopied,
+        typeParametersInScope: methodBeingCopied?.typeParameters,
       )) {
         builder.write(' ');
       }
@@ -246,13 +255,13 @@ class CreateExtensionMethod extends _CreateExtensionMember {
         builder.write('(');
         builder.writeParametersMatchingArguments(
           arguments,
-          methodBeingCopied: methodBeingCopied,
+          typeParametersInScope: methodBeingCopied?.typeParameters,
         );
         builder.write(')');
       } else if (functionType != null) {
         builder.writeFormalParameters(
           functionType.formalParameters,
-          methodBeingCopied: methodBeingCopied,
+          typeParametersInScope: methodBeingCopied?.typeParameters,
         );
       }
       builder.write(' {}');
@@ -363,12 +372,15 @@ class CreateExtensionOperator extends _CreateExtensionMember {
       // Try to find the return type.
       returnType = inferUndefinedExpressionType(node) ?? VoidTypeImpl.instance;
     }
+    if (returnType is InvalidType) {
+      return;
+    }
 
     void writeMethod(DartEditBuilder builder) {
       if (builder.writeType(
         returnType,
         groupName: 'RETURN_TYPE',
-        methodBeingCopied: methodBeingCopied,
+        typeParametersInScope: methodBeingCopied?.typeParameters,
       )) {
         builder.write(' ');
       }
@@ -381,7 +393,7 @@ class CreateExtensionOperator extends _CreateExtensionMember {
         builder.writeFormalParameter(
           indexSetter ? 'index' : 'other',
           type: parameterType,
-          methodBeingCopied: methodBeingCopied,
+          typeParametersInScope: methodBeingCopied?.typeParameters,
         );
       }
       if (indexSetter) {
@@ -389,7 +401,7 @@ class CreateExtensionOperator extends _CreateExtensionMember {
         builder.writeFormalParameter(
           'newValue',
           type: assigningType,
-          methodBeingCopied: methodBeingCopied,
+          typeParametersInScope: methodBeingCopied?.typeParameters,
         );
       }
       builder.write(') {}');
@@ -469,6 +481,9 @@ class CreateExtensionSetter extends _CreateExtensionMember {
     // Try to find the type of the field.
     var fieldTypeNode = climbPropertyAccess(nameNode);
     var fieldType = inferUndefinedExpressionType(fieldTypeNode);
+    if (fieldType is InvalidType) {
+      return;
+    }
 
     void writeSetter(DartEditBuilder builder) {
       builder.writeSetterDeclaration(
@@ -476,7 +491,7 @@ class CreateExtensionSetter extends _CreateExtensionMember {
         nameGroupName: 'NAME',
         parameterType: fieldType,
         parameterTypeGroupName: 'TYPE',
-        methodBeingCopied: methodBeingCopied,
+        typeParametersInScope: methodBeingCopied?.typeParameters,
       );
     }
 
@@ -549,12 +564,15 @@ abstract class _CreateExtensionMember extends ResolvedCorrectionProducer {
         if (extensionTypeParameters.isNotEmpty) {
           builder.writeTypeParameters(
             extensionTypeParameters,
-            methodBeingCopied: methodBeingCopied,
+            typeParametersInScope: methodBeingCopied?.typeParameters,
           );
           builder.write(' ');
         }
         builder.write('on ');
-        builder.writeType(targetType, methodBeingCopied: methodBeingCopied);
+        builder.writeType(
+          targetType,
+          typeParametersInScope: methodBeingCopied?.typeParameters,
+        );
         builder.writeln(' {');
         builder.write('  ');
         write(builder);

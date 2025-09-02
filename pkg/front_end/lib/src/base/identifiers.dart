@@ -95,7 +95,7 @@ class OperatorIdentifier implements Identifier {
   final Operator operator;
 
   OperatorIdentifier(this.token)
-      : this.operator = Operator.fromText(token.stringValue!)!;
+    : this.operator = Operator.fromText(token.stringValue!)!;
 
   @override
   String get name => operator.text;
@@ -132,7 +132,7 @@ class InitializedIdentifier extends SimpleIdentifier {
   final Expression initializer;
 
   InitializedIdentifier(Identifier identifier, this.initializer)
-      : super(identifier.token);
+    : super(identifier.token);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -204,7 +204,11 @@ class QualifiedNameBuilder extends QualifiedName {
 }
 
 void flattenQualifiedNameOn(
-    QualifiedName name, StringBuffer buffer, int charOffset, Uri? fileUri) {
+  QualifiedName name,
+  StringBuffer buffer,
+  int charOffset,
+  Uri? fileUri,
+) {
   switch (name) {
     case QualifiedNameIdentifier():
       Identifier qualifier = name.qualifier;
@@ -217,7 +221,11 @@ void flattenQualifiedNameOn(
     case QualifiedNameGenerator():
     case QualifiedNameBuilder():
       unhandled(
-          "${name.runtimeType}", "flattenQualifiedNameOn", charOffset, fileUri);
+        "${name.runtimeType}",
+        "flattenQualifiedNameOn",
+        charOffset,
+        fileUri,
+      );
   }
   buffer.write(".");
   buffer.write(name.name);

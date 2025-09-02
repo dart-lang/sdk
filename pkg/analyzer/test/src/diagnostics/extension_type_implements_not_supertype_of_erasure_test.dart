@@ -21,13 +21,7 @@ class ExtensionTypeImplementsNotSupertypeTest extends PubPackageResolutionTest {
 extension type A(int it) {}
 extension type B(A it) implements num {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE,
-          62,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.extensionTypeImplementsNotSupertype, 62, 3)],
     );
   }
 
@@ -36,13 +30,7 @@ extension type B(A it) implements num {}
       '''
 extension type A(int it) implements String {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE,
-          36,
-          6,
-        ),
-      ],
+      [error(CompileTimeErrorCode.extensionTypeImplementsNotSupertype, 36, 6)],
     );
   }
 

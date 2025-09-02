@@ -206,7 +206,7 @@ class Scanner {
           source: source,
           offset: versionToken.offset,
           length: versionToken.length,
-          diagnosticCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER,
+          diagnosticCode: WarningCode.invalidLanguageVersionOverrideGreater,
           arguments: [latestVersion.major, latestVersion.minor],
         ),
       );
@@ -220,9 +220,9 @@ class Scanner {
   /// Return a ScannerConfiguration based upon the specified feature set.
   static fasta.ScannerConfiguration buildConfig(FeatureSet? featureSet) =>
       featureSet == null
-          ? fasta.ScannerConfiguration()
-          : fasta.ScannerConfiguration(
-            enableTripleShift: featureSet.isEnabled(Feature.triple_shift),
-            forAugmentationLibrary: featureSet.isEnabled(Feature.macros),
-          );
+      ? fasta.ScannerConfiguration()
+      : fasta.ScannerConfiguration(
+          enableTripleShift: featureSet.isEnabled(Feature.triple_shift),
+          forAugmentationLibrary: featureSet.isEnabled(Feature.macros),
+        );
 }

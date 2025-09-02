@@ -184,7 +184,7 @@ class AddConst extends ResolvedCorrectionProducer {
     var diagnostics = [
       ...unitResult.diagnostics.where(
         (error) =>
-            error.diagnosticCode == LinterLintCode.prefer_const_constructors,
+            error.diagnosticCode == LinterLintCode.preferConstConstructors,
       ),
     ];
     var ranges = diagnostics.map(range.diagnostic);

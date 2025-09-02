@@ -38,6 +38,8 @@ static method switchStatement(dynamic o) → dynamic {
     final synthesized dynamic #0#0 = o;
     synthesized core::int #0#2;
     synthesized core::bool #0#2#isSet = false;
+    final const synthesized core::int #0#3 = #C4;
+    final const synthesized core::int #0#7 = #C7;
     synthesized dynamic #0#13;
     synthesized core::bool #0#13#isSet = false;
     dynamic #t1;
@@ -68,6 +70,8 @@ static method switchStatementWithLabel(dynamic o) → dynamic {
     final synthesized dynamic #0#0 = o;
     synthesized core::int #0#2;
     synthesized core::bool #0#2#isSet = false;
+    final const synthesized core::int #0#3 = #C4;
+    final const synthesized core::int #0#7 = #C7;
     synthesized dynamic #0#13;
     synthesized core::bool #0#13#isSet = false;
     dynamic #t11;
@@ -107,8 +111,11 @@ static method switchStatementWithContinue(dynamic o) → dynamic {
     final synthesized dynamic #0#0 = o;
     synthesized core::int #0#2;
     synthesized core::bool #0#2#isSet = false;
+    final const synthesized core::int #0#3 = #C4;
+    final const synthesized core::int #0#7 = #C7;
     synthesized dynamic #0#13;
     synthesized core::bool #0#13#isSet = false;
+    final const synthesized core::int #0#14 = #C1;
     dynamic #t22;
     #L4:
     {
@@ -178,8 +185,11 @@ static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dyna
   {
     core::int #t32 = 1.{core::int::unary-}(){() → core::int};
     final synthesized dynamic #2#0 = o1;
+    final const synthesized core::int #2#3 = #C4;
     synthesized dynamic #2#9;
     synthesized core::bool #2#9#isSet = false;
+    final const synthesized core::int #2#10 = #C1;
+    final const synthesized core::int #2#13 = #C7;
     #L8:
     {
       {
@@ -202,8 +212,11 @@ static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dyna
               final synthesized dynamic #0#0 = o2;
               synthesized core::int #0#2;
               synthesized core::bool #0#2#isSet = false;
+              final const synthesized core::int #0#3 = #C4;
+              final const synthesized core::int #0#7 = #C7;
               synthesized dynamic #0#13;
               synthesized core::bool #0#13#isSet = false;
+              final const synthesized core::int #0#14 = #C1;
               dynamic #t38;
               #L10:
               {
@@ -315,8 +328,11 @@ static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dyna
               final synthesized dynamic #1#0 = o2;
               synthesized core::int #1#2;
               synthesized core::bool #1#2#isSet = false;
+              final const synthesized core::int #1#3 = #C4;
+              final const synthesized core::int #1#7 = #C7;
               synthesized dynamic #1#13;
               synthesized core::bool #1#13#isSet = false;
+              final const synthesized core::int #1#14 = #C1;
               dynamic #t49;
               #L16:
               {
@@ -412,6 +428,8 @@ static method switchStatementEnumWithGuard(self::E o) → dynamic {
   #L23:
   {
     final synthesized self::E #0#0 = o;
+    final const synthesized self::E #0#1 = #C3;
+    final const synthesized self::E #0#3 = #C6;
     {
       if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0 && true) {
         {
@@ -498,6 +516,8 @@ static method switchStatementNonPrimitiveEquals(dynamic o) → dynamic {
   #L35:
   {
     final synthesized dynamic #0#0 = o;
+    final const synthesized self::NonPrimitiveEquals #0#1 = #C13;
+    final const synthesized self::NonPrimitiveEquals #0#3 = #C14;
     {
       if(#C13 =={self::NonPrimitiveEquals::==}{(core::Object) → core::bool} #0#0) {
         {
@@ -519,6 +539,7 @@ static method switchExpression(dynamic o) → dynamic {
   return block {
     dynamic #t59;
     final synthesized dynamic #0#0 = o;
+    final const synthesized core::int #0#3 = #C4;
     synthesized dynamic #0#9;
     synthesized core::bool #0#9#isSet = false;
     #L36:
@@ -578,6 +599,8 @@ static method switchExpressionEnumWithGuard(self::E o) → dynamic {
   return block {
     core::int #t63;
     final synthesized self::E #0#0 = o;
+    final const synthesized self::E #0#1 = #C3;
+    final const synthesized self::E #0#3 = #C6;
     #L41:
     {
       {
@@ -605,6 +628,8 @@ static method switchExpressionPrimitiveEquals(dynamic o) → dynamic {
   return block {
     core::int #t64;
     final synthesized dynamic #0#0 = o;
+    final const synthesized self::PrimitiveEquals #0#1 = #C11;
+    final const synthesized self::PrimitiveEquals #0#3 = #C12;
     #L42:
     {
       {
@@ -632,6 +657,8 @@ static method switchExpressionNonPrimitiveEquals(dynamic o) → dynamic {
   return block {
     core::int #t65;
     final synthesized dynamic #0#0 = o;
+    final const synthesized self::NonPrimitiveEquals #0#1 = #C13;
+    final const synthesized self::NonPrimitiveEquals #0#3 = #C14;
     #L43:
     {
       {
@@ -659,6 +686,8 @@ static method switchStatementSymbol(core::Symbol s) → dynamic {
   #L44:
   {
     final synthesized core::Symbol #0#0 = s;
+    final const synthesized core::Symbol #0#1 = #C15;
+    final const synthesized core::Symbol #0#3 = #C16;
     {
       if(#C15 =={core::Symbol::==}{(core::Object) → core::bool} #0#0) {
         {
@@ -686,6 +715,8 @@ static method switchExpressionSymbol(core::Symbol s) → dynamic {
   return block {
     core::int #t66;
     final synthesized core::Symbol #0#0 = s;
+    final const synthesized core::Symbol #0#1 = #C15;
+    final const synthesized core::Symbol #0#3 = #C16;
     #L45:
     {
       {

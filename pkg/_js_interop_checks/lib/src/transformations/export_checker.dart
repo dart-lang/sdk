@@ -6,10 +6,10 @@
 
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show
-        templateJsInteropExportDartInterfaceHasNonEmptyJSExportValue,
-        templateJsInteropExportDisallowedMember,
-        templateJsInteropExportMemberCollision,
-        templateJsInteropExportNoExportableMembers;
+        codeJsInteropExportDartInterfaceHasNonEmptyJSExportValue,
+        codeJsInteropExportDisallowedMember,
+        codeJsInteropExportMemberCollision,
+        codeJsInteropExportNoExportableMembers;
 import 'package:_js_interop_checks/js_interop_checks.dart'
     show JsInteropDiagnosticReporter;
 import 'package:_js_interop_checks/src/js_interop.dart' as js_interop;
@@ -118,13 +118,13 @@ class ExportChecker {
 
     if (classHasJSExport && js_interop.getJSExportName(cls).isNotEmpty) {
       _diagnosticReporter.report(
-        templateJsInteropExportDartInterfaceHasNonEmptyJSExportValue
-            .withArguments(cls.name),
+        codeJsInteropExportDartInterfaceHasNonEmptyJSExportValue.withArguments(
+          cls.name,
+        ),
         cls.fileOffset,
         cls.name.length,
         cls.location?.file,
       );
-      exportStatus[cls.reference] = ExportStatus.exportError;
     }
 
     _collectOverrides(cls);
@@ -181,7 +181,7 @@ class ExportChecker {
       var sortedExistingMembers =
           existingMembers.map((member) => member.toString()).toList()..sort();
       _diagnosticReporter.report(
-        templateJsInteropExportMemberCollision.withArguments(
+        codeJsInteropExportMemberCollision.withArguments(
           exportName,
           sortedExistingMembers.join(', '),
         ),
@@ -194,7 +194,7 @@ class ExportChecker {
 
     if (exports.isEmpty) {
       _diagnosticReporter.report(
-        templateJsInteropExportNoExportableMembers.withArguments(cls.name),
+        codeJsInteropExportNoExportableMembers.withArguments(cls.name),
         cls.fileOffset,
         cls.name.length,
         cls.location?.file,
@@ -216,7 +216,7 @@ class ExportChecker {
         String name = member.name.text;
         if (name.isEmpty) name = '<unnamed>';
         _diagnosticReporter.report(
-          templateJsInteropExportDisallowedMember.withArguments(name),
+          codeJsInteropExportDisallowedMember.withArguments(name),
           member.fileOffset,
           member.name.text.length,
           member.location?.file,

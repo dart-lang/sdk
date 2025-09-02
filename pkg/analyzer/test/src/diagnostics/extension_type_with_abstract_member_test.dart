@@ -23,7 +23,7 @@ extension type A(int it) {
   int get foo;
 }
 ''',
-      [error(CompileTimeErrorCode.EXTENSION_TYPE_WITH_ABSTRACT_MEMBER, 29, 12)],
+      [error(CompileTimeErrorCode.extensionTypeWithAbstractMember, 29, 12)],
     );
   }
 
@@ -42,7 +42,7 @@ extension type A(int it) {
   static int get foo;
 }
 ''',
-      [error(ParserErrorCode.MISSING_FUNCTION_BODY, 47, 1)],
+      [error(ParserErrorCode.missingFunctionBody, 47, 1)],
     );
   }
 
@@ -53,7 +53,7 @@ extension type A(int it) {
   void foo();
 }
 ''',
-      [error(CompileTimeErrorCode.EXTENSION_TYPE_WITH_ABSTRACT_MEMBER, 29, 11)],
+      [error(CompileTimeErrorCode.extensionTypeWithAbstractMember, 29, 11)],
     );
   }
 
@@ -72,7 +72,7 @@ extension type A(int it) {
   static void foo();
 }
 ''',
-      [error(ParserErrorCode.MISSING_FUNCTION_BODY, 46, 1)],
+      [error(ParserErrorCode.missingFunctionBody, 46, 1)],
     );
   }
 
@@ -83,7 +83,7 @@ extension type A(int it) {
   set foo(int _);
 }
 ''',
-      [error(CompileTimeErrorCode.EXTENSION_TYPE_WITH_ABSTRACT_MEMBER, 29, 15)],
+      [error(CompileTimeErrorCode.extensionTypeWithAbstractMember, 29, 15)],
     );
   }
 
@@ -102,7 +102,7 @@ extension type A(int it) {
   static set foo(int _);
 }
 ''',
-      [error(ParserErrorCode.MISSING_FUNCTION_BODY, 50, 1)],
+      [error(ParserErrorCode.missingFunctionBody, 50, 1)],
     );
   }
 }

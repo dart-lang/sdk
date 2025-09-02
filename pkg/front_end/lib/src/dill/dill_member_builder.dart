@@ -77,8 +77,11 @@ class DillFieldBuilder extends DillMemberBuilder
     implements PropertyBuilder {
   final Field field;
 
-  DillFieldBuilder(this.field, super.libraryBuilder,
-      [super.declarationBuilder]);
+  DillFieldBuilder(
+    this.field,
+    super.libraryBuilder, [
+    super.declarationBuilder,
+  ]);
 
   @override
   Member get member => field;
@@ -102,8 +105,10 @@ class DillFieldBuilder extends DillMemberBuilder
   bool get isStatic => field.isStatic;
 
   @override
-  Iterable<Reference> get exportedMemberReferences =>
-      [field.getterReference, if (field.hasSetter) field.setterReference!];
+  Iterable<Reference> get exportedMemberReferences => [
+    field.getterReference,
+    if (field.hasSetter) field.setterReference!,
+  ];
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -132,8 +137,11 @@ class DillFieldBuilder extends DillMemberBuilder
 abstract class _DillProcedureBuilder extends DillMemberBuilder {
   final Procedure _procedure;
 
-  _DillProcedureBuilder(this._procedure, super.libraryBuilder,
-      [super.declarationBuilder]);
+  _DillProcedureBuilder(
+    this._procedure,
+    super.libraryBuilder, [
+    super.declarationBuilder,
+  ]);
 
   @override
   bool get isStatic => _procedure.isStatic;
@@ -145,9 +153,11 @@ abstract class _DillProcedureBuilder extends DillMemberBuilder {
 class DillGetterBuilder extends _DillProcedureBuilder
     with DillGetterBuilderMixin
     implements PropertyBuilder {
-  DillGetterBuilder(super.procedure, super.libraryBuilder,
-      [super.declarationBuilder])
-      : assert(procedure.kind == ProcedureKind.Getter);
+  DillGetterBuilder(
+    super.procedure,
+    super.libraryBuilder, [
+    super.declarationBuilder,
+  ]) : assert(procedure.kind == ProcedureKind.Getter);
 
   @override
   Member get member => _procedure;
@@ -172,8 +182,8 @@ class DillGetterBuilder extends _DillProcedureBuilder
   GetterQuality get getterQuality => _procedure.isExternal
       ? GetterQuality.External
       : _procedure.isAbstract
-          ? GetterQuality.Abstract
-          : GetterQuality.Concrete;
+      ? GetterQuality.Abstract
+      : GetterQuality.Concrete;
 
   @override
   SetterQuality get setterQuality => SetterQuality.Absent;
@@ -186,9 +196,11 @@ class DillGetterBuilder extends _DillProcedureBuilder
 class DillSetterBuilder extends _DillProcedureBuilder
     with DillSetterBuilderMixin
     implements PropertyBuilder {
-  DillSetterBuilder(super.procedure, super.libraryBuilder,
-      [super.declarationBuilder])
-      : assert(procedure.kind == ProcedureKind.Setter);
+  DillSetterBuilder(
+    super.procedure,
+    super.libraryBuilder, [
+    super.declarationBuilder,
+  ]) : assert(procedure.kind == ProcedureKind.Setter);
 
   @override
   Member get member => _procedure;
@@ -210,8 +222,8 @@ class DillSetterBuilder extends _DillProcedureBuilder
   SetterQuality get setterQuality => _procedure.isExternal
       ? SetterQuality.External
       : _procedure.isAbstract
-          ? SetterQuality.Abstract
-          : SetterQuality.Concrete;
+      ? SetterQuality.Abstract
+      : SetterQuality.Concrete;
 
   @override
   UriOffsetLength get setterUriOffset =>
@@ -221,9 +233,11 @@ class DillSetterBuilder extends _DillProcedureBuilder
 class DillMethodBuilder extends _DillProcedureBuilder
     with DillMethodBuilderMixin
     implements MethodBuilder {
-  DillMethodBuilder(super.procedure, super.libraryBuilder,
-      [super.declarationBuilder])
-      : assert(procedure.kind == ProcedureKind.Method);
+  DillMethodBuilder(
+    super.procedure,
+    super.libraryBuilder, [
+    super.declarationBuilder,
+  ]) : assert(procedure.kind == ProcedureKind.Method);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -252,9 +266,11 @@ class DillMethodBuilder extends _DillProcedureBuilder
 class DillOperatorBuilder extends _DillProcedureBuilder
     with DillOperatorBuilderMixin
     implements MethodBuilder {
-  DillOperatorBuilder(super.procedure, super.libraryBuilder,
-      [super.declarationBuilder])
-      : assert(procedure.kind == ProcedureKind.Operator);
+  DillOperatorBuilder(
+    super.procedure,
+    super.libraryBuilder, [
+    super.declarationBuilder,
+  ]) : assert(procedure.kind == ProcedureKind.Operator);
 
   @override
   bool get isAbstract => _procedure.isAbstract;
@@ -271,8 +287,11 @@ class DillOperatorBuilder extends _DillProcedureBuilder
   Reference get invokeTargetReference => _procedure.reference;
 
   @override
-  UriOffsetLength get uriOffset => new UriOffsetLength(fileUri, fileOffset,
-      _procedure.name == unaryMinusName ? 1 : _procedure.name.text.length);
+  UriOffsetLength get uriOffset => new UriOffsetLength(
+    fileUri,
+    fileOffset,
+    _procedure.name == unaryMinusName ? 1 : _procedure.name.text.length,
+  );
 }
 
 class DillFactoryBuilder extends _DillProcedureBuilder
@@ -280,8 +299,12 @@ class DillFactoryBuilder extends _DillProcedureBuilder
     implements FactoryBuilder {
   final Procedure? _factoryTearOff;
 
-  DillFactoryBuilder(super.procedure, this._factoryTearOff,
-      super.libraryBuilder, DillClassBuilder super.declarationBuilder);
+  DillFactoryBuilder(
+    super.procedure,
+    this._factoryTearOff,
+    super.libraryBuilder,
+    DillClassBuilder super.declarationBuilder,
+  );
 
   @override
   Member get member => _procedure;
@@ -315,8 +338,12 @@ class DillConstructorBuilder extends DillMemberBuilder
   final Constructor constructor;
   final Procedure? _constructorTearOff;
 
-  DillConstructorBuilder(this.constructor, this._constructorTearOff,
-      super.libraryBuilder, ClassBuilder super.declarationBuilder);
+  DillConstructorBuilder(
+    this.constructor,
+    this._constructorTearOff,
+    super.libraryBuilder,
+    ClassBuilder super.declarationBuilder,
+  );
 
   @override
   FunctionNode get function => constructor.function;
@@ -360,10 +387,11 @@ class DillClassMember extends BuilderClassMember {
   final ClassMemberKind memberKind;
 
   DillClassMember(this.memberBuilder, this.memberKind, this.uriOffset)
-      : assert(
-            !memberBuilder.member.isInternalImplementation,
-            "ClassMember should not be created for internal implementation "
-            "member $memberBuilder.");
+    : assert(
+        !memberBuilder.member.isInternalImplementation,
+        "ClassMember should not be created for internal implementation "
+        "member $memberBuilder.",
+      );
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -405,8 +433,10 @@ class DillClassMember extends BuilderClassMember {
 
   @override
   Covariance getCovariance(ClassMembersBuilder membersBuilder) {
-    return _covariance ??=
-        new Covariance.fromMember(memberBuilder.member, forSetter: forSetter);
+    return _covariance ??= new Covariance.fromMember(
+      memberBuilder.member,
+      forSetter: forSetter,
+    );
   }
 
   @override
@@ -418,7 +448,9 @@ class DillClassMember extends BuilderClassMember {
   @override
   // Coverage-ignore(suite): Not run.
   void registerOverrideDependency(
-      ClassMembersBuilder membersBuilder, Set<ClassMember> overriddenMembers) {
+    ClassMembersBuilder membersBuilder,
+    Set<ClassMember> overriddenMembers,
+  ) {
     // Do nothing; this is only for source members.
   }
 
@@ -434,8 +466,10 @@ class DillClassMember extends BuilderClassMember {
     if (member is Procedure &&
         member.stubKind == ProcedureStubKind.RepresentationField) {
       return new TypeDeclarationInstanceMemberResult(
-          getMember(membersBuilder), memberKind,
-          isDeclaredAsField: true);
+        getMember(membersBuilder),
+        memberKind,
+        isDeclaredAsField: true,
+      );
     }
     return super.getMemberResult(membersBuilder);
   }

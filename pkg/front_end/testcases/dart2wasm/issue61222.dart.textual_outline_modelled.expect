@@ -1,0 +1,13 @@
+class C {
+  const C._(this.field);
+  const C.v1() : this._(1);
+  const C.vn() : this._(null);
+  final int? field;
+}
+
+extension type const E._(int? _) {
+  const E.v1() : this._(1);
+  const E.vn() : this._(null);
+}
+
+void main() {}

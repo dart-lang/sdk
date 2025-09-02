@@ -33,7 +33,8 @@ class _SubtypeRelation {
   }
 
   @override
-  String toString() => '${types.runtimeType}: '
+  String toString() =>
+      '${types.runtimeType}: '
       '${subtype.toStringInternal()} <: ${supertype.toStringInternal()}';
 }
 
@@ -47,8 +48,11 @@ void before() {
 void enter(Types types, DartType subtype, DartType supertype) {
   if (_collect) {
     if (_recursionLevel++ == 0) {
-      _SubtypeRelation relation =
-          new _SubtypeRelation(types, subtype, supertype);
+      _SubtypeRelation relation = new _SubtypeRelation(
+        types,
+        subtype,
+        supertype,
+      );
       _subtypeRelations.add(relation);
       _stopWatch.start();
     }
@@ -114,8 +118,10 @@ void after() {
     narrowTiming.add(narrow.elapsedMicroseconds);
   }
   print('---narrow---');
-  print('average: ${SimpleTTestStat.average(narrowTiming)}, '
-      'variance: ${SimpleTTestStat.variance(narrowTiming)}');
+  print(
+    'average: ${SimpleTTestStat.average(narrowTiming)}, '
+    'variance: ${SimpleTTestStat.variance(narrowTiming)}',
+  );
   print('------------');
   narrowTiming.forEach(print);
 
@@ -133,8 +139,10 @@ void after() {
     loopTiming.add(loop.elapsedMicroseconds);
   }
   print('----loop----');
-  print('average: ${SimpleTTestStat.average(loopTiming)}, '
-      'variance: ${SimpleTTestStat.variance(loopTiming)}');
+  print(
+    'average: ${SimpleTTestStat.average(loopTiming)}, '
+    'variance: ${SimpleTTestStat.variance(loopTiming)}',
+  );
   print('------------');
   loopTiming.forEach(print);
 
@@ -154,8 +162,10 @@ void after() {
     loopOnlyTiming.add(loopOnly.elapsedMicroseconds);
   }
   print('--loop-only--');
-  print('average: ${SimpleTTestStat.average(loopOnlyTiming)}, '
-      'variance: ${SimpleTTestStat.variance(loopOnlyTiming)}');
+  print(
+    'average: ${SimpleTTestStat.average(loopOnlyTiming)}, '
+    'variance: ${SimpleTTestStat.variance(loopOnlyTiming)}',
+  );
   print('-------------');
   loopOnlyTiming.forEach(print);
 }

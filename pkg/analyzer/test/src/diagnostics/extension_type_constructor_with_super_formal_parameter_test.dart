@@ -25,8 +25,7 @@ extension type E(int it) {
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER,
+          CompileTimeErrorCode.extensionTypeConstructorWithSuperFormalParameter,
           47,
           5,
         ),
@@ -70,8 +69,7 @@ extension type E(int it) {
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER,
+          CompileTimeErrorCode.extensionTypeConstructorWithSuperFormalParameter,
           46,
           5,
         ),

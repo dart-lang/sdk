@@ -322,7 +322,7 @@ Future<int?>? f() async {
       r'''
 Future<int?>? f() async {}
 ''',
-      [error(WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE, 14, 1)],
+      [error(WarningCode.bodyMightCompleteNormallyNullable, 14, 1)],
     );
   }
 

@@ -14,17 +14,21 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 
-Future<List<Fix>> computeFixes(DartFixContext context,
-    {FixPerformance? performance,
-    Set<String>? skipAlreadyCalculatedIfNonNull}) async {
+Future<List<Fix>> computeFixes(
+  DartFixContext context, {
+  FixPerformance? performance,
+  Set<String>? skipAlreadyCalculatedIfNonNull,
+}) async {
   return [
-    ...await FixProcessor(context,
-            performance: performance,
-            alreadyCalculated: skipAlreadyCalculatedIfNonNull)
-        .compute(),
-    ...await FixInFileProcessor(context,
-            alreadyCalculated: skipAlreadyCalculatedIfNonNull)
-        .compute(),
+    ...await FixProcessor(
+      context,
+      performance: performance,
+      alreadyCalculated: skipAlreadyCalculatedIfNonNull,
+    ).compute(),
+    ...await FixInFileProcessor(
+      context,
+      alreadyCalculated: skipAlreadyCalculatedIfNonNull,
+    ).compute(),
   ];
 }
 
@@ -72,7 +76,9 @@ class FixProcessor {
     }
 
     var builder = ChangeBuilder(
-        workspace: _fixContext.workspace, defaultEol: producer.defaultEol);
+      workspace: _fixContext.workspace,
+      defaultEol: producer.defaultEol,
+    );
     try {
       var fixKind = producer.fixKind;
 
@@ -152,9 +158,11 @@ class FixProcessor {
       for (var generator in registeredFixGenerators.ignoreProducerGenerators) {
         var producer = generator(context: context);
         if (producer.fixKind == ignoreErrorAnalysisFileKind) {
-          if (alreadyCalculated?.add('${generator.hashCode}|'
-                  '${ignoreErrorAnalysisFileKind.id}|'
-                  '${diagnostic.diagnosticCode.name}') ==
+          if (alreadyCalculated?.add(
+                '${generator.hashCode}|'
+                '${ignoreErrorAnalysisFileKind.id}|'
+                '${diagnostic.diagnosticCode.name}',
+              ) ==
               false) {
             // We did this before and was asked to not do it again. Skip.
             continue;

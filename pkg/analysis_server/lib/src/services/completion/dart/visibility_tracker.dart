@@ -21,9 +21,12 @@ class VisibilityTracker {
   /// that has the same name.
   ///
   /// If the [importData] indicated that the element is already imported (either
-  /// by being `null` or by returning `false` from `isNotImported`) and the name
-  /// is visible, it will be added to the list of [_declaredNames] so that it
-  /// will shadow any elements of the same name further up the scope chain.
+  /// by being `null` or by returning `false` from `isNotImported`), the name
+  /// is visible.
+  ///
+  /// If it is already imported, it will be added to the list of
+  /// [_declaredNames] so that it will shadow any elements of the same name
+  /// further up the scope chain.
   bool isVisible({required Element? element, required ImportData? importData}) {
     var name = element?.displayName;
     if (name == null) {

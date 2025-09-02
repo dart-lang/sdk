@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -20,10 +21,13 @@ class AvoidTypeToString extends LintRule {
     : super(name: LintNames.avoid_type_to_string, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.avoid_type_to_string;
+  DiagnosticCode get diagnosticCode => LinterLintCode.avoidTypeToString;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(
       this,
       context.typeSystem,
@@ -111,8 +115,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   void _validateArgument(Expression expression) {
     if (expression is PropertyAccess) {
       var expressionType = expression.realTarget.staticType;
-      var targetType =
-          (expressionType is InterfaceType) ? expressionType : thisType;
+      var targetType = (expressionType is InterfaceType)
+          ? expressionType
+          : thisType;
       _reportIfToStringOnCoreTypeClass(targetType, expression.propertyName);
     } else if (expression is PrefixedIdentifier) {
       var prefixType = expression.prefix.staticType;

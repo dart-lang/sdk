@@ -826,9 +826,11 @@ library
       parts
         part_0
           uri: package:test/d.dart
+          partKeywordOffset: 0
           unit: #F1
         part_1
           uri: package:test/e.dart
+          partKeywordOffset: 15
           unit: #F2
       classes
         #F3 class X (nameOffset:36) (firstTokenOffset:30) (offset:36)
@@ -903,6 +905,7 @@ library
       parts
         part_0
           uri: package:test/b.dart
+          partKeywordOffset: 0
           unit: #F1
       classes
         #F2 class X (nameOffset:21) (firstTokenOffset:15) (offset:21)
@@ -966,6 +969,7 @@ library
       parts
         part_0
           uri: package:test/b.dart
+          partKeywordOffset: 0
           unit: #F1
       classes
         #F2 class X (nameOffset:21) (firstTokenOffset:15) (offset:21)
@@ -1127,6 +1131,7 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 0
           unit: #F1
       classes
         #F2 class C (nameOffset:21) (firstTokenOffset:15) (offset:21)
@@ -1143,6 +1148,7 @@ library
       parts
         part_1
           uri: package:test/b.dart
+          partKeywordOffset: 21
           unit: #F4
       classes
         #F5 class A (nameOffset:42) (firstTokenOffset:36) (offset:42)
@@ -1231,6 +1237,7 @@ library
       parts
         part_0
           uri: package:test/c.dart
+          partKeywordOffset: 0
           unit: #F1
       classes
         #F2 class X (nameOffset:21) (firstTokenOffset:15) (offset:21)
@@ -1249,6 +1256,7 @@ library
       parts
         part_1
           uri: package:test/d.dart
+          partKeywordOffset: 21
           unit: #F4
     #F4 package:test/d.dart
       element: <testLibrary>
@@ -1296,6 +1304,7 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 0
           unit: #F1
     #F1 package:test/a.dart
       element: <testLibrary>
@@ -1366,6 +1375,7 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 0
           unit: #F1
     #F1 package:test/a.dart
       element: <testLibrary>

@@ -31,10 +31,8 @@ class ErrorProcessorMatcher extends Matcher {
   ErrorProcessorMatcher(this.required);
 
   @override
-  Description describe(Description desc) =>
-      desc..add(
-        "an ErrorProcessor setting ${required.code} to ${required.severity}",
-      );
+  Description describe(Description desc) => desc
+    ..add("an ErrorProcessor setting ${required.code} to ${required.severity}");
 
   @override
   bool matches(dynamic o, Map<dynamic, dynamic> options) {

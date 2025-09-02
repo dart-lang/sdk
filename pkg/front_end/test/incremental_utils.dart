@@ -66,8 +66,10 @@ int countEmptyMixinBodies(Component component) {
   return empty;
 }
 
-Future<void> throwOnInsufficientUriToSource(Component component,
-    {FileSystem? fileSystem}) async {
+Future<void> throwOnInsufficientUriToSource(
+  Component component, {
+  FileSystem? fileSystem,
+}) async {
   UriFinder uriFinder = new UriFinder();
   component.accept(uriFinder);
   Set<Uri> uris = uriFinder.seenUris.toSet();

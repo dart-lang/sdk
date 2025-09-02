@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -19,10 +20,13 @@ class DanglingLibraryDocComments extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.dangling_library_doc_comments;
+      LinterLintCode.danglingLibraryDocComments;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addCompilationUnit(this, visitor);
   }
@@ -83,8 +87,9 @@ class _Visitor extends SimpleAstVisitor<void> {
         var commentToken = docComment.tokens[i];
         var followingCommentToken = docComment.tokens[i + 1];
         var commentEndLine = lineInfo.getLocation(commentToken.end).lineNumber;
-        var followingCommentLine =
-            lineInfo.getLocation(followingCommentToken.offset).lineNumber;
+        var followingCommentLine = lineInfo
+            .getLocation(followingCommentToken.offset)
+            .lineNumber;
         if (followingCommentLine > commentEndLine + 1) {
           // There is a blank line within the declaration's doc comments.
           rule.reportAtToken(commentToken);
@@ -102,8 +107,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       // Any blank line between the doc comment and following comments makes
       // the doc comment look dangling.
       var commentEndLine = lineInfo.getLocation(commentToken.end).lineNumber;
-      var followingCommentLine =
-          lineInfo.getLocation(followingCommentToken.offset).lineNumber;
+      var followingCommentLine = lineInfo
+          .getLocation(followingCommentToken.offset)
+          .lineNumber;
       if (followingCommentLine > commentEndLine + 1) {
         // There is a blank line between the declaration's doc comment and the
         // declaration.
@@ -125,8 +131,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       // [firstDeclaration].
       return;
     }
-    var declarationStartLine =
-        lineInfo.getLocation(tokenAfterDocComment.offset).lineNumber;
+    var declarationStartLine = lineInfo
+        .getLocation(tokenAfterDocComment.offset)
+        .lineNumber;
     if (declarationStartLine > commentEndLine + 1) {
       // There is a blank line between the declaration's doc comment and the
       // declaration.

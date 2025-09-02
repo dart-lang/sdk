@@ -24,24 +24,30 @@ mixin DillDeclarationBuilderMixin implements IDeclarationBuilder {
   int get typeParametersCount => typeParameterNodes.length;
 
   @override
-  List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
-      List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy) {
+  List<DartType> buildAliasedTypeArguments(
+    LibraryBuilder library,
+    List<TypeBuilder>? arguments,
+    ClassHierarchyBase? hierarchy,
+  ) {
     // For performance reasons, [typeParameters] aren't restored from [target].
     // So, if [arguments] is null, the default types should be retrieved from
     // [cls.typeParameters].
     if (arguments == null) {
       // TODO(johnniwinther): Use i2b here when needed.
-      return new List<DartType>.generate(typeParameterNodes.length,
-          (int i) => typeParameterNodes[i].defaultType,
-          growable: true);
+      return new List<DartType>.generate(
+        typeParameterNodes.length,
+        (int i) => typeParameterNodes[i].defaultType,
+        growable: true,
+      );
     }
 
     // [arguments] != null
     return new List<DartType>.generate(
-        arguments.length,
-        (int i) =>
-            arguments[i].buildAliased(library, TypeUse.typeArgument, hierarchy),
-        growable: true);
+      arguments.length,
+      (int i) =>
+          arguments[i].buildAliased(library, TypeUse.typeArgument, hierarchy),
+      growable: true,
+    );
   }
 }
 
@@ -96,14 +102,14 @@ mixin DillFieldBuilderMixin implements DillMemberBuilder, PropertyBuilder {
   List<ClassMember>? _localSetters;
 
   @override
-  List<ClassMember> get localMembers => _localMembers ??= !member
-          .isInternalImplementation
+  List<ClassMember> get localMembers =>
+      _localMembers ??= !member.isInternalImplementation
       ? [new DillClassMember(this, ClassMemberKind.Getter, getterUriOffset!)]
       : const [];
 
   @override
-  List<ClassMember> get localSetters => _localSetters ??= hasSetter &&
-          !member.isInternalImplementation
+  List<ClassMember> get localSetters =>
+      _localSetters ??= hasSetter && !member.isInternalImplementation
       ? [new DillClassMember(this, ClassMemberKind.Setter, setterUriOffset!)]
       : const [];
 }
@@ -141,8 +147,8 @@ mixin DillGetterBuilderMixin implements DillMemberBuilder, PropertyBuilder {
   List<ClassMember>? _localMembers;
 
   @override
-  List<ClassMember> get localMembers => _localMembers ??= !member
-          .isInternalImplementation
+  List<ClassMember> get localMembers =>
+      _localMembers ??= !member.isInternalImplementation
       ? [new DillClassMember(this, ClassMemberKind.Getter, getterUriOffset!)]
       : const [];
 
@@ -190,8 +196,8 @@ mixin DillSetterBuilderMixin implements DillMemberBuilder, PropertyBuilder {
   List<ClassMember> get localMembers => const [];
 
   @override
-  List<ClassMember> get localSetters => _localSetters ??= !member
-          .isInternalImplementation
+  List<ClassMember> get localSetters =>
+      _localSetters ??= !member.isInternalImplementation
       ? [new DillClassMember(this, ClassMemberKind.Setter, setterUriOffset!)]
       : const [];
 }
@@ -224,8 +230,8 @@ mixin DillMethodBuilderMixin implements DillMemberBuilder, MethodBuilder {
   @override
   List<ClassMember> get localMembers =>
       _localMembers ??= !member.isInternalImplementation
-          ? [new DillClassMember(this, ClassMemberKind.Method, uriOffset)]
-          : const [];
+      ? [new DillClassMember(this, ClassMemberKind.Method, uriOffset)]
+      : const [];
 
   @override
   List<ClassMember> get localSetters => const [];
@@ -266,8 +272,8 @@ mixin DillOperatorBuilderMixin implements DillMemberBuilder, MethodBuilder {
   @override
   List<ClassMember> get localMembers =>
       _localMembers ??= !member.isInternalImplementation
-          ? [new DillClassMember(this, ClassMemberKind.Method, uriOffset)]
-          : const [];
+      ? [new DillClassMember(this, ClassMemberKind.Method, uriOffset)]
+      : const [];
 
   @override
   List<ClassMember> get localSetters => const [];

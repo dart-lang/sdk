@@ -39,10 +39,10 @@ class Test {
     /*@target=Test.member*/ /*@target=Test.member*/ member
         /*@target=B.&*/ &= /*@typeArgs=A*/ f();
 
-    /*@target=B.-*/ -- /*@target=Test.member*/ /*@target=Test.member*/
-        member;
+    /*@target=B.-*/ --  
+        /*@target=Test.member*//*@target=Test.member*/member;
 
-    /*@target=Test.member*/ /*@target=Test.member*/ member
+      /*@target=Test.member*//*@target=Test.member*/member
         /*@target=B.-*/ --;
 
     var /*@type=B*/ v1 = /*@target=Test.member*/ member =
@@ -64,11 +64,11 @@ class Test {
             /*@typeArgs=A*/ f();
 
     var /*@type=B*/ v6 = /*@target=B.-*/ --
-        /*@target=Test.member*/ /*@target=Test.member*/ member;
+          /*@target=Test.member*//*@target=Test.member*/member;
 
     var /*@type=B*/ v7 =
-        /*@type=B*/ /*@target=Test.member*/ /*@target=Test.member*/
-        /*@type=B*/ member /*@target=B.-*/ --;
+          
+         /*@target=Test.member*//*@target=Test.member*/member /*@target=B.-*/ --;
   }
 }
 

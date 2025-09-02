@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -23,10 +24,13 @@ class AvoidUnusedConstructorParameters extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoid_unused_constructor_parameters;
+      LinterLintCode.avoidUnusedConstructorParameters;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
   }
@@ -37,15 +41,14 @@ class _ConstructorVisitor extends RecursiveAstVisitor<void> {
   final Set<FormalParameter> unusedParameters;
 
   _ConstructorVisitor(this.element)
-    : unusedParameters =
-          element.parameters.parameters.where((p) {
-            var element = p.declaredFragment?.element;
-            return element != null &&
-                element is! FieldFormalParameterElement &&
-                element is! SuperFormalParameterElement &&
-                !element.metadata.hasDeprecated &&
-                !(element.name ?? '').isJustUnderscores;
-          }).toSet();
+    : unusedParameters = element.parameters.parameters.where((p) {
+        var element = p.declaredFragment?.element;
+        return element != null &&
+            element is! FieldFormalParameterElement &&
+            element is! SuperFormalParameterElement &&
+            !element.metadata.hasDeprecated &&
+            !(element.name ?? '').isJustUnderscores;
+      }).toSet();
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {

@@ -23,8 +23,12 @@ class InvalidBuilder extends TypeDeclarationBuilderImpl
 
   final bool errorHasBeenReported;
 
-  InvalidBuilder(this.name, this.message,
-      {this.context, this.errorHasBeenReported = true});
+  InvalidBuilder(
+    this.name,
+    this.message, {
+    this.context,
+    this.errorHasBeenReported = true,
+  });
 
   @override
   int get typeParametersCount => 0;
@@ -42,41 +46,55 @@ class InvalidBuilder extends TypeDeclarationBuilderImpl
 
   @override
   DartType buildAliasedType(
-      LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder,
-      List<TypeBuilder>? arguments,
-      TypeUse typeUse,
-      Uri fileUri,
-      int charOffset,
-      ClassHierarchyBase? hierarchy,
-      {required bool hasExplicitTypeArguments}) {
+    LibraryBuilder library,
+    NullabilityBuilder nullabilityBuilder,
+    List<TypeBuilder>? arguments,
+    TypeUse typeUse,
+    Uri fileUri,
+    int charOffset,
+    ClassHierarchyBase? hierarchy, {
+    required bool hasExplicitTypeArguments,
+  }) {
     return buildAliasedTypeWithBuiltArguments(
-        library, null, null, typeUse, fileUri, charOffset,
-        hasExplicitTypeArguments: hasExplicitTypeArguments);
+      library,
+      null,
+      null,
+      typeUse,
+      fileUri,
+      charOffset,
+      hasExplicitTypeArguments: hasExplicitTypeArguments,
+    );
   }
 
   /// [Arguments] have already been built.
   @override
   DartType buildAliasedTypeWithBuiltArguments(
-      LibraryBuilder library,
-      Nullability? nullability,
-      List<DartType>? arguments,
-      TypeUse typeUse,
-      Uri fileUri,
-      int charOffset,
-      {required bool hasExplicitTypeArguments}) {
+    LibraryBuilder library,
+    Nullability? nullability,
+    List<DartType>? arguments,
+    TypeUse typeUse,
+    Uri fileUri,
+    int charOffset, {
+    required bool hasExplicitTypeArguments,
+  }) {
     if (!errorHasBeenReported) {
-      library.addProblem(message.messageObject, message.charOffset,
-          message.length, message.uri,
-          context: context);
+      library.addProblem(
+        message.messageObject,
+        message.charOffset,
+        message.length,
+        message.uri,
+        context: context,
+      );
     }
     return const InvalidType();
   }
 
   @override
-  Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
-      {required Map<TypeParameterBuilder, TraversalState>
-          typeParametersTraversalState}) {
+  Nullability computeNullabilityWithArguments(
+    List<TypeBuilder>? typeArguments, {
+    required Map<TypeParameterBuilder, TraversalState>
+    typeParametersTraversalState,
+  }) {
     // TODO(johnniwinther,cstefantsova): Consider implementing
     // invalidNullability.
     return Nullability.nullable;

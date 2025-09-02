@@ -26,8 +26,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR,
+          CompileTimeErrorCode.redirectGenerativeToNonGenerativeConstructor,
           18,
           8,
         ),

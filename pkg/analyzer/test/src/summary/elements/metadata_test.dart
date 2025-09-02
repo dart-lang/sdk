@@ -248,7 +248,7 @@ library
         #F8 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
   classes
-    class C
+    hasNonFinalField class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
@@ -1765,7 +1765,7 @@ library
         #F8 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
   classes
-    class C
+    hasNonFinalField class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
@@ -1869,7 +1869,7 @@ library
         #F9 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
   classes
-    class C
+    hasNonFinalField class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
@@ -1985,7 +1985,7 @@ library
         #F9 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
   classes
-    class C
+    hasNonFinalField class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
@@ -2823,6 +2823,7 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 12
           metadata
             Annotation
               atSign: @ @0
@@ -2862,6 +2863,7 @@ library
       parts
         part_0
           uri: source 'dart:math'
+          partKeywordOffset: 12
           metadata
             Annotation
               atSign: @ @0
@@ -4479,7 +4481,7 @@ library
         #F14 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::foo
   classes
-    class A
+    hasNonFinalField class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
@@ -4889,6 +4891,7 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 22
           metadata
             Annotation
               atSign: @ @17
@@ -4900,6 +4903,7 @@ library
           unit: #F1
         part_1
           uri: package:test/b.dart
+          partKeywordOffset: 43
           metadata
             Annotation
               atSign: @ @38
@@ -5387,6 +5391,7 @@ library
       parts
         part_0
           uri: package:test/foo.dart
+          partKeywordOffset: 3
           metadata
             Annotation
               atSign: @ @0
@@ -5446,6 +5451,7 @@ library
       parts
         part_0
           uri: package:test/foo.dart
+          partKeywordOffset: 14
           metadata
             Annotation
               atSign: @ @11
@@ -5526,6 +5532,7 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 0
           unit: #F1
     #F1 package:test/a.dart
       element: <testLibrary>
@@ -5568,6 +5575,7 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 0
           unit: #F1
     #F1 package:test/a.dart
       element: <testLibrary>
@@ -5605,6 +5613,7 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 0
           unit: #F1
     #F1 package:test/a.dart
       element: <testLibrary>
@@ -5648,6 +5657,7 @@ library
       parts
         part_0
           uri: package:test/b.dart
+          partKeywordOffset: 0
           unit: #F1
     #F1 package:test/b.dart
       element: <testLibrary>
@@ -5657,6 +5667,7 @@ library
       parts
         part_1
           uri: package:test/a.dart
+          partKeywordOffset: 33
           metadata
             Annotation
               atSign: @ @21
@@ -6918,6 +6929,55 @@ library
           firstFragment: #F5
           returnType: int
           variable: <testLibrary>::@extension::E::@field::x
+''');
+  }
+
+  test_metadata_value_extension_staticField_unnamed() async {
+    var library = await buildLibrary('''
+extension on Object {
+  @foo
+  static const foo = 0;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        #F1 extension <null-name> (nameOffset:<null>) (firstTokenOffset:0) (offset:0)
+          element: <testLibrary>::@extension::0
+          fields
+            #F2 hasInitializer foo (nameOffset:44) (firstTokenOffset:44) (offset:44)
+              element: <testLibrary>::@extension::0::@field::foo
+              initializer: expression_0
+                IntegerLiteral
+                  literal: 0 @50
+                  staticType: int
+          getters
+            #F3 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+              element: <testLibrary>::@extension::0::@getter::foo
+  extensions
+    extension <null-name>
+      reference: <testLibrary>::@extension::0
+      firstFragment: #F1
+      extendedType: Object
+      fields
+        static const hasInitializer foo
+          reference: <testLibrary>::@extension::0::@field::foo
+          firstFragment: #F2
+          type: int
+          constantInitializer
+            fragment: #F2
+            expression: expression_0
+          getter: <testLibrary>::@extension::0::@getter::foo
+      getters
+        synthetic static foo
+          reference: <testLibrary>::@extension::0::@getter::foo
+          firstFragment: #F3
+          returnType: int
+          variable: <testLibrary>::@extension::0::@field::foo
 ''');
   }
 

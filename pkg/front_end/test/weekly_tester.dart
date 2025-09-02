@@ -14,8 +14,10 @@ Future<void> main(List<String> args) async {
   // Later we might be able to move it to the "testRunner"-system, if that
   // offers any advantages.
 
-  print("NOTE: This machine has ${Platform.numberOfProcessors} processors!"
-      "\n\n");
+  print(
+    "NOTE: This machine has ${Platform.numberOfProcessors} processors!"
+    "\n\n",
+  );
 
   List<WrappedProcess> startedProcesses = [];
   List<String> missingScripts = [];
@@ -26,20 +28,17 @@ Future<void> main(List<String> args) async {
 
   {
     // Very slow: Leak-test.
-    Uri leakTester =
-        Platform.script.resolve("flutter_gallery_leak_tester.dart");
+    Uri leakTester = Platform.script.resolve(
+      "flutter_gallery_leak_tester.dart",
+    );
     if (!new File.fromUri(leakTester).existsSync()) {
       noteMissingScript("Couldn't find $leakTester");
     } else {
       // The tools/bots/flutter/compile_flutter.sh script passes `--path`
       // --- we'll just pass everything along.
-      startedProcesses.add(await run(
-        [
-          leakTester.toString(),
-          ...args,
-        ],
-        "leak test",
-      ));
+      startedProcesses.add(
+        await run([leakTester.toString(), ...args], "leak test"),
+      );
     }
   }
 
@@ -49,27 +48,26 @@ Future<void> main(List<String> args) async {
     if (!new File.fromUri(strongSuite).existsSync()) {
       noteMissingScript("Couldn't find $strongSuite");
     } else {
-      startedProcesses.add(await run(
-        [
-          strongSuite.toString(),
-          "-DsemiFuzz=true",
-        ],
-        "strong suite",
-      ));
+      startedProcesses.add(
+        await run([strongSuite.toString(), "-DsemiFuzz=true"], "strong suite"),
+      );
     }
   }
 
   {
     // Leak tests of incremental suite tests.
-    Uri incrementalLeakTest =
-        Platform.script.resolve("vm_service_for_leak_detection.dart");
+    Uri incrementalLeakTest = Platform.script.resolve(
+      "vm_service_for_leak_detection.dart",
+    );
     if (!new File.fromUri(incrementalLeakTest).existsSync()) {
       noteMissingScript("Couldn't find $incrementalLeakTest");
     } else {
-      startedProcesses.add(await run([
-        incrementalLeakTest.toString(),
-        "--weekly",
-      ], "incremental leak test"));
+      startedProcesses.add(
+        await run([
+          incrementalLeakTest.toString(),
+          "--weekly",
+        ], "incremental leak test"),
+      );
     }
   }
 
@@ -79,20 +77,20 @@ Future<void> main(List<String> args) async {
     if (!new File.fromUri(expressionSuite).existsSync()) {
       noteMissingScript("Couldn't find $expressionSuite");
     } else {
-      startedProcesses.add(await run(
-        [
+      startedProcesses.add(
+        await run([
           expressionSuite.toString(),
           "-Dfuzz=true",
-        ],
-        "expression suite",
-      ));
+        ], "expression suite"),
+      );
     }
   }
 
   // Wait for everything to finish.
   bool shouldThrow = false;
-  List<int> exitCodes =
-      await Future.wait(startedProcesses.map((e) => e.process.exitCode));
+  List<int> exitCodes = await Future.wait(
+    startedProcesses.map((e) => e.process.exitCode),
+  );
   if (exitCodes.where((e) => e != 0).isNotEmpty) {
     shouldThrow = true;
     print("\n\nFound failures!:\n");
@@ -116,22 +114,22 @@ Future<void> main(List<String> args) async {
 
 Future<WrappedProcess> run(List<String> args, String id) async {
   Stopwatch stopwatch = new Stopwatch()..start();
-  Process process = await Process.start(
-      Platform.resolvedExecutable, ["--enable-asserts", ...args]);
+  Process process = await Process.start(Platform.resolvedExecutable, [
+    "--enable-asserts",
+    ...args,
+  ]);
   List<String> observatoryLines = [];
-  process.stderr
-      .transform(utf8.decoder)
-      .transform(new LineSplitter())
-      .listen((line) {
+  process.stderr.transform(utf8.decoder).transform(new LineSplitter()).listen((
+    line,
+  ) {
     print("$id stderr> $line");
     if (line.contains("The Dart VM service is listening on")) {
       observatoryLines.add(line);
     }
   });
-  process.stdout
-      .transform(utf8.decoder)
-      .transform(new LineSplitter())
-      .listen((line) {
+  process.stdout.transform(utf8.decoder).transform(new LineSplitter()).listen((
+    line,
+  ) {
     print("$id stdout> $line");
     if (line.contains("The Dart VM service is listening on")) {
       observatoryLines.add(line);
@@ -140,8 +138,10 @@ Future<WrappedProcess> run(List<String> args, String id) async {
   // ignore: unawaited_futures
   process.exitCode.then((int exitCode) {
     stopwatch.stop();
-    print("$id finished in ${stopwatch.elapsed.toString()} "
-        "with exit code $exitCode");
+    print(
+      "$id finished in ${stopwatch.elapsed.toString()} "
+      "with exit code $exitCode",
+    );
   });
   return new WrappedProcess(process, id, observatoryLines);
 }

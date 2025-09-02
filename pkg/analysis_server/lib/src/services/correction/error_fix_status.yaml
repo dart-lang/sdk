@@ -86,10 +86,20 @@ AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING:
   notes: |-
     The fix needs to be made in the included file.
 AnalysisOptionsWarningCode.INCOMPATIBLE_LINT:
-  status: noFix
+  status: needsFix
   notes: |-
-    Without knowing which rule the user would prefer to use, we cannot remove
-    the reported one.
+    Allowing the user to select which rule they would prefer to use so we can
+    remove the incompatible ones.
+AnalysisOptionsWarningCode.INCOMPATIBLE_LINT_FILES:
+  status: needsFix
+  notes: |-
+    Allowing the user to select which rule they would prefer to use so we can
+    disable the incompatible ones.
+AnalysisOptionsWarningCode.INCOMPATIBLE_LINT_INCLUDED:
+  status: needsFix
+  notes: |-
+    Allowing the user to select which rule they would prefer to use so we can
+    disable the incompatible ones.
 AnalysisOptionsWarningCode.INVALID_OPTION:
   status: needsFix
   notes: |-
@@ -1125,7 +1135,7 @@ CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS:
 CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE:
   status: hasFix
 CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS:
-  status: noFix
+  status: hasFix
 CompileTimeErrorCode.MIXINS_SUPER_CLASS:
   status: needsFix
   notes: |-
@@ -1859,6 +1869,12 @@ LintCode.always_specify_types_split_to_types:
   status: hasFix
 LintCode.always_use_package_imports:
   status: hasFix
+LintCode.analyzer_element_model_tracking_bad:
+  status: noFix
+LintCode.analyzer_element_model_tracking_more_than_one:
+  status: noFix
+LintCode.analyzer_element_model_tracking_zero:
+  status: noFix
 LintCode.analyzer_public_api_bad_part_directive:
   status: noFix
 LintCode.analyzer_public_api_bad_type:
@@ -2794,10 +2810,6 @@ ParserErrorCode.EXTENSION_TYPE_WITH:
   status: needsEvaluation
 ParserErrorCode.EXTERNAL_CLASS:
   status: hasFix
-ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY:
-  status: needsFix
-  notes: |-
-    Remove the `external` keyword.
 ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS:
   status: needsFix
   notes: |-
@@ -2816,10 +2828,6 @@ ParserErrorCode.EXTERNAL_FACTORY_WITH_BODY:
   status: needsFix
   notes: |-
     Remove the `external` keyword, or remove the body of the factory.
-ParserErrorCode.EXTERNAL_FIELD:
-  status: needsFix
-  notes: |-
-    Remove the `external` keyword.
 ParserErrorCode.EXTERNAL_GETTER_WITH_BODY:
   status: needsFix
   notes: |-
@@ -3472,11 +3480,18 @@ WarningCode.DEPRECATED_IMPLEMENT:
   status: hasFix
 WarningCode.DEPRECATED_IMPLEMENTS_FUNCTION:
   status: hasFix
+WarningCode.DEPRECATED_INSTANTIATE:
+  status: noFix
+  notes: |-
+    The only fix would be to delete the whole instance creation expression, or
+    follow the directions in the deprecation message.
 WarningCode.DEPRECATED_MIXIN_FUNCTION:
   status: needsFix
   notes: |-
     The fix is to remove `Function` from where it's referenced.
 WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE:
+  status: hasFix
+WarningCode.DEPRECATED_SUBCLASS:
   status: hasFix
 WarningCode.DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT:
   status: noFix
@@ -3559,6 +3574,12 @@ WarningCode.INVALID_DEPRECATED_EXTEND_ANNOTATION:
   status: needsFix
   notes: The fix is to remove the annotation.
 WarningCode.INVALID_DEPRECATED_IMPLEMENT_ANNOTATION:
+  status: needsFix
+  notes: The fix is to remove the annotation.
+WarningCode.INVALID_DEPRECATED_INSTANTIATE_ANNOTATION:
+  status: needsFix
+  notes: The fix is to remove the annotation.
+WarningCode.INVALID_DEPRECATED_SUBCLASS_ANNOTATION:
   status: needsFix
   notes: The fix is to remove the annotation.
 WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT:

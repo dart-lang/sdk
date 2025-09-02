@@ -1070,12 +1070,11 @@ class C {
   void foo<U>(Object a, U b, covariant Object c) {}
 }
 ''');
-    var member =
-        manager.getMember(
-          findElement2.classOrMixin('B'),
-          Name(null, 'foo'),
-          concrete: true,
-        )!;
+    var member = manager.getMember(
+      findElement2.classOrMixin('B'),
+      Name(null, 'foo'),
+      concrete: true,
+    )!;
     expect(member.formalParameters[0].isCovariant, isTrue);
     expect(member.formalParameters[1].isCovariant, isFalse);
     expect(member.formalParameters[2].isCovariant, isTrue);
@@ -1091,8 +1090,10 @@ abstract class B extends A {
   void foo(int a);
 }
 ''');
-    var member =
-        manager.getMember(findElement2.classOrMixin('B'), Name(null, 'foo'))!;
+    var member = manager.getMember(
+      findElement2.classOrMixin('B'),
+      Name(null, 'foo'),
+    )!;
     // TODO(scheglov): It would be nice to use `_assertGetMember`.
     // But we need a way to check covariance.
     // Maybe check the element display string, not the type.
@@ -1116,12 +1117,11 @@ class B {
 
 class C extends B implements A {}
 ''');
-    var member =
-        manager.getMember(
-          findElement2.classOrMixin('C'),
-          Name(null, 'foo'),
-          concrete: true,
-        )!;
+    var member = manager.getMember(
+      findElement2.classOrMixin('C'),
+      Name(null, 'foo'),
+      concrete: true,
+    )!;
     // TODO(scheglov): It would be nice to use `_assertGetMember`.
     expect(member.baseElement, same(findElement2.method('foo', of: 'B')));
     expect(member.formalParameters[0].isCovariant, isTrue);
@@ -1216,7 +1216,27 @@ abstract class X extends A implements B {}
     );
   }
 
-  test_getMember_optIn_topMerge_method() async {
+  test_getMember_optIn_topMerge_method_existing() async {
+    await resolveTestCode('''
+class A {
+  dynamic foo() {}
+}
+
+class B {
+  Object? foo() {}
+}
+
+class X extends A implements B {}
+''');
+
+    _assertGetMember(
+      className: 'X',
+      name: 'foo',
+      expected: 'B.foo: Object? Function()',
+    );
+  }
+
+  test_getMember_optIn_topMerge_method_synthetic() async {
     await resolveTestCode('''
 class A {
   Object? foo(dynamic x) {}
@@ -1357,8 +1377,10 @@ abstract class B extends A {
   set foo(int a);
 }
 ''');
-    var member =
-        manager.getMember(findElement2.classOrMixin('B'), Name(null, 'foo='))!;
+    var member = manager.getMember(
+      findElement2.classOrMixin('B'),
+      Name(null, 'foo='),
+    )!;
     // TODO(scheglov): It would be nice to use `_assertGetMember`.
     // But we need a way to check covariance.
     // Maybe check the element display string, not the type.
@@ -1382,12 +1404,11 @@ class B {
 
 class C extends B implements A {}
 ''');
-    var member =
-        manager.getMember(
-          findElement2.classOrMixin('C'),
-          Name(null, 'foo='),
-          concrete: true,
-        )!;
+    var member = manager.getMember(
+      findElement2.classOrMixin('C'),
+      Name(null, 'foo='),
+      concrete: true,
+    )!;
     // TODO(scheglov): It would be nice to use `_assertGetMember`.
     expect(member.baseElement, same(findElement2.setter('foo', of: 'B')));
     expect(member.formalParameters[0].isCovariant, isTrue);
@@ -2951,14 +2972,13 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
     List<ExecutableElement>? elements,
     String? expected,
   ) {
-    var elementsString =
-        elements == null
-            ? null
-            : [
-              for (var element in elements)
-                '${element.enclosingElement?.name}.${element.lookupName}: '
-                    '${typeString(element.type)}\n',
-            ].sorted().join();
+    var elementsString = elements == null
+        ? null
+        : [
+            for (var element in elements)
+              '${element.enclosingElement?.name}.${element.lookupName}: '
+                  '${typeString(element.type)}\n',
+          ].sorted().join();
     expect(elementsString, expected);
   }
 
@@ -3217,11 +3237,10 @@ class _InterfacePrinter {
     String name,
     Map<Name, List<ExecutableElement>> map,
   ) {
-    var isEmpty =
-        map.values.flattenedToList.where((element) {
-          if (_configuration.withObjectMembers) return true;
-          return !element.isObjectMember;
-        }).isEmpty;
+    var isEmpty = map.values.flattenedToList.where((element) {
+      if (_configuration.withObjectMembers) return true;
+      return !element.isObjectMember;
+    }).isEmpty;
     if (isEmpty) return;
 
     _sink.writelnWithIndent(name);

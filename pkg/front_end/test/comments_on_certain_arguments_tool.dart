@@ -10,9 +10,11 @@ import 'package:_fe_analyzer_shared/src/messages/severity.dart'
     show CfeSeverity;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show CommentToken, Token;
-import 'package:front_end/src/api_prototype/compiler_options.dart' as api
+import 'package:front_end/src/api_prototype/compiler_options.dart'
+    as api
     show CompilerOptions, CfeDiagnosticMessage;
-import 'package:front_end/src/api_prototype/file_system.dart' as api
+import 'package:front_end/src/api_prototype/file_system.dart'
+    as api
     show FileSystem;
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
     show IncrementalCompilerResult;
@@ -54,8 +56,9 @@ Future<void> main(List<String> args) async {
   libUris.add(repoDir.resolve("pkg/_fe_analyzer_shared/lib/src/parser"));
   libUris.add(repoDir.resolve("pkg/_fe_analyzer_shared/lib/src/scanner"));
   for (Uri uri in libUris) {
-    List<FileSystemEntity> entities =
-        new Directory.fromUri(uri).listSync(recursive: true);
+    List<FileSystemEntity> entities = new Directory.fromUri(
+      uri,
+    ).listSync(recursive: true);
     for (FileSystemEntity entity in entities) {
       if (entity is File && entity.path.endsWith(".dart")) {
         options.inputs.add(entity.uri);
@@ -63,8 +66,9 @@ Future<void> main(List<String> args) async {
     }
   }
   CompilerContext context = new CompilerContext(options);
-  IncrementalCompiler incrementalCompiler =
-      new TestIncrementalCompiler(context);
+  IncrementalCompiler incrementalCompiler = new TestIncrementalCompiler(
+    context,
+  );
   IncrementalCompilerResult incrementalCompilerResult =
       await incrementalCompiler.computeDelta();
   component = incrementalCompilerResult.component;
@@ -97,8 +101,10 @@ Future<void> main(List<String> args) async {
         if (update != "y" && update != "yes") continue;
 
         theseEdits.sort();
-        String content = utf8.decode(component.uriToSource[uri]!.source,
-            allowMalformed: true);
+        String content = utf8.decode(
+          component.uriToSource[uri]!.source,
+          allowMalformed: true,
+        );
         StringBuffer sb = new StringBuffer();
         int latest = 0;
         for (Edit edit in theseEdits) {
@@ -141,10 +147,14 @@ Future<void> main(List<String> args) async {
     exitCode = 1;
   }
 
-  int totalSuggestedEdits = edits.values
-      .fold(0, (previousValue, element) => previousValue + element.length);
-  print("Done. Suggested ${totalSuggestedEdits} edits "
-      "in ${edits.length} files.");
+  int totalSuggestedEdits = edits.values.fold(
+    0,
+    (previousValue, element) => previousValue + element.length,
+  );
+  print(
+    "Done. Suggested ${totalSuggestedEdits} edits "
+    "in ${edits.length} files.",
+  );
 }
 
 int errorCount = 0;
@@ -201,7 +211,10 @@ class InvocationVisitor extends RecursiveVisitor {
   }
 
   void note(
-      NamedNode node, Arguments arguments, InvocationExpression invocation) {
+    NamedNode node,
+    Arguments arguments,
+    InvocationExpression invocation,
+  ) {
     List<VariableDeclaration> positionalParameters;
     if (node is Procedure) {
       positionalParameters = node.function.positionalParameters;
@@ -242,8 +255,12 @@ class InvocationVisitor extends RecursiveVisitor {
         wantComment = true;
       }
       if (wantComment) {
-        check(arguments.positional[i], positionalParameters[i], node,
-            "/* ${positionalParameters[i].name} = */");
+        check(
+          arguments.positional[i],
+          positionalParameters[i],
+          node,
+          "/* ${positionalParameters[i].name} = */",
+        );
       }
     }
   }
@@ -269,8 +286,12 @@ class LocationFinder extends RecursiveVisitor {
 
 Map<Uri, Token> cache = {};
 
-void check(Expression argumentExpression, VariableDeclaration parameter,
-    NamedNode targetNode, String expectedComment) {
+void check(
+  Expression argumentExpression,
+  VariableDeclaration parameter,
+  NamedNode targetNode,
+  String expectedComment,
+) {
   if (targetNode is Procedure && targetNode.kind == ProcedureKind.Operator) {
     // Operator calls doesn't look like 'regular' method calls.
     return;
@@ -310,25 +331,35 @@ void check(Expression argumentExpression, VariableDeclaration parameter,
   }
   if (badComments.isNotEmpty) {
     for (CommentToken comment in badComments) {
-      Location calculatedLocation =
-          component.getLocation(location.file, comment.offset)!;
-      print("Please remove comment of length ${comment.lexeme.length} at "
-          "${comment.offset} => "
-          "${calculatedLocation}");
-      (edits[location.file] ??= [])
-          .add(new Edit.delete(comment.offset, comment.lexeme.length));
+      Location calculatedLocation = component.getLocation(
+        location.file,
+        comment.offset,
+      )!;
+      print(
+        "Please remove comment of length ${comment.lexeme.length} at "
+        "${comment.offset} => "
+        "${calculatedLocation}",
+      );
+      (edits[location.file] ??= []).add(
+        new Edit.delete(comment.offset, comment.lexeme.length),
+      );
     }
   }
   if (foundComment) {
     return;
   }
-  Location calculatedLocation =
-      component.getLocation(location.file, token.offset)!;
-  print("Please add comment $expectedComment at "
-      "${token.offset} => "
-      "${calculatedLocation}");
-  (edits[location.file] ??= [])
-      .add(new Edit.insert(token.offset, expectedComment));
+  Location calculatedLocation = component.getLocation(
+    location.file,
+    token.offset,
+  )!;
+  print(
+    "Please add comment $expectedComment at "
+    "${token.offset} => "
+    "${calculatedLocation}",
+  );
+  (edits[location.file] ??= []).add(
+    new Edit.insert(token.offset, expectedComment),
+  );
 }
 
 Map<Uri, List<Edit>> edits = {};
@@ -341,11 +372,11 @@ class Edit implements Comparable<Edit> {
   final String? insertData;
   final EditType editType;
   Edit.insert(this.offset, this.insertData)
-      : editType = EditType.Insert,
-        length = null;
+    : editType = EditType.Insert,
+      length = null;
   Edit.delete(this.offset, this.length)
-      : editType = EditType.Delete,
-        insertData = null;
+    : editType = EditType.Delete,
+      insertData = null;
 
   @override
   int compareTo(Edit other) {
@@ -366,24 +397,35 @@ class TestIncrementalCompiler extends IncrementalCompiler {
 
   @override
   IncrementalKernelTarget createIncrementalKernelTarget(
-      api.FileSystem fileSystem,
-      bool includeComments,
-      DillTarget dillTarget,
-      UriTranslator uriTranslator) {
-    return new TestIncrementalKernelTarget(context, fileSystem,
-        /* includeComments = */ true, dillTarget, uriTranslator);
+    api.FileSystem fileSystem,
+    bool includeComments,
+    DillTarget dillTarget,
+    UriTranslator uriTranslator,
+  ) {
+    return new TestIncrementalKernelTarget(
+      context,
+      fileSystem,
+      /* includeComments = */ true,
+      dillTarget,
+      uriTranslator,
+    );
   }
 }
 
 class TestIncrementalKernelTarget extends IncrementalKernelTarget {
   TestIncrementalKernelTarget(
-      CompilerContext compilerContext,
-      api.FileSystem fileSystem,
-      bool includeComments,
-      DillTarget dillTarget,
-      UriTranslator uriTranslator)
-      : super(compilerContext, fileSystem, includeComments, dillTarget,
-            uriTranslator);
+    CompilerContext compilerContext,
+    api.FileSystem fileSystem,
+    bool includeComments,
+    DillTarget dillTarget,
+    UriTranslator uriTranslator,
+  ) : super(
+        compilerContext,
+        fileSystem,
+        includeComments,
+        dillTarget,
+        uriTranslator,
+      );
 
   @override
   SourceLoader createLoader() =>
@@ -397,16 +439,22 @@ class TestIncrementalKernelTarget extends IncrementalKernelTarget {
 
 class TestSourceLoader extends SourceLoader {
   TestSourceLoader(
-      api.FileSystem fileSystem, bool includeComments, KernelTarget target)
-      : super(fileSystem, includeComments, target);
+    api.FileSystem fileSystem,
+    bool includeComments,
+    KernelTarget target,
+  ) : super(fileSystem, includeComments, target);
 
   @override
-  Future<Token> tokenize(SourceCompilationUnit sourceCompilationUnit,
-      {bool suppressLexicalErrors = false,
-      bool allowLazyStrings = true}) async {
-    Token result = await super.tokenize(sourceCompilationUnit,
-        suppressLexicalErrors: suppressLexicalErrors,
-        allowLazyStrings: allowLazyStrings);
+  Future<Token> tokenize(
+    SourceCompilationUnit sourceCompilationUnit, {
+    bool suppressLexicalErrors = false,
+    bool allowLazyStrings = true,
+  }) async {
+    Token result = await super.tokenize(
+      sourceCompilationUnit,
+      suppressLexicalErrors: suppressLexicalErrors,
+      allowLazyStrings: allowLazyStrings,
+    );
     cache[sourceCompilationUnit.fileUri] = result;
     return result;
   }

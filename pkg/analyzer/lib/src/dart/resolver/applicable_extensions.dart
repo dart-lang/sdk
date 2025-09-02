@@ -133,16 +133,13 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
   ) {
     var result = <_NotInstantiatedExtensionWithMember>[];
     for (var extension in this) {
+      if (!baseName.isAccessibleFor(extension.library.uri)) {
+        continue;
+      }
+
       if (baseName.name == '[]') {
-        ExecutableElement? getter;
-        ExecutableElement? setter;
-        for (var method in extension.methods) {
-          if (method.name == '[]') {
-            getter = method;
-          } else if (method.name == '[]=') {
-            setter = method;
-          }
-        }
+        var getter = extension.getMethod('[]');
+        var setter = extension.getMethod('[]=');
         if (getter != null || setter != null) {
           result.add(
             _NotInstantiatedExtensionWithMember(
@@ -155,40 +152,29 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
           );
         }
       } else {
-        for (var field in extension.fields) {
-          if (field.isStatic) {
-            continue;
-          }
-          var fieldName = Name.forElement(field);
-          if (fieldName == baseName) {
-            result.add(
-              _NotInstantiatedExtensionWithMember(
-                // TODO(paulberry): eliminate this cast by changing the
-                // extension to apply only to `Iterable<ExtensionElementImpl>`.
-                extension as ExtensionElementImpl,
-                getter: field.getter,
-                setter: field.setter,
-              ),
-            );
-            break;
-          }
+        var field = extension.getField(baseName.name);
+        if (field != null && !field.isStatic) {
+          result.add(
+            _NotInstantiatedExtensionWithMember(
+              // TODO(paulberry): eliminate this cast by changing the
+              // extension to apply only to `Iterable<ExtensionElementImpl>`.
+              extension as ExtensionElementImpl,
+              getter: field.getter,
+              setter: field.setter,
+            ),
+          );
         }
-        for (var method in extension.methods) {
-          if (method.isStatic) {
-            continue;
-          }
-          var methodName = Name.forElement(method);
-          if (methodName == baseName) {
-            result.add(
-              _NotInstantiatedExtensionWithMember(
-                // TODO(paulberry): eliminate this cast by changing the
-                // extension to apply only to `Iterable<ExtensionElementImpl>`.
-                extension as ExtensionElementImpl,
-                getter: method,
-              ),
-            );
-            break;
-          }
+
+        var method = extension.getMethod(baseName.name);
+        if (method != null && !method.isStatic) {
+          result.add(
+            _NotInstantiatedExtensionWithMember(
+              // TODO(paulberry): eliminate this cast by changing the
+              // extension to apply only to `Iterable<ExtensionElementImpl>`.
+              extension as ExtensionElementImpl,
+              getter: method,
+            ),
+          );
         }
       }
     }

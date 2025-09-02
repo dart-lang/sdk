@@ -21,7 +21,7 @@ class InvalidUseOfCovariantTest extends PubPackageResolutionTest {
       '''
 Function f = (covariant int x) {};
 ''',
-      [error(CompileTimeErrorCode.INVALID_USE_OF_COVARIANT, 14, 9)],
+      [error(CompileTimeErrorCode.invalidUseOfCovariant, 14, 9)],
     );
   }
 
@@ -32,7 +32,7 @@ class C {
   void m(void p(covariant int)) {}
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_USE_OF_COVARIANT, 26, 9)],
+      [error(CompileTimeErrorCode.invalidUseOfCovariant, 26, 9)],
     );
   }
 
@@ -43,7 +43,7 @@ class C {
   void m(void Function(covariant int) p) {}
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_USE_OF_COVARIANT, 33, 9)],
+      [error(CompileTimeErrorCode.invalidUseOfCovariant, 33, 9)],
     );
   }
 
@@ -52,7 +52,7 @@ class C {
       '''
 typedef F = void Function(covariant int);
 ''',
-      [error(CompileTimeErrorCode.INVALID_USE_OF_COVARIANT, 26, 9)],
+      [error(CompileTimeErrorCode.invalidUseOfCovariant, 26, 9)],
     );
   }
 
@@ -63,10 +63,10 @@ List<void Function(covariant int)> a = [];
 }
 ''',
       [
-        error(CompileTimeErrorCode.INVALID_USE_OF_COVARIANT, 19, 9),
+        error(CompileTimeErrorCode.invalidUseOfCovariant, 19, 9),
         // TODO(srawlins): Recover better from this situation (`covariant` in
         // parameter in type argument).
-        error(ParserErrorCode.EXPECTED_EXECUTABLE, 43, 1),
+        error(ParserErrorCode.expectedExecutable, 43, 1),
       ],
     );
   }
@@ -78,10 +78,10 @@ void foo<T extends void Function(covariant int)>() {}
 }
 ''',
       [
-        error(CompileTimeErrorCode.INVALID_USE_OF_COVARIANT, 33, 9),
+        error(CompileTimeErrorCode.invalidUseOfCovariant, 33, 9),
         // TODO(srawlins): Recover better from this situation (`covariant` in
         // parameter in bound).
-        error(ParserErrorCode.EXPECTED_EXECUTABLE, 54, 1),
+        error(ParserErrorCode.expectedExecutable, 54, 1),
       ],
     );
   }
@@ -94,8 +94,8 @@ void foo() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_ELEMENT, 20, 1),
-        error(CompileTimeErrorCode.INVALID_USE_OF_COVARIANT, 22, 9),
+        error(WarningCode.unusedElement, 20, 1),
+        error(CompileTimeErrorCode.invalidUseOfCovariant, 22, 9),
       ],
     );
   }
@@ -109,7 +109,7 @@ class C {
 ''',
       [
         // INVALID_USE_OF_COVARIANT is not reported here; it would be redundant.
-        error(ParserErrorCode.EXTRANEOUS_MODIFIER, 26, 9),
+        error(ParserErrorCode.extraneousModifier, 26, 9),
       ],
     );
   }
@@ -123,7 +123,7 @@ mixin M {
 ''',
       [
         // INVALID_USE_OF_COVARIANT is not reported here; it would be redundant.
-        error(ParserErrorCode.EXTRANEOUS_MODIFIER, 26, 9),
+        error(ParserErrorCode.extraneousModifier, 26, 9),
       ],
     );
   }
@@ -135,7 +135,7 @@ void f(covariant int x) {}
 ''',
       [
         // INVALID_USE_OF_COVARIANT is not reported here; it would be redundant.
-        error(ParserErrorCode.EXTRANEOUS_MODIFIER, 7, 9),
+        error(ParserErrorCode.extraneousModifier, 7, 9),
       ],
     );
   }

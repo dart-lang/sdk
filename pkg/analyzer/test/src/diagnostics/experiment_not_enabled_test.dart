@@ -29,8 +29,8 @@ main() {
 }
 ''',
       [
-        error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 86, 5),
-        error(CompileTimeErrorCode.UNDEFINED_METHOD, 96, 3),
+        error(ParserErrorCode.experimentNotEnabled, 86, 5),
+        error(CompileTimeErrorCode.undefinedMethod, 96, 3),
       ],
     );
   }
@@ -44,7 +44,7 @@ void main() {
   print(c);
 }
 ''',
-      [error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 42, 1)],
+      [error(ParserErrorCode.experimentNotEnabled, 42, 1)],
     );
   }
 
@@ -54,7 +54,7 @@ void main() {
 // @dart = 2.12
 typedef A = int;
 ''',
-      [error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 26, 1)],
+      [error(ParserErrorCode.experimentNotEnabled, 26, 1)],
     );
   }
 
@@ -64,7 +64,7 @@ typedef A = int;
 // @dart = 2.12
 typedef A = int?;
 ''',
-      [error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 26, 1)],
+      [error(ParserErrorCode.experimentNotEnabled, 26, 1)],
     );
   }
 }

@@ -294,10 +294,9 @@ class GreatestLowerBoundHelper {
                 fParameter.type,
                 gParameter.type,
               ),
-              kind:
-                  fParameter.isOptional || gParameter.isOptional
-                      ? ParameterKind.POSITIONAL
-                      : ParameterKind.REQUIRED,
+              kind: fParameter.isOptional || gParameter.isOptional
+                  ? ParameterKind.POSITIONAL
+                  : ParameterKind.REQUIRED,
             ),
           );
         } else {
@@ -321,10 +320,9 @@ class GreatestLowerBoundHelper {
                   fParameter.type,
                   gParameter.type,
                 ),
-                kind:
-                    fParameter.isRequiredNamed && gParameter.isRequiredNamed
-                        ? ParameterKind.NAMED_REQUIRED
-                        : ParameterKind.NAMED,
+                kind: fParameter.isRequiredNamed && gParameter.isRequiredNamed
+                    ? ParameterKind.NAMED_REQUIRED
+                    : ParameterKind.NAMED,
               ),
             );
           } else if (compareNames < 0) {

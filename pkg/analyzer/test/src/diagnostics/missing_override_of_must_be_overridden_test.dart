@@ -33,7 +33,7 @@ class A {
 
 class B extends A {}
 ''',
-      [error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 86, 1)],
+      [error(WarningCode.missingOverrideOfMustBeOverriddenOne, 86, 1)],
     );
   }
 
@@ -54,7 +54,7 @@ class B extends A {}
 ''',
       [
         error(
-          WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO,
+          WarningCode.missingOverrideOfMustBeOverriddenTwo,
           121,
           1,
           messageContains: ["'f'", "'m'"],
@@ -109,7 +109,7 @@ class B extends A {
   int get f => 0;
 }
 ''',
-      [error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 86, 1)],
+      [error(WarningCode.missingOverrideOfMustBeOverriddenOne, 86, 1)],
     );
   }
 
@@ -140,7 +140,7 @@ class A {
 
 class B extends A {}
 ''',
-      [error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 91, 1)],
+      [error(WarningCode.missingOverrideOfMustBeOverriddenOne, 91, 1)],
     );
   }
 
@@ -186,7 +186,7 @@ mixin M {
 
 class A with M {}
 ''',
-      [error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 87, 1)],
+      [error(WarningCode.missingOverrideOfMustBeOverriddenOne, 87, 1)],
     );
   }
 
@@ -202,7 +202,7 @@ class A {
 
 class B extends A {}
 ''',
-      [error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 87, 1)],
+      [error(WarningCode.missingOverrideOfMustBeOverriddenOne, 87, 1)],
     );
   }
 
@@ -224,13 +224,7 @@ class A {
 
 class B extends A {}
 ''',
-      [
-        error(
-          WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS,
-          157,
-          1,
-        ),
-      ],
+      [error(WarningCode.missingOverrideOfMustBeOverriddenThreePlus, 157, 1)],
     );
   }
 
@@ -249,7 +243,7 @@ class A {
 
 class B extends A {}
 ''',
-      [error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO, 122, 1)],
+      [error(WarningCode.missingOverrideOfMustBeOverriddenTwo, 122, 1)],
     );
   }
 
@@ -314,7 +308,7 @@ class A with M {
 
 class B extends A {}
 ''',
-      [error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 121, 1)],
+      [error(WarningCode.missingOverrideOfMustBeOverriddenOne, 121, 1)],
     );
   }
 
@@ -334,7 +328,7 @@ class B extends A {
 
 class C extends B {}
 ''',
-      [error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 124, 1)],
+      [error(WarningCode.missingOverrideOfMustBeOverriddenOne, 124, 1)],
     );
   }
 
@@ -355,7 +349,7 @@ class B extends A {
 
 class C extends B {}
 ''',
-      [error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 144, 1)],
+      [error(WarningCode.missingOverrideOfMustBeOverriddenOne, 144, 1)],
     );
   }
 
@@ -371,7 +365,7 @@ mixin A {
 
 class B = Object with A;
 ''',
-      [error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 87, 1)],
+      [error(WarningCode.missingOverrideOfMustBeOverriddenOne, 87, 1)],
     );
   }
 
@@ -465,7 +459,7 @@ class A {
 
 class B extends A {}
 ''',
-      [error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 107, 1)],
+      [error(WarningCode.missingOverrideOfMustBeOverriddenOne, 107, 1)],
     );
   }
 
@@ -481,7 +475,7 @@ class A {
 
 class B extends A {}
 ''',
-      [error(WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE, 100, 1)],
+      [error(WarningCode.missingOverrideOfMustBeOverriddenOne, 100, 1)],
     );
   }
 }

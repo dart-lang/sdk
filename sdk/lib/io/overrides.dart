@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart.io;
+part of "dart:io";
 
 final _ioOverridesToken = Object();
 
@@ -108,6 +108,9 @@ abstract base class IOOverrides {
     Stdin Function()? stdin,
     Stdout Function()? stdout,
     Stdout Function()? stderr,
+
+    // Process exit
+    @Since("3.10") Never Function(int)? exit,
   }) {
     // Avoid building chains of override scopes. Just copy outer scope's
     // functions and `_previous`.
@@ -156,6 +159,9 @@ abstract base class IOOverrides {
       stdin ?? currentScope?._stdin,
       stdout ?? currentScope?._stdout,
       stderr ?? currentScope?._stderr,
+
+      // Process exit
+      exit ?? currentScope?._exit,
     );
     return dart_async.runZoned<R>(
       body,
@@ -292,7 +298,7 @@ abstract base class IOOverrides {
 
   /// Asynchronously returns a [Socket] connected to the given host and port.
   ///
-  /// When this override is installed, this functions overrides the behavior of
+  /// When this override is installed, this function overrides the behavior of
   /// `Socket.connect(...)`.
   Future<Socket> socketConnect(
     host,
@@ -313,7 +319,7 @@ abstract base class IOOverrides {
   /// Asynchronously returns a [ConnectionTask] that connects to the given host
   /// and port when successful.
   ///
-  /// When this override is installed, this functions overrides the behavior of
+  /// When this override is installed, this function overrides the behavior of
   /// `Socket.startConnect(...)`.
   Future<ConnectionTask<Socket>> socketStartConnect(
     host,
@@ -334,7 +340,7 @@ abstract base class IOOverrides {
   /// Asynchronously returns a [ServerSocket] that connects to the given address
   /// and port when successful.
   ///
-  /// When this override is installed, this functions overrides the behavior of
+  /// When this override is installed, this function overrides the behavior of
   /// `ServerSocket.bind(...)`.
   Future<ServerSocket> serverSocketBind(
     address,
@@ -350,6 +356,22 @@ abstract base class IOOverrides {
       v6Only: v6Only,
       shared: shared,
     );
+  }
+
+  // Process exit
+
+  /// Exit the Dart VM process immediately with the given exit code.
+  ///
+  /// When this override is installed, this function overrides the behavior of
+  /// `exit(...)`.
+  @Since("3.10")
+  Never exit(int code) {
+    if (!_EmbedderConfig._mayExit) {
+      throw new UnsupportedError(
+        "This embedder disallows calling dart:io's exit()",
+      );
+    }
+    _ProcessUtils._exit(code);
   }
 
   // Standard streams
@@ -440,6 +462,9 @@ final class _IOOverridesScope extends IOOverrides {
   final Stdout Function()? _stdout;
   final Stdout Function()? _stderr;
 
+  // Process exit
+  final Never Function(int)? _exit;
+
   _IOOverridesScope(
     this._previous,
 
@@ -480,6 +505,9 @@ final class _IOOverridesScope extends IOOverrides {
     this._stdin,
     this._stdout,
     this._stderr,
+
+    // Process exit
+    this._exit,
   );
 
   // Directory
@@ -661,6 +689,11 @@ final class _IOOverridesScope extends IOOverrides {
         v6Only: v6Only,
         shared: shared,
       );
+
+  // Process exit
+  @override
+  Never exit(int code) =>
+      _exit?.call(code) ?? _previous?.exit.call(code) ?? super.exit(code);
 
   // Standard streams
   @override

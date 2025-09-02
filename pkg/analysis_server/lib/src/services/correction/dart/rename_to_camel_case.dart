@@ -42,7 +42,7 @@ class RenameToCamelCase extends ResolvedCorrectionProducer {
       element = node.declaredFragment?.element;
     } else if (node is VariableDeclaration) {
       nameToken = node.name;
-      element = node.declaredElement ?? node.declaredFragment?.element;
+      element = node.declaredFragment?.element;
     } else if (node is RecordTypeAnnotationField) {
       // RecordTypeAnnotationFields do not have Elements.
       nameToken = node.name;

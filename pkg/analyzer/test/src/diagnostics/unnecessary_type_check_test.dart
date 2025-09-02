@@ -21,7 +21,7 @@ class UnnecessaryTypeCheckFalseTest extends PubPackageResolutionTest {
       r'''
 var b = null is! Null;
 ''',
-      [error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 8, 13)],
+      [error(WarningCode.unnecessaryTypeCheckFalse, 8, 13)],
     );
   }
 
@@ -32,7 +32,7 @@ void f(int a) {
   a is! int;
 }
 ''',
-      [error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 18, 9)],
+      [error(WarningCode.unnecessaryTypeCheckFalse, 18, 9)],
     );
   }
 
@@ -51,7 +51,7 @@ void f(int a) {
   a is! num;
 }
 ''',
-      [error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 18, 9)],
+      [error(WarningCode.unnecessaryTypeCheckFalse, 18, 9)],
     );
   }
 
@@ -62,7 +62,7 @@ void f(int? a) {
   a is! int?;
 }
 ''',
-      [error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 19, 10)],
+      [error(WarningCode.unnecessaryTypeCheckFalse, 19, 10)],
     );
   }
 
@@ -97,7 +97,7 @@ void f(int? a) {
   a is! num?;
 }
 ''',
-      [error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 19, 10)],
+      [error(WarningCode.unnecessaryTypeCheckFalse, 19, 10)],
     );
   }
 
@@ -116,7 +116,7 @@ void f<T>(T a) {
   a is! dynamic;
 }
 ''',
-      [error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 19, 13)],
+      [error(WarningCode.unnecessaryTypeCheckFalse, 19, 13)],
     );
   }
 
@@ -135,7 +135,7 @@ void f<T>(T a) {
   a is! Object?;
 }
 ''',
-      [error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 19, 13)],
+      [error(WarningCode.unnecessaryTypeCheckFalse, 19, 13)],
     );
   }
 }
@@ -149,7 +149,7 @@ void f(A a) {
   a is num;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 7, 1)],
+      [error(CompileTimeErrorCode.undefinedClass, 7, 1)],
     );
   }
 
@@ -158,7 +158,7 @@ void f(A a) {
       r'''
 var b = null is Null;
 ''',
-      [error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 8, 12)],
+      [error(WarningCode.unnecessaryTypeCheckTrue, 8, 12)],
     );
   }
 
@@ -169,7 +169,7 @@ void f(int a) {
   a is dynamic;
 }
 ''',
-      [error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 18, 12)],
+      [error(WarningCode.unnecessaryTypeCheckTrue, 18, 12)],
     );
   }
 
@@ -180,7 +180,7 @@ void f(int a) {
   a is Unresolved;
 }
 ''',
-      [error(CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME, 23, 10)],
+      [error(CompileTimeErrorCode.typeTestWithUndefinedName, 23, 10)],
     );
   }
 
@@ -191,7 +191,7 @@ void f(int a) {
   a is int;
 }
 ''',
-      [error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 18, 8)],
+      [error(WarningCode.unnecessaryTypeCheckTrue, 18, 8)],
     );
   }
 
@@ -210,7 +210,7 @@ void f(int a) {
   a is num;
 }
 ''',
-      [error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 18, 8)],
+      [error(WarningCode.unnecessaryTypeCheckTrue, 18, 8)],
     );
   }
 
@@ -221,7 +221,7 @@ void f(int? a) {
   a is int?;
 }
 ''',
-      [error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 19, 9)],
+      [error(WarningCode.unnecessaryTypeCheckTrue, 19, 9)],
     );
   }
 
@@ -256,7 +256,7 @@ void f(int? a) {
   a is num?;
 }
 ''',
-      [error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 19, 9)],
+      [error(WarningCode.unnecessaryTypeCheckTrue, 19, 9)],
     );
   }
 
@@ -275,7 +275,7 @@ void f<T>(T a) {
   a is dynamic;
 }
 ''',
-      [error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 19, 12)],
+      [error(WarningCode.unnecessaryTypeCheckTrue, 19, 12)],
     );
   }
 
@@ -294,7 +294,7 @@ void f<T>(T a) {
   a is Object?;
 }
 ''',
-      [error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 19, 12)],
+      [error(WarningCode.unnecessaryTypeCheckTrue, 19, 12)],
     );
   }
 }

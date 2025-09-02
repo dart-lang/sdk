@@ -30,7 +30,7 @@ part '$testFileName';
       r'''
 part of lib;
 ''',
-      [error(ParserErrorCode.PART_OF_NAME, 8, 3)],
+      [error(ParserErrorCode.partOfName, 8, 3)],
     );
   }
 

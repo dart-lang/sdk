@@ -48,6 +48,17 @@ static const KBCInstr
         KernelBytecode::kTrap,
 };
 
+static const KBCInstr kVMInternal_ImplicitInstanceClosureInstructions[] = {
+    KernelBytecode::kVMInternal_ImplicitInstanceClosure,
+    0,
+    0,
+    KernelBytecode::kReturnTOS,
+};
+
+static const KBCInstr kVMInternal_ImplicitInstanceClosure_WideInstructions[] = {
+    KernelBytecode::kTrap,
+};
+
 #define DECLARE_INSTRUCTIONS(name, fmt, kind, fmta, fmtb, fmtc)                \
   static const KBCInstr k##name##Instructions[] = {                            \
       KernelBytecode::k##name,                                                 \

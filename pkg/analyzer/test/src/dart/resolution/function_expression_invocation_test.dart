@@ -6,10 +6,12 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FunctionExpressionInvocationTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -316,13 +318,7 @@ void f((String,) a) {
   a();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
-          24,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.invocationOfNonFunctionExpression, 24, 1)],
     );
     var node = findNode.functionExpressionInvocation('();');
     assertResolvedNodeText(node, r'''
@@ -420,7 +416,7 @@ void f(int Function() g, int a) {
   g(a);
 }
 ''',
-      [error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 38, 1)],
+      [error(CompileTimeErrorCode.extraPositionalArguments, 38, 1)],
     );
 
     var node = findNode.singleFunctionExpressionInvocation;
@@ -530,13 +526,7 @@ const a = 0;
 const b = 0;
 const c = id(a, b);
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          58,
-          8,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 58, 8)],
     );
 
     var node = findNode.singleFunctionExpressionInvocation;
@@ -574,8 +564,8 @@ void f(Never x) {
 }
 ''',
       [
-        error(WarningCode.RECEIVER_OF_TYPE_NEVER, 20, 1),
-        error(WarningCode.DEAD_CODE, 26, 8),
+        error(WarningCode.receiverOfTypeNever, 20, 1),
+        error(WarningCode.deadCode, 26, 8),
       ],
     );
 
@@ -626,13 +616,7 @@ void f(Never? x) {
   x<int>(1 + 2);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE,
-          21,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.uncheckedInvocationOfNullableValue, 21, 1)],
     );
 
     var node = findNode.functionExpressionInvocation('x<int>(1 + 2)');
@@ -701,6 +685,41 @@ FunctionExpressionInvocation
       token: foo
       element: <testLibrary>::@class::A::@getter::foo
       staticType: int Function()
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  element: <null>
+  staticInvokeType: int Function()
+  staticType: int?
+''');
+  }
+
+  test_nullShorting_extended() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  int Function() f();
+}
+test(A? a) => a?.f()();
+''');
+
+    var node = findNode.functionExpressionInvocation('a?.f()()');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: MethodInvocation
+    target: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::test::@formalParameter::a
+      staticType: A?
+    operator: ?.
+    methodName: SimpleIdentifier
+      token: f
+      element: <testLibrary>::@class::A::@method::f
+      staticType: int Function() Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticInvokeType: int Function() Function()
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (

@@ -531,6 +531,8 @@ class FlowGraph : public ZoneAllocated {
   // Once this is done, no intra-block code motion should be performed.
   void ExtractNonInternalTypedDataPayloads();
 
+  void AddTsanInstrumentation();
+
   bool IsReceiver(Definition* def) const;
 
   // Optimize (a << b) & c pattern: if c is a positive Smi or zero, then the

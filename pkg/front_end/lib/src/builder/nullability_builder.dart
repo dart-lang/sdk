@@ -23,13 +23,13 @@ class NullabilityBuilder {
   final SyntacticNullability _syntacticNullability;
 
   const NullabilityBuilder.nullable()
-      : _syntacticNullability = SyntacticNullability.nullable;
+    : _syntacticNullability = SyntacticNullability.nullable;
 
   const NullabilityBuilder.omitted()
-      : _syntacticNullability = SyntacticNullability.omitted;
+    : _syntacticNullability = SyntacticNullability.omitted;
 
   const NullabilityBuilder.inherent()
-      : _syntacticNullability = SyntacticNullability.inherent;
+    : _syntacticNullability = SyntacticNullability.inherent;
 
   bool get isOmitted => _syntacticNullability == SyntacticNullability.omitted;
 

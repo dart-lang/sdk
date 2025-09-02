@@ -78,7 +78,7 @@ SwitchExpression
       r'''
 final a = switch (0) {};
 ''',
-      [error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION, 10, 6)],
+      [error(CompileTimeErrorCode.nonExhaustiveSwitchExpression, 10, 6)],
     );
 
     var node = findNode.singleSwitchExpression;
@@ -153,7 +153,7 @@ void f(void x) {
   });
 }
 ''',
-      [error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 27, 1)],
+      [error(CompileTimeErrorCode.useOfVoidResult, 27, 1)],
     );
 
     var node = findNode.singleSwitchExpression;
@@ -532,7 +532,7 @@ void f(Object? x) {
   });
 }
 ''',
-      [error(WarningCode.DEAD_CODE, 52, 8)],
+      [error(WarningCode.deadCode, 52, 8)],
     );
 
     var node = findNode.switchExpression('switch');
@@ -612,12 +612,12 @@ void f(Object? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION,
+          CompileTimeErrorCode.nonConstantRelationalPatternExpression,
           64,
           1,
         ),
         error(
-          CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+          CompileTimeErrorCode.referencedBeforeDeclaration,
           64,
           1,
           contextMessages: [message(testFile, 58, 1)],
@@ -707,7 +707,7 @@ void f(Object? x) {
   });
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 72, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 72, 1)],
     );
 
     var node = findNode.switchExpression('switch');

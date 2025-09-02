@@ -16,20 +16,23 @@ void main(List<String> arguments) {
   Messages message = generateMessagesFiles(repoDir);
   if (message.sharedMessages.trim().isEmpty ||
       message.cfeMessages.trim().isEmpty) {
-    print("Bailing because of errors: "
-        "Refusing to overwrite with empty file!");
+    print(
+      "Bailing because of errors: "
+      "Refusing to overwrite with empty file!",
+    );
   } else {
-    new File.fromUri(computeSharedGeneratedFile(repoDir))
-        .writeAsStringSync(message.sharedMessages, flush: true);
-    new File.fromUri(computeCfeGeneratedFile(repoDir))
-        .writeAsStringSync(message.cfeMessages, flush: true);
+    new File.fromUri(
+      computeSharedGeneratedFile(repoDir),
+    ).writeAsStringSync(message.sharedMessages, flush: true);
+    new File.fromUri(
+      computeCfeGeneratedFile(repoDir),
+    ).writeAsStringSync(message.cfeMessages, flush: true);
   }
 }
 
 Messages generateMessagesFiles(Uri repoDir) {
   return generateMessagesFilesRaw(
-      repoDir,
-      (s) => new DartFormatter(
-              languageVersion: DartFormatter.latestShortStyleLanguageVersion)
-          .format(s));
+    repoDir,
+    (s, version) => new DartFormatter(languageVersion: version).format(s),
+  );
 }

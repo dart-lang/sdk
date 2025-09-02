@@ -58,11 +58,11 @@ class MapEntryElement extends Element {
     return newKey == null && newValue == null
         ? null
         : new MapEntryElement(
-          newKey ?? key,
-          newValue ?? value,
-          isNullAwareKey: isNullAwareKey,
-          isNullAwareValue: isNullAwareValue,
-        );
+            newKey ?? key,
+            newValue ?? value,
+            isNullAwareKey: isNullAwareKey,
+            isNullAwareValue: isNullAwareValue,
+          );
   }
 }
 
@@ -103,10 +103,10 @@ class IfElement extends Element {
       return newCondition == null && newThen == null && newOtherwise == null
           ? null
           : new IfElement(
-            newCondition ?? condition,
-            newThen ?? then,
-            newOtherwise ?? otherwise,
-          );
+              newCondition ?? condition,
+              newThen ?? then,
+              newOtherwise ?? otherwise,
+            );
     } else {
       return newCondition == null && newThen == null
           ? null

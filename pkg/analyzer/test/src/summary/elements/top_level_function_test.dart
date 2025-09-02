@@ -157,6 +157,7 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 16
           unit: #F1
     #F1 package:test/a.dart
       element: <testLibrary>

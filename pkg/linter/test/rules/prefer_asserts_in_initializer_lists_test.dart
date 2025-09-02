@@ -331,7 +331,7 @@ class A {
 ''',
       [
         // No lint
-        error(CompileTimeErrorCode.NON_BOOL_EXPRESSION, 40, 50),
+        error(CompileTimeErrorCode.nonBoolExpression, 40, 50),
       ],
     );
   }

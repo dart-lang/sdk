@@ -172,6 +172,7 @@ static method nonExhaustiveDynamicAsStringOrIntRestricted(dynamic o) → dynamic
   return block {
     core::String #t14;
     final synthesized dynamic #0#0 = o;
+    final const synthesized core::bool #0#3 = #C1;
     #L6:
     {
       {
@@ -236,6 +237,7 @@ static method nonExhaustiveDynamicAsMRestricted(dynamic m) → dynamic
   return block {
     core::int #t23;
     final synthesized dynamic #0#0 = m;
+    final const synthesized core::int #0#6 = #C2;
     #L10:
     {
       {
@@ -250,6 +252,7 @@ static method exhaustiveDynamicAsMSeeminglyRestricted(dynamic m) → dynamic
   return block {
     core::int #t25;
     final synthesized dynamic #0#0 = m;
+    final const synthesized core::int #0#5 = #C2;
     #L11:
     {
       {
@@ -264,6 +267,7 @@ static method exhaustiveList(dynamic o) → dynamic
   return block {
     core::int #t27;
     final synthesized dynamic #0#0 = o;
+    final const synthesized core::int #0#3 = #C3;
     #L12:
     {
       {
@@ -284,6 +288,7 @@ static method nonExhaustiveList(dynamic o) → dynamic
   return block {
     core::int #t29;
     final synthesized dynamic #0#0 = o;
+    final const synthesized core::int #0#3 = #C4;
     #L13:
     {
       {

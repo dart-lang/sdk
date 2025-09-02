@@ -99,10 +99,9 @@ class CodeStyleOptionsImpl implements CodeStyleOptions {
   bool _isLintEnabled(String name) => options.isLintEnabled(name);
 
   /// Returns the preferred lint quote, otherwise `null`.
-  String? _lintQuote() =>
-      _isLintEnabled('prefer_single_quotes')
-          ? "'"
-          : _isLintEnabled('prefer_double_quotes')
-          ? '"'
-          : null;
+  String? _lintQuote() => _isLintEnabled('prefer_single_quotes')
+      ? "'"
+      : _isLintEnabled('prefer_double_quotes')
+      ? '"'
+      : null;
 }

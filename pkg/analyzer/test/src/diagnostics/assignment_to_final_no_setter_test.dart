@@ -30,10 +30,10 @@ void f(A a) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 49, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 60, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 74, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 81, 1),
+        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 49, 1),
+        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 60, 1),
+        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 74, 1),
+        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 81, 1),
       ],
     );
   }
@@ -53,10 +53,10 @@ void f(A a) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 51, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 64, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 80, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 89, 1),
+        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 51, 1),
+        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 64, 1),
+        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 80, 1),
+        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 89, 1),
       ],
     );
   }
@@ -76,10 +76,10 @@ void f() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 57, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 68, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 82, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 89, 1),
+        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 57, 1),
+        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 68, 1),
+        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 82, 1),
+        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 89, 1),
       ],
     );
   }
@@ -99,10 +99,10 @@ class A {
 }
 ''',
       [
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 46, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 57, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 71, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 78, 1),
+        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 46, 1),
+        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 57, 1),
+        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 71, 1),
+        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 78, 1),
       ],
     );
   }
@@ -122,10 +122,10 @@ class A {
 }
 ''',
       [
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 53, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 64, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 78, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 85, 1),
+        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 53, 1),
+        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 64, 1),
+        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 78, 1),
+        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 85, 1),
       ],
     );
   }

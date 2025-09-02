@@ -31,7 +31,7 @@ class VariableDeclarationResolver {
       if (_strictInference && parent.type == null) {
         _resolver.diagnosticReporter.atNode(
           node,
-          WarningCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE,
+          WarningCode.inferenceFailureOnUninitializedVariable,
           arguments: [node.name.lexeme],
         );
       }
@@ -50,9 +50,9 @@ class VariableDeclarationResolver {
 
     var contextType =
         element is! PropertyInducingElementImpl ||
-                element.shouldUseTypeForInitializerInference
-            ? element.type
-            : UnknownInferredType.instance;
+            element.shouldUseTypeForInitializerInference
+        ? element.type
+        : UnknownInferredType.instance;
     _resolver.analyzeExpression(initializer, SharedTypeSchemaView(contextType));
     initializer = _resolver.popRewrite()!;
     var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
@@ -61,10 +61,9 @@ class VariableDeclarationResolver {
 
     var initializerType = initializer.typeOrThrow;
     if (parent.type == null && element is LocalVariableElementImpl) {
-      element.type =
-          _resolver
-              .variableTypeFromInitializerType(SharedTypeView(initializerType))
-              .unwrapTypeView();
+      element.type = _resolver
+          .variableTypeFromInitializerType(SharedTypeView(initializerType))
+          .unwrapTypeView();
     }
 
     if (isTopLevel) {
@@ -85,7 +84,7 @@ class VariableDeclarationResolver {
       initializer,
       initializerType,
       element.type,
-      CompileTimeErrorCode.INVALID_ASSIGNMENT,
+      CompileTimeErrorCode.invalidAssignment,
       whyNotPromoted: whyNotPromoted,
     );
   }

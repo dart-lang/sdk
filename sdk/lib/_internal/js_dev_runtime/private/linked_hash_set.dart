@@ -5,7 +5,7 @@
 // Efficient JavaScript based implementation of a linked hash set used as a
 // backing map for constant sets and the [LinkedHashSet] patch.
 
-part of dart._js_helper;
+part of "dart:_js_helper";
 
 /// Base class for our internal [LinkedHashSet]/[HashSet] implementations.
 ///

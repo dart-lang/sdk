@@ -21,35 +21,40 @@ abstract class BuiltinTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
   final Uri fileUri;
 
   BuiltinTypeDeclarationBuilder(
-      this.name, this.type, this.parent, this.fileOffset)
-      : fileUri = parent.fileUri;
+    this.name,
+    this.type,
+    this.parent,
+    this.fileOffset,
+  ) : fileUri = parent.fileUri;
 
   @override
   int get typeParametersCount => 0;
 
   @override
   DartType buildAliasedType(
-      LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder,
-      List<TypeBuilder>? arguments,
-      TypeUse typeUse,
-      Uri fileUri,
-      int charOffset,
-      ClassHierarchyBase? hierarchy,
-      {required bool hasExplicitTypeArguments}) {
+    LibraryBuilder library,
+    NullabilityBuilder nullabilityBuilder,
+    List<TypeBuilder>? arguments,
+    TypeUse typeUse,
+    Uri fileUri,
+    int charOffset,
+    ClassHierarchyBase? hierarchy, {
+    required bool hasExplicitTypeArguments,
+  }) {
     return type.withDeclaredNullability(nullabilityBuilder.build());
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   DartType buildAliasedTypeWithBuiltArguments(
-      LibraryBuilder library,
-      Nullability nullability,
-      List<DartType> arguments,
-      TypeUse typeUse,
-      Uri fileUri,
-      int charOffset,
-      {required bool hasExplicitTypeArguments}) {
+    LibraryBuilder library,
+    Nullability nullability,
+    List<DartType> arguments,
+    TypeUse typeUse,
+    Uri fileUri,
+    int charOffset, {
+    required bool hasExplicitTypeArguments,
+  }) {
     return type.withDeclaredNullability(nullability);
   }
 }

@@ -20,16 +20,17 @@ abstract class InferredType extends AuxiliaryType {
 
   InferredType._();
 
-  factory InferredType(
-      {required SourceLibraryBuilder libraryBuilder,
-      required TypeBuilder typeBuilder,
-      required InferTypeFunction inferType,
-      required ComputeTypeFunction computeType,
-      required Uri fileUri,
-      required String name,
-      required int nameOffset,
-      required int nameLength,
-      required Token? token}) = _ImplicitType;
+  factory InferredType({
+    required SourceLibraryBuilder libraryBuilder,
+    required TypeBuilder typeBuilder,
+    required InferTypeFunction inferType,
+    required ComputeTypeFunction computeType,
+    required Uri fileUri,
+    required String name,
+    required int nameOffset,
+    required int nameLength,
+    required Token? token,
+  }) = _ImplicitType;
 
   factory InferredType.fromInferableTypeUse(InferableTypeUse inferableTypeUse) =
       _InferredTypeUse;
@@ -97,8 +98,8 @@ abstract class InferredType extends AuxiliaryType {
 typedef InferTypeFunction = DartType Function(ClassHierarchyBase hierarchy);
 
 /// Signature for function called to compute the type for [_ImplicitType]
-typedef ComputeTypeFunction = DartType Function(
-    ClassHierarchyBase hierarchy, Token? token);
+typedef ComputeTypeFunction =
+    DartType Function(ClassHierarchyBase hierarchy, Token? token);
 
 /// [InferredType] implementation that infers the type of [_typeBuilder] using
 /// [_computeType] and [_token].
@@ -115,26 +116,26 @@ class _ImplicitType extends InferredType {
 
   bool isStarted = false;
 
-  _ImplicitType(
-      {required SourceLibraryBuilder libraryBuilder,
-      required TypeBuilder typeBuilder,
-      required InferTypeFunction inferType,
-      required ComputeTypeFunction computeType,
-      required Uri fileUri,
-      required String name,
-      required int nameOffset,
-      required int nameLength,
-      required Token? token})
-      : _libraryBuilder = libraryBuilder,
-        _typeBuilder = typeBuilder,
-        _inferType = inferType,
-        _computeType = computeType,
-        _fileUri = fileUri,
-        _name = name,
-        _nameOffset = nameOffset,
-        _nameLength = nameLength,
-        _token = token,
-        super._();
+  _ImplicitType({
+    required SourceLibraryBuilder libraryBuilder,
+    required TypeBuilder typeBuilder,
+    required InferTypeFunction inferType,
+    required ComputeTypeFunction computeType,
+    required Uri fileUri,
+    required String name,
+    required int nameOffset,
+    required int nameLength,
+    required Token? token,
+  }) : _libraryBuilder = libraryBuilder,
+       _typeBuilder = typeBuilder,
+       _inferType = inferType,
+       _computeType = computeType,
+       _fileUri = fileUri,
+       _name = name,
+       _nameOffset = nameOffset,
+       _nameLength = nameLength,
+       _token = token,
+       super._();
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -153,10 +154,11 @@ class _ImplicitType extends InferredType {
   DartType computeType(ClassHierarchyBase hierarchy) {
     if (isStarted) {
       _libraryBuilder.addProblem(
-          templateCantInferTypeDueToCircularity.withArguments(_name),
-          _nameOffset,
-          _nameLength,
-          _fileUri);
+        codeCantInferTypeDueToCircularity.withArguments(_name),
+        _nameOffset,
+        _nameLength,
+        _fileUri,
+      );
       DartType type = const InvalidType();
       _typeBuilder.registerInferredType(type);
       return type;

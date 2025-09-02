@@ -13,14 +13,19 @@ import '../kernel/internal_ast.dart';
 /// Creates an invocation of the [target] constructor with the given
 /// [arguments].
 ConstructorInvocation createConstructorInvocation(
-    Constructor target, Arguments arguments,
-    {required int fileOffset}) {
+  Constructor target,
+  Arguments arguments, {
+  required int fileOffset,
+}) {
   return new ConstructorInvocation(target, arguments)..fileOffset = fileOffset;
 }
 
 /// Creates a static invocation of [target] with the given arguments.
-StaticInvocation createStaticInvocation(Procedure target, Arguments arguments,
-    {required int fileOffset}) {
+StaticInvocation createStaticInvocation(
+  Procedure target,
+  Arguments arguments, {
+  required int fileOffset,
+}) {
   return new StaticInvocation(target, arguments)..fileOffset = fileOffset;
 }
 
@@ -35,19 +40,22 @@ BoolLiteral createBoolLiteral(bool value, {required int fileOffset}) {
 }
 
 /// Creates an integer literal of [value].
-Expression createIntLiteral(CoreTypes coreTypes, int value,
-    {required int fileOffset}) {
+Expression createIntLiteral(
+  CoreTypes coreTypes,
+  int value, {
+  required int fileOffset,
+}) {
   if (value < 0) {
     /// The web backends need this to be encoded as a unary minus on the
     /// positive value.
     return new InstanceInvocation(
-        InstanceAccessKind.Instance,
-        new IntLiteral(-value)..fileOffset = fileOffset,
-        unaryMinusName,
-        new Arguments([])..fileOffset = fileOffset,
-        interfaceTarget: coreTypes.intUnaryMinus,
-        functionType: coreTypes.intUnaryMinus.getterType as FunctionType)
-      ..fileOffset = fileOffset;
+      InstanceAccessKind.Instance,
+      new IntLiteral(-value)..fileOffset = fileOffset,
+      unaryMinusName,
+      new Arguments([])..fileOffset = fileOffset,
+      interfaceTarget: coreTypes.intUnaryMinus,
+      functionType: coreTypes.intUnaryMinus.getterType as FunctionType,
+    )..fileOffset = fileOffset;
   } else {
     return new IntLiteral(value)..fileOffset = fileOffset;
   }
@@ -67,8 +75,12 @@ NullLiteral createNullLiteral({required int fileOffset}) {
 /// [otherwise] branches with the given [staticType] of the resulting
 /// expression.
 ConditionalExpression createConditionalExpression(
-    Expression condition, Expression then, Expression otherwise,
-    {required DartType staticType, required int fileOffset}) {
+  Expression condition,
+  Expression then,
+  Expression otherwise, {
+  required DartType staticType,
+  required int fileOffset,
+}) {
   return new ConditionalExpression(condition, then, otherwise, staticType)
     ..fileOffset = fileOffset;
 }
@@ -95,8 +107,10 @@ VariableDeclaration createVariableCache(Expression expression, DartType type) {
 }
 
 /// Creates an uninitialized [VariableDeclaration] of the static [type].
-VariableDeclaration createUninitializedVariable(DartType type,
-    {required int fileOffset}) {
+VariableDeclaration createUninitializedVariable(
+  DartType type, {
+  required int fileOffset,
+}) {
   return new VariableDeclaration(null, type: type, isSynthesized: true)
     ..fileOffset = fileOffset;
 }
@@ -104,11 +118,17 @@ VariableDeclaration createUninitializedVariable(DartType type,
 /// Creates an initialized (but mutable) [VariableDeclaration] of the static
 /// [type].
 VariableDeclaration createInitializedVariable(
-    Expression expression, DartType type,
-    {required int fileOffset, String? name}) {
-  return new VariableDeclaration(name,
-      initializer: expression, type: type, isSynthesized: true)
-    ..fileOffset = fileOffset;
+  Expression expression,
+  DartType type, {
+  required int fileOffset,
+  String? name,
+}) {
+  return new VariableDeclaration(
+    name,
+    initializer: expression,
+    type: type,
+    isSynthesized: true,
+  )..fileOffset = fileOffset;
 }
 
 /// Creates a [VariableDeclaration] for [expression] with the static [type]
@@ -122,23 +142,33 @@ VariableDeclaration createVariable(Expression expression, DartType type) {
 
 /// Creates a [VariableGet] of [variable] using `variable.fileOffset` as the
 /// file offset for the expression.
-VariableGet createVariableGet(VariableDeclaration variable,
-    {DartType? promotedType}) {
+VariableGet createVariableGet(
+  VariableDeclaration variable, {
+  DartType? promotedType,
+}) {
   return new VariableGet(variable)
     ..fileOffset = variable.fileOffset
     ..promotedType = promotedType != variable.type ? promotedType : null;
 }
 
 /// Creates a [VariableSet] of [variable] with the [value].
-Expression createVariableSet(VariableDeclaration variable, Expression value,
-    {bool allowFinalAssignment = false, required int fileOffset}) {
+Expression createVariableSet(
+  VariableDeclaration variable,
+  Expression value, {
+  bool allowFinalAssignment = false,
+  required int fileOffset,
+}) {
   if (variable is VariableDeclarationImpl && variable.lateSetter != null) {
-    return createLocalFunctionInvocation(variable.lateSetter!,
-        arguments: createArguments([value], fileOffset: fileOffset),
-        fileOffset: fileOffset);
+    return createLocalFunctionInvocation(
+      variable.lateSetter!,
+      arguments: createArguments([value], fileOffset: fileOffset),
+      fileOffset: fileOffset,
+    );
   } else {
-    assert(allowFinalAssignment || variable.isAssignable,
-        "Cannot assign to variable $variable");
+    assert(
+      allowFinalAssignment || variable.isAssignable,
+      "Cannot assign to variable $variable",
+    );
     return new VariableSet(variable, value)..fileOffset = fileOffset;
   }
 }
@@ -146,16 +176,17 @@ Expression createVariableSet(VariableDeclaration variable, Expression value,
 /// Creates an invocation of the local function [variable] with the provided
 /// [arguments].
 LocalFunctionInvocation createLocalFunctionInvocation(
-    VariableDeclaration variable,
-    {Arguments? arguments,
-    required int fileOffset}) {
+  VariableDeclaration variable, {
+  Arguments? arguments,
+  required int fileOffset,
+}) {
   return new LocalFunctionInvocation(
-      variable,
-      arguments ?? // Coverage-ignore(suite): Not run.
+    variable,
+    arguments ?? // Coverage-ignore(suite): Not run.
           createArguments([], fileOffset: fileOffset)
-        ..fileOffset = fileOffset,
-      functionType: variable.type as FunctionType)
-    ..fileOffset = fileOffset;
+      ..fileOffset = fileOffset,
+    functionType: variable.type as FunctionType,
+  )..fileOffset = fileOffset;
 }
 
 /// Creates a [Not] of [operand].
@@ -164,31 +195,43 @@ Not createNot(Expression operand) {
 }
 
 /// Creates a logical and expression of [left] and [right].
-LogicalExpression createAndExpression(Expression left, Expression right,
-    {required int fileOffset}) {
+LogicalExpression createAndExpression(
+  Expression left,
+  Expression right, {
+  required int fileOffset,
+}) {
   return new LogicalExpression(left, LogicalExpressionOperator.AND, right)
     ..fileOffset = fileOffset;
 }
 
 /// Creates a logical or expression of [left] and [right].
-LogicalExpression createOrExpression(Expression left, Expression right,
-    {required int fileOffset}) {
+LogicalExpression createOrExpression(
+  Expression left,
+  Expression right, {
+  required int fileOffset,
+}) {
   return new LogicalExpression(left, LogicalExpressionOperator.OR, right)
     ..fileOffset = fileOffset;
 }
 
 /// Creates an is-test on [operand] against [type].
-IsExpression createIsExpression(Expression operand, DartType type,
-    {required int fileOffset}) {
+IsExpression createIsExpression(
+  Expression operand,
+  DartType type, {
+  required int fileOffset,
+}) {
   return new IsExpression(operand, type)..fileOffset = fileOffset;
 }
 
 /// Creates an as-cast on [operand] against [type].
-AsExpression createAsExpression(Expression operand, DartType type,
-    {required bool forNonNullableByDefault,
-    bool isUnchecked = false,
-    bool isCovarianceCheck = false,
-    required int fileOffset}) {
+AsExpression createAsExpression(
+  Expression operand,
+  DartType type, {
+  required bool forNonNullableByDefault,
+  bool isUnchecked = false,
+  bool isCovarianceCheck = false,
+  required int fileOffset,
+}) {
   return new AsExpression(operand, type)
     ..fileOffset = fileOffset
     ..isUnchecked = isUnchecked
@@ -202,8 +245,11 @@ NullCheck createNullCheck(Expression expression, {required int fileOffset}) {
 
 /// Creates a block expression using [body] as the body and [value] as the
 /// resulting value.
-BlockExpression createBlockExpression(Block body, Expression value,
-    {required int fileOffset}) {
+BlockExpression createBlockExpression(
+  Block body,
+  Expression value, {
+  required int fileOffset,
+}) {
   return new BlockExpression(body, value)..fileOffset = fileOffset;
 }
 
@@ -224,14 +270,20 @@ ExpressionStatement createExpressionStatement(Expression expression) {
 
 /// Creates an if statement with the [condition], [then] branch and [otherwise]
 /// as the optional else branch.
-IfStatement createIfStatement(Expression condition, Statement then,
-    {Statement? otherwise, required int fileOffset}) {
+IfStatement createIfStatement(
+  Expression condition,
+  Statement then, {
+  Statement? otherwise,
+  required int fileOffset,
+}) {
   return new IfStatement(condition, then, otherwise)..fileOffset = fileOffset;
 }
 
 /// Creates a break statement with the given [target].
-BreakStatement createBreakStatement(LabeledStatement target,
-    {required int fileOffset}) {
+BreakStatement createBreakStatement(
+  LabeledStatement target, {
+  required int fileOffset,
+}) {
   return new BreakStatement(target)..fileOffset = fileOffset;
 }
 
@@ -244,10 +296,12 @@ Block createBlock(List<Statement> statements, {required int fileOffset}) {
 
 /// Creates an [Arguments] object for the [positional] and [named] arguments,
 /// and [types] as the type arguments.
-Arguments createArguments(List<Expression> positional,
-    {List<DartType>? types,
-    List<NamedExpression>? named,
-    required int fileOffset}) {
+Arguments createArguments(
+  List<Expression> positional, {
+  List<DartType>? types,
+  List<NamedExpression>? named,
+  required int fileOffset,
+}) {
   return new Arguments(positional, types: types, named: named)
     ..fileOffset = fileOffset;
 }
@@ -255,11 +309,18 @@ Arguments createArguments(List<Expression> positional,
 /// Creates a switch case for the case [expressions] and their corresponding
 /// file offsets in [expressionOffsets] with the given [body].
 SwitchCase createSwitchCase(
-    List<Expression> expressions, List<int> expressionOffsets, Statement body,
-    {required bool isDefault, required int fileOffset}) {
-  return new SwitchCase(expressions, expressionOffsets, body,
-      isDefault: isDefault)
-    ..fileOffset = fileOffset;
+  List<Expression> expressions,
+  List<int> expressionOffsets,
+  Statement body, {
+  required bool isDefault,
+  required int fileOffset,
+}) {
+  return new SwitchCase(
+    expressions,
+    expressionOffsets,
+    body,
+    isDefault: isDefault,
+  )..fileOffset = fileOffset;
 }
 
 /// Create a switch statement on the [expression] with the given [cases]. If
@@ -268,18 +329,25 @@ SwitchCase createSwitchCase(
 ///
 /// The [expressionType] is the static type of the switch expression.
 SwitchStatement createSwitchStatement(
-    Expression expression, List<SwitchCase> cases,
-    {required bool isExplicitlyExhaustive,
-    required int fileOffset,
-    required DartType expressionType}) {
-  return new SwitchStatement(expression, cases,
-      isExplicitlyExhaustive: isExplicitlyExhaustive)
+  Expression expression,
+  List<SwitchCase> cases, {
+  required bool isExplicitlyExhaustive,
+  required int fileOffset,
+  required DartType expressionType,
+}) {
+  return new SwitchStatement(
+      expression,
+      cases,
+      isExplicitlyExhaustive: isExplicitlyExhaustive,
+    )
     ..expressionType = expressionType
     ..fileOffset = fileOffset;
 }
 
 /// Creates a labeled statement that serves as a label for [statement].
-LabeledStatement createLabeledStatement(Statement statement,
-    {required int fileOffset}) {
+LabeledStatement createLabeledStatement(
+  Statement statement, {
+  required int fileOffset,
+}) {
   return new LabeledStatement(statement)..fileOffset = fileOffset;
 }

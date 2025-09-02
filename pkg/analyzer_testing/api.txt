@@ -5,8 +5,10 @@ package:analyzer_testing/analysis_rule/analysis_rule.dart:
     analysisRule (getter: String)
     assertNoPubspecDiagnostics (method: Future<void> Function(String))
     assertPubspecDiagnostics (method: Future<void> Function(String, List<ExpectedDiagnostic>))
+    correctionMessage (method: String Function(List<Diagnostic>))
     lint (method: ExpectedDiagnostic Function(int, int, {Pattern? correctionContains, Pattern? messageContains, String? name}))
     setUp (method: void Function())
+    unexpectedMessage (method: String Function(List<Diagnostic>))
 package:analyzer_testing/experiments/experiments.dart:
   experimentsForTests (static getter: List<String>)
   experimentsForTests= (static setter: List<String>)
@@ -77,6 +79,7 @@ dart:core:
   bool (referenced)
   int (referenced)
 package:_fe_analyzer_shared/src/base/errors.dart:
+  Diagnostic (referenced)
   DiagnosticCode (referenced)
 package:analyzer/file_system/file_system.dart:
   File (referenced)

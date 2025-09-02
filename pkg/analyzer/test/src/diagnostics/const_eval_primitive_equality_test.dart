@@ -86,7 +86,7 @@ class A {
 const a = A();
 const b = a == 0;
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY, 87, 6)],
+      [error(CompileTimeErrorCode.constEvalPrimitiveEquality, 87, 6)],
     );
   }
 
@@ -101,7 +101,7 @@ class A {
 const a = A();
 const b = a == 0;
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY, 76, 6)],
+      [error(CompileTimeErrorCode.constEvalPrimitiveEquality, 76, 6)],
     );
   }
 
@@ -166,7 +166,7 @@ class A {
 const a = A();
 const b = a != 0;
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY, 87, 6)],
+      [error(CompileTimeErrorCode.constEvalPrimitiveEquality, 87, 6)],
     );
   }
 
@@ -181,7 +181,7 @@ class A {
 const a = A();
 const b = a != 0;
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY, 76, 6)],
+      [error(CompileTimeErrorCode.constEvalPrimitiveEquality, 76, 6)],
     );
   }
 

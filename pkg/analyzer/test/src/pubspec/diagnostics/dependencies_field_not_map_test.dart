@@ -28,7 +28,7 @@ dependencies:
 name: sample
 dependencies: true
 ''',
-      [PubspecWarningCode.DEPENDENCIES_FIELD_NOT_MAP],
+      [PubspecWarningCode.dependenciesFieldNotMap],
     );
   }
 
@@ -46,7 +46,7 @@ dependencies:
 name: sample
 dev_dependencies: true
 ''',
-      [PubspecWarningCode.DEPENDENCIES_FIELD_NOT_MAP],
+      [PubspecWarningCode.dependenciesFieldNotMap],
     );
   }
 }

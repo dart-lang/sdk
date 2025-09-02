@@ -287,6 +287,7 @@ void Assembler::Align(intptr_t alignment, intptr_t offset) {
 }
 
 void Assembler::TsanLoadAcquire(Register dst, Register addr, OperandSize size) {
+  Comment("TsanLoadAcquire");
   RegisterSet registers(kDartVolatileCpuRegs & ~(1 << dst),
                         kAllFpuRegistersList);
 
@@ -295,7 +296,7 @@ void Assembler::TsanLoadAcquire(Register dst, Register addr, OperandSize size) {
   ReserveAlignedFrameSpace(0);
 
   MoveRegister(R0, addr);
-  LoadImmediate(R1, __ATOMIC_ACQUIRE);
+  LoadImmediate(R1, static_cast<int64_t>(std::memory_order_acquire));
 
   mov(CSP, SP);
   switch (size) {
@@ -326,6 +327,7 @@ void Assembler::TsanLoadAcquire(Register dst, Register addr, OperandSize size) {
 void Assembler::TsanStoreRelease(Register src,
                                  Register addr,
                                  OperandSize size) {
+  Comment("TsanStoreRelease");
   LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
 
   if (src == R0) {
@@ -335,7 +337,7 @@ void Assembler::TsanStoreRelease(Register src,
     MoveRegister(R0, addr);
     MoveRegister(R1, src);
   }
-  LoadImmediate(R2, __ATOMIC_RELEASE);
+  LoadImmediate(R2, static_cast<int64_t>(std::memory_order_release));
 
   switch (size) {
     case kEightBytes:
@@ -349,6 +351,72 @@ void Assembler::TsanStoreRelease(Register src,
       UNIMPLEMENTED();
       break;
   }
+}
+
+void Assembler::TsanRead(Register addr, intptr_t size) {
+  Comment("TsanRead");
+  LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
+  MoveRegister(R0, addr);
+  switch (size) {
+    case 1:
+      rt.Call(kTsanRead1RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 2:
+      rt.Call(kTsanRead2RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 4:
+      rt.Call(kTsanRead4RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 8:
+      rt.Call(kTsanRead8RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 16:
+      rt.Call(kTsanRead16RuntimeEntry, /*argument_count=*/1);
+      break;
+    default:
+      UNREACHABLE();
+  }
+}
+
+void Assembler::TsanWrite(Register addr, intptr_t size) {
+  Comment("TsanWrite");
+  LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
+  MoveRegister(R0, addr);
+  switch (size) {
+    case 1:
+      rt.Call(kTsanWrite1RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 2:
+      rt.Call(kTsanWrite2RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 4:
+      rt.Call(kTsanWrite4RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 8:
+      rt.Call(kTsanWrite8RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 16:
+      rt.Call(kTsanWrite16RuntimeEntry, /*argument_count=*/1);
+      break;
+    default:
+      UNREACHABLE();
+  }
+}
+
+void Assembler::TsanFuncEntry(bool preserve_registers) {
+  Comment("TsanFuncEntry");
+  LeafRuntimeScope rt(this, /*frame_size=*/0, preserve_registers);
+  ldr(R0, Address(FP, target::frame_layout.saved_caller_fp_from_fp *
+                          target::kWordSize));
+  ldr(R0, Address(R0, target::frame_layout.saved_caller_pc_from_fp *
+                          target::kWordSize));
+  rt.Call(kTsanFuncEntryRuntimeEntry, /*argument_count=*/1);
+}
+
+void Assembler::TsanFuncExit(bool preserve_registers) {
+  Comment("TsanFuncExit");
+  LeafRuntimeScope rt(this, /*frame_size=*/0, preserve_registers);
+  rt.Call(kTsanFuncExitRuntimeEntry, /*argument_count=*/0);
 }
 
 static int CountLeadingZeros(uint64_t value, int width) {
@@ -552,7 +620,6 @@ void Assembler::LoadDoubleWordFromPoolIndex(Register lower,
   Operand op;
   // PP is _un_tagged on ARM64.
   const uint32_t offset = target::ObjectPool::element_offset(index);
-  ASSERT(offset < (1 << 24));
   const uint32_t upper20 = offset & 0xfffff000;
   const uint32_t lower12 = offset & 0x00000fff;
   if (Address::CanHoldOffset(offset, Address::PairOffset)) {
@@ -566,7 +633,7 @@ void Assembler::LoadDoubleWordFromPoolIndex(Register lower,
              Address::CanHoldOffset(lower12, Address::PairOffset)) {
     add(TMP, PP, op);
     ldp(lower, upper, Address(TMP, lower12, Address::PairOffset));
-  } else {
+  } else if (Utils::IsUint(24, offset)) {
     const uint32_t lower12 = offset & 0xfff;
     const uint32_t higher12 = offset & 0xfff000;
 
@@ -580,6 +647,15 @@ void Assembler::LoadDoubleWordFromPoolIndex(Register lower,
     add(TMP, PP, op_high);
     add(TMP, TMP, op_low);
     ldp(lower, upper, Address(TMP, 0, Address::PairOffset));
+  } else if (Utils::IsUint(32, offset)) {
+    const uint16_t offset_low = Utils::Low16Bits(offset);
+    const uint16_t offset_high = Utils::High16Bits(offset);
+    movz(TMP, Immediate(offset_low), 0);
+    movk(TMP, Immediate(offset_high), 1);
+    add(TMP, TMP, Operand(PP));
+    ldp(lower, upper, Address(TMP, 0, Address::PairOffset));
+  } else {
+    UNIMPLEMENTED();
   }
 }
 
@@ -1770,19 +1846,26 @@ void Assembler::VerifyNotInGenerated(Register scratch) {
 }
 
 void Assembler::CallRuntime(const RuntimeEntry& entry,
-                            intptr_t argument_count) {
+                            intptr_t argument_count,
+                            bool tsan_enter_exit) {
   ASSERT(!entry.is_leaf());
   // Argument count is not checked here, but in the runtime entry for a more
   // informative error message.
+  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode &&
+      tsan_enter_exit) {
+    TsanFuncEntry(/*preserve_registers=*/false);
+  }
   ldr(R5, compiler::Address(THR, entry.OffsetFromThread()));
   LoadImmediate(R4, argument_count);
   Call(Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
+  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode &&
+      tsan_enter_exit) {
+    TsanFuncExit(/*preserve_registers=*/false);
+  }
 }
 
-// FPU: Only the bottom 64-bits of v8-v15 are preserved by the caller. The upper
-// bits might be in use by Dart, so we save the whole register.
 static const RegisterSet kRuntimeCallSavedRegisters(kDartVolatileCpuRegs,
-                                                    kAllFpuRegistersList);
+                                                    kDartVolatileFpuRegs);
 
 #undef __
 #define __ assembler_->

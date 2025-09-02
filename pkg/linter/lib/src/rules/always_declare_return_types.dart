@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -19,12 +21,15 @@ class AlwaysDeclareReturnTypes extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.always_declare_return_types_of_functions,
-    LinterLintCode.always_declare_return_types_of_methods,
+    LinterLintCode.alwaysDeclareReturnTypesOfFunctions,
+    LinterLintCode.alwaysDeclareReturnTypesOfMethods,
   ];
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addFunctionDeclaration(this, visitor);
     registry.addFunctionTypeAlias(this, visitor);
@@ -44,7 +49,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportAtToken(
         node.name,
         arguments: [node.name.lexeme],
-        diagnosticCode: LinterLintCode.always_declare_return_types_of_functions,
+        diagnosticCode: LinterLintCode.alwaysDeclareReturnTypesOfFunctions,
       );
     }
   }
@@ -55,7 +60,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportAtToken(
         node.name,
         arguments: [node.name.lexeme],
-        diagnosticCode: LinterLintCode.always_declare_return_types_of_functions,
+        diagnosticCode: LinterLintCode.alwaysDeclareReturnTypesOfFunctions,
       );
     }
   }
@@ -77,7 +82,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     rule.reportAtToken(
       node.name,
       arguments: [node.name.lexeme],
-      diagnosticCode: LinterLintCode.always_declare_return_types_of_methods,
+      diagnosticCode: LinterLintCode.alwaysDeclareReturnTypesOfMethods,
     );
   }
 }

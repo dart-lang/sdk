@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 4.19
+# Dart VM Service Protocol 4.20
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 4.19_ of the Dart VM Service Protocol. This
+This document describes of _version 4.20_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -1885,13 +1885,14 @@ See [Success](#success).
 ### streamCpuSamplesWithUserTag
 
 ```
+@deprecated('This method is deprecated and calling it will cause no effect')
 Success streamCpuSamplesWithUserTag(string[] userTags)
 ```
 
-The _streamCpuSamplesWithUserTag_ RPC allows for clients to specify which CPU
-samples collected by the profiler should be sent over the `Profiler` stream.
-When called, the VM will stream `CpuSamples` events containing `CpuSample`'s
-collected while a user tag contained in `userTags` was active.
+The _streamCpuSamplesWithUserTag_ RPC is deprecated and calling it will cause no
+effect. The RPC will return a `Success` object when called with any `string[]`
+as the `userTags` argument, and will return an [RPC error](#rpc-error) when
+called with any other `userTags` argument.
 
 See [Success](#success).
 
@@ -5066,5 +5067,6 @@ version | comments
 4.17 | Added `Timer` stream, added `TimerSignificantlyOverdue` event kind, and added `details` property to `Event`.
 4.18 | Added `Microtask` timeline stream.
 4.19 | Added `getQueuedMicrotasks` RPC, added `Microtask` and `QueuedMicrotasks` types, and added RPC error 115 "Cannot get queued microtasks".
+4.20 | Deprecated `streamCpuSamplesWithUserTag` RPC.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

@@ -27,11 +27,7 @@ extension type E(Object o) {
 ''',
       [
         // No Lint.
-        error(
-          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD,
-          35,
-          2,
-        ),
+        error(CompileTimeErrorCode.extensionTypeDeclaresInstanceField, 35, 2),
       ],
     );
   }
@@ -153,7 +149,7 @@ enum A {
 ''',
       [
         // No Lint.
-        error(CompileTimeErrorCode.NON_FINAL_FIELD_IN_ENUM, 24, 2),
+        error(CompileTimeErrorCode.nonFinalFieldInEnum, 24, 2),
       ],
     );
   }

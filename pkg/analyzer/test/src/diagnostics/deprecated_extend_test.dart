@@ -26,7 +26,7 @@ class Foo {}
 import 'foo.dart';
 class Bar extends Foo {}
 ''',
-      [error(WarningCode.DEPRECATED_EXTEND, 37, 3)],
+      [error(WarningCode.deprecatedExtend, 37, 3)],
     );
   }
 
@@ -68,7 +68,7 @@ mixin M {}
 import 'foo.dart';
 class Bar extends Foo {}
 ''',
-      [error(WarningCode.DEPRECATED_EXTEND, 37, 3)],
+      [error(WarningCode.deprecatedExtend, 37, 3)],
     );
   }
 
@@ -84,7 +84,7 @@ import 'foo.dart';
 mixin M {}
 class Bar = Foo with M;
 ''',
-      [error(WarningCode.DEPRECATED_EXTEND, 42, 3)],
+      [error(WarningCode.deprecatedExtend, 42, 3)],
     );
   }
 

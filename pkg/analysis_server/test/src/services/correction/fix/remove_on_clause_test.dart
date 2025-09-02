@@ -36,7 +36,7 @@ augment extension E on int { }
 augment extension E on num { }
 ''');
     await assertHasFixAllFix(
-      ParserErrorCode.EXTENSION_AUGMENTATION_HAS_ON_CLAUSE,
+      ParserErrorCode.extensionAugmentationHasOnClause,
       '''
 part of 'a.dart';
 

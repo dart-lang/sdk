@@ -6,16 +6,21 @@ import 'dart:io' show File, exitCode;
 
 import "package:_fe_analyzer_shared/src/messages/severity.dart"
     show severityEnumNames;
+import 'package:pub_semver/pub_semver.dart' show Version;
 import 'package:yaml/yaml.dart' show loadYaml;
 
+import '../test/utils/io_utils.dart';
+
 Uri computeSharedGeneratedFile(Uri repoDir) {
-  return repoDir
-      .resolve("pkg/_fe_analyzer_shared/lib/src/messages/codes_generated.dart");
+  return repoDir.resolve(
+    "pkg/_fe_analyzer_shared/lib/src/messages/codes_generated.dart",
+  );
 }
 
 Uri computeCfeGeneratedFile(Uri repoDir) {
-  return repoDir
-      .resolve("pkg/front_end/lib/src/codes/cfe_codes_generated.dart");
+  return repoDir.resolve(
+    "pkg/front_end/lib/src/codes/cfe_codes_generated.dart",
+  );
 }
 
 class Messages {
@@ -26,10 +31,13 @@ class Messages {
 }
 
 Messages generateMessagesFilesRaw(
-    Uri repoDir, String Function(String) formatter) {
+  Uri repoDir,
+  String Function(String, Version) formatter,
+) {
   Uri messagesFile = repoDir.resolve("pkg/front_end/messages.yaml");
-  Map<dynamic, dynamic> yaml =
-      loadYaml(new File.fromUri(messagesFile).readAsStringSync());
+  Map<dynamic, dynamic> yaml = loadYaml(
+    new File.fromUri(messagesFile).readAsStringSync(),
+  );
   StringBuffer sharedMessages = new StringBuffer();
   StringBuffer cfeMessages = new StringBuffer();
 
@@ -53,7 +61,7 @@ Messages generateMessagesFilesRaw(
   sharedMessages.writeln(preamble1);
   sharedMessages.writeln(preamble2);
   sharedMessages.writeln("""
-part of _fe_analyzer_shared.messages.codes;
+part of 'codes.dart';
 """);
 
   cfeMessages.writeln(preamble1);
@@ -82,16 +90,20 @@ part of 'cfe_codes.dart';
     var index = map['index'];
     if (index != null) {
       if (index is! int || index < 1) {
-        print('Error: Expected positive int for "index:" field in $name,'
-            ' but found $index');
+        print(
+          'Error: Expected positive int for "index:" field in $name,'
+          ' but found $index',
+        );
         hasError = true;
         index = -1;
         // Continue looking for other problems.
       } else {
         String? otherName = indexNameMap[index];
         if (otherName != null) {
-          print('Error: The "index:" field must be unique, '
-              'but is the same for $otherName and $name');
+          print(
+            'Error: The "index:" field must be unique, '
+            'but is the same for $otherName and $name',
+          );
           hasError = true;
           // Continue looking for other problems.
         } else {
@@ -102,8 +114,14 @@ part of 'cfe_codes.dart';
         }
       }
     }
-    Template template = compileTemplate(name, index, map['problemMessage'],
-        map['correctionMessage'], map['analyzerCode'], map['severity']);
+    Template template = compileTemplate(
+      name,
+      index,
+      map['problemMessage'],
+      map['correctionMessage'],
+      map['analyzerCode'],
+      map['severity'],
+    );
     if (template.isShared) {
       sharedMessages.writeln(template.text);
     } else {
@@ -111,8 +129,10 @@ part of 'cfe_codes.dart';
     }
   }
   if (largestIndex > indexNameMap.length) {
-    print('Error: The "index:" field values should be unique, consecutive'
-        ' whole numbers starting with 1.');
+    print(
+      'Error: The "index:" field values should be unique, consecutive'
+      ' whole numbers starting with 1.',
+    );
     hasError = true;
     // Fall through to print more information.
   }
@@ -131,11 +151,15 @@ part of 'cfe_codes.dart';
     return new Messages('', '');
   }
 
-  return new Messages(formatter("$sharedMessages"), formatter("$cfeMessages"));
+  return new Messages(
+    formatter("$sharedMessages", getPackageVersionFor("_fe_analyzer_shared")),
+    formatter("$cfeMessages", getPackageVersionFor("front_end")),
+  );
 }
 
-final RegExp placeholderPattern =
-    new RegExp("#\([-a-zA-Z0-9_]+\)(?:%\([0-9]*\)\.\([0-9]+\))?");
+final RegExp placeholderPattern = new RegExp(
+  "#\([-a-zA-Z0-9_]+\)(?:%\([0-9]*\)\.\([0-9]+\))?",
+);
 
 class Template {
   final String text;
@@ -144,8 +168,14 @@ class Template {
   Template(this.text, {this.isShared}) : assert(isShared != null);
 }
 
-Template compileTemplate(String name, int? index, String? problemMessage,
-    String? correctionMessage, Object? analyzerCode, String? severity) {
+Template compileTemplate(
+  String name,
+  int? index,
+  String? problemMessage,
+  String? correctionMessage,
+  Object? analyzerCode,
+  String? severity,
+) {
   if (problemMessage == null) {
     print('Error: missing problemMessage for message: $name');
     exitCode = 1;
@@ -168,8 +198,9 @@ Template compileTemplate(String name, int? index, String? problemMessage,
     canBeShared = false;
   }
 
-  for (Match match in placeholderPattern
-      .allMatches("$problemMessage\n${correctionMessage ?? ''}")) {
+  for (Match match in placeholderPattern.allMatches(
+    "$problemMessage\n${correctionMessage ?? ''}",
+  )) {
     String name = match[1]!;
     String? padding = match[2];
     String? fractionDigits = match[3];
@@ -194,8 +225,10 @@ Template compileTemplate(String name, int? index, String? problemMessage,
     switch (name) {
       case "character":
         parameters.add("String character");
-        conversions.add("if (character.runes.length != 1)"
-            "throw \"Not a character '\${character}'\";");
+        conversions.add(
+          "if (character.runes.length != 1)"
+          "throw \"Not a character '\${character}'\";",
+        );
         arguments.add("'$name': character");
         break;
 
@@ -204,8 +237,10 @@ Template compileTemplate(String name, int? index, String? problemMessage,
         // necessary) hex digits, using uppercase letters.
         // http://www.unicode.org/versions/Unicode10.0.0/appA.pdf
         parameters.add("int codePoint");
-        conversions.add("String unicode = \"U+\${codePoint.toRadixString(16)"
-            ".toUpperCase().padLeft(4, '0')}\";");
+        conversions.add(
+          "String unicode = \"U+\${codePoint.toRadixString(16)"
+          ".toUpperCase().padLeft(4, '0')}\";",
+        );
         arguments.add("'$name': codePoint");
         break;
 
@@ -239,8 +274,10 @@ Template compileTemplate(String name, int? index, String? problemMessage,
 
       case "nameOKEmpty":
         parameters.add("String nameOKEmpty");
-        conversions.add("if (nameOKEmpty.isEmpty) "
-            "nameOKEmpty = '(unnamed)';");
+        conversions.add(
+          "if (nameOKEmpty.isEmpty) "
+          "nameOKEmpty = '(unnamed)';",
+        );
         arguments.add("'nameOKEmpty': nameOKEmpty");
         break;
 
@@ -283,8 +320,10 @@ Template compileTemplate(String name, int? index, String? problemMessage,
 
       case "stringOKEmpty":
         parameters.add("String stringOKEmpty");
-        conversions.add("if (stringOKEmpty.isEmpty) "
-            "stringOKEmpty = '(empty)';");
+        conversions.add(
+          "if (stringOKEmpty.isEmpty) "
+          "stringOKEmpty = '(empty)';",
+        );
         arguments.add("'$name': stringOKEmpty");
         break;
 
@@ -294,8 +333,9 @@ Template compileTemplate(String name, int? index, String? problemMessage,
       case "type4":
         parameters.add("DartType _${name}");
         ensureLabeler();
-        conversions
-            .add("List<Object> ${name}Parts = labeler.labelType(_${name});");
+        conversions.add(
+          "List<Object> ${name}Parts = labeler.labelType(_${name});",
+        );
         conversions2.add("String ${name} = ${name}Parts.join();");
         arguments.add("'${name}': _${name}");
         break;
@@ -342,7 +382,8 @@ Template compileTemplate(String name, int? index, String? problemMessage,
         parameters.add("Constant _constant");
         ensureLabeler();
         conversions.add(
-            "List<Object> ${name}Parts = labeler.labelConstant(_${name});");
+          "List<Object> ${name}Parts = labeler.labelConstant(_${name});",
+        );
         conversions2.add("String ${name} = ${name}Parts.join();");
         arguments.add("'$name': _constant");
         break;
@@ -407,10 +448,7 @@ Template compileTemplate(String name, int? index, String? problemMessage,
 
     return new Template("""
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code code$name = message$name;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode message$name =
+const MessageCode code$name =
     const MessageCode(\"$name\", ${codeArguments.join(', ')},);
 """, isShared: canBeShared);
   }
@@ -419,8 +457,9 @@ const MessageCode message$name =
   templateArguments.add('\"$name\"');
   templateArguments.add('problemMessageTemplate: r"""$problemMessage"""');
   if (correctionMessage != null) {
-    templateArguments
-        .add('correctionMessageTemplate: r"""$correctionMessage"""');
+    templateArguments.add(
+      'correctionMessageTemplate: r"""$correctionMessage"""',
+    );
   }
 
   templateArguments.add("withArguments: _withArguments$name");
@@ -433,8 +472,9 @@ const MessageCode message$name =
   }
   messageArguments.add("problemMessage: ${message}");
   if (correctionMessage != null) {
-    messageArguments
-        .add("correctionMessage: ${interpolate(correctionMessage)}");
+    messageArguments.add(
+      "correctionMessage: ${interpolate(correctionMessage)}",
+    );
   }
   messageArguments.add("arguments: { ${arguments.join(', ')}, }");
 
@@ -444,14 +484,9 @@ const MessageCode message$name =
 
   return new Template("""
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(${parameters.join(', ')})> template$name =
+const Template<Message Function(${parameters.join(', ')})> code$name =
     const Template<Message Function(${parameters.join(', ')})>(
         ${templateArguments.join(', ')},);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code code$name =
-    const Code(
-        \"$name\", ${codeArguments.join(', ')});
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArguments$name(${parameters.join(', ')}) {

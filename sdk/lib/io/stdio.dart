@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart.io;
+part of "dart:io";
 
 // These match enum StdioHandleType in file.h
 const int _stdioHandleTypeTerminal = 0;

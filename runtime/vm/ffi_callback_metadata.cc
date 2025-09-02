@@ -251,7 +251,7 @@ FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateMetadataEntry(
     uword target_entry_point,
     uint64_t context,
     MetadataEntry** list_head) {
-  MutexLocker locker(&lock_);
+  SafepointMutexLocker locker(&lock_);
   EnsureFreeListNotEmptyLocked();
   ASSERT(free_list_head_ != nullptr);
   MetadataEntry* entry = free_list_head_;
@@ -316,7 +316,7 @@ void FfiCallbackMetadata::DeleteAllCallbacks(MetadataEntry** list_head) {
 
 void FfiCallbackMetadata::DeleteCallback(Trampoline trampoline,
                                          MetadataEntry** list_head) {
-  MutexLocker locker(&lock_);
+  SafepointMutexLocker locker(&lock_);
   auto* entry = MetadataEntryOfTrampoline(trampoline);
   ASSERT(entry->metadata()->IsLive());
   auto* prev = entry->list_prev_;
@@ -351,6 +351,66 @@ PersistentHandle* FfiCallbackMetadata::CreatePersistentHandle(
   return handle;
 }
 
+static void ValidateTriviallyImmutabilityOfAnObject(Zone* zone,
+                                                    Object* p_obj,
+                                                    ObjectPtr object_ptr) {
+  *p_obj = object_ptr;
+  if (p_obj->IsSmi() || p_obj->IsNull()) {
+    return;
+  }
+  if (p_obj->IsClosure()) {
+    FfiCallbackMetadata::EnsureOnlyTriviallyImmutableValuesInClosure(
+        zone, Closure::RawCast(p_obj->ptr()));
+    return;
+  }
+  if (p_obj->IsImmutable()) {
+    return;
+  }
+  if (IsTypedDataBaseClassId(p_obj->GetClassId())) {
+    return;
+  }
+  const String& error = String::Handle(
+      zone,
+      String::NewFormatted("Only trivially-immutable values are allowed: %s.",
+                           p_obj->ToCString()));
+  Exceptions::ThrowArgumentError(error);
+  UNREACHABLE();
+}
+
+void FfiCallbackMetadata::EnsureOnlyTriviallyImmutableValuesInClosure(
+    Zone* zone,
+    ClosurePtr closure_ptr) {
+  Closure& closure = Closure::Handle(zone, closure_ptr);
+  if (closure.IsNull()) {
+    return;
+  }
+  Object& obj = Object::Handle(zone);
+  const auto& function = Function::Handle(closure.function());
+  if (function.IsImplicitClosureFunction()) {
+    ValidateTriviallyImmutabilityOfAnObject(
+        zone, &obj, closure.GetImplicitClosureReceiver());
+  } else {
+    const Context& context = Context::Handle(zone, closure.GetContext());
+    if (context.IsNull()) {
+      return;
+    }
+    // Iterate through all elements of the context.
+    for (intptr_t i = 0; i < context.num_variables(); i++) {
+      ValidateTriviallyImmutabilityOfAnObject(zone, &obj, context.At(i));
+    }
+
+    if (!function.does_close_over_only_final_and_shared_vars()) {
+      const String& error = String::Handle(
+          zone,
+          String::New(
+              "Only final and 'vm:shared' variables can be captured by isolate "
+              "group callbacks."));
+      Exceptions::ThrowArgumentError(error);
+      UNREACHABLE();
+    }
+  }
+}
+
 FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateLocalFfiCallback(
     Isolate* isolate,
     IsolateGroup* isolate_group,
@@ -375,6 +435,12 @@ FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateLocalFfiCallback(
            (isolate == nullptr && isolate_group != nullptr &&
             function.GetFfiCallbackKind() ==
                 FfiCallbackKind::kIsolateGroupBoundClosureCallback));
+
+    if (function.GetFfiCallbackKind() ==
+        FfiCallbackKind::kIsolateGroupBoundClosureCallback) {
+      EnsureOnlyTriviallyImmutableValuesInClosure(zone, closure.ptr());
+    }
+
     handle = CreatePersistentHandle(
         isolate != nullptr ? isolate->group() : isolate_group, closure);
   }

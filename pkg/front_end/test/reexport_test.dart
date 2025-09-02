@@ -26,8 +26,11 @@ const int tilde=2;
 const int quot=3;
 """,
     };
-    await compileUnit(sources.keys.toList(), sources,
-        options: new CompilerOptions()
-          ..onDiagnostic = (m) => throw m.plainTextFormatted.join("\n"));
+    await compileUnit(
+      sources.keys.toList(),
+      sources,
+      options: new CompilerOptions()
+        ..onDiagnostic = (m) => throw m.plainTextFormatted.join("\n"),
+    );
   });
 }

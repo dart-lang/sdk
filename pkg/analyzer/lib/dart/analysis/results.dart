@@ -178,6 +178,22 @@ abstract class LibraryElementResult implements SomeLibraryElementResult {
   LibraryElement get element2;
 }
 
+/// The type of [InvalidResult] returned when Dart SDK does not have a
+/// required library, e.g. `dart:core` or `dart:async`.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class MissingSdkLibraryResult
+    implements
+        InvalidResult,
+        SomeErrorsResult,
+        SomeResolvedLibraryResult,
+        SomeResolvedUnitResult,
+        SomeLibraryElementResult,
+        SomeUnitElementResult {
+  /// The URI of the missing SDK library.
+  Uri get missingUri;
+}
+
 /// The type of [InvalidResult] returned when the given element was not
 /// created by the requested session.
 ///

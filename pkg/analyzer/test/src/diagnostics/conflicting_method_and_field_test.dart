@@ -25,7 +25,7 @@ class B extends A {
   foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD, 49, 3)],
+      [error(CompileTimeErrorCode.conflictingMethodAndField, 49, 3)],
     );
   }
 
@@ -39,7 +39,7 @@ class B extends A {
   foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD, 50, 3)],
+      [error(CompileTimeErrorCode.conflictingMethodAndField, 50, 3)],
     );
   }
 
@@ -66,7 +66,7 @@ augment class B {
     await assertErrorsInFile2(a, []);
 
     await assertErrorsInFile2(b, [
-      error(CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD, 44, 3),
+      error(CompileTimeErrorCode.conflictingMethodAndField, 44, 3),
     ]);
   }
 
@@ -91,7 +91,7 @@ augment class B {}
 ''');
 
     await assertErrorsInFile2(a, [
-      error(CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD, 76, 3),
+      error(CompileTimeErrorCode.conflictingMethodAndField, 76, 3),
     ]);
 
     await assertErrorsInFile2(b, []);
@@ -107,7 +107,7 @@ class B extends A {
   foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD, 50, 3)],
+      [error(CompileTimeErrorCode.conflictingMethodAndField, 50, 3)],
     );
   }
 
@@ -123,7 +123,7 @@ enum E with M {
   void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD, 61, 3)],
+      [error(CompileTimeErrorCode.conflictingMethodAndField, 61, 3)],
     );
   }
 
@@ -150,7 +150,7 @@ augment enum E {;
     await assertErrorsInFile2(a, []);
 
     await assertErrorsInFile2(b, [
-      error(CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD, 44, 3),
+      error(CompileTimeErrorCode.conflictingMethodAndField, 44, 3),
     ]);
   }
 
@@ -176,7 +176,7 @@ augment enum E {}
 ''');
 
     await assertErrorsInFile2(a, [
-      error(CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD, 77, 3),
+      error(CompileTimeErrorCode.conflictingMethodAndField, 77, 3),
     ]);
 
     await assertErrorsInFile2(b, []);
@@ -194,7 +194,7 @@ enum E with M {
   void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD, 61, 3)],
+      [error(CompileTimeErrorCode.conflictingMethodAndField, 61, 3)],
     );
   }
 

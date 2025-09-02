@@ -25,7 +25,7 @@ extension on Object {
 const Object v1 = 0;
 const v2 = v1 + v1;
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD, 94, 7)],
+      [error(CompileTimeErrorCode.constEvalExtensionMethod, 94, 7)],
     );
   }
 
@@ -39,7 +39,7 @@ extension on Object {
 const Object v1 = 1;
 const v2 = -v1;
 ''',
-      [error(CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD, 82, 3)],
+      [error(CompileTimeErrorCode.constEvalExtensionMethod, 82, 3)],
     );
   }
 }

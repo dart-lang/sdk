@@ -147,7 +147,6 @@ namespace dart {
   V(Stopwatch_frequency, 0)                                                    \
   V(Timeline_getNextTaskId, 0)                                                 \
   V(Timeline_getTraceClock, 0)                                                 \
-  V(Timeline_isDartStreamEnabled, 0)                                           \
   V(Timeline_reportTaskEvent, 5)                                               \
   V(MicrotaskMirrorQueue_onScheduleAsyncCallback, 0)                           \
   V(MicrotaskMirrorQueue_onSchedulePriorityAsyncCallback, 0)                   \
@@ -283,9 +282,7 @@ namespace dart {
   V(Uri_isWindowsPlatform, 0)                                                  \
   V(UserTag_new, 2)                                                            \
   V(UserTag_label, 1)                                                          \
-  V(UserTag_defaultTag, 0)                                                     \
   V(UserTag_makeCurrent, 1)                                                    \
-  V(Profiler_getCurrentTag, 0)                                                 \
   V(VMService_SendIsolateServiceMessage, 2)                                    \
   V(VMService_SendRootServiceMessage, 1)                                       \
   V(VMService_OnStart, 0)                                                      \
@@ -293,8 +290,6 @@ namespace dart {
   V(VMService_OnServerAddressChange, 1)                                        \
   V(VMService_ListenStream, 2)                                                 \
   V(VMService_CancelStream, 1)                                                 \
-  V(VMService_AddUserTagsToStreamableSampleList, 1)                            \
-  V(VMService_RemoveUserTagsFromStreamableSampleList, 1)                       \
   V(Ffi_createNativeCallableListener, 2)                                       \
   V(Ffi_createNativeCallableIsolateLocal, 3)                                   \
   V(Ffi_createNativeCallableIsolateGroupBound, 2)                              \
@@ -308,6 +303,10 @@ namespace dart {
   V(Ffi_dl_processLibrary, 0)                                                  \
   V(Ffi_dl_executableLibrary, 0)                                               \
   V(Ffi_GetFfiNativeResolver, 0)                                               \
+  V(Ffi_loadAbiSpecificInt, 2)                                                 \
+  V(Ffi_loadAbiSpecificIntAtIndex, 3)                                          \
+  V(Ffi_storeAbiSpecificInt, 3)                                                \
+  V(Ffi_storeAbiSpecificIntAtIndex, 4)                                         \
   V(DartApiDLInitializeData, 0)                                                \
   V(DartApiDLMajorVersion, 0)                                                  \
   V(DartApiDLMinorVersion, 0)                                                  \

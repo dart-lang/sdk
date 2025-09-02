@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -470,7 +469,6 @@ class A {
   }
 
   Future<void> test_fromPlugins() async {
-    if (!AnalysisServer.supportsPlugins) return;
     var pluginAnalyzedFilePath = join(projectFolderPath, 'lib', 'foo.foo');
     var pluginAnalyzedFileUri = pathContext.toUri(pluginAnalyzedFilePath);
     var pluginResult = plugin.AnalysisGetNavigationResult(

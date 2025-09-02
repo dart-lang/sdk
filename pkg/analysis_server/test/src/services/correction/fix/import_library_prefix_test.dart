@@ -48,6 +48,26 @@ void f(lib.C c) {
 ''');
   }
 
+  Future<void> test_prefixed_invocation() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+int fn(int a) => a;
+''');
+    await resolveTestCode('''
+import 'lib.dart' as lib;
+
+void f() {
+  other.fn();
+}
+''');
+    await assertHasFix('''
+import 'lib.dart' as lib;
+
+void f() {
+  lib.fn();
+}
+''');
+  }
+
   Future<void> test_with_hideCombinator() async {
     newFile('$testPackageLibPath/lib.dart', '''
 class A {}
@@ -71,7 +91,7 @@ void f() {
 }
 ''',
       errorFilter: (error) {
-        return error.diagnosticCode == CompileTimeErrorCode.UNDEFINED_CLASS;
+        return error.diagnosticCode == CompileTimeErrorCode.undefinedClass;
       },
     );
   }
@@ -99,7 +119,7 @@ void f() {
 }
 ''',
       errorFilter: (error) {
-        return error.diagnosticCode == CompileTimeErrorCode.UNDEFINED_CLASS;
+        return error.diagnosticCode == CompileTimeErrorCode.undefinedClass;
       },
     );
   }

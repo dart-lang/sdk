@@ -65,7 +65,7 @@ class FunctionExpressionInvocationResolver {
     receiverType = _typeSystem.resolveToBound(receiverType);
     if (receiverType is FunctionTypeImpl) {
       _nullableDereferenceVerifier.expression(
-        CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE,
+        CompileTimeErrorCode.uncheckedInvocationOfNullableValue,
         function,
       );
       _resolve(
@@ -78,7 +78,7 @@ class FunctionExpressionInvocationResolver {
     }
 
     if (identical(receiverType, NeverTypeImpl.instance)) {
-      _diagnosticReporter.atNode(function, WarningCode.RECEIVER_OF_TYPE_NEVER);
+      _diagnosticReporter.atNode(function, WarningCode.receiverOfTypeNever);
       _unresolved(
         node,
         NeverTypeImpl.instance,
@@ -103,13 +103,12 @@ class FunctionExpressionInvocationResolver {
       if (result.needsGetterError) {
         _diagnosticReporter.atNode(
           function,
-          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
+          CompileTimeErrorCode.invocationOfNonFunctionExpression,
         );
       }
-      var type =
-          result.isGetterInvalid
-              ? InvalidTypeImpl.instance
-              : DynamicTypeImpl.instance;
+      var type = result.isGetterInvalid
+          ? InvalidTypeImpl.instance
+          : DynamicTypeImpl.instance;
       _unresolved(
         node,
         type,
@@ -122,7 +121,7 @@ class FunctionExpressionInvocationResolver {
     if (callElement.kind != ElementKind.METHOD) {
       _diagnosticReporter.atNode(
         function,
-        CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
+        CompileTimeErrorCode.invocationOfNonFunctionExpression,
       );
       _unresolved(
         node,
@@ -142,7 +141,7 @@ class FunctionExpressionInvocationResolver {
   /// when it returns 'void'. Or, in rare cases, when other types of expressions
   /// are void, such as identifiers.
   ///
-  /// See [CompileTimeErrorCode.USE_OF_VOID_RESULT].
+  /// See [CompileTimeErrorCode.useOfVoidResult].
   ///
   // TODO(scheglov): this is duplicate
   bool _checkForUseOfVoidResult(Expression expression, DartType type) {
@@ -154,12 +153,12 @@ class FunctionExpressionInvocationResolver {
       SimpleIdentifier methodName = expression.methodName;
       _diagnosticReporter.atNode(
         methodName,
-        CompileTimeErrorCode.USE_OF_VOID_RESULT,
+        CompileTimeErrorCode.useOfVoidResult,
       );
     } else {
       _diagnosticReporter.atNode(
         expression,
-        CompileTimeErrorCode.USE_OF_VOID_RESULT,
+        CompileTimeErrorCode.useOfVoidResult,
       );
     }
 
@@ -172,17 +171,18 @@ class FunctionExpressionInvocationResolver {
     List<WhyNotPromotedGetter> whyNotPromotedArguments, {
     required TypeImpl contextType,
   }) {
-    var returnType = FunctionExpressionInvocationInferrer(
-      resolver: _resolver,
-      node: node,
-      argumentList: node.argumentList,
-      whyNotPromotedArguments: whyNotPromotedArguments,
-      contextType: contextType,
-    ).resolveInvocation(
-      // TODO(paulberry): eliminate this cast by changing the type of
-      // `rawType`.
-      rawType: rawType as FunctionTypeImpl,
-    );
+    var returnType =
+        FunctionExpressionInvocationInferrer(
+          resolver: _resolver,
+          node: node,
+          argumentList: node.argumentList,
+          whyNotPromotedArguments: whyNotPromotedArguments,
+          contextType: contextType,
+        ).resolveInvocation(
+          // TODO(paulberry): eliminate this cast by changing the type of
+          // `rawType`.
+          rawType: rawType as FunctionTypeImpl,
+        );
 
     node.recordStaticType(returnType, resolver: _resolver);
   }
@@ -203,7 +203,7 @@ class FunctionExpressionInvocationResolver {
     if (callElement == null) {
       _diagnosticReporter.atNode(
         function,
-        CompileTimeErrorCode.INVOCATION_OF_EXTENSION_WITHOUT_CALL,
+        CompileTimeErrorCode.invocationOfExtensionWithoutCall,
         arguments: [function.name.lexeme],
       );
       return _unresolved(
@@ -217,7 +217,7 @@ class FunctionExpressionInvocationResolver {
     if (callElement.isStatic) {
       _diagnosticReporter.atNode(
         node.argumentList,
-        CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
+        CompileTimeErrorCode.extensionOverrideAccessToStaticMember,
       );
     }
 
@@ -249,10 +249,9 @@ class FunctionExpressionInvocationResolver {
   ) {
     var typeArguments = node.typeArguments;
     if (typeArguments != null) {
-      node.typeArgumentTypes =
-          typeArguments.arguments
-              .map((typeArgument) => typeArgument.typeOrThrow)
-              .toList();
+      node.typeArgumentTypes = typeArguments.arguments
+          .map((typeArgument) => typeArgument.typeOrThrow)
+          .toList();
     } else {
       node.typeArgumentTypes = const <TypeImpl>[];
     }

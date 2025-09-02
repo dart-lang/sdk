@@ -48,10 +48,6 @@ class NamedTypeResolver with ScopeHelpers {
   /// If not `null`, a direct child the [WithClause] in the [enclosingClass].
   NamedType? withClause_namedType;
 
-  /// If not `null`, the [NamedType] of the redirected constructor being
-  /// resolved, in the [enclosingClass].
-  NamedType? redirectedConstructor_namedType;
-
   /// If [resolve] finds out that the given [NamedType] with a
   /// [PrefixedIdentifier] name is actually the name of a class and the name of
   /// the constructor, it rewrites the [ConstructorName] to correctly represent
@@ -120,7 +116,7 @@ class NamedTypeResolver with ScopeHelpers {
 
       diagnosticReporter.atToken(
         prefixToken,
-        CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION,
+        CompileTimeErrorCode.prefixShadowedByLocalDeclaration,
         arguments: [prefixName],
       );
       node.type = InvalidTypeImpl.instance;
@@ -147,7 +143,7 @@ class NamedTypeResolver with ScopeHelpers {
     if (argumentCount != parameterCount) {
       diagnosticReporter.atNode(
         node,
-        CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
+        CompileTimeErrorCode.wrongNumberOfTypeArguments,
         arguments: [node.name.lexeme, parameterCount, argumentCount],
       );
       return List.filled(parameterCount, InvalidTypeImpl.instance);
@@ -266,7 +262,7 @@ class NamedTypeResolver with ScopeHelpers {
         }
       }
 
-      if (identical(node, redirectedConstructor_namedType)) {
+      if (_ErrorHelper._isRedirectingConstructor(node)) {
         return _inferRedirectedConstructor(
           element,
           dataForTesting: dataForTesting,
@@ -359,7 +355,7 @@ class NamedTypeResolver with ScopeHelpers {
       if (typeArguments != null) {
         diagnosticReporter.atNode(
           typeArguments,
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
           arguments: [importPrefix.name.lexeme, nameToken.lexeme],
         );
         var instanceCreation = constructorName.parent;
@@ -374,9 +370,6 @@ class NamedTypeResolver with ScopeHelpers {
         typeArguments: null,
         question: null,
       )..element = importPrefixElement;
-      if (identical(node, redirectedConstructor_namedType)) {
-        redirectedConstructor_namedType = namedType;
-      }
 
       constructorName.type = namedType;
       constructorName.period = importPrefix.period;
@@ -409,7 +402,7 @@ class NamedTypeResolver with ScopeHelpers {
       diagnosticReporter.atOffset(
         offset: importPrefix.offset,
         length: nameToken.end - importPrefix.offset,
-        diagnosticCode: CompileTimeErrorCode.NOT_A_TYPE,
+        diagnosticCode: CompileTimeErrorCode.notAType,
         arguments: ['${importPrefix.name.lexeme}.${nameToken.lexeme}'],
         contextMessages: [
           if (source != null && nameOffset != null)
@@ -436,22 +429,22 @@ class NamedTypeResolver with ScopeHelpers {
         if (parent is ExtendsClause || parent is ClassTypeAlias) {
           diagnosticReporter.atNode(
             node,
-            CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE,
+            CompileTimeErrorCode.nullableTypeInExtendsClause,
           );
         } else if (parent is ImplementsClause) {
           diagnosticReporter.atNode(
             node,
-            CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE,
+            CompileTimeErrorCode.nullableTypeInImplementsClause,
           );
         } else if (parent is MixinOnClause) {
           diagnosticReporter.atNode(
             node,
-            CompileTimeErrorCode.NULLABLE_TYPE_IN_ON_CLAUSE,
+            CompileTimeErrorCode.nullableTypeInOnClause,
           );
         } else if (parent is WithClause) {
           diagnosticReporter.atNode(
             node,
-            CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE,
+            CompileTimeErrorCode.nullableTypeInWithClause,
           );
         }
         return type.withNullability(NullabilitySuffix.none);
@@ -477,8 +470,7 @@ class NamedTypeResolver with ScopeHelpers {
             offset: errorRange.offset,
             length: errorRange.length,
             diagnosticCode:
-                CompileTimeErrorCode
-                    .INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
+                CompileTimeErrorCode.instantiateTypeAliasExpandsToTypeParameter,
           );
         } else if (constructorUsage is ConstructorDeclaration &&
             constructorUsage.redirectedConstructor == parent) {
@@ -486,8 +478,7 @@ class NamedTypeResolver with ScopeHelpers {
             offset: errorRange.offset,
             length: errorRange.length,
             diagnosticCode:
-                CompileTimeErrorCode
-                    .REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
+                CompileTimeErrorCode.redirectToTypeAliasExpandsToTypeParameter,
           );
         } else {
           throw UnimplementedError('${constructorUsage.runtimeType}');
@@ -499,17 +490,16 @@ class NamedTypeResolver with ScopeHelpers {
       DiagnosticCode? diagnosticCode;
       if (parent is ExtendsClause) {
         diagnosticCode =
-            CompileTimeErrorCode.EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER;
+            CompileTimeErrorCode.extendsTypeAliasExpandsToTypeParameter;
       } else if (parent is ImplementsClause) {
         diagnosticCode =
-            CompileTimeErrorCode
-                .IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER;
+            CompileTimeErrorCode.implementsTypeAliasExpandsToTypeParameter;
       } else if (parent is MixinOnClause) {
         diagnosticCode =
-            CompileTimeErrorCode.MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER;
+            CompileTimeErrorCode.mixinOnTypeAliasExpandsToTypeParameter;
       } else if (parent is WithClause) {
         diagnosticCode =
-            CompileTimeErrorCode.MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER;
+            CompileTimeErrorCode.mixinOfTypeAliasExpandsToTypeParameter;
       }
       if (diagnosticCode != null) {
         var errorRange = _ErrorHelper._getErrorRange(node);
@@ -551,10 +541,9 @@ class _ErrorHelper {
         diagnosticReporter.atOffset(
           offset: errorRange.offset,
           length: errorRange.length,
-          diagnosticCode:
-              instanceCreation.isConst
-                  ? CompileTimeErrorCode.CONST_WITH_NON_TYPE
-                  : CompileTimeErrorCode.NEW_WITH_NON_TYPE,
+          diagnosticCode: instanceCreation.isConst
+              ? CompileTimeErrorCode.constWithNonType
+              : CompileTimeErrorCode.newWithNonType,
           arguments: [node.name.lexeme],
         );
         return true;
@@ -573,7 +562,7 @@ class _ErrorHelper {
       diagnosticReporter.atOffset(
         offset: errorRange.offset,
         length: errorRange.length,
-        diagnosticCode: CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN,
+        diagnosticCode: CompileTimeErrorCode.undefinedClassBoolean,
         arguments: [node.name.lexeme],
       );
       return;
@@ -584,7 +573,7 @@ class _ErrorHelper {
       diagnosticReporter.atOffset(
         offset: errorRange.offset,
         length: errorRange.length,
-        diagnosticCode: CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE,
+        diagnosticCode: CompileTimeErrorCode.nonTypeInCatchClause,
         arguments: [node.name.lexeme],
       );
       return;
@@ -595,7 +584,7 @@ class _ErrorHelper {
       diagnosticReporter.atOffset(
         offset: errorRange.offset,
         length: errorRange.length,
-        diagnosticCode: CompileTimeErrorCode.CAST_TO_NON_TYPE,
+        diagnosticCode: CompileTimeErrorCode.castToNonType,
         arguments: [node.name.lexeme],
       );
       return;
@@ -607,14 +596,14 @@ class _ErrorHelper {
         diagnosticReporter.atOffset(
           offset: errorRange.offset,
           length: errorRange.length,
-          diagnosticCode: CompileTimeErrorCode.TYPE_TEST_WITH_NON_TYPE,
+          diagnosticCode: CompileTimeErrorCode.typeTestWithNonType,
           arguments: [node.name.lexeme],
         );
       } else {
         diagnosticReporter.atOffset(
           offset: errorRange.offset,
           length: errorRange.length,
-          diagnosticCode: CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME,
+          diagnosticCode: CompileTimeErrorCode.typeTestWithUndefinedName,
           arguments: [node.name.lexeme],
         );
       }
@@ -626,7 +615,7 @@ class _ErrorHelper {
       diagnosticReporter.atOffset(
         offset: errorRange.offset,
         length: errorRange.length,
-        diagnosticCode: CompileTimeErrorCode.REDIRECT_TO_NON_CLASS,
+        diagnosticCode: CompileTimeErrorCode.redirectToNonClass,
         arguments: [node.name.lexeme],
       );
       return;
@@ -637,7 +626,7 @@ class _ErrorHelper {
       diagnosticReporter.atOffset(
         offset: errorRange.offset,
         length: errorRange.length,
-        diagnosticCode: CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT,
+        diagnosticCode: CompileTimeErrorCode.nonTypeAsTypeArgument,
         arguments: [node.name.lexeme],
       );
       return;
@@ -676,7 +665,7 @@ class _ErrorHelper {
       diagnosticReporter.atOffset(
         offset: errorRange.offset,
         length: errorRange.length,
-        diagnosticCode: CompileTimeErrorCode.NOT_A_TYPE,
+        diagnosticCode: CompileTimeErrorCode.notAType,
         arguments: [name],
         contextMessages: [
           if (source != null && nameOffset != null)
@@ -695,7 +684,7 @@ class _ErrorHelper {
     if (node.importPrefix == null && node.name.lexeme == 'await') {
       diagnosticReporter.atNode(
         node,
-        CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT,
+        CompileTimeErrorCode.undefinedIdentifierAwait,
       );
       return;
     }
@@ -704,7 +693,7 @@ class _ErrorHelper {
     diagnosticReporter.atOffset(
       offset: errorRange.offset,
       length: errorRange.length,
-      diagnosticCode: CompileTimeErrorCode.UNDEFINED_CLASS,
+      diagnosticCode: CompileTimeErrorCode.undefinedClass,
       arguments: [node.name.lexeme],
     );
   }

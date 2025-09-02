@@ -40,28 +40,28 @@ class FastaErrorReporter {
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT,
+          diagnosticCode: CompileTimeErrorCode.asyncForInWrongContext,
         );
         return;
       case "ASYNC_KEYWORD_USED_AS_IDENTIFIER":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER,
+          diagnosticCode: ParserErrorCode.asyncKeywordUsedAsIdentifier,
         );
         return;
       case "AWAIT_IN_WRONG_CONTEXT":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT,
+          diagnosticCode: CompileTimeErrorCode.awaitInWrongContext,
         );
         return;
       case "BUILT_IN_IDENTIFIER_AS_TYPE":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE,
+          diagnosticCode: CompileTimeErrorCode.builtInIdentifierAsType,
           arguments: [lexeme()],
         );
         return;
@@ -69,15 +69,14 @@ class FastaErrorReporter {
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode:
-              CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
+          diagnosticCode: CompileTimeErrorCode.concreteClassWithAbstractMember,
         );
         return;
       case "CONST_CONSTRUCTOR_WITH_BODY":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY,
+          diagnosticCode: ParserErrorCode.constConstructorWithBody,
         );
         return;
       case "CONST_NOT_INITIALIZED":
@@ -85,7 +84,7 @@ class FastaErrorReporter {
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: CompileTimeErrorCode.CONST_NOT_INITIALIZED,
+          diagnosticCode: CompileTimeErrorCode.constNotInitialized,
           arguments: [name],
         );
         return;
@@ -93,14 +92,14 @@ class FastaErrorReporter {
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE,
+          diagnosticCode: ParserErrorCode.defaultValueInFunctionType,
         );
         return;
       case "LABEL_UNDEFINED":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: CompileTimeErrorCode.LABEL_UNDEFINED,
+          diagnosticCode: CompileTimeErrorCode.labelUndefined,
           arguments: [arguments['name'] as Object],
         );
         return;
@@ -108,35 +107,35 @@ class FastaErrorReporter {
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.EMPTY_ENUM_BODY,
+          diagnosticCode: ParserErrorCode.emptyEnumBody,
         );
         return;
       case "EXPECTED_CLASS_MEMBER":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.EXPECTED_CLASS_MEMBER,
+          diagnosticCode: ParserErrorCode.expectedClassMember,
         );
         return;
       case "EXPECTED_EXECUTABLE":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.EXPECTED_EXECUTABLE,
+          diagnosticCode: ParserErrorCode.expectedExecutable,
         );
         return;
       case "EXPECTED_STRING_LITERAL":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.EXPECTED_STRING_LITERAL,
+          diagnosticCode: ParserErrorCode.expectedStringLiteral,
         );
         return;
       case "EXPECTED_TOKEN":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.EXPECTED_TOKEN,
+          diagnosticCode: ParserErrorCode.expectedToken,
           arguments: [arguments['string'] as Object],
         );
         return;
@@ -144,7 +143,7 @@ class FastaErrorReporter {
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.EXPECTED_TYPE_NAME,
+          diagnosticCode: ParserErrorCode.expectedTypeName,
         );
         return;
       case "EXTENSION_DECLARES_INSTANCE_FIELD":
@@ -156,7 +155,7 @@ class FastaErrorReporter {
           offset: offset,
           length: length,
           diagnosticCode:
-              CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR,
+              CompileTimeErrorCode.fieldInitializerRedirectingConstructor,
         );
         return;
       case "FINAL_NOT_INITIALIZED":
@@ -164,7 +163,7 @@ class FastaErrorReporter {
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: CompileTimeErrorCode.FINAL_NOT_INITIALIZED,
+          diagnosticCode: CompileTimeErrorCode.finalNotInitialized,
           arguments: [name],
         );
         return;
@@ -173,8 +172,7 @@ class FastaErrorReporter {
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode:
-              CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1,
+          diagnosticCode: CompileTimeErrorCode.finalNotInitializedConstructor1,
           arguments: [name],
         );
         return;
@@ -182,14 +180,14 @@ class FastaErrorReporter {
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.GETTER_WITH_PARAMETERS,
+          diagnosticCode: ParserErrorCode.getterWithParameters,
         );
         return;
       case "ILLEGAL_CHARACTER":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ScannerErrorCode.ILLEGAL_CHARACTER,
+          diagnosticCode: ScannerErrorCode.illegalCharacter,
         );
         return;
       case "INVALID_ASSIGNMENT":
@@ -198,7 +196,7 @@ class FastaErrorReporter {
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: CompileTimeErrorCode.INVALID_ASSIGNMENT,
+          diagnosticCode: CompileTimeErrorCode.invalidAssignment,
           arguments: [type1, type2],
         );
         return;
@@ -206,77 +204,77 @@ class FastaErrorReporter {
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: CompileTimeErrorCode.INVALID_INLINE_FUNCTION_TYPE,
+          diagnosticCode: CompileTimeErrorCode.invalidInlineFunctionType,
         );
         return;
       case "INVALID_LITERAL_IN_CONFIGURATION":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.INVALID_LITERAL_IN_CONFIGURATION,
+          diagnosticCode: ParserErrorCode.invalidLiteralInConfiguration,
         );
         return;
       case "IMPORT_OF_NON_LIBRARY":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,
+          diagnosticCode: CompileTimeErrorCode.importOfNonLibrary,
         );
         return;
       case "INVALID_CAST_FUNCTION":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: CompileTimeErrorCode.INVALID_CAST_FUNCTION,
+          diagnosticCode: CompileTimeErrorCode.invalidCastFunction,
         );
         return;
       case "INVALID_CAST_FUNCTION_EXPR":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: CompileTimeErrorCode.INVALID_CAST_FUNCTION_EXPR,
+          diagnosticCode: CompileTimeErrorCode.invalidCastFunctionExpr,
         );
         return;
       case "INVALID_CAST_LITERAL_LIST":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: CompileTimeErrorCode.INVALID_CAST_LITERAL_LIST,
+          diagnosticCode: CompileTimeErrorCode.invalidCastLiteralList,
         );
         return;
       case "INVALID_CAST_LITERAL_MAP":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP,
+          diagnosticCode: CompileTimeErrorCode.invalidCastLiteralMap,
         );
         return;
       case "INVALID_CAST_LITERAL_SET":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: CompileTimeErrorCode.INVALID_CAST_LITERAL_SET,
+          diagnosticCode: CompileTimeErrorCode.invalidCastLiteralSet,
         );
         return;
       case "INVALID_CAST_METHOD":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: CompileTimeErrorCode.INVALID_CAST_METHOD,
+          diagnosticCode: CompileTimeErrorCode.invalidCastMethod,
         );
         return;
       case "INVALID_CAST_NEW_EXPR":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: CompileTimeErrorCode.INVALID_CAST_NEW_EXPR,
+          diagnosticCode: CompileTimeErrorCode.invalidCastNewExpr,
         );
         return;
       case "INVALID_CODE_POINT":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.INVALID_CODE_POINT,
+          diagnosticCode: ParserErrorCode.invalidCodePoint,
           arguments: ['\\u{...}'],
         );
         return;
@@ -284,21 +282,21 @@ class FastaErrorReporter {
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.INVALID_GENERIC_FUNCTION_TYPE,
+          diagnosticCode: ParserErrorCode.invalidGenericFunctionType,
         );
         return;
       case "INVALID_METHOD_OVERRIDE":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: CompileTimeErrorCode.INVALID_OVERRIDE,
+          diagnosticCode: CompileTimeErrorCode.invalidOverride,
         );
         return;
       case "INVALID_MODIFIER_ON_SETTER":
         _reportByCode(
           offset: offset,
           length: length,
-          code: CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
+          code: CompileTimeErrorCode.invalidModifierOnSetter,
           message: message,
         );
         return;
@@ -306,13 +304,13 @@ class FastaErrorReporter {
         _reportByCode(
           offset: offset,
           length: length,
-          code: ParserErrorCode.INVALID_OPERATOR_FOR_SUPER,
+          code: ParserErrorCode.invalidOperatorForSuper,
           message: message,
         );
         return;
       case "MISSING_DIGIT":
         diagnosticReporter?.atOffset(
-          diagnosticCode: ScannerErrorCode.MISSING_DIGIT,
+          diagnosticCode: ScannerErrorCode.missingDigit,
           offset: offset,
           length: length,
         );
@@ -321,168 +319,168 @@ class FastaErrorReporter {
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.MISSING_ENUM_BODY,
+          diagnosticCode: ParserErrorCode.missingEnumBody,
         );
         return;
       case "MISSING_FUNCTION_BODY":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.MISSING_FUNCTION_BODY,
+          diagnosticCode: ParserErrorCode.missingFunctionBody,
         );
         return;
       case "MISSING_FUNCTION_PARAMETERS":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
+          diagnosticCode: ParserErrorCode.missingFunctionParameters,
         );
         return;
       case "MISSING_HEX_DIGIT":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ScannerErrorCode.MISSING_HEX_DIGIT,
+          diagnosticCode: ScannerErrorCode.missingHexDigit,
         );
         return;
       case "MISSING_IDENTIFIER":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.MISSING_IDENTIFIER,
+          diagnosticCode: ParserErrorCode.missingIdentifier,
         );
         return;
       case "MISSING_METHOD_PARAMETERS":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.MISSING_METHOD_PARAMETERS,
+          diagnosticCode: ParserErrorCode.missingMethodParameters,
         );
         return;
       case "MISSING_STAR_AFTER_SYNC":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.MISSING_STAR_AFTER_SYNC,
+          diagnosticCode: ParserErrorCode.missingStarAfterSync,
         );
         return;
       case "MISSING_TYPEDEF_PARAMETERS":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.MISSING_TYPEDEF_PARAMETERS,
+          diagnosticCode: ParserErrorCode.missingTypedefParameters,
         );
         return;
       case "MULTIPLE_IMPLEMENTS_CLAUSES":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES,
+          diagnosticCode: ParserErrorCode.multipleImplementsClauses,
         );
         return;
       case "NAMED_FUNCTION_EXPRESSION":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.NAMED_FUNCTION_EXPRESSION,
+          diagnosticCode: ParserErrorCode.namedFunctionExpression,
         );
         return;
       case "NAMED_PARAMETER_OUTSIDE_GROUP":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP,
+          diagnosticCode: ParserErrorCode.namedParameterOutsideGroup,
         );
         return;
       case "NON_PART_OF_DIRECTIVE_IN_PART":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART,
+          diagnosticCode: ParserErrorCode.nonPartOfDirectiveInPart,
         );
         return;
       case "NON_SYNC_FACTORY":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: CompileTimeErrorCode.NON_SYNC_FACTORY,
+          diagnosticCode: CompileTimeErrorCode.nonSyncFactory,
         );
         return;
       case "POSITIONAL_AFTER_NAMED_ARGUMENT":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT,
+          diagnosticCode: ParserErrorCode.positionalAfterNamedArgument,
         );
         return;
       case "RECURSIVE_CONSTRUCTOR_REDIRECT":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT,
+          diagnosticCode: CompileTimeErrorCode.recursiveConstructorRedirect,
         );
         return;
       case "RETURN_IN_GENERATOR":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: CompileTimeErrorCode.RETURN_IN_GENERATOR,
+          diagnosticCode: CompileTimeErrorCode.returnInGenerator,
         );
         return;
       case "SUPER_INVOCATION_NOT_LAST":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST,
+          diagnosticCode: CompileTimeErrorCode.superInvocationNotLast,
         );
         return;
       case "SUPER_IN_REDIRECTING_CONSTRUCTOR":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR,
+          diagnosticCode: CompileTimeErrorCode.superInRedirectingConstructor,
         );
         return;
       case "UNDEFINED_CLASS":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: CompileTimeErrorCode.UNDEFINED_CLASS,
+          diagnosticCode: CompileTimeErrorCode.undefinedClass,
         );
         return;
       case "UNDEFINED_GETTER":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: CompileTimeErrorCode.UNDEFINED_GETTER,
+          diagnosticCode: CompileTimeErrorCode.undefinedGetter,
         );
         return;
       case "UNDEFINED_METHOD":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: CompileTimeErrorCode.UNDEFINED_METHOD,
+          diagnosticCode: CompileTimeErrorCode.undefinedMethod,
         );
         return;
       case "UNDEFINED_SETTER":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: CompileTimeErrorCode.UNDEFINED_SETTER,
+          diagnosticCode: CompileTimeErrorCode.undefinedSetter,
         );
         return;
       case "UNEXPECTED_DOLLAR_IN_STRING":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ScannerErrorCode.UNEXPECTED_DOLLAR_IN_STRING,
+          diagnosticCode: ScannerErrorCode.unexpectedDollarInString,
         );
         return;
       case "UNEXPECTED_TOKEN":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.UNEXPECTED_TOKEN,
+          diagnosticCode: ParserErrorCode.unexpectedToken,
           arguments: [lexeme()],
         );
         return;
@@ -490,22 +488,21 @@ class FastaErrorReporter {
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT,
+          diagnosticCode: ScannerErrorCode.unterminatedMultiLineComment,
         );
         return;
       case "UNTERMINATED_STRING_LITERAL":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+          diagnosticCode: ScannerErrorCode.unterminatedStringLiteral,
         );
         return;
       case "WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER":
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode:
-              ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER,
+          diagnosticCode: ParserErrorCode.wrongSeparatorForPositionalParameter,
         );
         return;
       case "YIELD_IN_NON_GENERATOR":

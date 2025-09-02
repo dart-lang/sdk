@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/summary2/default_types_builder.dart';
 import 'package:analyzer/src/summary2/extension_type.dart';
+import 'package:analyzer/src/summary2/interface_cycles.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -94,6 +95,7 @@ class TypesBuilder {
 
     buildExtensionTypes(_linker, nodes.declarations);
     _MixinsInference(_toInferMixins).perform();
+    breakInterfaceCycles(_linker, nodes.declarations);
   }
 
   void _addFragmentWithClause(
@@ -126,27 +128,32 @@ class TypesBuilder {
   }
 
   void _classDeclaration(ClassDeclarationImpl node) {
-    var element = node.declaredFragment!;
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
 
-    var extendsClause = node.extendsClause;
-    if (extendsClause != null) {
-      var type = extendsClause.superclass.type;
-      if (type is InterfaceTypeImpl && _isInterfaceTypeClass(type)) {
-        element.supertype = type;
+    if (element.supertype == null) {
+      var extendsClause = node.extendsClause;
+      if (extendsClause != null) {
+        var type = extendsClause.superclass.type;
+        if (type is InterfaceTypeImpl && _isInterfaceTypeClass(type)) {
+          element.supertype = type;
+        }
+      } else if (element.isDartCoreObject) {
+        fragment.setModifier(Modifier.DART_CORE_OBJECT, true);
       }
-    } else if (element.element.isDartCoreObject) {
-      element.setModifier(Modifier.DART_CORE_OBJECT, true);
     }
 
-    element.interfaces = _toInterfaceTypeList(
-      node.implementsClause?.interfaces,
-    );
+    element.interfaces = [
+      ...element.interfaces,
+      ..._toInterfaceTypeList(node.implementsClause?.interfaces),
+    ];
 
-    _addFragmentWithClause(element, node.withClause);
+    _addFragmentWithClause(fragment, node.withClause);
   }
 
   void _classTypeAlias(ClassTypeAliasImpl node) {
-    var element = node.declaredFragment!;
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
 
     var superType = node.superclass.type;
     if (superType is InterfaceTypeImpl && _isInterfaceTypeClass(superType)) {
@@ -159,7 +166,7 @@ class TypesBuilder {
       node.implementsClause?.interfaces,
     );
 
-    _addFragmentWithClause(element, node.withClause);
+    _addFragmentWithClause(fragment, node.withClause);
   }
 
   void _declaration(AstNode node) {
@@ -204,8 +211,9 @@ class TypesBuilder {
 
   void _enumDeclaration(EnumDeclarationImpl node) {
     var fragment = node.declaredFragment!;
+    var element = fragment.element;
 
-    fragment.interfaces = _toInterfaceTypeList(
+    element.interfaces = _toInterfaceTypeList(
       node.implementsClause?.interfaces,
     );
 
@@ -225,14 +233,13 @@ class TypesBuilder {
     var element = fragment.element;
 
     var typeSystem = element.library.typeSystem;
-    var interfaces =
-        node.implementsClause?.interfaces
-            .map((e) => e.type)
-            .whereType<InterfaceType>()
-            .where(typeSystem.isValidExtensionTypeSuperinterface)
-            .toFixedList();
+    var interfaces = node.implementsClause?.interfaces
+        .map((e) => e.type)
+        .whereType<InterfaceType>()
+        .where(typeSystem.isValidExtensionTypeSuperinterface)
+        .toFixedList();
     if (interfaces != null) {
-      fragment.interfaces = interfaces;
+      element.interfaces = interfaces;
     }
   }
 
@@ -334,13 +341,13 @@ class TypesBuilder {
 
   void _mixinDeclaration(MixinDeclarationImpl node) {
     var fragment = node.declaredFragment!;
+    var element = fragment.element;
 
     var constraints = _toInterfaceTypeList(
       node.onClause?.superclassConstraints,
     );
-    fragment.superclassConstraints = constraints;
-
-    fragment.interfaces = _toInterfaceTypeList(
+    element.superclassConstraints = constraints;
+    element.interfaces = _toInterfaceTypeList(
       node.implementsClause?.interfaces,
     );
   }
@@ -389,7 +396,7 @@ class TypesBuilder {
 
   void _typeParameter(TypeParameterImpl node) {
     var fragment = node.declaredFragment!;
-    fragment.bound = node.bound?.type;
+    fragment.element.bound = node.bound?.type;
   }
 
   List<TypeParameterFragmentImpl> _typeParameters(TypeParameterListImpl? node) {
@@ -645,10 +652,10 @@ class _MixinsInference {
         library.featureSet,
         typeSystemOperations: typeSystemOperations,
       );
-      for (var fragment in declaration.fragments) {
-        var inferred = inference.perform(fragment.withClause);
-        fragment.fragment.mixins = inferred;
-      }
+      element.mixins = [
+        for (var fragment in declaration.fragments)
+          ...inference.perform(fragment.withClause),
+      ];
     } finally {
       element.mixinInferenceCallback = null;
     }

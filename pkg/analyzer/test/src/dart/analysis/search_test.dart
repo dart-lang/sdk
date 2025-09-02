@@ -1123,11 +1123,10 @@ void f() {}
     await resolveTestCode('''
 export 'foo.dart';
 ''');
-    var element =
-        findElement2
-            .export('package:test/foo.dart')
-            .exportedLibrary!
-            .firstFragment;
+    var element = findElement2
+        .export('package:test/foo.dart')
+        .exportedLibrary!
+        .firstFragment;
     await assertLibraryFragmentReferencesText(element, r'''
 #F0
   7 1:8 |'foo.dart'|
@@ -1139,8 +1138,9 @@ export 'foo.dart';
     await resolveTestCode('''
 import 'foo.dart';
 ''');
-    var element =
-        findElement2.importFind('package:test/foo.dart').libraryFragment;
+    var element = findElement2
+        .importFind('package:test/foo.dart')
+        .libraryFragment;
     await assertLibraryFragmentReferencesText(element, r'''
 #F0
   7 1:8 |'foo.dart'|
@@ -2203,8 +2203,9 @@ class A<T> {
 
 class B extends A<String> {}
 ''');
-    var element =
-        findNode.namedExpression('p: null); // 1').correspondingParameter!;
+    var element = findNode
+        .namedExpression('p: null); // 1')
+        .correspondingParameter!;
     await assertElementReferencesText(element, r'''
 <testLibraryFragment>::@function::f
   19 2:9 |p| REFERENCE qualified
@@ -2231,8 +2232,9 @@ class A<T> {
 
 class B extends A<String> {}
 ''');
-    var element =
-        findNode.namedExpression('p: null); // 1').correspondingParameter!;
+    var element = findNode
+        .namedExpression('p: null); // 1')
+        .correspondingParameter!;
     expect(driver.search.references(element, SearchedFiles()), completes);
   }
 

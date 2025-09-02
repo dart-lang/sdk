@@ -200,6 +200,9 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   bool get constantsAreAlwaysInlined =>
       target.constantsBackend.alwaysInlineConstants;
 
+  /// If true, constant local variables are expected to have been removed.
+  bool get constantLocalsShouldBeRemoved => !target.constantsBackend.keepLocals;
+
   @override
   void defaultTreeNode(TreeNode node) {
     enterTreeNode(node);
@@ -1008,14 +1011,12 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     }
     visitChildren(node);
     declareVariable(node);
-    if (afterConst && node.isConst) {
+    if (afterConst && node.isConst && constantLocalsShouldBeRemoved) {
       Expression? initializer = node.initializer;
-      if (constantsAreAlwaysInlined) {
-        if (!(initializer is InvalidExpression ||
-            initializer is ConstantExpression &&
-                initializer.constant is UnevaluatedConstant)) {
-          problem(node, "Constant VariableDeclaration");
-        }
+      if (!(initializer is InvalidExpression ||
+          initializer is ConstantExpression &&
+              initializer.constant is UnevaluatedConstant)) {
+        problem(node, "Constant VariableDeclaration");
       }
     }
     exitTreeNode(node);

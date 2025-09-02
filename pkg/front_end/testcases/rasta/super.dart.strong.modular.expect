@@ -407,49 +407,49 @@ To delegate a constructor to a super constructor, put the super call as an initi
     super.{self::A::n};
     self::use(super.{self::A::n});
     super.{self::A::a} = super.{self::A::a}{dynamic}.+(1);
-    self::use(let final dynamic #t1 = super.{self::A::a} in let final dynamic #t2 = super.{self::A::a} = #t1{dynamic}.+(1) in #t1);
+    self::use(let final dynamic #t1 = super.{self::A::a} in let final void #t2 = super.{self::A::a} = #t1{dynamic}.+(1) in #t1);
     super.{self::A::b} = super.{self::B::b}{dynamic}.+(1);
-    self::use(let final dynamic #t3 = super.{self::B::b} in let final dynamic #t4 = super.{self::A::b} = #t3{dynamic}.+(1) in #t3);
+    self::use(let final dynamic #t3 = super.{self::B::b} in let final void #t4 = super.{self::A::b} = #t3{dynamic}.+(1) in #t3);
     super.{self::B::c} = super.{self::A::c}{dynamic}.+(1);
-    self::use(let final dynamic #t5 = super.{self::A::c} in let final dynamic #t6 = super.{self::B::c} = #t5{dynamic}.+(1) in #t5);
+    self::use(let final dynamic #t5 = super.{self::A::c} in let final void #t6 = super.{self::B::c} = #t5{dynamic}.+(1) in #t5);
     super.{self::A::d} = super.{self::B::d}{dynamic}.+(1);
-    self::use(let final dynamic #t7 = super.{self::B::d} in let final dynamic #t8 = super.{self::A::d} = #t7{dynamic}.+(1) in #t7);
+    self::use(let final dynamic #t7 = super.{self::B::d} in let final void #t8 = super.{self::A::d} = #t7{dynamic}.+(1) in #t7);
     invalid-expression "pkg/front_end/testcases/rasta/super.dart:83:11: Error: Superclass has no setter named 'e'.
     super.e++;
           ^";
-    self::use(let final dynamic #t9 = super.{self::A::e} in let final invalid-type #t10 = invalid-expression "pkg/front_end/testcases/rasta/super.dart:84:15: Error: Superclass has no setter named 'e'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/super.dart:84:15: Error: Superclass has no setter named 'e'.
     use(super.e++);
-              ^" in #t9);
+              ^");
     invalid-expression "pkg/front_end/testcases/rasta/super.dart:85:11: Error: Superclass has no setter named 'f'.
     super.f++;
           ^";
-    self::use(let final dynamic #t11 = super.{self::A::f} in let final invalid-type #t12 = invalid-expression "pkg/front_end/testcases/rasta/super.dart:86:15: Error: Superclass has no setter named 'f'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/super.dart:86:15: Error: Superclass has no setter named 'f'.
     use(super.f++);
-              ^" in #t11);
-    super.{self::A::g} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:87:11: Error: Superclass has no getter named 'g'.
+              ^");
+    invalid-expression "pkg/front_end/testcases/rasta/super.dart:87:11: Error: Superclass has no getter named 'g'.
     super.g++;
-          ^"{<invalid>}.+(1);
-    self::use(let final invalid-type #t13 = invalid-expression "pkg/front_end/testcases/rasta/super.dart:88:15: Error: Superclass has no getter named 'g'.
+          ^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/super.dart:88:15: Error: Superclass has no getter named 'g'.
     use(super.g++);
-              ^" in let final invalid-type #t14 = super.{self::A::g} = #t13{<invalid>}.+(1) in #t13);
+              ^");
     super.{self::A::h} = super.{self::A::h}{dynamic}.+(1);
-    self::use(let final dynamic #t15 = super.{self::A::h} in let final dynamic #t16 = super.{self::A::h} = #t15{dynamic}.+(1) in #t15);
+    self::use(let final dynamic #t9 = super.{self::A::h} in let final void #t10 = super.{self::A::h} = #t9{dynamic}.+(1) in #t9);
     super.{self::B::i} = super.{self::A::i}{dynamic}.+(1);
-    self::use(let final dynamic #t17 = super.{self::A::i} in let final dynamic #t18 = super.{self::B::i} = #t17{dynamic}.+(1) in #t17);
-    let final core::int #t19 = 87 in super.{self::A::[]=}(#t19, super.{self::A::[]}(#t19){dynamic}.+(1));
-    self::use(let final core::int #t20 = 87 in let final dynamic #t21 = super.{self::A::[]}(#t20) in let final void #t22 = super.{self::A::[]=}(#t20, #t21{dynamic}.+(1)) in #t21);
+    self::use(let final dynamic #t11 = super.{self::A::i} in let final void #t12 = super.{self::B::i} = #t11{dynamic}.+(1) in #t11);
+    let final core::int #t13 = 87 in super.{self::A::[]=}(#t13, super.{self::A::[]}(#t13){dynamic}.+(1));
+    self::use(let final core::int #t14 = 87 in let final dynamic #t15 = super.{self::A::[]}(#t14) in let final void #t16 = super.{self::A::[]=}(#t14, #t15{dynamic}.+(1)) in #t15);
     invalid-expression "pkg/front_end/testcases/rasta/super.dart:95:11: Error: Superclass has no setter named 'm'.
     super.m++;
           ^";
-    self::use(let final () → void #t23 = super.{self::A::m} in let final invalid-type #t24 = invalid-expression "pkg/front_end/testcases/rasta/super.dart:96:15: Error: Superclass has no setter named 'm'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/super.dart:96:15: Error: Superclass has no setter named 'm'.
     use(super.m++);
-              ^" in #t23);
+              ^");
     invalid-expression "pkg/front_end/testcases/rasta/super.dart:97:11: Error: Superclass has no setter named 'n'.
     super.n++;
           ^";
-    self::use(let final () → void #t25 = super.{self::A::n} in let final invalid-type #t26 = invalid-expression "pkg/front_end/testcases/rasta/super.dart:98:15: Error: Superclass has no setter named 'n'.
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/super.dart:98:15: Error: Superclass has no setter named 'n'.
     use(super.n++);
-              ^" in #t25);
+              ^");
     super.{self::A::a} = super.{self::A::a}{dynamic}.+(1);
     self::use(super.{self::A::a} = super.{self::A::a}{dynamic}.+(1));
     super.{self::A::b} = super.{self::B::b}{dynamic}.+(1);
@@ -470,18 +470,18 @@ To delegate a constructor to a super constructor, put the super call as an initi
     self::use(invalid-expression "pkg/front_end/testcases/rasta/super.dart:111:17: Error: Superclass has no setter named 'f'.
     use(++super.f);
                 ^");
-    super.{self::A::g} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:112:13: Error: Superclass has no getter named 'g'.
+    invalid-expression "pkg/front_end/testcases/rasta/super.dart:112:13: Error: Superclass has no getter named 'g'.
     ++super.g;
-            ^"{<invalid>}.+(1);
-    self::use(super.{self::A::g} = invalid-expression "pkg/front_end/testcases/rasta/super.dart:113:17: Error: Superclass has no getter named 'g'.
+            ^";
+    self::use(invalid-expression "pkg/front_end/testcases/rasta/super.dart:113:17: Error: Superclass has no getter named 'g'.
     use(++super.g);
-                ^"{<invalid>}.+(1));
+                ^");
     super.{self::A::h} = super.{self::A::h}{dynamic}.+(1);
     self::use(super.{self::A::h} = super.{self::A::h}{dynamic}.+(1));
     super.{self::B::i} = super.{self::A::i}{dynamic}.+(1);
     self::use(super.{self::B::i} = super.{self::A::i}{dynamic}.+(1));
-    let final core::int #t27 = 87 in let final dynamic #t28 = super.{self::A::[]}(#t27){dynamic}.+(1) in let final void #t29 = super.{self::A::[]=}(#t27, #t28) in #t28;
-    self::use(let final core::int #t30 = 87 in let final dynamic #t31 = super.{self::A::[]}(#t30){dynamic}.+(1) in let final void #t32 = super.{self::A::[]=}(#t30, #t31) in #t31);
+    let final core::int #t17 = 87 in let final dynamic #t18 = super.{self::A::[]}(#t17){dynamic}.+(1) in let final void #t19 = super.{self::A::[]=}(#t17, #t18) in #t18;
+    self::use(let final core::int #t20 = 87 in let final dynamic #t21 = super.{self::A::[]}(#t20){dynamic}.+(1) in let final void #t22 = super.{self::A::[]=}(#t20, #t21) in #t21);
     invalid-expression "pkg/front_end/testcases/rasta/super.dart:120:13: Error: Superclass has no setter named 'm'.
     ++super.m;
             ^";
@@ -565,7 +565,7 @@ Try removing the extra positional arguments.
     super.{self::B::i} = 42;
     self::use(super.{self::B::i} = 42);
     super.{self::A::[]=}(87, 42);
-    self::use(let final core::int #t33 = 87 in let final core::int #t34 = 42 in let final void #t35 = super.{self::A::[]=}(#t33, #t34) in #t34);
+    self::use(let final core::int #t23 = 87 in let final core::int #t24 = 42 in let final void #t25 = super.{self::A::[]=}(#t23, #t24) in #t24);
     invalid-expression "pkg/front_end/testcases/rasta/super.dart:172:11: Error: Superclass has no setter named 'm'.
     super.m = 42;
           ^";
@@ -579,49 +579,49 @@ Try removing the extra positional arguments.
     use(super.n = 42);
               ^");
     super.{self::A::a} == null ?{dynamic} super.{self::A::a} = 42 : null;
-    self::use(let final dynamic #t36 = super.{self::A::a} in #t36 == null ?{dynamic} super.{self::A::a} = 42 : #t36);
+    self::use(let final dynamic #t26 = super.{self::A::a} in #t26 == null ?{dynamic} super.{self::A::a} = 42 : #t26);
     super.{self::B::b} == null ?{dynamic} super.{self::A::b} = 42 : null;
-    self::use(let final dynamic #t37 = super.{self::B::b} in #t37 == null ?{dynamic} super.{self::A::b} = 42 : #t37);
+    self::use(let final dynamic #t27 = super.{self::B::b} in #t27 == null ?{dynamic} super.{self::A::b} = 42 : #t27);
     super.{self::A::c} == null ?{dynamic} super.{self::B::c} = 42 : null;
-    self::use(let final dynamic #t38 = super.{self::A::c} in #t38 == null ?{dynamic} super.{self::B::c} = 42 : #t38);
+    self::use(let final dynamic #t28 = super.{self::A::c} in #t28 == null ?{dynamic} super.{self::B::c} = 42 : #t28);
     super.{self::B::d} == null ?{dynamic} super.{self::A::d} = 42 : null;
-    self::use(let final dynamic #t39 = super.{self::B::d} in #t39 == null ?{dynamic} super.{self::A::d} = 42 : #t39);
+    self::use(let final dynamic #t29 = super.{self::B::d} in #t29 == null ?{dynamic} super.{self::A::d} = 42 : #t29);
     super.{self::A::e} == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/super.dart:185:11: Error: Superclass has no setter named 'e'.
     super.e ??= 42;
           ^" : null;
-    self::use(let final dynamic #t40 = super.{self::A::e} in #t40 == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/super.dart:186:15: Error: Superclass has no setter named 'e'.
+    self::use(let final dynamic #t30 = super.{self::A::e} in #t30 == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/super.dart:186:15: Error: Superclass has no setter named 'e'.
     use(super.e ??= 42);
-              ^" : #t40);
+              ^" : #t30);
     super.{self::A::f} == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/super.dart:187:11: Error: Superclass has no setter named 'f'.
     super.f ??= 42;
           ^" : null;
-    self::use(let final dynamic #t41 = super.{self::A::f} in #t41 == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/super.dart:188:15: Error: Superclass has no setter named 'f'.
+    self::use(let final dynamic #t31 = super.{self::A::f} in #t31 == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/super.dart:188:15: Error: Superclass has no setter named 'f'.
     use(super.f ??= 42);
-              ^" : #t41);
+              ^" : #t31);
     invalid-expression "pkg/front_end/testcases/rasta/super.dart:189:11: Error: Superclass has no getter named 'g'.
     super.g ??= 42;
           ^" == null ?{invalid-type} super.{self::A::g} = 42 : null;
-    self::use(let final invalid-type #t42 = invalid-expression "pkg/front_end/testcases/rasta/super.dart:190:15: Error: Superclass has no getter named 'g'.
+    self::use(let final invalid-type #t32 = invalid-expression "pkg/front_end/testcases/rasta/super.dart:190:15: Error: Superclass has no getter named 'g'.
     use(super.g ??= 42);
-              ^" in #t42 == null ?{invalid-type} super.{self::A::g} = 42 : #t42);
+              ^" in #t32 == null ?{invalid-type} super.{self::A::g} = 42 : #t32);
     super.{self::A::h} == null ?{dynamic} super.{self::A::h} = 42 : null;
-    self::use(let final dynamic #t43 = super.{self::A::h} in #t43 == null ?{dynamic} super.{self::A::h} = 42 : #t43);
+    self::use(let final dynamic #t33 = super.{self::A::h} in #t33 == null ?{dynamic} super.{self::A::h} = 42 : #t33);
     super.{self::A::i} == null ?{dynamic} super.{self::B::i} = 42 : null;
-    self::use(let final dynamic #t44 = super.{self::A::i} in #t44 == null ?{dynamic} super.{self::B::i} = 42 : #t44);
-    let final core::int #t45 = 87 in super.{self::A::[]}(#t45) == null ?{dynamic} super.{self::A::[]=}(#t45, 42) : null;
-    self::use(let final core::int #t46 = 87 in let final dynamic #t47 = super.{self::A::[]}(#t46) in #t47 == null ?{dynamic} let final core::int #t48 = 42 in let final void #t49 = super.{self::A::[]=}(#t46, #t48) in #t48 : #t47);
+    self::use(let final dynamic #t34 = super.{self::A::i} in #t34 == null ?{dynamic} super.{self::B::i} = 42 : #t34);
+    let final core::int #t35 = 87 in super.{self::A::[]}(#t35) == null ?{dynamic} super.{self::A::[]=}(#t35, 42) : null;
+    self::use(let final core::int #t36 = 87 in let final dynamic #t37 = super.{self::A::[]}(#t36) in #t37 == null ?{dynamic} let final core::int #t38 = 42 in let final void #t39 = super.{self::A::[]=}(#t36, #t38) in #t38 : #t37);
     super.{self::A::m} == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/super.dart:197:11: Error: Superclass has no setter named 'm'.
     super.m ??= 42;
           ^" : null;
-    self::use(let final () → void #t50 = super.{self::A::m} in #t50 == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/super.dart:198:15: Error: Superclass has no setter named 'm'.
+    self::use(let final () → void #t40 = super.{self::A::m} in #t40 == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/super.dart:198:15: Error: Superclass has no setter named 'm'.
     use(super.m ??= 42);
-              ^" : #t50);
+              ^" : #t40);
     super.{self::A::n} == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/super.dart:199:11: Error: Superclass has no setter named 'n'.
     super.n ??= 42;
           ^" : null;
-    self::use(let final () → void #t51 = super.{self::A::n} in #t51 == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/super.dart:200:15: Error: Superclass has no setter named 'n'.
+    self::use(let final () → void #t41 = super.{self::A::n} in #t41 == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/super.dart:200:15: Error: Superclass has no setter named 'n'.
     use(super.n ??= 42);
-              ^" : #t51);
+              ^" : #t41);
     super.{self::A::a} = super.{self::A::a}{dynamic}.+(42);
     self::use(super.{self::A::a} = super.{self::A::a}{dynamic}.+(42));
     super.{self::A::b} = super.{self::B::b}{dynamic}.+(42);
@@ -652,8 +652,8 @@ Try removing the extra positional arguments.
     self::use(super.{self::A::h} = super.{self::A::h}{dynamic}.+(42));
     super.{self::B::i} = super.{self::A::i}{dynamic}.+(42);
     self::use(super.{self::B::i} = super.{self::A::i}{dynamic}.+(42));
-    let final core::int #t52 = 87 in super.{self::A::[]=}(#t52, super.{self::A::[]}(#t52){dynamic}.+(42));
-    self::use(let final core::int #t53 = 87 in let final dynamic #t54 = super.{self::A::[]}(#t53){dynamic}.+(42) in let final void #t55 = super.{self::A::[]=}(#t53, #t54) in #t54);
+    let final core::int #t42 = 87 in super.{self::A::[]=}(#t42, super.{self::A::[]}(#t42){dynamic}.+(42));
+    self::use(let final core::int #t43 = 87 in let final dynamic #t44 = super.{self::A::[]}(#t43){dynamic}.+(42) in let final void #t45 = super.{self::A::[]=}(#t43, #t44) in #t44);
     invalid-expression "pkg/front_end/testcases/rasta/super.dart:222:11: Error: Superclass has no setter named 'm'.
     super.m += 42;
           ^";
@@ -696,8 +696,8 @@ Try removing the extra positional arguments.
     self::use(super.{self::A::h} = super.{self::A::h}{dynamic}.-(42));
     super.{self::B::i} = super.{self::A::i}{dynamic}.-(42);
     self::use(super.{self::B::i} = super.{self::A::i}{dynamic}.-(42));
-    let final core::int #t56 = 87 in super.{self::A::[]=}(#t56, super.{self::A::[]}(#t56){dynamic}.-(42));
-    self::use(let final core::int #t57 = 87 in let final dynamic #t58 = super.{self::A::[]}(#t57){dynamic}.-(42) in let final void #t59 = super.{self::A::[]=}(#t57, #t58) in #t58);
+    let final core::int #t46 = 87 in super.{self::A::[]=}(#t46, super.{self::A::[]}(#t46){dynamic}.-(42));
+    self::use(let final core::int #t47 = 87 in let final dynamic #t48 = super.{self::A::[]}(#t47){dynamic}.-(42) in let final void #t49 = super.{self::A::[]=}(#t47, #t48) in #t48);
     invalid-expression "pkg/front_end/testcases/rasta/super.dart:247:11: Error: Superclass has no setter named 'm'.
     super.m -= 42;
           ^";

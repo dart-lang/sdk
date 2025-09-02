@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -23,10 +24,13 @@ class PreferConstConstructorsInImmutables extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.prefer_const_constructors_in_immutables;
+      LinterLintCode.preferConstConstructorsInImmutables;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
     registry.addExtensionTypeDeclaration(this, visitor);
@@ -86,16 +90,16 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
     var clazz = declaredElement.enclosingElement;
     // Constructor with super-initializer.
-    var superInvocation =
-        node.initializers.whereType<SuperConstructorInvocation>().firstOrNull;
+    var superInvocation = node.initializers
+        .whereType<SuperConstructorInvocation>()
+        .firstOrNull;
     if (superInvocation != null) {
       return superInvocation.element?.isConst ?? false;
     }
     // Constructor with 'this' redirecting initializer.
-    var redirectInvocation =
-        node.initializers
-            .whereType<RedirectingConstructorInvocation>()
-            .firstOrNull;
+    var redirectInvocation = node.initializers
+        .whereType<RedirectingConstructorInvocation>()
+        .firstOrNull;
     if (redirectInvocation != null) {
       return redirectInvocation.element?.isConst ?? false;
     }

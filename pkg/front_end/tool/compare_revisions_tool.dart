@@ -109,15 +109,20 @@ void _compileRevision(String gitCommit, {Stopwatch? stopwatch}) {
   stopwatch ??= new Stopwatch()..start();
 
   // Clean up the git checkout.
-  ProcessResult processResult = Process.runSync("git", ["reset", "--hard"],
-      workingDirectory: changingWorkingDir);
+  ProcessResult processResult = Process.runSync("git", [
+    "reset",
+    "--hard",
+  ], workingDirectory: changingWorkingDir);
   if (processResult.exitCode != 0) {
     throw "Failed resetting hard for $gitCommit:\n"
         "stderr: ${processResult.stderr}\n"
         "stdout: ${processResult.stdout}";
   }
-  processResult = Process.runSync("git", ["clean", "-d", "-f"],
-      workingDirectory: changingWorkingDir);
+  processResult = Process.runSync("git", [
+    "clean",
+    "-d",
+    "-f",
+  ], workingDirectory: changingWorkingDir);
   if (processResult.exitCode != 0) {
     throw "Failed cleaning for $gitCommit:\n"
         "stderr: ${processResult.stderr}\n"
@@ -125,26 +130,35 @@ void _compileRevision(String gitCommit, {Stopwatch? stopwatch}) {
   }
 
   // Checkout at the specific revision.
-  processResult = Process.runSync("git", ["checkout", gitCommit],
-      workingDirectory: changingWorkingDir);
+  processResult = Process.runSync("git", [
+    "checkout",
+    gitCommit,
+  ], workingDirectory: changingWorkingDir);
   if (processResult.exitCode != 0) {
     throw "Failed checking out $gitCommit:\n"
         "stderr: ${processResult.stderr}\n"
         "stdout: ${processResult.stdout}";
   }
-  print("Done running git checkout for $gitCommit after "
-      "${stopwatch.elapsed.inSeconds} seconds.");
+  print(
+    "Done running git checkout for $gitCommit after "
+    "${stopwatch.elapsed.inSeconds} seconds.",
+  );
 
   // Clean up the git checkout.
-  processResult = Process.runSync("git", ["reset", "--hard"],
-      workingDirectory: changingWorkingDir);
+  processResult = Process.runSync("git", [
+    "reset",
+    "--hard",
+  ], workingDirectory: changingWorkingDir);
   if (processResult.exitCode != 0) {
     throw "Failed resetting hard for $gitCommit:\n"
         "stderr: ${processResult.stderr}\n"
         "stdout: ${processResult.stdout}";
   }
-  processResult = Process.runSync("git", ["clean", "-d", "-f"],
-      workingDirectory: changingWorkingDir);
+  processResult = Process.runSync("git", [
+    "clean",
+    "-d",
+    "-f",
+  ], workingDirectory: changingWorkingDir);
   if (processResult.exitCode != 0) {
     throw "Failed cleaning for $gitCommit:\n"
         "stderr: ${processResult.stderr}\n"
@@ -152,29 +166,39 @@ void _compileRevision(String gitCommit, {Stopwatch? stopwatch}) {
   }
 
   // Run `gclient sync`.
-  processResult = Process.runSync("gclient", ["sync", "-D"],
-      workingDirectory: changingWorkingDir);
+  processResult = Process.runSync("gclient", [
+    "sync",
+    "-D",
+  ], workingDirectory: changingWorkingDir);
   if (processResult.exitCode != 0) {
     throw "Failed gclient sync at $gitCommit:\n"
         "stderr: ${processResult.stderr}\n"
         "stdout: ${processResult.stdout}";
   }
-  print("Done running `gclient sync` for $gitCommit "
-      "after ${stopwatch.elapsed.inSeconds} seconds.");
+  print(
+    "Done running `gclient sync` for $gitCommit "
+    "after ${stopwatch.elapsed.inSeconds} seconds.",
+  );
 
   // Build the platform and copy it so we have it.
-  processResult = Process.runSync(
-      "python3", ["tools/build.py", "-ax64", "-mrelease", "vm_platform"],
-      workingDirectory: changingWorkingDir);
+  processResult = Process.runSync("python3", [
+    "tools/build.py",
+    "-ax64",
+    "-mrelease",
+    "vm_platform",
+  ], workingDirectory: changingWorkingDir);
   if (processResult.exitCode != 0) {
     throw "Failed compile vm platform at $gitCommit:\n"
         "stderr: ${processResult.stderr}\n"
         "stdout: ${processResult.stdout}";
   }
-  new File("$changingWorkingDir/out/ReleaseX64/vm_platform.dill")
-      .copySync("$snapshotsPath/platform.dill.$gitCommit");
-  print("Done building the platform for $gitCommit "
-      "after ${stopwatch.elapsed.inSeconds} seconds.");
+  new File(
+    "$changingWorkingDir/out/ReleaseX64/vm_platform.dill",
+  ).copySync("$snapshotsPath/platform.dill.$gitCommit");
+  print(
+    "Done building the platform for $gitCommit "
+    "after ${stopwatch.elapsed.inSeconds} seconds.",
+  );
 
   // Compile the AOT snapshot.
   processResult = Process.runSync("${sdkPath}bin/dart", [
@@ -182,22 +206,30 @@ void _compileRevision(String gitCommit, {Stopwatch? stopwatch}) {
     "aot-snapshot",
     "$changingWorkingDir/$compileDartRelativePath",
     "-o",
-    "$snapshotsPath/compile.aot.$gitCommit"
+    "$snapshotsPath/compile.aot.$gitCommit",
   ]);
   if (processResult.exitCode != 0) {
     throw "Failed compile aot-snapshot at $gitCommit:\n"
         "stderr: ${processResult.stderr}\n"
         "stdout: ${processResult.stdout}";
   }
-  print("Compiled for $gitCommit "
-      "after ${stopwatch.elapsed.inSeconds} seconds.");
+  print(
+    "Compiled for $gitCommit "
+    "after ${stopwatch.elapsed.inSeconds} seconds.",
+  );
 }
 
 void _examine(
-    String revision, bool filter, bool raw, List<String> extraVmArguments) {
-  ProcessResult processResult = Process.runSync(
-      "git", ["log", "$revision^^...$revision", "--pretty=format:%h"],
-      workingDirectory: changingWorkingDir);
+  String revision,
+  bool filter,
+  bool raw,
+  List<String> extraVmArguments,
+) {
+  ProcessResult processResult = Process.runSync("git", [
+    "log",
+    "$revision^^...$revision",
+    "--pretty=format:%h",
+  ], workingDirectory: changingWorkingDir);
   if (processResult.exitCode != 0) {
     throw "Failed to get log:\n"
         "stderr: ${processResult.stderr}\n"
@@ -246,18 +278,22 @@ void _examine(
   }
 }
 
-void _run(int iterations, String gitCommit, List<String> extraVmArguments,
-    List<Map<String, num>> output) {
+void _run(
+  int iterations,
+  String gitCommit,
+  List<String> extraVmArguments,
+  List<Map<String, num>> output,
+) {
   for (int i = 0; i < iterations; i++) {
     try {
-      output.add(benchmarker.benchmark(
+      output.add(
+        benchmarker.benchmark(
           "$snapshotsPath/compile.aot.$gitCommit",
           extraVmArguments,
-          [
-            "--platform=$snapshotsPath/platform.dill.$gitCommit",
-            target!,
-          ],
-          aotRuntime: "${sdkPath}bin/dartaotruntime"));
+          ["--platform=$snapshotsPath/platform.dill.$gitCommit", target!],
+          aotRuntime: "${sdkPath}bin/dartaotruntime",
+        ),
+      );
     } catch (e) {
       throw "Failed to run benchmark at $gitCommit";
     }
@@ -265,16 +301,18 @@ void _run(int iterations, String gitCommit, List<String> extraVmArguments,
 }
 
 benchmarker.GCInfo _runVerboseGc(
-    String gitCommit, List<String> extraVmArguments) {
+  String gitCommit,
+  List<String> extraVmArguments,
+) {
   ProcessResult processResult =
       Process.runSync("${sdkPath}bin/dartaotruntime", [
-    "--deterministic",
-    "--verbose-gc",
-    ...extraVmArguments,
-    "$snapshotsPath/compile.aot.$gitCommit",
-    "--platform=$snapshotsPath/platform.dill.$gitCommit",
-    target!
-  ]);
+        "--deterministic",
+        "--verbose-gc",
+        ...extraVmArguments,
+        "$snapshotsPath/compile.aot.$gitCommit",
+        "--platform=$snapshotsPath/platform.dill.$gitCommit",
+        target!,
+      ]);
 
   if (processResult.exitCode != 0) {
     throw "Run failed for $gitCommit with exit code "
@@ -286,8 +324,10 @@ benchmarker.GCInfo _runVerboseGc(
   return benchmarker.parseVerboseGcOutput(processResult);
 }
 
-List<Map<String, num>> _filterToInstructions(List<Map<String, num>> input,
-    {List<num>? extractedNumbers}) {
+List<Map<String, num>> _filterToInstructions(
+  List<Map<String, num>> input, {
+  List<num>? extractedNumbers,
+}) {
   List<Map<String, num>> result = [];
   for (Map<String, num> map in input) {
     num? instructionsValue = map["instructions:u"];

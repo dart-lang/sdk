@@ -135,6 +135,8 @@ static method test() → void {
                                                                            ^" in <core::num, dynamic>{3: 3} as{TypeError} core::Map<core::int, core::String>;
   }
   {
+    const core::Map<core::int, core::String> l0 = #C4;
+    const core::Map<core::int, core::String> l1 = #C6;
     const core::Map<core::int, core::String> l2 = invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:80:79: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
       /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE,error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/ \"hello\":
                                                                               ^";
@@ -152,4 +154,7 @@ constants  {
   #C1 = 1
   #C2 = "hello"
   #C3 = <core::int, core::String>{#C1:#C2}
+  #C4 = <core::int, core::String>{}
+  #C5 = 3
+  #C6 = <core::int, core::String>{#C5:#C2}
 }

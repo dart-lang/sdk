@@ -4,11 +4,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class Benchmarker {
-  final List<PhaseTiming> _phaseTimings =
-      new List<PhaseTiming>.generate(BenchmarkPhases.values.length, (index) {
-    assert(BenchmarkPhases.values[index].index == index);
-    return new PhaseTiming(BenchmarkPhases.values[index]);
-  }, growable: false);
+  final List<PhaseTiming> _phaseTimings = new List<PhaseTiming>.generate(
+    BenchmarkPhases.values.length,
+    (index) {
+      assert(BenchmarkPhases.values[index].index == index);
+      return new PhaseTiming(BenchmarkPhases.values[index]);
+    },
+    growable: false,
+  );
 
   final Stopwatch _totalStopwatch = new Stopwatch()..start();
   final Stopwatch _phaseStopwatch = new Stopwatch()..start();
@@ -16,7 +19,7 @@ class Benchmarker {
 
   BenchmarkPhases _currentPhase = BenchmarkPhases.implicitInitialization;
   List<BenchmarkSubdivides> _subdivides = [
-    BenchmarkSubdivides.subdividesUnaccountedFor
+    BenchmarkSubdivides.subdividesUnaccountedFor,
   ];
 
   void reset() {
@@ -44,8 +47,9 @@ class Benchmarker {
     if (_subdivides.isEmpty) return;
     BenchmarkSubdivides subdivide = _subdivides.last;
     _phaseTimings[_currentPhase.index].subdivides[subdivide.index].addRuntime(
-        _subdivideStopwatch.elapsedMicroseconds,
-        addAsCount: addAsCount);
+      _subdivideStopwatch.elapsedMicroseconds,
+      addAsCount: addAsCount,
+    );
   }
 
   void endSubdivide() {
@@ -65,8 +69,9 @@ class Benchmarker {
       throw "Can't enter a phase while in a subdivide";
     }
 
-    _phaseTimings[_currentPhase.index]
-        .addRuntime(_phaseStopwatch.elapsedMicroseconds);
+    _phaseTimings[_currentPhase.index].addRuntime(
+      _phaseStopwatch.elapsedMicroseconds,
+    );
     _phaseStopwatch.reset();
     _currentPhase = phase;
     beginSubdivide(BenchmarkSubdivides.subdividesUnaccountedFor);
@@ -98,10 +103,13 @@ class PhaseTiming {
   int _runtime = 0;
 
   final List<SubdivideTiming> subdivides = new List<SubdivideTiming>.generate(
-      BenchmarkSubdivides.values.length, (index) {
-    assert(BenchmarkSubdivides.values[index].index == index);
-    return new SubdivideTiming(BenchmarkSubdivides.values[index]);
-  }, growable: false);
+    BenchmarkSubdivides.values.length,
+    (index) {
+      assert(BenchmarkSubdivides.values[index].index == index);
+      return new SubdivideTiming(BenchmarkSubdivides.values[index]);
+    },
+    growable: false,
+  );
 
   PhaseTiming(this.phase);
 

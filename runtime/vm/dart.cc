@@ -232,7 +232,7 @@ static void CheckOffsets() {
        i <= static_cast<intptr_t>(Last); i++) {                                \
     if (Filter(static_cast<Type>(i))) {                                        \
       CHECK_OFFSET(Class::Getter(static_cast<Type>(i)),                        \
-                   AOT_##Class##_##Getter[i]);                                 \
+                   AOT_##Class##_##Getter[i - static_cast<intptr_t>(First)]);  \
     }                                                                          \
   }
 #define CHECK_CONSTANT(Class, Name)                                            \
@@ -257,7 +257,8 @@ static void CheckOffsets() {
   for (intptr_t i = static_cast<intptr_t>(First);                              \
        i <= static_cast<intptr_t>(Last); i++) {                                \
     if (Filter(static_cast<Type>(i))) {                                        \
-      CHECK_OFFSET(Class::Getter(static_cast<Type>(i)), Class##_##Getter[i]);  \
+      CHECK_OFFSET(Class::Getter(static_cast<Type>(i)),                        \
+                   Class##_##Getter[i - static_cast<intptr_t>(First)]);        \
     }                                                                          \
   }
 #define CHECK_CONSTANT(Class, Name) CHECK_OFFSET(Class::Name, Class##_##Name);
@@ -372,7 +373,6 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
 #endif
   IsolateGroup::Init();
   Isolate::InitVM();
-  UserTags::Init();
   PortMap::Init();
   NativeMessageHandler::Init();
   Service::Init();
@@ -778,7 +778,6 @@ char* Dart::Cleanup() {
   ASSERT(Isolate::IsolateListLength() == 0);
   Service::Cleanup();
   PortMap::Cleanup();
-  UserTags::Cleanup();
   IsolateGroup::Cleanup();
   ICData::Cleanup();
   ArgumentsDescriptor::Cleanup();
@@ -992,6 +991,8 @@ ErrorPtr Dart::InitializeIsolateGroup(Thread* T,
     IG->class_table()->Print();
   }
 
+  IG->set_tag_table(GrowableObjectArray::Handle(GrowableObjectArray::New()));
+
   return Error::null();
 }
 
@@ -1036,11 +1037,8 @@ ErrorPtr Dart::InitializeIsolate(Thread* T,
   I->debugger()->NotifyIsolateCreated();
 #endif
 
-  // Create tag table.
-  I->set_tag_table(GrowableObjectArray::Handle(GrowableObjectArray::New()));
-  // Set up default UserTag.
-  const UserTag& default_tag = UserTag::Handle(UserTag::DefaultTag());
-  I->set_current_tag(default_tag);
+  const UserTag& default_tag = UserTag::Handle(UserTag::DefaultTag(T));
+  T->set_current_tag(default_tag);
 
   I->init_loaded_prefixes_set_storage();
 

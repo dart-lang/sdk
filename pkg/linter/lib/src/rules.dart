@@ -11,6 +11,7 @@ import 'rules/always_put_required_named_parameters_first.dart';
 import 'rules/always_require_non_null_named_parameters.dart';
 import 'rules/always_specify_types.dart';
 import 'rules/always_use_package_imports.dart';
+import 'rules/analyzer_element_model_tracking.dart';
 import 'rules/analyzer_public_api.dart';
 import 'rules/annotate_overrides.dart';
 import 'rules/annotate_redeclares.dart';
@@ -264,6 +265,7 @@ void registerLintRules() {
     ..registerLintRule(AlwaysRequireNonNullNamedParameters())
     ..registerLintRule(AlwaysSpecifyTypes())
     ..registerLintRule(AlwaysUsePackageImports())
+    ..registerLintRule(AnalyzerElementModelTracking())
     ..registerLintRule(AnalyzerPublicApi())
     ..registerLintRule(AnnotateOverrides())
     ..registerLintRule(AnnotateRedeclares())

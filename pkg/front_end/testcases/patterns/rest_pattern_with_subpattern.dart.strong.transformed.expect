@@ -10,20 +10,26 @@ static method test(dynamic o, [dynamic expectedRest = #C1]) → dynamic {
     synthesized core::bool #0#4#isSet = false;
     synthesized core::int #0#2;
     synthesized core::bool #0#2#isSet = false;
+    final const synthesized core::int #0#3 = #C2;
     synthesized core::bool #0#8;
     synthesized core::bool #0#8#isSet = false;
+    final const synthesized core::int #0#7 = #C3;
+    final const synthesized core::int #0#10 = #C4;
     synthesized dynamic #0#9;
     synthesized core::bool #0#9#isSet = false;
     synthesized dynamic #0#12;
     synthesized core::bool #0#12#isSet = false;
     synthesized core::bool #0#19;
     synthesized core::bool #0#19#isSet = false;
+    final const synthesized core::int #0#18 = #C5;
     synthesized core::List<dynamic> #0#22;
     synthesized core::bool #0#22#isSet = false;
     synthesized core::bool #0#24;
     synthesized core::bool #0#24#isSet = false;
     synthesized core::bool #0#26;
     synthesized core::bool #0#26#isSet = false;
+    final const synthesized core::int #0#25 = #C6;
+    final const synthesized core::int #0#27 = #C7;
     synthesized core::int #0#29;
     synthesized core::bool #0#29#isSet = false;
     {

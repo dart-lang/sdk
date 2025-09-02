@@ -20,7 +20,7 @@ class ImplementsNonClassTest extends PubPackageResolutionTest {
       '''
 class A implements dynamic {}
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 19, 7)],
+      [error(CompileTimeErrorCode.implementsNonClass, 19, 7)],
     );
   }
 
@@ -30,7 +30,7 @@ class A implements dynamic {}
 enum E { ONE }
 class A implements E {}
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 34, 1)],
+      [error(CompileTimeErrorCode.implementsNonClass, 34, 1)],
     );
   }
 
@@ -40,7 +40,7 @@ class A implements E {}
 extension type A(int it) {}
 class B implements A {}
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 47, 1)],
+      [error(CompileTimeErrorCode.implementsNonClass, 47, 1)],
     );
   }
 
@@ -50,7 +50,7 @@ class B implements A {}
 int A = 7;
 class B implements A {}
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 30, 1)],
+      [error(CompileTimeErrorCode.implementsNonClass, 30, 1)],
     );
   }
 
@@ -62,7 +62,7 @@ mixin M {}
 int B = 7;
 class C = A with M implements B;
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 63, 1)],
+      [error(CompileTimeErrorCode.implementsNonClass, 63, 1)],
     );
   }
 
@@ -74,7 +74,7 @@ enum E implements A {
   v
 }
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 29, 1)],
+      [error(CompileTimeErrorCode.implementsNonClass, 29, 1)],
     );
   }
 
@@ -83,7 +83,7 @@ enum E implements A {
       r'''
 mixin M implements dynamic {}
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 19, 7)],
+      [error(CompileTimeErrorCode.implementsNonClass, 19, 7)],
     );
   }
 
@@ -93,7 +93,7 @@ mixin M implements dynamic {}
 extension type A(int it) {}
 mixin M implements A {}
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 47, 1)],
+      [error(CompileTimeErrorCode.implementsNonClass, 47, 1)],
     );
   }
 
@@ -102,7 +102,7 @@ mixin M implements A {}
       '''
 class A implements Never {}
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 19, 5)],
+      [error(CompileTimeErrorCode.implementsNonClass, 19, 5)],
     );
   }
 }

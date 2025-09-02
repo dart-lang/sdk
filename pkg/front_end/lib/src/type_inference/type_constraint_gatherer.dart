@@ -18,11 +18,21 @@ import 'type_schema_environment.dart';
 
 /// Creates a collection of [TypeConstraint]s corresponding to type parameters,
 /// based on an attempt to make one type schema a subtype of another.
-class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
-        VariableDeclaration, TypeDeclarationType, TypeDeclaration, TreeNode>
+class TypeConstraintGatherer
+    extends
+        shared.TypeConstraintGenerator<
+          VariableDeclaration,
+          TypeDeclarationType,
+          TypeDeclaration,
+          TreeNode
+        >
     with
-        shared.TypeConstraintGeneratorMixin<VariableDeclaration,
-            TypeDeclarationType, TypeDeclaration, TreeNode> {
+        shared.TypeConstraintGeneratorMixin<
+          VariableDeclaration,
+          TypeDeclarationType,
+          TypeDeclaration,
+          TreeNode
+        > {
   final List<GeneratedTypeConstraint> _protoConstraints = [];
 
   @override
@@ -40,11 +50,11 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     required OperationsCfe typeOperations,
     required TypeInferenceResultForTesting? inferenceResultForTesting,
     required super.inferenceUsingBoundsIsEnabled,
-  })  : typeOperations = typeOperations,
-        typeParametersToConstrain = new List<StructuralParameter>.of(
-          typeParameters,
-        ),
-        _inferenceResultForTesting = inferenceResultForTesting;
+  }) : typeOperations = typeOperations,
+       typeParametersToConstrain = new List<StructuralParameter>.of(
+         typeParameters,
+       ),
+       _inferenceResultForTesting = inferenceResultForTesting;
 
   @override
   bool get enableDiscrepantObliviousnessOfNullabilitySuffixOfFutureOr => true;
@@ -64,7 +74,7 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
 
   @override
   (DartType, DartType, {List<StructuralParameter> typeParametersToEliminate})
-      instantiateFunctionTypesAndProvideFreshTypeParameters(
+  instantiateFunctionTypesAndProvideFreshTypeParameters(
     covariant FunctionType p,
     covariant FunctionType q, {
     required bool leftSchema,
@@ -100,8 +110,8 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
       typeParametersToEliminate: leftSchema
           ? p.typeParameters
           :
-          // Coverage-ignore(suite): Not run.
-          q.typeParameters,
+            // Coverage-ignore(suite): Not run.
+            q.typeParameters,
     );
   }
 
@@ -120,7 +130,8 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
         addUpperConstraintForParameter(
           constraint.typeParameter
               .unwrapTypeParameterViewAsTypeParameterStructure<
-                  StructuralParameter>(),
+                StructuralParameter
+              >(),
           typeOperations.leastClosureOfTypeInternal(
             constraint.constraint.unwrapTypeSchemaView(),
             typeParametersToEliminate,
@@ -131,7 +142,8 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
         addLowerConstraintForParameter(
           constraint.typeParameter
               .unwrapTypeParameterViewAsTypeParameterStructure<
-                  StructuralParameter>(),
+                StructuralParameter
+              >(),
           typeOperations.greatestClosureOfTypeInternal(
             constraint.constraint.unwrapTypeSchemaView(),
             typeParametersToEliminate,
@@ -191,11 +203,9 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
     for (GeneratedTypeConstraint protoConstraint in _protoConstraints) {
       result[protoConstraint.typeParameter
               .unwrapTypeParameterViewAsTypeParameterStructure<
-                  StructuralParameter>()]!
-          .mergeIn(
-        protoConstraint,
-        typeOperations,
-      );
+                StructuralParameter
+              >()]!
+          .mergeIn(protoConstraint, typeOperations);
     }
     return result;
   }
@@ -242,13 +252,14 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
   }) {
     GeneratedTypeConstraint generatedTypeConstraint =
         new GeneratedTypeConstraint.lower(
-      new SharedTypeParameterView(parameter),
-      new SharedTypeSchemaView(lower),
-    );
+          new SharedTypeParameterView(parameter),
+          new SharedTypeSchemaView(lower),
+        );
     if (astNodeForTesting != null && _inferenceResultForTesting != null) {
       // Coverage-ignore-block(suite): Not run.
       (_inferenceResultForTesting
-              .generatedTypeConstraints[astNodeForTesting] ??= [])
+                  .generatedTypeConstraints[astNodeForTesting] ??=
+              [])
           .add(generatedTypeConstraint);
     }
     _protoConstraints.add(generatedTypeConstraint);
@@ -262,13 +273,14 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
   }) {
     GeneratedTypeConstraint generatedTypeConstraint =
         new GeneratedTypeConstraint.upper(
-      new SharedTypeParameterView(parameter),
-      new SharedTypeSchemaView(upper),
-    );
+          new SharedTypeParameterView(parameter),
+          new SharedTypeSchemaView(upper),
+        );
     if (astNodeForTesting != null && _inferenceResultForTesting != null) {
       // Coverage-ignore-block(suite): Not run.
       (_inferenceResultForTesting
-              .generatedTypeConstraints[astNodeForTesting] ??= [])
+                  .generatedTypeConstraints[astNodeForTesting] ??=
+              [])
           .add(generatedTypeConstraint);
     }
     _protoConstraints.add(generatedTypeConstraint);
@@ -296,12 +308,12 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
             typeParametersToConstrain.toSet(),
             unhandledTypeHandler: (DartType type, ignored) =>
                 type is UnknownType
-                    ? false
-                    :
-                    // Coverage-ignore(suite): Not run.
-                    throw new UnsupportedError(
-                        "Unsupported type '${type.runtimeType}'.",
-                      ),
+                ? false
+                :
+                  // Coverage-ignore(suite): Not run.
+                  throw new UnsupportedError(
+                    "Unsupported type '${type.runtimeType}'.",
+                  ),
           ),
       "Failed implication check: "
       "constrainSupertype -> !containsStructuralParameter(q)",
@@ -338,12 +350,12 @@ class TypeConstraintGatherer extends shared.TypeConstraintGenerator<
             typeParametersToConstrain.toSet(),
             unhandledTypeHandler: (DartType type, ignored) =>
                 type is UnknownType
-                    ? false
-                    :
-                    // Coverage-ignore(suite): Not run.
-                    throw new UnsupportedError(
-                        "Unsupported type '${type.runtimeType}'.",
-                      ),
+                ? false
+                :
+                  // Coverage-ignore(suite): Not run.
+                  throw new UnsupportedError(
+                    "Unsupported type '${type.runtimeType}'.",
+                  ),
           ),
       "Failed implication check: "
       "!constrainSupertype -> !containsStructuralParameter(q)",

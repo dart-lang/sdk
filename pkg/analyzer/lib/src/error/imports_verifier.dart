@@ -11,11 +11,11 @@ import 'package:analyzer/src/error/codes.dart';
 
 /// Instances of the class `ImportsVerifier` visit all of the referenced
 /// libraries in the source code verifying that all of the imports are used,
-/// otherwise a [WarningCode.UNUSED_IMPORT] hint is generated with
+/// otherwise a [WarningCode.unusedImport] hint is generated with
 /// [generateUnusedImportWarnings].
 ///
 /// Additionally, [generateDuplicateImportWarnings] generates
-/// [WarningCode.DUPLICATE_IMPORT] hints and [WarningCode.UNUSED_SHOWN_NAME]
+/// [WarningCode.duplicateImport] hints and [WarningCode.unusedShownName]
 /// warnings.
 ///
 /// While this class does not yet have support for an "Organize Imports" action,
@@ -98,34 +98,34 @@ class ImportsVerifier {
 
   /// Any time after the defining compilation unit has been visited by this
   /// visitor, this method can be called to report an
-  /// [WarningCode.DUPLICATE_EXPORT] hint for each of the export
+  /// [WarningCode.duplicateExport] hint for each of the export
   /// directives in the [_duplicateExports] list.
   void generateDuplicateExportWarnings(DiagnosticReporter diagnosticReporter) {
     var length = _duplicateExports.length;
     for (var i = 0; i < length; i++) {
       diagnosticReporter.atNode(
         _duplicateExports[i].uri,
-        WarningCode.DUPLICATE_EXPORT,
+        WarningCode.duplicateExport,
       );
     }
   }
 
   /// Any time after the defining compilation unit has been visited by this
   /// visitor, this method can be called to report an
-  /// [WarningCode.DUPLICATE_IMPORT] hint for each of the import
+  /// [WarningCode.duplicateImport] hint for each of the import
   /// directives in the [_duplicateImports] list.
   void generateDuplicateImportWarnings(DiagnosticReporter diagnosticReporter) {
     var length = _duplicateImports.length;
     for (var i = 0; i < length; i++) {
       diagnosticReporter.atNode(
         _duplicateImports[i].uri,
-        WarningCode.DUPLICATE_IMPORT,
+        WarningCode.duplicateImport,
       );
     }
   }
 
-  /// Report a [WarningCode.DUPLICATE_SHOWN_NAME] and
-  /// [WarningCode.DUPLICATE_HIDDEN_NAME] hints for each duplicate shown or
+  /// Report a [WarningCode.duplicateShownName] and
+  /// [WarningCode.duplicateHiddenName] hints for each duplicate shown or
   /// hidden name.
   ///
   /// Only call this method after all of the compilation units have been visited
@@ -138,7 +138,7 @@ class ImportsVerifier {
       int length = identifiers.length;
       for (int i = 0; i < length; i++) {
         Identifier identifier = identifiers[i];
-        reporter.atNode(identifier, WarningCode.DUPLICATE_HIDDEN_NAME);
+        reporter.atNode(identifier, WarningCode.duplicateHiddenName);
       }
     });
     _duplicateShownNamesMap.forEach((
@@ -148,7 +148,7 @@ class ImportsVerifier {
       int length = identifiers.length;
       for (int i = 0; i < length; i++) {
         Identifier identifier = identifiers[i];
-        reporter.atNode(identifier, WarningCode.DUPLICATE_SHOWN_NAME);
+        reporter.atNode(identifier, WarningCode.duplicateShownName);
       }
     });
   }
@@ -215,7 +215,7 @@ class ImportsVerifier {
             secondElementUri is DirectiveUriWithLibraryImpl) {
           diagnosticReporter.atNode(
             firstDirective.uri,
-            HintCode.UNNECESSARY_IMPORT,
+            HintCode.unnecessaryImport,
             arguments: [
               firstElementUri.relativeUriString,
               secondElementUri.relativeUriString,
@@ -228,7 +228,7 @@ class ImportsVerifier {
     }
   }
 
-  /// Reports [WarningCode.UNUSED_IMPORT] for each unused import.
+  /// Reports [WarningCode.unusedImport] for each unused import.
   void generateUnusedImportWarnings(DiagnosticReporter diagnosticReporter) {
     var importsTracking = fileAnalysis.importsTracking;
     for (var importDirective in fileAnalysis.unit.directives) {
@@ -262,7 +262,7 @@ class ImportsVerifier {
             _unusedImports.add(importDirective);
             diagnosticReporter.atNode(
               importDirective.uri,
-              WarningCode.UNUSED_IMPORT,
+              WarningCode.unusedImport,
               arguments: [uri.relativeUriString],
             );
           }
@@ -271,7 +271,7 @@ class ImportsVerifier {
     }
   }
 
-  /// Use the error [reporter] to report an [WarningCode.UNUSED_SHOWN_NAME]
+  /// Use the error [reporter] to report an [WarningCode.unusedShownName]
   /// for each unused shown name.
   ///
   /// This method should be invoked after [generateUnusedImportWarnings].
@@ -318,7 +318,7 @@ class ImportsVerifier {
               if (!isUsed) {
                 reporter.atNode(
                   identifier,
-                  WarningCode.UNUSED_SHOWN_NAME,
+                  WarningCode.unusedShownName,
                   arguments: [identifier.name],
                 );
               }

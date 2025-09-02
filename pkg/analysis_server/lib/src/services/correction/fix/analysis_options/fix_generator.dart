@@ -31,12 +31,12 @@ import 'package:yaml_edit/yaml_edit.dart';
 /// The generator used to generate fixes in analysis options files.
 class AnalysisOptionsFixGenerator {
   static const List<DiagnosticCode> codesWithFixes = [
-    AnalysisOptionsWarningCode.DEPRECATED_LINT,
-    AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT,
-    AnalysisOptionsWarningCode.DUPLICATE_RULE,
-    AnalysisOptionsWarningCode.REMOVED_LINT,
-    AnalysisOptionsWarningCode.UNDEFINED_LINT,
-    AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES,
+    AnalysisOptionsWarningCode.deprecatedLint,
+    AnalysisOptionsWarningCode.analysisOptionDeprecatedWithReplacement,
+    AnalysisOptionsWarningCode.duplicateRule,
+    AnalysisOptionsWarningCode.removedLint,
+    AnalysisOptionsWarningCode.undefinedLint,
+    AnalysisOptionsWarningCode.unsupportedOptionWithoutValues,
   ];
 
   /// The resource provider used to access the file system.
@@ -91,8 +91,7 @@ class AnalysisOptionsFixGenerator {
     }
 
     if (diagnosticCode ==
-        AnalysisOptionsWarningCode
-            .ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT) {
+        AnalysisOptionsWarningCode.analysisOptionDeprecatedWithReplacement) {
       var analyzerMap = options['analyzer'];
       if (analyzerMap is! YamlMap) {
         return fixes;
@@ -116,13 +115,13 @@ class AnalysisOptionsFixGenerator {
           strongModeMap,
         );
       }
-    } else if (diagnosticCode == AnalysisOptionsWarningCode.DEPRECATED_LINT ||
-        diagnosticCode == AnalysisOptionsWarningCode.DUPLICATE_RULE ||
-        diagnosticCode == AnalysisOptionsWarningCode.REMOVED_LINT ||
-        diagnosticCode == AnalysisOptionsWarningCode.UNDEFINED_LINT) {
+    } else if (diagnosticCode == AnalysisOptionsWarningCode.deprecatedLint ||
+        diagnosticCode == AnalysisOptionsWarningCode.duplicateRule ||
+        diagnosticCode == AnalysisOptionsWarningCode.removedLint ||
+        diagnosticCode == AnalysisOptionsWarningCode.undefinedLint) {
       await _addFix_removeLint(coveringNodePath);
     } else if (diagnosticCode ==
-        AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES) {
+        AnalysisOptionsWarningCode.unsupportedOptionWithoutValues) {
       await _addFix_removeSetting(coveringNodePath);
     }
     return fixes;

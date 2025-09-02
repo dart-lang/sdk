@@ -25,7 +25,7 @@ var c = const {1: null, 2: null, 1: null};
 ''',
       [
         error(
-          CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP,
+          CompileTimeErrorCode.equalKeysInConstMap,
           33,
           1,
           contextMessages: [message(testFile, 15, 1)],
@@ -42,7 +42,7 @@ extension type E(int it) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP,
+          CompileTimeErrorCode.equalKeysInConstMap,
           19,
           1,
           contextMessages: [message(testFile, 11, 3)],
@@ -58,7 +58,7 @@ var c = const {1: null, if (1 < 0) 2: null else 1: null};
 ''',
       [
         error(
-          CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP,
+          CompileTimeErrorCode.equalKeysInConstMap,
           48,
           1,
           contextMessages: [message(testFile, 15, 1)],
@@ -98,7 +98,7 @@ var c = const {1: null, if (0 < 1) 1: null};
 ''',
       [
         error(
-          CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP,
+          CompileTimeErrorCode.equalKeysInConstMap,
           35,
           1,
           contextMessages: [message(testFile, 15, 1)],
@@ -118,7 +118,7 @@ var c = const {const A<int>(): null, const A<int>(): null};
 ''',
       [
         error(
-          CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP,
+          CompileTimeErrorCode.equalKeysInConstMap,
           66,
           14,
           contextMessages: [message(testFile, 44, 14)],
@@ -145,7 +145,7 @@ const x = {[0]: null, [0]: null};
 ''',
       [
         error(
-          CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP,
+          CompileTimeErrorCode.equalKeysInConstMap,
           22,
           3,
           contextMessages: [message(testFile, 11, 3)],
@@ -167,7 +167,7 @@ const x = {(0, 1): null, (0, 1): null};
 ''',
       [
         error(
-          CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP,
+          CompileTimeErrorCode.equalKeysInConstMap,
           25,
           6,
           contextMessages: [message(testFile, 11, 6)],
@@ -195,7 +195,7 @@ var c = const {1: null, ...{1: null}};
 ''',
       [
         error(
-          CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP,
+          CompileTimeErrorCode.equalKeysInConstMap,
           27,
           9,
           contextMessages: [message(testFile, 15, 1)],
@@ -210,7 +210,7 @@ var c = const {1: null, ...{1: null}};
       '''
 var c = {1: null, 2: null, 1: null};
 ''',
-      [error(WarningCode.EQUAL_KEYS_IN_MAP, 27, 1)],
+      [error(WarningCode.equalKeysInMap, 27, 1)],
     );
   }
 }

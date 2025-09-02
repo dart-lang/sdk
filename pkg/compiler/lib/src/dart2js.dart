@@ -674,10 +674,14 @@ Future<api.CompilationResult> compile(
     if (sourceOrDill.endsWith('.dart')) {
       options.add('${Flags.entryUri}=$file');
       entryUri = file;
-    } else {
-      assert(sourceOrDill.endsWith('.dill'));
+    } else if (sourceOrDill.endsWith('.dill')) {
       options.add('${Flags.inputDill}=$file');
       inputDillUri = file;
+    } else {
+      _fail(
+        "Unexpected file '$sourceOrDill'.\n"
+        "Only .dart and .dill extensions are supported.",
+      );
     }
   }
 

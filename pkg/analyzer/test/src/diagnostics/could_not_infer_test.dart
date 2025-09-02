@@ -37,26 +37,26 @@ main() {
       [
         error(
           CompileTimeErrorCode
-              .NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR,
+              .notInitializedNonNullableInstanceFieldConstructor,
           94,
           1,
         ),
         error(
           CompileTimeErrorCode
-              .NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR,
+              .notInitializedNonNullableInstanceFieldConstructor,
           94,
           1,
         ),
-        error(CompileTimeErrorCode.COULD_NOT_INFER, 154, 3),
-        error(CompileTimeErrorCode.COULD_NOT_INFER, 154, 3),
+        error(CompileTimeErrorCode.couldNotInfer, 154, 3),
+        error(CompileTimeErrorCode.couldNotInfer, 154, 3),
         error(
-          CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
           154,
           1,
           contextMessages: [message(testFile, 154, 1)],
         ),
         error(
-          CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
           154,
           1,
           contextMessages: [message(testFile, 154, 1)],
@@ -84,9 +84,9 @@ main() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 98, 4),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 120, 1),
-        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 126, 3),
+        error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 98, 4),
+        error(WarningCode.unusedLocalVariable, 120, 1),
+        error(CompileTimeErrorCode.argumentTypeNotAssignable, 126, 3),
       ],
     );
   }
@@ -107,31 +107,27 @@ main() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 93, 1),
+        error(WarningCode.unusedLocalVariable, 93, 1),
         error(
-          CompileTimeErrorCode
-              .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
           101,
           1,
         ),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 117, 1),
+        error(WarningCode.unusedLocalVariable, 117, 1),
         error(
-          CompileTimeErrorCode
-              .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
           125,
           1,
         ),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 142, 1),
+        error(WarningCode.unusedLocalVariable, 142, 1),
         error(
-          CompileTimeErrorCode
-              .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
           150,
           1,
         ),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 163, 1),
+        error(WarningCode.unusedLocalVariable, 163, 1),
         error(
-          CompileTimeErrorCode
-              .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
           171,
           1,
         ),
@@ -145,7 +141,7 @@ main() {
 T f<T>(T t) => null;
 main() { f(<S>(S s) => s); }
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 15, 4)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 15, 4)],
     );
   }
 
@@ -158,7 +154,7 @@ void f(X x) {
   foo(x);
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 40, 1)],
+      [error(CompileTimeErrorCode.undefinedClass, 40, 1)],
     );
   }
 
@@ -193,7 +189,7 @@ void f() {
   foo();
 }
 ''',
-      [error(CompileTimeErrorCode.COULD_NOT_INFER, 85, 3)],
+      [error(CompileTimeErrorCode.couldNotInfer, 85, 3)],
     );
   }
 
@@ -209,7 +205,7 @@ main() {
   [f];
 }
 ''',
-      [error(CompileTimeErrorCode.COULD_NOT_INFER, 42, 3)],
+      [error(CompileTimeErrorCode.couldNotInfer, 42, 3)],
     );
   }
 
@@ -232,7 +228,7 @@ void main() {
   g(f);
 }
 ''',
-      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 95, 1)],
+      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 95, 1)],
     );
   }
 
@@ -248,7 +244,7 @@ void main() {
   g(a.f);
 }
 ''',
-      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 78, 3)],
+      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 78, 3)],
     );
   }
 
@@ -261,7 +257,7 @@ void main() {
   g(f);
 }
 ''',
-      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 95, 1)],
+      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 95, 1)],
     );
   }
 
@@ -278,7 +274,7 @@ void main() {
   g(C().m);
 }
 ''',
-      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 124, 5)],
+      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 124, 5)],
     );
   }
 
@@ -322,8 +318,8 @@ void main() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.COULD_NOT_INFER, 92, 1),
-        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 92, 1),
+        error(CompileTimeErrorCode.couldNotInfer, 92, 1),
+        error(CompileTimeErrorCode.argumentTypeNotAssignable, 92, 1),
       ],
     );
   }
@@ -339,7 +335,7 @@ main() {
   new Foo<String>().method(42);
 }
 ''',
-      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 104, 2)],
+      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 104, 2)],
     );
   }
 
@@ -361,9 +357,9 @@ void f() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.COULD_NOT_INFER, 152, 1),
-        error(CompileTimeErrorCode.COULD_NOT_INFER, 169, 5),
-        error(CompileTimeErrorCode.COULD_NOT_INFER, 190, 5),
+        error(CompileTimeErrorCode.couldNotInfer, 152, 1),
+        error(CompileTimeErrorCode.couldNotInfer, 169, 5),
+        error(CompileTimeErrorCode.couldNotInfer, 190, 5),
       ],
     );
   }
@@ -376,7 +372,7 @@ class C {
 }
 main() { new C().f(<S>(S s) => s); }
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD, 27, 4)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 27, 4)],
     );
   }
 
@@ -390,7 +386,7 @@ class C<P extends num> {
 
 var c = C([]);
 ''',
-      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 84, 2)],
+      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 84, 2)],
     );
   }
 }

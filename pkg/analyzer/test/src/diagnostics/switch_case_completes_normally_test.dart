@@ -58,7 +58,7 @@ void f(int a) {
 }''',
       [
         if (!_patternsEnabled)
-          error(CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY, 35, 4),
+          error(CompileTimeErrorCode.switchCaseCompletesNormally, 35, 4),
       ],
     );
   }
@@ -135,7 +135,7 @@ void f(int a) {
 }''',
       [
         if (!_patternsEnabled)
-          error(CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY, 35, 4),
+          error(CompileTimeErrorCode.switchCaseCompletesNormally, 35, 4),
       ],
     );
   }

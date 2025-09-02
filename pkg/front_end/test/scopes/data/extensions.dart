@@ -6,13 +6,8 @@ final x = 'scope-marker';
 
 extension Extension on int {
   empty() {
-    /*cfe.
+    /*
      member=Extension|empty,
-     static,
-     variables=[#this]
-    */
-    /*ddc.
-     member=Extension|get#empty,
      static,
      variables=[#this]
     */
@@ -20,15 +15,8 @@ extension Extension on int {
   }
 
   oneParameter(a) {
-    /*cfe.
+    /*
      member=Extension|oneParameter,
-     static,
-     variables=[
-      #this,
-      a]
-    */
-    /*ddc.
-     member=Extension|get#oneParameter,
      static,
      variables=[
       #this,
@@ -38,16 +26,8 @@ extension Extension on int {
   }
 
   twoParameters(a, b) {
-    /*cfe.
+    /*
      member=Extension|twoParameters,
-     static,
-     variables=[
-      #this,
-      a,
-      b]
-    */
-    /*ddc.
-     member=Extension|get#twoParameters,
      static,
      variables=[
       #this,
@@ -58,16 +38,8 @@ extension Extension on int {
   }
 
   optionalParameter(a, [b]) {
-    /*cfe.
+    /*
      member=Extension|optionalParameter,
-     static,
-     variables=[
-      #this,
-      a,
-      b]
-    */
-    /*ddc.
-     member=Extension|get#optionalParameter,
      static,
      variables=[
       #this,
@@ -78,16 +50,8 @@ extension Extension on int {
   }
 
   namedParameter(a, {b}) {
-    /*cfe.
+    /*
      member=Extension|namedParameter,
-     static,
-     variables=[
-      #this,
-      a,
-      b]
-    */
-    /*ddc.
-     member=Extension|get#namedParameter,
      static,
      variables=[
       #this,
@@ -98,18 +62,10 @@ extension Extension on int {
   }
 
   oneTypeParameter<T>() {
-    /*cfe.
+    /*
      member=Extension|oneTypeParameter,
      static,
      typeParameters=[Extension|oneTypeParameter.T],
-     variables=[#this]
-    */
-    /*ddc.
-     member=Extension|get#oneTypeParameter,
-     static,
-     typeParameters=[
-      Extension|oneTypeParameter.T,
-      T],
      variables=[#this]
     */
     x;
@@ -118,25 +74,17 @@ extension Extension on int {
 
 extension GenericExtension<T> on T {
   classTypeParameter() {
-    /*cfe.
+    /*
      member=GenericExtension|classTypeParameter,
      static,
      typeParameters=[GenericExtension|classTypeParameter.T],
-     variables=[#this]
-    */
-    /*ddc.
-     member=GenericExtension|get#classTypeParameter,
-     static,
-     typeParameters=[
-      GenericExtension|classTypeParameter.T,
-      GenericExtension|get#classTypeParameter.T],
      variables=[#this]
     */
     x;
   }
 
   mixedTypeParameter<S>() {
-    /*cfe.
+    /*
      member=GenericExtension|mixedTypeParameter,
      static,
      typeParameters=[
@@ -144,21 +92,10 @@ extension GenericExtension<T> on T {
       GenericExtension|mixedTypeParameter.T],
      variables=[#this]
     */
-    /*ddc.
-     member=GenericExtension|get#mixedTypeParameter,
-     static,
-     typeParameters=[
-      GenericExtension|get#mixedTypeParameter.T,
-      GenericExtension|mixedTypeParameter.S,
-      GenericExtension|mixedTypeParameter.T,
-      S],
-     variables=[#this]
-    */
     x;
   }
 
-  static var field = /*member=GenericExtension|field*/
-      x;
+  static var field = /*member=GenericExtension|field*/ x;
 
   static empty() {
     /*

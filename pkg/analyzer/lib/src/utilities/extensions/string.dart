@@ -144,11 +144,108 @@ extension StringExtension on String {
     return isNotEmpty ? this : orElse;
   }
 
+  String removePrefixOrSelf(String prefix) {
+    if (startsWith(prefix)) {
+      return substring(prefix.length);
+    } else {
+      return this;
+    }
+  }
+
   String? removeSuffix(String suffix) {
     if (endsWith(suffix)) {
       return substring(0, length - suffix.length);
     } else {
       return null;
     }
+  }
+
+  /// Converts `SCREAMING_SNAKE_CASE` or `snake_case` to `camelCase`.
+  String toCamelCase() {
+    var parts = toLowerCase().split('_');
+    var buffer = StringBuffer();
+    var i = 0;
+    // Preserve initial '_'s
+    while (i < parts.length - 1 && parts[i].isEmpty) {
+      buffer.write('_');
+      ++i;
+    }
+    if (i < parts.length) {
+      // Convert first word to lower case
+      buffer.write(parts[i].toLowerCase());
+      ++i;
+      // Convert remaining words to initial upper case
+      while (i < parts.length) {
+        var part = parts[i];
+        if (part.isNotEmpty) {
+          buffer.write(part[0].toUpperCase());
+          buffer.write(part.substring(1));
+        }
+        ++i;
+      }
+    }
+    return buffer.toString();
+  }
+
+  /// Converts `SCREAMING_SNAKE_CASE` or `snake_case` to `PascalCase`.
+  String toPascalCase() {
+    var parts = toLowerCase().split('_');
+    var buffer = StringBuffer();
+    var i = 0;
+    // Preserve initial '_'s
+    while (i < parts.length - 1 && parts[i].isEmpty) {
+      buffer.write('_');
+      ++i;
+    }
+    // Convert words to initial upper case
+    while (i < parts.length) {
+      var part = parts[i];
+      if (part.isNotEmpty) {
+        buffer.write(part[0].toUpperCase());
+        buffer.write(part.substring(1));
+      }
+      ++i;
+    }
+    return buffer.toString();
+  }
+
+  /// Converts `camelCase` / `PascalCase` to `SCREAMING_SNAKE_CASE`.
+  /// Examples:
+  ///  - camelCase        -> CAMEL_CASE
+  ///  - HTTPRequest      -> HTTP_REQUEST
+  ///  - myURLId2Parser   -> MY_URL_ID_2_PARSER
+  ///  - _privateField    -> _PRIVATE_FIELD
+  String toScreamingSnake() {
+    if (isEmpty) return this;
+
+    // Preserve leading underscores (e.g., Dart private members).
+    var leading = RegExp(r'^_+').stringMatch(this) ?? '';
+    var result = substring(leading.length);
+
+    // Split lower/digit -> Upper (e.g., "fooBar" -> "foo_Bar", "v2X" -> "v2_X").
+    result = result.replaceAllMapped(
+      RegExp(r'([a-z0-9])([A-Z])'),
+      (match) => '${match[1]}_${match[2]}',
+    );
+
+    // Split acronym -> Word (e.g., "HTMLParser" -> "HTML_Parser").
+    result = result.replaceAllMapped(
+      RegExp(r'([A-Z]+)([A-Z][a-z])'),
+      (match) => '${match[1]}_${match[2]}',
+    );
+
+    // Separate letters and digits both ways (e.g., "ID10T" -> "ID_10_T").
+    result = result.replaceAllMapped(
+      RegExp(r'([A-Za-z])([0-9])'),
+      (match) => '${match[1]}_${match[2]}',
+    );
+    result = result.replaceAllMapped(
+      RegExp(r'([0-9])([A-Za-z])'),
+      (match) => '${match[1]}_${match[2]}',
+    );
+
+    // Normalize separators and scream.
+    result = result.replaceAll(RegExp(r'_+'), '_');
+    return leading + result.toUpperCase();
   }
 }

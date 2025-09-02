@@ -51,5 +51,7 @@ final class _Closure implements Function {
   // This initializer makes _hash field nullable even without constructor
   // compilation.
   @pragma("vm:entry-point")
+  // Harmless race lazily computing the hash.
+  @pragma("vm:no-sanitize-thread")
   var _hash = null;
 }

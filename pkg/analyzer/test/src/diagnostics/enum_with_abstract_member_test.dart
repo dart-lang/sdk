@@ -23,7 +23,7 @@ enum E {
   int get foo;
 }
 ''',
-      [error(CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER, 16, 12)],
+      [error(CompileTimeErrorCode.enumWithAbstractMember, 16, 12)],
     );
   }
 
@@ -35,7 +35,7 @@ enum E {
   void foo();
 }
 ''',
-      [error(CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER, 16, 11)],
+      [error(CompileTimeErrorCode.enumWithAbstractMember, 16, 11)],
     );
   }
 
@@ -47,7 +47,7 @@ enum E {
   set foo(int _);
 }
 ''',
-      [error(CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER, 16, 15)],
+      [error(CompileTimeErrorCode.enumWithAbstractMember, 16, 15)],
     );
   }
 }

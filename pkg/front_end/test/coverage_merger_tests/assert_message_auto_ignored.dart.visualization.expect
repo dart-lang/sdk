@@ -1,0 +1,5 @@
+package:front_end/main.dart: 80% (1 misses)
+package:front_end/main.dart:3:
+In 'main':
+    args.isEmpty || args.isNotEmpty,
+                         ^^^^^^^^^^

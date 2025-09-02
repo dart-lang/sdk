@@ -4,6 +4,7 @@
 
 import 'package:analyzer/src/fine/lookup_name.dart';
 import 'package:analyzer/src/fine/manifest_id.dart';
+import 'package:analyzer/src/fine/requirements.dart';
 
 final class ExportCountMismatch extends ExportFailure {
   final Uri fragmentUri;
@@ -24,6 +25,24 @@ final class ExportCountMismatch extends ExportFailure {
         'exportedUri: $exportedUri, '
         'expectedCount: $expectedCount, '
         'actualCount: $actualCount)';
+  }
+}
+
+class ExportedExtensionsMismatch extends RequirementFailure {
+  final Uri libraryUri;
+  final ManifestItemIdList expectedIds;
+  final ManifestItemIdList actualIds;
+
+  ExportedExtensionsMismatch({
+    required this.libraryUri,
+    required this.expectedIds,
+    required this.actualIds,
+  });
+
+  @override
+  String toString() {
+    return 'ExportedExtensionsMismatch(libraryUri: $libraryUri, '
+        'expectedIds: $expectedIds, actualIds: $actualIds)';
   }
 }
 
@@ -138,6 +157,30 @@ class InstanceMethodIdMismatch extends RequirementFailure {
   }
 }
 
+class InterfaceChildrenIdsMismatch extends RequirementFailure {
+  final Uri libraryUri;
+  final LookupName interfaceName;
+  final String childrenPropertyName;
+  final ManifestItemIdList expectedIds;
+  final ManifestItemIdList actualIds;
+
+  InterfaceChildrenIdsMismatch({
+    required this.libraryUri,
+    required this.interfaceName,
+    required this.childrenPropertyName,
+    required this.expectedIds,
+    required this.actualIds,
+  });
+
+  @override
+  String toString() {
+    return 'InterfaceChildrenIdsMismatch(libraryUri: $libraryUri, '
+        'interfaceName: ${interfaceName.asString}, '
+        'childrenPropertyName: $childrenPropertyName, '
+        'expectedIds: $expectedIds, actualIds: $actualIds)';
+  }
+}
+
 class InterfaceConstructorIdMismatch extends RequirementFailure {
   final Uri libraryUri;
   final LookupName interfaceName;
@@ -196,6 +239,17 @@ class LibraryMissing extends RequirementFailure {
   }
 }
 
+final class OpaqueApiUseFailure extends RequirementFailure {
+  final List<OpaqueApiUse> uses;
+
+  OpaqueApiUseFailure({required this.uses});
+
+  @override
+  String toString() {
+    return 'OpaqueApiUseFailure(uses: $uses)';
+  }
+}
+
 sealed class RequirementFailure {}
 
 sealed class TopLevelFailure extends RequirementFailure {
@@ -222,6 +276,22 @@ class TopLevelIdMismatch extends TopLevelFailure {
         'name: ${name.asString}, '
         'expectedId: $expectedId, '
         'actualId: $actualId)';
+  }
+}
+
+class TopLevelNotInstance extends TopLevelFailure {
+  final Object? actualItem;
+
+  TopLevelNotInstance({
+    required super.libraryUri,
+    required super.name,
+    required this.actualItem,
+  });
+
+  @override
+  String toString() {
+    return 'TopLevelNotInstance(libraryUri: $libraryUri, '
+        'name: ${name.asString})';
   }
 }
 

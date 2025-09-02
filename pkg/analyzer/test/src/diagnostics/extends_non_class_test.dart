@@ -20,7 +20,7 @@ class ExtendsNonClassTest extends PubPackageResolutionTest {
       r'''
 class A extends dynamic {}
 ''',
-      [error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 16, 7)],
+      [error(CompileTimeErrorCode.extendsNonClass, 16, 7)],
     );
 
     var node = findNode.singleExtendsClause;
@@ -40,7 +40,7 @@ ExtendsClause
 enum E { ONE }
 class A extends E {}
 ''',
-      [error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 31, 1)],
+      [error(CompileTimeErrorCode.extendsNonClass, 31, 1)],
     );
 
     var node = findNode.singleExtendsClause;
@@ -60,7 +60,7 @@ ExtendsClause
 extension type A(int it) {}
 class B extends A {}
 ''',
-      [error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 44, 1)],
+      [error(CompileTimeErrorCode.extendsNonClass, 44, 1)],
     );
 
     var node = findNode.singleExtendsClause;
@@ -80,7 +80,7 @@ ExtendsClause
 mixin M {}
 class A extends M {}
 ''',
-      [error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 27, 1)],
+      [error(CompileTimeErrorCode.extendsNonClass, 27, 1)],
     );
 
     var node = findNode.singleExtendsClause;
@@ -100,7 +100,7 @@ ExtendsClause
 int v = 0;
 class A extends v {}
 ''',
-      [error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 27, 1)],
+      [error(CompileTimeErrorCode.extendsNonClass, 27, 1)],
     );
 
     var node = findNode.singleExtendsClause;
@@ -120,7 +120,7 @@ ExtendsClause
 int v = 0;
 class A extends v<int> {}
 ''',
-      [error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 27, 1)],
+      [error(CompileTimeErrorCode.extendsNonClass, 27, 1)],
     );
 
     var node = findNode.singleExtendsClause;
@@ -147,7 +147,7 @@ ExtendsClause
       '''
 class A extends Never {}
 ''',
-      [error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 16, 5)],
+      [error(CompileTimeErrorCode.extendsNonClass, 16, 5)],
     );
 
     var node = findNode.singleExtendsClause;
@@ -166,7 +166,7 @@ ExtendsClause
       r'''
 class C extends A {}
 ''',
-      [error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 16, 1)],
+      [error(CompileTimeErrorCode.extendsNonClass, 16, 1)],
     );
 
     var node = findNode.singleExtendsClause;
@@ -187,7 +187,7 @@ import 'a.dart' as p;
 
 class C extends p.A {}
 ''',
-      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 8)],
+      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 8)],
     );
 
     var node = findNode.singleExtendsClause;
@@ -242,7 +242,7 @@ part of 'a.dart';
 import 'x.dart' as p;
 class C extends p.A {}
 ''',
-      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 25, 8)],
+      [error(CompileTimeErrorCode.uriDoesNotExist, 25, 8)],
     );
 
     var node = findNode.singleExtendsClause;
@@ -267,7 +267,7 @@ import 'a.dart' show A;
 
 class C extends A {}
 ''',
-      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 8)],
+      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 8)],
     );
   }
 
@@ -294,7 +294,7 @@ part of 'a.dart';
 import 'x.dart' show A;
 class C extends A {}
 ''',
-      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 25, 8)],
+      [error(CompileTimeErrorCode.uriDoesNotExist, 25, 8)],
     );
   }
 
@@ -333,7 +333,7 @@ import 'x.dart' show A;
 part of 'a.dart';
 class C extends A {}
 ''',
-      [error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 34, 1)],
+      [error(CompileTimeErrorCode.extendsNonClass, 34, 1)],
     );
   }
 
@@ -345,8 +345,8 @@ import 'a.dart' show B;
 class C extends A {}
 ''',
       [
-        error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 8),
-        error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 41, 1),
+        error(CompileTimeErrorCode.uriDoesNotExist, 7, 8),
+        error(CompileTimeErrorCode.extendsNonClass, 41, 1),
       ],
     );
   }
@@ -362,7 +362,7 @@ part 'a.g.dart';
 
 class C extends _$A {}
 ''',
-      [error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 34, 3)],
+      [error(CompileTimeErrorCode.extendsNonClass, 34, 3)],
     );
   }
 
@@ -373,7 +373,7 @@ part 'a.g.dart';
 
 class C extends _$A {}
 ''',
-      [error(CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED, 5, 10)],
+      [error(CompileTimeErrorCode.uriHasNotBeenGenerated, 5, 10)],
     );
   }
 
@@ -385,8 +385,8 @@ part 'a.g.dart';
 class C extends A {}
 ''',
       [
-        error(CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED, 5, 10),
-        error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 34, 1),
+        error(CompileTimeErrorCode.uriHasNotBeenGenerated, 5, 10),
+        error(CompileTimeErrorCode.extendsNonClass, 34, 1),
       ],
     );
   }
@@ -399,8 +399,8 @@ part 'a.dart';
 class C extends _$A {}
 ''',
       [
-        error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 5, 8),
-        error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 32, 3),
+        error(CompileTimeErrorCode.uriDoesNotExist, 5, 8),
+        error(CompileTimeErrorCode.extendsNonClass, 32, 3),
       ],
     );
   }
@@ -413,8 +413,8 @@ part 'a.dart';
 class C extends A {}
 ''',
       [
-        error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 5, 8),
-        error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 32, 1),
+        error(CompileTimeErrorCode.uriDoesNotExist, 5, 8),
+        error(CompileTimeErrorCode.extendsNonClass, 32, 1),
       ],
     );
   }
@@ -426,7 +426,7 @@ import 'dart:math' as p;
 
 class C extends p.A {}
 ''',
-      [error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 42, 3)],
+      [error(CompileTimeErrorCode.extendsNonClass, 42, 3)],
     );
 
     var node = findNode.singleExtendsClause;

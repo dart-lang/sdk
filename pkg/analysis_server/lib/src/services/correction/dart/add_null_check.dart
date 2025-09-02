@@ -89,7 +89,7 @@ class AddNullCheck extends ResolvedCorrectionProducer {
       return;
     }
     var fromType = _target.staticType;
-    if (fromType == null) {
+    if (fromType == null || fromType is InvalidType) {
       return;
     }
 
@@ -122,22 +122,18 @@ class AddNullCheck extends ResolvedCorrectionProducer {
       toType = parent.realTarget.typeOrThrow;
     } else if (parent is ForEachPartsWithDeclaration) {
       toType = typeProvider.iterableType(
-        parent.loopVariable.declaredElement!.type,
+        parent.loopVariable.declaredFragment!.element.type,
       );
     } else if (parent is ForEachPartsWithIdentifier) {
       toType = typeProvider.iterableType(parent.identifier.typeOrThrow);
     } else if (parent is SpreadElement) {
       var literal = parent.thisOrAncestorOfType<TypedLiteral>();
       if (literal is ListLiteral) {
-        toType = literal.typeOrThrow.asInstanceOf(
-          typeProvider.iterableElement,
-        );
+        toType = literal.typeOrThrow.asInstanceOf(typeProvider.iterableElement);
       } else if (literal is SetOrMapLiteral) {
         toType =
             literal.typeOrThrow.isDartCoreSet
-                ? literal.typeOrThrow.asInstanceOf(
-                  typeProvider.iterableElement,
-                )
+                ? literal.typeOrThrow.asInstanceOf(typeProvider.iterableElement)
                 : literal.typeOrThrow.asInstanceOf(typeProvider.mapElement);
       }
     } else if (parent is YieldStatement) {

@@ -102,6 +102,7 @@ assigning
 assigns
 association
 assured
+assures
 ast
 asy
 atm
@@ -117,6 +118,7 @@ augmented
 augmenting
 augments
 author
+authoritative
 auto
 automagically
 automatic
@@ -276,6 +278,7 @@ class's
 clause's
 clazz
 cli
+clickable
 client's
 clil
 clock
@@ -288,6 +291,7 @@ cmdlines
 cn
 cnt
 co
+code's
 codebase
 codec
 codes
@@ -328,6 +332,7 @@ concatenate
 concept
 conceptual
 concerned
+concerning
 conciser
 conclusions
 concurrently
@@ -425,6 +430,7 @@ debuggable
 debugger
 dec
 decl
+deconstruct
 decoupled
 decreases
 dedupe
@@ -525,6 +531,7 @@ doc
 docs
 doesn\'t
 dom
+domain
 dominator
 dont
 doubles
@@ -575,6 +582,7 @@ emitting
 emptied
 en
 encapsulation
+encompasses
 end'ed
 end's
 endpoint
@@ -660,6 +668,7 @@ fairly
 falsity
 fangorn
 fasta
+faulty
 favored
 favoring
 fc
@@ -870,6 +879,7 @@ indentations
 independently
 indexer
 indexing
+indicator
 indirection
 individual
 individually
@@ -884,6 +894,7 @@ influences
 informative
 infos
 infrastructure
+ing
 inhabit
 inhabits
 inhibit
@@ -965,6 +976,7 @@ jensj
 jit
 jmesserly
 job
+john
 johnniwinther
 js
 jsframevalues
@@ -1039,11 +1051,13 @@ listenable
 listening
 listens
 listing
+literate
 lives
 ll
 llub
 lm
 loadable
+locatable
 locationd
 logged
 logically
@@ -1077,6 +1091,7 @@ man
 manage
 managed
 manages
+mangle
 mangled
 manifest
 manipulating
@@ -1182,6 +1197,7 @@ nonzero
 noretcomp
 norm
 normalization
+normative
 notifier
 notify
 notifying
@@ -1354,6 +1370,7 @@ preparation
 prepares
 preprocess
 presented
+presenting
 pressure
 presubmit
 presumably
@@ -1392,6 +1409,7 @@ proto
 protobuf
 protocol
 prototype's
+provably
 prove
 proven
 provider
@@ -1451,6 +1469,7 @@ react
 realign
 realise
 reanalyze
+reapplied
 reapplies
 reapply
 reapplying
@@ -1546,6 +1565,7 @@ replaces
 replicated
 repo
 repositories
+reproduce
 reproduces
 repurpose
 repurposed
@@ -1614,6 +1634,7 @@ sanitize
 sanitized
 sanitizing
 saves
+saving
 saw
 say
 saying
@@ -1883,6 +1904,7 @@ temp
 temporaries
 temps
 tempting
+tentative
 term
 termcap
 terminator
@@ -1891,6 +1913,7 @@ testers
 tex
 textualize
 textualized
+textually
 tfa
 th
 thereby
@@ -1915,6 +1938,7 @@ till
 timeout
 timer
 timestamp
+timestamped
 timestamps
 timings
 tiny
@@ -1929,6 +1953,7 @@ tokenize
 tokenized
 tokenizer
 tokenizing
+told
 tolerant
 tolerate
 tolerated
@@ -2001,6 +2026,7 @@ underestimate
 undergo
 undergoes
 undermine
+understanding
 undo
 undoable
 unduly
@@ -2008,6 +2034,7 @@ unequal
 unescape
 unexact
 unexpectedly
+unfilled
 unfiltered
 unfinalized
 unfold
@@ -2102,6 +2129,7 @@ verbatim
 verbosity
 versa
 versus
+vi
 viable
 vice
 video
@@ -2150,6 +2178,7 @@ winds
 wire
 wise
 wiser
+wish
 wishes
 witness
 witnesses

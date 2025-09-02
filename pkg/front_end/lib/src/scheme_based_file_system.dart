@@ -4,6 +4,7 @@
 
 import 'api_prototype/file_system.dart';
 
+// Coverage-ignore(suite): Not run.
 /// A [FileSystem] that delegates to other file systems based on the URI scheme.
 class SchemeBasedFileSystem implements FileSystem {
   final Map<String, FileSystem> fileSystemByScheme;
@@ -15,9 +16,10 @@ class SchemeBasedFileSystem implements FileSystem {
     FileSystem? delegate = fileSystemByScheme[uri.scheme];
     if (delegate == null) {
       throw new FileSystemException(
-          uri,
-          "SchemeBasedFileSystem doesn't handle URIs with "
-          "scheme '${uri.scheme}': $uri");
+        uri,
+        "SchemeBasedFileSystem doesn't handle URIs with "
+        "scheme '${uri.scheme}': $uri",
+      );
     }
     return delegate.entityForUri(uri);
   }

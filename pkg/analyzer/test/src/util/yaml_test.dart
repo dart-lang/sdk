@@ -115,17 +115,15 @@ main() {
         var bYaml = """foo:
           b: baz""";
 
-        var merge1Value =
-            mergeYamlMaps(
-              loadYaml(bYaml),
-              loadYaml(aYaml),
-            ).valueAt("foo").toString();
+        var merge1Value = mergeYamlMaps(
+          loadYaml(bYaml),
+          loadYaml(aYaml),
+        ).valueAt("foo").toString();
         for (int i = 0; i < 100; i++) {
-          var merge2Value =
-              mergeYamlMaps(
-                loadYaml(bYaml),
-                loadYaml(aYaml),
-              ).valueAt("foo").toString();
+          var merge2Value = mergeYamlMaps(
+            loadYaml(bYaml),
+            loadYaml(aYaml),
+          ).valueAt("foo").toString();
           expect(merge2Value, merge1Value);
         }
       });
@@ -143,17 +141,15 @@ main() {
         var bYaml = """foo:
           b: true""";
 
-        var merge1Value =
-            mergeYamlMaps(
-              loadYaml(bYaml),
-              loadYaml(aYaml),
-            ).valueAt("foo").toString();
+        var merge1Value = mergeYamlMaps(
+          loadYaml(bYaml),
+          loadYaml(aYaml),
+        ).valueAt("foo").toString();
         for (int i = 0; i < 100; i++) {
-          var merge2Value =
-              mergeYamlMaps(
-                loadYaml(bYaml),
-                loadYaml(aYaml),
-              ).valueAt("foo").toString();
+          var merge2Value = mergeYamlMaps(
+            loadYaml(bYaml),
+            loadYaml(aYaml),
+          ).valueAt("foo").toString();
           expect(merge2Value, merge1Value);
         }
       });

@@ -23,6 +23,7 @@ class ProcessRunner {
       environment: environment,
       includeParentEnvironment: includeParentEnvironment,
       runInShell: runInShell,
+      mode: mode,
     );
   }
 }

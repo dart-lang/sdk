@@ -95,11 +95,6 @@ abstract class BaseDeprecatedMemberUseVerifier {
     _checkForDeprecated(node.element, node);
   }
 
-  void pushInDeprecatedMetadata(List<Annotation> metadata) {
-    var hasDeprecated = _hasDeprecatedUseAnnotation(metadata);
-    pushInDeprecatedValue(hasDeprecated);
-  }
-
   void pushInDeprecatedValue(bool value) {
     var newValue = _inDeprecatedMemberStack.last || value;
     _inDeprecatedMemberStack.add(newValue);
@@ -213,10 +208,9 @@ abstract class BaseDeprecatedMemberUseVerifier {
       // TODO(jwren): We should modify ConstructorElement.displayName,
       // or have the logic centralized elsewhere, instead of doing this logic
       // here.
-      displayName =
-          element.name == null
-              ? '${element.displayName}.new'
-              : element.displayName;
+      displayName = element.name == null
+          ? '${element.displayName}.new'
+          : element.displayName;
     } else if (element is LibraryElement) {
       displayName = element.firstFragment.source.uri.toString();
     } else if (node is MethodInvocation &&
@@ -261,21 +255,6 @@ abstract class BaseDeprecatedMemberUseVerifier {
     var constantValue = annotation.computeConstantValue();
     return constantValue?.getField('message')?.toStringValue() ??
         constantValue?.getField('expires')?.toStringValue();
-  }
-
-  /// Whether [annotations] includes an annotation indicating "deprecated use."
-  ///
-  /// This amounts to any annotation using `deprecated` or `Deprecated()` (the
-  /// default constructor) from `dart:core`.
-  static bool _hasDeprecatedUseAnnotation(List<Annotation> annotations) {
-    var deprecatedAnnotations = annotations
-        .map((a) => a.elementAnnotation)
-        .nonNulls
-        .where((a) => a.isDeprecated);
-    return deprecatedAnnotations.any((deprecated) {
-      var value = deprecated.computeConstantValue();
-      return value?.getField('_isUse')?.toBoolValue() ?? true;
-    });
   }
 
   /// Returns whether [element] is a [FormalParameterElement] declared in
@@ -361,8 +340,8 @@ class DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
       _diagnosticReporter.atEntity(
         errorEntity,
         _isLibraryInWorkspacePackage(library)
-            ? HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
-            : HintCode.DEPRECATED_MEMBER_USE,
+            ? HintCode.deprecatedMemberUseFromSamePackage
+            : HintCode.deprecatedMemberUse,
         arguments: [displayName],
       );
     } else {
@@ -374,8 +353,8 @@ class DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
       _diagnosticReporter.atEntity(
         errorEntity,
         _isLibraryInWorkspacePackage(library)
-            ? HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE
-            : HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE,
+            ? HintCode.deprecatedMemberUseFromSamePackageWithMessage
+            : HintCode.deprecatedMemberUseWithMessage,
         arguments: [displayName, message],
       );
     }

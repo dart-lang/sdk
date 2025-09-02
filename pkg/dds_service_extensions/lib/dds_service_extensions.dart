@@ -23,8 +23,10 @@ extension DdsExtension on VmService {
     return _ddsVersion!;
   }
 
-  /// The [getCachedCpuSamples] RPC is used to retrieve a cache of CPU samples
-  /// collected under a [UserTag] with name `userTag`.
+  @Deprecated(
+    'This method is deprecated and will always return a `CachedCpuSamples` '
+    'object containing properties with meaningless placeholder values.',
+  )
   Future<CachedCpuSamples> getCachedCpuSamples(
       String isolateId, String userTag) async {
     if (!(await _versionCheck(1, 3))) {
@@ -80,9 +82,11 @@ extension DdsExtension on VmService {
     });
   }
 
-  /// The [getAvailableCachedCpuSamples] RPC is used to determine which caches of CPU samples
-  /// are available. Caches are associated with individual [UserTag] names and are specified
-  /// when DDS is started via the `cachedUserTags` parameter.
+  @Deprecated(
+    'This method is deprecated and will always return an '
+    '`AvailableCachedCpuSamples` object containing a single field named '
+    '`cacheNames` with an empty array as its value.',
+  )
   Future<AvailableCachedCpuSamples> getAvailableCachedCpuSamples() async {
     if (!(await _versionCheck(1, 3))) {
       throw UnimplementedError(

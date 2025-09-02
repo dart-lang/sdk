@@ -11,7 +11,7 @@ class CommandLineProblem {
   CommandLineProblem(this.message);
 
   CommandLineProblem.deprecated(String message)
-    : this(templateUnspecified.withArguments(message));
+    : this(codeUnspecified.withArguments(message));
 
   @override
   String toString() => message.problemMessage;
@@ -124,7 +124,7 @@ class ParsedOptions {
         if (requiresValue && value == null) {
           if (!iterator.moveNext()) {
             throw new CommandLineProblem(
-              templateFastaCLIArgumentRequired.withArguments(argument),
+              codeFastaCLIArgumentRequired.withArguments(argument),
             );
           }
           value = iterator.current;

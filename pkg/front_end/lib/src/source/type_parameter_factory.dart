@@ -19,25 +19,28 @@ class TypeParameterFactory {
 
   void _registerTypeParameter(TypeParameterBuilder builder) {
     assert(
-        _typeParameterBuilders != null,
-        "TypeParameterFactory has already been emptied, trying to register "
-        "$builder.");
+      _typeParameterBuilders != null,
+      "TypeParameterFactory has already been emptied, trying to register "
+      "$builder.",
+    );
     _typeParameterBuilders!.add(builder);
   }
 
   List<TypeParameterBuilder> collectTypeParameters() {
     assert(
-        _typeParameterBuilders != null,
-        "TypeParameterFactory has already been emptied, trying to collect type "
-        "parameters.");
+      _typeParameterBuilders != null,
+      "TypeParameterFactory has already been emptied, trying to collect type "
+      "parameters.",
+    );
     List<TypeParameterBuilder> result = _typeParameterBuilders!;
     _typeParameterBuilders = null;
     return result;
   }
 
   SourceStructuralParameterBuilder createStructuralParameterBuilder(
-      StructuralParameterDeclaration declaration,
-      {List<MetadataBuilder>? metadata}) {
+    StructuralParameterDeclaration declaration, {
+    List<MetadataBuilder>? metadata,
+  }) {
     SourceStructuralParameterBuilder builder =
         new SourceStructuralParameterBuilder(declaration, metadata: metadata);
     _registerTypeParameter(builder);
@@ -45,18 +48,21 @@ class TypeParameterFactory {
   }
 
   SourceNominalParameterBuilder createNominalParameterBuilder(
-      TypeParameterFragment fragment) {
+    TypeParameterFragment fragment,
+  ) {
     SourceNominalParameterBuilder builder = new SourceNominalParameterBuilder(
-        new RegularNominalParameterDeclaration(fragment),
-        bound: fragment.bound,
-        variableVariance: fragment.variance);
+      new RegularNominalParameterDeclaration(fragment),
+      bound: fragment.bound,
+      variableVariance: fragment.variance,
+    );
     _registerTypeParameter(builder);
     fragment.builder = builder;
     return builder;
   }
 
   List<SourceNominalParameterBuilder>? createNominalParameterBuilders(
-      List<TypeParameterFragment>? fragments) {
+    List<TypeParameterFragment>? fragments,
+  ) {
     if (fragments == null) return null;
     List<SourceNominalParameterBuilder> list = [];
     for (TypeParameterFragment fragment in fragments) {
@@ -72,17 +78,19 @@ class TypeParameterFactory {
   /// This is used for adding copies of class type parameters to factory
   /// methods and unnamed mixin applications, and for adding copies of
   /// extension type parameters to extension instance methods.
-  NominalParameterCopy? copyTypeParameters(
-      {required List<NominalParameterBuilder>? oldParameterBuilders,
-      List<TypeParameterFragment>? oldParameterFragments,
-      required TypeParameterKind kind,
-      required InstanceTypeParameterAccessState instanceTypeParameterAccess}) {
+  NominalParameterCopy? copyTypeParameters({
+    required List<NominalParameterBuilder>? oldParameterBuilders,
+    List<TypeParameterFragment>? oldParameterFragments,
+    required TypeParameterKind kind,
+    required InstanceTypeParameterAccessState instanceTypeParameterAccess,
+  }) {
     assert(
-        oldParameterFragments == null ||
-            oldParameterBuilders?.length == oldParameterFragments.length,
-        "Invalid type parameter fragment count. "
-        "Expected ${oldParameterBuilders?.length}, "
-        "found ${oldParameterFragments.length}.");
+      oldParameterFragments == null ||
+          oldParameterBuilders?.length == oldParameterFragments.length,
+      "Invalid type parameter fragment count. "
+      "Expected ${oldParameterBuilders?.length}, "
+      "found ${oldParameterFragments.length}.",
+    );
     if (oldParameterBuilders == null || oldParameterBuilders.isEmpty) {
       return null;
     }
@@ -91,7 +99,7 @@ class TypeParameterFactory {
     Map<NominalParameterBuilder, TypeBuilder> substitutionMap =
         new Map.identity();
     Map<SourceNominalParameterBuilder, NominalParameterBuilder>
-        newToOldVariableMap = new Map.identity();
+    newToOldVariableMap = new Map.identity();
 
     List<SourceNominalParameterBuilder> newVariableBuilders =
         <SourceNominalParameterBuilder>[];
@@ -102,13 +110,18 @@ class TypeParameterFactory {
       int fileOffset = oldFragment?.nameOffset ?? oldVariable.fileOffset;
       SourceNominalParameterBuilder newVariable =
           new SourceNominalParameterBuilder(
-              new SyntheticNominalParameterDeclaration(oldVariable,
-                  kind: kind, fileUri: fileUri, fileOffset: fileOffset),
-              variableVariance: oldVariable.parameter.isLegacyCovariant
-                  ? null
-                  :
+            new SyntheticNominalParameterDeclaration(
+              oldVariable,
+              kind: kind,
+              fileUri: fileUri,
+              fileOffset: fileOffset,
+            ),
+            variableVariance: oldVariable.parameter.isLegacyCovariant
+                ? null
+                :
                   // Coverage-ignore(suite): Not run.
-                  oldVariable.variance);
+                  oldVariable.variance,
+          );
       newVariableBuilders.add(newVariable);
       newToOldVariableMap[newVariable] = oldVariable;
       _registerTypeParameter(newVariable);
@@ -117,18 +130,27 @@ class TypeParameterFactory {
       NominalParameterBuilder oldVariableBuilder = oldParameterBuilders[i];
       TypeBuilder newTypeArgument =
           new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-              newVariableBuilders[i], const NullabilityBuilder.omitted(),
-              instanceTypeParameterAccess: instanceTypeParameterAccess);
+            newVariableBuilders[i],
+            const NullabilityBuilder.omitted(),
+            instanceTypeParameterAccess: instanceTypeParameterAccess,
+          );
       substitutionMap[oldVariableBuilder] = newTypeArgument;
       newTypeArguments.add(newTypeArgument);
 
       if (oldVariableBuilder.bound != null) {
         newVariableBuilders[i].bound = new SynthesizedTypeBuilder(
-            oldVariableBuilder.bound!, newToOldVariableMap, substitutionMap);
+          oldVariableBuilder.bound!,
+          newToOldVariableMap,
+          substitutionMap,
+        );
       }
     }
-    return new NominalParameterCopy(newVariableBuilders, newTypeArguments,
-        substitutionMap, newToOldVariableMap);
+    return new NominalParameterCopy(
+      newVariableBuilders,
+      newTypeArguments,
+      substitutionMap,
+      newToOldVariableMap,
+    );
   }
 }
 
@@ -137,21 +159,30 @@ class NominalParameterCopy {
   final List<TypeBuilder> newTypeArguments;
   final Map<NominalParameterBuilder, TypeBuilder> substitutionMap;
   final Map<SourceNominalParameterBuilder, NominalParameterBuilder>
-      newToOldParameterMap;
+  newToOldParameterMap;
 
-  NominalParameterCopy(this.newParameterBuilders, this.newTypeArguments,
-      this.substitutionMap, this.newToOldParameterMap);
+  NominalParameterCopy(
+    this.newParameterBuilders,
+    this.newTypeArguments,
+    this.substitutionMap,
+    this.newToOldParameterMap,
+  );
 
   /// Creates a [SynthesizedTypeBuilder] for [typeBuilder] in the context of
   /// [newParameterBuilders].
   TypeBuilder createInContext(TypeBuilder typeBuilder) {
     return new SynthesizedTypeBuilder(
-        typeBuilder, newToOldParameterMap, substitutionMap);
+      typeBuilder,
+      newToOldParameterMap,
+      substitutionMap,
+    );
   }
 }
 
-void checkTypeParameterDependencies(ProblemReporting problemReporting,
-    List<TypeParameterBuilder> typeParameters) {
+void checkTypeParameterDependencies(
+  ProblemReporting problemReporting,
+  List<TypeParameterBuilder> typeParameters,
+) {
   Map<TypeParameterBuilder, TraversalState> typeParametersTraversalState =
       <TypeParameterBuilder, TraversalState>{};
   for (int i = 0; i < typeParameters.length; i++) {
@@ -159,40 +190,51 @@ void checkTypeParameterDependencies(ProblemReporting problemReporting,
     if ((typeParametersTraversalState[typeParameter] ??=
             TraversalState.unvisited) ==
         TraversalState.unvisited) {
-      TypeParameterCyclicDependency? dependency =
-          typeParameter.findCyclicDependency(
-              typeParametersTraversalState: typeParametersTraversalState);
+      TypeParameterCyclicDependency? dependency = typeParameter
+          .findCyclicDependency(
+            typeParametersTraversalState: typeParametersTraversalState,
+          );
       if (dependency != null) {
         Message message;
         if (dependency.viaTypeParameters != null) {
-          message = templateCycleInTypeParameters.withArguments(
-              dependency.typeParameterBoundOfItself.name,
-              dependency.viaTypeParameters!.map((v) => v.name).join("', '"));
+          message = codeCycleInTypeParameters.withArguments(
+            dependency.typeParameterBoundOfItself.name,
+            dependency.viaTypeParameters!.map((v) => v.name).join("', '"),
+          );
         } else {
-          message = templateDirectCycleInTypeParameters
-              .withArguments(dependency.typeParameterBoundOfItself.name);
+          message = codeDirectCycleInTypeParameters.withArguments(
+            dependency.typeParameterBoundOfItself.name,
+          );
         }
         problemReporting.addProblem(
-            message,
-            dependency.typeParameterBoundOfItself.fileOffset,
-            dependency.typeParameterBoundOfItself.name.length,
-            dependency.typeParameterBoundOfItself.fileUri);
+          message,
+          dependency.typeParameterBoundOfItself.fileOffset,
+          dependency.typeParameterBoundOfItself.name.length,
+          dependency.typeParameterBoundOfItself.fileUri,
+        );
 
-        typeParameter.bound = new NamedTypeBuilderImpl(
-            new SyntheticTypeName(typeParameter.name, typeParameter.fileOffset),
-            const NullabilityBuilder.omitted(),
-            fileUri: typeParameter.fileUri,
-            charOffset: typeParameter.fileOffset,
-            instanceTypeParameterAccess:
-                InstanceTypeParameterAccessState.Unexpected)
-          ..bind(
+        typeParameter.bound =
+            new NamedTypeBuilderImpl(
+              new SyntheticTypeName(
+                typeParameter.name,
+                typeParameter.fileOffset,
+              ),
+              const NullabilityBuilder.omitted(),
+              fileUri: typeParameter.fileUri,
+              charOffset: typeParameter.fileOffset,
+              instanceTypeParameterAccess:
+                  InstanceTypeParameterAccessState.Unexpected,
+            )..bind(
               problemReporting,
               new InvalidBuilder(
-                  typeParameter.name,
-                  message.withLocation(
-                      dependency.typeParameterBoundOfItself.fileUri!,
-                      dependency.typeParameterBoundOfItself.fileOffset,
-                      dependency.typeParameterBoundOfItself.name.length)));
+                typeParameter.name,
+                message.withLocation(
+                  dependency.typeParameterBoundOfItself.fileUri!,
+                  dependency.typeParameterBoundOfItself.fileOffset,
+                  dependency.typeParameterBoundOfItself.name.length,
+                ),
+              ),
+            );
       }
     }
   }
@@ -200,7 +242,8 @@ void checkTypeParameterDependencies(ProblemReporting problemReporting,
 }
 
 void _computeTypeParameterNullabilities(
-    List<TypeParameterBuilder> typeParameters) {
+  List<TypeParameterBuilder> typeParameters,
+) {
   Map<TypeParameterBuilder, TraversalState> typeParametersTraversalState =
       <TypeParameterBuilder, TraversalState>{};
   for (int i = 0; i < typeParameters.length; i++) {
@@ -209,7 +252,8 @@ void _computeTypeParameterNullabilities(
             TraversalState.unvisited) ==
         TraversalState.unvisited) {
       typeParameter.computeNullability(
-          typeParametersTraversalState: typeParametersTraversalState);
+        typeParametersTraversalState: typeParametersTraversalState,
+      );
     }
   }
 }

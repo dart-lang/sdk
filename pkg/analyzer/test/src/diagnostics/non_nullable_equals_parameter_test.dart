@@ -23,7 +23,7 @@ class C {
   bool operator ==(dynamic other) => false;
 }
 ''',
-      [error(WarningCode.NON_NULLABLE_EQUALS_PARAMETER, 38, 2)],
+      [error(WarningCode.nonNullableEqualsParameter, 38, 2)],
     );
   }
 
@@ -40,8 +40,8 @@ class D extends C {
 }
 ''',
       [
-        error(WarningCode.NON_NULLABLE_EQUALS_PARAMETER, 38, 2),
-        error(WarningCode.NON_NULLABLE_EQUALS_PARAMETER, 116, 2),
+        error(WarningCode.nonNullableEqualsParameter, 38, 2),
+        error(WarningCode.nonNullableEqualsParameter, 116, 2),
       ],
     );
   }
@@ -72,7 +72,7 @@ class C {
   bool operator ==(Object? other) => false;
 }
 ''',
-      [error(WarningCode.NON_NULLABLE_EQUALS_PARAMETER, 38, 2)],
+      [error(WarningCode.nonNullableEqualsParameter, 38, 2)],
     );
   }
 

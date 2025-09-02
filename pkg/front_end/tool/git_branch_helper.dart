@@ -9,11 +9,14 @@ void main(List<String> args) {
   // Use `runZonedGuarded` instead of try/catch, and do it here before anything
   // else has been printed --- both because of
   // https://github.com/dart-lang/sdk/issues/54911.
-  runZonedGuarded(() {
-    mainImpl(args);
-  }, (e, _) {
-    stderr.writeln("Error: $e");
-  });
+  runZonedGuarded(
+    () {
+      mainImpl(args);
+    },
+    (e, _) {
+      stderr.writeln("Error: $e");
+    },
+  );
 }
 
 const String CSI = "\x1b[";
@@ -29,13 +32,17 @@ GitBranch getBranch(String name) {
 }
 
 void mainImpl(List<String> args) {
-  ProcessResult result = Process.runSync("git",
-      ["branch", "--list", "--format=%(refname:short)%09%(upstream:short)"],
-      runInShell: true);
+  ProcessResult result = Process.runSync("git", [
+    "branch",
+    "--list",
+    "--format=%(refname:short)%09%(upstream:short)",
+  ], runInShell: true);
   result.stdout.split("\n").forEach(processGitBranchLine);
 
-  result =
-      Process.runSync("git", ["branch", "--show-current"], runInShell: true);
+  result = Process.runSync("git", [
+    "branch",
+    "--show-current",
+  ], runInShell: true);
   String currentBranchName = result.stdout;
   currentBranchName = currentBranchName.trim();
   GitBranch currentBranch = branches[currentBranchName]!;
@@ -43,15 +50,12 @@ void mainImpl(List<String> args) {
   currentBranch.collectSelfAndParentNames(involvedBranchNames);
   currentBranch.collectSelfAndChildrenNames(involvedBranchNames);
 
-  result = Process.runSync(
-      "git",
-      [
-        "branch",
-        "--list",
-        "--format=%(refname:short)%09%(upstream:track)",
-        ...involvedBranchNames
-      ],
-      runInShell: true);
+  result = Process.runSync("git", [
+    "branch",
+    "--list",
+    "--format=%(refname:short)%09%(upstream:track)",
+    ...involvedBranchNames,
+  ], runInShell: true);
   result.stdout.split("\n").forEach(processGitBranchTrackLine);
 
   int indentation = currentBranch.parent?.printSelfAndParentChain() ?? 0;

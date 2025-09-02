@@ -13,9 +13,12 @@
 // VMOptions=--experimental-shared-data --profiler --profile_vm=false
 
 import 'package:dart_internal/isolate_group.dart' show IsolateGroup;
+import 'dart:developer';
 import 'dart:isolate';
 
 import "package:expect/expect.dart";
+
+import "run_isolate_group_run_test.dart" deferred as lib1;
 
 var foo = 42;
 var foo_no_initializer;
@@ -50,7 +53,36 @@ var list_length = 0;
 @pragma('vm:shared')
 String string_foo = "";
 
-main() {
+@pragma('vm:shared')
+SendPort? sp;
+
+StringMethodTearoffTest() {
+  @pragma('vm:shared')
+  final stringTearoff = "abc".toString;
+  IsolateGroup.runSync(() {
+    stringTearoff;
+  });
+}
+
+ListMethodTearoffTest(List<String> args) {
+  final listTearoff = args.insert;
+  Expect.throws(
+    () {
+      IsolateGroup.runSync(() {
+        listTearoff;
+      });
+    },
+    (e) =>
+        e is ArgumentError && e.toString().contains("Only trivially-immutable"),
+  );
+}
+
+thefun() {}
+
+@pragma('vm:shared')
+String default_tag = "";
+
+main(List<String> args) {
   IsolateGroup.runSync(() {
     final l = <int>[];
     for (int i = 0; i < 100; i++) {
@@ -180,6 +212,40 @@ main() {
       Isolate.spawnUri(Uri.parse("http://127.0.0.1"), [], (_) {});
     });
   }, (e) => e.toString().contains("Attempt to access isolate static field"));
+
+  StringMethodTearoffTest();
+  ListMethodTearoffTest(args);
+
+  final rp = ReceivePort();
+  Expect.throws(
+    () {
+      IsolateGroup.runSync(() {
+        sp = rp.sendPort;
+      });
+    },
+    (e) =>
+        e is ArgumentError && e.toString().contains("Only trivially-immutable"),
+  );
+  rp.close();
+
+  // deferred libraries can't be used from isolate group callbacks.
+  Expect.throws(() {
+    IsolateGroup.runSync(() {
+      lib1.thefun();
+    });
+  }, (e) => e is ArgumentError && e.toString().contains("Only available when"));
+
+  // environment can't be accessed from isolate group callbacks.
+  Expect.throws(() {
+    IsolateGroup.runSync(() {
+      new bool.hasEnvironment("Anything");
+    });
+  }, (e) => e is ArgumentError && e.toString().contains("Only available when"));
+
+  IsolateGroup.runSync(() {
+    default_tag = UserTag.defaultTag.toString();
+  });
+  Expect.notEquals("", default_tag);
 
   print("All tests completed :)");
 }

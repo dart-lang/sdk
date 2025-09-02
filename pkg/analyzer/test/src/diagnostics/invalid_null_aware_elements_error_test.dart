@@ -21,7 +21,7 @@ class InvalidNullAwareElementsErrorTest extends PubPackageResolutionTest {
 const stringConst = "";
 const list = [0, ?stringConst];
 ''',
-      [error(StaticWarningCode.INVALID_NULL_AWARE_ELEMENT, 41, 1)],
+      [error(StaticWarningCode.invalidNullAwareElement, 41, 1)],
     );
   }
 
@@ -31,7 +31,7 @@ const list = [0, ?stringConst];
 const stringConst = "";
 const set = {0, ?stringConst};
 ''',
-      [error(StaticWarningCode.INVALID_NULL_AWARE_ELEMENT, 40, 1)],
+      [error(StaticWarningCode.invalidNullAwareElement, 40, 1)],
     );
   }
 
@@ -41,7 +41,7 @@ const set = {0, ?stringConst};
 const intConst = 0;
 const map = {?0: intConst};
 ''',
-      [error(StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_KEY, 33, 1)],
+      [error(StaticWarningCode.invalidNullAwareMapEntryKey, 33, 1)],
     );
   }
 
@@ -51,7 +51,7 @@ const map = {?0: intConst};
 const intConst = 0;
 const map = {0: ?intConst};
 ''',
-      [error(StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_VALUE, 36, 1)],
+      [error(StaticWarningCode.invalidNullAwareMapEntryValue, 36, 1)],
     );
   }
 }

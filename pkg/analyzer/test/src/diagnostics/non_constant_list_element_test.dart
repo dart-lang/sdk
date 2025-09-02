@@ -24,7 +24,7 @@ mixin NonConstantListElementTestCases on PubPackageResolutionTest {
 final dynamic a = 0;
 var v = const [if (1 < 0) 0 else a];
 ''',
-      [error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 54, 1)],
+      [error(CompileTimeErrorCode.nonConstantListElement, 54, 1)],
     );
   }
 
@@ -34,7 +34,7 @@ var v = const [if (1 < 0) 0 else a];
 final dynamic a = 0;
 var v = const [if (1 < 0) a else 0];
 ''',
-      [error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 47, 1)],
+      [error(CompileTimeErrorCode.nonConstantListElement, 47, 1)],
     );
   }
 
@@ -44,7 +44,7 @@ var v = const [if (1 < 0) a else 0];
 final dynamic a = 0;
 var v = const [if (1 > 0) 0 else a];
 ''',
-      [error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 54, 1)],
+      [error(CompileTimeErrorCode.nonConstantListElement, 54, 1)],
     );
   }
 
@@ -54,7 +54,7 @@ var v = const [if (1 > 0) 0 else a];
 final dynamic a = 0;
 var v = const [if (1 > 0) a else 0];
 ''',
-      [error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 47, 1)],
+      [error(CompileTimeErrorCode.nonConstantListElement, 47, 1)],
     );
   }
 
@@ -71,7 +71,7 @@ var v = const [if (1 < 0) a];
 final dynamic a = 0;
 var v = const [if (1 < 0) a];
 ''',
-      [error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 47, 1)],
+      [error(CompileTimeErrorCode.nonConstantListElement, 47, 1)],
     );
   }
 
@@ -88,7 +88,7 @@ var v = const [if (1 > 0) a];
 final dynamic a = 0;
 var v = const [if (1 > 0) a];
 ''',
-      [error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 47, 1)],
+      [error(CompileTimeErrorCode.nonConstantListElement, 47, 1)],
     );
   }
 
@@ -98,7 +98,7 @@ var v = const [if (1 > 0) a];
 final dynamic a = 0;
 var v = const [a];
 ''',
-      [error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 36, 1)],
+      [error(CompileTimeErrorCode.nonConstantListElement, 36, 1)],
     );
   }
 
@@ -108,7 +108,7 @@ var v = const [a];
 final dynamic a = 0;
 var v = const [a + 1];
 ''',
-      [error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 36, 1)],
+      [error(CompileTimeErrorCode.nonConstantListElement, 36, 1)],
     );
   }
 

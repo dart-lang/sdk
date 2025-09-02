@@ -29,10 +29,12 @@ static method test(dynamic x) → dynamic {
     synthesized core::bool #0#4#isSet = false;
     synthesized core::int #0#2;
     synthesized core::bool #0#2#isSet = false;
+    final const synthesized core::int #0#3 = #C1;
     synthesized dynamic #0#6;
     synthesized core::bool #0#6#isSet = false;
     synthesized dynamic #0#7;
     synthesized core::bool #0#7#isSet = false;
+    final const synthesized core::int #0#8 = #C2;
     dynamic #t1;
     {
       lowered hoisted core::int y#case#0;

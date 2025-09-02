@@ -17,7 +17,7 @@ void workspaceValidator(PubspecValidationContext ctx) {
   if (workspaceField is! YamlList) {
     ctx.reportErrorForNode(
       workspaceField,
-      PubspecWarningCode.WORKSPACE_FIELD_NOT_LIST,
+      PubspecWarningCode.workspaceFieldNotList,
     );
     return;
   }
@@ -28,7 +28,7 @@ void workspaceValidator(PubspecValidationContext ctx) {
       if (entry is! String) {
         ctx.reportErrorForNode(
           directoryField,
-          PubspecWarningCode.WORKSPACE_VALUE_NOT_STRING,
+          PubspecWarningCode.workspaceValueNotString,
         );
         return;
       }
@@ -36,7 +36,7 @@ void workspaceValidator(PubspecValidationContext ctx) {
     } else {
       ctx.reportErrorForNode(
         directoryField,
-        PubspecWarningCode.WORKSPACE_VALUE_NOT_STRING,
+        PubspecWarningCode.workspaceValueNotString,
       );
     }
   }
@@ -59,14 +59,14 @@ void _validateDirectoryPath(
   if (!packageRootFolder.contains(dirPath)) {
     ctx.reportErrorForNode(
       errorField,
-      PubspecWarningCode.WORKSPACE_VALUE_NOT_SUBDIRECTORY,
+      PubspecWarningCode.workspaceValueNotSubdirectory,
       [packageRoot],
     );
     return;
   }
   var subDirectory = ctx.provider.getFolder(dirPath);
   if (!subDirectory.exists) {
-    ctx.reportErrorForNode(errorField, PubspecWarningCode.PATH_DOES_NOT_EXIST, [
+    ctx.reportErrorForNode(errorField, PubspecWarningCode.pathDoesNotExist, [
       pathValue,
     ]);
   }

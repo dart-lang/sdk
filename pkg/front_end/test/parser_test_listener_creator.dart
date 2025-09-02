@@ -10,13 +10,14 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart';
 import 'package:dart_style/dart_style.dart' show DartFormatter;
 
-import 'utils/io_utils.dart' show computeRepoDirUri;
+import 'utils/io_utils.dart' show computeRepoDirUri, getPackageVersionFor;
 
 void main(List<String> args) {
   final Uri repoDir = computeRepoDirUri();
   String generated = generateTestListener(repoDir);
-  new File.fromUri(computeTestListenerUri(repoDir))
-      .writeAsStringSync(generated, flush: true);
+  new File.fromUri(
+    computeTestListenerUri(repoDir),
+  ).writeAsStringSync(generated, flush: true);
 }
 
 Uri computeTestListenerUri(Uri repoDir) {
@@ -26,10 +27,13 @@ Uri computeTestListenerUri(Uri repoDir) {
 String generateTestListener(Uri repoDir) {
   final StringBuffer out = new StringBuffer();
   File f = new File.fromUri(
-      repoDir.resolve("pkg/_fe_analyzer_shared/lib/src/parser/listener.dart"));
+    repoDir.resolve("pkg/_fe_analyzer_shared/lib/src/parser/listener.dart"),
+  );
   Uint8List rawBytes = f.readAsBytesSync();
-  Utf8BytesScanner scanner =
-      new Utf8BytesScanner(rawBytes, includeComments: true);
+  Utf8BytesScanner scanner = new Utf8BytesScanner(
+    rawBytes,
+    includeComments: true,
+  );
   Token firstToken = scanner.tokenize();
 
   out.write(r"""
@@ -112,8 +116,8 @@ class ParserTestListener implements Listener {
   out.writeln("}");
 
   return new DartFormatter(
-          languageVersion: DartFormatter.latestShortStyleLanguageVersion)
-      .format("$out");
+    languageVersion: getPackageVersionFor("front_end"),
+  ).format("$out");
 }
 
 class ParserCreatorListener extends Listener {
@@ -129,16 +133,17 @@ class ParserCreatorListener extends Listener {
 
   @override
   void beginClassDeclaration(
-      Token begin,
-      Token? abstractToken,
-      Token? macroToken,
-      Token? sealedToken,
-      Token? baseToken,
-      Token? interfaceToken,
-      Token? finalToken,
-      Token? augmentToken,
-      Token? mixinToken,
-      Token name) {
+    Token begin,
+    Token? abstractToken,
+    Token? macroToken,
+    Token? sealedToken,
+    Token? baseToken,
+    Token? interfaceToken,
+    Token? finalToken,
+    Token? augmentToken,
+    Token? mixinToken,
+    Token name,
+  ) {
     if (name.lexeme == "Listener") insideListenerClass = true;
   }
 
@@ -149,27 +154,37 @@ class ParserCreatorListener extends Listener {
 
   @override
   void beginMethod(
-      DeclarationKind declarationKind,
-      Token? augmentToken,
-      Token? externalToken,
-      Token? staticToken,
-      Token? covariantToken,
-      Token? varFinalOrConst,
-      Token? getOrSet,
-      Token name,
-      String? enclosingDeclarationName) {
+    DeclarationKind declarationKind,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? varFinalOrConst,
+    Token? getOrSet,
+    Token name,
+    String? enclosingDeclarationName,
+  ) {
     currentMethodName = name.lexeme;
   }
 
   @override
   void endFormalParameters(
-      int count, Token beginToken, Token endToken, MemberKind kind) {
+    int count,
+    Token beginToken,
+    Token endToken,
+    MemberKind kind,
+  ) {
     formalParametersEnd = endToken;
   }
 
   @override
-  void endClassMethod(Token? getOrSet, Token beginToken, Token beginParam,
-      Token? beginInitializers, Token endToken) {
+  void endClassMethod(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
     if (insideListenerClass) {
       out.writeln("  @override");
       out.write("  ");
@@ -220,8 +235,10 @@ class ParserCreatorListener extends Listener {
 
         if (currentMethodName == "handleErrorToken") {
           // It redirects to give an error message, so also do that here.
-          out.write("  handleRecoverableError("
-              "token.assertionMessage, token, token);");
+          out.write(
+            "  handleRecoverableError("
+            "token.assertionMessage, token, token);",
+          );
         } else if (currentMethodName == "handleRecoverableError") {
           // Check for reporting on eof.
           out.write("checkEof(endToken);");
@@ -249,14 +266,15 @@ class ParserCreatorListener extends Listener {
 
   @override
   void endFormalParameter(
-      Token? thisKeyword,
-      Token? superKeyword,
-      Token? periodAfterThisOrSuper,
-      Token nameToken,
-      Token? initializerStart,
-      Token? initializerEnd,
-      FormalParameterKind kind,
-      MemberKind memberKind) {
+    Token? thisKeyword,
+    Token? superKeyword,
+    Token? periodAfterThisOrSuper,
+    Token nameToken,
+    Token? initializerStart,
+    Token? initializerEnd,
+    FormalParameterKind kind,
+    MemberKind memberKind,
+  ) {
     parameters.add(nameToken.lexeme);
     parameterTypes.add(latestSeenParameterTypeToken);
   }

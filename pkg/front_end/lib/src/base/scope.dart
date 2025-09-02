@@ -161,7 +161,7 @@ class NameSpaceLookupScope extends BaseNameSpaceLookupScope {
   final LookupScope? _parent;
 
   NameSpaceLookupScope(this._nameSpace, super.kind, {LookupScope? parent})
-      : _parent = parent;
+    : _parent = parent;
 }
 
 abstract class AbstractTypeParameterScope implements LookupScope {
@@ -198,7 +198,9 @@ class TypeParameterScope extends AbstractTypeParameterScope {
   TypeParameterBuilder? getTypeParameter(String name) => _typeParameters[name];
 
   static LookupScope fromList(
-      LookupScope parent, List<TypeParameterBuilder>? typeParameterBuilders) {
+    LookupScope parent,
+    List<TypeParameterBuilder>? typeParameterBuilders,
+  ) {
     if (typeParameterBuilders == null) return parent;
     Map<String, TypeParameterBuilder> map = {};
     for (TypeParameterBuilder typeParameterBuilder in typeParameterBuilders) {
@@ -222,7 +224,7 @@ class CompilationUnitImportScope extends BaseNameSpaceLookupScope {
   final NameSpace _importNameSpace;
 
   CompilationUnitImportScope(this._compilationUnit, this._importNameSpace)
-      : super(ScopeKind.import);
+    : super(ScopeKind.import);
 
   @override
   NameSpace get _nameSpace => _importNameSpace;
@@ -248,7 +250,7 @@ class CompilationUnitScope extends BaseNameSpaceLookupScope {
   final LookupScope? _parent;
 
   CompilationUnitScope(this._compilationUnit, super.kind, {LookupScope? parent})
-      : _parent = parent;
+    : _parent = parent;
 
   @override
   NameSpace get _nameSpace => _compilationUnit.libraryBuilder.libraryNameSpace;
@@ -276,9 +278,11 @@ class CompilationUnitPrefixScope extends BaseNameSpaceLookupScope {
   @override
   final LookupScope? _parent;
 
-  CompilationUnitPrefixScope(this._nameSpace, super.kind,
-      {required LookupScope? parent})
-      : _parent = parent;
+  CompilationUnitPrefixScope(
+    this._nameSpace,
+    super.kind, {
+    required LookupScope? parent,
+  }) : _parent = parent;
 
   /// Set of extension declarations in scope. This is computed lazily in
   /// [forEachExtension].
@@ -315,8 +319,10 @@ class DeclarationBuilderScope extends BaseNameSpaceLookupScope {
   }
 
   void set declarationBuilder(DeclarationBuilder value) {
-    assert(_declarationBuilder == null,
-        "declarationBuilder has already been set.");
+    assert(
+      _declarationBuilder == null,
+      "declarationBuilder has already been set.",
+    );
     _declarationBuilder = value;
   }
 }
@@ -324,15 +330,18 @@ class DeclarationBuilderScope extends BaseNameSpaceLookupScope {
 /// Computes a builder for the import collision between [declaration] and
 /// [other].
 NamedBuilder computeAmbiguousDeclarationForImport(
-    ProblemReporting problemReporting,
-    String name,
-    NamedBuilder declaration,
-    NamedBuilder other,
-    {required UriOffset uriOffset}) {
+  ProblemReporting problemReporting,
+  String name,
+  NamedBuilder declaration,
+  NamedBuilder other, {
+  required UriOffset uriOffset,
+}) {
   // Prefix fragments are merged to singular prefix builders when computing the
   // import scope.
-  assert(!(declaration is PrefixBuilder && other is PrefixBuilder),
-      "Unexpected prefix builders $declaration and $other.");
+  assert(
+    !(declaration is PrefixBuilder && other is PrefixBuilder),
+    "Unexpected prefix builders $declaration and $other.",
+  );
 
   // TODO(ahe): Can I move this to Scope or Prefix?
   if (declaration == other) return declaration;
@@ -360,20 +369,21 @@ NamedBuilder computeAmbiguousDeclarationForImport(
     firstUri = secondUri;
     secondUri = uri;
   }
-  Message message = templateDuplicatedImport.withArguments(
-      name,
-      // TODO(ahe): We should probably use a context object here
-      // instead of including URIs in this message.
-      firstUri,
-      secondUri);
+  Message message = codeDuplicatedImport.withArguments(
+    name,
+    // TODO(ahe): We should probably use a context object here
+    // instead of including URIs in this message.
+    firstUri,
+    secondUri,
+  );
   // We report the error lazily (setting errorHasBeenReported to false) because
   // the spec 18.1 states that 'It is not an error if N is introduced by two or
   // more imports but never referred to.'
   return new InvalidBuilder(
-      name,
-      message.withLocation(
-          uriOffset.fileUri, uriOffset.fileOffset, name.length),
-      errorHasBeenReported: false);
+    name,
+    message.withLocation(uriOffset.fileUri, uriOffset.fileOffset, name.length),
+    errorHasBeenReported: false,
+  );
 }
 
 mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
@@ -445,8 +455,10 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   }
 
   @override
-  void buildOutlineExpressions(ClassHierarchy classHierarchy,
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
+  void buildOutlineExpressions(
+    ClassHierarchy classHierarchy,
+    List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+  ) {
     throw new UnsupportedError('$runtimeType.buildOutlineExpressions');
   }
 
@@ -465,8 +477,10 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
-  int computeDefaultTypes(ComputeDefaultTypeContext context,
-      {required bool inErrorRecovery}) {
+  int computeDefaultTypes(
+    ComputeDefaultTypeContext context, {
+    required bool inErrorRecovery,
+  }) {
     assert(false, "Unexpected call to $runtimeType.computeDefaultTypes.");
     return 0;
   }
@@ -482,14 +496,19 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   void checkVariance(
-      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {
+    SourceClassBuilder sourceClassBuilder,
+    TypeEnvironment typeEnvironment,
+  ) {
     assert(false, "Unexpected call to $runtimeType.checkVariance.");
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
-      TypeEnvironment typeEnvironment) {
+  void checkTypes(
+    SourceLibraryBuilder library,
+    NameSpace nameSpace,
+    TypeEnvironment typeEnvironment,
+  ) {
     assert(false, "Unexpected call to $runtimeType.checkVariance.");
   }
 
@@ -616,7 +635,7 @@ class IteratorSequence<T> implements Iterator<T> {
   Iterator<T>? _current;
 
   IteratorSequence(Iterable<Iterator<T>> iterators)
-      : _iterators = iterators.iterator;
+    : _iterators = iterators.iterator;
 
   @override
   T get current {

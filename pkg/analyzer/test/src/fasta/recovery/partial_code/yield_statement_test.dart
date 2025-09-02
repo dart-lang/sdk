@@ -18,7 +18,7 @@ class YieldStatementTest extends PartialCodeTest {
         TestDescriptor(
           'keyword',
           'yield',
-          [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
+          [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
           "yield _s_;",
           failing: [
             'assert',
@@ -31,12 +31,12 @@ class YieldStatementTest extends PartialCodeTest {
           ],
         ),
         TestDescriptor('expression', 'yield a', [
-          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.expectedToken,
         ], "yield a;"),
         TestDescriptor(
           'star',
           'yield *',
-          [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
+          [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
           "yield * _s_;",
           failing: [
             'assert',
@@ -49,7 +49,7 @@ class YieldStatementTest extends PartialCodeTest {
           ],
         ),
         TestDescriptor('star_expression', 'yield * a', [
-          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.expectedToken,
         ], "yield * a;"),
       ],
       PartialCodeTest.statementSuffixes,

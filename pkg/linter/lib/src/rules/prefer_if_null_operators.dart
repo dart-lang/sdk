@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -17,10 +18,13 @@ class PreferIfNullOperators extends LintRule {
     : super(name: LintNames.prefer_if_null_operators, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_if_null_operators;
+  DiagnosticCode get diagnosticCode => LinterLintCode.preferIfNullOperators;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addConditionalExpression(this, visitor);
   }
@@ -47,10 +51,9 @@ class _Visitor extends SimpleAstVisitor<void> {
         return;
       }
 
-      var exp =
-          condition.operator.type == TokenType.EQ_EQ
-              ? node.elseExpression
-              : node.thenExpression;
+      var exp = condition.operator.type == TokenType.EQ_EQ
+          ? node.elseExpression
+          : node.thenExpression;
       if (exp.toString() == expression.toString()) {
         rule.reportAtNode(node);
       }

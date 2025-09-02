@@ -2,91 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_state.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 
-import '../analyzer.dart';
+import '../lint_codes.dart';
 
 const _desc =
     'Do not expose implementation details through the analyzer public API.';
 
 class AnalyzerPublicApi extends MultiAnalysisRule {
   static const ruleName = 'analyzer_public_api';
-
-  /// Lint issued if a file in the analyzer public API contains a `part`
-  /// directive that points to a file that's not in the analyzer public API.
-  ///
-  /// The rationale for this lint is that if such a `part` directive were to
-  /// exist, it would cause all the members of the part file to become part of
-  /// the analyzer's public API, even though they don't appear to be public API.
-  ///
-  /// Note that the analyzer doesn't make very much use of `part` directives,
-  /// but it may do so in the future once augmentations and enhanced parts are
-  /// supported.
-  static const LintCode badPartDirective = LintCode(
-    'analyzer_public_api_bad_part_directive',
-    'Part directives in the analyzer public API should point to files in the '
-        'analyzer public API.',
-  );
-
-  /// Lint issued if a method, function, getter, or setter in the analyzer
-  /// public API makes use of a type that's not part of the analyzer public API,
-  /// or if a non-public type appears in an `extends`, `implements`, `with`, or
-  /// `on` clause.
-  ///
-  /// The reason this is a problem is that it makes it possible for analyzer
-  /// clients to implicitly reference analyzer internal types. This can happen
-  /// in many ways; here are some examples:
-  ///
-  /// - If `C` is a public API class that implements `B`, and `B` is a private
-  ///   class with a getter called `x`, then a client can access `B.x` via `C`.
-  ///
-  /// - If `f` has return type `T`, and `T` is a private class with a getter
-  ///   called `x`, then a client can access `T.x` via `f().x`.
-  ///
-  /// - If `f` has type `void Function(T)`, and `T` is a private class with a
-  ///   getter called `x`, then a client can access `T.x` via
-  ///   `var g = f; g = (t) { print(t.x); }`.
-  ///
-  /// This lint can be suppressed either with an `ignore` comment, or by marking
-  /// the referenced type with `@AnalyzerPublicApi(...)`. The advantage of
-  /// marking the referenced type with `@AnalyzerPublicApi(...)` is that it
-  /// causes the members of referenced type to be checked by this lint.
-  static const LintCode badType = LintCode(
-    'analyzer_public_api_bad_type',
-    'Element makes use of type(s) which is not part of the analyzer public '
-        'API: {0}.',
-  );
-
-  /// Lint issued if a file in the analyzer public API contains an `export`
-  /// directive that exports a name that's not part of the analyzer public API.
-  ///
-  /// This lint can be suppressed either with an `ignore` comment, or by marking
-  /// the exported declaration with `@AnalyzerPublicApi(...)`. The advantage of
-  /// marking the exported declaration with `@AnalyzerPublicApi(...)` is that it
-  /// causes the members of the exported declaration to be checked by this lint.
-  static const LintCode exportsNonPublicName = LintCode(
-    'analyzer_public_api_exports_non_public_name',
-    'Export directive exports element(s) that are not part of the analyzer '
-        'public API: {0}.',
-  );
-
-  /// Lint issued if a top level declaration in the analyzer public API has a
-  /// name ending in `Impl`.
-  ///
-  /// Such declarations are not meant to be members of the analyzer public API,
-  /// so if they are either declared outside of `package:analyzer/src`, or
-  /// marked with `@AnalyzerPublicApi(...)`, that is almost certainly a mistake.
-  static const LintCode implInPublicApi = LintCode(
-    'analyzer_public_api_impl_in_public_api',
-    'Declarations in the analyzer public API should not end in "Impl".',
-  );
 
   AnalyzerPublicApi()
     : super(
@@ -97,14 +30,17 @@ class AnalyzerPublicApi extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    badPartDirective,
-    badType,
-    exportsNonPublicName,
-    implInPublicApi,
+    LinterLintCode.analyzerPublicApiBadPartDirective,
+    LinterLintCode.analyzerPublicApiBadType,
+    LinterLintCode.analyzerPublicApiExportsNonPublicName,
+    LinterLintCode.analyzerPublicApiImplInPublicApi,
   ];
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addCompilationUnit(this, visitor);
     registry.addExportDirective(this, visitor);
@@ -167,7 +103,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (badNames != null) {
       rule.reportAtNode(
         node,
-        diagnosticCode: AnalyzerPublicApi.exportsNonPublicName,
+        diagnosticCode: LinterLintCode.analyzerPublicApiExportsNonPublicName,
         arguments: [badNames.join(', ')],
       );
     }
@@ -184,7 +120,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!partElement.includedFragment!.source.uri.isInAnalyzerPublicLib) {
       rule.reportAtNode(
         node,
-        diagnosticCode: AnalyzerPublicApi.badPartDirective,
+        diagnosticCode: LinterLintCode.analyzerPublicApiBadPartDirective,
       );
     }
   }
@@ -214,7 +150,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportAtOffset(
         fragment.nameOffset!,
         name.length,
-        diagnosticCode: AnalyzerPublicApi.implInPublicApi,
+        diagnosticCode: LinterLintCode.analyzerPublicApiImplInPublicApi,
       );
     }
     switch (fragment) {
@@ -225,16 +161,13 @@ class _Visitor extends SimpleAstVisitor<void> {
         for (var typeParameter in typeParameters) {
           _checkTypeParameter(typeParameter, fragment: fragment);
         }
-        if (fragment case InterfaceFragment(
-          :var supertype,
-          :var interfaces,
-          :var mixins,
-        )) {
-          _checkType(supertype, fragment: fragment);
-          for (var t in interfaces) {
+        if (fragment is InterfaceFragment) {
+          var element = fragment.element;
+          _checkType(element.supertype, fragment: fragment);
+          for (var t in element.interfaces) {
             _checkType(t, fragment: fragment);
           }
-          for (var t in mixins) {
+          for (var t in element.mixins) {
             _checkType(t, fragment: fragment);
           }
         }
@@ -299,7 +232,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     rule.reportAtOffset(
       offset,
       length,
-      diagnosticCode: AnalyzerPublicApi.badType,
+      diagnosticCode: LinterLintCode.analyzerPublicApiBadType,
       arguments: [problems.join(', ')],
     );
   }

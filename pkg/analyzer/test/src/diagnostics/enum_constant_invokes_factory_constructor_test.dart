@@ -33,7 +33,7 @@ extension type const ET(E it) implements E {
 ''',
       [
         error(
-          CompileTimeErrorCode.ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR,
+          CompileTimeErrorCode.enumConstantInvokesFactoryConstructor,
           20,
           5,
         ),
@@ -58,7 +58,7 @@ extension type const ET(E it) implements E {
 ''',
       [
         error(
-          CompileTimeErrorCode.ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR,
+          CompileTimeErrorCode.enumConstantInvokesFactoryConstructor,
           27,
           2,
         ),
@@ -83,7 +83,7 @@ extension type const ET(E it) implements E {
 ''',
       [
         error(
-          CompileTimeErrorCode.ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR,
+          CompileTimeErrorCode.enumConstantInvokesFactoryConstructor,
           27,
           2,
         ),

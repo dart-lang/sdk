@@ -125,10 +125,9 @@ class LibraryElementTest_featureSet extends PubPackageResolutionTest {
   void _assertFeatureSet(List<Feature> expected) {
     var featureSet = result.libraryElement.featureSet;
 
-    var actual =
-        ExperimentStatus.knownFeatures.values
-            .where(featureSet.isEnabled)
-            .toSet();
+    var actual = ExperimentStatus.knownFeatures.values
+        .where(featureSet.isEnabled)
+        .toSet();
 
     expect(actual, unorderedEquals(expected));
   }

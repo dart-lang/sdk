@@ -27,7 +27,7 @@ void f(Object? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_PATTERN_FIELD,
+          CompileTimeErrorCode.duplicatePatternField,
           57,
           4,
           contextMessages: [message(testFile, 48, 4)],
@@ -48,7 +48,7 @@ void f(x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_PATTERN_FIELD,
+          CompileTimeErrorCode.duplicatePatternField,
           45,
           3,
           contextMessages: [message(testFile, 37, 3)],
@@ -69,12 +69,12 @@ void f(x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_PATTERN_FIELD,
+          CompileTimeErrorCode.duplicatePatternField,
           45,
           1,
           contextMessages: [message(testFile, 37, 3)],
         ),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 50, 3),
+        error(WarningCode.unusedLocalVariable, 50, 3),
       ],
     );
   }
@@ -90,9 +90,9 @@ void f(x) {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 42, 3),
+        error(WarningCode.unusedLocalVariable, 42, 3),
         error(
-          CompileTimeErrorCode.DUPLICATE_PATTERN_FIELD,
+          CompileTimeErrorCode.duplicatePatternField,
           47,
           3,
           contextMessages: [message(testFile, 37, 1)],
@@ -113,7 +113,7 @@ void f(Object? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_PATTERN_FIELD,
+          CompileTimeErrorCode.duplicatePatternField,
           53,
           3,
           contextMessages: [message(testFile, 45, 3)],
@@ -134,7 +134,7 @@ void f(({int foo}) x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_PATTERN_FIELD,
+          CompileTimeErrorCode.duplicatePatternField,
           57,
           3,
           contextMessages: [message(testFile, 49, 3)],

@@ -33,7 +33,7 @@ class B extends T {}
 ''',
       [
         error(
-          CompileTimeErrorCode.EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
+          CompileTimeErrorCode.extendsTypeAliasExpandsToTypeParameter,
           55,
           1,
         ),
@@ -50,7 +50,7 @@ class B extends T<A> {}
 ''',
       [
         error(
-          CompileTimeErrorCode.EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
+          CompileTimeErrorCode.extendsTypeAliasExpandsToTypeParameter,
           55,
           1,
         ),

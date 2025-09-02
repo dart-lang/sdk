@@ -35,7 +35,11 @@ Future<void> main(List<String> args) async {
   }
 
   Dart2jsTester dart2jsTester = new Dart2jsTester(
-      useExperimentalInvalidation, fast, addDebugBreaks, limit);
+    useExperimentalInvalidation,
+    fast,
+    addDebugBreaks,
+    limit,
+  );
   await dart2jsTester.test();
 }
 
@@ -53,8 +57,12 @@ class Dart2jsTester {
   List<Uri> diffs = <Uri>[];
   Set<Uri> componentUris = new Set<Uri>();
 
-  Dart2jsTester(this.useExperimentalInvalidation, this.fast,
-      this.addDebugBreaks, this.limit);
+  Dart2jsTester(
+    this.useExperimentalInvalidation,
+    this.fast,
+    this.addDebugBreaks,
+    this.limit,
+  );
 
   Future<void> test() async {
     helper.TestIncrementalCompiler compiler = await setup();
@@ -79,23 +87,34 @@ class Dart2jsTester {
       print(" - $uri");
     }
 
-    print("Done after ${recompiles} recompiles in "
-        "${stopwatch.elapsedMilliseconds} ms");
+    print(
+      "Done after ${recompiles} recompiles in "
+      "${stopwatch.elapsedMilliseconds} ms",
+    );
   }
 
-  Future step(Uri uri, int i, helper.TestIncrementalCompiler compiler,
-      Stopwatch localStopwatch) async {
+  Future step(
+    Uri uri,
+    int i,
+    helper.TestIncrementalCompiler compiler,
+    Stopwatch localStopwatch,
+  ) async {
     print("Invalidating $uri ($i)");
     compiler.invalidate(uri);
     localStopwatch.reset();
-    IncrementalCompilerResult compilerResult =
-        await compiler.computeDelta(fullComponent: true);
+    IncrementalCompilerResult compilerResult = await compiler.computeDelta(
+      fullComponent: true,
+    );
     Component c2 = compilerResult.component;
     print("Recompiled in ${localStopwatch.elapsedMilliseconds} ms");
-    print("invalidatedImportUrisForTesting: "
-        "${compiler.recorderForTesting.invalidatedImportUrisForTesting}");
-    print("rebuildBodiesCount: "
-        "${compiler.recorderForTesting.rebuildBodiesCount}");
+    print(
+      "invalidatedImportUrisForTesting: "
+      "${compiler.recorderForTesting.invalidatedImportUrisForTesting}",
+    );
+    print(
+      "rebuildBodiesCount: "
+      "${compiler.recorderForTesting.rebuildBodiesCount}",
+    );
     localStopwatch.reset();
     Set<Uri> thisUris = new Set<Uri>.from(c2.libraries.map((l) => l.importUri));
     if (componentUris.isNotEmpty) {
@@ -132,8 +151,10 @@ class Dart2jsTester {
         library.additionalExports.sort();
         library.problemsAsJson?.sort();
 
-        List<int> libSerialized =
-            serializeComponent(c2, filter: (l) => l == library);
+        List<int> libSerialized = serializeComponent(
+          c2,
+          filter: (l) => l == library,
+        );
         if (!isEqual(libToData[library.importUri]!, libSerialized)) {
           print("=====");
           print("=====");
@@ -177,14 +198,17 @@ class Dart2jsTester {
     Uri input = Platform.script.resolve("../../compiler/lib/src/dart2js.dart");
     CompilerOptions options = helper.getOptions();
     options.explicitExperimentalFlags[ExperimentalFlag
-        .alternativeInvalidationStrategy] = useExperimentalInvalidation;
+            .alternativeInvalidationStrategy] =
+        useExperimentalInvalidation;
     options.omitPlatform = false;
     helper.TestIncrementalCompiler compiler =
         new helper.TestIncrementalCompiler(options, input);
     IncrementalCompilerResult compilerResult = await compiler.computeDelta();
     Component? c = compilerResult.component;
-    print("Compiled dart2js to Component with ${c.libraries.length} libraries "
-        "in ${stopwatch.elapsedMilliseconds} ms.");
+    print(
+      "Compiled dart2js to Component with ${c.libraries.length} libraries "
+      "in ${stopwatch.elapsedMilliseconds} ms.",
+    );
     stopwatch.reset();
     if (fast) {
       libToData = {};
@@ -200,8 +224,10 @@ class Dart2jsTester {
         library.additionalExports.sort();
         library.problemsAsJson?.sort();
 
-        List<int> libSerialized =
-            serializeComponent(c, filter: (l) => l == library);
+        List<int> libSerialized = serializeComponent(
+          c,
+          filter: (l) => l == library,
+        );
         libToData[library.importUri] = libSerialized;
       }
     } else {

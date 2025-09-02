@@ -35,7 +35,7 @@ final class C extends Struct {
   external Array<Uint8> a0;
 }
 ''',
-      [error(FfiCode.MISSING_SIZE_ANNOTATION_CARRAY, 62, 12)],
+      [error(FfiCode.missingSizeAnnotationCarray, 62, 12)],
     );
   }
 }

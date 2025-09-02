@@ -30,13 +30,7 @@ void f(x) {
   if (x case <int>{0: _}) {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS,
-          25,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.expectedTwoMapPatternTypeArguments, 25, 5)],
     );
   }
 
@@ -55,13 +49,7 @@ void f(x) {
   if (x case <bool, int, String>{0: _}) {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS,
-          25,
-          19,
-        ),
-      ],
+      [error(CompileTimeErrorCode.expectedTwoMapPatternTypeArguments, 25, 19)],
     );
   }
 }

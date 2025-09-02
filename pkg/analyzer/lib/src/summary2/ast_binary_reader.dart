@@ -409,15 +409,13 @@ class AstBinaryReader {
 
     ParameterKind kind;
     if (AstBinaryFlags.isPositional(flags)) {
-      kind =
-          AstBinaryFlags.isRequired(flags)
-              ? ParameterKind.REQUIRED
-              : ParameterKind.POSITIONAL;
+      kind = AstBinaryFlags.isRequired(flags)
+          ? ParameterKind.REQUIRED
+          : ParameterKind.POSITIONAL;
     } else {
-      kind =
-          AstBinaryFlags.isRequired(flags)
-              ? ParameterKind.NAMED_REQUIRED
-              : ParameterKind.NAMED;
+      kind = AstBinaryFlags.isRequired(flags)
+          ? ParameterKind.NAMED_REQUIRED
+          : ParameterKind.NAMED;
     }
 
     var node = DefaultFormalParameterImpl(
@@ -429,7 +427,6 @@ class AstBinaryReader {
 
     var nonDefaultElement = parameter.declaredFragment!;
     var fragment = FormalParameterFragmentImpl(
-      firstTokenOffset: null,
       name: nonDefaultElement.name,
       nameOffset: nonDefaultElement.nameOffset,
       parameterKind: kind,
@@ -537,8 +534,9 @@ class AstBinaryReader {
       name: name,
       period: Tokens.period(),
       thisKeyword: Tokens.this_(),
-      covariantKeyword:
-          AstBinaryFlags.isCovariant(flags) ? Tokens.covariant_() : null,
+      covariantKeyword: AstBinaryFlags.isCovariant(flags)
+          ? Tokens.covariant_()
+          : null,
       typeParameters: typeParameters,
       keyword: Tokens.choose(
         AstBinaryFlags.isConst(flags),
@@ -553,8 +551,9 @@ class AstBinaryReader {
       type: type,
       parameters: formalParameters,
       question: AstBinaryFlags.hasQuestion(flags) ? Tokens.question() : null,
-      requiredKeyword:
-          AstBinaryFlags.isRequired(flags) ? Tokens.required_() : null,
+      requiredKeyword: AstBinaryFlags.isRequired(flags)
+          ? Tokens.required_()
+          : null,
     );
     return node;
   }
@@ -667,13 +666,15 @@ class AstBinaryReader {
     var name = _readDeclarationName();
     var node = FunctionTypedFormalParameterImpl(
       comment: null,
-      covariantKeyword:
-          AstBinaryFlags.isCovariant(flags) ? Tokens.covariant_() : null,
+      covariantKeyword: AstBinaryFlags.isCovariant(flags)
+          ? Tokens.covariant_()
+          : null,
       name: name,
       metadata: metadata,
       parameters: formalParameters,
-      requiredKeyword:
-          AstBinaryFlags.isRequired(flags) ? Tokens.required_() : null,
+      requiredKeyword: AstBinaryFlags.isRequired(flags)
+          ? Tokens.required_()
+          : null,
       returnType: returnType,
       typeParameters: typeParameters,
       question: null,
@@ -697,11 +698,10 @@ class AstBinaryReader {
     var type = _reader.readRequiredType() as FunctionTypeImpl;
     node.type = type;
 
-    var fragment = GenericFunctionTypeFragmentImpl(firstTokenOffset: null);
-    fragment.formalParameters =
-        formalParameters.parameters
-            .map((parameter) => parameter.declaredFragment!)
-            .toList();
+    var fragment = GenericFunctionTypeFragmentImpl();
+    fragment.formalParameters = formalParameters.parameters
+        .map((parameter) => parameter.declaredFragment!)
+        .toList();
     fragment.returnType = returnType?.type ?? DynamicTypeImpl.instance;
     fragment.type = type;
     node.declaredFragment = fragment;
@@ -831,10 +831,9 @@ class AstBinaryReader {
     var expression = readNode() as ExpressionImpl;
     var isIdentifier = AstBinaryFlags.isStringInterpolationIdentifier(flags);
     return InterpolationExpressionImpl(
-      leftBracket:
-          isIdentifier
-              ? Tokens.stringInterpolationIdentifier()
-              : Tokens.stringInterpolationExpression(),
+      leftBracket: isIdentifier
+          ? Tokens.stringInterpolationIdentifier()
+          : Tokens.stringInterpolationExpression(),
       expression: expression,
       rightBracket: isIdentifier ? null : Tokens.closeCurlyBracket(),
     );
@@ -891,12 +890,14 @@ class AstBinaryReader {
     var valueFlags = _readByte();
     var value = readNode() as ExpressionImpl;
     return MapLiteralEntryImpl(
-      keyQuestion:
-          AstBinaryFlags.hasQuestion(keyFlags) ? Tokens.question() : null,
+      keyQuestion: AstBinaryFlags.hasQuestion(keyFlags)
+          ? Tokens.question()
+          : null,
       key: key,
       separator: Tokens.colon(),
-      valueQuestion:
-          AstBinaryFlags.hasQuestion(valueFlags) ? Tokens.question() : null,
+      valueQuestion: AstBinaryFlags.hasQuestion(valueFlags)
+          ? Tokens.question()
+          : null,
       value: value,
     );
   }
@@ -910,10 +911,9 @@ class AstBinaryReader {
 
     Token? operator;
     if (AstBinaryFlags.hasQuestion(flags)) {
-      operator =
-          AstBinaryFlags.hasPeriod(flags)
-              ? Tokens.questionPeriod()
-              : Tokens.questionPeriodPeriod();
+      operator = AstBinaryFlags.hasPeriod(flags)
+          ? Tokens.questionPeriod()
+          : Tokens.questionPeriodPeriod();
     } else if (AstBinaryFlags.hasPeriod(flags)) {
       operator = Tokens.period();
     } else if (AstBinaryFlags.hasPeriod2(flags)) {
@@ -1063,15 +1063,13 @@ class AstBinaryReader {
 
     Token operator;
     if (AstBinaryFlags.hasQuestion(flags)) {
-      operator =
-          AstBinaryFlags.hasPeriod(flags)
-              ? Tokens.questionPeriod()
-              : Tokens.questionPeriodPeriod();
+      operator = AstBinaryFlags.hasPeriod(flags)
+          ? Tokens.questionPeriod()
+          : Tokens.questionPeriodPeriod();
     } else {
-      operator =
-          AstBinaryFlags.hasPeriod(flags)
-              ? Tokens.period()
-              : Tokens.periodPeriod();
+      operator = AstBinaryFlags.hasPeriod(flags)
+          ? Tokens.period()
+          : Tokens.periodPeriod();
     }
 
     var node = PropertyAccessImpl(
@@ -1202,8 +1200,9 @@ class AstBinaryReader {
     var node = SimpleFormalParameterImpl(
       name: name,
       type: type,
-      covariantKeyword:
-          AstBinaryFlags.isCovariant(flags) ? Tokens.covariant_() : null,
+      covariantKeyword: AstBinaryFlags.isCovariant(flags)
+          ? Tokens.covariant_()
+          : null,
       comment: null,
       metadata: metadata,
       keyword: Tokens.choose(
@@ -1214,13 +1213,13 @@ class AstBinaryReader {
         AstBinaryFlags.isVar(flags),
         Tokens.var_(),
       ),
-      requiredKeyword:
-          AstBinaryFlags.isRequired(flags) ? Tokens.required_() : null,
+      requiredKeyword: AstBinaryFlags.isRequired(flags)
+          ? Tokens.required_()
+          : null,
     );
     var actualType = _reader.readRequiredType();
 
     var fragment = FormalParameterFragmentImpl(
-      firstTokenOffset: null,
       name: name?.lexeme,
       nameOffset: null,
       parameterKind: node.kind,
@@ -1258,10 +1257,9 @@ class AstBinaryReader {
     var flags = _readByte();
     var expression = readNode() as ExpressionImpl;
     return SpreadElementImpl(
-      spreadOperator:
-          AstBinaryFlags.hasQuestion(flags)
-              ? Tokens.periodPeriodPeriodQuestion()
-              : Tokens.periodPeriodPeriod(),
+      spreadOperator: AstBinaryFlags.hasQuestion(flags)
+          ? Tokens.periodPeriodPeriodQuestion()
+          : Tokens.periodPeriodPeriod(),
       expression: expression,
     );
   }
@@ -1298,11 +1296,10 @@ class AstBinaryReader {
   }
 
   SymbolLiteral _readSymbolLiteral() {
-    var components =
-        _reader
-            .readStringReferenceList()
-            .map(TokenFactory.tokenFromString)
-            .toList();
+    var components = _reader
+        .readStringReferenceList()
+        .map(TokenFactory.tokenFromString)
+        .toList();
     var node = SymbolLiteralImpl(
       poundSign: Tokens.hash(),
       components: components,

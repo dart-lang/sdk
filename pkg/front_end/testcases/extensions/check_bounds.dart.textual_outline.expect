@@ -7,8 +7,13 @@ class B extends A {}
 class Class<T extends A> {}
 
 extension Extension<T extends B> on Class<T> {
+  get property => 0;
+  set property(_) {}
   method() {}
   genericMethod<S extends B>(S s) {}
+  genericMethod2<S extends B>() {}
+  operator [](_) {}
+  operator []=(_, _) {}
 }
 
 main() {}

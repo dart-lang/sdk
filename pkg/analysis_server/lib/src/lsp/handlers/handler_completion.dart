@@ -414,9 +414,8 @@ class CompletionHandler
       /// invocation that already has an argument list, otherwise we would
       /// insert dupes.
       var completeFunctionCalls =
-          _hasExistingArgList(target.entity)
-              ? false
-              : server.lspClientConfiguration.global.completeFunctionCalls;
+          !_hasExistingArgList(target.entity) &&
+          server.lspClientConfiguration.global.completeFunctionCalls;
 
       // Compute defaults that will allow us to reduce payload size.
       var defaultReplacementRange = toRange(

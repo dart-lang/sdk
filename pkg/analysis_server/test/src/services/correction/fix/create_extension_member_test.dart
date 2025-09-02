@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -245,6 +246,23 @@ extension E on int {
   ({int v,}) get test => (v: v,);
 
   int get v => null;
+}
+''');
+  }
+
+  Future<void> test_nullableObject_target() async {
+    await resolveTestCode('''
+void f(Object? o) {
+  int _ = o.test;
+}
+''');
+    await assertHasFix('''
+void f(Object? o) {
+  int _ = o.test;
+}
+
+extension on Object? {
+  int get test => null;
 }
 ''');
   }
@@ -826,6 +844,23 @@ extension E on int {
 ''');
   }
 
+  Future<void> test_nullableObject_target() async {
+    await resolveTestCode('''
+void f(Object? o) {
+  int _ = o.test();
+}
+''');
+    await assertHasFix('''
+void f(Object? o) {
+  int _ = o.test();
+}
+
+extension on Object? {
+  int test() {}
+}
+''');
+  }
+
   Future<void> test_nullableTargetType() async {
     await resolveTestCode('''
 void f(int? p) {
@@ -841,6 +876,203 @@ extension on int? {
   int test() {}
 }
 ''');
+  }
+
+  Future<void> test_operatorAssignment_another_parameter() async {
+    await resolveTestCode('''
+class A {
+  A operator +(int v) => this;
+}
+
+extension E on A {
+  void f(A a) {
+    a += foo();
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  A operator +(int v) => this;
+}
+
+extension E on A {
+  void f(A a) {
+    a += foo();
+  }
+
+  int foo() {}
+}
+''');
+  }
+
+  Future<void> test_operatorAssignment_minus_int() async {
+    await resolveTestCode('''
+extension E on int {
+  void f(int i) {
+    i -= foo();
+  }
+}
+''');
+    await assertHasFix(
+      '''
+extension E on int {
+  void f(int i) {
+    i -= foo();
+  }
+
+  int foo() {}
+}
+''',
+      errorFilter:
+          (diagnostic) =>
+              diagnostic.diagnosticCode == CompileTimeErrorCode.undefinedMethod,
+    );
+  }
+
+  Future<void> test_operatorAssignment_neverAssignable() async {
+    await resolveTestCode('''
+class A {
+  int operator +(int v) => v;
+}
+
+extension E on A {
+  void f(A a) {
+    a += foo();
+  }
+}
+''');
+    await assertNoFix(
+      errorFilter:
+          (diagnostic) =>
+              diagnostic.diagnosticCode == CompileTimeErrorCode.undefinedMethod,
+    );
+    await assertNoFix(
+      errorFilter:
+          (diagnostic) =>
+              diagnostic.diagnosticCode ==
+              CompileTimeErrorCode.invalidAssignment,
+    );
+  }
+
+  Future<void> test_operatorAssignment_overriden_covariant() async {
+    await resolveTestCode('''
+class A {
+  A operator +(covariant A a) => a;
+}
+
+class B extends A {
+  @override
+  B operator +(covariant B b) => b;
+}
+
+extension E on B {
+  void f(B b) {
+    b += foo();
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  A operator +(covariant A a) => a;
+}
+
+class B extends A {
+  @override
+  B operator +(covariant B b) => b;
+}
+
+extension E on B {
+  void f(B b) {
+    b += foo();
+  }
+
+  B foo() {}
+}
+''');
+  }
+
+  Future<void> test_operatorAssignment_plus_int() async {
+    await resolveTestCode('''
+extension E on int {
+  void f(int i) {
+    i += foo();
+  }
+}
+''');
+    await assertHasFix(
+      '''
+extension E on int {
+  void f(int i) {
+    i += foo();
+  }
+
+  int foo() {}
+}
+''',
+      errorFilter:
+          (diagnostic) =>
+              diagnostic.diagnosticCode == CompileTimeErrorCode.undefinedMethod,
+    );
+  }
+
+  Future<void> test_operatorAssignment_slash_int() async {
+    await resolveTestCode('''
+extension E on int {
+  void f(int i) {
+    i /= foo();
+  }
+}
+''');
+    await assertNoFix(
+      errorFilter:
+          (diagnostic) =>
+              diagnostic.diagnosticCode == CompileTimeErrorCode.undefinedMethod,
+    );
+  }
+
+  Future<void> test_operatorAssignment_star_int() async {
+    await resolveTestCode('''
+extension E on int {
+  void f(int i) {
+    i *= foo();
+  }
+}
+''');
+    await assertHasFix(
+      '''
+extension E on int {
+  void f(int i) {
+    i *= foo();
+  }
+
+  int foo() {}
+}
+''',
+      errorFilter:
+          (diagnostic) =>
+              diagnostic.diagnosticCode == CompileTimeErrorCode.undefinedMethod,
+    );
+  }
+
+  Future<void> test_operatorAssignment_subtype() async {
+    await resolveTestCode('''
+class A {
+  A operator +(covariant A a) => a;
+}
+
+class B extends A {}
+
+extension E on B {
+  void f(B b) {
+    b += foo();
+  }
+}
+''');
+    await assertNoFix(
+      errorFilter:
+          (diagnostic) =>
+              diagnostic.diagnosticCode == CompileTimeErrorCode.undefinedMethod,
+    );
   }
 
   Future<void> test_override() async {
@@ -1335,6 +1567,23 @@ extension on int {
 ''');
   }
 
+  Future<void> test_nullableObject_target() async {
+    await resolveTestCode('''
+void f(Object? o) {
+  o + 0;
+}
+''');
+    await assertHasFix('''
+void f(Object? o) {
+  o + 0;
+}
+
+extension on Object? {
+  void operator +(int other) {}
+}
+''');
+  }
+
   Future<void> test_nullableTargetType() async {
     await resolveTestCode('''
 void f(int? p) {
@@ -1545,6 +1794,23 @@ extension on String {
 }
 
 extension on int {}
+''');
+  }
+
+  Future<void> test_nullableObject_target() async {
+    await resolveTestCode('''
+void f(Object? o) {
+  o.test = 0;
+}
+''');
+    await assertHasFix('''
+void f(Object? o) {
+  o.test = 0;
+}
+
+extension on Object? {
+  set test(int test) {}
+}
 ''');
   }
 

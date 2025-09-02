@@ -19,63 +19,82 @@ void main() {
   Expect.isTrue(new Covariance.internal(null, null, null).isEmpty);
 
   checkEquals(
-      const Covariance.empty(), new Covariance.internal(null, null, null));
+    const Covariance.empty(),
+    new Covariance.internal(null, null, null),
+  );
 
   Expect.throws(() => new Covariance.internal([], null, null));
   Expect.throws(() => new Covariance.internal([0], null, null));
 
   checkEquals(
-      new Covariance.internal([Covariance.GenericCovariantImpl], null, null),
-      new Covariance.internal(
-          [Covariance.GenericCovariantImpl, 0], null, null));
+    new Covariance.internal([Covariance.GenericCovariantImpl], null, null),
+    new Covariance.internal([Covariance.GenericCovariantImpl, 0], null, null),
+  );
 
-  checkEquals(new Covariance.internal([Covariance.Covariant], null, null),
-      new Covariance.internal([Covariance.Covariant, 0], null, null));
+  checkEquals(
+    new Covariance.internal([Covariance.Covariant], null, null),
+    new Covariance.internal([Covariance.Covariant, 0], null, null),
+  );
 
-  checkEquals(new Covariance.internal([0, Covariance.Covariant], null, null),
-      new Covariance.internal([0, Covariance.Covariant, 0], null, null));
+  checkEquals(
+    new Covariance.internal([0, Covariance.Covariant], null, null),
+    new Covariance.internal([0, Covariance.Covariant, 0], null, null),
+  );
 
   Expect.throws(() => new Covariance.internal(null, {}, null));
   Expect.throws(() => new Covariance.internal(null, {'a': 0}, null));
 
-  checkEquals(new Covariance.internal(null, {'a': Covariance.Covariant}, null),
-      new Covariance.internal(null, {'a': Covariance.Covariant}, null));
+  checkEquals(
+    new Covariance.internal(null, {'a': Covariance.Covariant}, null),
+    new Covariance.internal(null, {'a': Covariance.Covariant}, null),
+  );
 
   Expect.throws(() => new Covariance.internal(null, null, []));
 
   Expect.throws(() => new Covariance.internal(null, null, [false]));
 
-  checkEquals(new Covariance.internal(null, null, [true]),
-      new Covariance.internal(null, null, [true, false]));
+  checkEquals(
+    new Covariance.internal(null, null, [true]),
+    new Covariance.internal(null, null, [true, false]),
+  );
 
-  Covariance covariance = new Covariance.internal([
-    Covariance.Covariant,
-    Covariance.GenericCovariantImpl,
-    0,
-    Covariance.Covariant | Covariance.GenericCovariantImpl
-  ], {
-    'a': Covariance.Covariant,
-    'b': Covariance.GenericCovariantImpl,
-    'd': Covariance.Covariant | Covariance.GenericCovariantImpl
-  }, [
-    false,
-    true
-  ]);
+  Covariance covariance = new Covariance.internal(
+    [
+      Covariance.Covariant,
+      Covariance.GenericCovariantImpl,
+      0,
+      Covariance.Covariant | Covariance.GenericCovariantImpl,
+    ],
+    {
+      'a': Covariance.Covariant,
+      'b': Covariance.GenericCovariantImpl,
+      'd': Covariance.Covariant | Covariance.GenericCovariantImpl,
+    },
+    [false, true],
+  );
 
   Expect.equals(Covariance.Covariant, covariance.getPositionalVariance(0));
   Expect.equals(
-      Covariance.GenericCovariantImpl, covariance.getPositionalVariance(1));
+    Covariance.GenericCovariantImpl,
+    covariance.getPositionalVariance(1),
+  );
   Expect.equals(0, covariance.getPositionalVariance(2));
-  Expect.equals(Covariance.Covariant | Covariance.GenericCovariantImpl,
-      covariance.getPositionalVariance(3));
+  Expect.equals(
+    Covariance.Covariant | Covariance.GenericCovariantImpl,
+    covariance.getPositionalVariance(3),
+  );
   Expect.equals(0, covariance.getPositionalVariance(4));
 
   Expect.equals(Covariance.Covariant, covariance.getNamedVariance('a'));
   Expect.equals(
-      Covariance.GenericCovariantImpl, covariance.getNamedVariance('b'));
+    Covariance.GenericCovariantImpl,
+    covariance.getNamedVariance('b'),
+  );
   Expect.equals(0, covariance.getNamedVariance('c'));
-  Expect.equals(Covariance.Covariant | Covariance.GenericCovariantImpl,
-      covariance.getNamedVariance('d'));
+  Expect.equals(
+    Covariance.Covariant | Covariance.GenericCovariantImpl,
+    covariance.getNamedVariance('d'),
+  );
   Expect.equals(0, covariance.getNamedVariance('e'));
 
   Expect.isFalse(covariance.isTypeParameterGenericCovariantImpl(0));
@@ -83,138 +102,190 @@ void main() {
   Expect.isFalse(covariance.isTypeParameterGenericCovariantImpl(0));
 
   Expect.stringEquals(
-      'Covariance('
-      '0:Covariant,1:GenericCovariantImpl,3:GenericCovariantImpl+Covariant,'
-      'a:Covariant,b:GenericCovariantImpl,d:GenericCovariantImpl+Covariant,'
-      'types:1)',
-      covariance.toString());
+    'Covariance('
+    '0:Covariant,1:GenericCovariantImpl,3:GenericCovariantImpl+Covariant,'
+    'a:Covariant,b:GenericCovariantImpl,d:GenericCovariantImpl+Covariant,'
+    'types:1)',
+    covariance.toString(),
+  );
 
   Procedure noParameterProcedure = new Procedure(
-      new Name('foo'), ProcedureKind.Method, new FunctionNode(null),
-      fileUri: dummyUri);
-  Covariance noParameterProcedureCovariance =
-      new Covariance.fromMember(noParameterProcedure, forSetter: false);
+    new Name('foo'),
+    ProcedureKind.Method,
+    new FunctionNode(null),
+    fileUri: dummyUri,
+  );
+  Covariance noParameterProcedureCovariance = new Covariance.fromMember(
+    noParameterProcedure,
+    forSetter: false,
+  );
   Expect.isTrue(noParameterProcedureCovariance.isEmpty);
 
   covariance.applyCovariance(noParameterProcedure);
-  noParameterProcedureCovariance =
-      new Covariance.fromMember(noParameterProcedure, forSetter: false);
+  noParameterProcedureCovariance = new Covariance.fromMember(
+    noParameterProcedure,
+    forSetter: false,
+  );
   Expect.isTrue(noParameterProcedureCovariance.isEmpty);
 
   Procedure oneParameterProcedure = new Procedure(
-      new Name('foo'),
-      ProcedureKind.Method,
-      new FunctionNode(null, positionalParameters: [
-        new VariableDeclaration(null, isSynthesized: true)
-      ]),
-      fileUri: dummyUri);
-  Covariance oneParameterProcedureCovariance =
-      new Covariance.fromMember(oneParameterProcedure, forSetter: false);
+    new Name('foo'),
+    ProcedureKind.Method,
+    new FunctionNode(
+      null,
+      positionalParameters: [
+        new VariableDeclaration(null, isSynthesized: true),
+      ],
+    ),
+    fileUri: dummyUri,
+  );
+  Covariance oneParameterProcedureCovariance = new Covariance.fromMember(
+    oneParameterProcedure,
+    forSetter: false,
+  );
   Expect.isTrue(oneParameterProcedureCovariance.isEmpty);
 
   covariance.applyCovariance(oneParameterProcedure);
-  oneParameterProcedureCovariance =
-      new Covariance.fromMember(oneParameterProcedure, forSetter: false);
+  oneParameterProcedureCovariance = new Covariance.fromMember(
+    oneParameterProcedure,
+    forSetter: false,
+  );
   Expect.isFalse(oneParameterProcedureCovariance.isEmpty);
-  Expect.equals(new Covariance.internal([Covariance.Covariant], null, null),
-      oneParameterProcedureCovariance);
+  Expect.equals(
+    new Covariance.internal([Covariance.Covariant], null, null),
+    oneParameterProcedureCovariance,
+  );
 
   Procedure positionalParametersProcedure = new Procedure(
-      new Name('foo'),
-      ProcedureKind.Method,
-      new FunctionNode(null, positionalParameters: [
+    new Name('foo'),
+    ProcedureKind.Method,
+    new FunctionNode(
+      null,
+      positionalParameters: [
         new VariableDeclaration(null, isSynthesized: true),
         new VariableDeclaration(null, isSynthesized: true),
         new VariableDeclaration(null, isSynthesized: true),
         new VariableDeclaration(null, isSynthesized: true),
-        new VariableDeclaration(null, isSynthesized: true)
-      ]),
-      fileUri: dummyUri);
+        new VariableDeclaration(null, isSynthesized: true),
+      ],
+    ),
+    fileUri: dummyUri,
+  );
   Covariance positionalParametersProcedureCovariance =
-      new Covariance.fromMember(positionalParametersProcedure,
-          forSetter: false);
+      new Covariance.fromMember(
+        positionalParametersProcedure,
+        forSetter: false,
+      );
   Expect.isTrue(positionalParametersProcedureCovariance.isEmpty);
 
   covariance.applyCovariance(positionalParametersProcedure);
   positionalParametersProcedureCovariance = new Covariance.fromMember(
-      positionalParametersProcedure,
-      forSetter: false);
+    positionalParametersProcedure,
+    forSetter: false,
+  );
   Expect.isFalse(positionalParametersProcedureCovariance.isEmpty);
   checkEquals(
-      new Covariance.internal([
+    new Covariance.internal(
+      [
         Covariance.Covariant,
         Covariance.GenericCovariantImpl,
         0,
-        Covariance.Covariant | Covariance.GenericCovariantImpl
-      ], null, null),
-      positionalParametersProcedureCovariance);
+        Covariance.Covariant | Covariance.GenericCovariantImpl,
+      ],
+      null,
+      null,
+    ),
+    positionalParametersProcedureCovariance,
+  );
 
   Procedure namedParametersProcedure = new Procedure(
-      new Name('foo'),
-      ProcedureKind.Method,
-      new FunctionNode(null, namedParameters: [
+    new Name('foo'),
+    ProcedureKind.Method,
+    new FunctionNode(
+      null,
+      namedParameters: [
         new VariableDeclaration('a'),
         new VariableDeclaration('b'),
         new VariableDeclaration('c'),
         new VariableDeclaration('d'),
-        new VariableDeclaration('e')
-      ]),
-      fileUri: dummyUri);
-  Covariance namedParametersProcedureCovariance =
-      new Covariance.fromMember(namedParametersProcedure, forSetter: false);
+        new VariableDeclaration('e'),
+      ],
+    ),
+    fileUri: dummyUri,
+  );
+  Covariance namedParametersProcedureCovariance = new Covariance.fromMember(
+    namedParametersProcedure,
+    forSetter: false,
+  );
   Expect.isTrue(namedParametersProcedureCovariance.isEmpty);
 
   covariance.applyCovariance(namedParametersProcedure);
-  namedParametersProcedureCovariance =
-      new Covariance.fromMember(namedParametersProcedure, forSetter: false);
+  namedParametersProcedureCovariance = new Covariance.fromMember(
+    namedParametersProcedure,
+    forSetter: false,
+  );
   Expect.isFalse(namedParametersProcedureCovariance.isEmpty);
   checkEquals(
-      new Covariance.internal(
-          null,
-          {
-            'a': Covariance.Covariant,
-            'b': Covariance.GenericCovariantImpl,
-            'd': Covariance.Covariant | Covariance.GenericCovariantImpl
-          },
-          null),
-      namedParametersProcedureCovariance);
+    new Covariance.internal(null, {
+      'a': Covariance.Covariant,
+      'b': Covariance.GenericCovariantImpl,
+      'd': Covariance.Covariant | Covariance.GenericCovariantImpl,
+    }, null),
+    namedParametersProcedureCovariance,
+  );
 
   Procedure typeParametersProcedure = new Procedure(
-      new Name('foo'),
-      ProcedureKind.Method,
-      new FunctionNode(null, typeParameters: [
+    new Name('foo'),
+    ProcedureKind.Method,
+    new FunctionNode(
+      null,
+      typeParameters: [
         new TypeParameter(null),
         new TypeParameter(null),
         new TypeParameter(null),
-      ]),
-      fileUri: dummyUri);
-  Covariance typeParametersProcedureCovariance =
-      new Covariance.fromMember(typeParametersProcedure, forSetter: false);
+      ],
+    ),
+    fileUri: dummyUri,
+  );
+  Covariance typeParametersProcedureCovariance = new Covariance.fromMember(
+    typeParametersProcedure,
+    forSetter: false,
+  );
   Expect.isTrue(typeParametersProcedureCovariance.isEmpty);
 
   covariance.applyCovariance(typeParametersProcedure);
-  typeParametersProcedureCovariance =
-      new Covariance.fromMember(typeParametersProcedure, forSetter: false);
+  typeParametersProcedureCovariance = new Covariance.fromMember(
+    typeParametersProcedure,
+    forSetter: false,
+  );
   Expect.isFalse(typeParametersProcedureCovariance.isEmpty);
-  checkEquals(new Covariance.internal(null, null, [false, true]),
-      typeParametersProcedureCovariance);
+  checkEquals(
+    new Covariance.internal(null, null, [false, true]),
+    typeParametersProcedureCovariance,
+  );
 
-  Covariance merged =
-      const Covariance.empty().merge(positionalParametersProcedureCovariance);
+  Covariance merged = const Covariance.empty().merge(
+    positionalParametersProcedureCovariance,
+  );
   checkEquals(positionalParametersProcedureCovariance, merged);
   merged = merged.merge(namedParametersProcedureCovariance);
   checkEquals(
-      new Covariance.internal([
+    new Covariance.internal(
+      [
         Covariance.Covariant,
         Covariance.GenericCovariantImpl,
         0,
-        Covariance.GenericCovariantImpl | Covariance.Covariant
-      ], {
+        Covariance.GenericCovariantImpl | Covariance.Covariant,
+      ],
+      {
         'a': Covariance.Covariant,
         'b': Covariance.GenericCovariantImpl,
-        'd': Covariance.Covariant | Covariance.GenericCovariantImpl
-      }, null),
-      merged);
+        'd': Covariance.Covariant | Covariance.GenericCovariantImpl,
+      },
+      null,
+    ),
+    merged,
+  );
   merged = merged.merge(typeParametersProcedureCovariance);
   checkEquals(covariance, merged);
 }

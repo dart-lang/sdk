@@ -245,7 +245,11 @@ class ClassConstructor extends AstNode {
   final Token endInclusive;
 
   ClassConstructor(
-      this.node, this.name, this.startInclusive, this.endInclusive);
+    this.node,
+    this.name,
+    this.startInclusive,
+    this.endInclusive,
+  );
 
   @override
   StringBuffer toStringInternal(StringBuffer sb, int indent) {
@@ -278,7 +282,11 @@ class ClassFactoryMethod extends AstNode {
   final Token endInclusive;
 
   ClassFactoryMethod(
-      this.node, this.name, this.startInclusive, this.endInclusive);
+    this.node,
+    this.name,
+    this.startInclusive,
+    this.endInclusive,
+  );
 
   @override
   StringBuffer toStringInternal(StringBuffer sb, int indent) {
@@ -404,8 +412,13 @@ class Enum extends AstNode {
   @override
   final Token endInclusive;
 
-  Enum(this.node, this.name, this.members, this.startInclusive,
-      this.endInclusive);
+  Enum(
+    this.node,
+    this.name,
+    this.members,
+    this.startInclusive,
+    this.endInclusive,
+  );
 
   @override
   StringBuffer toStringInternal(StringBuffer sb, int indent) {
@@ -442,8 +455,14 @@ class Import extends AstNode {
   @override
   final Token endInclusive;
 
-  Import(this.node, this.firstUri, this.conditionalUris, this.asName,
-      this.startInclusive, this.endInclusive);
+  Import(
+    this.node,
+    this.firstUri,
+    this.conditionalUris,
+    this.asName,
+    this.startInclusive,
+    this.endInclusive,
+  );
 
   List<Uri> get uris => [firstUri, ...?conditionalUris];
 
@@ -484,8 +503,13 @@ class Export extends AstNode {
   @override
   final Token endInclusive;
 
-  Export(this.node, this.firstUri, this.conditionalUris, this.startInclusive,
-      this.endInclusive);
+  Export(
+    this.node,
+    this.firstUri,
+    this.conditionalUris,
+    this.startInclusive,
+    this.endInclusive,
+  );
 
   List<Uri> get uris => [firstUri, ...?conditionalUris];
 
@@ -717,7 +741,11 @@ class ExtensionFields extends AstNode {
   final Token endInclusive;
 
   ExtensionFields(
-      this.node, this.names, this.startInclusive, this.endInclusive);
+    this.node,
+    this.names,
+    this.startInclusive,
+    this.endInclusive,
+  );
 
   @override
   StringBuffer toStringInternal(StringBuffer sb, int indent) {

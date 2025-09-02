@@ -203,7 +203,7 @@ class SubstituteTest extends _Base {
     var U = typeParameter('U');
     var V = typeParameter('V');
 
-    T.firstFragment.bound = interfaceTypeNone(
+    T.bound = interfaceTypeNone(
       classTriplet,
       typeArguments: [
         typeParameterTypeNone(T),
@@ -211,7 +211,6 @@ class SubstituteTest extends _Base {
         typeParameterTypeNone(V),
       ],
     );
-    T.bound = T.firstFragment.bound;
 
     var type = functionTypeNone(typeParameters: [T, U], returnType: boolNone);
 
@@ -411,11 +410,10 @@ class SubstituteTest extends _Base {
       InterfaceType typeArgument,
       InterfaceType expectedType,
     ) {
-      var result = Substitution.fromMap({
-        tElement: typeArgument,
-      }).substituteType(
-        tElement.instantiate(nullabilitySuffix: typeParameterNullability),
-      );
+      var result = Substitution.fromMap({tElement: typeArgument})
+          .substituteType(
+            tElement.instantiate(nullabilitySuffix: typeParameterNullability),
+          );
       expect(result, expectedType);
     }
 

@@ -47,6 +47,15 @@ extension on String {
   bool operator <=(other) => true;
 }
 
+extension type ExtensionType(int it) {
+  int get getter => 42;
+  void method() {}
+  bool operator <(int i) => true;
+  int operator >(int i) => 0;
+}
+
+typedef ExtensionType_ = ExtensionType?;
+
 objectPattern(o) {}
 
 relationalPattern(
@@ -58,4 +67,5 @@ relationalPattern(
   String string,
   Class2 cls2,
   Class2? cls2_,
+  ExtensionType extensionType,
 ) {}

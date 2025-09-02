@@ -1,8 +1,33 @@
-## 8.1.0-dev
+## 8.2.0-dev
+* Updated SDK constraint to `^3.9.0`.
+* Deprecate `Diagnostic.data`. Instead, please use an expando to attach data to
+  the `Diagnostic` object.
+* Deprecate `CatchClauseParameter.declaredElement` and `CatchClauseParameter.declaredElement2`.
+  Use `CatchClauseParameter.declaredFragment` instead.
+* Deprecate `DeclaredIdentifier.declaredElement` and `DeclaredIdentifier.declaredElement2`.
+  Use `DeclaredIdentifier.declaredFragment` instead.
+* Deprecate `DeclaredVariablePattern.declaredElement` and `DeclaredVariablePattern.declaredElement2`.
+  Use `DeclaredVariablePattern.declaredFragment` instead.
+* Deprecate `VariableDeclaration.declaredElement` and `VariableDeclaration.declaredElement2`.
+  Use `VariableDeclaration.declaredFragment` instead.
+* Deprecate `InterfaceFragment.interfaces`, use `InterfaceElement.interfaces` instead.
+* Deprecate `InterfaceFragment.mixins`, use `InterfaceElement.mixins` instead.
+* Deprecate `InterfaceFragment.supertype`, use `InterfaceElement.supertype` instead.
+* Deprecate `ExtensionTypeFragment.primaryConstructor`, use `ExtensionTypeElement.primaryConstructor`.
+* Deprecate `ExtensionTypeFragment.representation`, use `ExtensionTypeElement.representation`.
+* Deprecate `NullShortableExpression`. This interface should not be needed by
+  analyzer clients, and is no longer supported.
+
+## 8.1.1
+* Fix for `EnumSet` usage when compiled to JavaScript.
+
+## 8.1.0
 * Add `DartObject.constructorInvocation` with the constructor and arguments.
 * Make `PropertyAccessorElement.variable` non-nullable.
 * Add `documentationComment` to `Element` and `Fragment`.
-* Add `metadata` to `Element` and `Fragment`.`
+* Add `metadata` to `Element` and `Fragment`.
+* Add `metadata` to `ElementDirective`.
+* Add `partKeywordOffset` to `PartInclude`.
 * Fix draining analysis events when used by `package:build`.
 * Deprecate `LibraryElementResult.element2`, use `element` instead.
 * Deprecate `ResolvedLibraryResult.element2`, use `element` instead.
@@ -121,24 +146,24 @@
 * Deprecate  `TypeProvider.streamElement2`, use `streamElement` instead.
 * Deprecate  `TypeProvider.stringElement2`, use `stringElement` instead.
 * Deprecate  `TypeProvider.symbolElement2`, use `symbolElement` instead.
-* Deprecated `Annotation.element2`, use `element` instead.
-* Deprecated `LibraryDirective.name2`, use `name` instead.
-* Deprecated `CatchClauseParameter.declaredElement2`, use `declaredElement` instead.
-* Deprecated `CompoundAssignmentExpression.readElement2`, use `readElement` instead.
-* Deprecated `CompoundAssignmentExpression.writeElement2`, use `writeElement` instead.
-* Deprecated `DeclaredIdentifier.declaredElement2`, use `declaredElement` instead.
-* Deprecated `DeclaredVariablePattern.declaredElement2`, use `declaredElement` instead.
-* Deprecated `EnumConstantDeclaration.constructorElement2`, use `constructorElement` instead.
-* Deprecated `ExtensionOverride.element2`, use `element` instead.
-* Deprecated `FunctionBody.isPotentiallyMutatedInScope2`, use `isPotentiallyMutatedInScope` instead.
-* Deprecated `ImportPrefixReference.element2`, use `element` instead.
-* Deprecated `LibraryDirective.element2, use `element` instead.
-* Deprecated `LibraryDirective.name2, use `name` instead.
-* Deprecated `NamedExpression.element2, use `element` instead.
-* Deprecated `NamedType.element2, use `element` instead.
-* Deprecated `PatternField.element2, use `element` instead.
-* Deprecated `RelationalPattern.element2, use `element` instead.
-* Deprecated `VariableDeclaration.declaredElement2, use `declaredElement` instead.
+* Deprecate `Annotation.element2`, use `element` instead.
+* Deprecate `LibraryDirective.name2`, use `name` instead.
+* Deprecate `CatchClauseParameter.declaredElement2`, use `declaredElement` instead.
+* Deprecate `CompoundAssignmentExpression.readElement2`, use `readElement` instead.
+* Deprecate `CompoundAssignmentExpression.writeElement2`, use `writeElement` instead.
+* Deprecate `DeclaredIdentifier.declaredElement2`, use `declaredElement` instead.
+* Deprecate `DeclaredVariablePattern.declaredElement2`, use `declaredElement` instead.
+* Deprecate `EnumConstantDeclaration.constructorElement2`, use `constructorElement` instead.
+* Deprecate `ExtensionOverride.element2`, use `element` instead.
+* Deprecate `FunctionBody.isPotentiallyMutatedInScope2`, use `isPotentiallyMutatedInScope` instead.
+* Deprecate `ImportPrefixReference.element2`, use `element` instead.
+* Deprecate `LibraryDirective.element2`, use `element` instead.
+* Deprecate `LibraryDirective.name2`, use `name` instead.
+* Deprecate `NamedExpression.element2`, use `element` instead.
+* Deprecate `NamedType.element2`, use `element` instead.
+* Deprecate `PatternField.element2`, use `element` instead.
+* Deprecate `RelationalPattern.element2`, use `element` instead.
+* Deprecate `VariableDeclaration.declaredElement2`, use `declaredElement` instead.
 * Deprecate `InterfaceType.methods2`, use `methods` instead.
 * Deprecate `Fragment.name2`, use `name` instead.
 * Deprecate `Element.name3`, use `name` instead.

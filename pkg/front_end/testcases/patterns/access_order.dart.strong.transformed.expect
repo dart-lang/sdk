@@ -236,7 +236,7 @@ abstract class _MyList&Object&ListMixin<E extends core::Object? = dynamic> exten
     return result;
   }
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ add(covariant-by-class self::_MyList&Object&ListMixin::E% element) → void {
-    this.{core::List::[]=}(let final core::int #t2 = this.{core::List::length}{core::int} in let final core::int #t3 = this.{core::List::length} = #t2.{core::num::+}(1){(core::num) → core::int} in #t2, element){(core::int, self::_MyList&Object&ListMixin::E%) → void};
+    this.{core::List::[]=}(let final core::int #t2 = this.{core::List::length}{core::int} in let final void #t3 = this.{core::List::length} = #t2.{core::num::+}(1){(core::num) → core::int} in #t2, element){(core::int, self::_MyList&Object&ListMixin::E%) → void};
   }
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ addAll(covariant-by-class core::Iterable<self::_MyList&Object&ListMixin::E%> iterable) → void {
     core::int i = this.{core::List::length}{core::int};
@@ -521,7 +521,7 @@ abstract class _MyList&Object&ListMixin<E extends core::Object? = dynamic> exten
         for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
           self::_MyList&Object&ListMixin::E% element = :sync-for-iterator.{core::Iterator::current}{self::_MyList&Object&ListMixin::E%};
           {
-            this.{core::List::[]=}(let final core::int #t8 = index in let final core::int #t9 = index = #t8.{core::num::+}(1){(core::num) → core::int} in #t8, element){(core::int, self::_MyList&Object&ListMixin::E%) → void};
+            this.{core::List::[]=}(let final core::int #t8 = index in let final void #t9 = index = #t8.{core::num::+}(1){(core::num) → core::int} in #t8, element){(core::int, self::_MyList&Object&ListMixin::E%) → void};
           }
         }
       }
@@ -536,6 +536,8 @@ static method test1(core::Object o) → core::String
   return block {
     core::String #t10;
     final synthesized core::Object #0#0 = o;
+    final const synthesized core::int #0#3 = #C8;
+    final const synthesized core::int #0#8 = #C9;
     #L1:
     {
       {
@@ -559,6 +561,8 @@ static method test2(core::Object o) → core::String
   return block {
     core::String #t12;
     final synthesized core::Object #0#0 = o;
+    final const synthesized core::int #0#3 = #C8;
+    final const synthesized core::int #0#7 = #C10;
     #L2:
     {
       {
@@ -585,8 +589,10 @@ static method test3(core::Object o) → core::String
     final synthesized core::Object #0#0 = o;
     synthesized core::bool #0#4;
     synthesized core::bool #0#4#isSet = false;
+    final const synthesized core::int #0#3 = #C9;
     synthesized core::Object? #0#6;
     synthesized core::bool #0#6#isSet = false;
+    final const synthesized core::int #0#9 = #C10;
     synthesized core::Object? #0#8;
     synthesized core::bool #0#8#isSet = false;
     #L3:

@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
@@ -91,6 +92,7 @@ class ContextBuilderImpl {
     bool enableLintRuleTiming = false,
     LinkedBundleProvider? linkedBundleProvider,
     required bool withFineDependencies,
+    List<String> enabledExperiments = const [],
   }) {
     byteStore ??= MemoryByteStore();
     performanceLog ??= PerformanceLog(null);
@@ -141,6 +143,7 @@ class ContextBuilderImpl {
           sourceFactory,
           sdk,
           updateAnalysisOptions3,
+          enabledExperiments,
         ),
       );
     } else {
@@ -292,6 +295,7 @@ class ContextBuilderImpl {
       required DartSdk sdk,
     })?
     updateAnalysisOptions,
+    List<String> enabledExperiments,
   ) {
     AnalysisOptionsImpl? options;
 
@@ -308,6 +312,10 @@ class ContextBuilderImpl {
       }
     }
     options ??= AnalysisOptionsImpl(file: optionsFile);
+    options.contextFeatures = FeatureSet.fromEnableFlags2(
+      sdkLanguageVersion: sdk.languageVersion,
+      flags: enabledExperiments,
+    );
 
     if (updateAnalysisOptions != null) {
       updateAnalysisOptions(analysisOptions: options, sdk: sdk);

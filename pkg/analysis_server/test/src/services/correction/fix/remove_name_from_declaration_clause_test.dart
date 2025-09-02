@@ -16,6 +16,7 @@ void main() {
     defineReflectiveTests(ExtendsNonClassTest);
     defineReflectiveTests(ExtendsTypeAliasExpandsToTypeParameterTest);
     defineReflectiveTests(ImplementsDeprecatedImplementTest);
+    defineReflectiveTests(ImplementsDeprecatedSubclassTest);
     defineReflectiveTests(ImplementsDisallowedClassTest);
     defineReflectiveTests(ImplementsRepeatedTest);
     defineReflectiveTests(ImplementsSuperClassTest);
@@ -101,6 +102,42 @@ class ImplementsDeprecatedImplementTest extends FixProcessorTest {
   Future<void> test_deprecatedExtends() async {
     newFile('$testPackageLibPath/a.dart', '''
 @Deprecated.implement()
+class A {}
+''');
+    await resolveTestCode('''
+import 'a.dart';
+class B implements A {}
+''');
+    await assertHasFix('''
+import 'a.dart';
+class B {}
+''');
+  }
+}
+
+@reflectiveTest
+class ImplementsDeprecatedSubclassTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.REMOVE_NAME_FROM_DECLARATION_CLAUSE;
+
+  Future<void> test_deprecatedSubclass_withExtends() async {
+    newFile('$testPackageLibPath/a.dart', '''
+@Deprecated.subclass()
+class A {}
+''');
+    await resolveTestCode('''
+import 'a.dart';
+class B extends A {}
+''');
+    await assertHasFix('''
+import 'a.dart';
+class B {}
+''');
+  }
+
+  Future<void> test_deprecatedSubclass_withImplements() async {
+    newFile('$testPackageLibPath/a.dart', '''
+@Deprecated.subclass()
 class A {}
 ''');
     await resolveTestCode('''
@@ -294,8 +331,7 @@ final class S extends Struct {}
 final class C {}
 ''',
       errorFilter:
-          (error) =>
-              error.diagnosticCode == FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH,
+          (error) => error.diagnosticCode == FfiCode.subtypeOfStructClassInWith,
     );
   }
 }

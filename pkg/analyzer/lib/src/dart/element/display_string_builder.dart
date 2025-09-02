@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
-    show Variance;
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart' show Variance;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// A class that builds a "display string" for [Element]s and [DartType]s.
 class ElementDisplayStringBuilder {
@@ -601,12 +599,9 @@ class ElementDisplayStringBuilder {
         name = typeParameter.name! + subscript;
       }
 
-      var newTypeParameter = TypeParameterFragmentImpl(
-        name: name,
-        firstTokenOffset: null,
-      );
+      var newTypeParameter = TypeParameterElementImpl.synthetic(name: name);
       newTypeParameter.bound = typeParameter.bound;
-      newTypeParameters.add(newTypeParameter.asElement2);
+      newTypeParameters.add(newTypeParameter);
     }
 
     return replaceTypeParameters(type, newTypeParameters);

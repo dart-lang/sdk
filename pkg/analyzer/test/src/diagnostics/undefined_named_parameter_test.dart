@@ -25,7 +25,7 @@ main() {
   const A(p: 0);
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 44, 1)],
+      [error(CompileTimeErrorCode.undefinedNamedParameter, 44, 1)],
     );
   }
 
@@ -39,7 +39,7 @@ main() {
   A(p: 0);
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 32, 1)],
+      [error(CompileTimeErrorCode.undefinedNamedParameter, 32, 1)],
     );
   }
 
@@ -51,7 +51,7 @@ enum E {
   const E();
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 13, 1)],
+      [error(CompileTimeErrorCode.undefinedNamedParameter, 13, 1)],
     );
   }
 
@@ -62,7 +62,7 @@ f({a, b}) {}
 main() {
   f(c: 1);
 }''',
-      [error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 26, 1)],
+      [error(CompileTimeErrorCode.undefinedNamedParameter, 26, 1)],
     );
   }
 
@@ -76,7 +76,7 @@ main() {
   A().m(p: 0);
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 38, 1)],
+      [error(CompileTimeErrorCode.undefinedNamedParameter, 38, 1)],
     );
   }
 }

@@ -572,18 +572,7 @@ void KernelLoader::LoadLibrary(const Library& library) {
 }
 
 ObjectPtr KernelLoader::LoadExpressionEvaluationFunction(
-    const String& library_url,
-    const String& klass) {
-  // Find the original context, i.e. library/class, in which the evaluation will
-  // happen.
-  const Library& real_library =
-      Library::Handle(Z, Library::LookupLibrary(thread_, library_url));
-  ASSERT(!real_library.IsNull());
-  const Class& real_class = Class::Handle(
-      Z, klass.IsNull() ? real_library.toplevel_class()
-                        : real_library.LookupClassAllowPrivate(klass));
-  ASSERT(!real_class.IsNull());
-
+    const Class& real_class) {
   const intptr_t num_cids = IG->class_table()->NumCids();
   const intptr_t num_libs =
       GrowableObjectArray::Handle(IG->object_store()->libraries()).Length();
@@ -1032,6 +1021,8 @@ void KernelLoader::FinishTopLevelClassLoading(
     field.set_is_extension_member(is_extension_member);
     field.set_is_extension_type_member(is_extension_type_member);
     field.set_is_shared(SharedPragma::decode(pragma_bits));
+    field.set_is_no_sanitize_thread(
+        NoSanitizeThreadPragma::decode(pragma_bits));
     const AbstractType& type = T.BuildType();  // read type.
     field.SetFieldType(type);
     ReadInferredType(field, field_offset + library_kernel_offset_);
@@ -1459,6 +1450,8 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       field.set_is_extension_member(is_extension_member);
       field.set_is_extension_type_member(is_extension_type_member);
       field.set_is_shared(SharedPragma::decode(pragma_bits));
+      field.set_is_no_sanitize_thread(
+          NoSanitizeThreadPragma::decode(pragma_bits));
       ReadInferredType(field, field_offset + library_kernel_offset_);
       CheckForInitializer(field);
       // Static fields with initializers are implicitly late.
@@ -1768,6 +1761,10 @@ void KernelLoader::ReadVMAnnotations(const Library& library,
             }
           }
           *pragma_bits = SharedPragma::update(true, *pragma_bits);
+        }
+        if (constant_reader.IsStringConstant(name_index,
+                                             "vm:no-sanitize-thread")) {
+          *pragma_bits = NoSanitizeThreadPragma::update(true, *pragma_bits);
         }
         if (constant_reader.IsStringConstant(name_index,
                                              "dyn-module:extendable")) {

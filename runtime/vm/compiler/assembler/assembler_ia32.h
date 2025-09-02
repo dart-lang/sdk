@@ -668,6 +668,9 @@ class Assembler : public AssemblerBase {
     }
   }
 
+  void TsanFuncEntry(bool preserve_registers = true) { UNREACHABLE(); }
+  void TsanFuncExit(bool preserve_registers = true) { UNREACHABLE(); }
+
   void LoadAcquire(Register dst,
                    const Address& address,
                    OperandSize size = kFourBytes) override {
@@ -906,7 +909,9 @@ class Assembler : public AssemblerBase {
   void ExitFullSafepoint(Register scratch);
 
   // For non-leaf runtime calls. For leaf runtime calls, use LeafRuntimeScope,
-  void CallRuntime(const RuntimeEntry& entry, intptr_t argument_count);
+  void CallRuntime(const RuntimeEntry& entry,
+                   intptr_t argument_count,
+                   bool tsan_enter_exit = true);
 
   void Call(const Code& code,
             bool movable_target = false,

@@ -99,6 +99,15 @@ final Object _jsBoxedDartObjectProperty = foreign_helper.JS(
   'Symbol("jsBoxedDartObjectProperty")',
 );
 
+// Returns the value of the property we embed in every `JSBoxedDartObject` in
+// `any`.
+Object? _getJSBoxedDartObjectPropertyValue(JSAny any) =>
+    js_util.getProperty<Object?>(any, _jsBoxedDartObjectProperty);
+
+// Used in the `isA` transform.
+bool _isJSBoxedDartObject(JSAny any) =>
+    _getJSBoxedDartObjectPropertyValue(any) != null;
+
 // -----------------------------------------------------------------------------
 // JSBoxedDartObject <-> Object
 @patch
@@ -106,7 +115,7 @@ extension JSBoxedDartObjectToObject on JSBoxedDartObject {
   @patch
   @pragma('dart2js:prefer-inline')
   Object get toDart {
-    final val = js_util.getProperty<Object?>(this, _jsBoxedDartObjectProperty);
+    final val = _getJSBoxedDartObjectPropertyValue(this);
     if (val == null) {
       throw 'Expected a wrapped Dart object, but got a JS object or a wrapped '
           'Dart object from a separate runtime instead.';

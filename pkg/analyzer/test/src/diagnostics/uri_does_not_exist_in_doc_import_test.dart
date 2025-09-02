@@ -21,7 +21,7 @@ class UriDoesNotExistInDocImportTest extends PubPackageResolutionTest {
 /// @docImport 'dart:foo';
 library;
 ''',
-      [error(WarningCode.URI_DOES_NOT_EXIST_IN_DOC_IMPORT, 15, 10)],
+      [error(WarningCode.uriDoesNotExistInDocImport, 15, 10)],
     );
   }
 
@@ -31,7 +31,7 @@ library;
 /// @docImport 'foo.dart';
 library;
 ''',
-      [error(WarningCode.URI_DOES_NOT_EXIST_IN_DOC_IMPORT, 15, 10)],
+      [error(WarningCode.uriDoesNotExistInDocImport, 15, 10)],
     );
   }
 

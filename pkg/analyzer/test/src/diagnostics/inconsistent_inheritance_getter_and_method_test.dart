@@ -29,7 +29,7 @@ abstract class C implements A, B {}
 ''',
       [
         error(
-          CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
+          CompileTimeErrorCode.inconsistentInheritanceGetterAndMethod,
           85,
           1,
         ),
@@ -54,7 +54,7 @@ abstract class C with M implements I {
 ''',
       [
         error(
-          CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
+          CompileTimeErrorCode.inconsistentInheritanceGetterAndMethod,
           97,
           1,
         ),
@@ -75,7 +75,7 @@ abstract class C implements A, B {}
 ''',
       [
         error(
-          CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
+          CompileTimeErrorCode.inconsistentInheritanceGetterAndMethod,
           85,
           1,
         ),
@@ -98,7 +98,7 @@ class C = S with M;
 ''',
       [
         error(
-          CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
+          CompileTimeErrorCode.inconsistentInheritanceGetterAndMethod,
           70,
           1,
         ),
@@ -125,12 +125,12 @@ class C = S with M1, M2;
 ''',
       [
         error(
-          CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
+          CompileTimeErrorCode.inconsistentInheritanceGetterAndMethod,
           105,
           1,
         ),
         error(
-          CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
+          CompileTimeErrorCode.inconsistentInheritanceGetterAndMethod,
           105,
           1,
         ),
@@ -151,7 +151,7 @@ mixin M implements A, B {}
 ''',
       [
         error(
-          CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
+          CompileTimeErrorCode.inconsistentInheritanceGetterAndMethod,
           76,
           1,
         ),
@@ -172,7 +172,7 @@ mixin M implements A, B {}
 ''',
       [
         error(
-          CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
+          CompileTimeErrorCode.inconsistentInheritanceGetterAndMethod,
           76,
           1,
         ),
@@ -193,7 +193,7 @@ mixin M on A, B {}
 ''',
       [
         error(
-          CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
+          CompileTimeErrorCode.inconsistentInheritanceGetterAndMethod,
           76,
           1,
         ),
@@ -214,7 +214,7 @@ mixin M on A, B {}
 ''',
       [
         error(
-          CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD,
+          CompileTimeErrorCode.inconsistentInheritanceGetterAndMethod,
           76,
           1,
         ),

@@ -715,6 +715,7 @@ class DeclaredConcrete implements Interface {
   noSuchMethod(Invocation invocation) {
     return null;
   }
+
   /*member: DeclaredConcrete.method#cls:
    classBuilder=DeclaredConcrete,
    declarations=[Interface.method],

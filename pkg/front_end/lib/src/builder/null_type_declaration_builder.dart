@@ -13,41 +13,47 @@ import 'type_builder.dart';
 // TODO(johnniwinther): Remove this.
 class NullTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
   NullTypeDeclarationBuilder(
-      DartType type, LibraryBuilder compilationUnit, int charOffset)
-      : super("Null", type, compilationUnit, charOffset);
+    DartType type,
+    LibraryBuilder compilationUnit,
+    int charOffset,
+  ) : super("Null", type, compilationUnit, charOffset);
 
   @override
   // Coverage-ignore(suite): Not run.
   DartType buildAliasedType(
-      LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder,
-      List<TypeBuilder>? arguments,
-      TypeUse typeUse,
-      Uri fileUri,
-      int charOffset,
-      ClassHierarchyBase? hierarchy,
-      {required bool hasExplicitTypeArguments}) {
+    LibraryBuilder library,
+    NullabilityBuilder nullabilityBuilder,
+    List<TypeBuilder>? arguments,
+    TypeUse typeUse,
+    Uri fileUri,
+    int charOffset,
+    ClassHierarchyBase? hierarchy, {
+    required bool hasExplicitTypeArguments,
+  }) {
     return type;
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   DartType buildAliasedTypeWithBuiltArguments(
-      LibraryBuilder library,
-      Nullability nullability,
-      List<DartType> arguments,
-      TypeUse typeUse,
-      Uri fileUri,
-      int charOffset,
-      {required bool hasExplicitTypeArguments}) {
+    LibraryBuilder library,
+    Nullability nullability,
+    List<DartType> arguments,
+    TypeUse typeUse,
+    Uri fileUri,
+    int charOffset, {
+    required bool hasExplicitTypeArguments,
+  }) {
     return type;
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
-      {required Map<TypeParameterBuilder, TraversalState>
-          typeParametersTraversalState}) {
+  Nullability computeNullabilityWithArguments(
+    List<TypeBuilder>? typeArguments, {
+    required Map<TypeParameterBuilder, TraversalState>
+    typeParametersTraversalState,
+  }) {
     return Nullability.nullable;
   }
 }

@@ -242,7 +242,7 @@ void f() {
   });
 }
 ''');
-    await assertHasFixAllFix(WarningCode.UNNECESSARY_SET_LITERAL, '''
+    await assertHasFixAllFix(WarningCode.unnecessarySetLiteral, '''
 void g(void Function() fun) {}
 
 void f() {

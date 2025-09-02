@@ -57,8 +57,12 @@ void resetCrashReporting() {
   hasCrashed = false;
 }
 
-Future<T> reportCrash<T>(error, StackTrace trace,
-    [Uri? uri, int? charOffset]) async {
+Future<T> reportCrash<T>(
+  error,
+  StackTrace trace, [
+  Uri? uri,
+  int? charOffset,
+]) async {
   // Coverage-ignore(suite): Not run.
   Future<void> note(String note) async {
     stderr.write(note);
@@ -97,8 +101,9 @@ Future<T> reportCrash<T>(error, StackTrace trace,
       // Assume the crash logger isn't running.
       client.close(force: true);
       return new Future<T>.error(
-          new Crash(uri, charOffset, error, trace).._hasBeenReported = true,
-          trace);
+        new Crash(uri, charOffset, error, trace).._hasBeenReported = true,
+        trace,
+      );
     }
     // Coverage-ignore-block(suite): Not run.
     await note("\nSending crash report data");
@@ -133,7 +138,9 @@ String safeToString(Object object) {
 }
 
 Future<T> withCrashReporting<T>(
-    Future<T> Function() action, UriOffset? Function() currentUriOffset) async {
+  Future<T> Function() action,
+  UriOffset? Function() currentUriOffset,
+) async {
   resetCrashReporting();
   try {
     return await action();

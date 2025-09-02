@@ -1,3 +1,7 @@
+## 2.0.1-wip
+
+- Include support for `package:protobuf` 5.0.
+
 ## 2.0.0
 
 - Bump dependency constraint on `package:protobuf` to `>= 4.0.0`.

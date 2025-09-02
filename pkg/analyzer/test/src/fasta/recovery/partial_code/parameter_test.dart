@@ -16,7 +16,7 @@ class ParameterTest extends PartialCodeTest {
       TestDescriptor(
         'functionType_noIdentifier',
         'f(Function(void)) {}',
-        [ScannerErrorCode.EXPECTED_TOKEN],
+        [ScannerErrorCode.expectedToken],
         'f(Function(void) _s_) {}',
         failing: ['eof'],
       ),
@@ -26,7 +26,7 @@ class ParameterTest extends PartialCodeTest {
           class C<E> {}
           f(C<int Function(int, int) c) {}
           ''',
-        [ScannerErrorCode.EXPECTED_TOKEN],
+        [ScannerErrorCode.expectedToken],
         '''
           class C<E> {}
           f(C<int Function(int, int)> c) {}

@@ -27,8 +27,10 @@ Future<void> main(List<String> args) async {
   int packageNum = 0;
   for (Package package in packages) {
     packageNum++;
-    print("\n\nProcessing package #$packageNum (${package.name}) "
-        "of ${packages.length}");
+    print(
+      "\n\nProcessing package #$packageNum (${package.name}) "
+      "of ${packages.length}",
+    );
     Directory dir = new Directory.fromUri(package.packageUriRoot);
     List<Uri> uris = [];
     for (FileSystemEntity entry in dir.listSync(recursive: true)) {
@@ -42,7 +44,8 @@ Future<void> main(List<String> args) async {
         String prefix = "${packageUri}";
         if (asString.startsWith(prefix)) {
           Uri reversed = Uri.parse(
-              "package:$packageName/${asString.substring(prefix.length)}");
+            "package:$packageName/${asString.substring(prefix.length)}",
+          );
           uris.add(reversed);
         } else {
           throw "Unexpected!";
@@ -75,18 +78,27 @@ Future<void> main(List<String> args) async {
   }
 }
 
-Future<Component> processUri(final List<Uri> inputs, Component? fullComponent,
-    final Uri packageUri) async {
+Future<Component> processUri(
+  final List<Uri> inputs,
+  Component? fullComponent,
+  final Uri packageUri,
+) async {
   TargetFlags targetFlags = new TargetFlags(trackWidgetCreation: false);
   Target? target = new Dart2jsTarget("dart2js", targetFlags);
   Uri sdkSummary = Uri.base.resolve("out/ReleaseX64/dart2js_outline.dill");
   Stopwatch stopwatch = new Stopwatch()..start();
   Stopwatch extractCompile = new Stopwatch()..start();
-  Map<Uri, String> processedFiles = await extractOutline(inputs,
-      packages: packageUri, target: target, platform: sdkSummary);
+  Map<Uri, String> processedFiles = await extractOutline(
+    inputs,
+    packages: packageUri,
+    target: target,
+    platform: sdkSummary,
+  );
   extractCompile.stop();
-  print("Got ${processedFiles.keys.length} files "
-      "in ${stopwatch.elapsedMilliseconds} ms");
+  print(
+    "Got ${processedFiles.keys.length} files "
+    "in ${stopwatch.elapsedMilliseconds} ms",
+  );
 
   Set<Uri> inputsSet = inputs.toSet();
 
@@ -99,12 +111,19 @@ Future<Component> processUri(final List<Uri> inputs, Component? fullComponent,
     options.sdkSummary = sdkSummary;
     options.packagesFileUri = packageUri;
     helper.TestIncrementalCompiler compiler =
-        new helper.TestIncrementalCompiler(options, inputs.first,
-            /* initializeFrom = */ null, /* outlineOnly = */ true);
-    fullComponent = fullComponent ??
+        new helper.TestIncrementalCompiler(
+          options,
+          inputs.first,
+          /* initializeFrom = */ null,
+          /* outlineOnly = */ true,
+        );
+    fullComponent =
+        fullComponent ??
         (await compiler.computeDelta(entryPoints: inputs)).component;
-    print("Compiled full in ${stopwatch.elapsedMilliseconds} ms "
-        "to ${fullComponent.libraries.length} libraries");
+    print(
+      "Compiled full in ${stopwatch.elapsedMilliseconds} ms "
+      "to ${fullComponent.libraries.length} libraries",
+    );
     plainCompile.stop();
 
     libs1 = fullComponent.libraries
@@ -120,31 +139,47 @@ Future<Component> processUri(final List<Uri> inputs, Component? fullComponent,
     options.sdkSummary = sdkSummary;
     options.packagesFileUri = packageUri;
     MemoryFileSystem mfs = new MemoryFileSystem(Uri.base);
-    mfs.entityForUri(packageUri).writeAsBytesSync(
-        await options.fileSystem.entityForUri(packageUri).readAsBytes());
+    mfs
+        .entityForUri(packageUri)
+        .writeAsBytesSync(
+          await options.fileSystem.entityForUri(packageUri).readAsBytes(),
+        );
     if (options.sdkSummary != null) {
-      mfs.entityForUri(options.sdkSummary!).writeAsBytesSync(await options
-          .fileSystem
+      mfs
           .entityForUri(options.sdkSummary!)
-          .readAsBytes());
+          .writeAsBytesSync(
+            await options.fileSystem
+                .entityForUri(options.sdkSummary!)
+                .readAsBytes(),
+          );
     }
     if (options.librariesSpecificationUri != null) {
-      mfs.entityForUri(options.librariesSpecificationUri!).writeAsBytesSync(
-          await options.fileSystem
-              .entityForUri(options.librariesSpecificationUri!)
-              .readAsBytes());
+      mfs
+          .entityForUri(options.librariesSpecificationUri!)
+          .writeAsBytesSync(
+            await options.fileSystem
+                .entityForUri(options.librariesSpecificationUri!)
+                .readAsBytes(),
+          );
     }
     for (MapEntry<Uri, String> entry in processedFiles.entries) {
       mfs.entityForUri(entry.key).writeAsStringSync(entry.value);
     }
     options.fileSystem = mfs;
     helper.TestIncrementalCompiler compiler =
-        new helper.TestIncrementalCompiler(options, inputs.first,
-            /* initializeFrom = */ null, /* outlineOnly = */ true);
-    IncrementalCompilerResult c =
-        await compiler.computeDelta(entryPoints: inputs);
-    print("Compiled outlined in ${stopwatch.elapsedMilliseconds} ms "
-        "to ${c.component.libraries.length} libraries");
+        new helper.TestIncrementalCompiler(
+          options,
+          inputs.first,
+          /* initializeFrom = */ null,
+          /* outlineOnly = */ true,
+        );
+    IncrementalCompilerResult c = await compiler.computeDelta(
+      entryPoints: inputs,
+    );
+    print(
+      "Compiled outlined in ${stopwatch.elapsedMilliseconds} ms "
+      "to ${c.component.libraries.length} libraries",
+    );
     extractCompile.stop();
 
     libs2 = c.component.libraries
@@ -161,13 +196,17 @@ Future<Component> processUri(final List<Uri> inputs, Component? fullComponent,
   if (libs1.length != libs2.length) {
     print("Bad:");
     print(
-        "Not the same amount of libraries: ${libs1.length} vs ${libs2.length}");
+      "Not the same amount of libraries: ${libs1.length} vs ${libs2.length}",
+    );
     throw "bad result for $inputs";
   }
   List<EquivalenceResult> badResults = [];
   for (int i = 0; i < libs1.length; i++) {
-    EquivalenceResult result =
-        checkEquivalence(libs1[i], libs2[i], strategy: const Strategy());
+    EquivalenceResult result = checkEquivalence(
+      libs1[i],
+      libs2[i],
+      strategy: const Strategy(),
+    );
     if (!result.isEquivalent) {
       badResults.add(result);
     }
@@ -190,13 +229,17 @@ Future<Component> processUri(final List<Uri> inputs, Component? fullComponent,
   }
 
   if (plainCompile.elapsedMilliseconds > extractCompile.elapsedMilliseconds) {
-    print("=> Plain compile slower! "
-        "(${plainCompile.elapsedMilliseconds} vs "
-        "${extractCompile.elapsedMilliseconds})");
+    print(
+      "=> Plain compile slower! "
+      "(${plainCompile.elapsedMilliseconds} vs "
+      "${extractCompile.elapsedMilliseconds})",
+    );
   } else {
-    print("=> Plain compile faster! "
-        "(${plainCompile.elapsedMilliseconds} vs "
-        "${extractCompile.elapsedMilliseconds})");
+    print(
+      "=> Plain compile faster! "
+      "(${plainCompile.elapsedMilliseconds} vs "
+      "${extractCompile.elapsedMilliseconds})",
+    );
   }
 
   return fullComponent;
@@ -207,78 +250,115 @@ class Strategy extends EquivalenceStrategy {
 
   @override
   bool checkTreeNode_fileOffset(
-      EquivalenceVisitor visitor, TreeNode node, TreeNode other) {
+    EquivalenceVisitor visitor,
+    TreeNode node,
+    TreeNode other,
+  ) {
     return true;
   }
 
   @override
   bool checkAssertStatement_conditionStartOffset(
-      EquivalenceVisitor visitor, AssertStatement node, AssertStatement other) {
+    EquivalenceVisitor visitor,
+    AssertStatement node,
+    AssertStatement other,
+  ) {
     return true;
   }
 
   @override
   bool checkAssertStatement_conditionEndOffset(
-      EquivalenceVisitor visitor, AssertStatement node, AssertStatement other) {
+    EquivalenceVisitor visitor,
+    AssertStatement node,
+    AssertStatement other,
+  ) {
     return true;
   }
 
   @override
   bool checkClass_startFileOffset(
-      EquivalenceVisitor visitor, Class node, Class other) {
+    EquivalenceVisitor visitor,
+    Class node,
+    Class other,
+  ) {
     return true;
   }
 
   @override
   bool checkClass_fileEndOffset(
-      EquivalenceVisitor visitor, Class node, Class other) {
+    EquivalenceVisitor visitor,
+    Class node,
+    Class other,
+  ) {
     return true;
   }
 
   @override
   bool checkProcedure_fileStartOffset(
-      EquivalenceVisitor visitor, Procedure node, Procedure other) {
+    EquivalenceVisitor visitor,
+    Procedure node,
+    Procedure other,
+  ) {
     return true;
   }
 
   @override
   bool checkConstructor_startFileOffset(
-      EquivalenceVisitor visitor, Constructor node, Constructor other) {
+    EquivalenceVisitor visitor,
+    Constructor node,
+    Constructor other,
+  ) {
     return true;
   }
 
   @override
   bool checkMember_fileEndOffset(
-      EquivalenceVisitor visitor, Member node, Member other) {
+    EquivalenceVisitor visitor,
+    Member node,
+    Member other,
+  ) {
     return true;
   }
 
   @override
   bool checkFunctionNode_fileEndOffset(
-      EquivalenceVisitor visitor, FunctionNode node, FunctionNode other) {
+    EquivalenceVisitor visitor,
+    FunctionNode node,
+    FunctionNode other,
+  ) {
     return true;
   }
 
   @override
   bool checkBlock_fileEndOffset(
-      EquivalenceVisitor visitor, Block node, Block other) {
+    EquivalenceVisitor visitor,
+    Block node,
+    Block other,
+  ) {
     return true;
   }
 
   @override
   bool checkLibrary_additionalExports(
-      EquivalenceVisitor visitor, Library node, Library other) {
+    EquivalenceVisitor visitor,
+    Library node,
+    Library other,
+  ) {
     return visitor.checkSets(
-        node.additionalExports.toSet(),
-        other.additionalExports.toSet(),
-        visitor.matchReferences,
-        visitor.checkReferences,
-        'additionalExports');
+      node.additionalExports.toSet(),
+      other.additionalExports.toSet(),
+      visitor.matchReferences,
+      visitor.checkReferences,
+      'additionalExports',
+    );
   }
 
   @override
   bool checkClass_procedures(
-      EquivalenceVisitor visitor, Class node, Class other) {
+    EquivalenceVisitor visitor,
+    Class node,
+    Class other,
+  ) {
     // Check procedures as a set instead of a list to allow for reordering.
     List<Procedure> a = node.procedures.toList();
     int sorter(Procedure x, Procedure y) {

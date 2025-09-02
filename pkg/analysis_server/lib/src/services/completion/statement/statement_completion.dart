@@ -313,7 +313,7 @@ class StatementCompletionProcessor {
           : null;
     }
 
-    var expr = diagnosticMatching(ScannerErrorCode.UNTERMINATED_STRING_LITERAL);
+    var expr = diagnosticMatching(ScannerErrorCode.unterminatedStringLiteral);
     if (expr != null) {
       var source = utils.getNodeText(expr);
       var content = source;
@@ -339,18 +339,15 @@ class StatementCompletionProcessor {
         delimiter = content.substring(0, 1);
         loc = expr.offset + source.length;
       }
-      _removeError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL);
+      _removeError(ScannerErrorCode.unterminatedStringLiteral);
       _addInsertEdit(loc, delimiter);
     }
     expr =
         diagnosticMatching(
-          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.expectedToken,
           partialMatch: "']'",
         ) ??
-        diagnosticMatching(
-          ScannerErrorCode.EXPECTED_TOKEN,
-          partialMatch: "']'",
-        );
+        diagnosticMatching(ScannerErrorCode.expectedToken, partialMatch: "']'");
     if (expr != null) {
       expr = expr.thisOrAncestorOfType<ListLiteral>();
       if (expr is ListLiteral) {
@@ -363,8 +360,8 @@ class StatementCompletionProcessor {
           } else {
             _addInsertEdit(loc, ']');
           }
-          _removeError(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "']'");
-          _removeError(ScannerErrorCode.EXPECTED_TOKEN, partialMatch: "']'");
+          _removeError(ParserErrorCode.expectedToken, partialMatch: "']'");
+          _removeError(ScannerErrorCode.expectedToken, partialMatch: "']'");
         }
       }
     }
@@ -436,7 +433,7 @@ class StatementCompletionProcessor {
     var delta = 0;
     if (diagnostics.isNotEmpty) {
       var error = _findDiagnostic(
-        ParserErrorCode.EXPECTED_TOKEN,
+        ParserErrorCode.expectedToken,
         partialMatch: "';'",
       );
       if (error != null) {
@@ -752,9 +749,7 @@ class StatementCompletionProcessor {
     var needsParen = false;
     int computeExitPos(FormalParameterList parameters) {
       if (needsParen = parameters.rightParenthesis.isSynthetic) {
-        var error = _findDiagnostic(
-          ParserErrorCode.MISSING_CLOSING_PARENTHESIS,
-        );
+        var error = _findDiagnostic(ParserErrorCode.missingClosingParenthesis);
         if (error != null) {
           return error.offset - 1;
         }
@@ -794,7 +789,7 @@ class StatementCompletionProcessor {
       return false;
     }
     var error = _findDiagnostic(
-      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.expectedToken,
       partialMatch: "';'",
     );
     if (error != null) {
@@ -928,8 +923,8 @@ class StatementCompletionProcessor {
 
   bool _complete_methodCall(AstNode node) {
     var parenError =
-        _findDiagnostic(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "')'") ??
-        _findDiagnostic(ScannerErrorCode.EXPECTED_TOKEN, partialMatch: "')'");
+        _findDiagnostic(ParserErrorCode.expectedToken, partialMatch: "')'") ??
+        _findDiagnostic(ScannerErrorCode.expectedToken, partialMatch: "')'");
     if (parenError == null) {
       return false;
     }
@@ -947,7 +942,7 @@ class StatementCompletionProcessor {
     var loc = min(selectionOffset, argList.end);
     _addInsertEdit(loc, ')');
     var semicolonError = _findDiagnostic(
-      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.expectedToken,
       partialMatch: "';'",
     );
     if (semicolonError != null) {
@@ -982,7 +977,7 @@ class StatementCompletionProcessor {
       return false;
     }
     var error = _findDiagnostic(
-      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.expectedToken,
       partialMatch: "';'",
     );
     if (error != null) {
@@ -1075,7 +1070,7 @@ class StatementCompletionProcessor {
         if (onKeyword != null && exceptionType != null) {
           if (exceptionType.length == 0 ||
               _findDiagnostic(
-                    CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE,
+                    CompileTimeErrorCode.nonTypeInCatchClause,
                     partialMatch: "name 'catch",
                   ) !=
                   null) {
@@ -1180,7 +1175,7 @@ class StatementCompletionProcessor {
     return diagnostics.firstWhereOrNull(
       (d) =>
           d.diagnosticCode == code &&
-          (partialMatch == null ? true : d.message.contains(partialMatch)),
+          (partialMatch == null || d.message.contains(partialMatch)),
     );
   }
 

@@ -19,8 +19,9 @@ Future<void> main(List<String> args) async {
   int bad = 0;
   for (FileSystemEntity file in d.listSync(recursive: false)) {
     if (file is! File) continue;
-    (Object, StackTrace)? result =
-        await helper.compile(file.readAsStringSync());
+    (Object, StackTrace)? result = await helper.compile(
+      file.readAsStringSync(),
+    );
     String filename = file.uri.pathSegments.last;
     if (result == null) {
       print("${filename}: OK");

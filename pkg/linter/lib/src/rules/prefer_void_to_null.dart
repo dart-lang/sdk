@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -19,10 +20,13 @@ class PreferVoidToNull extends LintRule {
     : super(name: LintNames.prefer_void_to_null, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_void_to_null;
+  DiagnosticCode get diagnosticCode => LinterLintCode.preferVoidToNull;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addNamedType(this, visitor);
   }
@@ -114,8 +118,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (parent != null) {
       AstNode? declaration = parent.thisOrAncestorOfType<ClassMember>();
       declaration ??= parent.thisOrAncestorOfType<NamedCompilationUnitMember>();
-      declaration ??=
-          parent.thisOrAncestorOfType<TopLevelVariableDeclaration>();
+      declaration ??= parent
+          .thisOrAncestorOfType<TopLevelVariableDeclaration>();
       if (declaration?.isAugmentation ?? false) return;
     }
 

@@ -50,7 +50,7 @@ class B extends A {
   void a() {}
 }
 ''',
-      [error(WarningCode.MUST_CALL_SUPER, 115, 1)],
+      [error(WarningCode.mustCallSuper, 115, 1)],
     );
   }
 
@@ -95,7 +95,7 @@ class B extends A<int> {
   void a() {}
 }
 ''',
-      [error(WarningCode.MUST_CALL_SUPER, 123, 1)],
+      [error(WarningCode.mustCallSuper, 123, 1)],
     );
   }
 
@@ -112,7 +112,7 @@ class B extends A {
   void a<T>() {}
 }
 ''',
-      [error(WarningCode.MUST_CALL_SUPER, 118, 1)],
+      [error(WarningCode.mustCallSuper, 118, 1)],
     );
   }
 
@@ -129,7 +129,7 @@ class B extends A {
   int get a => 2;
 }
 ''',
-      [error(WarningCode.MUST_CALL_SUPER, 122, 1)],
+      [error(WarningCode.mustCallSuper, 122, 1)],
     );
   }
 
@@ -169,7 +169,7 @@ class B extends A {
   }
 }
 ''',
-      [error(WarningCode.MUST_CALL_SUPER, 135, 3)],
+      [error(WarningCode.mustCallSuper, 135, 3)],
     );
   }
 
@@ -186,7 +186,7 @@ class B extends A {
   operator ==(Object o) => o is B;
 }
 ''',
-      [error(WarningCode.MUST_CALL_SUPER, 140, 2)],
+      [error(WarningCode.mustCallSuper, 140, 2)],
     );
   }
 
@@ -217,7 +217,7 @@ class B extends A {
   set a(int value) {}
 }
 ''',
-      [error(WarningCode.MUST_CALL_SUPER, 122, 1)],
+      [error(WarningCode.mustCallSuper, 122, 1)],
     );
   }
 
@@ -255,7 +255,7 @@ class B extends A {
   }
 }
 ''',
-      [error(WarningCode.MUST_CALL_SUPER, 131, 3)],
+      [error(WarningCode.mustCallSuper, 131, 3)],
     );
   }
 
@@ -286,7 +286,7 @@ class C with Mixin {
   void a() {}
 }
 ''',
-      [error(WarningCode.MUST_CALL_SUPER, 120, 1)],
+      [error(WarningCode.mustCallSuper, 120, 1)],
     );
   }
 
@@ -303,7 +303,7 @@ class C with Mixin {
   void set a(int value) {}
 }
 ''',
-      [error(WarningCode.MUST_CALL_SUPER, 137, 1)],
+      [error(WarningCode.mustCallSuper, 137, 1)],
     );
   }
 
@@ -321,7 +321,7 @@ class D extends C {
   void a() {}
 }
 ''',
-      [error(WarningCode.MUST_CALL_SUPER, 133, 1)],
+      [error(WarningCode.mustCallSuper, 133, 1)],
     );
   }
 
@@ -344,7 +344,7 @@ class D extends C {
   void a() {}
 }
 ''',
-      [error(WarningCode.MUST_CALL_SUPER, 181, 1)],
+      [error(WarningCode.mustCallSuper, 181, 1)],
     );
   }
 
@@ -362,7 +362,7 @@ class D extends C {
   void b() {}
 }
 ''',
-      [error(WarningCode.MUST_CALL_SUPER, 156, 1)],
+      [error(WarningCode.mustCallSuper, 156, 1)],
     );
   }
 
@@ -379,7 +379,7 @@ mixin C on A {
   void a() {}
 }
 ''',
-      [error(WarningCode.MUST_CALL_SUPER, 110, 1)],
+      [error(WarningCode.mustCallSuper, 110, 1)],
     );
   }
 

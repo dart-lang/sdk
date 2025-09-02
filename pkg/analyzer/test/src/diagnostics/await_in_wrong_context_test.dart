@@ -22,7 +22,7 @@ f(x) {
   return await x;
 }
 ''',
-      [error(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 16, 5)],
+      [error(CompileTimeErrorCode.awaitInWrongContext, 16, 5)],
     );
   }
 
@@ -33,7 +33,7 @@ f(x) sync* {
   yield await x;
 }
 ''',
-      [error(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, 21, 5)],
+      [error(CompileTimeErrorCode.awaitInWrongContext, 21, 5)],
     );
   }
 }

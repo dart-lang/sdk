@@ -73,7 +73,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
       // Reset the next pointer in the weak property.
       cur_weak->untag()->next_seen_by_gc_ = WeakProperty::null();
       if (raw_key->IsImmediateObject() || raw_key->untag()->IsMarked()) {
-        ObjectPtr raw_val = cur_weak->untag()->value();
+        ObjectPtr raw_val = cur_weak->untag()->value_ignore_race();
         if (!raw_val->IsImmediateObject() && !raw_val->untag()->IsMarked()) {
           more_to_mark = true;
         }

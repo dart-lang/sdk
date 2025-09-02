@@ -427,13 +427,19 @@ class ChangeBuilderImpl implements ChangeBuilder {
     }
 
     var session = workspace.getSession(path);
-    var result = await session?.getResolvedUnit(path);
-    if (result is! ResolvedUnitResult) {
+    var libraryResult = await session?.getResolvedLibraryContaining(path);
+    if (libraryResult is! ResolvedLibraryResult) {
       throw AnalysisException('Cannot analyze "$path"');
     }
-    var timeStamp = result.exists ? 0 : -1;
+    var unitResult = libraryResult.unitWithPath(path);
+    if (unitResult == null) {
+      // Should not ever happen, if it does, the above method for the library is
+      // broken.
+      throw AnalysisException('Cannot analyze "$path"');
+    }
+    var timeStamp = unitResult.exists ? 0 : -1;
 
-    var declaredFragment = result.unit.declaredFragment;
+    var declaredFragment = unitResult.unit.declaredFragment;
     var firstFragment = declaredFragment?.element.firstFragment;
 
     DartFileEditBuilderImpl? libraryEditBuilder;
@@ -445,8 +451,9 @@ class ChangeBuilderImpl implements ChangeBuilder {
       }, createEditsForImports: createEditsForImports);
     }
 
-    var eol = result.content.endOfLine ?? defaultEol;
-    return DartFileEditBuilderImpl(this, result, timeStamp, libraryEditBuilder,
+    var eol = unitResult.content.endOfLine ?? defaultEol;
+    return DartFileEditBuilderImpl(
+        this, libraryResult, unitResult, timeStamp, libraryEditBuilder,
         createEditsForImports: createEditsForImports, eol: eol);
   }
 

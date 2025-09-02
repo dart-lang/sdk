@@ -9,12 +9,12 @@ import 'flags.dart';
 /// enabled.
 Message getExperimentNotEnabledMessage(ExperimentalFlag experimentalFlag) {
   if (experimentalFlag.isEnabledByDefault) {
-    return templateExperimentNotEnabled.withArguments(
+    return codeExperimentNotEnabled.withArguments(
       experimentalFlag.name,
       experimentalFlag.experimentEnabledVersion.toText(),
     );
   } else {
-    return templateExperimentNotEnabledOffByDefault.withArguments(
+    return codeExperimentNotEnabledOffByDefault.withArguments(
       experimentalFlag.name,
     );
   }

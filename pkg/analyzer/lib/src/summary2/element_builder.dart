@@ -275,6 +275,11 @@ class ElementBuilder {
     var interfaceFragment = fragment.enclosingFragment;
     interfaceFragment.addConstructor(fragment);
 
+    if (fragment.isAugmentation && lastFragment is ConstructorFragmentImpl) {
+      lastFragment.addFragment(fragment);
+      return;
+    }
+
     var element = ConstructorElementImpl(
       name: fragment.name,
       reference: _addInstanceReference(
@@ -284,6 +289,7 @@ class ElementBuilder {
       ),
       firstFragment: fragment,
     );
+
     interfaceElement.addConstructor(element);
   }
 
@@ -292,8 +298,7 @@ class ElementBuilder {
     FragmentImpl? lastFieldFragment,
     FieldFragmentImpl fieldFragment,
   ) {
-    var instanceFragment =
-        fieldFragment.enclosingFragment as InstanceFragmentImpl;
+    var instanceFragment = fieldFragment.enclosingFragment;
     instanceFragment.addField(fieldFragment);
 
     if (fieldFragment.isAugmentation &&
@@ -313,11 +318,10 @@ class ElementBuilder {
     instanceElement.addField(fieldElement);
 
     {
-      var getterFragment =
-          GetterFragmentImpl(name: fieldFragment.name, firstTokenOffset: null)
-            ..isSynthetic = true
-            ..isAbstract = fieldFragment.isAbstract
-            ..isStatic = fieldFragment.isStatic;
+      var getterFragment = GetterFragmentImpl(name: fieldFragment.name)
+        ..isSynthetic = true
+        ..isAbstract = fieldFragment.isAbstract
+        ..isStatic = fieldFragment.isStatic;
       instanceFragment.addGetter(getterFragment);
 
       var getterElement = GetterElementImpl(
@@ -331,20 +335,18 @@ class ElementBuilder {
     }
 
     if (fieldFragment.hasSetter) {
-      var setterFragment =
-          SetterFragmentImpl(name: fieldFragment.name, firstTokenOffset: null)
-            ..isSynthetic = true
-            ..isAbstract = fieldFragment.isAbstract
-            ..isStatic = fieldFragment.isStatic;
+      var setterFragment = SetterFragmentImpl(name: fieldFragment.name)
+        ..isSynthetic = true
+        ..isAbstract = fieldFragment.isAbstract
+        ..isStatic = fieldFragment.isStatic;
       instanceFragment.addSetter(setterFragment);
 
       var valueFragment = FormalParameterFragmentImpl(
         name: 'value',
-        firstTokenOffset: null,
         nameOffset: null,
         parameterKind: ParameterKind.REQUIRED,
       );
-      valueFragment.isExplicitlyCovariant = fieldFragment.isCovariant;
+      valueFragment.isExplicitlyCovariant = fieldFragment.isExplicitlyCovariant;
       setterFragment.formalParameters = [valueFragment];
 
       var setterElement = SetterElementImpl(
@@ -405,10 +407,9 @@ class ElementBuilder {
     }
 
     if (lastFieldElement == null) {
-      var fieldFragment =
-          FieldFragmentImpl(name: getterFragment.name, firstTokenOffset: null)
-            ..isSynthetic = true
-            ..isStatic = getterFragment.isStatic;
+      var fieldFragment = FieldFragmentImpl(name: getterFragment.name)
+        ..isSynthetic = true
+        ..isStatic = getterFragment.isStatic;
       instanceFragment.addField(fieldFragment);
 
       lastFieldElement = FieldElementImpl(
@@ -437,19 +438,20 @@ class ElementBuilder {
 
     if (lastFragment is MethodFragmentImpl && fragment.isAugmentation) {
       lastFragment.addFragment(fragment);
-    } else {
-      instanceElement.addMethod(
-        MethodElementImpl(
-          name: fragment.name,
-          reference: _addInstanceReference(
-            instanceElement,
-            '@method',
-            fragment.lookupName,
-          ),
-          firstFragment: fragment,
-        ),
-      );
+      return;
     }
+
+    instanceElement.addMethod(
+      MethodElementImpl(
+        name: fragment.name,
+        reference: _addInstanceReference(
+          instanceElement,
+          '@method',
+          fragment.lookupName,
+        ),
+        firstFragment: fragment,
+      ),
+    );
   }
 
   void _handleInstanceSetterFragment(
@@ -487,10 +489,9 @@ class ElementBuilder {
     }
 
     if (lastFieldElement == null) {
-      var fieldFragment =
-          FieldFragmentImpl(name: setterFragment.name, firstTokenOffset: null)
-            ..isSynthetic = true
-            ..isStatic = setterFragment.isStatic;
+      var fieldFragment = FieldFragmentImpl(name: setterFragment.name)
+        ..isSynthetic = true
+        ..isStatic = setterFragment.isStatic;
       instanceFragment.addField(fieldFragment);
 
       lastFieldElement = FieldElementImpl(
@@ -585,7 +586,6 @@ class ElementBuilder {
     if (lastVariableElement == null) {
       var variableFragment = TopLevelVariableFragmentImpl(
         name: getterFragment.name,
-        firstTokenOffset: null,
       )..isSynthetic = true;
       libraryFragment.addTopLevelVariable(variableFragment);
 
@@ -636,7 +636,6 @@ class ElementBuilder {
     if (lastVariableElement == null) {
       var variableFragment = TopLevelVariableFragmentImpl(
         name: setterFragment.name,
-        firstTokenOffset: null,
       )..isSynthetic = true;
       libraryFragment.addTopLevelVariable(variableFragment);
 
@@ -672,13 +671,9 @@ class ElementBuilder {
     libraryElement.addTopLevelVariable(variableElement);
 
     {
-      var getterFragment =
-          GetterFragmentImpl(
-              name: variableFragment.name,
-              firstTokenOffset: null,
-            )
-            ..isSynthetic = true
-            ..isStatic = true;
+      var getterFragment = GetterFragmentImpl(name: variableFragment.name)
+        ..isSynthetic = true
+        ..isStatic = true;
       libraryFragment.addGetter(getterFragment);
 
       var getterElement = GetterElementImpl(
@@ -693,18 +688,13 @@ class ElementBuilder {
     }
 
     if (variableFragment.hasSetter) {
-      var setterFragment =
-          SetterFragmentImpl(
-              name: variableFragment.name,
-              firstTokenOffset: null,
-            )
-            ..isSynthetic = true
-            ..isStatic = true;
+      var setterFragment = SetterFragmentImpl(name: variableFragment.name)
+        ..isSynthetic = true
+        ..isStatic = true;
       libraryFragment.addSetter(setterFragment);
 
       var valueFragment = FormalParameterFragmentImpl(
         name: 'value',
-        firstTokenOffset: null,
         nameOffset: null,
         parameterKind: ParameterKind.REQUIRED,
       );
@@ -793,8 +783,9 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var libraryElement = _libraryBuilder.element;
 
     // Prefer the actual library directive.
-    var libraryDirective =
-        unit.directives.whereType<LibraryDirectiveImpl>().firstOrNull;
+    var libraryDirective = unit.directives
+        .whereType<LibraryDirectiveImpl>()
+        .firstOrNull;
     if (libraryDirective != null) {
       libraryDirective.element = libraryElement;
       libraryElement.metadata = _buildMetadata(libraryDirective.metadata);
@@ -831,10 +822,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var nameToken = node.name;
 
     var fragmentName = _getFragmentName(nameToken);
-    var fragment = ClassFragmentImpl(
-      name: fragmentName,
-      firstTokenOffset: null,
-    );
+    var fragment = ClassFragmentImpl(name: fragmentName);
     fragment.isAbstract = node.abstractKeyword != null;
     fragment.isAugmentation = node.augmentKeyword != null;
     fragment.isBase = node.baseKeyword != null;
@@ -870,10 +858,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var nameToken = node.name;
     var fragmentName = _getFragmentName(nameToken);
 
-    var fragment = ClassFragmentImpl(
-      name: fragmentName,
-      firstTokenOffset: null,
-    );
+    var fragment = ClassFragmentImpl(name: fragmentName);
     fragment.isAbstract = node.abstractKeyword != null;
     fragment.isBase = node.baseKeyword != null;
     fragment.isFinal = node.finalKeyword != null;
@@ -919,10 +904,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       fragmentName = 'new';
     }
 
-    var fragment = ConstructorFragmentImpl(
-      name: fragmentName,
-      firstTokenOffset: null,
-    );
+    var fragment = ConstructorFragmentImpl(name: fragmentName);
     fragment.isAugmentation = node.augmentKeyword != null;
     fragment.isConst = node.constKeyword != null;
     fragment.isExternal = node.externalKeyword != null;
@@ -955,7 +937,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var nameToken = node.name;
     var fragmentName = _getFragmentName(nameToken);
 
-    var fragment = EnumFragmentImpl(name: fragmentName, firstTokenOffset: null);
+    var fragment = EnumFragmentImpl(name: fragmentName);
     fragment.isAugmentation = node.augmentKeyword != null;
     fragment.metadata = _buildMetadata(node.metadata);
 
@@ -977,17 +959,13 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
         var constant = constants[i];
         var nameToken = constant.name;
         var name = nameToken.lexeme;
-        var field =
-            FieldFragmentImpl(
-                name: _getFragmentName(nameToken),
-                firstTokenOffset: null,
-              )
-              ..hasImplicitType = true
-              ..hasInitializer = true
-              ..isAugmentation = constant.augmentKeyword != null
-              ..isConst = true
-              ..isEnumConstant = true
-              ..isStatic = true;
+        var field = FieldFragmentImpl(name: _getFragmentName(nameToken))
+          ..hasImplicitType = true
+          ..hasInitializer = true
+          ..isAugmentation = constant.augmentKeyword != null
+          ..isConst = true
+          ..isEnumConstant = true
+          ..isStatic = true;
         field.metadata = _buildMetadata(constant.metadata);
 
         var constantArguments = constant.arguments;
@@ -1004,21 +982,19 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
               question: null,
             ),
             period: constructorName != null ? Tokens.period() : null,
-            name:
-                constructorName != null
-                    ? SimpleIdentifierImpl(
-                      token: StringToken(TokenType.STRING, constructorName, -1),
-                    )
-                    : null,
+            name: constructorName != null
+                ? SimpleIdentifierImpl(
+                    token: StringToken(TokenType.STRING, constructorName, -1),
+                  )
+                : null,
           ),
-          argumentList:
-              constantArguments != null
-                  ? constantArguments.argumentList
-                  : ArgumentListImpl(
-                    leftParenthesis: Tokens.openParenthesis(),
-                    arguments: [],
-                    rightParenthesis: Tokens.closeParenthesis(),
-                  ),
+          argumentList: constantArguments != null
+              ? constantArguments.argumentList
+              : ArgumentListImpl(
+                  leftParenthesis: Tokens.openParenthesis(),
+                  arguments: [],
+                  rightParenthesis: Tokens.closeParenthesis(),
+                ),
           typeArguments: null,
         );
 
@@ -1053,12 +1029,11 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       }
 
       // Build the 'values' field.
-      var valuesField =
-          FieldFragmentImpl(name: 'values', firstTokenOffset: null)
-            ..hasEnclosingTypeParameterReference = false
-            ..isConst = true
-            ..isStatic = true
-            ..isSynthetic = true;
+      var valuesField = FieldFragmentImpl(name: 'values')
+        ..hasEnclosingTypeParameterReference = false
+        ..isConst = true
+        ..isStatic = true
+        ..isSynthetic = true;
       var initializer = ListLiteralImpl(
         constKeyword: null,
         typeArguments: null,
@@ -1139,10 +1114,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var nameToken = node.name;
     var fragmentName = _getFragmentName(nameToken);
 
-    var fragment = ExtensionFragmentImpl(
-      name: fragmentName,
-      firstTokenOffset: null,
-    );
+    var fragment = ExtensionFragmentImpl(name: fragmentName);
     fragment.isAugmentation = node.augmentKeyword != null;
     fragment.metadata = _buildMetadata(node.metadata);
 
@@ -1173,10 +1145,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var nameToken = node.name;
     var fragmentName = _getFragmentName(nameToken);
 
-    var fragment = ExtensionTypeFragmentImpl(
-      name: fragmentName,
-      firstTokenOffset: null,
-    );
+    var fragment = ExtensionTypeFragmentImpl(name: fragmentName);
     fragment.isAugmentation = node.augmentKeyword != null;
     fragment.metadata = _buildMetadata(node.metadata);
 
@@ -1207,15 +1176,12 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     for (var variable in node.fields.variables) {
       var nameToken = variable.name;
 
-      var fragment = FieldFragmentImpl(
-        name: _getFragmentName(nameToken),
-        firstTokenOffset: null,
-      );
+      var fragment = FieldFragmentImpl(name: _getFragmentName(nameToken));
       fragment.hasInitializer = variable.initializer != null;
       fragment.isAbstract = node.abstractKeyword != null;
       fragment.isAugmentation = node.augmentKeyword != null;
       fragment.isConst = node.fields.isConst;
-      fragment.isCovariant = node.covariantKeyword != null;
+      fragment.isExplicitlyCovariant = node.covariantKeyword != null;
       fragment.isExternal = node.externalKeyword != null;
       fragment.isFinal = node.fields.isFinal;
       fragment.isLate = node.fields.isLate;
@@ -1249,7 +1215,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var name2 = _getFragmentName(nameToken);
 
     var fragment = FieldFormalParameterFragmentImpl(
-      firstTokenOffset: null,
       name: name2,
       nameOffset: null,
       parameterKind: node.kind,
@@ -1300,10 +1265,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
     ExecutableFragmentImpl executableFragment;
     if (node.isGetter) {
-      var getterFragment = GetterFragmentImpl(
-        name: name2,
-        firstTokenOffset: null,
-      );
+      var getterFragment = GetterFragmentImpl(name: name2);
       getterFragment.isAugmentation = node.augmentKeyword != null;
       getterFragment.isStatic = true;
 
@@ -1312,10 +1274,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
       _libraryBuilder.addTopFragment(_unitElement, getterFragment);
     } else if (node.isSetter) {
-      var setterFragment = SetterFragmentImpl(
-        name: name2,
-        firstTokenOffset: null,
-      );
+      var setterFragment = SetterFragmentImpl(name: name2);
       setterFragment.isAugmentation = node.augmentKeyword != null;
       setterFragment.isStatic = true;
 
@@ -1324,10 +1283,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
       _libraryBuilder.addTopFragment(_unitElement, setterFragment);
     } else {
-      var fragment = TopLevelFunctionFragmentImpl(
-        name: name2,
-        firstTokenOffset: null,
-      );
+      var fragment = TopLevelFunctionFragmentImpl(name: name2);
       fragment.isAugmentation = node.augmentKeyword != null;
       fragment.isStatic = true;
       executableFragment = fragment;
@@ -1377,9 +1333,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       node.parameters.accept(this);
     });
 
-    var aliasedElement = GenericFunctionTypeFragmentImpl(
-      firstTokenOffset: null,
-    );
+    var aliasedElement = GenericFunctionTypeFragmentImpl();
     aliasedElement.formalParameters = holder.formalParameters;
 
     fragment.typeParameters = holder.typeParameters;
@@ -1394,7 +1348,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var name2 = _getFragmentName(nameToken);
 
     var fragment = FormalParameterFragmentImpl(
-      firstTokenOffset: null,
       name: name2,
       nameOffset: null,
       parameterKind: node.kind,
@@ -1430,7 +1383,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitGenericFunctionType(covariant GenericFunctionTypeImpl node) {
-    var fragment = GenericFunctionTypeFragmentImpl(firstTokenOffset: null);
+    var fragment = GenericFunctionTypeFragmentImpl();
     _unitElement.encloseElement(fragment);
 
     node.declaredFragment = fragment;
@@ -1505,30 +1458,21 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
     ExecutableFragmentImpl executableFragment;
     if (node.isGetter) {
-      var fragment = GetterFragmentImpl(
-        name: _getFragmentName(nameToken),
-        firstTokenOffset: null,
-      );
+      var fragment = GetterFragmentImpl(name: _getFragmentName(nameToken));
       fragment.isAbstract = node.isAbstract;
       fragment.isAugmentation = node.augmentKeyword != null;
       fragment.isStatic = node.isStatic;
       _addChildFragment(fragment);
       executableFragment = fragment;
     } else if (node.isSetter) {
-      var fragment = SetterFragmentImpl(
-        name: _getFragmentName(nameToken),
-        firstTokenOffset: null,
-      );
+      var fragment = SetterFragmentImpl(name: _getFragmentName(nameToken));
       fragment.isAbstract = node.isAbstract;
       fragment.isAugmentation = node.augmentKeyword != null;
       fragment.isStatic = node.isStatic;
       _addChildFragment(fragment);
       executableFragment = fragment;
     } else {
-      var fragment = MethodFragmentImpl(
-        name: _getFragmentName(nameToken),
-        firstTokenOffset: null,
-      );
+      var fragment = MethodFragmentImpl(name: _getFragmentName(nameToken));
       fragment.isAbstract = node.isAbstract;
       fragment.isAugmentation = node.augmentKeyword != null;
       fragment.isStatic = node.isStatic;
@@ -1560,10 +1504,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var nameToken = node.name;
     var fragmentName = _getFragmentName(nameToken);
 
-    var fragment = MixinFragmentImpl(
-      name: fragmentName,
-      firstTokenOffset: null,
-    );
+    var fragment = MixinFragmentImpl(name: fragmentName);
     fragment.isAugmentation = node.augmentKeyword != null;
     fragment.isBase = node.baseKeyword != null;
     fragment.metadata = _buildMetadata(node.metadata);
@@ -1641,7 +1582,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var name2 = _getFragmentName(nameToken);
 
     var fragment = FormalParameterFragmentImpl(
-      firstTokenOffset: null,
       name: name2,
       nameOffset: null,
       parameterKind: node.kind,
@@ -1671,7 +1611,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var name2 = _getFragmentName(nameToken);
 
     var fragment = SuperFormalParameterFragmentImpl(
-      firstTokenOffset: null,
       name: name2,
       nameOffset: null,
       parameterKind: node.kind,
@@ -1716,10 +1655,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       var nameToken = variable.name;
       var name2 = _getFragmentName(nameToken);
 
-      var fragment = TopLevelVariableFragmentImpl(
-        name: name2,
-        firstTokenOffset: null,
-      );
+      var fragment = TopLevelVariableFragmentImpl(name: name2);
 
       fragment.hasInitializer = variable.initializer != null;
       fragment.isAugmentation = node.augmentKeyword != null;
@@ -1754,10 +1690,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
   void visitTypeParameter(covariant TypeParameterImpl node) {
     var nameToken = node.name;
 
-    var fragment = TypeParameterFragmentImpl(
-      name: _getFragmentName(nameToken),
-      firstTokenOffset: null,
-    );
+    var fragment = TypeParameterFragmentImpl(name: _getFragmentName(nameToken));
     fragment.metadata = _buildMetadata(node.metadata);
 
     node.declaredFragment = fragment;
@@ -1804,10 +1737,9 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
   }
 
   MetadataImpl _buildMetadata(List<AnnotationImpl> nodeList) {
-    var annotations =
-        nodeList.map((ast) {
-          return ElementAnnotationImpl(_unitElement, ast);
-        }).toFixedList();
+    var annotations = nodeList.map((ast) {
+      return ElementAnnotationImpl(_unitElement, ast);
+    }).toFixedList();
 
     return MetadataImpl(annotations);
   }
@@ -1821,7 +1753,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
     var fieldFragment = FieldFragmentImpl(
       name: _getFragmentName(fieldNameToken),
-      firstTokenOffset: null,
     );
     fieldFragment.isFinal = true;
     fieldFragment.metadata = _buildMetadata(representation.fieldMetadata);
@@ -1833,7 +1764,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
     var formalParameterElement =
         FieldFormalParameterFragmentImpl(
-            firstTokenOffset: null,
             name: _getFragmentName(fieldNameToken),
             nameOffset: null,
             parameterKind: ParameterKind.REQUIRED,
@@ -1845,7 +1775,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       var constructorFragment =
           ConstructorFragmentImpl(
               name: representation.constructorName?.name.lexeme ?? 'new',
-              firstTokenOffset: null,
             )
             ..isAugmentation = extensionNode.augmentKeyword != null
             ..isConst = extensionNode.constKeyword != null

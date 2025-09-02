@@ -50,19 +50,44 @@ void main(List<String> args) {
     print("Note: Running without any arguments to the snapshots.");
   }
 
-  _doRun(iterations, snapshots, aotRuntime, core, arguments, checkFileSize,
-      cacheBenchmarking: false, silent: silent);
+  _doRun(
+    iterations,
+    snapshots,
+    aotRuntime,
+    core,
+    arguments,
+    checkFileSize,
+    cacheBenchmarking: false,
+    silent: silent,
+  );
   if (doCacheBenchmarkingToo) {
-    _doRun(iterations, snapshots, aotRuntime, core, arguments, checkFileSize,
-        cacheBenchmarking: true, silent: silent);
+    _doRun(
+      iterations,
+      snapshots,
+      aotRuntime,
+      core,
+      arguments,
+      checkFileSize,
+      cacheBenchmarking: true,
+      silent: silent,
+    );
   }
 }
 
-void _doRun(int iterations, List<String> snapshots, String aotRuntime, int core,
-    List<String> arguments, String? checkFileSize,
-    {required bool cacheBenchmarking, required bool silent}) {
-  print("Will now run $iterations iterations with "
-      "${snapshots.length} snapshots.");
+void _doRun(
+  int iterations,
+  List<String> snapshots,
+  String aotRuntime,
+  int core,
+  List<String> arguments,
+  String? checkFileSize, {
+  required bool cacheBenchmarking,
+  required bool silent,
+}) {
+  print(
+    "Will now run $iterations iterations with "
+    "${snapshots.length} snapshots.",
+  );
 
   List<List<Map<String, num>>> runResults = [];
   List<GCInfo> gcInfos = [];
@@ -75,10 +100,15 @@ void _doRun(int iterations, List<String> snapshots, String aotRuntime, int core,
       // info which is what the dot provides.
       if (silent) stdout.write(".");
       Map<String, num> benchmarkRun = _benchmark(
-          aotRuntime, core, snapshot, [], arguments,
-          warnings: warnings,
-          cacheBenchmarking: cacheBenchmarking,
-          silent: silent);
+        aotRuntime,
+        core,
+        snapshot,
+        [],
+        arguments,
+        warnings: warnings,
+        cacheBenchmarking: cacheBenchmarking,
+        silent: silent,
+      );
       if (checkFileSize != null) {
         File f = new File(checkFileSize);
         if (f.existsSync()) {
@@ -90,16 +120,19 @@ void _doRun(int iterations, List<String> snapshots, String aotRuntime, int core,
 
     // Do a single GC run too.
     if (silent) stdout.write(".");
-    gcInfos
-        .add(_verboseGcRun(aotRuntime, snapshot, [], arguments, silent: true));
+    gcInfos.add(
+      _verboseGcRun(aotRuntime, snapshot, [], arguments, silent: true),
+    );
   }
   stdout.write("\n\n");
 
   List<Map<String, num>> firstSnapshotResults = runResults.first;
   for (int i = 1; i < runResults.length; i++) {
     if (i > 1) print("");
-    print("Comparing snapshot #1 (${_getName(snapshots[0])}) with "
-        "snapshot #${i + 1} (${_getName(snapshots[i])})");
+    print(
+      "Comparing snapshot #1 (${_getName(snapshots[0])}) with "
+      "snapshot #${i + 1} (${_getName(snapshots[i])})",
+    );
     List<Map<String, num>> compareToResults = runResults[i];
     if (!_compare(firstSnapshotResults, compareToResults)) {
       print("No change.");
@@ -171,8 +204,10 @@ bool _compare(List<Map<String, num>> from, List<Map<String, num>> to) {
       // These are seemingly always 0 --- if they're not we'll print a warning.
       for (num value in [...fromForCaption, ...toForCaption]) {
         if (value != 0) {
-          print("Warning: "
-              "$caption has values $fromForCaption and $toForCaption");
+          print(
+            "Warning: "
+            "$caption has values $fromForCaption and $toForCaption",
+          );
           break;
         }
       }
@@ -181,9 +216,11 @@ bool _compare(List<Map<String, num>> from, List<Map<String, num>> to) {
     TTestResult stats = SimpleTTestStat.ttest(toForCaption, fromForCaption);
     if (stats.significant) {
       somethingWasSignificant = true;
-      print("$caption: ${stats.percentChangeIfSignificant(fractionDigits: 4)} "
-          "(${stats.valueChangeIfSignificant(fractionDigits: 2)}) "
-          "(${stats.meanChangeStringIfSignificant(fractionDigits: 2)})");
+      print(
+        "$caption: ${stats.percentChangeIfSignificant(fractionDigits: 4)} "
+        "(${stats.valueChangeIfSignificant(fractionDigits: 2)}) "
+        "(${stats.meanChangeStringIfSignificant(fractionDigits: 2)})",
+      );
     }
   }
   return somethingWasSignificant;
@@ -199,28 +236,50 @@ List<num> _extractDataForCaption(String caption, List<Map<String, num>> data) {
 }
 
 Map<String, num> benchmark(
-    String snapshot, List<String> extraVmArguments, List<String> arguments,
-    {String? aotRuntime, int? core, bool cacheBenchmarking = false}) {
-  return _benchmark(aotRuntime ?? _computeAotRuntime(), core ?? 7, snapshot,
-      extraVmArguments, arguments,
-      silent: true, cacheBenchmarking: cacheBenchmarking);
+  String snapshot,
+  List<String> extraVmArguments,
+  List<String> arguments, {
+  String? aotRuntime,
+  int? core,
+  bool cacheBenchmarking = false,
+}) {
+  return _benchmark(
+    aotRuntime ?? _computeAotRuntime(),
+    core ?? 7,
+    snapshot,
+    extraVmArguments,
+    arguments,
+    silent: true,
+    cacheBenchmarking: cacheBenchmarking,
+  );
 }
 
-late final RegExp _extractNumbers =
-    new RegExp(r"([\d+\,\.]+)\s+(.+)\s*", caseSensitive: false);
+late final RegExp _extractNumbers = new RegExp(
+  r"([\d+\,\.]+)\s+(.+)\s*",
+  caseSensitive: false,
+);
 
-Map<String, num> _benchmark(String aotRuntime, int core, String snapshot,
-    List<String> extraVmArguments, List<String> arguments,
-    {bool silent = false, Warnings? warnings, bool cacheBenchmarking = false}) {
+Map<String, num> _benchmark(
+  String aotRuntime,
+  int core,
+  String snapshot,
+  List<String> extraVmArguments,
+  List<String> arguments, {
+  bool silent = false,
+  Warnings? warnings,
+  bool cacheBenchmarking = false,
+}) {
   if (!silent) stdout.write(".");
 
   // These influence scaling, so only pick 3 (apparently that's now the
   // magic limit)
-  String scalingEvents = "cycles:u,"
+  String scalingEvents =
+      "cycles:u,"
       "instructions:u,"
       "branch-misses:u";
   if (cacheBenchmarking) {
-    scalingEvents = "L1-icache-load-misses:u,"
+    scalingEvents =
+        "L1-icache-load-misses:u,"
         "LLC-loads:u,"
         "LLC-load-misses:u";
   }
@@ -239,7 +298,7 @@ Map<String, num> _benchmark(String aotRuntime, int core, String snapshot,
     "--deterministic",
     ...extraVmArguments,
     snapshot,
-    ...arguments
+    ...arguments,
   ]);
   if (processResult.exitCode != 0) {
     throw "Run failed with exit code ${processResult.exitCode}.\n"
@@ -296,16 +355,20 @@ Map<String, num> _benchmark(String aotRuntime, int core, String snapshot,
   return result;
 }
 
-GCInfo _verboseGcRun(String aotRuntime, String snapshot,
-    List<String> extraVmArguments, List<String> arguments,
-    {bool silent = false}) {
+GCInfo _verboseGcRun(
+  String aotRuntime,
+  String snapshot,
+  List<String> extraVmArguments,
+  List<String> arguments, {
+  bool silent = false,
+}) {
   if (!silent) stdout.write(".");
   ProcessResult processResult = Process.runSync(aotRuntime, [
     "--deterministic",
     "--verbose-gc",
     ...extraVmArguments,
     snapshot,
-    ...arguments
+    ...arguments,
   ]);
   if (processResult.exitCode != 0) {
     throw "Run failed with exit code ${processResult.exitCode}.\n"
@@ -320,7 +383,8 @@ GCInfo _verboseGcRun(String aotRuntime, String snapshot,
 
 String _computeAotRuntime() {
   File f = new File.fromUri(
-      repoDir.resolve("out/ReleaseX64/dart-sdk/bin/dartaotruntime"));
+    repoDir.resolve("out/ReleaseX64/dart-sdk/bin/dartaotruntime"),
+  );
   if (f.existsSync()) {
     return f.path;
   } else {
@@ -410,10 +474,12 @@ void printGcDiff(GCInfo prev, GCInfo current) {
     print("$key goes from $prevValue to $currentValue");
   }
   if (printedAnything) {
-    print("Notice combined GC time goes "
-        "from ${prev.combinedTime.toStringAsFixed(0)} ms "
-        "to ${current.combinedTime.toStringAsFixed(0)} ms "
-        "(notice only 1 run each).");
+    print(
+      "Notice combined GC time goes "
+      "from ${prev.combinedTime.toStringAsFixed(0)} ms "
+      "to ${current.combinedTime.toStringAsFixed(0)} ms "
+      "(notice only 1 run each).",
+    );
   }
 }
 

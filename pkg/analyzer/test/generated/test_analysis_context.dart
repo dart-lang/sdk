@@ -13,9 +13,12 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
+import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk_elements.dart';
 
 class TestAnalysisContext implements AnalysisContext {
+  final Reference rootReference = Reference.root();
+
   @override
   final SourceFactory sourceFactory = _MockSourceFactory();
 
@@ -26,7 +29,7 @@ class TestAnalysisContext implements AnalysisContext {
   late TypeSystemImpl _typeSystem;
 
   TestAnalysisContext() {
-    var sdkElements = MockSdkElements(this, _analysisSession);
+    var sdkElements = MockSdkElements(this, rootReference, _analysisSession);
 
     _typeProvider = TypeProviderImpl(
       coreLibrary: sdkElements.coreLibrary,

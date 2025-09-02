@@ -5,34 +5,15 @@
 const_functions/const_functions_const_factory: VerificationError
 enhanced_enums/declared_hashcode: TypeCheckError
 enhanced_enums/declared_index: TypeCheckError
-extension_types/access_setter_as_getter: ExpectationFileMismatchSerialized # Expected.
-extension_types/call_not_get: ExpectationFileMismatchSerialized # Expected.
-extension_types/extension_on_nullable: ExpectationFileMismatchSerialized # Expected.
-extension_types/non_simple_many_libs_same_name_cycle: ExpectationFileMismatchSerialized
-extension_types/show_and_run_ceil: ExpectationFileMismatchSerialized # Expected.
-extension_types/simple: ExpectationFileMismatchSerialized
-extension_types/simple_getter_resolution: ExpectationFileMismatchSerialized
-extension_types/simple_method_resolution: ExpectationFileMismatchSerialized
-extension_types/simple_operator_resolution: ExpectationFileMismatchSerialized
-extension_types/simple_setter_resolution: ExpectationFileMismatchSerialized
-extension_types/simple_show_hide: ExpectationFileMismatchSerialized # Expected.
-extension_types/type_variable_in_static_context: ExpectationFileMismatchSerialized # Expected.
 general/abstract_members: TypeCheckError
 general/bounds_type_parameters: TypeCheckError
 general/bug30695: TypeCheckError
-general/getter_vs_setter_type: TypeCheckError
 general/hierarchy/conflict: TypeCheckError
 general/hierarchy/duplicates: TypeCheckError
-general/infer_field_from_multiple2: TypeCheckError
 general/supertype_conflict: TypeCheckError
-inference/infer_assign_to_index: Fail
-inference/infer_assign_to_property: Fail
-inference/infer_assign_to_property_custom: Fail
 inference/mixin_inference_outwards_3: TypeCheckError
 inference/mixin_inference_outwards_4: TypeCheckError
 inference/mixin_inference_unification_1: TypeCheckError
 inference/mixin_inference_unification_2: TypeCheckError
-nnbd_mixed/bad_mixins: TypeCheckError
-nnbd_mixed/covariant_from_opt_in: TypeCheckError
 rasta/native_is_illegal: Pass # Issue 29763
 coverage/static2_test: TypeCheckError

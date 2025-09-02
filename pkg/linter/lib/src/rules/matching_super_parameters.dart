@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -17,10 +18,13 @@ class MatchingSuperParameters extends LintRule {
     : super(name: LintNames.matching_super_parameters, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.matching_super_parameters;
+  DiagnosticCode get diagnosticCode => LinterLintCode.matchingSuperParameters;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
   }
@@ -43,25 +47,26 @@ class _Visitor extends SimpleAstVisitor<void> {
       // We are only concerned with positional super-parameters.
       return;
     }
-    var superInvocation =
-        node.initializers.whereType<SuperConstructorInvocation>().firstOrNull;
+    var superInvocation = node.initializers
+        .whereType<SuperConstructorInvocation>()
+        .firstOrNull;
     var superConstructor = superInvocation?.element;
     if (superConstructor == null) {
       var class_ = node.parent;
       if (class_ is ClassDeclaration) {
-        superConstructor =
-            class_
-                .declaredFragment
-                ?.element
-                .supertype
-                ?.element
-                .unnamedConstructor;
+        superConstructor = class_
+            .declaredFragment
+            ?.element
+            .supertype
+            ?.element
+            .unnamedConstructor;
       }
     }
     if (superConstructor is! ConstructorElement) return;
 
-    var positionalParametersOfSuper =
-        superConstructor.formalParameters.where((p) => p.isPositional).toList();
+    var positionalParametersOfSuper = superConstructor.formalParameters
+        .where((p) => p.isPositional)
+        .toList();
     if (positionalParametersOfSuper.length < positionalSuperParameters.length) {
       // More positional parameters are passed to super constructor than it
       // has positional parameters, an error.

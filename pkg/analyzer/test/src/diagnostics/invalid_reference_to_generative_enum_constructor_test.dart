@@ -62,7 +62,7 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR,
+          CompileTimeErrorCode.invalidReferenceToGenerativeEnumConstructor,
           58,
           7,
         ),
@@ -85,7 +85,7 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR,
+          CompileTimeErrorCode.invalidReferenceToGenerativeEnumConstructor,
           58,
           7,
         ),
@@ -116,12 +116,12 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR,
+          CompileTimeErrorCode.enumConstantInvokesFactoryConstructor,
           11,
           1,
         ),
         error(
-          CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR,
+          CompileTimeErrorCode.invalidReferenceToGenerativeEnumConstructor,
           37,
           7,
         ),
@@ -142,7 +142,7 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR,
+          CompileTimeErrorCode.invalidReferenceToGenerativeEnumConstructor,
           29,
           5,
         ),
@@ -163,7 +163,7 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR,
+          CompileTimeErrorCode.invalidReferenceToGenerativeEnumConstructor,
           35,
           1,
         ),
@@ -184,7 +184,7 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR,
+          CompileTimeErrorCode.invalidReferenceToGenerativeEnumConstructor,
           33,
           1,
         ),
@@ -205,7 +205,7 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR,
+          CompileTimeErrorCode.invalidReferenceToGenerativeEnumConstructor,
           29,
           1,
         ),
@@ -237,7 +237,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR,
+          CompileTimeErrorCode.invalidReferenceToGenerativeEnumConstructor,
           43,
           1,
         ),

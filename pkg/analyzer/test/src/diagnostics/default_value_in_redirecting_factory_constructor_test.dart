@@ -29,7 +29,7 @@ class B implements A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR,
+          CompileTimeErrorCode.defaultValueInRedirectingFactoryConstructor,
           27,
           1,
         ),

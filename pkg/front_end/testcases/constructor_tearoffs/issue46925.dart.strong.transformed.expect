@@ -39,6 +39,10 @@ class MyClass<T extends core::Object? = dynamic> extends core::Object /*hasConst
     ;
 }
 static method test() → dynamic {
+  const (core::int, core::int) → self::MyClass<core::String> v1 = #C2;
+  const () → self::MyClass<core::int> v2 = #C4;
+  const (core::int, core::int) → self::MyClass<core::int> v3 = #C5;
+  const () → self::MyClass<core::String> v4 = #C6;
   const self::MyClass<core::String> c1 = invalid-expression "Function invocation is not a constant expression.";
   const self::MyClass<core::String> c2 = invalid-expression "Function invocation is not a constant expression.";
   const self::MyClass<core::int> c3 = invalid-expression "Function invocation is not a constant expression.";
@@ -47,3 +51,12 @@ static method test() → dynamic {
   const self::MyClass<core::String> c6 = invalid-expression "Function invocation is not a constant expression.";
 }
 static method main() → dynamic {}
+
+constants  {
+  #C1 = constructor-tearoff self::MyClass::•
+  #C2 = instantiation #C1 <core::String>
+  #C3 = constructor-tearoff self::MyClass::constr
+  #C4 = instantiation #C3 <core::int>
+  #C5 = instantiation #C1 <core::int>
+  #C6 = instantiation #C3 <core::String>
+}

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -19,10 +20,13 @@ class CamelCaseTypes extends LintRule {
     : super(name: LintNames.camel_case_types, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.camel_case_types;
+  DiagnosticCode get diagnosticCode => LinterLintCode.camelCaseTypes;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addGenericTypeAlias(this, visitor);
     registry.addClassDeclaration(this, visitor);

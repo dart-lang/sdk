@@ -26,8 +26,7 @@ enum Operator {
   tripleShift(">>>", 1),
   subtract("-", 1),
   truncatingDivide("~/", 1),
-  unaryMinus("unary-", 0),
-  ;
+  unaryMinus("unary-", 0);
 
   final String text;
   final int requiredArgumentCount;

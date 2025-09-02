@@ -22,7 +22,7 @@ extension E on String {
   void foo({covariant int a = 0}) {}
 }
 ''',
-      [error(ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION, 36, 9)],
+      [error(ParserErrorCode.invalidUseOfCovariantInExtension, 36, 9)],
     );
   }
 
@@ -33,7 +33,7 @@ extension E on String {
   void foo([covariant int a = 0]) {}
 }
 ''',
-      [error(ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION, 36, 9)],
+      [error(ParserErrorCode.invalidUseOfCovariantInExtension, 36, 9)],
     );
   }
 
@@ -44,7 +44,7 @@ extension E on String {
   void foo(covariant int a) {}
 }
 ''',
-      [error(ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION, 35, 9)],
+      [error(ParserErrorCode.invalidUseOfCovariantInExtension, 35, 9)],
     );
   }
 }

@@ -56,7 +56,7 @@ A createA() {
   return B();
 }
 ''',
-      [error(WarningCode.UNUSED_RESULT, 83, 7)],
+      [error(WarningCode.unusedResult, 83, 7)],
     );
   }
 
@@ -77,7 +77,7 @@ void f(A a) {
 ''',
       [
         error(
-          WarningCode.UNUSED_RESULT,
+          WarningCode.unusedResult,
           96,
           1,
           text: "The value of 'a' should be used.",
@@ -105,7 +105,7 @@ void f(A a) {
 ''',
       [
         error(
-          WarningCode.UNUSED_RESULT,
+          WarningCode.unusedResult,
           130,
           1,
           text: "The value of 'b' should be used.",
@@ -133,7 +133,7 @@ void f(A a) {
 ''',
       [
         error(
-          WarningCode.UNUSED_RESULT,
+          WarningCode.unusedResult,
           127,
           1,
           text: "The value of 'b' should be used.",
@@ -163,7 +163,7 @@ void f(A a) {
 ''',
       [
         error(
-          WarningCode.UNUSED_RESULT,
+          WarningCode.unusedResult,
           170,
           1,
           text: "The value of 'a' should be used.",
@@ -202,7 +202,7 @@ void f() {
   A();
 }
 ''',
-      [error(WarningCode.UNUSED_RESULT, 80, 3)],
+      [error(WarningCode.unusedResult, 80, 3)],
     );
   }
 
@@ -300,7 +300,7 @@ void main() {
   A().foo;
 }
 ''',
-      [error(WarningCode.UNUSED_RESULT, 104, 3)],
+      [error(WarningCode.unusedResult, 104, 3)],
     );
   }
 
@@ -394,7 +394,7 @@ void main() {
   A().foo;
 }
 ''',
-      [error(WarningCode.UNUSED_RESULT, 95, 3)],
+      [error(WarningCode.unusedResult, 95, 3)],
     );
   }
 
@@ -412,7 +412,7 @@ void f(bool b) {
   b ? A().foo : 0;
 }
 ''',
-      [error(WarningCode.UNUSED_RESULT, 102, 3)],
+      [error(WarningCode.unusedResult, 102, 3)],
     );
   }
 
@@ -430,7 +430,7 @@ void f(bool b) {
   b ? (A().foo) : 0;
 }
 ''',
-      [error(WarningCode.UNUSED_RESULT, 103, 3)],
+      [error(WarningCode.unusedResult, 103, 3)],
     );
   }
 
@@ -452,7 +452,7 @@ void main() {
   });
 }
 ''',
-      [error(WarningCode.UNUSED_RESULT, 130, 3)],
+      [error(WarningCode.unusedResult, 130, 3)],
     );
   }
 
@@ -550,7 +550,7 @@ void main() {
   A.foo;
 }
 ''',
-      [error(WarningCode.UNUSED_RESULT, 100, 3)],
+      [error(WarningCode.unusedResult, 100, 3)],
     );
   }
 
@@ -581,7 +581,7 @@ void f() {
   foo;
 }
 ''',
-      [error(WarningCode.UNUSED_RESULT, 77, 3)],
+      [error(WarningCode.unusedResult, 77, 3)],
     );
   }
 
@@ -686,7 +686,7 @@ void main() {
   A().foo;
 }
 ''',
-      [error(WarningCode.UNUSED_RESULT, 100, 3)],
+      [error(WarningCode.unusedResult, 100, 3)],
     );
   }
 
@@ -927,7 +927,7 @@ void f(A a) {
   for (var i = 1; i < 7; a.foo()) {}
 }
 ''',
-      [error(WarningCode.UNUSED_RESULT, 119, 3)],
+      [error(WarningCode.unusedResult, 119, 3)],
     );
   }
 
@@ -1071,7 +1071,7 @@ void f(A a) {
   a.foo()!;
 }
 ''',
-      [error(WarningCode.UNUSED_RESULT, 97, 3)],
+      [error(WarningCode.unusedResult, 97, 3)],
     );
   }
 
@@ -1120,7 +1120,7 @@ f() {
 @useResult
 (int, int) g() => (0, 0);
 ''',
-      [error(WarningCode.UNUSED_RESULT, 42, 1)],
+      [error(WarningCode.unusedResult, 42, 1)],
     );
   }
 
@@ -1282,7 +1282,7 @@ void main() {
 ''',
       [
         error(
-          WarningCode.UNUSED_RESULT,
+          WarningCode.unusedResult,
           98,
           3,
           text: "The value of 'foo' should be used.",
@@ -1309,7 +1309,7 @@ class C {
 ''',
       [
         error(
-          WarningCode.UNUSED_RESULT,
+          WarningCode.unusedResult,
           127,
           2,
           text: "The value of 'm1' should be used.",
@@ -1654,7 +1654,7 @@ void main() {
   baz(); // OK
 }
 ''',
-      [error(WarningCode.UNUSED_RESULT, 108, 3)],
+      [error(WarningCode.unusedResult, 108, 3)],
     );
   }
 
@@ -1683,7 +1683,7 @@ void main() {
   foo();
 }
 ''',
-      [error(WarningCode.UNUSED_RESULT, 133, 3)],
+      [error(WarningCode.unusedResult, 133, 3)],
     );
   }
 
@@ -1699,7 +1699,7 @@ void main() {
   foo('none');
 }
 ''',
-      [error(WarningCode.UNUSED_RESULT, 146, 3)],
+      [error(WarningCode.unusedResult, 146, 3)],
     );
   }
 
@@ -1782,7 +1782,7 @@ void main() {
   foo;
 }
 ''',
-      [error(WarningCode.UNUSED_RESULT, 75, 3)],
+      [error(WarningCode.unusedResult, 75, 3)],
     );
   }
 

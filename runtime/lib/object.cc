@@ -7,6 +7,7 @@
 #include "lib/invocation_mirror.h"
 #include "vm/bytecode_reader.h"
 #include "vm/code_patcher.h"
+#include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
 #include "vm/exceptions.h"
 #include "vm/heap/heap.h"
@@ -247,12 +248,20 @@ DEFINE_NATIVE_ENTRY(Type_equality, 0, 2) {
 }
 
 DEFINE_NATIVE_ENTRY(LibraryPrefix_isLoaded, 0, 1) {
+  if (isolate == nullptr) {
+    ThrowCantRunWithoutIsolateError();
+    UNREACHABLE();
+  }
   const LibraryPrefix& prefix =
       LibraryPrefix::CheckedHandle(zone, arguments->NativeArgAt(0));
   return Bool::Get(isolate->IsPrefixLoaded(prefix)).ptr();
 }
 
 DEFINE_NATIVE_ENTRY(LibraryPrefix_setLoaded, 0, 1) {
+  if (isolate == nullptr) {
+    ThrowCantRunWithoutIsolateError();
+    UNREACHABLE();
+  }
   const LibraryPrefix& prefix =
       LibraryPrefix::CheckedHandle(zone, arguments->NativeArgAt(0));
   isolate->SetPrefixIsLoaded(prefix);

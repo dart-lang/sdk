@@ -72,7 +72,7 @@ Future<int> f() async {
 ''',
       errorFilter: (error) {
         return error.diagnosticCode ==
-            CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT;
+            CompileTimeErrorCode.undefinedIdentifierAwait;
       },
     );
   }
@@ -91,7 +91,7 @@ void doStuff() => takeFutureCallback(() async => await 1);
 ''',
       errorFilter: (error) {
         return error.diagnosticCode ==
-            CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT;
+            CompileTimeErrorCode.undefinedIdentifierAwait;
       },
     );
   }
@@ -467,8 +467,7 @@ Future<int> f() async {
 }
 ''',
       errorFilter: (error) {
-        return error.diagnosticCode ==
-            CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT;
+        return error.diagnosticCode == CompileTimeErrorCode.awaitInWrongContext;
       },
     );
   }

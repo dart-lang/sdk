@@ -54,11 +54,7 @@ class A {
 }
 ''');
     parseResult.assertErrors([
-      error(
-        ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS,
-        39,
-        4,
-      ),
+      error(ParserErrorCode.externalConstructorWithFieldInitializers, 39, 4),
     ]);
 
     var node = parseResult.findNode.singleConstructorDeclaration;
@@ -93,11 +89,7 @@ class A {
 }
 ''');
     parseResult.assertErrors([
-      error(
-        ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS,
-        38,
-        4,
-      ),
+      error(ParserErrorCode.externalConstructorWithFieldInitializers, 38, 4),
     ]);
 
     var node = parseResult.findNode.singleConstructorDeclaration;
@@ -126,7 +118,7 @@ class A {
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER, 40, 1),
+      error(ParserErrorCode.externalConstructorWithInitializer, 40, 1),
     ]);
 
     var node = parseResult.findNode.singleConstructorDeclaration;
@@ -158,7 +150,7 @@ class A {
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.MISSING_METHOD_PARAMETERS, 16, 3),
+      error(ParserErrorCode.missingMethodParameters, 16, 3),
     ]);
 
     var node = parseResult.findNode.singleMethodDeclaration;
@@ -185,7 +177,7 @@ class A {
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER, 16, 3),
+      error(ParserErrorCode.wrongNumberOfParametersForSetter, 16, 3),
     ]);
 
     var node = parseResult.findNode.singleMethodDeclaration;
@@ -212,7 +204,7 @@ class A {
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER, 16, 3),
+      error(ParserErrorCode.wrongNumberOfParametersForSetter, 16, 3),
     ]);
 
     var node = parseResult.findNode.singleMethodDeclaration;
@@ -239,7 +231,7 @@ class A {
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER, 16, 3),
+      error(ParserErrorCode.wrongNumberOfParametersForSetter, 16, 3),
     ]);
 
     var node = parseResult.findNode.singleMethodDeclaration;
@@ -266,7 +258,7 @@ class A {
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER, 16, 3),
+      error(ParserErrorCode.wrongNumberOfParametersForSetter, 16, 3),
     ]);
 
     var node = parseResult.findNode.singleMethodDeclaration;

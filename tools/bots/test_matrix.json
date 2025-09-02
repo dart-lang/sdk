@@ -580,14 +580,30 @@
         "compiler": "app_jitk"
       }
     },
-    "vm-dyn-(linux|mac|win)-(debug|product|release)-(x64|x64c|simarm|simarm64|simarm64c)": {
+    "vm-dyn-(linux|mac|win)-(debug|product|release)-(x64|x64c|arm64|arm64c|simarm|simarm64|simarm64c)": {
       "options": {
         "compiler": "dart2bytecode"
       }
     },
-    "vm-aot-dyn-(linux|mac|win)-(debug|release|product)-(x64|x64c|simarm|simarm64|simarm64c)": {
+    "vm-aot-dyn-(linux|mac|win)-(debug|release|product)-(x64|x64c|arm64|arm64c|simarm|simarm64|simarm64c)": {
       "options": {
         "compiler": "dart2bytecode"
+      }
+    },
+    "vm-dyn-mac-(debug|product|release)-simarm64_arm64": {
+      "options": {
+        "compiler": "dart2bytecode",
+        "vm-options": [
+          "--use_simulator=true"
+        ]
+      }
+    },
+    "vm-dyn-mac-(debug|product|release)-simarm64_arm64-nosim": {
+      "options": {
+        "compiler": "dart2bytecode",
+        "vm-options": [
+          "--use_simulator=false"
+        ]
       }
     },
     "ddc-(linux|win)-chrome": {
@@ -852,6 +868,39 @@
           "name": "vm ffi tests",
           "arguments": [
             "-nvm-${system}-${mode}-${arch}-nosim",
+            "ffi"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-ffi-dyn-mac-debug-simarm64_arm64",
+        "vm-ffi-dyn-mac-release-simarm64_arm64"
+      ],
+      "meta": {
+        "description": "This configuration is used for running FFI tests with dynamic modules"
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--dart-dynamic-modules",
+            "runtime"
+          ]
+        },
+        {
+          "name": "vm ffi tests",
+          "arguments": [
+            "-nvm-dyn-${system}-${mode}-${arch}",
+            "ffi"
+          ]
+        },
+        {
+          "name": "vm ffi tests",
+          "arguments": [
+            "-nvm-dyn-${system}-${mode}-${arch}-nosim",
             "ffi"
           ]
         }
@@ -1335,14 +1384,12 @@
           "name": "vm tests",
           "arguments": [
             "-nvm-dyn-${system}-${mode}-${arch}",
-            "corelib",
-            "language",
+            "--default-suites",
             "co19",
-            "vm",
             "pkg/vm_service/"
           ],
           "fileset": "vm",
-          "shards": 5
+          "shards": 16
         },
         {
           "name": "dynamic module tests",
@@ -1359,15 +1406,48 @@
     },
     {
       "builders": [
+        "vm-dyn-mac-debug-arm64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the dynamic modules VM JIT builders."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--dart-dynamic-modules",
+            "--codesigning-identity=-",
+            "runtime",
+            "runtime_precompiled",
+            "utils/gen_kernel"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-dyn-${system}-${mode}-${arch}",
+            "--default-suites",
+            "co19",
+            "pkg/vm_service/"
+          ],
+          "fileset": "vm",
+          "shards": 16
+        }
+      ]
+    },
+    {
+      "builders": [
         "vm-asan-linux-release-x64",
         "vm-asan-mac-release-x64",
         "vm-asan-win-release-x64",
         "vm-msan-linux-release-x64",
         "vm-tsan-linux-release-x64",
+        "vm-tsan-mac-release-arm64",
         "vm-ubsan-linux-release-x64"
       ],
       "meta": {
-        "description": "This configuration is used by the X64 sanitizers."
+        "description": "This configuration is used by the sanitizers (high capacity machine pools)."
       },
       "steps": [
         {
@@ -1405,7 +1485,7 @@
         "vm-ubsan-linux-release-arm64"
       ],
       "meta": {
-        "description": "This configuration is used by the ARM64 sanitizers."
+        "description": "This configuration is used by the sanitizers (low capacity machine pools)."
       },
       "steps": [
         {
@@ -1424,7 +1504,7 @@
             "standalone"
           ],
           "fileset": "vm",
-          "shards": 1
+          "shards": 2
         },
         {
           "name": "vm tests (aot)",
@@ -1432,7 +1512,9 @@
             "-nvm-aot-${sanitizer}-${system}-${mode}-${arch}",
             "ffi",
             "standalone"
-          ]
+          ],
+          "fileset": "vm",
+          "shards": 3
         }
       ]
     },
@@ -1612,31 +1694,6 @@
     },
     {
       "builders": [
-        "vm-checked-mac-release-arm64"
-      ],
-      "meta": {
-        "description": "This configuration is for the VM in checked mode."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "runtime"
-          ]
-        },
-        {
-          "name": "vm tests",
-          "arguments": [
-            "-nvm-checked-${system}-${mode}-${arch}"
-          ],
-          "fileset": "vm",
-          "shards": 4
-        }
-      ]
-    },
-    {
-      "builders": [
         "vm-fuchsia-release-x64"
       ],
       "meta": {
@@ -1722,10 +1779,13 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-nvm-${system}-${mode}-${arch}"
+            "-nvm-${system}-${mode}-${arch}",
+            "--default-suites",
+            "co19",
+            "pkg/pkg/vm_service/"
           ],
           "fileset": "vm",
-          "shards": 4
+          "shards": 6
         }
       ]
     },
@@ -1749,10 +1809,13 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-nvm-aot-${system}-${mode}-${arch}"
+            "-nvm-aot-${system}-${mode}-${arch}",
+            "--default-suites",
+            "co19",
+            "pkg/pkg/vm_service/"
           ],
           "fileset": "vm",
-          "shards": 4
+          "shards": 6
         }
       ]
     },

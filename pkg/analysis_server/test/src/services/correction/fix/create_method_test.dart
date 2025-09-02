@@ -14,6 +14,8 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddMissingHashOrEqualsTest);
     defineReflectiveTests(CreateMethodMixinTest);
+    defineReflectiveTests(CreateMethodTearoffMixinTest);
+    defineReflectiveTests(CreateMethodTearoffTest);
     defineReflectiveTests(CreateMethodTest);
   });
 }
@@ -152,55 +154,6 @@ mixin M {
 ''');
   }
 
-  Future<void> test_functionType_method_enclosingMixin_static() async {
-    await resolveTestCode('''
-mixin M {
-  static foo() {
-    useFunction(test);
-  }
-}
-
-useFunction(int g(double a, String b)) {}
-''');
-    await assertHasFix('''
-mixin M {
-  static foo() {
-    useFunction(test);
-  }
-
-  static int test(double a, String b) {
-  }
-}
-
-useFunction(int g(double a, String b)) {}
-''');
-  }
-
-  Future<void> test_functionType_method_targetMixin() async {
-    await resolveTestCode('''
-void f(M m) {
-  useFunction(m.test);
-}
-
-mixin M {
-}
-
-useFunction(int g(double a, String b)) {}
-''');
-    await assertHasFix('''
-void f(M m) {
-  useFunction(m.test);
-}
-
-mixin M {
-  int test(double a, String b) {
-  }
-}
-
-useFunction(int g(double a, String b)) {}
-''');
-  }
-
   Future<void> test_main_part() async {
     var partPath = join(testPackageLibPath, 'part.dart');
     newFile(partPath, '''
@@ -275,6 +228,581 @@ mixin M {
   void myUndefinedMethod() {}
 }
 ''', target: part1Path);
+  }
+}
+
+@reflectiveTest
+class CreateMethodTearoffMixinTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.CREATE_METHOD_TEAROFF;
+  Future<void> test_functionType_method_enclosingMixin_static() async {
+    await resolveTestCode('''
+mixin M {
+  static foo() {
+    useFunction(test);
+  }
+}
+
+useFunction(int g(double a, String b)) {}
+''');
+    await assertHasFix('''
+mixin M {
+  static foo() {
+    useFunction(test);
+  }
+
+  static int test(double a, String b) {
+  }
+}
+
+useFunction(int g(double a, String b)) {}
+''');
+  }
+
+  Future<void> test_functionType_method_targetMixin() async {
+    await resolveTestCode('''
+void f(M m) {
+  useFunction(m.test);
+}
+
+mixin M {
+}
+
+useFunction(int g(double a, String b)) {}
+''');
+    await assertHasFix('''
+void f(M m) {
+  useFunction(m.test);
+}
+
+mixin M {
+  int test(double a, String b) {
+  }
+}
+
+useFunction(int g(double a, String b)) {}
+''');
+  }
+}
+
+@reflectiveTest
+class CreateMethodTearoffTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.CREATE_METHOD_TEAROFF;
+
+  Future<void> test_enum_tearoff() async {
+    await resolveTestCode('''
+enum E {
+  e1,
+  e2;
+}
+
+void g(int Function() f) {}
+
+void test(E e) {
+  g(e.bar);
+}
+''');
+    await assertHasFix('''
+enum E {
+  e1,
+  e2;
+  int bar() {
+  }
+}
+
+void g(int Function() f) {}
+
+void test(E e) {
+  g(e.bar);
+}
+''');
+  }
+
+  Future<void> test_enum_tearoff_static() async {
+    await resolveTestCode('''
+enum E {
+  e1,
+  e2;
+}
+
+void g(int Function() f) {}
+
+void test() {
+  g(E.bar);
+}
+''');
+    await assertHasFix('''
+enum E {
+  e1,
+  e2;
+  static int bar() {
+  }
+}
+
+void g(int Function() f) {}
+
+void test() {
+  g(E.bar);
+}
+''');
+  }
+
+  Future<void> test_extensionType_tearoff() async {
+    await resolveTestCode('''
+extension type E(int i) {
+}
+
+void g(int Function() f) {}
+
+void test(E e) {
+  g(e.bar);
+}
+''');
+    await assertHasFix('''
+extension type E(int i) {
+  int bar() {
+  }
+}
+
+void g(int Function() f) {}
+
+void test(E e) {
+  g(e.bar);
+}
+''');
+  }
+
+  Future<void> test_extensionType_tearoff_static() async {
+    await resolveTestCode('''
+extension type E(int i) {
+}
+
+void g(int Function() f) {}
+
+void test() {
+  g(E.bar);
+}
+''');
+    await assertHasFix('''
+extension type E(int i) {
+  static int bar() {
+  }
+}
+
+void g(int Function() f) {}
+
+void test() {
+  g(E.bar);
+}
+''');
+  }
+
+  Future<void> test_functionType_method_enclosingClass_instance() async {
+    await resolveTestCode('''
+class C {
+  void m1() {
+    m2(m3);
+  }
+
+  void m2(int Function(int) f) {}
+}
+''');
+    await assertHasFix('''
+class C {
+  void m1() {
+    m2(m3);
+  }
+
+  void m2(int Function(int) f) {}
+
+  int m3(int p1) {
+  }
+}
+''');
+  }
+
+  Future<void> test_functionType_method_enclosingClass_static() async {
+    await resolveTestCode('''
+class A {
+  static foo() {
+    useFunction(test);
+  }
+}
+useFunction(int g(double a, String b)) {}
+''');
+    await assertHasFix('''
+class A {
+  static foo() {
+    useFunction(test);
+  }
+
+  static int test(double a, String b) {
+  }
+}
+useFunction(int g(double a, String b)) {}
+''');
+  }
+
+  Future<void> test_functionType_method_enclosingClass_static2() async {
+    await resolveTestCode('''
+class A {
+  var f;
+  A() : f = useFunction(test);
+}
+useFunction(int g(double a, String b)) {}
+''');
+    await assertHasFix('''
+class A {
+  var f;
+  A() : f = useFunction(test);
+
+  static int test(double a, String b) {
+  }
+}
+useFunction(int g(double a, String b)) {}
+''');
+  }
+
+  Future<void> test_functionType_method_FunctionCall() async {
+    await resolveTestCode('''
+class C {
+  void m1(int i) {
+    m2(m3);
+  }
+
+  void m2(int Function() f) {}
+}
+''');
+    await assertHasFix('''
+class C {
+  void m1(int i) {
+    m2(m3);
+  }
+
+  void m2(int Function() f) {}
+
+  int m3() {
+  }
+}
+''');
+  }
+
+  Future<void>
+  test_functionType_method_inside_conditional_operator_else() async {
+    await resolveTestCode('''
+class C {
+  void m1(int i) {
+    m2(i == 0 ? (v) => v : m3);
+  }
+
+  void m2(int Function(int) f) {}
+}
+''');
+    await assertHasFix('''
+class C {
+  void m1(int i) {
+    m2(i == 0 ? (v) => v : m3);
+  }
+
+  void m2(int Function(int) f) {}
+
+  int m3(int p1) {
+  }
+}
+''');
+  }
+
+  Future<void>
+  test_functionType_method_inside_conditional_operator_then() async {
+    await resolveTestCode('''
+class C {
+  void m1(int i) {
+    m2(i == 0 ? m3 : (v) => v);
+  }
+
+  void m2(int Function(int) f) {}
+}
+''');
+    await assertHasFix('''
+class C {
+  void m1(int i) {
+    m2(i == 0 ? m3 : (v) => v);
+  }
+
+  void m2(int Function(int) f) {}
+
+  int m3(int p1) {
+  }
+}
+''');
+  }
+
+  Future<void> test_functionType_method_inside_record_functionType() async {
+    await resolveTestCode('''
+class C {
+  void m1(int i) {
+    m2((m3,));
+  }
+
+  void m2((int Function(int),) f) {}
+}
+''');
+    await assertHasFix('''
+class C {
+  void m1(int i) {
+    m2((m3,));
+  }
+
+  void m2((int Function(int),) f) {}
+
+  int m3(int p1) {
+  }
+}
+''');
+  }
+
+  Future<void>
+  test_functionType_method_inside_record_functionType_named() async {
+    await resolveTestCode('''
+class C {
+  void m1(int i) {
+    m2((f: m3));
+  }
+
+  void m2(({int Function(int) f}) f) {}
+}
+''');
+    await assertHasFix('''
+class C {
+  void m1(int i) {
+    m2((f: m3));
+  }
+
+  void m2(({int Function(int) f}) f) {}
+
+  int m3(int p1) {
+  }
+}
+''');
+  }
+
+  Future<void> test_functionType_method_targetClass() async {
+    await resolveTestCode('''
+void f(A a) {
+  useFunction(a.test);
+}
+class A {
+}
+useFunction(int g(double a, String b)) {}
+''');
+    await assertHasFix('''
+void f(A a) {
+  useFunction(a.test);
+}
+class A {
+  int test(double a, String b) {
+  }
+}
+useFunction(int g(double a, String b)) {}
+''');
+  }
+
+  Future<void> test_functionType_method_targetClass_hasOtherMember() async {
+    await resolveTestCode('''
+void f(A a) {
+  useFunction(a.test);
+}
+class A {
+  m() {}
+}
+useFunction(int g(double a, String b)) {}
+''');
+    await assertHasFix('''
+void f(A a) {
+  useFunction(a.test);
+}
+class A {
+  m() {}
+
+  int test(double a, String b) {
+  }
+}
+useFunction(int g(double a, String b)) {}
+''');
+  }
+
+  Future<void> test_record_named_tearoff() async {
+    await resolveTestCode('''
+class A {
+  ({bool Function() fn,}) m() => (fn: m2,);
+}
+''');
+    await assertHasFix('''
+class A {
+  ({bool Function() fn,}) m() => (fn: m2,);
+
+  bool m2() {
+  }
+}
+''');
+  }
+
+  Future<void> test_record_tearoff() async {
+    await resolveTestCode('''
+class A {
+  (bool Function(),) m() => (m2,);
+}
+''');
+    await assertHasFix('''
+class A {
+  (bool Function(),) m() => (m2,);
+
+  bool m2() {
+  }
+}
+''');
+  }
+
+  Future<void> test_static_tearoff() async {
+    await resolveTestCode('''
+void f() async {
+  int _ = await g(C.foo);
+}
+
+Future<T> g<T>(Future<T> Function() foo) => foo();
+
+class C {
+}
+''');
+    await assertHasFix('''
+void f() async {
+  int _ = await g(C.foo);
+}
+
+Future<T> g<T>(Future<T> Function() foo) => foo();
+
+class C {
+  static Future<int> foo() async {
+  }
+}
+''');
+  }
+
+  Future<void> test_static_tearoff_prefixed_typeParameter() async {
+    await resolveTestCode('''
+import '' as self;
+
+void f() async {
+  await g(self.C.foo);
+}
+
+Future<T> g<T>(Future<S> Function<S>() foo) => foo();
+
+class C {
+}
+''');
+    await assertHasFix('''
+import '' as self;
+
+void f() async {
+  await g(self.C.foo);
+}
+
+Future<T> g<T>(Future<S> Function<S>() foo) => foo();
+
+class C {
+  static Future<S> foo<S>() async {
+  }
+}
+''');
+  }
+
+  Future<void> test_static_tearoff_prefixed_typeParameter_bound1() async {
+    await resolveTestCode('''
+import '' as self;
+
+void f() async {
+  await g(self.C.foo);
+}
+
+Future<T> g<T>(Future<S> Function<S extends num>() foo) => foo();
+
+class C {
+}
+''');
+    await assertHasFix('''
+import '' as self;
+
+void f() async {
+  await g(self.C.foo);
+}
+
+Future<T> g<T>(Future<S> Function<S extends num>() foo) => foo();
+
+class C {
+  static Future<S> foo<S extends num>() async {
+  }
+}
+''');
+  }
+
+  Future<void> test_static_tearoff_prefixed_typeParameter_bound2() async {
+    await resolveTestCode('''
+import '' as self;
+
+void f() async {
+  await g(self.C.foo);
+}
+
+Future<T> g<T extends num>(Future<S> Function<S extends T>() foo) => foo();
+
+class C {
+}
+''');
+    await assertHasFix('''
+import '' as self;
+
+void f() async {
+  await g(self.C.foo);
+}
+
+Future<T> g<T extends num>(Future<S> Function<S extends T>() foo) => foo();
+
+class C {
+  static Future<S> foo<S extends num>() async {
+  }
+}
+''');
+  }
+
+  Future<void> test_static_tearoff_prefixed_typeParameter_class() async {
+    await resolveTestCode('''
+import '' as self;
+
+void f() async {
+  await g(self.C.foo);
+}
+
+Future<T> g<T>(Future<S> Function<S>() foo) => foo();
+
+class C<S> {
+}
+''');
+    await assertHasFix('''
+import '' as self;
+
+void f() async {
+  await g(self.C.foo);
+}
+
+Future<T> g<T>(Future<S> Function<S>() foo) => foo();
+
+class C<S> {
+  static Future<S> foo<S>() async {
+  }
+}
+''');
   }
 }
 
@@ -988,114 +1516,6 @@ void test() {
 ''');
   }
 
-  Future<void> test_enum_tearoff() async {
-    await resolveTestCode('''
-enum E {
-  e1,
-  e2;
-}
-
-void g(int Function() f) {}
-
-void test(E e) {
-  g(e.bar);
-}
-''');
-    await assertHasFix('''
-enum E {
-  e1,
-  e2;
-  int bar() {
-  }
-}
-
-void g(int Function() f) {}
-
-void test(E e) {
-  g(e.bar);
-}
-''');
-  }
-
-  Future<void> test_enum_tearoff_static() async {
-    await resolveTestCode('''
-enum E {
-  e1,
-  e2;
-}
-
-void g(int Function() f) {}
-
-void test() {
-  g(E.bar);
-}
-''');
-    await assertHasFix('''
-enum E {
-  e1,
-  e2;
-  static int bar() {
-  }
-}
-
-void g(int Function() f) {}
-
-void test() {
-  g(E.bar);
-}
-''');
-  }
-
-  Future<void> test_extensionType_tearoff() async {
-    await resolveTestCode('''
-extension type E(int i) {
-}
-
-void g(int Function() f) {}
-
-void test(E e) {
-  g(e.bar);
-}
-''');
-    await assertHasFix('''
-extension type E(int i) {
-  int bar() {
-  }
-}
-
-void g(int Function() f) {}
-
-void test(E e) {
-  g(e.bar);
-}
-''');
-  }
-
-  Future<void> test_extensionType_tearoff_static() async {
-    await resolveTestCode('''
-extension type E(int i) {
-}
-
-void g(int Function() f) {}
-
-void test() {
-  g(E.bar);
-}
-''');
-    await assertHasFix('''
-extension type E(int i) {
-  static int bar() {
-  }
-}
-
-void g(int Function() f) {}
-
-void test() {
-  g(E.bar);
-}
-''');
-  }
-
   Future<void> test_functionType_argument() async {
     await resolveTestCode('''
 class A {
@@ -1106,104 +1526,14 @@ class A {
 class A {
   a() => b((c) => c.d);
 
-  b(Function(dynamic c) param0) {}
+  b(Function(c) param0) {}
 }
 ''');
     var groups = change.linkedEditGroups;
     var index = 0;
     assertLinkedGroup(groups[index++], ['b((c', 'b(Function']);
-    assertLinkedGroup(groups[index++], ['Function(dynamic c)']);
+    assertLinkedGroup(groups[index++], ['Function(c)']);
     assertLinkedGroup(groups[index++], ['param0']);
-  }
-
-  Future<void> test_functionType_method_enclosingClass_instance() async {
-    await resolveTestCode('''
-class C {
-  void m1() {
-    m2(m3);
-  }
-
-  void m2(int Function(int) f) {}
-}
-''');
-    await assertHasFix('''
-class C {
-  void m1() {
-    m2(m3);
-  }
-
-  void m2(int Function(int) f) {}
-
-  int m3(int p1) {
-  }
-}
-''');
-  }
-
-  Future<void> test_functionType_method_enclosingClass_static() async {
-    await resolveTestCode('''
-class A {
-  static foo() {
-    useFunction(test);
-  }
-}
-useFunction(int g(double a, String b)) {}
-''');
-    await assertHasFix('''
-class A {
-  static foo() {
-    useFunction(test);
-  }
-
-  static int test(double a, String b) {
-  }
-}
-useFunction(int g(double a, String b)) {}
-''');
-  }
-
-  Future<void> test_functionType_method_enclosingClass_static2() async {
-    await resolveTestCode('''
-class A {
-  var f;
-  A() : f = useFunction(test);
-}
-useFunction(int g(double a, String b)) {}
-''');
-    await assertHasFix('''
-class A {
-  var f;
-  A() : f = useFunction(test);
-
-  static int test(double a, String b) {
-  }
-}
-useFunction(int g(double a, String b)) {}
-''');
-  }
-
-  Future<void> test_functionType_method_FunctionCall() async {
-    await resolveTestCode('''
-class C {
-  void m1(int i) {
-    m2(m3);
-  }
-
-  void m2(int Function() f) {}
-}
-''');
-    await assertHasFix('''
-class C {
-  void m1(int i) {
-    m2(m3);
-  }
-
-  void m2(int Function() f) {}
-
-  int m3() {
-  }
-}
-''');
   }
 
   Future<void>
@@ -1245,31 +1575,6 @@ class C {
   }
 
   Future<void>
-  test_functionType_method_inside_conditional_operator_else() async {
-    await resolveTestCode('''
-class C {
-  void m1(int i) {
-    m2(i == 0 ? (v) => v : m3);
-  }
-
-  void m2(int Function(int) f) {}
-}
-''');
-    await assertHasFix('''
-class C {
-  void m1(int i) {
-    m2(i == 0 ? (v) => v : m3);
-  }
-
-  void m2(int Function(int) f) {}
-
-  int m3(int p1) {
-  }
-}
-''');
-  }
-
-  Future<void>
   test_functionType_method_inside_conditional_operator_else_FunctionCall() async {
     await resolveTestCode('''
 class C {
@@ -1289,31 +1594,6 @@ class C {
   void m2(int p) {}
 
   int m3() {}
-}
-''');
-  }
-
-  Future<void>
-  test_functionType_method_inside_conditional_operator_then() async {
-    await resolveTestCode('''
-class C {
-  void m1(int i) {
-    m2(i == 0 ? m3 : (v) => v);
-  }
-
-  void m2(int Function(int) f) {}
-}
-''');
-    await assertHasFix('''
-class C {
-  void m1(int i) {
-    m2(i == 0 ? m3 : (v) => v);
-  }
-
-  void m2(int Function(int) f) {}
-
-  int m3(int p1) {
-  }
 }
 ''');
   }
@@ -1339,100 +1619,6 @@ class C {
 
   int m3() {}
 }
-''');
-  }
-
-  Future<void> test_functionType_method_inside_record_functionType() async {
-    await resolveTestCode('''
-class C {
-  void m1(int i) {
-    m2((m3,));
-  }
-
-  void m2((int Function(int),) f) {}
-}
-''');
-    await assertHasFix('''
-class C {
-  void m1(int i) {
-    m2((m3,));
-  }
-
-  void m2((int Function(int),) f) {}
-
-  int m3(int p1) {
-  }
-}
-''');
-  }
-
-  Future<void>
-  test_functionType_method_inside_record_functionType_named() async {
-    await resolveTestCode('''
-class C {
-  void m1(int i) {
-    m2((f: m3));
-  }
-
-  void m2(({int Function(int) f}) f) {}
-}
-''');
-    await assertHasFix('''
-class C {
-  void m1(int i) {
-    m2((f: m3));
-  }
-
-  void m2(({int Function(int) f}) f) {}
-
-  int m3(int p1) {
-  }
-}
-''');
-  }
-
-  Future<void> test_functionType_method_targetClass() async {
-    await resolveTestCode('''
-void f(A a) {
-  useFunction(a.test);
-}
-class A {
-}
-useFunction(int g(double a, String b)) {}
-''');
-    await assertHasFix('''
-void f(A a) {
-  useFunction(a.test);
-}
-class A {
-  int test(double a, String b) {
-  }
-}
-useFunction(int g(double a, String b)) {}
-''');
-  }
-
-  Future<void> test_functionType_method_targetClass_hasOtherMember() async {
-    await resolveTestCode('''
-void f(A a) {
-  useFunction(a.test);
-}
-class A {
-  m() {}
-}
-useFunction(int g(double a, String b)) {}
-''');
-    await assertHasFix('''
-void f(A a) {
-  useFunction(a.test);
-}
-class A {
-  m() {}
-
-  int test(double a, String b) {
-  }
-}
-useFunction(int g(double a, String b)) {}
 ''');
   }
 
@@ -1482,7 +1668,7 @@ class A<T> {
 }
 
 class B {
-  void process(Map items) {}
+  void process(Map<int, Object?> items) {}
 }
 ''');
   }
@@ -1556,7 +1742,7 @@ class A<T> {
 }
 
 class B {
-  compute() {}
+  Object? compute() {}
 }
 ''');
   }
@@ -1829,38 +2015,6 @@ class A {
 ''');
   }
 
-  Future<void> test_record_named_tearoff() async {
-    await resolveTestCode('''
-class A {
-  ({bool Function() fn,}) m() => (fn: m2,);
-}
-''');
-    await assertHasFix('''
-class A {
-  ({bool Function() fn,}) m() => (fn: m2,);
-
-  bool m2() {
-  }
-}
-''');
-  }
-
-  Future<void> test_record_tearoff() async {
-    await resolveTestCode('''
-class A {
-  (bool Function(),) m() => (m2,);
-}
-''');
-    await assertHasFix('''
-class A {
-  (bool Function(),) m() => (m2,);
-
-  bool m2() {
-  }
-}
-''');
-  }
-
   Future<void> test_returnType_closure_expression() async {
     await resolveTestCode('''
 class A {
@@ -1913,146 +2067,5 @@ void f() {
 ''');
     // This should be handled by create extension member fixes
     await assertNoFix();
-  }
-
-  Future<void> test_static_tearoff() async {
-    await resolveTestCode('''
-void f() async {
-  int _ = await g(C.foo);
-}
-
-Future<T> g<T>(Future<T> Function() foo) => foo();
-
-class C {
-}
-''');
-    await assertHasFix('''
-void f() async {
-  int _ = await g(C.foo);
-}
-
-Future<T> g<T>(Future<T> Function() foo) => foo();
-
-class C {
-  static Future<int> foo() async {
-  }
-}
-''');
-  }
-
-  Future<void> test_static_tearoff_prefixed_typeParameter() async {
-    await resolveTestCode('''
-import '' as self;
-
-void f() async {
-  await g(self.C.foo);
-}
-
-Future<T> g<T>(Future<S> Function<S>() foo) => foo();
-
-class C {
-}
-''');
-    await assertHasFix('''
-import '' as self;
-
-void f() async {
-  await g(self.C.foo);
-}
-
-Future<T> g<T>(Future<S> Function<S>() foo) => foo();
-
-class C {
-  static Future<S> foo<S>() async {
-  }
-}
-''');
-  }
-
-  Future<void> test_static_tearoff_prefixed_typeParameter_bound1() async {
-    await resolveTestCode('''
-import '' as self;
-
-void f() async {
-  await g(self.C.foo);
-}
-
-Future<T> g<T>(Future<S> Function<S extends num>() foo) => foo();
-
-class C {
-}
-''');
-    await assertHasFix('''
-import '' as self;
-
-void f() async {
-  await g(self.C.foo);
-}
-
-Future<T> g<T>(Future<S> Function<S extends num>() foo) => foo();
-
-class C {
-  static Future<S> foo<S extends num>() async {
-  }
-}
-''');
-  }
-
-  Future<void> test_static_tearoff_prefixed_typeParameter_bound2() async {
-    await resolveTestCode('''
-import '' as self;
-
-void f() async {
-  await g(self.C.foo);
-}
-
-Future<T> g<T extends num>(Future<S> Function<S extends T>() foo) => foo();
-
-class C {
-}
-''');
-    await assertHasFix('''
-import '' as self;
-
-void f() async {
-  await g(self.C.foo);
-}
-
-Future<T> g<T extends num>(Future<S> Function<S extends T>() foo) => foo();
-
-class C {
-  static Future<S> foo<S extends num>() async {
-  }
-}
-''');
-  }
-
-  Future<void> test_static_tearoff_prefixed_typeParameter_class() async {
-    await resolveTestCode('''
-import '' as self;
-
-void f() async {
-  await g(self.C.foo);
-}
-
-Future<T> g<T>(Future<S> Function<S>() foo) => foo();
-
-class C<S> {
-}
-''');
-    await assertHasFix('''
-import '' as self;
-
-void f() async {
-  await g(self.C.foo);
-}
-
-Future<T> g<T>(Future<S> Function<S>() foo) => foo();
-
-class C<S> {
-  static Future<S> foo<S>() async {
-  }
-}
-''');
   }
 }

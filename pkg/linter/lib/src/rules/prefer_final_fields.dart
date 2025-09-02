@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -19,10 +20,13 @@ class PreferFinalFields extends LintRule {
     : super(name: LintNames.prefer_final_fields, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_final_fields;
+  DiagnosticCode get diagnosticCode => LinterLintCode.preferFinalFields;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
   }
@@ -124,10 +128,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       // of which fields are initialized by any, and a set of which fields are
       // initialized by all. This would conceivably improve performance.
       var classDeclaration = variable.parent?.parent?.parent;
-      var constructors =
-          classDeclaration is ClassDeclaration
-              ? classDeclaration.members.whereType<ConstructorDeclaration>()
-              : <ConstructorDeclaration>[];
+      var constructors = classDeclaration is ClassDeclaration
+          ? classDeclaration.members.whereType<ConstructorDeclaration>()
+          : <ConstructorDeclaration>[];
 
       var isSetInAnyConstructor = constructors.any(
         (constructor) => field.isSetInConstructor(constructor),

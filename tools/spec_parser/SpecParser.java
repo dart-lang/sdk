@@ -122,7 +122,7 @@ public class SpecParser {
           continue;
       }
       if (verbose) System.err.println("Parsing file: " + filePath);
-      DartLexer lexer = new DartLexer(new ANTLRFileStream(filePath));
+      DartLexer lexer = new DartLexer(CharStreams.fromFileName(filePath));
       DartParser parser = new DartParser(new CommonTokenStream(lexer));
       ANTLRErrorListener errorListener = new DartErrorListener();
       lexer.addErrorListener(errorListener);

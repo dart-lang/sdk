@@ -658,7 +658,11 @@ class DartDev {
     // Copy in VM options if any.
     // Copy in any vm options that need to be passed to the execed process.
     for (intptr_t i = 0; i < num_vm_options; ++i) {
+#if defined(DART_HOST_OS_WINDOWS)
+      argv_[i + idx] = StringUtilsWin::ArgumentEscape(vm_options[i]);
+#else
       argv_[i + idx] = Utils::StrDup(vm_options[i]);
+#endif
     }
     idx += num_vm_options;
     {
@@ -712,6 +716,7 @@ class DartDev {
     // the result from execution of dartdev.
     {
       MonitorLocker locker(monitor_);
+      exited_ = true;
       locker.Notify();
     }
   }
@@ -779,7 +784,7 @@ class DartDev {
     // proceed.
     {
       MonitorLocker locker(monitor_);
-      while (result_ == DartDev_Result_Unknown) {
+      while (!exited_) {
         locker.Wait();
       }
     }
@@ -940,6 +945,7 @@ class DartDev {
   }
 
   static Monitor* monitor_;
+  static bool exited_;
   static DartDev_Result result_;
   static char* script_name_;
   static char* package_config_override_;
@@ -949,6 +955,7 @@ class DartDev {
 };
 
 Monitor* DartDev::monitor_ = new Monitor();
+bool DartDev::exited_ = false;
 DartDev::DartDev_Result DartDev::result_ = DartDev::DartDev_Result_Unknown;
 char* DartDev::script_name_ = nullptr;
 char* DartDev::package_config_override_ = nullptr;

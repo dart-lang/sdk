@@ -26,7 +26,7 @@ import 'lib1.dart' deferred as p;
 ''',
       [
         error(
-          CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,
+          CompileTimeErrorCode.importOfNonLibrary,
           20,
           11,
           messageContains: ["library 'lib1.dart' "],
@@ -46,7 +46,7 @@ import 'part.dart';
 ''',
       [
         error(
-          CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,
+          CompileTimeErrorCode.importOfNonLibrary,
           20,
           11,
           messageContains: ["library 'part.dart' "],

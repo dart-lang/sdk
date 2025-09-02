@@ -21,7 +21,7 @@ class WorkspaceFieldTest extends PubspecDiagnosticTest {
 name: sample
 workspace: package1
 ''',
-      [PubspecWarningCode.WORKSPACE_FIELD_NOT_LIST],
+      [PubspecWarningCode.workspaceFieldNotList],
     );
   }
 
@@ -33,7 +33,7 @@ name: sample
 workspace:
     - 23
 ''',
-      [PubspecWarningCode.WORKSPACE_VALUE_NOT_STRING],
+      [PubspecWarningCode.workspaceValueNotString],
     );
   }
 
@@ -45,7 +45,7 @@ name: sample
 workspace:
     - /sample2
 ''',
-      [PubspecWarningCode.WORKSPACE_VALUE_NOT_SUBDIRECTORY],
+      [PubspecWarningCode.workspaceValueNotSubdirectory],
     );
   }
 

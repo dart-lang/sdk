@@ -1,4 +1,15 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/explicit_extension_access.dart:44:23: Error: Too many positional arguments: 0 allowed, but 1 found.
+// Try removing the extra positional arguments.
+//   Extension1(c).method(0); // Error
+//                       ^
+// pkg/front_end/testcases/extensions/explicit_extension_access.dart:16:7: Context: Found this candidate, but the arguments don't match.
+//   int method() => field1;
+//       ^^^^^^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -24,6 +35,12 @@ extension Extension2 on self::Class {
   method tearoff method = self::Extension2|get#method;
   method genericMethod = self::Extension2|genericMethod;
   method tearoff genericMethod = self::Extension2|get#genericMethod;
+}
+extension /* unnamed */ _extension#2 on core::int {
+  method method1 = self::_extension#2|method1;
+  method tearoff method1 = self::_extension#2|get#method1;
+  method method2 = self::_extension#2|method2;
+  method tearoff method2 = self::_extension#2|get#method2;
 }
 static extension-member method Extension1|get#field(lowered final self::Class #this) → core::int
   return #this.{self::Class::field1}{core::int};
@@ -51,6 +68,20 @@ static extension-member method Extension2|genericMethod<T extends core::num>(low
   return #this.{self::Class::field2}{core::int}.{core::num::+}(t){(core::num) → core::num};
 static extension-member method Extension2|get#genericMethod(lowered final self::Class #this) → <T extends core::num>(T) → core::num
   return <T extends core::num>(T t) → core::num => self::Extension2|genericMethod<T>(#this, t);
+static extension-member method _extension#2|method1(lowered final core::int #this) → dynamic {
+  self::_extension#2|method2<core::int>(#this, core::_GrowableList::_literal1<core::int>(0), core::_GrowableList::_literal1<core::int>(1), (wildcard core::int _#wc0#formal) → void => 2, () → void => 3);
+}
+static extension-member method _extension#2|get#method1(lowered final core::int #this) → () → dynamic
+  return () → dynamic => self::_extension#2|method1(#this);
+static extension-member method _extension#2|method2<T extends core::Object? = dynamic>(lowered final core::int #this, core::List<self::_extension#2|method2::T%> a, core::List<core::int> b, (self::_extension#2|method2::T%) → void c, () →? void d) → dynamic {}
+static extension-member method _extension#2|get#method2(lowered final core::int #this) → <T extends core::Object? = dynamic>(core::List<T%>, core::List<core::int>, (T%) → void, () →? void) → dynamic
+  return <T extends core::Object? = dynamic>(core::List<T%> a, core::List<core::int> b, (T%) → void c, () →? void d) → dynamic => self::_extension#2|method2<T%>(#this, a, b, c, d);
+static method test(self::Class c) → dynamic {
+  invalid-expression "pkg/front_end/testcases/extensions/explicit_extension_access.dart:44:23: Error: Too many positional arguments: 0 allowed, but 1 found.
+Try removing the extra positional arguments.
+  Extension1(c).method(0); // Error
+                      ^";
+}
 static method main() → dynamic {
   self::Class c = new self::Class::•();
   self::expect(42, self::Extension1|get#field(c));
@@ -84,8 +115,8 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
 
 
 Extra constant evaluation status:
-Evaluated: VariableGet @ org-dartlang-testcase:///explicit_extension_access.dart:48:36 -> IntConstant(23)
-Evaluated: VariableGet @ org-dartlang-testcase:///explicit_extension_access.dart:48:36 -> IntConstant(23)
-Evaluated: VariableGet @ org-dartlang-testcase:///explicit_extension_access.dart:49:36 -> IntConstant(67)
-Evaluated: VariableGet @ org-dartlang-testcase:///explicit_extension_access.dart:49:36 -> IntConstant(67)
-Extra constant evaluation: evaluated: 119, effectively constant: 4
+Evaluated: VariableGet @ org-dartlang-testcase:///explicit_extension_access.dart:67:36 -> IntConstant(23)
+Evaluated: VariableGet @ org-dartlang-testcase:///explicit_extension_access.dart:67:36 -> IntConstant(23)
+Evaluated: VariableGet @ org-dartlang-testcase:///explicit_extension_access.dart:68:36 -> IntConstant(67)
+Evaluated: VariableGet @ org-dartlang-testcase:///explicit_extension_access.dart:68:36 -> IntConstant(67)
+Extra constant evaluation: evaluated: 135, effectively constant: 4

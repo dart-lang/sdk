@@ -34,8 +34,7 @@ class Class {
 
 enum E {
   a(0),
-  b(1),
-  ;
+  b(1);
 
   final int value;
 

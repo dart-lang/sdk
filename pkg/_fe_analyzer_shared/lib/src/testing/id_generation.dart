@@ -50,8 +50,8 @@ Map<Uri, List<Annotation>> computeAnnotationsPerUri<T>(
       dataMap.forEach((Id id, ActualData<T> data) {
         Map<Id, Map<String, ActualData<T>>> actualDataPerId =
             actualDataPerUri[uri] ??= {};
-        Map<String, ActualData<T>> actualDataPerMarker =
-            actualDataPerId[id] ??= {};
+        Map<String, ActualData<T>> actualDataPerMarker = actualDataPerId[id] ??=
+            {};
         actualDataPerMarker[marker] = data;
       });
     });
@@ -164,10 +164,9 @@ List<Annotation> _computeAnnotations<T>(
     );
   }
 
-  Set<Id> idSet =
-      {}
-        ..addAll(idValuePerId.keys)
-        ..addAll(actualDataPerId.keys);
+  Set<Id> idSet = {}
+    ..addAll(idValuePerId.keys)
+    ..addAll(actualDataPerId.keys);
   List<Annotation> result = <Annotation>[];
   for (Id id in idSet) {
     Map<String, IdValue> idValuePerMarker = idValuePerId[id] ?? {};
@@ -203,10 +202,9 @@ List<Annotation> _computeAnnotations<T>(
           actualAnnotation = createAnnotationFromData(actualData, null);
         }
       }
-      Annotation? annotation =
-          createDiff != null
-              ? createDiff(expectedAnnotation, actualAnnotation)
-              : actualAnnotation;
+      Annotation? annotation = createDiff != null
+          ? createDiff(expectedAnnotation, actualAnnotation)
+          : actualAnnotation;
       if (annotation != null) {
         newAnnotationsPerMarker[marker] = annotation;
       }

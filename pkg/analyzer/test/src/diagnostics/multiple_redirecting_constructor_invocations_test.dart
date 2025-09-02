@@ -27,7 +27,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS,
+          CompileTimeErrorCode.multipleRedirectingConstructorInvocations,
           28,
           8,
         ),
@@ -47,7 +47,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS,
+          CompileTimeErrorCode.multipleRedirectingConstructorInvocations,
           40,
           10,
         ),

@@ -22,11 +22,11 @@ const x = [for (int i = 0; i < 3; i++) i];
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          CompileTimeErrorCode.constInitializedWithNonConstantValue,
           10,
           31,
         ),
-        error(CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, 11, 29),
+        error(CompileTimeErrorCode.constEvalForElement, 11, 29),
       ],
     );
   }
@@ -39,11 +39,11 @@ const x = [for(final i in set) i];
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          CompileTimeErrorCode.constInitializedWithNonConstantValue,
           30,
           23,
         ),
-        error(CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, 31, 21),
+        error(CompileTimeErrorCode.constEvalForElement, 31, 21),
       ],
     );
   }
@@ -55,11 +55,11 @@ const x = {for (final i in const []) i: null};
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          CompileTimeErrorCode.constInitializedWithNonConstantValue,
           10,
           35,
         ),
-        error(CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, 11, 33),
+        error(CompileTimeErrorCode.constEvalForElement, 11, 33),
       ],
     );
   }
@@ -71,11 +71,11 @@ const x = {if (true) for (final i in const []) i: null};
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          CompileTimeErrorCode.constInitializedWithNonConstantValue,
           10,
           45,
         ),
-        error(CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, 21, 33),
+        error(CompileTimeErrorCode.constEvalForElement, 21, 33),
       ],
     );
   }
@@ -88,11 +88,11 @@ const x = {for (final i in set) i};
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          CompileTimeErrorCode.constInitializedWithNonConstantValue,
           30,
           24,
         ),
-        error(CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, 31, 22),
+        error(CompileTimeErrorCode.constEvalForElement, 31, 22),
       ],
     );
   }

@@ -102,6 +102,9 @@ intptr_t OS::ProcessId() {
 static bool LocalTime(int64_t seconds_since_epoch, tm* tm_result) {
   time_t seconds = static_cast<time_t>(seconds_since_epoch);
   if (seconds != seconds_since_epoch) return false;
+  // No need to call tzset() before localtime_r() because bionic
+  // will handle timezone changes for us (starting from Android O).
+  // See https://android.googlesource.com/platform/bionic/+/ea87716696bf635706b6f3fa56b8a145add83aff
   struct tm* error_code = localtime_r(&seconds, tm_result);
   return error_code != nullptr;
 }

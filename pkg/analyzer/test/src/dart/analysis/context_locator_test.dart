@@ -1303,8 +1303,8 @@ ${getFolder(outPath).path}
 
     var flutterPath = '/home/packages/flutter';
 
-    var packageConfigFileBuilder =
-        PackageConfigFileBuilder()..add(name: 'flutter', rootPath: flutterPath);
+    var packageConfigFileBuilder = PackageConfigFileBuilder()
+      ..add(name: 'flutter', rootPath: flutterPath);
     var packagesFile = newPackageConfigJsonFile(
       rootFolder.path,
       packageConfigFileBuilder.toContent(pathContext: pathContext),

@@ -16,8 +16,10 @@ Future<void> main() async {
     // ignoring
     diagnosticCount++;
   };
-  TestIncrementalCompiler compiler =
-      new TestIncrementalCompiler(options, dart2jsUrl);
+  TestIncrementalCompiler compiler = new TestIncrementalCompiler(
+    options,
+    dart2jsUrl,
+  );
   await compiler.computeDelta();
   print("Got a total of $diagnosticCount diagnostics.");
   if (diagnosticCount < 10000) {

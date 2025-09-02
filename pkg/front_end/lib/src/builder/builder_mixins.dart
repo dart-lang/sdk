@@ -21,8 +21,12 @@ import 'type_builder.dart';
 mixin DeclarationBuilderMixin implements IDeclarationBuilder {
   /// Lookup a static member of this declaration.
   @override
-  MemberLookupResult? findStaticBuilder(String name, int fileOffset,
-      Uri fileUri, LibraryBuilder accessingLibrary) {
+  MemberLookupResult? findStaticBuilder(
+    String name,
+    int fileOffset,
+    Uri fileUri,
+    LibraryBuilder accessingLibrary,
+  ) {
     if (accessingLibrary.nameOriginBuilder !=
             libraryBuilder.nameOriginBuilder &&
         name.startsWith("_")) {
@@ -37,22 +41,24 @@ mixin DeclarationBuilderMixin implements IDeclarationBuilder {
 
   @override
   DartType buildAliasedType(
-      LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder,
-      List<TypeBuilder>? arguments,
-      TypeUse typeUse,
-      Uri fileUri,
-      int charOffset,
-      ClassHierarchyBase? hierarchy,
-      {required bool hasExplicitTypeArguments}) {
+    LibraryBuilder library,
+    NullabilityBuilder nullabilityBuilder,
+    List<TypeBuilder>? arguments,
+    TypeUse typeUse,
+    Uri fileUri,
+    int charOffset,
+    ClassHierarchyBase? hierarchy, {
+    required bool hasExplicitTypeArguments,
+  }) {
     return buildAliasedTypeWithBuiltArguments(
-        library,
-        nullabilityBuilder.build(),
-        buildAliasedTypeArguments(library, arguments, hierarchy),
-        typeUse,
-        fileUri,
-        charOffset,
-        hasExplicitTypeArguments: hasExplicitTypeArguments);
+      library,
+      nullabilityBuilder.build(),
+      buildAliasedTypeArguments(library, arguments, hierarchy),
+      typeUse,
+      fileUri,
+      charOffset,
+      hasExplicitTypeArguments: hasExplicitTypeArguments,
+    );
   }
 
   @override
@@ -63,16 +69,19 @@ mixin DeclarationBuilderMixin implements IDeclarationBuilder {
     LookupResult? result = nameSpace.lookup(name);
     if (required && result == null) {
       internalProblem(
-          templateInternalProblemNotFoundIn.withArguments(
-              name, fullNameForErrors),
-          -1,
-          null);
+        codeInternalProblemNotFoundIn.withArguments(name, fullNameForErrors),
+        -1,
+        null,
+      );
     }
     return result;
   }
 
-  MemberBuilder? lookupLocalMemberByName(Name name,
-      {bool setter = false, bool required = false}) {
+  MemberBuilder? lookupLocalMemberByName(
+    Name name, {
+    bool setter = false,
+    bool required = false,
+  }) {
     LookupResult? result = lookupLocalMember(name.text, required: required);
     NamedBuilder? builder = setter ? result?.setable : result?.getable;
     if (builder == null && setter) {

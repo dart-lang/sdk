@@ -32,7 +32,7 @@ class B extends A {
   B() : super(), super() {}
 }
 ''',
-      [error(CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS, 48, 7)],
+      [error(CompileTimeErrorCode.multipleSuperInitializers, 48, 7)],
     );
   }
 }

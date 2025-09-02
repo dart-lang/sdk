@@ -1861,8 +1861,8 @@ library;
 main() {}
 ''',
       [
-        error(WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, 42, 3),
-        error(WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, 53, 3),
+        error(WarningCode.deprecatedNewInCommentReference, 42, 3),
+        error(WarningCode.deprecatedNewInCommentReference, 53, 3),
       ],
     );
 
@@ -2054,8 +2054,8 @@ class A {
 main() {}
 ''',
       [
-        error(WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, 38, 3),
-        error(WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, 49, 3),
+        error(WarningCode.deprecatedNewInCommentReference, 38, 3),
+        error(WarningCode.deprecatedNewInCommentReference, 49, 3),
       ],
     );
 

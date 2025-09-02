@@ -46,39 +46,49 @@ abstract class MethodDeclaration {
 
   Procedure? get readTarget;
 
-  void buildOutlineExpressions(
-      {required ClassHierarchy classHierarchy,
-      required SourceLibraryBuilder libraryBuilder,
-      required DeclarationBuilder? declarationBuilder,
-      required SourceMethodBuilder methodBuilder,
-      required Annotatable annotatable,
-      required Uri annotatableFileUri,
-      required bool isClassInstanceMember});
+  void buildOutlineExpressions({
+    required ClassHierarchy classHierarchy,
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder? declarationBuilder,
+    required SourceMethodBuilder methodBuilder,
+    required Annotatable annotatable,
+    required Uri annotatableFileUri,
+    required bool isClassInstanceMember,
+  });
 
-  void buildOutlineNode(SourceLibraryBuilder libraryBuilder,
-      NameScheme nameScheme, BuildNodesCallback f,
-      {required Reference reference,
-      required Reference? tearOffReference,
-      required List<TypeParameter>? classTypeParameters});
+  void buildOutlineNode(
+    SourceLibraryBuilder libraryBuilder,
+    NameScheme nameScheme,
+    BuildNodesCallback f, {
+    required Reference reference,
+    required Reference? tearOffReference,
+    required List<TypeParameter>? classTypeParameters,
+  });
 
   void checkTypes(
-      SourceLibraryBuilder libraryBuilder, TypeEnvironment typeEnvironment);
+    SourceLibraryBuilder libraryBuilder,
+    TypeEnvironment typeEnvironment,
+  );
 
   void checkVariance(
-      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment);
+    SourceClassBuilder sourceClassBuilder,
+    TypeEnvironment typeEnvironment,
+  );
 
   int computeDefaultTypes(ComputeDefaultTypeContext context);
 
   void createEncoding(
-      ProblemReporting problemReporting,
-      SourceMethodBuilder builder,
-      MethodEncodingStrategy encodingStrategy,
-      TypeParameterFactory typeParameterFactory);
+    ProblemReporting problemReporting,
+    SourceMethodBuilder builder,
+    MethodEncodingStrategy encodingStrategy,
+    TypeParameterFactory typeParameterFactory,
+  );
 
   void ensureTypes(
-      ClassMembersBuilder membersBuilder,
-      SourceClassBuilder enclosingClassBuilder,
-      Set<ClassMember>? overrideDependencies);
+    ClassMembersBuilder membersBuilder,
+    SourceClassBuilder enclosingClassBuilder,
+    Set<ClassMember>? overrideDependencies,
+  );
 }
 
 class MethodDeclarationImpl
@@ -131,47 +141,60 @@ class MethodDeclarationImpl
   }
 
   @override
-  void buildOutlineExpressions(
-      {required ClassHierarchy classHierarchy,
-      required SourceLibraryBuilder libraryBuilder,
-      required DeclarationBuilder? declarationBuilder,
-      required SourceMethodBuilder methodBuilder,
-      required Annotatable annotatable,
-      required Uri annotatableFileUri,
-      required bool isClassInstanceMember}) {
+  void buildOutlineExpressions({
+    required ClassHierarchy classHierarchy,
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder? declarationBuilder,
+    required SourceMethodBuilder methodBuilder,
+    required Annotatable annotatable,
+    required Uri annotatableFileUri,
+    required bool isClassInstanceMember,
+  }) {
     _encoding.buildOutlineExpressions(
-        classHierarchy: classHierarchy,
-        libraryBuilder: libraryBuilder,
-        declarationBuilder: declarationBuilder,
-        bodyBuilderContext: createBodyBuilderContext(methodBuilder),
-        annotatable: annotatable,
-        annotatableFileUri: annotatableFileUri,
-        isClassInstanceMember: isClassInstanceMember);
+      classHierarchy: classHierarchy,
+      libraryBuilder: libraryBuilder,
+      declarationBuilder: declarationBuilder,
+      bodyBuilderContext: createBodyBuilderContext(methodBuilder),
+      annotatable: annotatable,
+      annotatableFileUri: annotatableFileUri,
+      isClassInstanceMember: isClassInstanceMember,
+    );
   }
 
   @override
-  void buildOutlineNode(SourceLibraryBuilder libraryBuilder,
-      NameScheme nameScheme, BuildNodesCallback f,
-      {required Reference reference,
-      required Reference? tearOffReference,
-      required List<TypeParameter>? classTypeParameters}) {
-    _encoding.buildOutlineNode(libraryBuilder, nameScheme, f,
-        reference: reference,
-        tearOffReference: tearOffReference,
-        isAbstractOrExternal:
-            _fragment.modifiers.isAbstract || _fragment.modifiers.isExternal,
-        classTypeParameters: classTypeParameters);
+  void buildOutlineNode(
+    SourceLibraryBuilder libraryBuilder,
+    NameScheme nameScheme,
+    BuildNodesCallback f, {
+    required Reference reference,
+    required Reference? tearOffReference,
+    required List<TypeParameter>? classTypeParameters,
+  }) {
+    _encoding.buildOutlineNode(
+      libraryBuilder,
+      nameScheme,
+      f,
+      reference: reference,
+      tearOffReference: tearOffReference,
+      isAbstractOrExternal:
+          _fragment.modifiers.isAbstract || _fragment.modifiers.isExternal,
+      classTypeParameters: classTypeParameters,
+    );
   }
 
   @override
   void checkTypes(
-      SourceLibraryBuilder libraryBuilder, TypeEnvironment typeEnvironment) {
+    SourceLibraryBuilder libraryBuilder,
+    TypeEnvironment typeEnvironment,
+  ) {
     _encoding.checkTypes(libraryBuilder, typeEnvironment);
   }
 
   @override
   void checkVariance(
-      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {
+    SourceClassBuilder sourceClassBuilder,
+    TypeEnvironment typeEnvironment,
+  ) {
     _encoding.checkVariance(sourceClassBuilder, typeEnvironment);
   }
 
@@ -183,21 +206,32 @@ class MethodDeclarationImpl
   @override
   BodyBuilderContext createBodyBuilderContext(SourceMethodBuilder builder) {
     return new MethodFragmentBodyBuilderContext(
-        _fragment, this, builder.libraryBuilder, builder.declarationBuilder,
-        isDeclarationInstanceMember: builder.isDeclarationInstanceMember);
+      _fragment,
+      this,
+      builder.libraryBuilder,
+      builder.declarationBuilder,
+      isDeclarationInstanceMember: builder.isDeclarationInstanceMember,
+    );
   }
 
   @override
   void createEncoding(
-      ProblemReporting problemReporting,
-      SourceMethodBuilder builder,
-      MethodEncodingStrategy encodingStrategy,
-      TypeParameterFactory typeParameterFactory) {
+    ProblemReporting problemReporting,
+    SourceMethodBuilder builder,
+    MethodEncodingStrategy encodingStrategy,
+    TypeParameterFactory typeParameterFactory,
+  ) {
     _encoding = encodingStrategy.createMethodEncoding(
-        builder, _fragment, typeParameterFactory);
+      builder,
+      _fragment,
+      typeParameterFactory,
+    );
     _fragment.typeParameterNameSpace.addTypeParameters(
-        problemReporting, _encoding.clonedAndDeclaredTypeParameters,
-        ownerName: _fragment.name, allowNameConflict: true);
+      problemReporting,
+      _encoding.clonedAndDeclaredTypeParameters,
+      ownerName: _fragment.name,
+      allowNameConflict: true,
+    );
     returnType.registerInferredTypeListener(_encoding);
   }
 
@@ -208,19 +242,27 @@ class MethodDeclarationImpl
 
   @override
   void ensureTypes(
-      ClassMembersBuilder membersBuilder,
-      SourceClassBuilder enclosingClassBuilder,
-      Set<ClassMember>? overrideDependencies) {
+    ClassMembersBuilder membersBuilder,
+    SourceClassBuilder enclosingClassBuilder,
+    Set<ClassMember>? overrideDependencies,
+  ) {
     if (overrideDependencies != null) {
-      membersBuilder.inferMethodType(enclosingClassBuilder, _encoding.function,
-          returnType, _fragment.declaredFormals, overrideDependencies,
-          name: _fragment.name,
-          fileUri: fileUri,
-          nameOffset: _fragment.nameOffset,
-          nameLength: _fragment.name.length);
+      membersBuilder.inferMethodType(
+        enclosingClassBuilder,
+        _encoding.function,
+        returnType,
+        _fragment.declaredFormals,
+        overrideDependencies,
+        name: _fragment.name,
+        fileUri: fileUri,
+        nameOffset: _fragment.nameOffset,
+        nameLength: _fragment.name.length,
+      );
     }
     _encoding.ensureTypes(
-        enclosingClassBuilder.libraryBuilder, membersBuilder.hierarchyBuilder);
+      enclosingClassBuilder.libraryBuilder,
+      membersBuilder.hierarchyBuilder,
+    );
   }
 
   @override

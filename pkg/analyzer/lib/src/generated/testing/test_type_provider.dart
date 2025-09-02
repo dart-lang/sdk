@@ -9,6 +9,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
+import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk_elements.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
 
@@ -18,7 +19,11 @@ class TestTypeProvider extends TypeProviderImpl {
   factory TestTypeProvider() {
     var analysisContext = _MockAnalysisContext();
     var analysisSession = _MockAnalysisSession();
-    var sdkElements = MockSdkElements(analysisContext, analysisSession);
+    var sdkElements = MockSdkElements(
+      analysisContext,
+      Reference.root(),
+      analysisSession,
+    );
     return TestTypeProvider._(
       sdkElements.coreLibrary,
       sdkElements.asyncLibrary,

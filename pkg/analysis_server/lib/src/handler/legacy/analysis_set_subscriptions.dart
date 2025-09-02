@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/plugin/request_converter.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
@@ -45,18 +44,11 @@ class AnalysisSetSubscriptionsHandler extends LegacyHandler {
           valueCallback: (List<String> subscriptions) => subscriptions.toSet(),
         );
     server.setAnalysisSubscriptions(subMap);
-    if (AnalysisServer.supportsPlugins) {
-      //
-      // Forward the request to the plugins.
-      //
-      var converter = RequestConverter();
-      server.pluginManager.setAnalysisSetSubscriptionsParams(
-        converter.convertAnalysisSetSubscriptionsParams(params),
-      );
-    }
-    //
-    // Send the response.
-    //
+    // Forward the request to the plugins.
+    var converter = RequestConverter();
+    server.pluginManager.setAnalysisSetSubscriptionsParams(
+      converter.convertAnalysisSetSubscriptionsParams(params),
+    );
     sendResult(AnalysisSetSubscriptionsResult());
   }
 }

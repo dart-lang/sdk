@@ -34,7 +34,7 @@ f() {
   E('a').m();
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD, 40, 1)],
+      [error(CompileTimeErrorCode.undefinedExtensionMethod, 40, 1)],
     );
 
     var node = findNode.methodInvocation('m();');
@@ -70,7 +70,7 @@ MethodInvocation
 extension E on Object {}
 var a = E.m();
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD, 35, 1)],
+      [error(CompileTimeErrorCode.undefinedExtensionMethod, 35, 1)],
     );
   }
 
@@ -82,7 +82,7 @@ void f() {
   E.m();
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD, 40, 1)],
+      [error(CompileTimeErrorCode.undefinedExtensionMethod, 40, 1)],
     );
   }
 }

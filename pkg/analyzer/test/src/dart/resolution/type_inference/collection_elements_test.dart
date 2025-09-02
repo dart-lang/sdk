@@ -26,7 +26,7 @@ void f() async {
 
 T a<T>() => throw '';
 ''',
-      [error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 50, 1)],
+      [error(CompileTimeErrorCode.listElementTypeNotAssignable, 50, 1)],
     );
 
     var node = findNode.singleMethodInvocation;
@@ -107,7 +107,7 @@ void f() {
 
 T a<T>() => throw '';
 ''',
-      [error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 38, 1)],
+      [error(CompileTimeErrorCode.listElementTypeNotAssignable, 38, 1)],
     );
 
     var node = findNode.singleMethodInvocation;
@@ -163,8 +163,8 @@ void f() async {
 T a<T>() => throw '';
 ''',
       [
-        error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 55, 1),
-        error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 59, 1),
+        error(CompileTimeErrorCode.mapKeyTypeNotAssignable, 55, 1),
+        error(CompileTimeErrorCode.mapValueTypeNotAssignable, 59, 1),
       ],
     );
 
@@ -247,8 +247,8 @@ void f() {
 T a<T>() => throw '';
 ''',
       [
-        error(CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 43, 1),
-        error(CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE, 47, 1),
+        error(CompileTimeErrorCode.mapKeyTypeNotAssignable, 43, 1),
+        error(CompileTimeErrorCode.mapValueTypeNotAssignable, 47, 1),
       ],
     );
 
@@ -304,7 +304,7 @@ void f() async {
 
 T a<T>() => throw '';
 ''',
-      [error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 50, 1)],
+      [error(CompileTimeErrorCode.setElementTypeNotAssignable, 50, 1)],
     );
 
     var node = findNode.singleMethodInvocation;
@@ -385,7 +385,7 @@ void f() {
 
 T a<T>() => throw '';
 ''',
-      [error(CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE, 38, 1)],
+      [error(CompileTimeErrorCode.setElementTypeNotAssignable, 38, 1)],
     );
 
     var node = findNode.singleMethodInvocation;

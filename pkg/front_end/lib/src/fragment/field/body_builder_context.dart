@@ -23,18 +23,23 @@ class FieldFragmentBodyBuilderContext extends BodyBuilderContext {
 
   final bool _isConst;
 
-  FieldFragmentBodyBuilderContext(this._builder, this._declaration,
-      {required this.isLateField,
-      required this.isAbstractField,
-      required this.isExternalField,
-      required int nameOffset,
-      required int nameLength,
-      required bool isConst})
-      : this._nameOffset = nameOffset,
-        this._nameLength = nameLength,
-        this._isConst = isConst,
-        super(_builder.libraryBuilder, _builder.declarationBuilder,
-            isDeclarationInstanceMember: _builder.isDeclarationInstanceMember);
+  FieldFragmentBodyBuilderContext(
+    this._builder,
+    this._declaration, {
+    required this.isLateField,
+    required this.isAbstractField,
+    required this.isExternalField,
+    required int nameOffset,
+    required int nameLength,
+    required bool isConst,
+  }) : this._nameOffset = nameOffset,
+       this._nameLength = nameLength,
+       this._isConst = isConst,
+       super(
+         _builder.libraryBuilder,
+         _builder.declarationBuilder,
+         isDeclarationInstanceMember: _builder.isDeclarationInstanceMember,
+       );
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -71,7 +76,7 @@ class FieldFragmentBodyBuilderContext extends BodyBuilderContext {
     return _isConst
         ? ConstantContext.inferred
         : !_declaration.isStatic && declarationDeclaresConstConstructor
-            ? ConstantContext.required
-            : ConstantContext.none;
+        ? ConstantContext.required
+        : ConstantContext.none;
   }
 }

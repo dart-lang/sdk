@@ -324,8 +324,8 @@ class _Checker {
 
     // Sorting isn't necessary, but makes the behavior deterministic.
     List<Key> sortedPropertyKeys = propertyKeys.toList()..sort();
-    List<Key> sortedAdditionalPropertyKeys =
-        additionalPropertyKeys.toList()..sort();
+    List<Key> sortedAdditionalPropertyKeys = additionalPropertyKeys.toList()
+      ..sort();
 
     // Remove the first column from the value list and replace it with any
     // expanded fields.

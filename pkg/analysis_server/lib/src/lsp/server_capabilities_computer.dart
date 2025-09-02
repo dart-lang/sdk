@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
@@ -151,22 +150,19 @@ class ServerCapabilitiesComputer {
   ServerCapabilitiesComputer(this._server);
 
   List<TextDocumentFilterScheme> get pluginTypes =>
-      AnalysisServer.supportsPlugins
-          ? _server.pluginManager.plugins
-              .expand(
-                (plugin) => plugin.currentSession?.interestingFiles ?? const [],
-              )
-              // All published plugins use something like `*.extension` as
-              // interestingFiles. Prefix a `**/` so that the glob matches nested
-              // folders as well.
-              .map(
-                (glob) => TextDocumentFilterScheme(
-                  scheme: 'file',
-                  pattern: '**/$glob',
-                ),
-              )
-              .toList()
-          : <TextDocumentFilterScheme>[];
+      _server.pluginManager.pluginIsolates
+          .expand(
+            (isolate) =>
+                isolate.currentSession?.interestingFiles ?? const <String>[],
+          )
+          // All published plugins use something like `*.extension` as
+          // interestingFiles. Prefix a `**/` so that the glob matches nested
+          // folders as well.
+          .map(
+            (glob) =>
+                TextDocumentFilterScheme(scheme: 'file', pattern: '**/$glob'),
+          )
+          .toList();
 
   ServerCapabilities computeServerCapabilities(
     LspClientCapabilities clientCapabilities,

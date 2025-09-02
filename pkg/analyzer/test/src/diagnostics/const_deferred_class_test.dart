@@ -28,7 +28,7 @@ import 'lib1.dart' deferred as a;
 main() {
   const a.A.b();
 }''',
-      [error(CompileTimeErrorCode.CONST_DEFERRED_CLASS, 65, 5)],
+      [error(CompileTimeErrorCode.constDeferredClass, 65, 5)],
     );
   }
 
@@ -48,7 +48,7 @@ main() {
   const a.B();
 }
 ''',
-      [error(CompileTimeErrorCode.CONST_DEFERRED_CLASS, 65, 3)],
+      [error(CompileTimeErrorCode.constDeferredClass, 65, 3)],
     );
   }
 
@@ -67,7 +67,7 @@ main() {
   const a.A();
 }
 ''',
-      [error(CompileTimeErrorCode.CONST_DEFERRED_CLASS, 65, 3)],
+      [error(CompileTimeErrorCode.constDeferredClass, 65, 3)],
     );
   }
 }

@@ -9,12 +9,16 @@ import 'package:analyzer/error/error.dart';
 final registeredFixGenerators = _RegisteredFixGenerators();
 
 /// A function that can be executed to create a [MultiCorrectionProducer].
-typedef MultiProducerGenerator = MultiCorrectionProducer Function(
-    {required CorrectionProducerContext context});
+typedef MultiProducerGenerator =
+    MultiCorrectionProducer Function({
+      required CorrectionProducerContext context,
+    });
 
 /// A function that can be executed to create a [CorrectionProducer].
-typedef ProducerGenerator = CorrectionProducer<ParsedUnitResult> Function(
-    {required CorrectionProducerContext context});
+typedef ProducerGenerator =
+    CorrectionProducer<ParsedUnitResult> Function({
+      required CorrectionProducerContext context,
+    });
 
 /// The collection of various registered [ProducerGenerator]s and
 /// [MultiProducerGenerator]s, accessed through [registeredFixGenerators].
@@ -33,7 +37,7 @@ class _RegisteredFixGenerators {
   ///
   /// The generators used for lint rules are in the [lintMultiProducers].
   final Map<DiagnosticCode, List<MultiProducerGenerator>>
-      nonLintMultiProducers = {};
+  nonLintMultiProducers = {};
 
   /// A set of generators that are used to create correction producers that
   /// produce corrections that ignore diagnostics locally.

@@ -64,8 +64,7 @@ foo() {
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS,
+          CompileTimeErrorCode.tearoffOfGenerativeConstructorOfAbstractClass,
           39,
           5,
         ),
@@ -105,8 +104,7 @@ foo() {
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS,
+          CompileTimeErrorCode.tearoffOfGenerativeConstructorOfAbstractClass,
           63,
           5,
         ),
@@ -144,7 +142,7 @@ A<String> Function() bar() {
 ''',
       [
         error(
-          CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
           41,
           6,
           contextMessages: [message(testFile, 39, 9)],
@@ -828,7 +826,7 @@ void main() {
   var x = const <C<int> Function(int)>[Direct.new];
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 87, 1)],
+      [error(WarningCode.unusedLocalVariable, 87, 1)],
     );
   }
 
@@ -886,7 +884,7 @@ void bar() {
   TA<String>.new;
 }
 ''',
-      [error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 75, 6)],
+      [error(CompileTimeErrorCode.typeArgumentNotMatchingBounds, 75, 6)],
     );
 
     var node = findNode.constructorReference('TA<String>.new;');
@@ -1011,9 +1009,9 @@ void bar() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 43, 1),
-        error(ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND, 47, 1),
-        error(ParserErrorCode.MISSING_IDENTIFIER, 48, 2),
+        error(CompileTimeErrorCode.undefinedOperator, 43, 1),
+        error(ParserErrorCode.equalityCannotBeEqualityOperand, 47, 1),
+        error(ParserErrorCode.missingIdentifier, 48, 2),
       ],
     );
     // The parser produces nonsense here because the `<` disambiguates as a
@@ -1033,9 +1031,9 @@ void bar() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 43, 1),
-        error(ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND, 47, 1),
-        error(ParserErrorCode.MISSING_IDENTIFIER, 48, 2),
+        error(CompileTimeErrorCode.undefinedOperator, 43, 1),
+        error(ParserErrorCode.equalityCannotBeEqualityOperand, 47, 1),
+        error(ParserErrorCode.missingIdentifier, 48, 2),
       ],
     );
     // The parser produces nonsense here because the `<` disambiguates as a
@@ -1056,7 +1054,7 @@ void bar() {
 ''',
       [
         error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
           52,
           5,
           messageContains: ["The constructor 'A.foo'"],
@@ -1107,7 +1105,7 @@ void bar() {
 ''',
       [
         error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
           52,
           5,
           messageContains: ["The constructor 'A.new'"],
@@ -1158,7 +1156,7 @@ void bar() {
 ''',
       [
         error(
-          CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER,
+          CompileTimeErrorCode.classInstantiationAccessToStaticMember,
           51,
           8,
         ),
@@ -1202,7 +1200,7 @@ void bar() {
   A<int>.;
 }
 ''',
-      [error(ParserErrorCode.MISSING_IDENTIFIER, 49, 1)],
+      [error(ParserErrorCode.missingIdentifier, 49, 1)],
     );
 
     var node = findNode.constructorReference('A<int>.;');
@@ -1365,7 +1363,7 @@ void bar() {
   A<String>.new;
 }
 ''',
-      [error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 52, 6)],
+      [error(CompileTimeErrorCode.typeArgumentNotMatchingBounds, 52, 6)],
     );
 
     var node = findNode.constructorReference('A<String>.new;');
@@ -1606,7 +1604,7 @@ void bar() {
   A<int>.i;
 }
 ''',
-      [error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 52, 5)],
+      [error(ParserErrorCode.experimentNotEnabled, 52, 5)],
     );
 
     var node = findNode.constructorReference('A<int>.i;');
@@ -1646,7 +1644,7 @@ void bar() {
   A.foo;
 }
 ''',
-      [error(WarningCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS, 39, 5)],
+      [error(WarningCode.sdkVersionConstructorTearoffs, 39, 5)],
     );
 
     var node = findNode.constructorReference('A.foo;');

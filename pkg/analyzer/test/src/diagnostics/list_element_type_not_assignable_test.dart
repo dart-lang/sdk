@@ -31,7 +31,7 @@ const dynamic a = 0;
 const dynamic b = 'b';
 var v = const <int>[if (1 < 0) a else b];
 ''',
-      [error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 82, 1)],
+      [error(CompileTimeErrorCode.listElementTypeNotAssignable, 82, 1)],
     );
   }
 
@@ -40,7 +40,7 @@ var v = const <int>[if (1 < 0) a else b];
       '''
 var v = const <int>[if (1 < 0) 'a'];
 ''',
-      [error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 31, 3)],
+      [error(CompileTimeErrorCode.listElementTypeNotAssignable, 31, 3)],
     );
   }
 
@@ -64,7 +64,7 @@ var v = const <int>[if (true) a];
 const dynamic a = 'a';
 var v = const <int>[if (true) a];
 ''',
-      [error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 53, 1)],
+      [error(CompileTimeErrorCode.listElementTypeNotAssignable, 53, 1)],
     );
   }
 
@@ -83,7 +83,7 @@ var v = const <int>[a];
 ''',
       [
         error(
-          CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY,
+          CompileTimeErrorCode.listElementTypeNotAssignableNullability,
           36,
           1,
         ),
@@ -98,7 +98,7 @@ var v = const <int>[null];
 ''',
       [
         error(
-          CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY,
+          CompileTimeErrorCode.listElementTypeNotAssignableNullability,
           20,
           4,
         ),
@@ -117,7 +117,7 @@ var v = const <int>[...[0, 1]];
       '''
 var v = const <String>[42];
 ''',
-      [error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 23, 2)],
+      [error(CompileTimeErrorCode.listElementTypeNotAssignable, 23, 2)],
     );
   }
 
@@ -127,7 +127,7 @@ var v = const <String>[42];
 const dynamic x = 42;
 var v = const <String>[x];
 ''',
-      [error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 45, 1)],
+      [error(CompileTimeErrorCode.listElementTypeNotAssignable, 45, 1)],
     );
   }
 
@@ -158,7 +158,7 @@ List<U Function<U>(U, int)> foo(T Function<T>(T a) f) {
   return [f];
 }
 ''',
-      [error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 66, 1)],
+      [error(CompileTimeErrorCode.listElementTypeNotAssignable, 66, 1)],
     );
   }
 
@@ -177,7 +177,7 @@ List<int Function(int, int)> foo(T Function<T>(T a) f) {
   return [f];
 }
 ''',
-      [error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 67, 1)],
+      [error(CompileTimeErrorCode.listElementTypeNotAssignable, 67, 1)],
     );
   }
 
@@ -202,7 +202,7 @@ var v = <int>[if (1 < 0) a else b];
       '''
 var v = <int>[if (1 < 0) 'a'];
 ''',
-      [error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 25, 3)],
+      [error(CompileTimeErrorCode.listElementTypeNotAssignable, 25, 3)],
     );
   }
 
@@ -231,7 +231,7 @@ var v = <int>[...[0, 1]];
       '''
 var v = <String>[42];
 ''',
-      [error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 17, 2)],
+      [error(CompileTimeErrorCode.listElementTypeNotAssignable, 17, 2)],
     );
   }
 
@@ -260,7 +260,7 @@ void f(bool c, dynamic a) {
   <int>[if (c) 0 else a];
 }
 ''',
-      [error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 50, 1)],
+      [error(CompileTimeErrorCode.listElementTypeNotAssignable, 50, 1)],
     );
   }
 
@@ -271,7 +271,7 @@ void f(bool c, dynamic a) {
   <int>[if (c) a];
 }
 ''',
-      [error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 43, 1)],
+      [error(CompileTimeErrorCode.listElementTypeNotAssignable, 43, 1)],
     );
   }
 
@@ -282,7 +282,7 @@ void f(Iterable<dynamic> a) {
   <int>[...a];
 }
 ''',
-      [error(CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE, 41, 1)],
+      [error(CompileTimeErrorCode.listElementTypeNotAssignable, 41, 1)],
     );
   }
 }

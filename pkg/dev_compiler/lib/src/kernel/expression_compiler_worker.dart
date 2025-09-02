@@ -397,9 +397,9 @@ class ExpressionCompilerWorker {
     // Failed to compile component, report compilation errors.
     if (expressionCompiler == null) {
       return {
-        'errors': errors,
-        'warnings': warnings,
-        'infos': infos,
+        'errors': errors.toList(),
+        'warnings': warnings.toList(),
+        'infos': infos.toList(),
         'compiledProcedure': null,
         'succeeded': false,
       };
@@ -418,9 +418,9 @@ class ExpressionCompilerWorker {
 
     // Return result or expression compilation errors.
     return {
-      'errors': errors,
-      'warnings': warnings,
-      'infos': infos,
+      'errors': errors.toList(),
+      'warnings': warnings.toList(),
+      'infos': infos.toList(),
       'compiledProcedure': compiledProcedure,
       'succeeded': errors.isEmpty,
     };

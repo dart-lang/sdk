@@ -32,7 +32,7 @@ Stream<List<int>> f() async* {}
 ''',
       errorFilter: (error) {
         return error.diagnosticCode ==
-            CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE;
+            CompileTimeErrorCode.illegalAsyncGeneratorReturnType;
       },
     );
   }
@@ -58,7 +58,7 @@ al.Stream<int> f() async* {}
 ''',
       errorFilter: (error) {
         return error.diagnosticCode ==
-            CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE;
+            CompileTimeErrorCode.illegalAsyncGeneratorReturnType;
       },
     );
   }
@@ -75,7 +75,7 @@ Stream<int> f() async* {}
 ''',
       errorFilter: (error) {
         return error.diagnosticCode ==
-            CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE;
+            CompileTimeErrorCode.illegalAsyncGeneratorReturnType;
       },
     );
   }

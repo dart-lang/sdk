@@ -12,8 +12,9 @@ import 'package:front_end/src/dill/dill_type_alias_builder.dart';
 import 'incremental_suite.dart' as helper;
 
 Future<void> main(List<String> args) async {
-  MemoryFileSystem memoryFileSystem =
-      new MemoryFileSystem(new Uri(scheme: "darttest", path: "/"));
+  MemoryFileSystem memoryFileSystem = new MemoryFileSystem(
+    new Uri(scheme: "darttest", path: "/"),
+  );
   HybridFileSystem hybridFileSystem = new HybridFileSystem(memoryFileSystem);
 
   Uri testUri = new Uri(scheme: "darttest", path: "/test1.dart");
@@ -26,8 +27,10 @@ void main() {}
   CompilerOptions options = helper.getOptions();
   options.omitPlatform = false;
   options.fileSystem = hybridFileSystem;
-  helper.TestIncrementalCompiler compiler =
-      new helper.TestIncrementalCompiler(options, input);
+  helper.TestIncrementalCompiler compiler = new helper.TestIncrementalCompiler(
+    options,
+    input,
+  );
 
   await compiler.computeDelta(fullComponent: true);
 
@@ -35,12 +38,13 @@ void main() {}
 
   List<LibraryBuilder>? builders = [
     ...?compiler.platformBuildersForTesting,
-    ...?compiler.userBuildersForTesting?.values
+    ...?compiler.userBuildersForTesting?.values,
   ];
   for (LibraryBuilder builder in builders) {
     if (builder is! DillLibraryBuilder) continue;
-    Iterator<DillTypeAliasBuilder> iterator =
-        builder.filteredMembersIterator(includeDuplicates: false);
+    Iterator<DillTypeAliasBuilder> iterator = builder.filteredMembersIterator(
+      includeDuplicates: false,
+    );
     while (iterator.moveNext()) {
       DillTypeAliasBuilder member = iterator.current;
       try {

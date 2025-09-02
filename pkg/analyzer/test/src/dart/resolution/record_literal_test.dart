@@ -925,12 +925,8 @@ VariableDeclaration
 final x = const (0);
 ''',
       [
-        error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 32, 1),
-        error(
-          ParserErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
-          34,
-          1,
-        ),
+        error(ParserErrorCode.experimentNotEnabled, 32, 1),
+        error(ParserErrorCode.recordLiteralOnePositionalNoTrailingComma, 34, 1),
       ],
     );
 
@@ -956,7 +952,7 @@ VariableDeclaration
 // @dart = 2.19
 final x = (0,);
 ''',
-      [error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 26, 1)],
+      [error(ParserErrorCode.experimentNotEnabled, 26, 1)],
     );
 
     var node = findNode.singleVariableDeclaration;
@@ -981,7 +977,7 @@ VariableDeclaration
 // @dart = 2.19
 final x = (0, 1);
 ''',
-      [error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 26, 1)],
+      [error(ParserErrorCode.experimentNotEnabled, 26, 1)],
     );
 
     var node = findNode.singleVariableDeclaration;
@@ -1006,7 +1002,7 @@ VariableDeclaration
 // @dart = 2.19
 final x = ();
 ''',
-      [error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 26, 1)],
+      [error(ParserErrorCode.experimentNotEnabled, 26, 1)],
     );
 
     var node = findNode.singleVariableDeclaration;
@@ -1147,7 +1143,7 @@ void f() {}
 
 g() => (f(),);
 ''',
-      [error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 21, 3)],
+      [error(CompileTimeErrorCode.useOfVoidResult, 21, 3)],
     );
 
     var node = findNode.recordLiteral('(f(),');

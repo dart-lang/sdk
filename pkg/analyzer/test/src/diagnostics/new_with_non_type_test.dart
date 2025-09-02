@@ -24,7 +24,7 @@ void foo() {
   new F();
 }
 ''',
-      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 49, 1)],
+      [error(CompileTimeErrorCode.newWithNonType, 49, 1)],
     );
 
     var node = findNode.namedType('F()');
@@ -48,7 +48,7 @@ void f() {
 }
 lib.B b = lib.B();
 ''',
-      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 47, 1)],
+      [error(CompileTimeErrorCode.newWithNonType, 47, 1)],
     );
   }
 
@@ -60,7 +60,7 @@ void f() {
   new A();
 }
 ''',
-      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 28, 1)],
+      [error(CompileTimeErrorCode.newWithNonType, 28, 1)],
     );
 
     var node = findNode.namedType('A()');
@@ -80,7 +80,7 @@ void f() {
   new A<int>();
 }
 ''',
-      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 28, 1)],
+      [error(CompileTimeErrorCode.newWithNonType, 28, 1)],
     );
 
     var node = findNode.namedType('A<int>()');
@@ -110,7 +110,7 @@ main() {
   new C.x.y();
 }
 ''',
-      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 36, 3)],
+      [error(CompileTimeErrorCode.newWithNonType, 36, 3)],
     );
   }
 
@@ -121,7 +121,7 @@ void foo<T>() {
   new T();
 }
 ''',
-      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 22, 1)],
+      [error(CompileTimeErrorCode.newWithNonType, 22, 1)],
     );
   }
 }

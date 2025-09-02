@@ -226,7 +226,7 @@ abstract class _A&Object&ListMixin extends core::Object implements col::ListBase
     return result;
   }
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ add(covariant-by-class core::int element) → void {
-    this.{core::List::[]=}(let final core::int #t2 = this.{core::List::length}{core::int} in let final core::int #t3 = this.{core::List::length} = #t2.{core::num::+}(1){(core::num) → core::int} in #t2, element){(core::int, core::int) → void};
+    this.{core::List::[]=}(let final core::int #t2 = this.{core::List::length}{core::int} in let final void #t3 = this.{core::List::length} = #t2.{core::num::+}(1){(core::num) → core::int} in #t2, element){(core::int, core::int) → void};
   }
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ addAll(covariant-by-class core::Iterable<core::int> iterable) → void {
     core::int i = this.{core::List::length}{core::int};
@@ -511,7 +511,7 @@ abstract class _A&Object&ListMixin extends core::Object implements col::ListBase
         for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
           core::int element = :sync-for-iterator.{core::Iterator::current}{core::int};
           {
-            this.{core::List::[]=}(let final core::int #t8 = index in let final core::int #t9 = index = #t8.{core::num::+}(1){(core::num) → core::int} in #t8, element){(core::int, core::int) → void};
+            this.{core::List::[]=}(let final core::int #t8 = index in let final void #t9 = index = #t8.{core::num::+}(1){(core::num) → core::int} in #t8, element){(core::int, core::int) → void};
           }
         }
       }
@@ -526,6 +526,7 @@ static method main() → dynamic {
   self::A a = new self::A::•();
   {
     final synthesized self::A #0#0 = a;
+    final const synthesized core::int #0#2 = #C8;
     synthesized core::int #0#4;
     synthesized core::bool #0#4#isSet = false;
     synthesized core::int #0#5;

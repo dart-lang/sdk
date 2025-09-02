@@ -25,7 +25,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER,
+          CompileTimeErrorCode.duplicateFieldFormalParameter,
           41,
           1,
           contextMessages: [message(testFile, 29, 1)],
@@ -43,15 +43,15 @@ class A {
 }
 ''',
       [
-        error(WarningCode.UNUSED_FIELD, 16, 1),
-        error(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, 29, 1),
+        error(WarningCode.unusedField, 16, 1),
+        error(CompileTimeErrorCode.privateOptionalParameter, 29, 1),
         error(
-          CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER,
+          CompileTimeErrorCode.duplicateFieldFormalParameter,
           41,
           1,
           contextMessages: [message(testFile, 29, 1)],
         ),
-        error(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, 41, 1),
+        error(CompileTimeErrorCode.privateOptionalParameter, 41, 1),
       ],
     );
   }
@@ -68,15 +68,15 @@ class A {
 }
 ''',
       [
-        error(WarningCode.UNUSED_FIELD, 60, 1),
-        error(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, 73, 1),
+        error(WarningCode.unusedField, 60, 1),
+        error(CompileTimeErrorCode.privateOptionalParameter, 73, 1),
         error(
-          CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER,
+          CompileTimeErrorCode.duplicateFieldFormalParameter,
           85,
           1,
           contextMessages: [message(testFile, 73, 1)],
         ),
-        error(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, 85, 1),
+        error(CompileTimeErrorCode.privateOptionalParameter, 85, 1),
       ],
     );
   }
@@ -91,7 +91,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER,
+          CompileTimeErrorCode.duplicateFieldFormalParameter,
           41,
           1,
           contextMessages: [message(testFile, 29, 1)],
@@ -110,7 +110,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER,
+          CompileTimeErrorCode.duplicateFieldFormalParameter,
           43,
           1,
           contextMessages: [message(testFile, 31, 1)],
@@ -128,9 +128,9 @@ class A {
 }
 ''',
       [
-        error(WarningCode.UNUSED_FIELD, 18, 1),
+        error(WarningCode.unusedField, 18, 1),
         error(
-          CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER,
+          CompileTimeErrorCode.duplicateFieldFormalParameter,
           43,
           1,
           contextMessages: [message(testFile, 31, 1)],
@@ -151,9 +151,9 @@ class A {
 }
 ''',
       [
-        error(WarningCode.UNUSED_FIELD, 62, 1),
+        error(WarningCode.unusedField, 62, 1),
         error(
-          CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER,
+          CompileTimeErrorCode.duplicateFieldFormalParameter,
           87,
           1,
           contextMessages: [message(testFile, 75, 1)],
@@ -171,9 +171,9 @@ class A {
 }
 ''',
       [
-        error(WarningCode.UNUSED_FIELD, 16, 1),
+        error(WarningCode.unusedField, 16, 1),
         error(
-          CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER,
+          CompileTimeErrorCode.duplicateFieldFormalParameter,
           41,
           1,
           contextMessages: [message(testFile, 29, 1)],
@@ -194,9 +194,9 @@ class A {
 }
 ''',
       [
-        error(WarningCode.UNUSED_FIELD, 60, 1),
+        error(WarningCode.unusedField, 60, 1),
         error(
-          CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER,
+          CompileTimeErrorCode.duplicateFieldFormalParameter,
           85,
           1,
           contextMessages: [message(testFile, 73, 1)],
@@ -215,7 +215,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER,
+          CompileTimeErrorCode.duplicateFieldFormalParameter,
           55,
           1,
           contextMessages: [message(testFile, 38, 1)],
@@ -233,15 +233,15 @@ class A {
 }
 ''',
       [
-        error(WarningCode.UNUSED_FIELD, 16, 1),
-        error(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, 38, 1),
+        error(WarningCode.unusedField, 16, 1),
+        error(CompileTimeErrorCode.privateOptionalParameter, 38, 1),
         error(
-          CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER,
+          CompileTimeErrorCode.duplicateFieldFormalParameter,
           55,
           1,
           contextMessages: [message(testFile, 38, 1)],
         ),
-        error(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, 55, 1),
+        error(CompileTimeErrorCode.privateOptionalParameter, 55, 1),
       ],
     );
   }
@@ -258,15 +258,15 @@ class A {
 }
 ''',
       [
-        error(WarningCode.UNUSED_FIELD, 60, 1),
-        error(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, 82, 1),
+        error(WarningCode.unusedField, 60, 1),
+        error(CompileTimeErrorCode.privateOptionalParameter, 82, 1),
         error(
-          CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER,
+          CompileTimeErrorCode.duplicateFieldFormalParameter,
           99,
           1,
           contextMessages: [message(testFile, 82, 1)],
         ),
-        error(CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER, 99, 1),
+        error(CompileTimeErrorCode.privateOptionalParameter, 99, 1),
       ],
     );
   }
@@ -281,7 +281,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER,
+          CompileTimeErrorCode.duplicateFieldFormalParameter,
           36,
           1,
           contextMessages: [message(testFile, 28, 1)],
@@ -300,7 +300,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER,
+          CompileTimeErrorCode.duplicateFieldFormalParameter,
           38,
           1,
           contextMessages: [message(testFile, 30, 1)],
@@ -318,9 +318,9 @@ class A {
 }
 ''',
       [
-        error(WarningCode.UNUSED_FIELD, 18, 1),
+        error(WarningCode.unusedField, 18, 1),
         error(
-          CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER,
+          CompileTimeErrorCode.duplicateFieldFormalParameter,
           38,
           1,
           contextMessages: [message(testFile, 30, 1)],
@@ -341,9 +341,9 @@ class A {
 }
 ''',
       [
-        error(WarningCode.UNUSED_FIELD, 62, 1),
+        error(WarningCode.unusedField, 62, 1),
         error(
-          CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER,
+          CompileTimeErrorCode.duplicateFieldFormalParameter,
           82,
           1,
           contextMessages: [message(testFile, 74, 1)],
@@ -364,9 +364,9 @@ class A {
 }
 ''',
       [
-        error(WarningCode.UNUSED_FIELD, 61, 1),
+        error(WarningCode.unusedField, 61, 1),
         error(
-          CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER,
+          CompileTimeErrorCode.duplicateFieldFormalParameter,
           81,
           1,
           contextMessages: [message(testFile, 73, 1)],
@@ -385,9 +385,9 @@ class A {
 }
 ''',
       [
-        error(WarningCode.UNUSED_FIELD, 17, 1),
+        error(WarningCode.unusedField, 17, 1),
         error(
-          CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER,
+          CompileTimeErrorCode.duplicateFieldFormalParameter,
           37,
           1,
           contextMessages: [message(testFile, 29, 1)],

@@ -15,7 +15,7 @@ import '../builder/metadata_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../codes/cfe_codes.dart'
-    show templateCyclicTypedef, templateTypeArgumentMismatch;
+    show codeCyclicTypedef, codeTypeArgumentMismatch;
 import '../fragment/fragment.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
@@ -56,18 +56,18 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   // TODO(johnniwinther): Add [_augmentations] field.
   final TypedefFragment _introductory;
 
-  SourceTypeAliasBuilder(
-      {required this.name,
-      required SourceLibraryBuilder enclosingLibraryBuilder,
-      required this.fileUri,
-      required int fileOffset,
-      required TypedefFragment fragment,
-      required Reference? reference})
-      : fileOffset = fileOffset,
-        parent = enclosingLibraryBuilder,
-        _reference = reference ?? new Reference(),
-        _introductory = fragment,
-        _type = fragment.type {
+  SourceTypeAliasBuilder({
+    required this.name,
+    required SourceLibraryBuilder enclosingLibraryBuilder,
+    required this.fileUri,
+    required int fileOffset,
+    required TypedefFragment fragment,
+    required Reference? reference,
+  }) : fileOffset = fileOffset,
+       parent = enclosingLibraryBuilder,
+       _reference = reference ?? new Reference(),
+       _introductory = fragment,
+       _type = fragment.type {
     _introductory.builder = this;
   }
 
@@ -78,7 +78,9 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   @override
   Typedef get typedef {
     assert(
-        _typedef != null, "Typedef node has not been created yet for $this.");
+      _typedef != null,
+      "Typedef node has not been created yet for $this.",
+    );
     return _typedef!;
   }
 
@@ -103,13 +105,15 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
 
   void _breakCyclicDependency() {
     if (_hasCheckedForCyclicDependency) return;
-    _typedef = new Typedef(name, null,
-        typeParameters:
-            SourceNominalParameterBuilder.typeParametersFromBuilders(
-                typeParameters),
-        fileUri: fileUri,
-        reference: _reference)
-      ..fileOffset = fileOffset;
+    _typedef = new Typedef(
+      name,
+      null,
+      typeParameters: SourceNominalParameterBuilder.typeParametersFromBuilders(
+        typeParameters,
+      ),
+      fileUri: fileUri,
+      reference: _reference,
+    )..fileOffset = fileOffset;
     if (_checkCyclicTypedefDependency(type, this, {this})) {
       typedef.type = new InvalidType();
       _type = new InvalidTypeBuilderImpl(fileUri, fileOffset);
@@ -121,8 +125,10 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
           typeParameter.parameterBound = new InvalidType();
           typeParameter.parameterDefaultType = new InvalidType();
           typeParameter.bound = new InvalidTypeBuilderImpl(fileUri, fileOffset);
-          typeParameter.defaultType =
-              new InvalidTypeBuilderImpl(fileUri, fileOffset);
+          typeParameter.defaultType = new InvalidTypeBuilderImpl(
+            fileUri,
+            fileOffset,
+          );
           // The typedef itself can't be used without proper bounds of its type
           // variables, so we set it to mean [InvalidType] too.
           typedef.type = new InvalidType();
@@ -139,53 +145,61 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   }
 
   @override
-  TypeBuilder? unalias(List<TypeBuilder>? typeArguments,
-      {Set<TypeAliasBuilder>? usedTypeAliasBuilders}) {
+  TypeBuilder? unalias(
+    List<TypeBuilder>? typeArguments, {
+    Set<TypeAliasBuilder>? usedTypeAliasBuilders,
+  }) {
     _breakCyclicDependency();
-    return super
-        .unalias(typeArguments, usedTypeAliasBuilders: usedTypeAliasBuilders);
+    return super.unalias(
+      typeArguments,
+      usedTypeAliasBuilders: usedTypeAliasBuilders,
+    );
   }
 
   bool _checkCyclicTypedefDependency(
-      TypeBuilder? typeBuilder,
-      TypeAliasBuilder rootTypeAliasBuilder,
-      Set<TypeAliasBuilder> seenTypeAliasBuilders) {
+    TypeBuilder? typeBuilder,
+    TypeAliasBuilder rootTypeAliasBuilder,
+    Set<TypeAliasBuilder> seenTypeAliasBuilders,
+  ) {
     switch (typeBuilder) {
       case NamedTypeBuilder(
-          :TypeDeclarationBuilder? declaration,
-          typeArguments: List<TypeBuilder>? arguments
-        ):
+        :TypeDeclarationBuilder? declaration,
+        typeArguments: List<TypeBuilder>? arguments,
+      ):
         if (declaration is TypeAliasBuilder) {
-          bool declarationSeenFirstTime =
-              !seenTypeAliasBuilders.contains(declaration);
+          bool declarationSeenFirstTime = !seenTypeAliasBuilders.contains(
+            declaration,
+          );
           if (declaration == rootTypeAliasBuilder) {
             for (TypeAliasBuilder seenTypeAliasBuilder in {
               ...seenTypeAliasBuilders,
-              declaration
+              declaration,
             }) {
               seenTypeAliasBuilder.libraryBuilder.addProblem(
-                  templateCyclicTypedef
-                      .withArguments(seenTypeAliasBuilder.name),
-                  seenTypeAliasBuilder.fileOffset,
-                  seenTypeAliasBuilder.name.length,
-                  seenTypeAliasBuilder.fileUri);
+                codeCyclicTypedef.withArguments(seenTypeAliasBuilder.name),
+                seenTypeAliasBuilder.fileOffset,
+                seenTypeAliasBuilder.name.length,
+                seenTypeAliasBuilder.fileUri,
+              );
             }
             return true;
           } else {
             if (declarationSeenFirstTime) {
               if (_checkCyclicTypedefDependency(
-                  declaration.type,
-                  rootTypeAliasBuilder,
-                  {...seenTypeAliasBuilders, declaration})) {
+                declaration.type,
+                rootTypeAliasBuilder,
+                {...seenTypeAliasBuilders, declaration},
+              )) {
                 return true;
               }
               if (declaration.typeParameters != null) {
                 for (TypeParameterBuilder typeParameter
                     in declaration.typeParameters!) {
                   if (_checkCyclicTypedefDependency(
-                      typeParameter.bound,
-                      rootTypeAliasBuilder,
-                      {...seenTypeAliasBuilders, declaration})) {
+                    typeParameter.bound,
+                    rootTypeAliasBuilder,
+                    {...seenTypeAliasBuilders, declaration},
+                  )) {
                     return true;
                   }
                 }
@@ -196,7 +210,10 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
         if (arguments != null) {
           for (TypeBuilder typeArgument in arguments) {
             if (_checkCyclicTypedefDependency(
-                typeArgument, rootTypeAliasBuilder, seenTypeAliasBuilders)) {
+              typeArgument,
+              rootTypeAliasBuilder,
+              seenTypeAliasBuilders,
+            )) {
               return true;
             }
           }
@@ -219,26 +236,35 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
           if (typeParameters != null) {
             for (int i = 0; i < typeParameters.length; i++) {
               TypeParameterBuilder typeParameter = typeParameters[i];
-              if (_checkCyclicTypedefDependency(typeParameter.defaultType!,
-                  rootTypeAliasBuilder, seenTypeAliasBuilders)) {
+              if (_checkCyclicTypedefDependency(
+                typeParameter.defaultType!,
+                rootTypeAliasBuilder,
+                seenTypeAliasBuilders,
+              )) {
                 return true;
               }
             }
           }
         }
       case FunctionTypeBuilder(
-          typeParameters: List<StructuralParameterBuilder>? typeParameters,
-          :List<ParameterBuilder>? formals,
-          :TypeBuilder returnType
-        ):
+        typeParameters: List<StructuralParameterBuilder>? typeParameters,
+        :List<ParameterBuilder>? formals,
+        :TypeBuilder returnType,
+      ):
         if (_checkCyclicTypedefDependency(
-            returnType, rootTypeAliasBuilder, seenTypeAliasBuilders)) {
+          returnType,
+          rootTypeAliasBuilder,
+          seenTypeAliasBuilders,
+        )) {
           return true;
         }
         if (formals != null) {
           for (ParameterBuilder formal in formals) {
             if (_checkCyclicTypedefDependency(
-                formal.type, rootTypeAliasBuilder, seenTypeAliasBuilders)) {
+              formal.type,
+              rootTypeAliasBuilder,
+              seenTypeAliasBuilders,
+            )) {
               return true;
             }
           }
@@ -247,19 +273,25 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
           for (StructuralParameterBuilder typeParameter in typeParameters) {
             TypeBuilder? bound = typeParameter.bound;
             if (_checkCyclicTypedefDependency(
-                bound, rootTypeAliasBuilder, seenTypeAliasBuilders)) {
+              bound,
+              rootTypeAliasBuilder,
+              seenTypeAliasBuilders,
+            )) {
               return true;
             }
           }
         }
       case RecordTypeBuilder(
-          :List<RecordTypeFieldBuilder>? positionalFields,
-          :List<RecordTypeFieldBuilder>? namedFields
-        ):
+        :List<RecordTypeFieldBuilder>? positionalFields,
+        :List<RecordTypeFieldBuilder>? namedFields,
+      ):
         if (positionalFields != null) {
           for (RecordTypeFieldBuilder field in positionalFields) {
             if (_checkCyclicTypedefDependency(
-                field.type, rootTypeAliasBuilder, seenTypeAliasBuilders)) {
+              field.type,
+              rootTypeAliasBuilder,
+              seenTypeAliasBuilders,
+            )) {
               return true;
             }
           }
@@ -267,7 +299,10 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
         if (namedFields != null) {
           for (RecordTypeFieldBuilder field in namedFields) {
             if (_checkCyclicTypedefDependency(
-                field.type, rootTypeAliasBuilder, seenTypeAliasBuilders)) {
+              field.type,
+              rootTypeAliasBuilder,
+              seenTypeAliasBuilders,
+            )) {
               return true;
             }
           }
@@ -287,9 +322,12 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       if (identical(thisType, pendingTypeAliasMarker)) {
         // Coverage-ignore-block(suite): Not run.
         thisType = cyclicTypeAliasMarker;
-        assert(libraryBuilder.loader.assertProblemReportedElsewhere(
+        assert(
+          libraryBuilder.loader.assertProblemReportedElsewhere(
             "SourceTypeAliasBuilder.buildThisType",
-            expectedPhase: CompilationPhaseForProblemReporting.outline));
+            expectedPhase: CompilationPhaseForProblemReporting.outline,
+          ),
+        );
         return const InvalidType();
       } else if (identical(thisType, cyclicTypeAliasMarker)) {
         return const InvalidType();
@@ -314,8 +352,11 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   }
 
   @override
-  List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
-      List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy) {
+  List<DartType> buildAliasedTypeArguments(
+    LibraryBuilder library,
+    List<TypeBuilder>? arguments,
+    ClassHierarchyBase? hierarchy,
+  ) {
     if (arguments == null && typeParameters == null) {
       return <DartType>[];
     }
@@ -323,74 +364,95 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     if (arguments == null && typeParameters != null) {
       // TODO(johnniwinther): Use i2b here when needed.
       List<DartType> result = new List<DartType>.generate(
-          typeParameters!.length,
-          (int i) => typeParameters![i]
-              .defaultType!
-              // TODO(johnniwinther): Using [libraryBuilder] here instead of
-              // [library] preserves the nullability of the original
-              // declaration. We legacy erase it later, but should we legacy
-              // erase it now also?
-              .buildAliased(
-                  libraryBuilder, TypeUse.defaultTypeAsTypeArgument, hierarchy),
-          growable: true);
+        typeParameters!.length,
+        (int i) =>
+            typeParameters![i].defaultType!
+            // TODO(johnniwinther): Using [libraryBuilder] here instead of
+            // [library] preserves the nullability of the original
+            // declaration. We legacy erase it later, but should we legacy
+            // erase it now also?
+            .buildAliased(
+              libraryBuilder,
+              TypeUse.defaultTypeAsTypeArgument,
+              hierarchy,
+            ),
+        growable: true,
+      );
       return result;
     }
 
     if (arguments != null && arguments.length != typeParametersCount) {
       // Coverage-ignore-block(suite): Not run.
-      assert(libraryBuilder.loader.assertProblemReportedElsewhere(
+      assert(
+        libraryBuilder.loader.assertProblemReportedElsewhere(
           "SourceTypeAliasBuilder.buildAliasedTypeArguments: "
           "the numbers of type parameters and type arguments don't match.",
-          expectedPhase: CompilationPhaseForProblemReporting.outline));
+          expectedPhase: CompilationPhaseForProblemReporting.outline,
+        ),
+      );
       return unhandled(
-          templateTypeArgumentMismatch
-              .withArguments(typeParametersCount)
-              .problemMessage,
-          "buildTypeArguments",
-          -1,
-          null);
+        codeTypeArgumentMismatch
+            .withArguments(typeParametersCount)
+            .problemMessage,
+        "buildTypeArguments",
+        -1,
+        null,
+      );
     }
 
     // arguments.length == typeParameters.length
     return new List<DartType>.generate(
-        arguments!.length,
-        (int i) =>
-            arguments[i].buildAliased(library, TypeUse.typeArgument, hierarchy),
-        growable: true);
+      arguments!.length,
+      (int i) =>
+          arguments[i].buildAliased(library, TypeUse.typeArgument, hierarchy),
+      growable: true,
+    );
   }
 
   BodyBuilderContext createBodyBuilderContext() {
     return new TypedefBodyBuilderContext(this);
   }
 
-  void buildOutlineExpressions(ClassHierarchy classHierarchy,
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
+  void buildOutlineExpressions(
+    ClassHierarchy classHierarchy,
+    List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+  ) {
     BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
     MetadataBuilder.buildAnnotations(
-        annotatable: typedef,
-        annotatableFileUri: typedef.fileUri,
-        metadata: _introductory.metadata,
-        bodyBuilderContext: bodyBuilderContext,
-        libraryBuilder: libraryBuilder,
-        scope: _introductory.enclosingScope);
+      annotatable: typedef,
+      annotatableFileUri: typedef.fileUri,
+      metadata: _introductory.metadata,
+      bodyBuilderContext: bodyBuilderContext,
+      libraryBuilder: libraryBuilder,
+      scope: _introductory.enclosingScope,
+    );
     if (typeParameters != null) {
       for (int i = 0; i < typeParameters!.length; i++) {
         typeParameters![i].buildOutlineExpressions(
-            libraryBuilder, bodyBuilderContext, classHierarchy);
+          libraryBuilder,
+          bodyBuilderContext,
+          classHierarchy,
+        );
       }
     }
     _tearOffDependencies?.forEach((Procedure tearOff, Member target) {
-      delayedDefaultValueCloners.add(new DelayedDefaultValueCloner(
-          target, tearOff,
-          libraryBuilder: libraryBuilder));
+      delayedDefaultValueCloners.add(
+        new DelayedDefaultValueCloner(
+          target,
+          tearOff,
+          libraryBuilder: libraryBuilder,
+        ),
+      );
     });
   }
 
   int computeDefaultType(ComputeDefaultTypeContext context) {
     bool hasErrors = context.reportNonSimplicityIssues(this, typeParameters);
     hasErrors |= context.reportInboundReferenceIssuesForType(type);
-    int count = context.computeDefaultTypesForVariables(typeParameters,
-        inErrorRecovery: hasErrors);
+    int count = context.computeDefaultTypesForVariables(
+      typeParameters,
+      inErrorRecovery: hasErrors,
+    );
     context.recursivelyReportGenericFunctionTypesAsBoundsForType(type);
     return count;
   }
@@ -398,7 +460,9 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   Map<Procedure, Member>? _tearOffDependencies;
 
   DelayedDefaultValueCloner? buildTypedefTearOffs(
-      SourceLibraryBuilder libraryBuilder, void Function(Procedure) f) {
+    SourceLibraryBuilder libraryBuilder,
+    void Function(Procedure) f,
+  ) {
     TypeDeclarationBuilder? declaration = unaliasDeclaration(null);
     DartType? targetType = typedef.type;
     DelayedDefaultValueCloner? delayedDefaultValueCloner;
@@ -407,9 +471,10 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
         if (targetType is InterfaceType &&
             typedef.typeParameters.isNotEmpty &&
             !isProperRenameForTypeDeclaration(
-                libraryBuilder.loader.typeEnvironment,
-                typedef,
-                libraryBuilder.library)) {
+              libraryBuilder.loader.typeEnvironment,
+              typedef,
+              libraryBuilder.library,
+            )) {
           tearOffs = {};
           _tearOffDependencies = {};
           Iterator<MemberBuilder> iterator = declaration
@@ -426,36 +491,41 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
               if (target is Constructor && targetClass.isAbstract) {
                 continue;
               }
-              Name targetName =
-                  new Name(constructorName, declaration.libraryBuilder.library);
+              Name targetName = new Name(
+                constructorName,
+                declaration.libraryBuilder.library,
+              );
               Reference? tearOffReference;
               if (libraryBuilder.indexedLibrary != null) {
                 Name tearOffName = new Name(
-                    typedefTearOffName(name, constructorName),
-                    libraryBuilder.indexedLibrary!.library);
+                  typedefTearOffName(name, constructorName),
+                  libraryBuilder.indexedLibrary!.library,
+                );
                 tearOffReference = libraryBuilder.indexedLibrary!
                     .lookupGetterReference(tearOffName);
               }
 
               Procedure tearOff = tearOffs![targetName] =
                   createTypedefTearOffProcedure(
-                      name,
-                      constructorName,
-                      libraryBuilder,
-                      target.fileUri,
-                      target.fileOffset,
-                      tearOffReference);
+                    name,
+                    constructorName,
+                    libraryBuilder,
+                    target.fileUri,
+                    target.fileOffset,
+                    tearOffReference,
+                  );
               _tearOffDependencies![tearOff] = target;
 
               delayedDefaultValueCloner = buildTypedefTearOffProcedure(
-                  tearOff: tearOff,
-                  declarationConstructor: target,
-                  // TODO(johnniwinther): Handle augmented constructors.
-                  implementationConstructor: target,
-                  enclosingTypeDeclaration: declaration.cls,
-                  typeParameters: typedef.typeParameters,
-                  typeArguments: targetType.typeArguments,
-                  libraryBuilder: libraryBuilder);
+                tearOff: tearOff,
+                declarationConstructor: target,
+                // TODO(johnniwinther): Handle augmented constructors.
+                implementationConstructor: target,
+                enclosingTypeDeclaration: declaration.cls,
+                typeParameters: typedef.typeParameters,
+                typeArguments: targetType.typeArguments,
+                libraryBuilder: libraryBuilder,
+              );
               f(tearOff);
             }
           }
@@ -464,9 +534,10 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
         if (targetType is ExtensionType &&
             typedef.typeParameters.isNotEmpty &&
             !isProperRenameForTypeDeclaration(
-                libraryBuilder.loader.typeEnvironment,
-                typedef,
-                libraryBuilder.library)) {
+              libraryBuilder.loader.typeEnvironment,
+              typedef,
+              libraryBuilder.library,
+            )) {
           tearOffs = {};
           _tearOffDependencies = {};
           Iterator<MemberBuilder> iterator = declaration
@@ -479,37 +550,41 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
               if (target is Procedure && target.isRedirectingFactory) {
                 target = builder.readTarget!;
               }
-              Name targetName =
-                  new Name(constructorName, declaration.libraryBuilder.library);
+              Name targetName = new Name(
+                constructorName,
+                declaration.libraryBuilder.library,
+              );
               Reference? tearOffReference;
               if (libraryBuilder.indexedLibrary != null) {
                 Name tearOffName = new Name(
-                    typedefTearOffName(name, constructorName),
-                    libraryBuilder.indexedLibrary!.library);
+                  typedefTearOffName(name, constructorName),
+                  libraryBuilder.indexedLibrary!.library,
+                );
                 tearOffReference = libraryBuilder.indexedLibrary!
                     .lookupGetterReference(tearOffName);
               }
 
               Procedure tearOff = tearOffs![targetName] =
                   createTypedefTearOffProcedure(
-                      name,
-                      constructorName,
-                      libraryBuilder,
-                      target.fileUri,
-                      target.fileOffset,
-                      tearOffReference);
+                    name,
+                    constructorName,
+                    libraryBuilder,
+                    target.fileUri,
+                    target.fileOffset,
+                    tearOffReference,
+                  );
               _tearOffDependencies![tearOff] = target;
 
               delayedDefaultValueCloner = buildTypedefTearOffProcedure(
-                  tearOff: tearOff,
-                  declarationConstructor: target,
-                  // TODO(johnniwinther): Handle augmented constructors.
-                  implementationConstructor: target,
-                  enclosingTypeDeclaration:
-                      declaration.extensionTypeDeclaration,
-                  typeParameters: typedef.typeParameters,
-                  typeArguments: targetType.typeArguments,
-                  libraryBuilder: libraryBuilder);
+                tearOff: tearOff,
+                declarationConstructor: target,
+                // TODO(johnniwinther): Handle augmented constructors.
+                implementationConstructor: target,
+                enclosingTypeDeclaration: declaration.extensionTypeDeclaration,
+                typeParameters: typedef.typeParameters,
+                typeArguments: targetType.typeArguments,
+                libraryBuilder: libraryBuilder,
+              );
               f(tearOff);
             }
           }

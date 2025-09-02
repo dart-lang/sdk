@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -28,7 +29,7 @@ Element? _getElementFromVariableDeclarationStatement(
       // In such a case, we should not return any cascadable element here.
       return null;
     }
-    return variable.declaredElement ?? variable.declaredFragment?.element;
+    return variable.declaredFragment?.element;
   }
   return null;
 }
@@ -74,10 +75,13 @@ class CascadeInvocations extends LintRule {
     : super(name: LintNames.cascade_invocations, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.cascade_invocations;
+  DiagnosticCode get diagnosticCode => LinterLintCode.cascadeInvocations;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addBlock(this, visitor);
   }

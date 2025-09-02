@@ -137,7 +137,7 @@ void f(Object? x) {
   }
 }
 ''',
-      [error(WarningCode.DEAD_CODE, 45, 8)],
+      [error(WarningCode.deadCode, 45, 8)],
     );
 
     var node = findNode.ifStatement('if');
@@ -221,13 +221,7 @@ void f(Object? x) {
   }
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR,
-          53,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.inconsistentPatternVariableLogicalOr, 53, 1)],
     );
 
     var node = findNode.ifStatement('if');
@@ -310,13 +304,7 @@ void f(Object? x) {
   }
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR,
-          50,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.inconsistentPatternVariableLogicalOr, 50, 1)],
     );
 
     var node = findNode.ifStatement('if');
@@ -399,8 +387,8 @@ void f(Object? x) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 42, 1),
-        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 47, 1),
+        error(CompileTimeErrorCode.missingVariablePattern, 42, 1),
+        error(CompileTimeErrorCode.missingVariablePattern, 47, 1),
       ],
     );
 
@@ -480,7 +468,7 @@ void f(Object? x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 51, 1)],
+      [error(CompileTimeErrorCode.missingVariablePattern, 51, 1)],
     );
 
     var node = findNode.ifStatement('if');
@@ -650,7 +638,7 @@ void f(Object? x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 42, 1)],
+      [error(CompileTimeErrorCode.missingVariablePattern, 42, 1)],
     );
 
     var node = findNode.ifStatement('if');
@@ -735,8 +723,8 @@ void f(Object? x) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 33, 1),
-        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 47, 1),
+        error(CompileTimeErrorCode.missingVariablePattern, 33, 1),
+        error(CompileTimeErrorCode.missingVariablePattern, 47, 1),
       ],
     );
 
@@ -816,7 +804,7 @@ void f(Object? x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 33, 1)],
+      [error(CompileTimeErrorCode.missingVariablePattern, 33, 1)],
     );
 
     var node = findNode.ifStatement('if');
@@ -911,12 +899,12 @@ void f(Object? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION,
+          CompileTimeErrorCode.nonConstantRelationalPatternExpression,
           57,
           1,
         ),
         error(
-          CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+          CompileTimeErrorCode.referencedBeforeDeclaration,
           57,
           1,
           contextMessages: [message(testFile, 51, 1)],
@@ -1013,8 +1001,8 @@ void f(Object? x) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 56, 1),
-        error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 56, 1),
+        error(CompileTimeErrorCode.missingVariablePattern, 56, 1),
+        error(CompileTimeErrorCode.referencedBeforeDeclaration, 56, 1),
       ],
     );
 
@@ -1091,7 +1079,7 @@ void f(Object? x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 75, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 75, 1)],
     );
 
     var node = findNode.ifStatement('if');
@@ -1166,8 +1154,8 @@ class A {
 }
 ''',
       [
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 31, 5),
-        error(CompileTimeErrorCode.NON_BOOL_CONDITION, 31, 5),
+        error(ParserErrorCode.missingAssignableSelector, 31, 5),
+        error(CompileTimeErrorCode.nonBoolCondition, 31, 5),
       ],
     );
 

@@ -9,8 +9,9 @@ import 'dart:math';
 
 import 'standard_deviation.dart';
 
-const String? bRootPath =
-    bool.hasEnvironment("bRoot") ? String.fromEnvironment("bRoot") : null;
+const String? bRootPath = bool.hasEnvironment("bRoot")
+    ? String.fromEnvironment("bRoot")
+    : null;
 const int abIterations = int.fromEnvironment("abIterations", defaultValue: 15);
 const int iterations = int.fromEnvironment("iterations", defaultValue: 15);
 
@@ -141,8 +142,13 @@ const String _summaryTag = 'Summary: {"';
 
 /// Launch the specified dart program, forwarding all arguments and environment
 /// that was passed to this program
-Future<Null> run(Uri workingDir, Uri dartApp, List<String> args,
-    List<double> cold, List<double> warm) async {
+Future<Null> run(
+  Uri workingDir,
+  Uri dartApp,
+  List<String> args,
+  List<double> cold,
+  List<double> warm,
+) async {
   print('Running $dartApp');
 
   void processLine(String line) {
@@ -173,24 +179,31 @@ Future<Null> run(Uri workingDir, Uri dartApp, List<String> args,
   List<String> procArgs = <String>[
     '-Diterations=$iterations',
     '-Dsummary=true',
-    dartApp.toFilePath()
+    dartApp.toFilePath(),
   ];
   procArgs.addAll(args);
 
-  Process process = await Process.start(Platform.executable, procArgs,
-      workingDirectory: workingDirPath);
+  Process process = await Process.start(
+    Platform.executable,
+    procArgs,
+    workingDirectory: workingDirPath,
+  );
   // ignore: unawaited_futures
   stderr.addStream(process.stderr);
   StreamSubscription<String>? stdOutSubscription;
   stdOutSubscription = process.stdout
       .transform(utf8.decoder)
       .transform(new LineSplitter())
-      .listen(processLine, onDone: () {
-    stdOutSubscription!.cancel();
-  }, onError: (e) {
-    print('Error: $e');
-    stdOutSubscription!.cancel();
-  });
+      .listen(
+        processLine,
+        onDone: () {
+          stdOutSubscription!.cancel();
+        },
+        onError: (e) {
+          print('Error: $e');
+          stdOutSubscription!.cancel();
+        },
+      );
   int code = await process.exitCode;
   if (code != 0) {
     throw 'fail: $code';

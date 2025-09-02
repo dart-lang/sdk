@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
@@ -13,6 +15,7 @@ import 'package:analyzer/src/fine/requirement_failure.dart';
 import 'package:analyzer/src/summary2/data_reader.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
+import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
 /// When using fine-grained dependencies, this variable might be set to
@@ -192,10 +195,10 @@ final class ExportRequirementShowCombinator
 /// If [InterfaceElementImpl], there are additional requirements in form
 /// of [InterfaceItemRequirements].
 class InstanceItemRequirements {
-  final Map<LookupName, ManifestItemId?> requestedFields;
-  final Map<LookupName, ManifestItemId?> requestedGetters;
-  final Map<LookupName, ManifestItemId?> requestedSetters;
-  final Map<LookupName, ManifestItemId?> requestedMethods;
+  final Map<LookupName, ManifestItemId?> requestedDeclaredFields;
+  final Map<LookupName, ManifestItemId?> requestedDeclaredGetters;
+  final Map<LookupName, ManifestItemId?> requestedDeclaredSetters;
+  final Map<LookupName, ManifestItemId?> requestedDeclaredMethods;
 
   ManifestItemIdList? allDeclaredFields;
   ManifestItemIdList? allDeclaredGetters;
@@ -203,10 +206,10 @@ class InstanceItemRequirements {
   ManifestItemIdList? allDeclaredMethods;
 
   InstanceItemRequirements({
-    required this.requestedFields,
-    required this.requestedGetters,
-    required this.requestedSetters,
-    required this.requestedMethods,
+    required this.requestedDeclaredFields,
+    required this.requestedDeclaredGetters,
+    required this.requestedDeclaredSetters,
+    required this.requestedDeclaredMethods,
     required this.allDeclaredFields,
     required this.allDeclaredGetters,
     required this.allDeclaredSetters,
@@ -215,10 +218,10 @@ class InstanceItemRequirements {
 
   factory InstanceItemRequirements.empty() {
     return InstanceItemRequirements(
-      requestedFields: {},
-      requestedGetters: {},
-      requestedSetters: {},
-      requestedMethods: {},
+      requestedDeclaredFields: {},
+      requestedDeclaredGetters: {},
+      requestedDeclaredSetters: {},
+      requestedDeclaredMethods: {},
       allDeclaredFields: null,
       allDeclaredGetters: null,
       allDeclaredSetters: null,
@@ -228,10 +231,10 @@ class InstanceItemRequirements {
 
   factory InstanceItemRequirements.read(SummaryDataReader reader) {
     return InstanceItemRequirements(
-      requestedFields: reader.readNameToIdMap(),
-      requestedGetters: reader.readNameToIdMap(),
-      requestedSetters: reader.readNameToIdMap(),
-      requestedMethods: reader.readNameToIdMap(),
+      requestedDeclaredFields: reader.readNameToOptionalIdMap(),
+      requestedDeclaredGetters: reader.readNameToOptionalIdMap(),
+      requestedDeclaredSetters: reader.readNameToOptionalIdMap(),
+      requestedDeclaredMethods: reader.readNameToOptionalIdMap(),
       allDeclaredFields: ManifestItemIdList.readOptional(reader),
       allDeclaredGetters: ManifestItemIdList.readOptional(reader),
       allDeclaredSetters: ManifestItemIdList.readOptional(reader),
@@ -240,10 +243,10 @@ class InstanceItemRequirements {
   }
 
   void write(BufferedSink sink) {
-    sink.writeNameToIdMap(requestedFields);
-    sink.writeNameToIdMap(requestedGetters);
-    sink.writeNameToIdMap(requestedSetters);
-    sink.writeNameToIdMap(requestedMethods);
+    sink.writeNameToIdMap(requestedDeclaredFields);
+    sink.writeNameToIdMap(requestedDeclaredGetters);
+    sink.writeNameToIdMap(requestedDeclaredSetters);
+    sink.writeNameToIdMap(requestedDeclaredMethods);
     allDeclaredFields.writeOptional(sink);
     allDeclaredGetters.writeOptional(sink);
     allDeclaredSetters.writeOptional(sink);
@@ -260,21 +263,27 @@ class InterfaceItemRequirements {
   /// If the element was asked for its full interface.
   ManifestItemId? interfaceId;
 
-  final Map<LookupName, ManifestItemId?> constructors;
+  /// Set if [InstanceElementImpl.constructors] is invoked.
+  ManifestItemIdList? allConstructors;
+
+  /// Requested with [InstanceElementImpl.getNamedConstructor].
+  final Map<LookupName, ManifestItemId?> requestedConstructors;
 
   /// These are "methods" in wide meaning: methods, getters, setters.
   final Map<LookupName, ManifestItemId?> methods;
 
   InterfaceItemRequirements({
     required this.interfaceId,
-    required this.constructors,
+    required this.allConstructors,
+    required this.requestedConstructors,
     required this.methods,
   });
 
   factory InterfaceItemRequirements.empty() {
     return InterfaceItemRequirements(
       interfaceId: null,
-      constructors: {},
+      allConstructors: null,
+      requestedConstructors: {},
       methods: {},
     );
   }
@@ -282,14 +291,16 @@ class InterfaceItemRequirements {
   factory InterfaceItemRequirements.read(SummaryDataReader reader) {
     return InterfaceItemRequirements(
       interfaceId: ManifestItemId.readOptional(reader),
-      constructors: reader.readNameToIdMap(),
-      methods: reader.readNameToIdMap(),
+      allConstructors: ManifestItemIdList.readOptional(reader),
+      requestedConstructors: reader.readNameToOptionalIdMap(),
+      methods: reader.readNameToOptionalIdMap(),
     );
   }
 
   void write(BufferedSink sink) {
     interfaceId.writeOptional(sink);
-    sink.writeNameToIdMap(constructors);
+    allConstructors.writeOptional(sink);
+    sink.writeNameToIdMap(requestedConstructors);
     sink.writeNameToIdMap(methods);
   }
 }
@@ -335,17 +346,117 @@ class LibraryExportRequirements {
   }
 }
 
+class LibraryRequirements {
+  /// TopName => ID
+  final Map<LookupName, ManifestItemId?> exportedTopLevels;
+
+  /// TopName => InstanceItemRequirements
+  final Map<LookupName, InstanceItemRequirements> instances;
+
+  /// TopName => InterfaceItemRequirements
+  final Map<LookupName, InterfaceItemRequirements> interfaces;
+
+  /// All extensions exported from the library (including re-exports).
+  ManifestItemIdList? exportedExtensions;
+
+  LibraryRequirements({
+    required this.exportedTopLevels,
+    required this.instances,
+    required this.interfaces,
+    required this.exportedExtensions,
+  });
+
+  factory LibraryRequirements.empty() {
+    return LibraryRequirements(
+      exportedTopLevels: {},
+      instances: {},
+      interfaces: {},
+      exportedExtensions: null,
+    );
+  }
+
+  factory LibraryRequirements.read(SummaryDataReader reader) {
+    return LibraryRequirements(
+      exportedTopLevels: reader.readNameToOptionalIdMap(),
+      instances: reader.readMap(
+        readKey: () => LookupName.read(reader),
+        readValue: () => InstanceItemRequirements.read(reader),
+      ),
+      interfaces: reader.readMap(
+        readKey: () => LookupName.read(reader),
+        readValue: () => InterfaceItemRequirements.read(reader),
+      ),
+      exportedExtensions: ManifestItemIdList.readOptional(reader),
+    );
+  }
+
+  void write(BufferedSink sink) {
+    sink.writeNameToIdMap(exportedTopLevels);
+
+    sink.writeMap(
+      instances,
+      writeKey: (name) => name.write(sink),
+      writeValue: (instance) => instance.write(sink),
+    );
+
+    sink.writeMap(
+      interfaces,
+      writeKey: (name) => name.write(sink),
+      writeValue: (interface) => interface.write(sink),
+    );
+
+    exportedExtensions.writeOptional(sink);
+  }
+}
+
+/// Information about an API usage that is not supported by fine-grained
+/// dependencies. If such API is used, we have to decide that the requirements
+/// are not satisfied, because we don't know for sure.
+class OpaqueApiUse {
+  final String targetRuntimeType;
+  final String methodName;
+  final Uri? targetElementLibraryUri;
+  final String? targetElementName;
+
+  OpaqueApiUse({
+    required this.targetRuntimeType,
+    required this.methodName,
+    this.targetElementLibraryUri,
+    this.targetElementName,
+  });
+
+  factory OpaqueApiUse.read(SummaryDataReader reader) {
+    return OpaqueApiUse(
+      targetRuntimeType: reader.readStringUtf8(),
+      methodName: reader.readStringUtf8(),
+      targetElementLibraryUri: reader.readOptionalObject(
+        () => reader.readUri(),
+      ),
+      targetElementName: reader.readOptionalStringUtf8(),
+    );
+  }
+
+  void write(BufferedSink sink) {
+    sink.writeStringUtf8(targetRuntimeType);
+    sink.writeStringUtf8(methodName);
+    sink.writeOptionalObject(
+      targetElementLibraryUri,
+      (uri) => sink.writeUri(uri),
+    );
+    sink.writeOptionalStringUtf8(targetElementName);
+  }
+}
+
 class RequirementsManifest {
-  /// LibraryUri => TopName => ID
-  final Map<Uri, Map<LookupName, ManifestItemId?>> topLevels = {};
-
-  /// LibraryUri => TopName => InstanceItemRequirements
-  final Map<Uri, Map<LookupName, InstanceItemRequirements>> instances = {};
-
-  /// LibraryUri => TopName => InterfaceItemRequirements
-  final Map<Uri, Map<LookupName, InterfaceItemRequirements>> interfaces = {};
+  /// LibraryUri => LibraryRequirements
+  final Map<Uri, LibraryRequirements> libraries = {};
 
   final List<LibraryExportRequirements> exportRequirements = [];
+
+  /// If this list is not empty, [isSatisfied] returns `false`.
+  final List<OpaqueApiUse> opaqueApiUses = [];
+
+  final Set<Uri> _excludedLibraries = {};
 
   int _recordingLockLevel = 0;
 
@@ -354,34 +465,10 @@ class RequirementsManifest {
   factory RequirementsManifest.read(SummaryDataReader reader) {
     var result = RequirementsManifest();
 
-    result.topLevels.addAll(
+    result.libraries.addAll(
       reader.readMap(
         readKey: () => reader.readUri(),
-        readValue: () => reader.readNameToIdMap(),
-      ),
-    );
-
-    result.instances.addAll(
-      reader.readMap(
-        readKey: () => reader.readUri(),
-        readValue: () {
-          return reader.readMap(
-            readKey: () => LookupName.read(reader),
-            readValue: () => InstanceItemRequirements.read(reader),
-          );
-        },
-      ),
-    );
-
-    result.interfaces.addAll(
-      reader.readMap(
-        readKey: () => reader.readUri(),
-        readValue: () {
-          return reader.readMap(
-            readKey: () => LookupName.read(reader),
-            readValue: () => InterfaceItemRequirements.read(reader),
-          );
-        },
+        readValue: () => LibraryRequirements.read(reader),
       ),
     );
 
@@ -389,7 +476,15 @@ class RequirementsManifest {
       reader.readTypedList(() => LibraryExportRequirements.read(reader)),
     );
 
+    result.opaqueApiUses.addAll(
+      reader.readTypedList(() => OpaqueApiUse.read(reader)),
+    );
+
     return result;
+  }
+
+  void addExcludedLibraries(Iterable<Uri> libraries) {
+    _excludedLibraries.addAll(libraries);
   }
 
   /// Adds requirements to exports from libraries.
@@ -405,14 +500,44 @@ class RequirementsManifest {
     }
   }
 
+  /// Checks that this manifest can be written and read back without any
+  /// changes, and that the binary form is exactly the same each time.
+  ///
+  /// Used in `assert()` during debug runs to catch serialization issues.
+  ///
+  /// Returns `true` if everything matches. Throws [StateError] if not.
+  bool assertSerialization() {
+    Uint8List manifestAsBytes(RequirementsManifest manifest) {
+      var sink = BufferedSink();
+      manifest.write(sink);
+      return sink.takeBytes();
+    }
+
+    var bytes = manifestAsBytes(this);
+
+    var readManifest = RequirementsManifest.read(SummaryDataReader(bytes));
+    var bytes2 = manifestAsBytes(readManifest);
+
+    if (!const ListEquality<int>().equals(bytes, bytes2)) {
+      throw StateError('Requirement manifest bytes are different.');
+    }
+
+    return true;
+  }
+
   /// Returns the first unsatisfied requirement, or `null` if all requirements
   /// are satisfied.
   RequirementFailure? isSatisfied({
     required LinkedElementFactory elementFactory,
     required Map<Uri, LibraryManifest> libraryManifests,
   }) {
-    for (var libraryEntry in topLevels.entries) {
+    if (opaqueApiUses.isNotEmpty) {
+      return OpaqueApiUseFailure(uses: opaqueApiUses);
+    }
+
+    for (var libraryEntry in libraries.entries) {
       var libraryUri = libraryEntry.key;
+      var libraryRequirements = libraryEntry.value;
 
       var libraryElement = elementFactory.libraryOfUri(libraryUri);
       var libraryManifest = libraryElement?.manifest;
@@ -420,7 +545,7 @@ class RequirementsManifest {
         return LibraryMissing(uri: libraryUri);
       }
 
-      for (var topLevelEntry in libraryEntry.value.entries) {
+      for (var topLevelEntry in libraryRequirements.exportedTopLevels.entries) {
         var name = topLevelEntry.key;
         var actualId = libraryManifest.getExportedId(name);
         if (topLevelEntry.value != actualId) {
@@ -432,20 +557,10 @@ class RequirementsManifest {
           );
         }
       }
-    }
 
-    for (var libraryEntry in instances.entries) {
-      var libraryUri = libraryEntry.key;
-
-      var libraryElement = elementFactory.libraryOfUri(libraryUri);
-      var libraryManifest = libraryElement?.manifest;
-      if (libraryManifest == null) {
-        return LibraryMissing(uri: libraryUri);
-      }
-
-      for (var instanceEntry in libraryEntry.value.entries) {
+      for (var instanceEntry in libraryRequirements.instances.entries) {
         var instanceName = instanceEntry.key;
-        var requirements = instanceEntry.value;
+        var instanceRequirements = instanceEntry.value;
 
         var instanceItem =
             libraryManifest.declaredClasses[instanceName] ??
@@ -454,13 +569,15 @@ class RequirementsManifest {
             libraryManifest.declaredExtensionTypes[instanceName] ??
             libraryManifest.declaredMixins[instanceName];
         if (instanceItem is! InstanceItem) {
-          return TopLevelNotInterface(
+          return TopLevelNotInstance(
             libraryUri: libraryUri,
             name: instanceName,
+            actualItem: instanceItem,
           );
         }
 
-        for (var fieldEntry in requirements.requestedFields.entries) {
+        for (var fieldEntry
+            in instanceRequirements.requestedDeclaredFields.entries) {
           var name = fieldEntry.key;
           var expectedId = fieldEntry.value;
           var currentId = instanceItem.getDeclaredFieldId(name);
@@ -475,7 +592,8 @@ class RequirementsManifest {
           }
         }
 
-        for (var getterEntry in requirements.requestedGetters.entries) {
+        for (var getterEntry
+            in instanceRequirements.requestedDeclaredGetters.entries) {
           var name = getterEntry.key;
           var expectedId = getterEntry.value;
           var currentId = instanceItem.getDeclaredGetterId(name);
@@ -490,7 +608,8 @@ class RequirementsManifest {
           }
         }
 
-        for (var setterEntry in requirements.requestedSetters.entries) {
+        for (var setterEntry
+            in instanceRequirements.requestedDeclaredSetters.entries) {
           var name = setterEntry.key;
           var expectedId = setterEntry.value;
           var currentId = instanceItem.getDeclaredSetterId(name);
@@ -505,7 +624,8 @@ class RequirementsManifest {
           }
         }
 
-        for (var methodEntry in requirements.requestedMethods.entries) {
+        for (var methodEntry
+            in instanceRequirements.requestedDeclaredMethods.entries) {
           var name = methodEntry.key;
           var expectedId = methodEntry.value;
           var currentId = instanceItem.getDeclaredMethodId(name);
@@ -520,7 +640,7 @@ class RequirementsManifest {
           }
         }
 
-        if (requirements.allDeclaredFields case var required?) {
+        if (instanceRequirements.allDeclaredFields case var required?) {
           var actualItems = instanceItem.declaredFields.values;
           var actualIds = actualItems.map((item) => item.id);
           if (!required.equalToIterable(actualIds)) {
@@ -534,7 +654,7 @@ class RequirementsManifest {
           }
         }
 
-        if (requirements.allDeclaredGetters case var required?) {
+        if (instanceRequirements.allDeclaredGetters case var required?) {
           var actualItems = instanceItem.declaredGetters.values;
           var actualIds = actualItems.map((item) => item.id);
           if (!required.equalToIterable(actualIds)) {
@@ -548,7 +668,7 @@ class RequirementsManifest {
           }
         }
 
-        if (requirements.allDeclaredSetters case var required?) {
+        if (instanceRequirements.allDeclaredSetters case var required?) {
           var actualItems = instanceItem.declaredSetters.values;
           var actualIds = actualItems.map((item) => item.id);
           if (!required.equalToIterable(actualIds)) {
@@ -562,7 +682,7 @@ class RequirementsManifest {
           }
         }
 
-        if (requirements.allDeclaredMethods case var required?) {
+        if (instanceRequirements.allDeclaredMethods case var required?) {
           var actualItems = instanceItem.declaredMethods.values;
           var actualIds = actualItems.map((item) => item.id);
           if (!required.equalToIterable(actualIds)) {
@@ -576,18 +696,8 @@ class RequirementsManifest {
           }
         }
       }
-    }
 
-    for (var libraryEntry in interfaces.entries) {
-      var libraryUri = libraryEntry.key;
-
-      var libraryElement = elementFactory.libraryOfUri(libraryUri);
-      var libraryManifest = libraryElement?.manifest;
-      if (libraryManifest == null) {
-        return LibraryMissing(uri: libraryUri);
-      }
-
-      for (var interfaceEntry in libraryEntry.value.entries) {
+      for (var interfaceEntry in libraryRequirements.interfaces.entries) {
         var interfaceName = interfaceEntry.key;
         var interfaceItem =
             libraryManifest.declaredClasses[interfaceName] ??
@@ -614,7 +724,21 @@ class RequirementsManifest {
           }
         }
 
-        var constructors = interfaceRequirements.constructors;
+        if (interfaceRequirements.allConstructors case var required?) {
+          var actualItems = interfaceItem.declaredConstructors.values;
+          var actualIds = actualItems.map((item) => item.id);
+          if (!required.equalToIterable(actualIds)) {
+            return InterfaceChildrenIdsMismatch(
+              libraryUri: libraryUri,
+              interfaceName: interfaceName,
+              childrenPropertyName: 'constructors',
+              expectedIds: required,
+              actualIds: ManifestItemIdList(actualIds.toList()),
+            );
+          }
+        }
+
+        var constructors = interfaceRequirements.requestedConstructors;
         for (var constructorEntry in constructors.entries) {
           var constructorName = constructorEntry.key;
           var constructorId = interfaceItem.getConstructorId(constructorName);
@@ -646,6 +770,17 @@ class RequirementsManifest {
           }
         }
       }
+
+      if (libraryRequirements.exportedExtensions case var expectedIds?) {
+        var actualIds = libraryManifest.exportedExtensions;
+        if (actualIds != expectedIds) {
+          return ExportedExtensionsMismatch(
+            libraryUri: libraryUri,
+            expectedIds: expectedIds,
+            actualIds: actualIds,
+          );
+        }
+      }
     }
 
     for (var exportRequirement in exportRequirements) {
@@ -664,18 +799,28 @@ class RequirementsManifest {
     // TODO(scheglov): implement.
   }
 
-  void record_classElement_hasNonFinalField({
-    required ClassElementImpl element,
+  void record_fieldElement_getter({
+    required FieldElementImpl element,
+    String? name,
   }) {
-    // TODO(scheglov): implement.
+    if (name != null) {
+      record_instanceElement_getGetter(
+        element: element.enclosingElement,
+        name: name,
+      );
+    }
   }
 
-  void record_classElement_isEnumLike({required ClassElementImpl element}) {
-    // TODO(scheglov): implement.
-  }
-
-  void record_disable(Object target, String method) {
-    // TODO(scheglov): implement.
+  void record_fieldElement_setter({
+    required FieldElementImpl element,
+    String? name,
+  }) {
+    if (name != null) {
+      record_instanceElement_getSetter(
+        element: element.enclosingElement,
+        name: name,
+      );
+    }
   }
 
   /// Record that [id] was looked up in the import prefix scope that
@@ -687,11 +832,31 @@ class RequirementsManifest {
     var lookupName = id.asLookupName;
     for (var importedLibrary in importedLibraries) {
       if (importedLibrary.manifest case var manifest?) {
-        var uri = importedLibrary.uri;
-        var nameToId = topLevels[uri] ??= {};
+        var libraryRequirements = _getLibraryRequirements(importedLibrary);
+        var nameToId = libraryRequirements.exportedTopLevels;
         nameToId[lookupName] = manifest.getExportedId(lookupName);
       }
     }
+  }
+
+  void record_instanceElement_constructors({
+    required InterfaceElementImpl element,
+  }) {
+    if (_recordingLockLevel != 0) {
+      return;
+    }
+
+    var itemRequirements = _getInterfaceItem(element);
+    if (itemRequirements == null) {
+      return;
+    }
+
+    var item = itemRequirements.item;
+    var requirements = itemRequirements.requirements;
+
+    requirements.allConstructors ??= ManifestItemIdList(
+      item.declaredConstructors.values.map((item) => item.id).toList(),
+    );
   }
 
   void record_instanceElement_fields({required InstanceElementImpl element}) {
@@ -726,7 +891,7 @@ class RequirementsManifest {
 
     var fieldName = name.asLookupName;
     var fieldId = item.getDeclaredFieldId(fieldName);
-    requirements.requestedFields[fieldName] = fieldId;
+    requirements.requestedDeclaredFields[fieldName] = fieldId;
   }
 
   void record_instanceElement_getGetter({
@@ -743,7 +908,7 @@ class RequirementsManifest {
 
     var methodName = name.asLookupName;
     var methodId = item.getDeclaredGetterId(methodName);
-    requirements.requestedGetters[methodName] = methodId;
+    requirements.requestedDeclaredGetters[methodName] = methodId;
   }
 
   void record_instanceElement_getMethod({
@@ -760,7 +925,7 @@ class RequirementsManifest {
 
     var methodName = name.asLookupName;
     var methodId = item.getDeclaredMethodId(methodName);
-    requirements.requestedMethods[methodName] = methodId;
+    requirements.requestedDeclaredMethods[methodName] = methodId;
   }
 
   void record_instanceElement_getSetter({
@@ -778,7 +943,7 @@ class RequirementsManifest {
 
     var methodName = '$name='.asLookupName;
     var methodId = item.getDeclaredSetterId(methodName);
-    requirements.requestedSetters[methodName] = methodId;
+    requirements.requestedDeclaredSetters[methodName] = methodId;
   }
 
   void record_instanceElement_getters({required InstanceElementImpl element}) {
@@ -897,7 +1062,25 @@ class RequirementsManifest {
 
     var constructorName = name.asLookupName;
     var constructorId = item.getConstructorId(constructorName);
-    requirements.constructors[constructorName] = constructorId;
+    requirements.requestedConstructors[constructorName] = constructorId;
+  }
+
+  /// Record that all accessible extensions inside a [LibraryFragmentImpl]
+  /// are requested, which means dependency on all extensions exported
+  /// from [importedLibraries].
+  void record_libraryFragmentScope_accessibleExtensions({
+    required List<LibraryElementImpl> importedLibraries,
+  }) {
+    if (_recordingLockLevel != 0) {
+      return;
+    }
+
+    for (var importedLibrary in importedLibraries) {
+      if (importedLibrary.manifest case var manifest?) {
+        var libraryRequirements = _getLibraryRequirements(importedLibrary);
+        libraryRequirements.exportedExtensions ??= manifest.exportedExtensions;
+      }
+    }
   }
 
   void record_propertyAccessorElement_variable({
@@ -916,6 +1099,40 @@ class RequirementsManifest {
     }
   }
 
+  void recordOpaqueApiUse(Object target, String method) {
+    if (_recordingLockLevel != 0) {
+      return;
+    }
+
+    Uri? targetElementLibraryUri;
+    String? targetElementName;
+    if (target case ElementImpl targetElement) {
+      targetElementLibraryUri = targetElement.library?.uri;
+      targetElementName = targetElement.name;
+      if (_excludedLibraries.contains(targetElementLibraryUri)) {
+        return;
+      }
+    }
+
+    untracked(
+      reason: 'We are recording failure',
+      operation: () {
+        // TODO(scheglov): remove after adding all tracking
+        // print('[${target.runtimeType}.$method]');
+        // print(StackTrace.current);
+
+        opaqueApiUses.add(
+          OpaqueApiUse(
+            targetRuntimeType: target.runtimeType.toString(),
+            methodName: method,
+            targetElementName: targetElementName,
+            targetElementLibraryUri: targetElementLibraryUri,
+          ),
+        );
+      },
+    );
+  }
+
   /// This method is invoked after linking of a library cycle, to exclude
   /// requirements to the libraries of this same library cycle. We already
   /// link these libraries together, so only requirements to the previous
@@ -930,56 +1147,31 @@ class RequirementsManifest {
     }
 
     for (var libUri in bundleLibraryUriList) {
-      topLevels.remove(libUri);
-      instances.remove(libUri);
-      interfaces.remove(libUri);
+      libraries.remove(libUri);
     }
   }
 
   void write(BufferedSink sink) {
     sink.writeMap(
-      topLevels,
+      libraries,
       writeKey: (uri) => sink.writeUri(uri),
-      writeValue: (map) => sink.writeNameToIdMap(map),
-    );
-
-    sink.writeMap(
-      instances,
-      writeKey: (uri) => sink.writeUri(uri),
-      writeValue: (nameToInstanceMap) {
-        sink.writeMap(
-          nameToInstanceMap,
-          writeKey: (name) => name.write(sink),
-          writeValue: (instance) => instance.write(sink),
-        );
-      },
-    );
-
-    sink.writeMap(
-      interfaces,
-      writeKey: (uri) => sink.writeUri(uri),
-      writeValue: (nameToInterfaceMap) {
-        sink.writeMap(
-          nameToInterfaceMap,
-          writeKey: (name) => name.write(sink),
-          writeValue: (interface) => interface.write(sink),
-        );
-      },
+      writeValue: (library) => library.write(sink),
     );
 
     sink.writeList(
       exportRequirements,
       (requirement) => requirement.write(sink),
     );
+
+    sink.writeList(opaqueApiUses, (usage) => usage.write(sink));
   }
 
   void _addExports(LibraryElementImpl libraryElement) {
-    var declaredTopNames =
-        libraryElement.children
-            .map((element) => element.lookupName)
-            .nonNulls
-            .map((nameStr) => nameStr.asLookupName)
-            .toSet();
+    var declaredTopNames = libraryElement.children
+        .map((element) => element.lookupName)
+        .nonNulls
+        .map((nameStr) => nameStr.asLookupName)
+        .toSet();
 
     var fragments = <ExportRequirement>[];
 
@@ -992,19 +1184,18 @@ class RequirementsManifest {
           continue;
         }
 
-        var combinators =
-            export.combinators.map((combinator) {
-              switch (combinator) {
-                case HideElementCombinator():
-                  return ExportRequirementHideCombinator(
-                    hiddenBaseNames: combinator.hiddenNames.toBaseNameSet(),
-                  );
-                case ShowElementCombinator():
-                  return ExportRequirementShowCombinator(
-                    shownBaseNames: combinator.shownNames.toBaseNameSet(),
-                  );
-              }
-            }).toList();
+        var combinators = export.combinators.map((combinator) {
+          switch (combinator) {
+            case HideElementCombinator():
+              return ExportRequirementHideCombinator(
+                hiddenBaseNames: combinator.hiddenNames.toBaseNameSet(),
+              );
+            case ShowElementCombinator():
+              return ExportRequirementShowCombinator(
+                shownBaseNames: combinator.shownNames.toBaseNameSet(),
+              );
+          }
+        }).toList();
 
         // SAFETY: every library has the manifest.
         var manifest = exportedLibrary.manifest!;
@@ -1062,7 +1253,8 @@ class RequirementsManifest {
       return null;
     }
 
-    var instancesMap = instances[libraryElement.uri] ??= {};
+    var libraryRequirements = _getLibraryRequirements(libraryElement);
+    var instancesMap = libraryRequirements.instances;
     var instanceItem =
         manifest.declaredClasses[instanceName] ??
         manifest.declaredEnums[instanceName] ??
@@ -1073,8 +1265,9 @@ class RequirementsManifest {
     // SAFETY: every instance element must be in the manifest.
     instanceItem as InstanceItem;
 
-    var requirements =
-        instancesMap[instanceName] ??= InstanceItemRequirements.empty();
+    var requirements = instancesMap[instanceName] ??=
+        InstanceItemRequirements.empty();
+
     return _InstanceItemWithRequirements(
       item: instanceItem,
       requirements: requirements,
@@ -1098,7 +1291,8 @@ class RequirementsManifest {
       return null;
     }
 
-    var interfacesMap = interfaces[libraryElement.uri] ??= {};
+    var libraryRequirements = _getLibraryRequirements(libraryElement);
+    var interfacesMap = libraryRequirements.interfaces;
     var interfaceItem =
         manifest.declaredClasses[interfaceName] ??
         manifest.declaredEnums[interfaceName] ??
@@ -1108,12 +1302,16 @@ class RequirementsManifest {
     // SAFETY: every interface element must be in the manifest.
     interfaceItem as InterfaceItem;
 
-    var requirements =
-        interfacesMap[interfaceName] ??= InterfaceItemRequirements.empty();
+    var requirements = interfacesMap[interfaceName] ??=
+        InterfaceItemRequirements.empty();
     return _InterfaceItemWithRequirements(
       item: interfaceItem,
       requirements: requirements,
     );
+  }
+
+  LibraryRequirements _getLibraryRequirements(LibraryElementImpl element) {
+    return libraries[element.uri] ??= LibraryRequirements.empty();
   }
 
   String _qualifiedMethodName(
@@ -1149,10 +1347,26 @@ class _InterfaceItemWithRequirements {
 }
 
 extension RequirementsManifestExtension on RequirementsManifest? {
-  T withoutRecording<T>({
-    required String reason,
-    required T Function() operation,
-  }) {
+  /// Executes the given [operation] without recording dependencies, because
+  /// the dependency has already been recorded at a higher level of
+  /// granularity.
+  T alreadyRecorded<T>(T Function() operation) {
+    return untracked(
+      reason: 'The dependency has already been recorded',
+      operation: operation,
+    );
+  }
+
+  /// Executes the given [operation] without recording dependencies.
+  ///
+  /// This is used for getters on elements that are considered part of the
+  /// element's identity. Since a change to such a getter implies a change to
+  /// the element's identity, separate dependency tracking is not necessary.
+  T includedInId<T>(T Function() operation) {
+    return untracked(reason: 'Included in ID', operation: operation);
+  }
+
+  T untracked<T>({required String reason, required T Function() operation}) {
     var self = this;
     if (self == null) {
       return operation();
@@ -1178,7 +1392,7 @@ extension _BufferedSinkExtension on BufferedSink {
 }
 
 extension _SummaryDataReaderExtension on SummaryDataReader {
-  Map<LookupName, ManifestItemId?> readNameToIdMap() {
+  Map<LookupName, ManifestItemId?> readNameToOptionalIdMap() {
     return readMap(
       readKey: () => LookupName.read(this),
       readValue: () => ManifestItemId.readOptional(this),

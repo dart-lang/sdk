@@ -424,7 +424,7 @@ int Function() foo() {
   return a;
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 50, 1)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 50, 1)],
     );
 
     var node = findNode.simple('a;');
@@ -569,7 +569,7 @@ void f() {
   prefix.foo;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME, 48, 3)],
+      [error(CompileTimeErrorCode.undefinedPrefixedName, 48, 3)],
     );
 
     var node = findNode.prefixed('prefix.');
@@ -887,7 +887,7 @@ void f(A? a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
           69,
           3,
         ),
@@ -1150,7 +1150,7 @@ void f(int a) {
   a.foo;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 20, 3)],
+      [error(CompileTimeErrorCode.undefinedGetter, 20, 3)],
     );
 
     var node = findNode.prefixed('foo;');

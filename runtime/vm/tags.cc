@@ -13,9 +13,6 @@
 
 namespace dart {
 
-MallocGrowableArray<const char*> UserTags::subscribed_tags_(4);
-Mutex* UserTags::subscribed_tags_lock_ = nullptr;
-
 const char* VMTag::TagName(uword tag) {
   if (IsNativeEntryTag(tag)) {
     const uint8_t* native_reverse_lookup = NativeEntry::ResolveSymbol(tag);
@@ -136,66 +133,17 @@ void VMTagCounters::PrintToJSONObject(JSONObject* obj) {
 }
 #endif  // !PRODUCT
 
-const char* UserTags::TagName(Thread* thread, Isolate* isolate, uword tag_id) {
+const char* UserTags::TagName(Thread* thread,
+                              IsolateGroup* isolate_group,
+                              uword tag_id) {
   ASSERT(tag_id >= kUserTagIdOffset);
   ASSERT(tag_id < kUserTagIdOffset + kMaxUserTags);
   Zone* zone = thread->zone();
   const UserTag& tag =
-      UserTag::Handle(zone, UserTag::FindTagById(isolate, tag_id));
+      UserTag::Handle(zone, UserTag::FindTagById(isolate_group, tag_id));
   ASSERT(!tag.IsNull());
   const String& label = String::Handle(zone, tag.label());
   return label.ToCString();
-}
-
-void UserTags::AddStreamableTagName(const char* tag) {
-  MutexLocker ml(subscribed_tags_lock_);
-  // Check this tag isn't already in the subscription list.
-  for (intptr_t i = 0; i < subscribed_tags_.length(); ++i) {
-    if (strcmp(tag, subscribed_tags_.At(i)) == 0) {
-      return;
-    }
-  }
-  subscribed_tags_.Add(Utils::StrDup(tag));
-}
-
-void UserTags::RemoveStreamableTagName(const char* tag) {
-  MutexLocker ml(subscribed_tags_lock_);
-  bool found = false;
-  for (intptr_t i = 0; i < subscribed_tags_.length(); ++i) {
-    if (strcmp(tag, subscribed_tags_.At(i)) == 0) {
-      free(const_cast<char*>(subscribed_tags_.At(i)));
-      subscribed_tags_.RemoveAt(i);
-      found = true;
-      break;
-    }
-  }
-  ASSERT(found);
-}
-
-bool UserTags::IsTagNameStreamable(const char* tag) {
-  MutexLocker ml(subscribed_tags_lock_);
-  for (intptr_t i = 0; i < subscribed_tags_.length(); ++i) {
-    if (strcmp(tag, subscribed_tags_.At(i)) == 0) {
-      return true;
-    }
-  }
-  return false;
-}
-
-void UserTags::Init() {
-  subscribed_tags_lock_ = new Mutex();
-}
-
-void UserTags::Cleanup() {
-  {
-    MutexLocker ml(subscribed_tags_lock_);
-    for (intptr_t i = 0; i < subscribed_tags_.length(); ++i) {
-      free(const_cast<char*>(subscribed_tags_.At(i)));
-    }
-    subscribed_tags_.Clear();
-  }
-  delete subscribed_tags_lock_;
-  subscribed_tags_lock_ = nullptr;
 }
 
 }  // namespace dart

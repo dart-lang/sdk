@@ -12,6 +12,7 @@ extension Extension1 on Class {
   void set field(int value) {
     field1 = value;
   }
+
   int method() => field1;
   num genericMethod<T extends num>(T t) => field1 + t;
 }
@@ -21,8 +22,26 @@ extension Extension2 on Class {
   void set field(int value) {
     field2 = value;
   }
+
   int method() => field2;
   num genericMethod<T extends num>(T t) => field2 + t;
+}
+
+extension on int {
+  method1() {
+    method2<int>([0], [1], (_) => 2, () => 3);
+  }
+
+  method2<T>(
+    List<T> a,
+    List<int> b,
+    void Function(T) c,
+    void Function()? d,
+  ) {}
+}
+
+test(Class c) {
+  Extension1(c).method(0); // Error
 }
 
 main() {

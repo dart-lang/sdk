@@ -13,7 +13,7 @@ void nameValidator(PubspecValidationContext ctx) {
     ctx.reporter.atOffset(
       offset: 0,
       length: 0,
-      diagnosticCode: PubspecWarningCode.MISSING_NAME,
+      diagnosticCode: PubspecWarningCode.missingName,
     );
     return;
   }
@@ -22,9 +22,9 @@ void nameValidator(PubspecValidationContext ctx) {
     ctx.reporter.atOffset(
       offset: 0,
       length: 0,
-      diagnosticCode: PubspecWarningCode.MISSING_NAME,
+      diagnosticCode: PubspecWarningCode.missingName,
     );
   } else if (nameField is! YamlScalar || nameField.value is! String) {
-    ctx.reportErrorForNode(nameField, PubspecWarningCode.NAME_NOT_STRING);
+    ctx.reportErrorForNode(nameField, PubspecWarningCode.nameNotString);
   }
 }

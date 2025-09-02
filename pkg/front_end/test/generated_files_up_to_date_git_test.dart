@@ -4,11 +4,9 @@
 
 import "dart:io" show File, exitCode;
 
-import "../tool/generate_experimental_flags.dart"
-    as generateExperimentalFlags;
+import "../tool/generate_experimental_flags.dart" as generateExperimentalFlags;
 import "../tool/generate_messages.dart" as generateMessages;
-import "../tool/parser_ast_helper_creator.dart"
-    as generateParserAstHelper;
+import "../tool/parser_ast_helper_creator.dart" as generateParserAstHelper;
 import '../tool/ast_model.dart';
 import '../tool/generate_ast_coverage.dart' as generateAstCoverage;
 import '../tool/generate_ast_equivalence.dart' as generateAstEquivalence;
@@ -34,85 +32,124 @@ Future<bool> main() async {
 void parserTestParser() {
   Uri generatedFile = generateParserTestParser.computeTestParserUri(repoDir);
   String generated = generateParserTestParser.generateTestParser(repoDir);
-  check(generated, generatedFile,
-      "dart pkg/front_end/test/parser_test_parser_creator.dart");
+  check(
+    generated,
+    generatedFile,
+    "dart pkg/front_end/test/parser_test_parser_creator.dart",
+  );
 }
 
 void parserTestListener() {
-  Uri generatedFile =
-      generateParserTestListener.computeTestListenerUri(repoDir);
+  Uri generatedFile = generateParserTestListener.computeTestListenerUri(
+    repoDir,
+  );
   String generated = generateParserTestListener.generateTestListener(repoDir);
-  check(generated, generatedFile,
-      "dart pkg/front_end/test/parser_test_listener_creator.dart");
+  check(
+    generated,
+    generatedFile,
+    "dart pkg/front_end/test/parser_test_listener_creator.dart",
+  );
 }
 
 void directParserAstHelper() {
   Uri generatedFile = generateParserAstHelper.computeAstHelperUri(repoDir);
   String generated = generateParserAstHelper.generateAstHelper(repoDir);
-  check(generated, generatedFile,
-      "dart pkg/front_end/tool/parser_ast_helper_creator.dart");
+  check(
+    generated,
+    generatedFile,
+    "dart pkg/front_end/tool/parser_ast_helper_creator.dart",
+  );
 }
 
 Future<void> astEquivalence(AstModel astModel) async {
   Uri generatedFile = generateAstEquivalence.computeEquivalenceUri(repoDir);
-  String generated =
-      await generateAstEquivalence.generateAstEquivalence(repoDir, astModel);
-  check(generated, generatedFile,
-      "dart pkg/front_end/tool/generate_ast_equivalence.dart");
+  String generated = await generateAstEquivalence.generateAstEquivalence(
+    repoDir,
+    astModel,
+  );
+  check(
+    generated,
+    generatedFile,
+    "dart pkg/front_end/tool/generate_ast_equivalence.dart",
+  );
 }
 
 Future<void> astCoverage(AstModel astModel) async {
   Uri generatedFile = generateAstCoverage.computeCoverageUri(repoDir);
-  String generated =
-      await generateAstCoverage.generateAstCoverage(repoDir, astModel);
-  check(generated, generatedFile,
-      "dart pkg/front_end/tool/generate_ast_coverage.dart");
+  String generated = await generateAstCoverage.generateAstCoverage(
+    repoDir,
+    astModel,
+  );
+  check(
+    generated,
+    generatedFile,
+    "dart pkg/front_end/tool/generate_ast_coverage.dart",
+  );
 }
 
 void experimentalFlags() {
   {
-    Uri generatedFile =
-        generateExperimentalFlags.computeFeAnalyzerSharedGeneratedFile(repoDir);
-    String generated =
-        generateExperimentalFlags.generateFeAnalyzerSharedFile(repoDir);
-    check(generated, generatedFile,
-        "dart pkg/front_end/tool/cfe.dart generate-experimental-flags");
+    Uri generatedFile = generateExperimentalFlags
+        .computeFeAnalyzerSharedGeneratedFile(repoDir);
+    String generated = generateExperimentalFlags.generateFeAnalyzerSharedFile(
+      repoDir,
+    );
+    check(
+      generated,
+      generatedFile,
+      "dart pkg/front_end/tool/cfe.dart generate-experimental-flags",
+    );
   }
   {
-    Uri generatedFile =
-        generateExperimentalFlags.computeCfeGeneratedFile(repoDir);
+    Uri generatedFile = generateExperimentalFlags.computeCfeGeneratedFile(
+      repoDir,
+    );
     String generated = generateExperimentalFlags.generateCfeFile(repoDir);
-    check(generated, generatedFile,
-        "dart pkg/front_end/tool/cfe.dart generate-experimental-flags");
+    check(
+      generated,
+      generatedFile,
+      "dart pkg/front_end/tool/cfe.dart generate-experimental-flags",
+    );
   }
   {
-    Uri generatedFile =
-        generateExperimentalFlags.computeKernelGeneratedFile(repoDir);
+    Uri generatedFile = generateExperimentalFlags.computeKernelGeneratedFile(
+      repoDir,
+    );
     String generated = generateExperimentalFlags.generateKernelFile(repoDir);
-    check(generated, generatedFile,
-        "dart pkg/front_end/tool/cfe.dart generate-experimental-flags");
+    check(
+      generated,
+      generatedFile,
+      "dart pkg/front_end/tool/cfe.dart generate-experimental-flags",
+    );
   }
 }
 
 void messages() {
-  generateMessages.Messages messages =
-      generateMessages.generateMessagesFiles(repoDir);
+  generateMessages.Messages messages = generateMessages.generateMessagesFiles(
+    repoDir,
+  );
 
   Uri generatedFile = generateMessages.computeSharedGeneratedFile(repoDir);
-  check(messages.sharedMessages, generatedFile,
-      "dart pkg/front_end/tool/cfe.dart generate-messages");
+  check(
+    messages.sharedMessages,
+    generatedFile,
+    "dart pkg/front_end/tool/cfe.dart generate-messages",
+  );
 
   Uri cfeGeneratedFile = generateMessages.computeCfeGeneratedFile(repoDir);
-  check(messages.cfeMessages, cfeGeneratedFile,
-      "dart pkg/front_end/tool/cfe.dart generate-messages");
+  check(
+    messages.cfeMessages,
+    cfeGeneratedFile,
+    "dart pkg/front_end/tool/cfe.dart generate-messages",
+  );
 }
 
 bool _checkFoundErrors = false;
 
 void check(String generated, Uri generatedFile, String run) {
-  String actual = new File.fromUri(generatedFile)
-      .readAsStringSync()
-      .replaceAll('\r\n', '\n');
+  String actual = new File.fromUri(
+    generatedFile,
+  ).readAsStringSync().replaceAll('\r\n', '\n');
   if (generated != actual) {
     print("""
 ------------------------

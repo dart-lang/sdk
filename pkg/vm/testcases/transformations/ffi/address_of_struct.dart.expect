@@ -64,10 +64,10 @@ final class MyUnion extends ffi::Union {
 }
 static method main() → void {
   final self::MyStruct myStruct = new self::MyStruct::#fromTypedDataBase(typ::Uint8List::•(self::MyStruct::#sizeOf), #C17);
-  self::myNative#C(myStruct);
+  self::#myNative#C(myStruct);
   final self::MyUnion myUnion = new self::MyUnion::#fromTypedDataBase(typ::Uint8List::•(self::MyUnion::#sizeOf), #C17);
-  self::myNative2#C(myUnion);
-  self::myNative3#C(myStruct.{self::MyStruct::a}{ffi::Array<ffi::Int8>});
+  self::#myNative2#C(myUnion);
+  self::#myNative3#C(myStruct.{self::MyStruct::a}{ffi::Array<ffi::Int8>});
 }
 @#C30
 @#C32
@@ -80,13 +80,13 @@ external static method myNative2(ffi::Pointer<self::MyUnion> pointer) → void;
 external static method myNative3(ffi::Pointer<ffi::Int8> pointer) → void;
 @#C30
 @#C32
-external static method myNative#C(ffi::_Compound pointer) → void;
+external static method #myNative#C(ffi::_Compound pointer) → void;
 @#C35
 @#C36
-external static method myNative2#C(ffi::_Compound pointer) → void;
+external static method #myNative2#C(ffi::_Compound pointer) → void;
 @#C39
 @#C40
-external static method myNative3#C(ffi::_Compound pointer) → void;
+external static method #myNative3#C(ffi::_Compound pointer) → void;
 constants  {
   #C1 = "vm:deeply-immutable"
   #C2 = null

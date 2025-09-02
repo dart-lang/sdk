@@ -854,6 +854,11 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   }
 
   @override
+  DartType? visitInstanceCreationExpression(InstanceCreationExpression node) {
+    return _visitParent(node);
+  }
+
+  @override
   DartType? visitIsExpression(IsExpression node) {
     if (node.isOperator.end < offset) {
       return node.expression.staticType;
@@ -1262,7 +1267,7 @@ parent3: ${node.parent?.parent?.parent}
     if (pattern is AssignedVariablePattern) {
       element = pattern.element;
     } else if (pattern is DeclaredVariablePattern) {
-      element = pattern.declaredElement;
+      element = pattern.declaredFragment?.element;
       // } else if (pattern is RecordPattern) {
       //   pattern.fields.map((e) => _requiredTypeOfPattern(e.pattern)).toList();
     } else if (pattern is ListPattern) {
@@ -1376,6 +1381,16 @@ extension on ArgumentList {
       var type = parent.staticInvokeType;
       if (type is FunctionType) {
         return type;
+      }
+    } else if (parent is DotShorthandInvocation) {
+      var type = parent.staticInvokeType;
+      if (type is FunctionType) {
+        return type;
+      }
+    } else if (parent is DotShorthandConstructorInvocation) {
+      if (parent.constructorName.element
+          case ConstructorElement constructorElement) {
+        return constructorElement.type;
       }
     }
     return null;

@@ -159,6 +159,8 @@ static method test1(core::Object o) → core::String
   return block {
     core::String #t1;
     final synthesized core::Object #0#0 = o;
+    final const synthesized core::int #0#3 = #C5;
+    final const synthesized core::int #0#8 = #C6;
     #L1:
     {
       {
@@ -182,6 +184,8 @@ static method test2(core::Object o) → core::String
   return block {
     core::String #t3;
     final synthesized core::Object #0#0 = o;
+    final const synthesized core::int #0#3 = #C5;
+    final const synthesized core::int #0#7 = #C7;
     #L2:
     {
       {
@@ -208,8 +212,10 @@ static method test3(core::Object o) → core::String
     final synthesized core::Object #0#0 = o;
     synthesized core::bool #0#4;
     synthesized core::bool #0#4#isSet = false;
+    final const synthesized core::int #0#3 = #C6;
     synthesized core::Object? #0#6;
     synthesized core::bool #0#6#isSet = false;
+    final const synthesized core::int #0#9 = #C7;
     synthesized core::Object? #0#8;
     synthesized core::bool #0#8#isSet = false;
     #L3:

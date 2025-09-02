@@ -512,6 +512,8 @@ struct InstrAttrs {
   M(OneByteStringFromCharCode, kNoGC)                                          \
   M(Utf8Scan, kNoGC)                                                           \
   M(InvokeMathCFunction, kNoGC)                                                \
+  M(TsanFuncEntryExit, kNoGC)                                                  \
+  M(TsanReadWrite, kNoGC)                                                      \
   M(TruncDivMod, kNoGC)                                                        \
   /*We could be more precise about when these 2 instructions can trigger GC.*/ \
   M(GuardFieldClass, _)                                                        \
@@ -6422,6 +6424,9 @@ class StoreFieldInstr : public TemplateInstruction<2, NoThrow> {
 
   Value* instance() const { return inputs_[kInstancePos]; }
   const Slot& slot() const { return slot_; }
+  compiler::Assembler::MemoryOrder memory_order() const {
+    return memory_order_;
+  }
   Value* value() const { return inputs_[kValuePos]; }
 
   virtual TokenPosition token_pos() const { return token_pos_; }
@@ -8168,6 +8173,9 @@ class LoadFieldInstr : public TemplateLoadField<1> {
 
   Value* instance() const { return inputs_[0]; }
   const Slot& slot() const { return slot_; }
+  compiler::Assembler::MemoryOrder memory_order() const {
+    return memory_order_;
+  }
 
   InnerPointerAccess loads_inner_pointer() const {
     return loads_inner_pointer_;
@@ -10029,6 +10037,111 @@ class InvokeMathCFunctionInstr : public VariadicDefinition {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(InvokeMathCFunctionInstr);
+};
+
+class TsanFuncEntryExitInstr : public TemplateInstruction<0, NoThrow> {
+ public:
+  enum Kind { kEntry, kExit };
+
+  TsanFuncEntryExitInstr(Kind kind, const InstructionSource& source)
+      : TemplateInstruction(source, DeoptId::kNone),
+        kind_(kind),
+        token_pos_(source.token_pos) {}
+
+  virtual TokenPosition token_pos() const { return token_pos_; }
+
+  DECLARE_INSTRUCTION(TsanFuncEntryExit)
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    UNREACHABLE();
+  }
+
+  virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
+
+  virtual bool AllowsCSE() const { return false; }
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+  virtual bool AttributesEqual(const Instruction& other) const {
+    return &other == this;
+  }
+
+  virtual bool MayThrow() const { return false; }
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+#define FIELD_LIST(F)                                                          \
+  F(const TsanFuncEntryExitInstr::Kind, kind_)                                 \
+  F(const TokenPosition, token_pos_)
+
+  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(TsanFuncEntryExitInstr,
+                                          TemplateInstruction,
+                                          FIELD_LIST)
+#undef FIELD_LIST
+
+  const RuntimeEntry& TargetFunction() const;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(TsanFuncEntryExitInstr);
+};
+
+class TsanReadWriteInstr : public TemplateInstruction<1, NoThrow> {
+ public:
+  enum Kind { kRead, kWrite };
+
+  TsanReadWriteInstr(Kind kind,
+                     const Slot& slot,
+                     Value* instance,
+                     const InstructionSource& source)
+      : TemplateInstruction(source, DeoptId::kNone),
+        kind_(kind),
+        slot_(slot),
+        token_pos_(source.token_pos) {
+    SetInputAt(0, instance);
+  }
+
+  Value* instance() const { return inputs_[0]; }
+  const Slot& slot() const { return slot_; }
+
+  virtual TokenPosition token_pos() const { return token_pos_; }
+
+  DECLARE_INSTRUCTION(TsanReadWrite)
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT_EQUAL(idx, 0);
+    return slot_.has_untagged_instance() ? kUntagged : kTagged;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
+
+  virtual bool AllowsCSE() const { return false; }
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+  virtual bool AttributesEqual(const Instruction& other) const {
+    return &other == this;
+  }
+
+  virtual bool MayThrow() const { return false; }
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+#define FIELD_LIST(F)                                                          \
+  F(const TsanReadWriteInstr::Kind, kind_)                                     \
+  F(const Slot&, slot_)                                                        \
+  F(const TokenPosition, token_pos_)
+
+  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(TsanReadWriteInstr,
+                                          TemplateInstruction,
+                                          FIELD_LIST)
+#undef FIELD_LIST
+
+  const RuntimeEntry& TargetFunction() const;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(TsanReadWriteInstr);
 };
 
 class ExtractNthOutputInstr : public TemplateDefinition<1, NoThrow, Pure> {

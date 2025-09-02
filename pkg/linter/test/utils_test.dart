@@ -5,8 +5,6 @@
 import 'package:linter/src/utils.dart';
 import 'package:test/test.dart';
 
-import 'util/test_utils.dart';
-
 void main() {
   group('isDartFileName', () {
     testEach(['foo.dart'], isDartFileName, isTrue);
@@ -40,11 +38,6 @@ void main() {
     );
   });
 
-  group('pubspec', () {
-    testEach(['pubspec.yaml', '_pubspec.yaml'], isPubspecFileName, isTrue);
-    testEach(['__pubspec.yaml', 'foo.yaml'], isPubspecFileName, isFalse);
-  });
-
   group('camel case', () {
     group('upper', () {
       var good = [
@@ -64,21 +57,6 @@ void main() {
       testEach(good, isCamelCase, isTrue);
       var bad = ['fooBar', 'foo', 'f', '_f', 'F_B'];
       testEach(bad, isCamelCase, isFalse);
-    });
-
-    group('CamelCaseString', () {
-      test('invalid creation', () {
-        expect(
-          () => CamelCaseString('invalid'),
-          throwsA(TypeMatcher<ArgumentError>()),
-        );
-      });
-      test('toString', () {
-        expect(CamelCaseString('CamelCase').toString(), 'CamelCase');
-      });
-      test('humanize', () {
-        expect(CamelCaseString('CamelCase').humanized, 'Camel Case');
-      });
     });
   });
 
@@ -122,25 +100,6 @@ void main() {
       '_1',
     ];
     testEach(bad, isValidLibraryPrefix, isFalse);
-  });
-
-  group('lower_case_underscores', () {
-    var good = ['foo_bar', 'foo', 'foo_bar_baz', 'p', 'p1', 'p21', 'p1ll0'];
-    testEach(good, isLowerCaseUnderScore, isTrue);
-
-    var bad = [
-      'Foo',
-      'fooBar',
-      'foo_Bar',
-      'foo_',
-      '_f',
-      'F_B',
-      'JS',
-      'JSON',
-      '1',
-      '1b',
-    ];
-    testEach(bad, isLowerCaseUnderScore, isFalse);
   });
 
   group('isLowerCaseUnderScoreWithDots', () {
@@ -203,4 +162,10 @@ void main() {
     var bad = ['a', '1', 'z'].map((c) => c.codeUnitAt(0));
     testEach(bad, isUpperCase, isFalse);
   });
+}
+
+void testEach<T>(Iterable<T> values, bool Function(T s) f, Matcher m) {
+  for (var s in values) {
+    test('"$s"', () => expect(f(s), m));
+  }
 }

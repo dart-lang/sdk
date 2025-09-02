@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -24,13 +26,16 @@ class StrictTopLevelInference extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.strict_top_level_inference_add_type,
-    LinterLintCode.strict_top_level_inference_replace_keyword,
-    LinterLintCode.strict_top_level_inference_split_to_types,
+    LinterLintCode.strictTopLevelInferenceAddType,
+    LinterLintCode.strictTopLevelInferenceReplaceKeyword,
+    LinterLintCode.strictTopLevelInferenceSplitToTypes,
   ];
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addConstructorDeclaration(this, visitor);
     registry.addFunctionDeclaration(this, visitor);
@@ -93,8 +98,9 @@ class _Visitor extends SimpleAstVisitor<void> {
         node.parent is! FieldDeclaration) {
       return;
     }
-    var variablesMissingAnInitializer =
-        node.variables.where((v) => v.initializer == null).toList();
+    var variablesMissingAnInitializer = node.variables
+        .where((v) => v.initializer == null)
+        .toList();
 
     if (variablesMissingAnInitializer.isEmpty) return;
 
@@ -118,8 +124,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (overriddenMember == null) {
           rule.reportAtToken(
             variable.name,
-            diagnosticCode:
-                LinterLintCode.strict_top_level_inference_split_to_types,
+            diagnosticCode: LinterLintCode.strictTopLevelInferenceSplitToTypes,
           );
         }
       }
@@ -179,7 +184,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!_isOverride(node, element)) {
       rule.reportAtToken(
         node.name,
-        diagnosticCode: LinterLintCode.strict_top_level_inference_add_type,
+        diagnosticCode: LinterLintCode.strictTopLevelInferenceAddType,
       );
     }
   }
@@ -202,7 +207,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (node.returnType == null) {
         rule.reportAtToken(
           node.name,
-          diagnosticCode: LinterLintCode.strict_top_level_inference_add_type,
+          diagnosticCode: LinterLintCode.strictTopLevelInferenceAddType,
         );
       }
       if (node.parameters case var parameters?) {
@@ -235,7 +240,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!_isOverride(node, element)) {
       rule.reportAtToken(
         node.name,
-        diagnosticCode: LinterLintCode.strict_top_level_inference_add_type,
+        diagnosticCode: LinterLintCode.strictTopLevelInferenceAddType,
       );
     }
   }
@@ -253,14 +258,13 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (keyword == null || keyword.type == Keyword.FINAL) {
       rule.reportAtToken(
         errorToken,
-        diagnosticCode: LinterLintCode.strict_top_level_inference_add_type,
+        diagnosticCode: LinterLintCode.strictTopLevelInferenceAddType,
       );
     } else if (keyword.type == Keyword.VAR) {
       rule.reportAtToken(
         errorToken,
         arguments: [keyword.lexeme],
-        diagnosticCode:
-            LinterLintCode.strict_top_level_inference_replace_keyword,
+        diagnosticCode: LinterLintCode.strictTopLevelInferenceReplaceKeyword,
       );
     }
   }

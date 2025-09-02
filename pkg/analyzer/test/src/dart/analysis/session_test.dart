@@ -317,8 +317,9 @@ class B {}
     var parsedLibrary = session.getParsedLibraryValid(testFile);
 
     var element = libraryResult.element.getClass('A')!;
-    var declaration =
-        parsedLibrary.getFragmentDeclaration(element.firstFragment)!;
+    var declaration = parsedLibrary.getFragmentDeclaration(
+      element.firstFragment,
+    )!;
     var node = declaration.node as ClassDeclaration;
     expect(node.name.lexeme, 'A');
     expect(node.offset, 0);
@@ -581,16 +582,18 @@ class B2 extends X {}
     expect(bUnitResult.unit.declarations, hasLength(2));
     expect(bUnitResult.diagnostics, isNotEmpty);
 
-    var aDeclaration =
-        resolvedLibrary.getFragmentDeclaration(aClass.firstFragment)!;
+    var aDeclaration = resolvedLibrary.getFragmentDeclaration(
+      aClass.firstFragment,
+    )!;
     var aNode = aDeclaration.node as ClassDeclaration;
     expect(aNode.name.lexeme, 'A');
     expect(aNode.offset, 16);
     expect(aNode.length, 16);
     expect(aNode.declaredFragment!.name, 'A');
 
-    var bDeclaration =
-        resolvedLibrary.getFragmentDeclaration(bClass.firstFragment)!;
+    var bDeclaration = resolvedLibrary.getFragmentDeclaration(
+      bClass.firstFragment,
+    )!;
     var bNode = bDeclaration.node as ClassDeclaration;
     expect(bNode.name.lexeme, 'B');
     expect(bNode.offset, 19);

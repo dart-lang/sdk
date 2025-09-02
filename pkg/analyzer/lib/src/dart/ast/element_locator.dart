@@ -43,7 +43,7 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitCatchClauseParameter(CatchClauseParameter node) {
-    return node.declaredElement;
+    return node.declaredFragment?.element;
   }
 
   @override
@@ -80,12 +80,12 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitDeclaredIdentifier(DeclaredIdentifier node) {
-    return node.declaredElement;
+    return node.declaredFragment?.element;
   }
 
   @override
   Element? visitDeclaredVariablePattern(DeclaredVariablePattern node) {
-    return node.declaredElement;
+    return node.declaredFragment?.element;
   }
 
   @override
@@ -309,6 +309,6 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitVariableDeclaration(VariableDeclaration node) {
-    return node.declaredFragment?.element ?? node.declaredElement;
+    return node.declaredFragment?.element ?? node.declaredFragment?.element;
   }
 }

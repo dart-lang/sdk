@@ -62,7 +62,7 @@ missing_parameter_for_argument() {
 ''',
       [
         // No lint
-        error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 57, 1),
+        error(CompileTimeErrorCode.extraPositionalArguments, 57, 1),
       ],
     );
   }
@@ -372,7 +372,7 @@ void bug2813() {
 ''',
       [
         // No lint
-        error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 26, 1),
+        error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 26, 1),
       ],
     );
   }

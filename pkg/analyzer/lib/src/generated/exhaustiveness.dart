@@ -10,8 +10,7 @@ import 'package:_fe_analyzer_shared/src/exhaustiveness/shared.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/types.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
-    show Variance;
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart' show Variance;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -476,7 +475,14 @@ class MissingPatternEnumValuePart extends MissingPatternPart {
   String toString() => value2.name!;
 }
 
-abstract class MissingPatternPart {}
+abstract class MissingPatternPart {
+  /// Expando associating each
+  /// [CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION] or
+  /// [CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT] diagnostic with a
+  /// list of missing patterns; this data is used by the analysis server to add
+  /// missing switch cases.
+  static final byDiagnostic = Expando<List<List<MissingPatternPart>>>();
+}
 
 class MissingPatternTextPart extends MissingPatternPart {
   final String text;
@@ -561,7 +567,7 @@ class PatternConverter with SpaceCreator<DartPattern, TypeImpl> {
       return createVariableSpace(
         path,
         contextType,
-        pattern.declaredElement!.type,
+        pattern.declaredFragment!.element.type,
         nonNull: nonNull,
       );
     } else if (pattern is ObjectPattern) {

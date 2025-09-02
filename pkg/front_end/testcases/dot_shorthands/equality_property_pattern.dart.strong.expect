@@ -16,6 +16,7 @@ static method main() → void {
   self::Color c = #C3;
   {
     final synthesized self::Color #0#0 = c;
+    final const synthesized self::Color #0#1 = #C6;
     if(#0#0 =={core::Object::==}{(core::Object) → core::bool} #C6)
       core::print("ok");
   }

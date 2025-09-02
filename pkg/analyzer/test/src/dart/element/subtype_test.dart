@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
-    show Variance;
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart' show Variance;
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -2420,6 +2419,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     isNotSubtype(I_none, M_none, strT0: 'I', strT1: 'M');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_interfaceType_mixin_augmented_superclassConstraints() {
     var M = mixin_2(name: 'M');
     var C = class_2(name: 'C');

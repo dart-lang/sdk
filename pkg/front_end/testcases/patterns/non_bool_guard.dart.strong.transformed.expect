@@ -24,6 +24,7 @@ static method test1(core::List<core::int> v) → core::String {
   #L1:
   {
     final synthesized core::List<core::int> #0#0 = v;
+    final const synthesized core::int #0#2 = #C1;
     {
       hoisted core::int a;
       if(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t1 = a = #0#0.{core::List::[]}(0){(core::int) → core::int} in true) && invalid-expression "pkg/front_end/testcases/patterns/non_bool_guard.dart:7:28: Error: Conditions must have a static type of 'bool'.
@@ -47,6 +48,7 @@ Try changing the condition.
 static method test2(core::List<core::int> v) → core::String {
   {
     final synthesized core::List<core::int> #0#0 = v;
+    final const synthesized core::int #0#2 = #C1;
     {
       hoisted core::int a;
       if(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t2 = a = #0#0.{core::List::[]}(0){(core::int) → core::int} in true) && invalid-expression "pkg/front_end/testcases/patterns/non_bool_guard.dart:15:32: Error: Conditions must have a static type of 'bool'.
@@ -63,6 +65,7 @@ static method test3(core::List<core::int> v) → core::String
   return block {
     core::String #t3;
     final synthesized core::List<core::int> #0#0 = v;
+    final const synthesized core::int #0#2 = #C1;
     #L2:
     {
       {

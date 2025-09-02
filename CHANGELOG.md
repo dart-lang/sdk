@@ -2,6 +2,74 @@
 
 **Released on:** Unreleased
 
+### Language
+
+Dart 3.10 adds [dot shorthands][dot-shorthand-spec] to the language. To use
+them, set your package's [SDK constraint][language version] lower bound to 3.10
+or greater (`sdk: '^3.10.0'`).
+
+Dart 3.10 also adjusts the inferred return type of a generator function (`sync*`
+or `async*`) to avoid introducing unneeded nullability.
+
+#### Dot shorthands
+
+Dot shorthands allow you to omit the type name when accessing a static member
+in a context where that type is expected.
+
+These are some examples of ways you can use dot shorthands:
+
+```dart
+Color color = .blue;
+switch (color) {
+  case .blue:
+    print('blue');
+  case .red:
+    print('red');
+  case .green:
+    print('green');
+}
+```
+
+```dart
+Column(
+  crossAxisAlignment: .start,
+  mainAxisSize: .min,
+  children: widgets,
+)
+```
+
+To learn more about the feature, check out the
+[feature specification][dot-shorthand-spec].
+
+[dot-shorthand-spec]: https://github.com/dart-lang/language/blob/main/working/3616%20-%20enum%20value%20shorthand/proposal-simple-lrhn.md
+
+#### Eliminate spurious Null from generator return type
+
+The following local function `f` used to have return type `Iterable<int?>`.
+The question mark in this type is spurious because the returned iterable
+will never contain null (`return;` stops the iteration, it does not add null
+to the iterable). This feature makes the return type `Iterable<int>`.
+
+```dart
+void main() {
+  f() sync* {
+    yield 1;
+    return;
+  }
+}
+```
+
+This change may cause some code elements to be flagged as unnecessary. For
+example, `f().first?.isEven` is flagged, and `f().first.isEven` is recommended
+instead.
+
+### Tools
+
+#### Analyzer
+
+- Lint rules which are incompatible with each other and which are specified in
+  included analysis options files are now reported.
+
 #### Dart CLI and Dart VM
 
 - The Dart CLI and Dart VM have been split into two seperate executables.
@@ -26,6 +94,7 @@
 
 - **Breaking Change** [#56468][]: Marked `IOOverrides` as an `abstract base`
   class.
+- Added ability to override behavior of `exit(...)` to `IOOverrides`.
 
 [#56468]: https://github.com/dart-lang/sdk/issues/56468
 
@@ -34,12 +103,18 @@
 - `JSArray.add` is added to avoid cases where during migration from `List` to
   `JSArray`, `JSAnyOperatorExtension.add` is accidentally used. See [#59830][]
   for more details.
+- `isA<JSBoxedDartObject>` now checks that the value was the result of a
+  `toJSBox` operation instead of returning true for all objects.
+- For object literals created from extension type factories, the `@JS()`
+  annotation can now be used to change the name of keys in JavaScript. See
+  [#55138][] for more details.
 
 [#59830]: https://github.com/dart-lang/sdk/issues/59830
+[#55138]: https://github.com/dart-lang/sdk/issues/55138
 
 ## 3.9.0
 
-**Released on:** Unreleased
+**Released on:** 2025-08-13
 
 ### Language
 
@@ -75,7 +150,40 @@ constraint][language version] lower bound to 3.9 or greater (`sdk: '^3.9.0'`).
 
 - Add the [`switch_on_type`][] lint rule.
 - Add the [`unnecessary_unawaited`][] lint rule.
-- Add an assist to convert a field formal parameter to a normal parameter.
+- Support a new annotation, `@awaitNotRequired`, which is used by the
+  `discarded_futures` and `unawaited_futures` lint rules.
+- Improve the `avoid_types_as_parameter_names` lint rule to include type
+  parameters.
+- The definition of an "obvious type" is expanded for the relevant lint rules,
+  to include the type of a parameter.
+- Many small improvements to the `discarded_futures` and `unawaited_futures`
+  lint rules.
+- The code that calculates fixes and assists has numerous performance
+  improvements.
+- A new "Remove async" assist is available.
+- A new "Convert to normal parameter" assist is available for field formal
+  parameters.
+- New fixes are available for the following diagnostics:
+  - `for_in_of_invalid_type`
+  - `implicit_this_reference_in_initializer`
+  - `prefer_foreach`
+  - `undefined_operator`
+  - `use_if_null_to_convert_nulls_to_bools`
+- Numerous fixes and improvements are included in the "create method," "create
+  getter," "create mixin," "add super constructor," and "replace final with
+  var" fixes.
+- Dependencies listed in `dependency_overrides` in a `pubspec.yaml` file now
+  have document links to pub.dev.
+- Improvements to type parameters and type arguments in the LSP type hierarchy.
+- Folding try/catch/finally blocks is now supported for LSP clients.
+- Improve code completion suggestions with regards to operators, extension
+  members, named parameters, doc comments, patterns, collection if-elements and
+  for-elements, and more.
+- Improve syntax highlighting of escape sequences in string literals.
+- Add "library cycle" information to the diagnostic pages.
+- (Thanks [@FMorschel](https://github.com/FMorschel) for many of the above
+  enhancements!)
+
 
 [dart command-line tool]: https://dart.dev/tools/dart-tool
 [vs-code-args]: https://dartcode.org/docs/settings/#dartanalyzeradditionalargs
@@ -158,6 +266,28 @@ when the target OS is Linux.
   See https://github.com/flutter/flutter/issues/95472 for details.
 
 [Git dependencies]: https://dart.dev/tools/pub/dependencies#git-packages
+
+## 3.8.3
+
+**Released on:** 2025-07-31
+
+This is a patch release that:
+
+- Fixes an issue with the DevTools Network screen and Hot Restart (issue [flutter/devtools#9203])
+- Fixes an issue when clearing the DevTools network screen (issue [#61187])
+
+[flutter/devtools#9203]: https://github.com/flutter/devtools/issues/9203
+[#61187]: https://github.com/dart-lang/sdk/issues/61187
+
+## 3.8.2
+
+**Released on:** 2025-07-16
+
+This is a patch release that:
+
+- Fixes an issue with the size of cross-compiled binaries (issue [#61097])
+
+[#61097]: https://github.com/dart-lang/sdk/issues/61097
 
 ## 3.8.1
 

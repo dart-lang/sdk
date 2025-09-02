@@ -132,7 +132,7 @@ library
           reference: <testLibrary>::@class::D::@constructor::new
           firstFragment: #F8
   mixins
-    mixin M
+    hasNonFinalField mixin M
       reference: <testLibrary>::@mixin::M
       firstFragment: #F9
       typeParameters
@@ -230,6 +230,125 @@ library
       firstFragment: #F1
       superclassConstraints
         Object
+''');
+  }
+
+  test_mixin_cycle_interfaces() async {
+    var library = await buildLibrary(r'''
+mixin A implements B {}
+mixin B implements A {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      mixins
+        #F1 mixin A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@mixin::A
+        #F2 mixin B (nameOffset:30) (firstTokenOffset:24) (offset:30)
+          element: <testLibrary>::@mixin::B
+  mixins
+    mixin A
+      reference: <testLibrary>::@mixin::A
+      firstFragment: #F1
+      superclassConstraints
+        Object
+    mixin B
+      reference: <testLibrary>::@mixin::B
+      firstFragment: #F2
+      superclassConstraints
+        Object
+''');
+  }
+
+  test_mixin_cycle_superclassConstraints() async {
+    var library = await buildLibrary(r'''
+mixin A on B {}
+mixin B on A {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      mixins
+        #F1 mixin A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@mixin::A
+        #F2 mixin B (nameOffset:22) (firstTokenOffset:16) (offset:22)
+          element: <testLibrary>::@mixin::B
+  mixins
+    mixin A
+      reference: <testLibrary>::@mixin::A
+      firstFragment: #F1
+      superclassConstraints
+        Object
+    mixin B
+      reference: <testLibrary>::@mixin::B
+      firstFragment: #F2
+      superclassConstraints
+        Object
+''');
+  }
+
+  test_mixin_field_inferredType() async {
+    var library = await buildLibrary('''
+mixin M {
+  var x = 0;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      mixins
+        #F1 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@mixin::M
+          fields
+            #F2 hasInitializer x (nameOffset:16) (firstTokenOffset:16) (offset:16)
+              element: <testLibrary>::@mixin::M::@field::x
+          getters
+            #F3 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+              element: <testLibrary>::@mixin::M::@getter::x
+          setters
+            #F4 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+              element: <testLibrary>::@mixin::M::@setter::x
+              formalParameters
+                #F5 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+                  element: <testLibrary>::@mixin::M::@setter::x::@formalParameter::value
+  mixins
+    hasNonFinalField mixin M
+      reference: <testLibrary>::@mixin::M
+      firstFragment: #F1
+      superclassConstraints
+        Object
+      fields
+        hasInitializer x
+          reference: <testLibrary>::@mixin::M::@field::x
+          firstFragment: #F2
+          type: int
+          getter: <testLibrary>::@mixin::M::@getter::x
+          setter: <testLibrary>::@mixin::M::@setter::x
+      getters
+        synthetic x
+          reference: <testLibrary>::@mixin::M::@getter::x
+          firstFragment: #F3
+          returnType: int
+          variable: <testLibrary>::@mixin::M::@field::x
+      setters
+        synthetic x
+          reference: <testLibrary>::@mixin::M::@setter::x
+          firstFragment: #F4
+          formalParameters
+            #E0 requiredPositional value
+              firstFragment: #F5
+              type: int
+          returnType: void
+          variable: <testLibrary>::@mixin::M::@field::x
 ''');
   }
 

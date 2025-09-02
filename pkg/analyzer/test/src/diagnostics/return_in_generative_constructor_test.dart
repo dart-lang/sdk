@@ -22,7 +22,7 @@ class A {
   A() { return 0; }
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR, 25, 1)],
+      [error(CompileTimeErrorCode.returnInGenerativeConstructor, 25, 1)],
     );
   }
 
@@ -33,7 +33,7 @@ class A {
   A() => A();
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR, 16, 7)],
+      [error(CompileTimeErrorCode.returnInGenerativeConstructor, 16, 7)],
     );
   }
 

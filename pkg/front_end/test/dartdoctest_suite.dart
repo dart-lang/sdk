@@ -8,13 +8,14 @@ import 'package:testing/testing.dart'
 import '../tool/dart_doctest_impl.dart';
 import 'utils/suite_utils.dart';
 
-void main([List<String> arguments = const []]) => internalMain(createContext,
-    arguments: arguments,
-    displayName: "dartdoctest suite",
-    configurationPath: "../testing.json");
+void main([List<String> arguments = const []]) => internalMain(
+  createContext,
+  arguments: arguments,
+  displayName: "dartdoctest suite",
+  configurationPath: "../testing.json",
+);
 
-Future<Context> createContext(
-    Chain suite, Map<String, String> environment) {
+Future<Context> createContext(Chain suite, Map<String, String> environment) {
   return new Future.value(new Context(suite.name));
 }
 
@@ -24,9 +25,7 @@ class Context extends ChainContext {
   Context(this.suiteName);
 
   @override
-  final List<Step> steps = const <Step>[
-    const DartDocTestStep(),
-  ];
+  final List<Step> steps = const <Step>[const DartDocTestStep()];
 
   @override
   Future<List<DartDocTestTestDescription>> list(Chain suite) async {
@@ -35,7 +34,8 @@ class Context extends ChainContext {
       List<Test> tests = await dartDocTest.extractTestsFromUri(entry.uri);
       if (tests.isEmpty) continue;
       result.add(
-          new DartDocTestTestDescription(entry.shortName, entry.uri, tests));
+        new DartDocTestTestDescription(entry.shortName, entry.uri, tests),
+      );
     }
     return result;
   }
@@ -53,8 +53,9 @@ class DartDocTestTestDescription extends TestDescription {
   DartDocTestTestDescription(this.shortName, this.uri, this.tests);
 }
 
-class DartDocTestStep extends Step<DartDocTestTestDescription,
-    DartDocTestTestDescription, Context> {
+class DartDocTestStep
+    extends
+        Step<DartDocTestTestDescription, DartDocTestTestDescription, Context> {
   const DartDocTestStep();
 
   @override
@@ -62,9 +63,13 @@ class DartDocTestStep extends Step<DartDocTestTestDescription,
 
   @override
   Future<Result<DartDocTestTestDescription>> run(
-      DartDocTestTestDescription description, Context context) async {
-    List<TestResult> result = await context.dartDocTest
-        .compileAndRun(description.uri, description.tests);
+    DartDocTestTestDescription description,
+    Context context,
+  ) async {
+    List<TestResult> result = await context.dartDocTest.compileAndRun(
+      description.uri,
+      description.tests,
+    );
     bool boolResult = result
         .map((e) => e.outcome == TestOutcome.Pass)
         .fold(true, (previousValue, element) => previousValue && element);

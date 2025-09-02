@@ -391,7 +391,7 @@ K k() {
 ''',
       [
         // No lint
-        error(WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR, 90, 3),
+        error(WarningCode.nonConstCallToLiteralConstructor, 90, 3),
       ],
     );
   }
@@ -413,7 +413,7 @@ K k() {
 ''',
       [
         // No lint
-        error(WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR, 88, 6),
+        error(WarningCode.nonConstCallToLiteralConstructor, 88, 6),
       ],
     );
   }

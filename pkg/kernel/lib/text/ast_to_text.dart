@@ -240,6 +240,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   int column = 0;
   bool showOffsets;
   bool showMetadata;
+  bool showLibraryForNames;
   Library? _currentLibrary;
 
   static final int SPACE = 0;
@@ -251,6 +252,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
       {NameSystem? syntheticNames,
       this.showOffsets = false,
       this.showMetadata = false,
+      this.showLibraryForNames = false,
       this.importTable,
       this.annotator,
       this.metadata})
@@ -429,6 +431,12 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     Printer inner = createInner(imports, library.enclosingComponent?.metadata);
     inner.writeStandardLibraryContent(library,
         outerPrinter: this, importsToPrint: imports);
+  }
+
+  void writeProcedureInLibrary(Procedure procedure, Library library) {
+    _currentLibrary = library;
+    visitProcedure(procedure);
+    _currentLibrary = null;
   }
 
   void printLibraryImportTable(LibraryImportTable imports) {
@@ -704,7 +712,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   }
 
   void writeName(Name name, {bool showLibrary = false}) {
-    if (showLibrary &&
+    if ((showLibrary || showLibraryForNames) &&
         name.isPrivate &&
         name.libraryReference != _currentLibrary?.reference) {
       writeWord('${getLibraryReference(name.libraryReference!)}::${name.text}');

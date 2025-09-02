@@ -50,9 +50,9 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
 
   /// Return `true` if references to the constant-update-2018 features need to
   /// be checked.
-  bool get checkTripleShift =>
-      _checkTripleShift ??=
-          !before_2_14_0.intersect(_versionConstraint).isEmpty;
+  bool get checkTripleShift => _checkTripleShift ??= !before_2_14_0
+      .intersect(_versionConstraint)
+      .isEmpty;
 
   @override
   void visitArgumentList(ArgumentList node) {
@@ -82,7 +82,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
       if (operatorType == TokenType.GT_GT_GT) {
         _errorReporter.atToken(
           node.operator,
-          WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR,
+          WarningCode.sdkVersionGtGtGtOperator,
         );
       }
     }
@@ -115,10 +115,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     if (checkTripleShift && node.isOperator && node.name.lexeme == '>>>') {
-      _errorReporter.atToken(
-        node.name,
-        WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR,
-      );
+      _errorReporter.atToken(node.name, WarningCode.sdkVersionGtGtGtOperator);
     }
     super.visitMethodDeclaration(node);
   }
@@ -199,7 +196,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
         }
         _errorReporter.atEntity(
           errorEntity,
-          WarningCode.SDK_VERSION_SINCE,
+          WarningCode.sdkVersionSince,
           arguments: [
             sinceSdkVersion.toString(),
             _versionConstraint.toString(),

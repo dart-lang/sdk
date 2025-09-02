@@ -12,15 +12,19 @@ import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart';
 
 Future<void> main(List<String> args) async {
-  Directory dataDir = new Directory.fromUri(Platform.script
-      .resolve('../../../_fe_analyzer_shared/test/flow_analysis/type_promotion/'
-          'data'));
-  await runTests<DartType>(dataDir,
-      args: args,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest:
-          runTestFor(const TypePromotionDataComputer(), [defaultCfeConfig]));
+  Directory dataDir = new Directory.fromUri(
+    Platform.script.resolve(
+      '../../../_fe_analyzer_shared/test/flow_analysis/type_promotion/'
+      'data',
+    ),
+  );
+  await runTests<DartType>(
+    dataDir,
+    args: args,
+    createUriForFileName: createUriForFileName,
+    onFailure: onFailure,
+    runTest: runTestFor(const TypePromotionDataComputer(), [defaultCfeConfig]),
+  );
 }
 
 class TypePromotionDataComputer extends CfeDataComputer<DartType> {
@@ -37,18 +41,23 @@ class TypePromotionDataComputer extends CfeDataComputer<DartType> {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeMemberData(CfeTestResultData testResultData, Member member,
-      Map<Id, ActualData<DartType>> actualMap,
-      {bool? verbose}) {
-    member.accept(new TypePromotionDataExtractor(
-        testResultData.compilerResult, actualMap));
+  void computeMemberData(
+    CfeTestResultData testResultData,
+    Member member,
+    Map<Id, ActualData<DartType>> actualMap, {
+    bool? verbose,
+  }) {
+    member.accept(
+      new TypePromotionDataExtractor(testResultData.compilerResult, actualMap),
+    );
   }
 }
 
 class TypePromotionDataExtractor extends CfeDataExtractor<DartType> {
-  TypePromotionDataExtractor(InternalCompilerResult compilerResult,
-      Map<Id, ActualData<DartType>> actualMap)
-      : super(compilerResult, actualMap);
+  TypePromotionDataExtractor(
+    InternalCompilerResult compilerResult,
+    Map<Id, ActualData<DartType>> actualMap,
+  ) : super(compilerResult, actualMap);
 
   @override
   DartType? computeNodeValue(Id id, TreeNode node) {

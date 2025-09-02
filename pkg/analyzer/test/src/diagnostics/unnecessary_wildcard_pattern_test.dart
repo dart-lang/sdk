@@ -30,7 +30,7 @@ void f(Object? x) {
   if (x case _ && 0) {}
 }
 ''',
-      [error(WarningCode.UNNECESSARY_WILDCARD_PATTERN, 33, 1)],
+      [error(WarningCode.unnecessaryWildcardPattern, 33, 1)],
     );
   }
 
@@ -41,7 +41,7 @@ void f(Object? x) {
   if (x case 0 && _) {}
 }
 ''',
-      [error(WarningCode.UNNECESSARY_WILDCARD_PATTERN, 38, 1)],
+      [error(WarningCode.unnecessaryWildcardPattern, 38, 1)],
     );
   }
 
@@ -52,7 +52,7 @@ void f(Object? x) {
   if (x case (_) && 0) {}
 }
 ''',
-      [error(WarningCode.UNNECESSARY_WILDCARD_PATTERN, 34, 1)],
+      [error(WarningCode.unnecessaryWildcardPattern, 34, 1)],
     );
   }
 
@@ -71,7 +71,7 @@ void f(int x) {
   if (x case int _ && > 0) {}
 }
 ''',
-      [error(WarningCode.UNNECESSARY_WILDCARD_PATTERN, 29, 5)],
+      [error(WarningCode.unnecessaryWildcardPattern, 29, 5)],
     );
   }
 
@@ -98,7 +98,7 @@ void f(Object? x) {
   if (x case _ || 0) {}
 }
 ''',
-      [error(WarningCode.DEAD_CODE, 35, 4)],
+      [error(WarningCode.deadCode, 35, 4)],
     );
   }
 
@@ -167,7 +167,7 @@ void f(Object? x) {
   });
 }
 ''',
-      [error(WarningCode.UNNECESSARY_WILDCARD_PATTERN, 45, 1)],
+      [error(WarningCode.unnecessaryWildcardPattern, 45, 1)],
     );
   }
 
@@ -191,7 +191,7 @@ void f(Object? x) {
   }
 }
 ''',
-      [error(WarningCode.UNNECESSARY_WILDCARD_PATTERN, 49, 1)],
+      [error(WarningCode.unnecessaryWildcardPattern, 49, 1)],
     );
   }
 

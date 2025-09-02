@@ -27,7 +27,7 @@ f(var message, var dynamic_) {
   int s = message;
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 94, 1)],
+      [error(WarningCode.unusedLocalVariable, 94, 1)],
     );
   }
 
@@ -45,7 +45,7 @@ f(var message) {
   int s = message;
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 119, 1)],
+      [error(WarningCode.unusedLocalVariable, 119, 1)],
     );
   }
 
@@ -62,7 +62,7 @@ f(var message) {
   String s = message;
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 100, 1)],
+      [error(WarningCode.unusedLocalVariable, 100, 1)],
     );
   }
 
@@ -152,7 +152,7 @@ class PubSuggestionCodeTest extends PubPackageResolutionTest {
       '''
 import 'package:somepackage/other.dart';
 ''',
-      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 0, 0)],
+      [error(CompileTimeErrorCode.uriDoesNotExist, 0, 0)],
     );
   }
 

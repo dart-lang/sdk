@@ -3089,6 +3089,7 @@ void Assembler::TsanLoadAcquire(Register dst,
   ASSERT(addr.base() != FP);
   ASSERT(dst != SP);
   ASSERT(dst != FP);
+  Comment("TsanLoadAcquire");
 
   RegisterSet registers(kDartVolatileCpuRegs & ~(1 << dst),
                         kAbiVolatileFpuRegs);
@@ -3104,7 +3105,7 @@ void Assembler::TsanLoadAcquire(Register dst,
   ReserveAlignedFrameSpace(0);
 
   AddImmediate(A0, addr.base(), addr.offset());
-  LoadImmediate(A1, __ATOMIC_ACQUIRE);
+  LoadImmediate(A1, static_cast<intx_t>(std::memory_order_acquire));
 
   switch (size) {
     case kEightBytes:
@@ -3144,6 +3145,7 @@ void Assembler::TsanStoreRelease(Register src,
   ASSERT(addr.base() != FP);
   ASSERT(src != SP);
   ASSERT(src != FP);
+  Comment("TsanStoreRelease");
 
   LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
 
@@ -3154,7 +3156,7 @@ void Assembler::TsanStoreRelease(Register src,
     AddImmediate(A0, addr.base(), addr.offset());
     MoveRegister(A1, src);
   }
-  LoadImmediate(A2, __ATOMIC_RELEASE);
+  LoadImmediate(A2, static_cast<intx_t>(std::memory_order_release));
 
   switch (size) {
     case kEightBytes:
@@ -3168,6 +3170,72 @@ void Assembler::TsanStoreRelease(Register src,
       UNIMPLEMENTED();
       break;
   }
+}
+
+void Assembler::TsanRead(Register addr, intptr_t size) {
+  Comment("TsanRead");
+  LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
+  MoveRegister(A0, addr);
+  switch (size) {
+    case 1:
+      rt.Call(kTsanRead1RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 2:
+      rt.Call(kTsanRead2RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 4:
+      rt.Call(kTsanRead4RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 8:
+      rt.Call(kTsanRead8RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 16:
+      rt.Call(kTsanRead16RuntimeEntry, /*argument_count=*/1);
+      break;
+    default:
+      UNREACHABLE();
+  }
+}
+
+void Assembler::TsanWrite(Register addr, intptr_t size) {
+  Comment("TsanWrite");
+  LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
+  MoveRegister(A0, addr);
+  switch (size) {
+    case 1:
+      rt.Call(kTsanWrite1RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 2:
+      rt.Call(kTsanWrite2RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 4:
+      rt.Call(kTsanWrite4RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 8:
+      rt.Call(kTsanWrite8RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 16:
+      rt.Call(kTsanWrite16RuntimeEntry, /*argument_count=*/1);
+      break;
+    default:
+      UNREACHABLE();
+  }
+}
+
+void Assembler::TsanFuncEntry(bool preserve_registers) {
+  Comment("TsanFuncEntry");
+  LeafRuntimeScope rt(this, /*frame_size=*/0, preserve_registers);
+  lx(A0, Address(FP, target::frame_layout.saved_caller_fp_from_fp *
+                         target::kWordSize));
+  lx(A0, Address(A0, target::frame_layout.saved_caller_pc_from_fp *
+                         target::kWordSize));
+  rt.Call(kTsanFuncEntryRuntimeEntry, /*argument_count=*/1);
+}
+
+void Assembler::TsanFuncExit(bool preserve_registers) {
+  Comment("TsanFuncExit");
+  LeafRuntimeScope rt(this, /*frame_size=*/0, preserve_registers);
+  rt.Call(kTsanFuncExitRuntimeEntry, /*argument_count=*/0);
 }
 
 void Assembler::LoadAcquire(Register dst,
@@ -4802,17 +4870,26 @@ void Assembler::LeaveDartFrame(intptr_t fp_sp_dist) {
 }
 
 void Assembler::CallRuntime(const RuntimeEntry& entry,
-                            intptr_t argument_count) {
+                            intptr_t argument_count,
+                            bool tsan_enter_exit) {
   ASSERT(!entry.is_leaf());
   // Argument count is not checked here, but in the runtime entry for a more
   // informative error message.
+  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode &&
+      tsan_enter_exit) {
+    TsanFuncEntry(/*preserve_registers=*/false);
+  }
   lx(T5, compiler::Address(THR, entry.OffsetFromThread()));
   li(T4, argument_count);
   Call(Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
+  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode &&
+      tsan_enter_exit) {
+    TsanFuncExit(/*preserve_registers=*/false);
+  }
 }
 
 static const RegisterSet kRuntimeCallSavedRegisters(kDartVolatileCpuRegs,
-                                                    kAbiVolatileFpuRegs);
+                                                    kDartVolatileFpuRegs);
 
 #define __ assembler_->
 
@@ -4848,7 +4925,7 @@ LeafRuntimeScope::LeafRuntimeScope(Assembler* assembler,
 void LeafRuntimeScope::Call(const RuntimeEntry& entry,
                             intptr_t argument_count) {
   ASSERT(argument_count == entry.argument_count());
-  __ lx(TMP2, compiler::Address(THR, entry.OffsetFromThread()));
+  __ Load(TMP2, compiler::Address(THR, entry.OffsetFromThread()));
   __ sx(TMP2, compiler::Address(THR, target::Thread::vm_tag_offset()));
   __ jalr(TMP2);
   __ LoadImmediate(TMP2, VMTag::kDartTagId);

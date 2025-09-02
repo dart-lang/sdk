@@ -36,7 +36,12 @@ class Line {
   Line? next;
 
   Line(
-      this.content, this.uri, this.startOffset, this.endOffset, this.previous) {
+    this.content,
+    this.uri,
+    this.startOffset,
+    this.endOffset,
+    this.previous,
+  ) {
     if (previous != null) {
       previous!.next = this;
     }
@@ -63,15 +68,19 @@ class MultiMap<K, V> {
   }
 }
 
-void _indexLines(MultiMap<String, Line> mapped, Set<String> denyListed,
-    String data, Uri uri) {
+void _indexLines(
+  MultiMap<String, Line> mapped,
+  Set<String> denyListed,
+  String data,
+  Uri uri,
+) {
   // TODO(jensj): Work directly on scanned tokens, or use parser as well?
   // * Should probably only operate on body content, and then not cross bracket
   //   boundaries in that it should suggest that "foo; } } bar;" is a duplicate
   //   -- while it might be duplicate, we can't replace that with a function
   //   call (to get rid of duplicate code).
   // * If something is a string we could perhaps ignore the content so that
-/*
+  /*
     assert(declaration.parent == _libraryTypeParameterScopeBuilder);
     Map<String, Builder> members = declaration.members!;
     Map<String, MemberBuilder> constructors = declaration.constructors!;
@@ -85,7 +94,7 @@ void _indexLines(MultiMap<String, Line> mapped, Set<String> denyListed,
         isModifiable: false);
 */
   //   and
-/*
+  /*
     assert(declaration.parent == _libraryTypeParameterScopeBuilder);
     Map<String, Builder> members = declaration.members!;
     Map<String, MemberBuilder> constructors = declaration.constructors!;
@@ -148,8 +157,12 @@ void _indexLines(MultiMap<String, Line> mapped, Set<String> denyListed,
   }
 }
 
-void _extendIndexedLines(List<Line> lines, Set<Line> alreadyIncluded,
-    List<Duplicate> foundDuplicates, Set<String> denyListed) {
+void _extendIndexedLines(
+  List<Line> lines,
+  Set<Line> alreadyIncluded,
+  List<Duplicate> foundDuplicates,
+  Set<String> denyListed,
+) {
   int length = lines.length;
 
   if (length == 1) {
@@ -172,8 +185,12 @@ void _extendIndexedLines(List<Line> lines, Set<Line> alreadyIncluded,
   }
 
   // Can this potential duplicate be extended?
-  List<ExtendedLines>? extended = _extend(lines,
-      existingMatchCount: 1, leastMatches: 3, denyListed: denyListed);
+  List<ExtendedLines>? extended = _extend(
+    lines,
+    existingMatchCount: 1,
+    leastMatches: 3,
+    denyListed: denyListed,
+  );
   if (extended == null || extended.isEmpty) return;
   for (ExtendedLines extendedLine in extended) {
     for (Line line in extendedLine.startLines) {
@@ -197,8 +214,9 @@ void _extendIndexedLines(List<Line> lines, Set<Line> alreadyIncluded,
         lastLine = lastLine.next!;
         if (example == null) sb.writeln(lastLine.content);
       }
-      where.add(new FromToUri(
-          firstLine.uri, firstLine.startOffset, lastLine.endOffset));
+      where.add(
+        new FromToUri(firstLine.uri, firstLine.startOffset, lastLine.endOffset),
+      );
       example ??= sb.toString();
     }
     foundDuplicates.add(new Duplicate(where, example!));
@@ -264,10 +282,12 @@ would first find match1 match2 match3 --- then match0 match1 match2 match3.
 
 /// Given a list of lines that match, find duplicates that match on more lines,
 /// thereby extending and possibly splitting the match.
-List<ExtendedLines>? _extend(List<Line> lines,
-    {required int existingMatchCount,
-    required int leastMatches,
-    required Set<String> denyListed}) {
+List<ExtendedLines>? _extend(
+  List<Line> lines, {
+  required int existingMatchCount,
+  required int leastMatches,
+  required Set<String> denyListed,
+}) {
   MultiMap<String, Line> mapped = new MultiMap();
 
   // E.g. for this input
@@ -301,16 +321,19 @@ List<ExtendedLines>? _extend(List<Line> lines,
       leastMatches++;
     }
 
-    List<ExtendedLines>? extended = _extend(entry.value,
-        existingMatchCount: newMatchCount,
-        leastMatches: leastMatches,
-        denyListed: denyListed);
+    List<ExtendedLines>? extended = _extend(
+      entry.value,
+      existingMatchCount: newMatchCount,
+      leastMatches: leastMatches,
+      denyListed: denyListed,
+    );
     if (extended != null) {
       // Was extended further.
       (result ??= []).addAll(extended);
     } else if (newMatchCount >= leastMatches) {
       // Couldn't be extended further, but this was far enough.
-      (result ??= []).add(new ExtendedLines(
+      (result ??= []).add(
+        new ExtendedLines(
           entry.value.map((Line endLine) {
             Line line = endLine;
             int back = existingMatchCount;
@@ -320,7 +343,9 @@ List<ExtendedLines>? _extend(List<Line> lines,
             }
             return line;
           }).toList(),
-          newMatchCount));
+          newMatchCount,
+        ),
+      );
     }
   }
 
@@ -329,10 +354,14 @@ List<ExtendedLines>? _extend(List<Line> lines,
 
 Token _scan(String data) {
   ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
-      enableTripleShift: true, forAugmentationLibrary: false);
+    enableTripleShift: true,
+    forAugmentationLibrary: false,
+  );
 
-  StringScanner scanner =
-      new StringScanner(data, configuration: scannerConfiguration);
+  StringScanner scanner = new StringScanner(
+    data,
+    configuration: scannerConfiguration,
+  );
   Token firstToken = scanner.tokenize();
   return firstToken;
 }
@@ -342,7 +371,7 @@ void main(List<String> args) {
     args = [
       Platform.script
           .resolve("../lib/src/source/source_library_builder.dart")
-          .toFilePath()
+          .toFilePath(),
     ];
   }
   bool printed = false;

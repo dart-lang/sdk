@@ -63,7 +63,7 @@ augment class A {
 
     await resolveFile2(a);
     assertErrorsInResult([
-      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 42, 1),
+      error(CompileTimeErrorCode.duplicateConstructorDefault, 42, 1),
     ]);
   }
 
@@ -75,7 +75,7 @@ class C {
   C();
 }
 ''',
-      [error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 19, 1)],
+      [error(CompileTimeErrorCode.duplicateConstructorDefault, 19, 1)],
     );
   }
 
@@ -87,7 +87,7 @@ class C {
   C.new();
 }
 ''',
-      [error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 19, 5)],
+      [error(CompileTimeErrorCode.duplicateConstructorDefault, 19, 5)],
     );
   }
 
@@ -99,7 +99,7 @@ class C {
   C();
 }
 ''',
-      [error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 23, 1)],
+      [error(CompileTimeErrorCode.duplicateConstructorDefault, 23, 1)],
     );
   }
 
@@ -111,7 +111,7 @@ class C {
   C.new();
 }
 ''',
-      [error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 23, 5)],
+      [error(CompileTimeErrorCode.duplicateConstructorDefault, 23, 5)],
     );
   }
 
@@ -124,7 +124,7 @@ enum E {
   const E();
 }
 ''',
-      [error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 35, 1)],
+      [error(CompileTimeErrorCode.duplicateConstructorDefault, 35, 1)],
     );
   }
 
@@ -138,8 +138,8 @@ enum E {
 }
 ''',
       [
-        error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 35, 5),
-        error(WarningCode.UNUSED_ELEMENT, 37, 3),
+        error(CompileTimeErrorCode.duplicateConstructorDefault, 35, 5),
+        error(WarningCode.unusedElement, 37, 3),
       ],
     );
   }
@@ -153,7 +153,7 @@ enum E {
   const E();
 }
 ''',
-      [error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 39, 1)],
+      [error(CompileTimeErrorCode.duplicateConstructorDefault, 39, 1)],
     );
   }
 
@@ -167,8 +167,8 @@ enum E {
 }
 ''',
       [
-        error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 39, 5),
-        error(WarningCode.UNUSED_ELEMENT, 41, 3),
+        error(CompileTimeErrorCode.duplicateConstructorDefault, 39, 5),
+        error(WarningCode.unusedElement, 41, 3),
       ],
     );
   }
@@ -180,7 +180,7 @@ extension type A(int it) {
   A(this.it);
 }
 ''',
-      [error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 29, 1)],
+      [error(CompileTimeErrorCode.duplicateConstructorDefault, 29, 1)],
     );
   }
 
@@ -191,7 +191,7 @@ extension type A(int it) {
   A.new(this.it);
 }
 ''',
-      [error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 29, 5)],
+      [error(CompileTimeErrorCode.duplicateConstructorDefault, 29, 5)],
     );
   }
 
@@ -202,7 +202,7 @@ extension type A.new(int it) {
   A(this.it);
 }
 ''',
-      [error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 33, 1)],
+      [error(CompileTimeErrorCode.duplicateConstructorDefault, 33, 1)],
     );
   }
 
@@ -213,7 +213,7 @@ extension type A.new(int it) {
   A.new(this.it);
 }
 ''',
-      [error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 33, 5)],
+      [error(CompileTimeErrorCode.duplicateConstructorDefault, 33, 5)],
     );
   }
 }

@@ -152,7 +152,10 @@ class NativeArguments {
     return *retval_;
   }
 
-  uword GetCallerSP() const { return reinterpret_cast<uword>(retval_ + 1); }
+  uword GetCallerSP() const {
+    return reinterpret_cast<uword>(
+        retval_ + (ReverseArgOrderBit::decode(argc_tag_) ? 0 : 1));
+  }
 
   static intptr_t thread_offset() {
     return OFFSET_OF(NativeArguments, thread_);

@@ -30,13 +30,7 @@ import 'lib1.dart' deferred as a;
 const cond = true;
 var v = const { if (cond) 0: 1 else a.c : 0};
 ''',
-      [
-        error(
-          CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY,
-          0,
-          0,
-        ),
-      ],
+      [error(CompileTimeErrorCode.nonConstantMapKeyFromDeferredLibrary, 0, 0)],
     );
   }
 
@@ -49,13 +43,7 @@ import 'lib1.dart' deferred as a;
 const cond = true;
 var v = const { if (cond) a.c : 0};
 ''',
-      [
-        error(
-          CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY,
-          81,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.nonConstantMapKeyFromDeferredLibrary, 81, 1)],
     );
   }
 
@@ -67,13 +55,7 @@ const int c = 1;''');
 import 'lib1.dart' deferred as a;
 var v = const {a.c : 0};
 ''',
-      [
-        error(
-          CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY,
-          51,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.nonConstantMapKeyFromDeferredLibrary, 51, 1)],
     );
   }
 
@@ -85,13 +67,7 @@ const int c = 1;''');
 import 'lib1.dart' deferred as a;
 var v = const {a.c + 1 : 0};
 ''',
-      [
-        error(
-          CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY,
-          51,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.nonConstantMapKeyFromDeferredLibrary, 51, 1)],
     );
   }
 }

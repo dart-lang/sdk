@@ -595,10 +595,9 @@ main() {
   group('Final assertions:', () {
     bool assertionsEnabled = false;
     assert(assertionsEnabled = true);
-    var asserts =
-        assertionsEnabled
-            ? throwsA(TypeMatcher<AssertionError>())
-            : returnsNormally;
+    var asserts = assertionsEnabled
+        ? throwsA(TypeMatcher<AssertionError>())
+        : returnsNormally;
 
     test('finish may not be called twice', () {
       var assignedVariables = AssignedVariablesForTesting<_Node, _Variable>();

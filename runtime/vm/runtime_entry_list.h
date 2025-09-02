@@ -82,6 +82,7 @@ namespace dart {
   V(ClosureArgumentsValid)                                                     \
   V(ResolveCallFunction)                                                       \
   V(ResolveExternalCall)                                                       \
+  V(FfiCall)                                                                   \
   V(CheckFunctionArgumentTypes)                                                \
   V(InterpretedInstanceCallMissHandler)                                        \
   V(InvokeNoSuchMethod)                                                        \
@@ -131,6 +132,18 @@ namespace dart {
   V(void, TsanAtomic32Store, void*, uint32_t, int)                             \
   V(uint64_t, TsanAtomic64Load, void*, int)                                    \
   V(void, TsanAtomic64Store, void*, uint64_t, int)                             \
+  V(void, TsanRead1, void*)                                                    \
+  V(void, TsanRead2, void*)                                                    \
+  V(void, TsanRead4, void*)                                                    \
+  V(void, TsanRead8, void*)                                                    \
+  V(void, TsanRead16, void*)                                                   \
+  V(void, TsanWrite1, void*)                                                   \
+  V(void, TsanWrite2, void*)                                                   \
+  V(void, TsanWrite4, void*)                                                   \
+  V(void, TsanWrite8, void*)                                                   \
+  V(void, TsanWrite16, void*)                                                  \
+  V(void, TsanFuncEntry, void*)                                                \
+  V(void, TsanFuncExit)                                                        \
   V(bool, TryDoubleAsInteger, Thread*)                                         \
   V(void*, MemoryMove, void*, const void*, size_t)
 

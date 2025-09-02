@@ -444,8 +444,8 @@ class InvalidRuntimeCheckWithJSInteropTypesTest extends LintRuleTest {
     }
     ''',
       [
-        error(WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, 54, 13),
-        error(WarningCode.DEAD_CODE, 75, 17),
+        error(WarningCode.castFromNullAlwaysFails, 54, 13),
+        error(WarningCode.deadCode, 75, 17),
       ],
     );
   }
@@ -501,7 +501,7 @@ class InvalidRuntimeCheckWithJSInteropTypesTest extends LintRuleTest {
       null is JSArray?;
     }
     ''',
-      [error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 75, 16)],
+      [error(WarningCode.unnecessaryTypeCheckTrue, 75, 16)],
     );
   }
 
@@ -1269,12 +1269,12 @@ class InvalidRuntimeCheckWithJSInteropTypesTest extends LintRuleTest {
       if (typeTest.unnecessary) {
         if (cast) {
           lints.add(
-            error(WarningCode.UNNECESSARY_CAST, code.length, test.length),
+            error(WarningCode.unnecessaryCast, code.length, test.length),
           );
         } else {
           lints.add(
             error(
-              WarningCode.UNNECESSARY_TYPE_CHECK_TRUE,
+              WarningCode.unnecessaryTypeCheckTrue,
               code.length,
               test.length,
             ),

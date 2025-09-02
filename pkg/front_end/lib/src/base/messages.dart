@@ -14,8 +14,11 @@ Location? getLocation(CompilerContext context, Uri uri, int charOffset) {
   return context.uriToSource[uri]?.getLocation(uri, charOffset);
 }
 
-String? getSourceLine(CompilerContext context, Location? location,
-    [Map<Uri, Source>? uriToSource]) {
+String? getSourceLine(
+  CompilerContext context,
+  Location? location, [
+  Map<Uri, Source>? uriToSource,
+]) {
   if (location == null) return null;
   uriToSource ??= context.uriToSource;
   return uriToSource[location.file]?.getTextLine(location.line);
@@ -33,11 +36,16 @@ abstract interface class ProblemReporting {
   ///
   /// See `Loader.addMessage` for an explanation of the
   /// arguments passed to this method.
-  void addProblem(Message message, int charOffset, int length, Uri? fileUri,
-      {bool wasHandled = false,
-      List<LocatedMessage>? context,
-      CfeSeverity? severity,
-      bool problemOnLibrary = false});
+  void addProblem(
+    Message message,
+    int charOffset,
+    int length,
+    Uri? fileUri, {
+    bool wasHandled = false,
+    List<LocatedMessage>? context,
+    CfeSeverity? severity,
+    bool problemOnLibrary = false,
+  });
 }
 
 /// [ProblemReporting] that registers the messages on a [Library] node.
@@ -56,23 +64,32 @@ class LibraryProblemReporting implements ProblemReporting {
   Library? _library;
 
   @override
-  void addProblem(Message message, int charOffset, int length, Uri? fileUri,
-      {bool wasHandled = false,
-      List<LocatedMessage>? context,
-      CfeSeverity? severity,
-      bool problemOnLibrary = false}) {
-    // Coverage-ignore(suite): Not run.
+  void addProblem(
+    Message message,
+    int charOffset,
+    int length,
+    Uri? fileUri, {
+    bool wasHandled = false,
+    List<LocatedMessage>? context,
+    CfeSeverity? severity,
+    bool problemOnLibrary = false,
+  }) {
     fileUri ??= _fileUri;
 
     FormattedMessage? formattedMessage = _loader.addProblem(
-        message, charOffset, length, fileUri,
-        wasHandled: wasHandled,
-        context: context,
-        severity: severity,
-        problemOnLibrary: true);
+      message,
+      charOffset,
+      length,
+      fileUri,
+      wasHandled: wasHandled,
+      context: context,
+      severity: severity,
+      problemOnLibrary: true,
+    );
     if (formattedMessage != null) {
-      (_problemsAsJson ??= (_library?.problemsAsJson ??= []) ?? [])
-          .add(formattedMessage.toJsonString());
+      (_problemsAsJson ??= (_library?.problemsAsJson ??= []) ?? []).add(
+        formattedMessage.toJsonString(),
+      );
     }
   }
 

@@ -34,7 +34,7 @@ flutter:
 name: sample
 flutter: true
 ''',
-      [PubspecWarningCode.FLUTTER_FIELD_NOT_MAP],
+      [PubspecWarningCode.flutterFieldNotMap],
     );
   }
 

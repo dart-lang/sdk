@@ -17,9 +17,10 @@ abstract class LegacyUpperBoundTest {
   Future<void> parseComponent(String source) {
     env = new parser.Env(source);
     assert(
-        env.component.libraries.length == 2,
-        "The test component is expected to have exactly two libraries: "
-        "the core library and the test library.");
+      env.component.libraries.length == 2,
+      "The test component is expected to have exactly two libraries: "
+      "the core library and the test library.",
+    );
     Library firstLibrary = env.component.libraries.first;
     Library secondLibrary = env.component.libraries.last;
     if (firstLibrary.importUri.isScheme("dart") &&
@@ -28,9 +29,10 @@ abstract class LegacyUpperBoundTest {
       testLibrary = secondLibrary;
     } else {
       assert(
-          secondLibrary.importUri.isScheme("dart") &&
-              secondLibrary.importUri.path == "core",
-          "One of the libraries is expected to be 'dart:core'.");
+        secondLibrary.importUri.isScheme("dart") &&
+            secondLibrary.importUri.path == "core",
+        "One of the libraries is expected to be 'dart:core'.",
+      );
       coreLibrary = secondLibrary;
       testLibrary = firstLibrary;
     }
@@ -45,8 +47,11 @@ abstract class LegacyUpperBoundTest {
   }
 
   void checkLegacyUp(String type1, String type2, String expectedType) {
-    checkLegacyUpTypes(env.parseType(type1), env.parseType(type2),
-        env.parseType(expectedType));
+    checkLegacyUpTypes(
+      env.parseType(type1),
+      env.parseType(type2),
+      env.parseType(expectedType),
+    );
   }
 
   Future<void> test() {
@@ -90,8 +95,7 @@ class E implements D<int, double>;
 class F implements D<int, bool>;
 """);
 
-    checkLegacyUp(
-        "D<int, double>", "D<int, double>", "D<int, double>");
+    checkLegacyUp("D<int, double>", "D<int, double>", "D<int, double>");
     checkLegacyUp("D<int, double>", "D<int, bool>", "B<int>");
     checkLegacyUp("D<int, double>", "D<bool, double>", "C<double>");
     checkLegacyUp("D<int, double>", "D<bool, int>", "A");

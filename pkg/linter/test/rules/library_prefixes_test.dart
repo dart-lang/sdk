@@ -17,8 +17,8 @@ void main() {
 class LibraryPrefixesTest extends LintRuleTest {
   @override
   List<DiagnosticCode> get ignoredDiagnosticCodes => [
-    WarningCode.UNUSED_IMPORT,
-    WarningCode.UNUSED_LOCAL_VARIABLE,
+    WarningCode.unusedImport,
+    WarningCode.unusedLocalVariable,
   ];
 
   @override

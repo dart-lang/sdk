@@ -26,7 +26,7 @@ include: a.yaml
 ''',
       [
         error(
-          AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING,
+          AnalysisOptionsWarningCode.includedFileWarning,
           9,
           6,
           messageContains: [

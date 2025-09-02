@@ -176,6 +176,13 @@ f(A a) {
   ^var x = a.b();
 }
 ''');
-    await assertNoAssist();
+    await assertHasAssist('''
+import 'package:test/a.dart';
+
+f(A a) {
+  Object x;
+  x = a.b();
+}
+''');
   }
 }

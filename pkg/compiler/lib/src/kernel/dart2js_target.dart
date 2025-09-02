@@ -389,7 +389,8 @@ class Dart2jsConstantsBackend extends ConstantsBackend {
   @override
   final bool supportsUnevaluatedConstants;
 
-  const Dart2jsConstantsBackend({required this.supportsUnevaluatedConstants});
+  const Dart2jsConstantsBackend({required this.supportsUnevaluatedConstants})
+    : super(keepLocals: false);
 
   @override
   NumberSemantics get numberSemantics => NumberSemantics.js;

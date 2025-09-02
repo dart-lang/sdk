@@ -27,14 +27,20 @@ void main() {
 @reflectiveTest
 class ScannerTest_Replacement extends ScannerTestBase {
   @override
-  Token scanWithListener(String source, ErrorListener listener,
-      {ScannerConfiguration? configuration}) {
+  Token scanWithListener(
+    String source,
+    ErrorListener listener, {
+    ScannerConfiguration? configuration,
+  }) {
     // Process the source similar to
     // pkg/analyzer/lib/src/dart/scanner/scanner.dart
     // to simulate replacing the analyzer scanner
 
-    ScannerResult result =
-        scanString(source, configuration: configuration, includeComments: true);
+    ScannerResult result = scanString(
+      source,
+      configuration: configuration,
+      includeComments: true,
+    );
 
     Token tokens = result.tokens;
     assertValidTokenStream(tokens, errorsFirst: true);
@@ -64,7 +70,7 @@ class ScannerTest_Replacement extends ScannerTestBase {
     expect(open.isSynthetic, isFalse);
     expect(close.isSynthetic, isTrue);
     listener.assertErrors([
-      new TestError(1, ScannerErrorCode.EXPECTED_TOKEN, [expectedCloser]),
+      new TestError(1, ScannerErrorCode.expectedToken, [expectedCloser]),
     ]);
   }
 
@@ -83,7 +89,7 @@ class ScannerTest_Replacement extends ScannerTestBase {
     expect(token.next!.isEof, isTrue);
     expect(listener.errors, hasLength(1));
     TestError error = listener.errors[0];
-    expect(error.diagnosticCode, ScannerErrorCode.MISSING_DIGIT);
+    expect(error.diagnosticCode, ScannerErrorCode.missingDigit);
     expect(error.offset, source.length - 1);
   }
 
@@ -157,8 +163,8 @@ class ScannerTest_Replacement extends ScannerTestBase {
     expect(closeParen2.isSynthetic, isTrue);
     expect(eof.isEof, isTrue);
     listener.assertErrors([
-      new TestError(6, ScannerErrorCode.EXPECTED_TOKEN, [')']),
-      new TestError(7, ScannerErrorCode.EXPECTED_TOKEN, [')']),
+      new TestError(6, ScannerErrorCode.expectedToken, [')']),
+      new TestError(7, ScannerErrorCode.expectedToken, [')']),
     ]);
   }
 
@@ -181,9 +187,9 @@ class ScannerTest_Replacement extends ScannerTestBase {
     expect(eof.isEof, true);
 
     listener.assertErrors([
-      new TestError(4, ScannerErrorCode.EXPECTED_TOKEN, [')']),
-      new TestError(4, ScannerErrorCode.EXPECTED_TOKEN, [']']),
-      new TestError(4, ScannerErrorCode.EXPECTED_TOKEN, ['}']),
+      new TestError(4, ScannerErrorCode.expectedToken, [')']),
+      new TestError(4, ScannerErrorCode.expectedToken, [']']),
+      new TestError(4, ScannerErrorCode.expectedToken, ['}']),
     ]);
   }
 
@@ -199,8 +205,11 @@ class ScannerTest_Replacement extends ScannerTestBase {
     // The default recovery strategy used by scanString
     // places all error tokens at the head of the stream.
     while (token.type == TokenType.BAD_INPUT) {
-      translateErrorToken(token as ErrorToken,
-          (ScannerErrorCode errorCode, int offset, List<Object>? arguments) {
+      translateErrorToken(token as ErrorToken, (
+        ScannerErrorCode errorCode,
+        int offset,
+        List<Object>? arguments,
+      ) {
         listener.errors.add(new TestError(offset, errorCode, arguments));
       });
       token = token.next!;

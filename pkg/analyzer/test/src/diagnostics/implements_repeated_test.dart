@@ -21,7 +21,7 @@ class ImplementsRepeatedTest extends PubPackageResolutionTest {
 class A {}
 class B implements A, A {}
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 33, 1)],
+      [error(CompileTimeErrorCode.implementsRepeated, 33, 1)],
     );
 
     var node = findNode.singleImplementsClause;
@@ -58,7 +58,7 @@ augment class B implements A {}
     await assertErrorsInFile2(a, []);
 
     await assertErrorsInFile2(b, [
-      error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 46, 1),
+      error(CompileTimeErrorCode.implementsRepeated, 46, 1),
     ]);
   }
 
@@ -69,7 +69,7 @@ class A {}
 typedef B = A;
 class C implements A, B {}
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 48, 1)],
+      [error(CompileTimeErrorCode.implementsRepeated, 48, 1)],
     );
 
     var node = findNode.singleImplementsClause;
@@ -96,9 +96,9 @@ class A {} class C{}
 class B implements A, A, A, A {}
 ''',
       [
-        error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 43, 1),
-        error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 46, 1),
-        error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 49, 1),
+        error(CompileTimeErrorCode.implementsRepeated, 43, 1),
+        error(CompileTimeErrorCode.implementsRepeated, 46, 1),
+        error(CompileTimeErrorCode.implementsRepeated, 49, 1),
       ],
     );
   }
@@ -111,7 +111,7 @@ enum E implements A, A {
   v
 }
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 32, 1)],
+      [error(CompileTimeErrorCode.implementsRepeated, 32, 1)],
     );
 
     var node = findNode.singleImplementsClause;
@@ -148,7 +148,7 @@ augment enum E implements A {}
     await assertErrorsInFile2(a, []);
 
     await assertErrorsInFile2(b, [
-      error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 45, 1),
+      error(CompileTimeErrorCode.implementsRepeated, 45, 1),
     ]);
   }
 
@@ -161,7 +161,7 @@ enum E implements A, B {
   v
 }
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 47, 1)],
+      [error(CompileTimeErrorCode.implementsRepeated, 47, 1)],
     );
 
     var node = findNode.singleImplementsClause;
@@ -190,9 +190,9 @@ enum E implements A, A, A, A {
 }
 ''',
       [
-        error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 42, 1),
-        error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 45, 1),
-        error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 48, 1),
+        error(CompileTimeErrorCode.implementsRepeated, 42, 1),
+        error(CompileTimeErrorCode.implementsRepeated, 45, 1),
+        error(CompileTimeErrorCode.implementsRepeated, 48, 1),
       ],
     );
   }
@@ -202,7 +202,7 @@ enum E implements A, A, A, A {
       r'''
 extension type A(int it) implements int, int {}
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 41, 3)],
+      [error(CompileTimeErrorCode.implementsRepeated, 41, 3)],
     );
 
     var node = findNode.singleImplementsClause;
@@ -238,7 +238,7 @@ augment extension type A(int it) implements int {}
     await assertErrorsInFile2(a, []);
 
     await assertErrorsInFile2(b, [
-      error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 63, 3),
+      error(CompileTimeErrorCode.implementsRepeated, 63, 3),
     ]);
   }
 
@@ -248,7 +248,7 @@ augment extension type A(int it) implements int {}
 typedef A = int;
 extension type B(int it) implements int, A {}
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 58, 1)],
+      [error(CompileTimeErrorCode.implementsRepeated, 58, 1)],
     );
 
     var node = findNode.singleImplementsClause;
@@ -274,9 +274,9 @@ ImplementsClause
 extension type A(int it) implements int, int, int, int {}
 ''',
       [
-        error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 41, 3),
-        error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 46, 3),
-        error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 51, 3),
+        error(CompileTimeErrorCode.implementsRepeated, 41, 3),
+        error(CompileTimeErrorCode.implementsRepeated, 46, 3),
+        error(CompileTimeErrorCode.implementsRepeated, 51, 3),
       ],
     );
   }
@@ -287,7 +287,7 @@ extension type A(int it) implements int, int, int, int {}
 class A {}
 mixin M implements A, A {}
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 33, 1)],
+      [error(CompileTimeErrorCode.implementsRepeated, 33, 1)],
     );
   }
 
@@ -309,7 +309,7 @@ augment mixin M implements A {}
     await assertErrorsInFile2(a, []);
 
     await assertErrorsInFile2(b, [
-      error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 46, 1),
+      error(CompileTimeErrorCode.implementsRepeated, 46, 1),
     ]);
   }
 
@@ -320,9 +320,9 @@ class A {}
 mixin M implements A, A, A, A {}
 ''',
       [
-        error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 33, 1),
-        error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 36, 1),
-        error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 39, 1),
+        error(CompileTimeErrorCode.implementsRepeated, 33, 1),
+        error(CompileTimeErrorCode.implementsRepeated, 36, 1),
+        error(CompileTimeErrorCode.implementsRepeated, 39, 1),
       ],
     );
   }

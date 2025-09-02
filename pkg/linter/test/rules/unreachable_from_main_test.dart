@@ -1648,7 +1648,7 @@ class B {
 ''',
       [
         lint(109, 1),
-        error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 177, 7),
+        error(WarningCode.invalidWidgetPreviewApplication, 177, 7),
         lint(196, 3),
       ],
     );
@@ -1683,10 +1683,7 @@ class B {
   const B();
 }
 ''',
-      [
-        lint(70, 1),
-        error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 77, 7),
-      ],
+      [lint(70, 1), error(WarningCode.invalidWidgetPreviewApplication, 77, 7)],
     );
   }
 
@@ -1706,7 +1703,7 @@ class B {
 ''',
       [
         lint(70, 1),
-        error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 77, 7),
+        error(WarningCode.invalidWidgetPreviewApplication, 77, 7),
         lint(122, 1),
       ],
     );
@@ -1736,10 +1733,10 @@ void _f6() {}
 ''',
       [
         lint(168, 1),
-        error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 175, 7),
-        error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 218, 7),
-        error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 241, 7),
-        error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 291, 7),
+        error(WarningCode.invalidWidgetPreviewApplication, 175, 7),
+        error(WarningCode.invalidWidgetPreviewApplication, 218, 7),
+        error(WarningCode.invalidWidgetPreviewApplication, 241, 7),
+        error(WarningCode.invalidWidgetPreviewApplication, 291, 7),
       ],
     );
   }
@@ -1754,7 +1751,7 @@ void main() {}
 @Preview()
 void f6() {}
 ''',
-      [error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 65, 7)],
+      [error(WarningCode.invalidWidgetPreviewApplication, 65, 7)],
     );
   }
 

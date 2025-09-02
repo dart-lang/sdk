@@ -228,7 +228,7 @@ abstract class _NegativeLengthList&Object&ListMixin<E extends core::Object? = dy
     return result;
   }
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ add(covariant-by-class self::_NegativeLengthList&Object&ListMixin::E% element) → void {
-    this.{core::List::[]=}(let final core::int #t2 = this.{core::List::length}{core::int} in let final core::int #t3 = this.{core::List::length} = #t2.{core::num::+}(1){(core::num) → core::int} in #t2, element){(core::int, self::_NegativeLengthList&Object&ListMixin::E%) → void};
+    this.{core::List::[]=}(let final core::int #t2 = this.{core::List::length}{core::int} in let final void #t3 = this.{core::List::length} = #t2.{core::num::+}(1){(core::num) → core::int} in #t2, element){(core::int, self::_NegativeLengthList&Object&ListMixin::E%) → void};
   }
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ addAll(covariant-by-class core::Iterable<self::_NegativeLengthList&Object&ListMixin::E%> iterable) → void {
     core::int i = this.{core::List::length}{core::int};
@@ -513,7 +513,7 @@ abstract class _NegativeLengthList&Object&ListMixin<E extends core::Object? = dy
         for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
           self::_NegativeLengthList&Object&ListMixin::E% element = :sync-for-iterator.{core::Iterator::current}{self::_NegativeLengthList&Object&ListMixin::E%};
           {
-            this.{core::List::[]=}(let final core::int #t8 = index in let final core::int #t9 = index = #t8.{core::num::+}(1){(core::num) → core::int} in #t8, element){(core::int, self::_NegativeLengthList&Object&ListMixin::E%) → void};
+            this.{core::List::[]=}(let final core::int #t8 = index in let final void #t9 = index = #t8.{core::num::+}(1){(core::num) → core::int} in #t8, element){(core::int, self::_NegativeLengthList&Object&ListMixin::E%) → void};
           }
         }
       }
@@ -530,6 +530,9 @@ static method switchList(core::List<core::int> list) → core::int
     final synthesized core::List<core::int> #0#0 = list;
     synthesized core::int #0#1;
     synthesized core::bool #0#1#isSet = false;
+    final const synthesized core::int #0#2 = #C8;
+    final const synthesized core::int #0#6 = #C9;
+    final const synthesized core::int #0#8 = #C7;
     #L1:
     {
       {

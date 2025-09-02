@@ -23,7 +23,7 @@ class Object {
   Object() : super();
 }
 ''',
-      [error(CompileTimeErrorCode.SUPER_INITIALIZER_IN_OBJECT, 0, 0)],
+      [error(CompileTimeErrorCode.superInitializerInObject, 0, 0)],
     );
   }
 }

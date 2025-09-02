@@ -29,6 +29,8 @@ enum E {
 replacement
   left: 1
 suggestions
+  values
+    kind: field
   a1
     kind: enumConstant
   a2
@@ -54,6 +56,8 @@ replacement
 suggestions
   a1
     kind: getter
+  values
+    kind: field
 ''');
   }
 
@@ -73,6 +77,8 @@ enum E {
 replacement
   left: 1
 suggestions
+  values
+    kind: field
   a1
     kind: methodInvocation
 ''');

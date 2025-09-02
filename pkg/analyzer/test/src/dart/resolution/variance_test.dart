@@ -59,7 +59,7 @@ main() {
   B<int> b = B(<num>[])..x=2.2;
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 76, 1)],
+      [error(WarningCode.unusedLocalVariable, 76, 1)],
     );
 
     var node = findNode.instanceCreation('B(<num>');
@@ -92,9 +92,9 @@ main() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.COULD_NOT_INFER, 147, 11),
-        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 159, 19),
-        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 180, 16),
+        error(CompileTimeErrorCode.couldNotInfer, 147, 11),
+        error(CompileTimeErrorCode.argumentTypeNotAssignable, 159, 19),
+        error(CompileTimeErrorCode.argumentTypeNotAssignable, 180, 16),
       ],
     );
 

@@ -28,8 +28,8 @@ class Annotation {
 }
     ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 12, 3),
-        error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 12, 3),
+        error(CompileTimeErrorCode.undefinedIdentifier, 12, 3),
+        error(CompileTimeErrorCode.constWithNonConstantArgument, 12, 3),
       ],
     );
   }
@@ -47,8 +47,8 @@ class Annotation {
 }
 ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 20, 3),
-        error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 20, 3),
+        error(CompileTimeErrorCode.undefinedIdentifier, 20, 3),
+        error(CompileTimeErrorCode.constWithNonConstantArgument, 20, 3),
       ],
     );
   }
@@ -65,8 +65,8 @@ class Annotation {
 }
     ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 12, 3),
-        error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 12, 3),
+        error(CompileTimeErrorCode.undefinedIdentifier, 12, 3),
+        error(CompileTimeErrorCode.constWithNonConstantArgument, 12, 3),
       ],
     );
   }
@@ -84,8 +84,8 @@ class Annotation {
 }
 ''',
       [
-        error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 24, 3),
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 24, 3),
+        error(CompileTimeErrorCode.constWithNonConstantArgument, 24, 3),
+        error(CompileTimeErrorCode.undefinedIdentifier, 24, 3),
       ],
     );
   }
@@ -102,8 +102,8 @@ class Annotation {
 }
     ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 12, 3),
-        error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 12, 3),
+        error(CompileTimeErrorCode.undefinedIdentifier, 12, 3),
+        error(CompileTimeErrorCode.constWithNonConstantArgument, 12, 3),
       ],
     );
   }
@@ -121,8 +121,8 @@ class Annotation {
 }
 ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 20, 3),
-        error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 20, 3),
+        error(CompileTimeErrorCode.undefinedIdentifier, 20, 3),
+        error(CompileTimeErrorCode.constWithNonConstantArgument, 20, 3),
       ],
     );
   }
@@ -144,8 +144,8 @@ class Annotation {
 }
 ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 29, 3),
-        error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 29, 3),
+        error(CompileTimeErrorCode.undefinedIdentifier, 29, 3),
+        error(CompileTimeErrorCode.constWithNonConstantArgument, 29, 3),
       ],
     );
   }
@@ -168,8 +168,8 @@ class Annotation {
 }
 ''',
       [
-        error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 33, 3),
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 33, 3),
+        error(CompileTimeErrorCode.constWithNonConstantArgument, 33, 3),
+        error(CompileTimeErrorCode.undefinedIdentifier, 33, 3),
       ],
     );
   }
@@ -191,8 +191,8 @@ class Annotation {
 }
 ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 29, 3),
-        error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 29, 3),
+        error(CompileTimeErrorCode.undefinedIdentifier, 29, 3),
+        error(CompileTimeErrorCode.constWithNonConstantArgument, 29, 3),
       ],
     );
   }
@@ -204,7 +204,7 @@ void f() {
   (x) = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 14, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 14, 1)],
     );
   }
 
@@ -216,8 +216,8 @@ void f() {
 class A {
 }''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 5, 1),
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 17, 1),
+        error(CompileTimeErrorCode.undefinedIdentifier, 5, 1),
+        error(CompileTimeErrorCode.undefinedIdentifier, 17, 1),
       ],
     );
   }
@@ -231,7 +231,7 @@ void f() {
   foo += 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 32, 3)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 32, 3)],
     );
   }
 
@@ -242,7 +242,7 @@ void f() {
   foo += 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 3)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 13, 3)],
     );
   }
 
@@ -253,7 +253,7 @@ f(var l) {
   for (e in l) {
   }
 }''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 18, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 18, 1)],
     );
   }
 
@@ -273,8 +273,8 @@ f() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 25, 1),
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 40, 1),
+        error(WarningCode.unusedLocalVariable, 25, 1),
+        error(CompileTimeErrorCode.undefinedIdentifier, 40, 1),
       ],
     );
   }
@@ -288,7 +288,7 @@ void f() {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 26, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 26, 1)],
     );
   }
 
@@ -311,8 +311,8 @@ f() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 31, 1),
+        error(WarningCode.unusedLocalVariable, 17, 1),
+        error(CompileTimeErrorCode.undefinedIdentifier, 31, 1),
       ],
     );
   }
@@ -322,7 +322,7 @@ f() {
       '''
 int a() => b;
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 11, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 11, 1)],
     );
   }
 
@@ -348,7 +348,7 @@ main() {
   List;
   String;
 }''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 49, 6)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 49, 6)],
     );
   }
 
@@ -367,7 +367,7 @@ class B extends A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 96, 3)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 96, 3)],
     );
   }
 
@@ -376,7 +376,7 @@ class B extends A {
       '''
 var a = b;
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 8, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 8, 1)],
     );
   }
 
@@ -385,7 +385,7 @@ var a = b;
       '''
 f() { C.m(); }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 6, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 6, 1)],
     );
   }
 
@@ -398,7 +398,7 @@ void f() {
   foo++;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 32, 3)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 32, 3)],
     );
   }
 
@@ -411,7 +411,7 @@ void f() {
   ++foo;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 34, 3)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 34, 3)],
     );
   }
 
@@ -430,8 +430,8 @@ class B extends A {
   }
 }''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 58, 1),
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 62, 4),
+        error(WarningCode.unusedLocalVariable, 58, 1),
+        error(CompileTimeErrorCode.undefinedIdentifier, 62, 4),
       ],
     );
   }
@@ -450,7 +450,7 @@ class B extends A {
     _foo = 42;
   }
 }''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 54, 4)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 54, 4)],
     );
   }
 
@@ -471,7 +471,7 @@ main() {
   print(is String);
 }
 ''',
-      [error(ParserErrorCode.MISSING_IDENTIFIER, 29, 2)],
+      [error(ParserErrorCode.missingIdentifier, 29, 2)],
     );
   }
 
@@ -484,8 +484,8 @@ void f(int p) {
 }
 ''',
       [
-        error(ParserErrorCode.MISSING_IDENTIFIER, 32, 1),
-        error(CompileTimeErrorCode.UNDEFINED_GETTER, 32, 1),
+        error(ParserErrorCode.missingIdentifier, 32, 1),
+        error(CompileTimeErrorCode.undefinedGetter, 32, 1),
       ],
     );
   }

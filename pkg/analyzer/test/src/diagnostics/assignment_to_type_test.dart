@@ -23,7 +23,7 @@ main() {
   C = null;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 22, 1)],
+      [error(CompileTimeErrorCode.assignmentToType, 22, 1)],
     );
   }
 
@@ -34,7 +34,7 @@ void f() {
   dynamic = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 13, 7)],
+      [error(CompileTimeErrorCode.assignmentToType, 13, 7)],
     );
   }
 
@@ -46,7 +46,7 @@ main() {
   E = null;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 24, 1)],
+      [error(CompileTimeErrorCode.assignmentToType, 24, 1)],
     );
   }
 
@@ -58,7 +58,7 @@ main() {
   F = null;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 29, 1)],
+      [error(CompileTimeErrorCode.assignmentToType, 29, 1)],
     );
   }
 
@@ -71,7 +71,7 @@ void f() {
   F = null;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 37, 1)],
+      [error(CompileTimeErrorCode.assignmentToType, 37, 1)],
     );
   }
 
@@ -84,7 +84,7 @@ class C<T> {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 25, 1)],
+      [error(CompileTimeErrorCode.assignmentToType, 25, 1)],
     );
   }
 }

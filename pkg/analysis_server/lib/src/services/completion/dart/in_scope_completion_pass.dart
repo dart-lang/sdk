@@ -2752,8 +2752,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         offset <= node.argumentList.offset) {
       var container = constructor.parent;
       var superType = switch (container) {
-        ClassDeclaration() => container.declaredFragment?.supertype,
-        EnumDeclaration() => container.declaredFragment?.supertype,
+        ClassDeclaration() => container.declaredFragment?.element.supertype,
+        EnumDeclaration() => container.declaredFragment?.element.supertype,
         _ => null,
       };
       if (superType != null) {

@@ -13,59 +13,74 @@ class InputOutputData<T> {
   const InputOutputData(this.input, this.output);
 }
 
-const Strategy simpleAddStrategy =
-    Strategy('simpleAddStrategy', 'simple-add', '''
-Add entries to a list one at a time.''');
+const Strategy simpleAddStrategy = Strategy(
+  'simpleAddStrategy',
+  'simple-add',
+  '''
+Add entries to a list one at a time.''',
+);
 
 const Strategy spreadStrategy = Strategy('spreadStrategy', 'spread', '''
 Create the list via spreads.''');
 
-const Strategy listGenerateGrowableStrategy =
-    Strategy('listGenerateGrowableStrategy', 'list-generate-growable', '''
-Create list via List.generate with growable = true.''');
+const Strategy listGenerateGrowableStrategy = Strategy(
+  'listGenerateGrowableStrategy',
+  'list-generate-growable',
+  '''
+Create list via List.generate with growable = true.''',
+);
 
 const Strategy listGenerateNotGrowableStrategy = Strategy(
-    'listGenerateNotGrowableStrategy', 'list-generate-not-growable', '''
-Create list via List.generate with growable = false.''');
+  'listGenerateNotGrowableStrategy',
+  'list-generate-not-growable',
+  '''
+Create list via List.generate with growable = false.''',
+);
 
-const Strategy listFilledGrowableStrategy =
-    Strategy('listFilledGrowableStrategy', 'list-filled-growable', '''
-Create list via List.generate with growable = true.''');
+const Strategy listFilledGrowableStrategy = Strategy(
+  'listFilledGrowableStrategy',
+  'list-filled-growable',
+  '''
+Create list via List.generate with growable = true.''',
+);
 
-const Strategy listFilledNotGrowableStrategy =
-    Strategy('listFilledNotGrowableStrategy', 'list-filled-not-growable', '''
-Create list via List.generate with growable = false.''');
+const Strategy listFilledNotGrowableStrategy = Strategy(
+  'listFilledNotGrowableStrategy',
+  'list-filled-not-growable',
+  '''
+Create list via List.generate with growable = false.''',
+);
 
 const Strategy listFilledAlternativeGrowableStrategy = Strategy(
-    'listFilledAlternativeGrowableStrategy', 'list-filled-alt-growable', '''
-Create list via List.generate with growable = true in an alternative way.''');
+  'listFilledAlternativeGrowableStrategy',
+  'list-filled-alt-growable',
+  '''
+Create list via List.generate with growable = true in an alternative way.''',
+);
 
 const Strategy listFilledAlternativeNotGrowableStrategy = Strategy(
-    'listFilledAlternativeNotGrowableStrategy',
-    'list-filled-alt-not-growable', '''
-Create list via List.generate with growable = false in an alternative way.''');
+  'listFilledAlternativeNotGrowableStrategy',
+  'list-filled-alt-not-growable',
+  '''
+Create list via List.generate with growable = false in an alternative way.''',
+);
 
 const Scenario emptyScenario = Scenario('emptyScenario', 'empty', '''
 The input and output is empty.''');
 const Scenario oneEntryScenario = Scenario('oneEntryScenario', 'one', '''
 The input is one entry.''');
-const Scenario severalEntriesScenario =
-    Scenario('severalEntriesScenario', 'several', '''
-The input has several entries.''');
+const Scenario severalEntriesScenario = Scenario(
+  'severalEntriesScenario',
+  'several',
+  '''
+The input has several entries.''',
+);
 
 Map<Scenario, InputOutputData<String>> scenarios = {
   emptyScenario: const InputOutputData([], []),
   oneEntryScenario: const InputOutputData(["a"], ["<", "a", ">"]),
   severalEntriesScenario: const InputOutputData(
-    [
-      "a",
-      "b",
-      "c",
-      "d",
-      "e",
-      "f",
-      "g",
-    ],
+    ["a", "b", "c", "d", "e", "f", "g"],
     [
       "<",
       "a",
@@ -92,8 +107,15 @@ class Test<T> {
 
   const Test(this.size, this.strategies);
 
-  void _test(Registry registry, SeriesKey key, int runs, int iterations,
-      List<T> input, List<T> expectedResult, TestFunction<T> testFunction) {
+  void _test(
+    Registry registry,
+    SeriesKey key,
+    int runs,
+    int iterations,
+    List<T> input,
+    List<T> expectedResult,
+    TestFunction<T> testFunction,
+  ) {
     for (int run = 0; run < runs; run++) {
       Stopwatch sw = new Stopwatch();
       for (int i = 0; i < iterations; i++) {
@@ -113,17 +135,25 @@ class Test<T> {
     }
   }
 
-  void performTest(
-      {required Registry registry,
-      required int runs,
-      required int iterations,
-      required Map<Scenario, InputOutputData<T>> scenarios}) {
+  void performTest({
+    required Registry registry,
+    required int runs,
+    required int iterations,
+    required Map<Scenario, InputOutputData<T>> scenarios,
+  }) {
     for (MapEntry<Scenario, InputOutputData<T>> scenario in scenarios.entries) {
       List<T> scenarioInput = scenario.value.input;
       List<T> scenarioExpectedOutput = scenario.value.output;
       for (MapEntry<Strategy, TestFunction<T>> entry in strategies.entries) {
-        _test(registry, new SeriesKey(entry.key, scenario.key), runs,
-            iterations, scenarioInput, scenarioExpectedOutput, entry.value);
+        _test(
+          registry,
+          new SeriesKey(entry.key, scenario.key),
+          runs,
+          iterations,
+          scenarioInput,
+          scenarioExpectedOutput,
+          entry.value,
+        );
       }
     }
   }
@@ -243,7 +273,7 @@ List<String> spread(List<String> input) {
       input.first,
       for (String s in input.skip(1)) ...[', ', s],
       '>',
-    ]
+    ],
   ];
 }
 
@@ -251,16 +281,21 @@ void main() {
   // Dry run
   for (Test test in tests) {
     test.performTest(
-        registry: new Registry(),
-        runs: 5,
-        iterations: 10,
-        scenarios: scenarios);
+      registry: new Registry(),
+      runs: 5,
+      iterations: 10,
+      scenarios: scenarios,
+    );
   }
   // Actual test
   Registry registry = new Registry();
   for (Test test in tests) {
     test.performTest(
-        registry: registry, runs: 10, iterations: 100000, scenarios: scenarios);
+      registry: registry,
+      runs: 10,
+      iterations: 100000,
+      scenarios: scenarios,
+    );
   }
   SeriesSet seriesSet = registry.generateSeriesSet();
   print('== Raw data ==');

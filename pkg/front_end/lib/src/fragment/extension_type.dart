@@ -23,18 +23,22 @@ class ExtensionTypeFragment extends DeclarationFragmentImpl
   SourceExtensionTypeDeclarationBuilder? _builder;
 
   @override
-  late final UriOffsetLength uriOffset =
-      new UriOffsetLength(fileUri, nameOffset, name.length);
+  late final UriOffsetLength uriOffset = new UriOffsetLength(
+    fileUri,
+    nameOffset,
+    name.length,
+  );
 
-  ExtensionTypeFragment(
-      {required this.name,
-      required super.fileUri,
-      required this.nameOffset,
-      required super.typeParameters,
-      required super.enclosingScope,
-      required super.typeParameterScope,
-      required super.nominalParameterNameSpace,
-      required super.enclosingCompilationUnit});
+  ExtensionTypeFragment({
+    required this.name,
+    required super.fileUri,
+    required this.nameOffset,
+    required super.typeParameters,
+    required super.enclosingScope,
+    required super.typeParameterScope,
+    required super.nominalParameterNameSpace,
+    required super.enclosingCompilationUnit,
+  });
 
   @override
   // Coverage-ignore(suite): Not run.

@@ -29,48 +29,56 @@ static method test(dynamic value, core::bool expected) → void {
   core::bool matched = false;
   {
     final synthesized dynamic #0#0 = value;
+    final const synthesized core::List<core::int> #0#1 = #C2;
     if(#C2 =={core::List::==}{(core::Object) → core::bool} #0#0) {
       matched = true;
     }
   }
   {
     final synthesized dynamic #1#0 = value;
+    final const synthesized core::List<core::num> #1#1 = #C3;
     if(#C3 =={core::List::==}{(core::Object) → core::bool} #1#0) {
       matched = true;
     }
   }
   {
     final synthesized dynamic #2#0 = value;
+    final const synthesized core::Set<core::int> #2#1 = #C4;
     if(#C4 =={core::Object::==}{(core::Object) → core::bool} #2#0) {
       matched = true;
     }
   }
   {
     final synthesized dynamic #3#0 = value;
+    final const synthesized core::Set<core::num> #3#1 = #C5;
     if(#C5 =={core::Object::==}{(core::Object) → core::bool} #3#0) {
       matched = true;
     }
   }
   {
     final synthesized dynamic #4#0 = value;
+    final const synthesized core::Map<core::int, core::String> #4#1 = #C7;
     if(#C7 =={core::Object::==}{(core::Object) → core::bool} #4#0) {
       matched = true;
     }
   }
   {
     final synthesized dynamic #5#0 = value;
+    final const synthesized core::Map<core::num, core::Object> #5#1 = #C8;
     if(#C8 =={core::Object::==}{(core::Object) → core::bool} #5#0) {
       matched = true;
     }
   }
   {
     final synthesized dynamic #6#0 = value;
+    final const synthesized self::Const<core::int> #6#1 = #C9;
     if(#C9 =={core::Object::==}{(core::Object) → core::bool} #6#0) {
       matched = true;
     }
   }
   {
     final synthesized dynamic #7#0 = value;
+    final const synthesized self::Const<core::num> #7#1 = #C10;
     if(#C10 =={core::Object::==}{(core::Object) → core::bool} #7#0) {
       matched = true;
     }

@@ -65,6 +65,7 @@ static method methodNull1(self::ExtensionTypeNullable% /* erasure=core::String?,
   return block {
     core::int #t1;
     final synthesized self::ExtensionTypeNullable% /* erasure=core::String?, declared=! */ #0#0 = o;
+    final const synthesized has-declared-initializer Null #0#1 = #C1;
     #L1:
     {
       {
@@ -167,13 +168,13 @@ static method methodBool1(self::ExtensionTypeBool% /* erasure=core::bool, declar
     #L7:
     switch(o) /* isExplicitlyExhaustive, self::ExtensionTypeBool% /* erasure=core::bool, declared=! */ */ {
       #L8:
-      case #C1:
+      case #C2:
         {
           #t7 = 0;
           break #L7;
         }
       #L9:
-      case #C2:
+      case #C3:
         {
           #t7 = 1;
           break #L7;
@@ -288,6 +289,7 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
 }
 
 constants  {
-  #C1 = true
-  #C2 = false
+  #C1 = null
+  #C2 = true
+  #C3 = false
 }

@@ -9,7 +9,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show CfeDiagnosticMessage, DiagnosticMessageHandler;
 import 'package:front_end/src/api_unstable/ddc.dart';
-import 'package:kernel/ast.dart' show Component, Library;
+import 'package:kernel/ast.dart' show Component, Library, TreeNode;
 import 'package:kernel/dart_scope_calculator.dart';
 
 import '../compiler/js_names.dart' as js_ast;
@@ -69,9 +69,13 @@ class ExpressionCompiler {
   /// Compiles [expression] in library [libraryUri] and file [scriptUri]
   /// at [line]:[column] to JavaScript in [moduleName].
   ///
-  /// [libraryUri] and [scriptUri] can be the same, but if for instance
+  /// [libraryUri] and [scriptUriString] can be the same, but if for instance
   /// evaluating expressions in a part file the [libraryUri] will be the uri of
-  /// the "part of" file whereas [scriptUri] will be the uri of the part.
+  /// the "part of" file whereas [scriptUriString] will be the uri of the part.
+  /// The [libraryUri] should be an import-uri, i.e. a package uri if it exists.
+  /// The [scriptUriString] is allowed to be a package uri in which case it will
+  /// be attempted translated to a file uri to match what is recorded in the
+  /// kernel file.
   ///
   /// [line] and [column] are 1-based. Library level expressions typically use
   /// [line] and [column] 1 as an indicator that there is no relevant location.
@@ -89,7 +93,7 @@ class ExpressionCompiler {
   /// { 'x': '1', 'y': 'y', 'o': 'null' }
   Future<String?> compileExpressionToJs(
     String libraryUri,
-    String? scriptUri,
+    String? scriptUriString,
     int line,
     int column,
     Map<String, String> jsScope,
@@ -100,11 +104,29 @@ class ExpressionCompiler {
 
       _log('Compiling expression \n$expression');
 
+      var scriptUri = scriptUriString == null
+          ? null
+          : Uri.parse(scriptUriString);
+      if (scriptUri != null && scriptUri.isScheme('package')) {
+        scriptUri = _compiler.translateUri(scriptUri);
+        if (scriptUri.isScheme('package')) {
+          // No packages. Try to translate via the component source.
+          for (final source in _component.uriToSource.values) {
+            if (source.importUri == scriptUri && source.fileUri != null) {
+              scriptUri = source.fileUri!;
+            }
+          }
+          // The uri could still be a package-uri, but then failing to do
+          // expression compilation seems fair.
+        }
+      }
+
       var dartScope = _findScopeAt(
         Uri.parse(libraryUri),
-        scriptUri == null ? null : Uri.parse(scriptUri),
+        scriptUri,
         line,
         column,
+        jsScope,
       );
       if (dartScope == null) {
         _log('Scope not found at $libraryUri:$line:$column');
@@ -125,12 +147,11 @@ class ExpressionCompiler {
       // extracted from the lowering.
       // See https://github.com/dart-lang/sdk/issues/55918
       var dartLateLocals = [
-        for (var name in dartScope.definitions.keys)
+        for (var name in dartScope.variables.keys)
           if (isLateLoweredLocalName(name)) name,
       ];
       for (var localName in dartLateLocals) {
-        dartScope.definitions[extractLocalName(localName)] = dartScope
-            .definitions
+        dartScope.variables[extractLocalName(localName)] = dartScope.variables
             .remove(localName)!;
       }
 
@@ -151,7 +172,7 @@ class ExpressionCompiler {
       // shorter Dart name. Since longer Dart names can't incorrectly match a
       // shorter JS name (JS names are always at least as long as the Dart
       // name), we process them from longest to shortest.
-      final dartNames = [...dartScope.definitions.keys]..sort(nameCompare);
+      final dartNames = [...dartScope.variables.keys]..sort(nameCompare);
 
       // Sort JS names so that the highest suffix value gets assigned to the
       // corresponding Dart name first. Since names are suffixed in ascending
@@ -245,15 +266,15 @@ class ExpressionCompiler {
         }
       }
 
-      dartScope.definitions.removeWhere(
-        (variable, type) =>
+      dartScope.variables.removeWhere(
+        (variableName, _) =>
             // Remove undefined js variables (this allows us to get a reference
             // error from chrome on evaluation).
-            !dartNameToJsValue.containsKey(variable) ||
+            !dartNameToJsValue.containsKey(variableName) ||
             // Remove wildcard method arguments which are lowered to have Dart
             // names that are invalid for Dart compilations.
             // Wildcard local variables are not appearing here at this time.
-            isWildcardLoweredFormalParameter(variable),
+            isWildcardLoweredFormalParameter(variableName),
       );
 
       // Wildcard type parameters already matched by this existing test.
@@ -265,7 +286,7 @@ class ExpressionCompiler {
       // captured variables optimized away in chrome)
       var localJsScope = [
         ...dartScope.typeParameters.map((parameter) => jsScope[parameter.name]),
-        ...dartScope.definitions.keys.map(
+        ...dartScope.variables.keys.map(
           (variable) => dartNameToJsValue[variable],
         ),
       ];
@@ -324,6 +345,7 @@ class ExpressionCompiler {
     Uri? scriptFileUri,
     int line,
     int column,
+    Map<String, String> jsScope,
   ) {
     if (line < 0) {
       onDiagnostic(
@@ -350,48 +372,80 @@ class ExpressionCompiler {
       return null;
     }
 
-    // TODO(jensj): Eventually make the scriptUri required and always use this,
-    // but for now use the old mechanism when no script is provided.
+    // TODO(jensj): Eventually make the scriptUri required.
     if (scriptFileUri != null) {
-      final offset = _component.getOffset(library.fileUri, line, column);
-      final scope2 = DartScopeBuilder2.findScopeFromOffset(
+      final offset = _component.getOffsetNoThrow(scriptFileUri, line, column);
+      if (offset < 0) {
+        _log(
+          'Got offset negative offset ($offset) for '
+          '$scriptFileUri:$line:$column',
+        );
+        return DartScope(library, null, null, null, null, {}, []);
+      }
+      final scope = DartScopeBuilder2.findScopeFromOffset(
         library,
         scriptFileUri,
         offset,
       );
-      return scope2;
+      return scope;
     }
 
-    var scope = DartScopeBuilder.findScope(_component, library, line, column);
-    if (scope == null) {
-      // Fallback mechanism to allow a evaluation of an expression at the
-      // library level within the Dart SDK.
-      //
-      // Currently we lack the full dill and metadata for the Dart SDK module to
-      // be able to use the same mechanism of expression evaluation as the rest
-      // of a program. Because of that, expression evaluation at arbitrary
-      // scopes is not supported in the Dart SDK. However, we can still support
-      // compiling expressions that will be evaluated at the library level. We
-      // determine if that's the case by recognizing that all such requests use
-      // line 1 and column 1.
-      if (line <= 1 && column <= 1 && library.importUri.isScheme('dart')) {
-        _log('Fallback: use library scope for the Dart SDK');
-        scope = DartScope(library, null, null, {}, []);
-      } else {
-        onDiagnostic(
-          _createInternalError(
-            libraryUri,
-            line,
-            column,
-            'Dart scope not found for location',
-          ),
+    // No scriptUri provided. Find - and try - all of the possible ones.
+    final fileUris = [library.fileUri];
+    for (final part in library.parts) {
+      try {
+        final partUriIsh = library.fileUri.resolve(part.partUri);
+        if (partUriIsh.isScheme('package')) {
+          for (final source in _component.uriToSource.values) {
+            if (source.importUri == partUriIsh && source.importUri != null) {
+              fileUris.add(source.importUri!);
+              break;
+            }
+          }
+        } else {
+          fileUris.add(partUriIsh);
+        }
+      } catch (e) {
+        // Bad url.
+        _log(
+          "Got exception '$e' when resolving ${part.partUri} "
+          'against ${library.fileUri}',
         );
-        return null;
       }
     }
 
-    _log('Detected expression compilation scope');
-    return scope;
+    final foundScopes = <DartScope>[];
+    for (final fileUri in fileUris) {
+      final offset = _component.getOffsetNoThrow(fileUri, line, column);
+      if (offset < 0) continue;
+      foundScopes.add(
+        DartScopeBuilder2.findScopeFromOffset(library, fileUri, offset),
+      );
+    }
+    if (foundScopes.isEmpty) {
+      _log(
+        'Got only negative offsets for library/parts ${library.fileUri} '
+        'at $line:$column.',
+      );
+      return DartScope(library, null, null, null, null, {}, []);
+    }
+    if (foundScopes.length == 1) {
+      return foundScopes[0];
+    }
+
+    // Pick the "best" (most likely) scope based on content compare to js.
+    final jsKeys = jsScope.keys.toSet();
+    var bestIntersectionCount = -1;
+    var bestScope = foundScopes[0];
+    for (final scope in foundScopes) {
+      final intersection = jsKeys.intersection(scope.variables.keys.toSet());
+      if (intersection.length > bestIntersectionCount) {
+        bestIntersectionCount = intersection.length;
+        bestScope = scope;
+      }
+    }
+
+    return bestScope;
   }
 
   Library? _getLibrary(Uri libraryUri) {
@@ -412,13 +466,15 @@ class ExpressionCompiler {
     }
     var procedure = await _compiler.compileExpression(
       expression,
-      scope.definitions,
+      scope.variablesAsMapToType(),
       scope.typeParameters,
       debugProcedureName,
       scope.library.importUri,
       methodName: methodName,
       className: scope.cls?.name,
       isStatic: scope.isStatic,
+      offset: scope.offset ?? TreeNode.noOffset,
+      scriptUri: scope.fileUri?.toString(),
     );
 
     _log('Compiled expression to kernel');

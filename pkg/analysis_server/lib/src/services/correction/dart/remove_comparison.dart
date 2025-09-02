@@ -38,22 +38,21 @@ class RemoveComparison extends ResolvedCorrectionProducer {
   /// Whether the condition will always return `false`.
   bool get _conditionIsFalse {
     var diagnosticCode = (diagnostic as Diagnostic).diagnosticCode;
-    return diagnosticCode == WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE ||
+    return diagnosticCode == WarningCode.unnecessaryNanComparisonFalse ||
         diagnosticCode ==
-            WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE ||
-        diagnosticCode ==
-            WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE ||
-        diagnosticCode == WarningCode.UNNECESSARY_TYPE_CHECK_FALSE;
+            WarningCode.unnecessaryNullComparisonAlwaysNullFalse ||
+        diagnosticCode == WarningCode.unnecessaryNullComparisonNeverNullFalse ||
+        diagnosticCode == WarningCode.unnecessaryTypeCheckFalse;
   }
 
   /// Whether the condition will always return `true`.
   bool get _conditionIsTrue {
     var errorCode = (diagnostic as Diagnostic).diagnosticCode;
-    return errorCode == WarningCode.UNNECESSARY_NAN_COMPARISON_TRUE ||
-        errorCode == WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE ||
-        errorCode == WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE ||
-        errorCode == WarningCode.UNNECESSARY_TYPE_CHECK_TRUE ||
-        errorCode == LinterLintCode.avoid_null_checks_in_equality_operators;
+    return errorCode == WarningCode.unnecessaryNanComparisonTrue ||
+        errorCode == WarningCode.unnecessaryNullComparisonAlwaysNullTrue ||
+        errorCode == WarningCode.unnecessaryNullComparisonNeverNullTrue ||
+        errorCode == WarningCode.unnecessaryTypeCheckTrue ||
+        errorCode == LinterLintCode.avoidNullChecksInEqualityOperators;
   }
 
   @override

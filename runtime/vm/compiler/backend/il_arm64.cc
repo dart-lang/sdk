@@ -1914,6 +1914,21 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The array register points to the backing store for external arrays.
   const Register array = locs()->in(kArrayPos).reg();
   const Location index = locs()->in(kIndexPos);
+  auto const rep =
+      RepresentationUtils::RepresentationOfArrayElement(class_id());
+
+  if (FLAG_target_thread_sanitizer) {
+    if (index.IsRegister()) {
+      __ ComputeElementAddressForRegIndex(TMP, IsUntagged(), class_id(),
+                                          index_scale(), index_unboxed_, array,
+                                          index.reg());
+    } else {
+      __ ComputeElementAddressForIntIndex(TMP, IsUntagged(), class_id(),
+                                          index_scale(), array,
+                                          Smi::Cast(index.constant()).Value());
+    }
+    __ TsanRead(TMP, RepresentationUtils::ValueSize(rep));
+  }
 
   compiler::Address element_address(TMP);  // Bad address.
   element_address = index.IsRegister()
@@ -1923,8 +1938,6 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                         : __ ElementAddressForIntIndex(
                               IsUntagged(), class_id(), index_scale(), array,
                               Smi::Cast(index.constant()).Value());
-  auto const rep =
-      RepresentationUtils::RepresentationOfArrayElement(class_id());
   ASSERT(representation() == Boxing::NativeRepresentation(rep));
   if (RepresentationUtils::IsUnboxedInteger(rep)) {
     const Register result = locs()->out(0).reg();
@@ -2079,6 +2092,19 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   auto const rep =
       RepresentationUtils::RepresentationOfArrayElement(class_id());
   ASSERT(RequiredInputRepresentation(2) == Boxing::NativeRepresentation(rep));
+
+  if (FLAG_target_thread_sanitizer) {
+    if (index.IsRegister()) {
+      __ ComputeElementAddressForRegIndex(TMP, IsUntagged(), class_id(),
+                                          index_scale(), index_unboxed_, array,
+                                          index.reg());
+    } else {
+      __ ComputeElementAddressForIntIndex(TMP, IsUntagged(), class_id(),
+                                          index_scale(), array,
+                                          Smi::Cast(index.constant()).Value());
+    }
+    __ TsanWrite(TMP, RepresentationUtils::ValueSize(rep));
+  }
 
   // Deal with a special case separately.
   if (class_id() == kArrayCid && ShouldEmitStoreBarrier()) {
@@ -2873,6 +2899,9 @@ class CheckStackOverflowSlowPath
         ASSERT(__ constant_pool_allowed());
         __ set_constant_pool_allowed(false);
         __ EnterDartFrame(0);
+        if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+          __ TsanFuncEntry();
+        }
       }
       auto object_store = compiler->isolate_group()->object_store();
       const bool live_fpu_regs = locs->live_registers()->FpuRegisterCount() > 0;
@@ -2897,12 +2926,20 @@ class CheckStackOverflowSlowPath
                                      instruction()->deopt_id(),
                                      instruction()->source());
       if (!has_frame) {
+        if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+          __ TsanFuncExit();
+        }
         __ LeaveDartFrame();
         __ set_constant_pool_allowed(true);
       }
     } else {
       ASSERT(has_frame);
-      __ CallRuntime(kInterruptOrStackOverflowRuntimeEntry, kNumSlowPathArgs);
+      // We're using the function's frame, which already did TsanFuncEntry. Also
+      // the pc descriptors, etc need to be recordered for the call's return
+      // address.
+      const bool tsan_enter_exit = false;
+      __ CallRuntime(kInterruptOrStackOverflowRuntimeEntry, kNumSlowPathArgs,
+                     tsan_enter_exit);
       compiler->EmitCallsiteMetadata(
           instruction()->source(), instruction()->deopt_id(),
           UntaggedPcDescriptors::kOther, instruction()->locs(), env);
@@ -3722,6 +3759,9 @@ void BoxInt64Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT(__ constant_pool_allowed());
       __ set_constant_pool_allowed(false);
       __ EnterDartFrame(0);
+      if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+        __ TsanFuncEntry();
+      }
     }
     auto object_store = compiler->isolate_group()->object_store();
     const bool live_fpu_regs = locs()->live_registers()->FpuRegisterCount() > 0;
@@ -3736,6 +3776,9 @@ void BoxInt64Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
     compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,
                                locs(), DeoptId::kNone, extended_env);
     if (!has_frame) {
+      if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+        __ TsanFuncExit();
+      }
       __ LeaveDartFrame();
       __ set_constant_pool_allowed(true);
     }
@@ -4342,8 +4385,8 @@ LocationSummary* CaseInsensitiveCompareInstr::MakeLocationSummary(
     Zone* zone,
     bool opt) const {
   const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, InputCount(), kNumTemps, LocationSummary::kCall);
+  LocationSummary* summary = new (zone) LocationSummary(
+      zone, InputCount(), kNumTemps, LocationSummary::kNativeLeafCall);
   summary->set_in(0, Location::RegisterLocation(R0));
   summary->set_in(1, Location::RegisterLocation(R1));
   summary->set_in(2, Location::RegisterLocation(R2));
@@ -4670,8 +4713,8 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(Zone* zone,
   ASSERT((InputCount() == 1) || (InputCount() == 2));
   const intptr_t kNumTemps =
       (recognized_kind() == MethodRecognizer::kMathDoublePow) ? 1 : 0;
-  LocationSummary* result = new (zone)
-      LocationSummary(zone, InputCount(), kNumTemps, LocationSummary::kCall);
+  LocationSummary* result = new (zone) LocationSummary(
+      zone, InputCount(), kNumTemps, LocationSummary::kNativeLeafCall);
   result->set_in(0, Location::FpuRegisterLocation(V0));
   if (InputCount() == 2) {
     result->set_in(1, Location::FpuRegisterLocation(V1));

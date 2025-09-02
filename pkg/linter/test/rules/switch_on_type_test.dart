@@ -60,6 +60,14 @@ void f(Type t) {
     );
   }
 
+  Future<void> test_dynamic() async {
+    await assertNoDiagnostics('''
+void foo(dynamic a) {
+  switch (a) {}
+}
+''');
+  }
+
   Future<void> test_functionToString() async {
     await assertNoDiagnostics('''
 void f() {

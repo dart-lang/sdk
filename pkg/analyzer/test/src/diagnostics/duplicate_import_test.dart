@@ -26,7 +26,7 @@ class B {}
 export 'lib1.dart';
 export 'lib1.dart';
 ''',
-      [error(WarningCode.DUPLICATE_EXPORT, 27, 11)],
+      [error(WarningCode.duplicateExport, 27, 11)],
     );
   }
 
@@ -51,7 +51,7 @@ class B {}
 export 'lib1.dart' show A;
 export 'lib1.dart' show A;
 ''',
-      [error(WarningCode.DUPLICATE_EXPORT, 34, 11)],
+      [error(WarningCode.duplicateExport, 34, 11)],
     );
   }
 
@@ -68,7 +68,7 @@ export 'dart:math';
 
     await assertErrorsInFile2(a, []);
 
-    await assertErrorsInFile2(b, [error(WarningCode.DUPLICATE_EXPORT, 45, 11)]);
+    await assertErrorsInFile2(b, [error(WarningCode.duplicateExport, 45, 11)]);
   }
 }
 
@@ -86,7 +86,7 @@ import 'package:test/a.dart';
 
 final a = A();
 ''',
-      [error(WarningCode.DUPLICATE_IMPORT, 37, 21)],
+      [error(WarningCode.duplicateImport, 37, 21)],
     );
   }
 
@@ -102,7 +102,7 @@ import 'package:test/a.dart';
 
 final a = A();
 ''',
-      [error(WarningCode.DUPLICATE_IMPORT, 24, 21)],
+      [error(WarningCode.duplicateImport, 24, 21)],
     );
   }
 
@@ -118,7 +118,7 @@ import 'a.dart';
 
 final a = A();
 ''',
-      [error(WarningCode.DUPLICATE_IMPORT, 24, 8)],
+      [error(WarningCode.duplicateImport, 24, 8)],
     );
   }
 
@@ -138,9 +138,9 @@ M.A a = M.A();
 
     await assertErrorsInFile2(lib1, []);
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.MULTIPLE_COMBINATORS, 35, 13),
-      error(WarningCode.DUPLICATE_IMPORT, 57, 11),
-      error(WarningCode.MULTIPLE_COMBINATORS, 74, 13),
+      error(WarningCode.multipleCombinators, 35, 13),
+      error(WarningCode.duplicateImport, 57, 11),
+      error(WarningCode.multipleCombinators, 74, 13),
     ]);
   }
 
@@ -212,8 +212,8 @@ A a = A();
 
     await assertErrorsInFile2(lib1, []);
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.DUPLICATE_IMPORT, 38, 11),
-      error(WarningCode.DUPLICATE_IMPORT, 58, 11),
+      error(WarningCode.duplicateImport, 38, 11),
+      error(WarningCode.duplicateImport, 58, 11),
     ]);
   }
 
@@ -231,6 +231,6 @@ void f(Random _) {}
 
     await assertErrorsInFile2(a, []);
 
-    await assertErrorsInFile2(b, [error(WarningCode.DUPLICATE_IMPORT, 45, 11)]);
+    await assertErrorsInFile2(b, [error(WarningCode.duplicateImport, 45, 11)]);
   }
 }

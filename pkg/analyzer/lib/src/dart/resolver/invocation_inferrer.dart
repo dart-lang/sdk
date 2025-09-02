@@ -30,10 +30,9 @@ Set<Object> _computeExplicitlyTypedParameterSet(
   Set<Object> result = {};
   int unnamedParameterIndex = 0;
   for (var formalParameter in parameters) {
-    var key =
-        formalParameter.isNamed
-            ? formalParameter.name?.lexeme ?? ''
-            : unnamedParameterIndex++;
+    var key = formalParameter.isNamed
+        ? formalParameter.name?.lexeme ?? ''
+        : unnamedParameterIndex++;
     if (formalParameter.isExplicitlyTyped) {
       result.add(key);
     }
@@ -88,7 +87,7 @@ class AnnotationInferrer extends FullInvocationInferrer<AnnotationImpl> {
 
   @override
   DiagnosticCode get _wrongNumberOfTypeArgumentsErrorCode =>
-      CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS;
+      CompileTimeErrorCode.wrongNumberOfTypeArguments;
 
   @override
   List<FormalParameterElement>? _storeResult(
@@ -197,7 +196,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
   TypeArgumentListImpl? get _typeArguments;
 
   DiagnosticCode get _wrongNumberOfTypeArgumentsErrorCode =>
-      CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD;
+      CompileTimeErrorCode.wrongNumberOfTypeArgumentsMethod;
 
   @override
   DartType resolveInvocation({required FunctionTypeImpl? rawType}) {
@@ -252,7 +251,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
               if (!resolver.typeSystem.isSubtypeOf(typeArgument, bound)) {
                 resolver.diagnosticReporter.atNode(
                   typeArgumentList.arguments[i],
-                  CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+                  CompileTimeErrorCode.typeArgumentNotMatchingBounds,
                   arguments: [typeArgument, typeParameter.name!, bound],
                 );
               }
@@ -301,8 +300,9 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
       );
     }
 
-    List<_IdenticalArgumentInfo?>? identicalArgumentInfo =
-        _isIdentical ? [] : null;
+    List<_IdenticalArgumentInfo?>? identicalArgumentInfo = _isIdentical
+        ? []
+        : null;
     var parameterMap = _computeParameterMap(
       rawType?.formalParameters ?? const [],
     );
@@ -314,17 +314,16 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
     );
     if (deferredFunctionLiterals != null) {
       bool isFirstStage = true;
-      for (var stage
-          in _FunctionLiteralDependencies(
-            resolver.typeSystem,
-            deferredFunctionLiterals,
-            rawType?.typeParameters.toSet() ?? const {},
-            _computeUndeferredParamInfo(
-              rawType,
-              parameterMap,
-              deferredFunctionLiterals,
-            ),
-          ).planReconciliationStages()) {
+      for (var stage in _FunctionLiteralDependencies(
+        resolver.typeSystem,
+        deferredFunctionLiterals,
+        rawType?.typeParameters.toSet() ?? const {},
+        _computeUndeferredParamInfo(
+          rawType,
+          parameterMap,
+          deferredFunctionLiterals,
+        ),
+      ).planReconciliationStages()) {
         if (inferrer != null && !isFirstStage) {
           substitution = Substitution.fromPairs2(
             rawType!.typeParameters,
@@ -344,10 +343,9 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
     if (inferrer != null) {
       typeArgumentTypes = inferrer.chooseFinalTypes();
     }
-    FunctionTypeImpl? invokeType =
-        typeArgumentTypes != null
-            ? originalType?.instantiate(typeArgumentTypes)
-            : originalType;
+    FunctionTypeImpl? invokeType = typeArgumentTypes != null
+        ? originalType?.instantiate(typeArgumentTypes)
+        : originalType;
 
     var parameters = _storeResult(typeArgumentTypes, invokeType);
     if (parameters != null) {

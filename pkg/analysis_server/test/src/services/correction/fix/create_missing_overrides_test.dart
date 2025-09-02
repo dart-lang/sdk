@@ -46,8 +46,7 @@ class B implements A {
 ''',
       errorFilter: (error) {
         return error.diagnosticCode ==
-            CompileTimeErrorCode
-                .NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE;
+            CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne;
       },
     );
   }
@@ -76,8 +75,7 @@ class B implements A {
 ''',
       errorFilter: (error) {
         return error.diagnosticCode ==
-            CompileTimeErrorCode
-                .NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE;
+            CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne;
       },
     );
   }
@@ -105,8 +103,7 @@ class B implements A {
 ''',
       errorFilter: (error) {
         return error.diagnosticCode ==
-            CompileTimeErrorCode
-                .NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE;
+            CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne;
       },
     );
   }
@@ -224,7 +221,7 @@ abstract class A {
 
 class B extends A {
   @override
-  void m(bool Function(dynamic e) test) {
+  void m(bool Function(e) test) {
     // TODO: implement m
   }
 }
@@ -352,7 +349,7 @@ abstract class A {
 
 class B extends A {
   @override
-  Map<aaa.Future, List<aaa.Future>> g(aaa.Future p) {
+  Map<aaa.Future<dynamic>, List<aaa.Future<dynamic>>> g(aaa.Future<dynamic> p) {
     // TODO: implement g
     throw UnimplementedError();
   }

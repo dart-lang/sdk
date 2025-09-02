@@ -5344,6 +5344,10 @@ StringPtr Api::GetEnvironmentValue(Thread* thread, const String& name) {
 
 StringPtr Api::CallEnvironmentCallback(Thread* thread, const String& name) {
   Isolate* isolate = thread->isolate();
+  if (isolate == nullptr) {
+    ThrowCantRunWithoutIsolateError();
+    UNREACHABLE();
+  }
   Dart_EnvironmentCallback callback = isolate->environment_callback();
   if (callback != nullptr) {
     Scope api_scope(thread);
@@ -5372,7 +5376,10 @@ StringPtr Api::CallEnvironmentCallback(Thread* thread, const String& name) {
 DART_EXPORT Dart_Handle
 Dart_SetEnvironmentCallback(Dart_EnvironmentCallback callback) {
   Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
+  if (isolate == nullptr) {
+    ThrowCantRunWithoutIsolateError();
+    UNREACHABLE();
+  }
   isolate->set_environment_callback(callback);
   return Api::Success();
 }
@@ -5804,7 +5811,7 @@ static Dart_Handle LoadLibrary(Thread* T, const ExternalTypedData& td) {
       kernel::KernelLoader::LoadEntireProgram(program.get(), false);
   program.reset();
 
-  IsolateGroupSource* source = Isolate::Current()->source();
+  IsolateGroupSource* source = IsolateGroup::Current()->source();
   source->add_loaded_blob(Z, td);
 
   return Api::NewHandle(T, result.ptr());
@@ -7019,18 +7026,16 @@ DART_EXPORT void Dart_PrepareToAbort() {
 
 DART_EXPORT Dart_Handle Dart_GetCurrentUserTag() {
   Thread* thread = Thread::Current();
-  CHECK_ISOLATE(thread->isolate());
+  CHECK_ISOLATE_GROUP(thread->isolate_group());
   DARTSCOPE(thread);
-  Isolate* isolate = thread->isolate();
-  return Api::NewHandle(thread, isolate->current_tag());
+  return Api::NewHandle(thread, thread->current_tag());
 }
 
 DART_EXPORT Dart_Handle Dart_GetDefaultUserTag() {
   Thread* thread = Thread::Current();
-  CHECK_ISOLATE(thread->isolate());
+  CHECK_ISOLATE_GROUP(thread->isolate_group());
   DARTSCOPE(thread);
-  Isolate* isolate = thread->isolate();
-  return Api::NewHandle(thread, isolate->default_tag());
+  return Api::NewHandle(thread, thread->default_tag());
 }
 
 DART_EXPORT Dart_Handle Dart_NewUserTag(const char* label) {
@@ -7042,7 +7047,7 @@ DART_EXPORT Dart_Handle Dart_NewUserTag(const char* label) {
         "Dart_NewUserTag expects argument 'label' to be non-null");
   }
   const String& value = String::Handle(String::New(label));
-  return Api::NewHandle(thread, UserTag::New(value));
+  return Api::NewHandle(thread, UserTag::New(thread, value));
 }
 
 DART_EXPORT Dart_Handle Dart_SetCurrentUserTag(Dart_Handle user_tag) {
@@ -7078,6 +7083,13 @@ DART_EXPORT char* Dart_WriteHeapSnapshot(
 #else
   return Utils::StrDup("VM is built without the heap snapshot writer.");
 #endif
+}
+
+void ThrowCantRunWithoutIsolateError() {
+  const auto& error =
+      String::Handle(String::New("Only available when running in context of "
+                                 "an isolate, rather than isolate group."));
+  Exceptions::ThrowArgumentError(error);
 }
 
 }  // namespace dart

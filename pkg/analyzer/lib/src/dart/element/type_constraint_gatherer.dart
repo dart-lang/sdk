@@ -38,7 +38,8 @@ typedef MergedTypeConstraint =
     shared.MergedTypeConstraint<
       PromotableElementImpl,
       InterfaceTypeImpl,
-      InterfaceElementImpl
+      InterfaceElementImpl,
+      AstNodeImpl
     >;
 
 /// Instance of [shared.TypeConstraintFromArgument] specific to the Analyzer.
@@ -46,7 +47,8 @@ typedef TypeConstraintFromArgument =
     shared.TypeConstraintFromArgument<
       PromotableElementImpl,
       InterfaceTypeImpl,
-      InterfaceElementImpl
+      InterfaceElementImpl,
+      AstNodeImpl
     >;
 
 /// Instance of [shared.TypeConstraintFromExtendsClause] specific to the Analyzer.
@@ -54,7 +56,8 @@ typedef TypeConstraintFromExtendsClause =
     shared.TypeConstraintFromExtendsClause<
       PromotableElementImpl,
       InterfaceTypeImpl,
-      InterfaceElementImpl
+      InterfaceElementImpl,
+      AstNodeImpl
     >;
 
 /// Instance of [shared.TypeConstraintFromFunctionContext] specific to the Analyzer.
@@ -62,7 +65,8 @@ typedef TypeConstraintFromFunctionContext =
     shared.TypeConstraintFromFunctionContext<
       PromotableElementImpl,
       InterfaceTypeImpl,
-      InterfaceElementImpl
+      InterfaceElementImpl,
+      AstNodeImpl
     >;
 
 /// Instance of [shared.TypeConstraintFromReturnType] specific to the Analyzer.
@@ -70,7 +74,8 @@ typedef TypeConstraintFromReturnType =
     shared.TypeConstraintFromReturnType<
       PromotableElementImpl,
       InterfaceTypeImpl,
-      InterfaceElementImpl
+      InterfaceElementImpl,
+      AstNodeImpl
     >;
 
 typedef TypeConstraintGenerationDataForTesting =
@@ -84,7 +89,8 @@ typedef TypeConstraintOrigin =
     shared.TypeConstraintOrigin<
       PromotableElementImpl,
       InterfaceTypeImpl,
-      InterfaceElementImpl
+      InterfaceElementImpl,
+      AstNodeImpl
     >;
 
 /// Instance of [shared.UnknownTypeConstraintOrigin] specific to the Analyzer.
@@ -92,7 +98,8 @@ typedef UnknownTypeConstraintOrigin =
     shared.UnknownTypeConstraintOrigin<
       PromotableElementImpl,
       InterfaceTypeImpl,
-      InterfaceElementImpl
+      InterfaceElementImpl,
+      AstNodeImpl
     >;
 
 /// Creates sets of [GeneratedTypeConstraint]s for type parameters, based on an
@@ -192,11 +199,10 @@ class TypeConstraintGatherer
     }
 
     for (var constraint in _constraints) {
-      var parameter =
-          constraint.typeParameter
-              .unwrapTypeParameterViewAsTypeParameterStructure<
-                TypeParameterElementImpl
-              >();
+      var parameter = constraint.typeParameter
+          .unwrapTypeParameterViewAsTypeParameterStructure<
+            TypeParameterElementImpl
+          >();
       var mergedConstraint = result[parameter]!;
 
       mergedConstraint.mergeIn(constraint, _typeSystemOperations);
@@ -275,23 +281,20 @@ class TypeConstraintGatherer
     // not contain any variables from `L`.
     var newTypeParameters = <TypeParameterElementImpl>[];
     for (var i = 0; i < P.typeParameters.length; i++) {
-      var Z = TypeParameterFragmentImpl(name: 'Z$i', firstTokenOffset: null);
+      var Z = TypeParameterElementImpl.synthetic(name: 'Z$i');
       if (leftSchema) {
         Z.bound = P.typeParameters[i].bound;
       } else {
         Z.bound = Q.typeParameters[i].bound;
       }
-      newTypeParameters.add(Z.element);
+      newTypeParameters.add(Z);
     }
 
     // And `F0[Z0/T0, ..., Zn/Tn]` is a subtype match for
     // `F1[Z0/S0, ..., Zn/Sn]` with respect to `L` under constraints `C0`.
-    var typeArguments =
-        newTypeParameters
-            .map(
-              (e) => e.instantiate(nullabilitySuffix: NullabilitySuffix.none),
-            )
-            .toList();
+    var typeArguments = newTypeParameters
+        .map((e) => e.instantiate(nullabilitySuffix: NullabilitySuffix.none))
+        .toList();
     var P_instantiated = P.instantiate(typeArguments);
     var Q_instantiated = Q.instantiate(typeArguments);
 

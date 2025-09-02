@@ -394,7 +394,7 @@ void main() {
   print(c);
 }
 ''',
-      [error(CompileTimeErrorCode.DOT_SHORTHAND_MISSING_CONTEXT, 46, 7)],
+      [error(CompileTimeErrorCode.dotShorthandMissingContext, 46, 7)],
     );
   }
 
@@ -406,7 +406,7 @@ void main() {
   print(c);
 }
 ''',
-      [error(CompileTimeErrorCode.DOT_SHORTHAND_MISSING_CONTEXT, 24, 7)],
+      [error(CompileTimeErrorCode.dotShorthandMissingContext, 24, 7)],
     );
   }
 
@@ -420,7 +420,7 @@ void main() {
   print(c);
 }
 ''',
-      [error(CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_GETTER, 36, 6)],
+      [error(CompileTimeErrorCode.dotShorthandUndefinedGetter, 36, 6)],
     );
   }
 
@@ -436,7 +436,7 @@ void main() {
   print(c);
 }
 ''',
-      [error(CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_GETTER, 49, 3)],
+      [error(CompileTimeErrorCode.dotShorthandUndefinedGetter, 49, 3)],
     );
   }
 
@@ -598,8 +598,8 @@ void main() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.DOT_SHORTHAND_MISSING_CONTEXT, 88, 7),
-        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 95, 2),
+        error(CompileTimeErrorCode.dotShorthandMissingContext, 88, 7),
+        error(ParserErrorCode.illegalAssignmentToNonAssignable, 95, 2),
       ],
     );
   }
@@ -619,8 +619,8 @@ void main() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.DOT_SHORTHAND_MISSING_CONTEXT, 90, 7),
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 91, 6),
+        error(CompileTimeErrorCode.dotShorthandMissingContext, 90, 7),
+        error(ParserErrorCode.missingAssignableSelector, 91, 6),
       ],
     );
   }
@@ -663,8 +663,7 @@ Function fn() {
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS,
+          CompileTimeErrorCode.tearoffOfGenerativeConstructorOfAbstractClass,
           25,
           4,
         ),

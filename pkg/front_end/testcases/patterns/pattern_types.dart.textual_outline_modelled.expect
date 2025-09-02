@@ -34,6 +34,13 @@ extension on String {
   bool operator <=(other) => true;
 }
 
+extension type ExtensionType(int it) {
+  bool operator <(int i) => true;
+  int get getter => 42;
+  int operator >(int i) => 0;
+  void method() {}
+}
+
 objectPattern(o) {}
 
 relationalPattern(
@@ -45,11 +52,14 @@ relationalPattern(
   String string,
   Class2 cls2,
   Class2? cls2_,
+  ExtensionType extensionType,
 ) {}
 
 typedef Class_ = Class?;
 
 typedef Dynamic = dynamic;
+
+typedef ExtensionType_ = ExtensionType?;
 
 typedef Function1 = void Function();
 

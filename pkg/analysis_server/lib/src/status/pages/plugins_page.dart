@@ -21,10 +21,7 @@ class PluginsPage extends DiagnosticPageWithNav {
   @override
   Future<void> generateContent(Map<String, String> params) async {
     h3('Analysis plugins');
-    var analysisPlugins =
-        AnalysisServer.supportsPlugins
-            ? server.pluginManager.plugins
-            : <PluginInfo>[];
+    var analysisPlugins = server.pluginManager.pluginIsolates;
 
     if (analysisPlugins.isEmpty) {
       blankslate('No known analysis plugins.');
@@ -48,10 +45,10 @@ class PluginsPage extends DiagnosticPageWithNav {
 
         _emitTable([
           ['Bootstrap package path:', id],
-          if (plugin is DiscoveredPluginInfo) ...[
-            ['Execution path:', plugin.executionPath.wordBreakOnSlashes],
-            ['Packages file path', plugin.packagesPath.wordBreakOnSlashes],
-          ],
+          if (plugin.executionPath case var executionPath?)
+            ['Execution path:', executionPath.wordBreakOnSlashes],
+          if (plugin.packagesPath case var packagesPath?)
+            ['Packages file path', packagesPath.wordBreakOnSlashes],
         ]);
 
         if (data.name == null) {

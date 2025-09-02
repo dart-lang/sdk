@@ -27,7 +27,7 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED,
+          CompileTimeErrorCode.superFormalParameterWithoutAssociatedNamed,
           43,
           1,
         ),
@@ -46,7 +46,7 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED,
+          CompileTimeErrorCode.superFormalParameterWithoutAssociatedNamed,
           52,
           1,
         ),
@@ -65,7 +65,7 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED,
+          CompileTimeErrorCode.superFormalParameterWithoutAssociatedNamed,
           43,
           1,
         ),
@@ -84,7 +84,7 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED,
+          CompileTimeErrorCode.superFormalParameterWithoutAssociatedNamed,
           52,
           1,
         ),

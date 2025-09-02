@@ -4,7 +4,7 @@
 
 # Run
 #
-#     dart run pkg/front_end/tool/generate_messages.dart
+#     dart pkg/front_end/tool/cfe.dart generate-messages
 #
 # to regenerate messages after having edited this file.
 #
@@ -33,9 +33,20 @@
 #
 # Note that it can be hard or impossible to write an example that only gives the
 # specific error. To allow for this, one can specify
-# "exampleAllowMoreCodes: true" which filters out every message with a
+# "exampleAllowOtherCodes: true" which filters out every message with a
 # different code, and just verifies we got exactly one message of the code in
-# question (in addition too different codes).
+# question (in addition to different codes).
+#
+# Note that it can be hard or impossible to write an example that gives the
+# specified error exactly once. To allow for this, one can specify
+# "exampleAllowMultipleReports: true" which allows for the wanted error to occur
+# several times.
+#
+# If we should also look for the code in the context given on an error pass
+# "includeErrorContext: true".
+#
+# To add examples to experimental features enable the experiment with
+# "experiments: <experiment>"
 #
 # A message shouldn't indicate which kind of diagnostic it is, for example,
 # warning or error. Tools are expected to prepend "Warning: ", or "Error: ",
@@ -133,21 +144,53 @@ ConstEvalStartingPoint:
 
 ConstEvalContext:
   problemMessage: "While analyzing:"
+  severity: CONTEXT
 
 ConstEvalDuplicateElement:
   problemMessage: "The element '#constant' conflicts with another existing element in the set."
   analyzerCode: EQUAL_ELEMENTS_IN_CONST_SET
+  script: |
+    const foo = {1, 1};
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
 
 ConstEvalDuplicateKey:
   problemMessage: "The key '#constant' conflicts with another existing key in the map."
   analyzerCode: EQUAL_KEYS_IN_CONST_MAP
+  script: |
+    const foo = {1: 2, 1: 3};
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
 
 ConstEvalElementImplementsEqual:
   problemMessage: "The element '#constant' does not have a primitive operator '=='."
   analyzerCode: CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS
+  script: |
+    //@dart=2.18
+    const Set<dynamic> setWithNonPrimitiveEquals = {const WithEquals(42)};
+    class WithEquals {
+      final int i;
+      const WithEquals(this.i);
+      operator ==(Object o) {
+        return o is WithEquals && (o as WithEquals).i == i;
+      }
+    }
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
 
 ConstEvalElementNotPrimitiveEquality:
   problemMessage: "The element '#constant' does not have a primitive equality."
+  script: |
+    const Set<dynamic> setWithNonPrimitiveEquals = {const WithEquals(42)};
+    class WithEquals {
+      final int i;
+      const WithEquals(this.i);
+      operator ==(Object o) {
+        return o is WithEquals && (o as WithEquals).i == i;
+      }
+    }
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
 
 ConstEvalKeyImplementsEqual:
   problemMessage: "The key '#constant' does not have a primitive operator '=='."
@@ -155,34 +198,109 @@ ConstEvalKeyImplementsEqual:
 
 ConstEvalKeyNotPrimitiveEquality:
   problemMessage: "The key '#constant' does not have a primitive equality."
+  script: |
+    const Map<dynamic, int> mapWithNonPrimitiveEqualsKey = {
+      const WithEquals(42): 42
+    };
+
+    class WithEquals {
+      final int i;
+      const WithEquals(this.i);
+      operator ==(Object o) {
+        return o is WithEquals && (o as WithEquals).i == i;
+      }
+    }
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
 
 ConstEvalCaseImplementsEqual:
   problemMessage: "Case expression '#constant' does not have a primitive operator '=='."
+  script: |
+    // @dart=2.19
+    bar(dynamic x) {
+      switch (x) {
+        case const D(): break;
+        default:
+      }
+    }
+    class D {
+      const D();
+      bool operator ==(dynamic other) => identical(this, other);
+    }
 
 ConstEvalInvalidType:
   problemMessage: "Expected constant '#constant' to be of type '#type', but was of type '#type2'."
+  script: |
+    const Map foo = {...bar};
+    const dynamic bar = "Hello";
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
 
 ConstEvalInvalidBinaryOperandType:
   problemMessage: "Binary operator '#stringOKEmpty' on '#constant' requires operand of type '#type', but was of type '#type2'."
+  script: |
+    const dynamic willBeDouble = const bool.fromEnvironment("foo") ? 42 : 42.42;
+    const binaryOnDouble = willBeDouble << 2;
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
 
 ConstEvalInvalidEqualsOperandType:
   problemMessage: "Binary operator '==' requires receiver constant '#constant' of type 'Null', 'bool', 'int', 'double', or 'String', but was of type '#type'."
+  script: |
+    //@dart=2.18
+    class Foo {
+      const Foo();
+    }
+    const f = Foo();
+    const b = f == f;
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
 
 ConstEvalEqualsOperandNotPrimitiveEquality:
   problemMessage: "Binary operator '==' requires receiver constant '#constant' of a type with primitive equality or type 'double', but was of type '#type'."
+  script: |
+    const FooWithHashCodeField fooWithHashCodeField1 = const FooWithHashCodeField(42);
+    const FooWithHashCodeField fooWithHashCodeField2 = const FooWithHashCodeField(42);
+    const bool fooWithHashCodeFieldEqual = fooWithHashCodeField1 == fooWithHashCodeField2;
+    class FooWithHashCodeField {
+      final int x;
+      final int hashCode;
+      const FooWithHashCodeField(int x) : this.x = x, this.hashCode = x * 42;
+    }
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
 
 ConstEvalZeroDivisor:
   problemMessage: "Binary operator '#string' on '#string2' requires non-zero divisor, but divisor was '0'."
   analyzerCode: CONST_EVAL_THROWS_IDBZE
+  script: |
+    const int i = 42 ~/ 0;
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
 
 ConstEvalNegativeShift:
   problemMessage: "Binary operator '#string' on '#string2' requires non-negative operand, but was '#string3'."
+  script: |
+    const int foo = 42 >> -1;
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
 
 ConstEvalTruncateError:
   problemMessage: "Binary operator '#string ~/ #string2' results is Infinity or NaN."
+  script: |
+    const double doubleNan = 0/0;
+    const int doubleTruncateDivNaN = 84.2 ~/ doubleNan;
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
 
 ConstEvalNonNull:
   problemMessage: "Constant expression must be non-null."
+  experiments: const-functions
+  script: |
+    const int x = y!;
+    const dynamic y = null;
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
 
 ConstEvalGetterNotFound:
   problemMessage: "Variable get not found: '#nameOKEmpty'"
@@ -190,6 +308,10 @@ ConstEvalGetterNotFound:
 ConstEvalInvalidMethodInvocation:
   problemMessage: "The method '#stringOKEmpty' can't be invoked on '#constant' in a constant expression."
   analyzerCode: UNDEFINED_OPERATOR
+  script: |
+    const List<String> listConcat = ["Hello"] + ["World"];
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
 
 ConstEvalInvalidPropertyGet:
   problemMessage: "The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression."
@@ -208,6 +330,14 @@ ConstEvalInvalidStringInterpolationOperand:
     The constant value '#constant' can't be used as part of a string interpolation in a constant expression.
     Only values of type 'null', 'bool', 'int', 'double', or 'String' can be used.
   analyzerCode: CONST_EVAL_TYPE_BOOL_NUM_STRING
+  script: |
+    class Foo {
+      const Foo();
+    }
+    const f = Foo();
+    const bar = "hello $f";
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
 
 ConstEvalInvalidStaticInvocation:
   problemMessage: "The invocation of '#nameOKEmpty' is not allowed in a constant expression."
@@ -220,14 +350,38 @@ ConstEvalInvalidSymbolName:
 ConstEvalFailedAssertion:
   problemMessage: "This assertion failed."
   analyzerCode: CONST_EVAL_THROWS_EXCEPTION
+  script: |
+    class Foo {
+      final int x;
+      const Foo(this.x) : assert(x < 0);
+    }
+    const Foo foo = const Foo(42);
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
 
 ConstEvalFailedAssertionWithMessage:
   problemMessage: "This assertion failed with message: #stringOKEmpty"
   analyzerCode: CONST_EVAL_THROWS_EXCEPTION
+  script: |
+    class Foo {
+      final int x;
+      const Foo(this.x) : assert(x < 0, "non-negative");
+    }
+    const Foo foo = const Foo(42);
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
 
 ConstEvalFailedAssertionWithNonStringMessage:
   problemMessage: "This assertion failed with a non-String message."
   analyzerCode: CONST_EVAL_THROWS_EXCEPTION
+  script: |
+    class Foo {
+      final int x;
+      const Foo(this.x) : assert(x < 0, x);
+    }
+    const Foo foo = const Foo(42);
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
 
 ConstEvalNonConstantVariableGet:
   problemMessage: "The variable '#nameOKEmpty' is not a constant, only constant expressions are allowed."
@@ -241,35 +395,163 @@ ConstEvalDeferredLibrary:
     Try moving the constant from the deferred library, or removing 'deferred'
     from the import.
   analyzerCode: INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY
-
-ConstEvalFreeTypeParameter:
-  problemMessage: "The type '#type' is not a constant because it depends on a type parameter, only instantiated types are allowed."
+  script:
+    main.dart: |
+      import "lib.dart" deferred as foo;
+      void bar() => const [foo.c];
+    lib.dart: |
+      const c = const C();
+      class C {
+        const C();
+      }
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
 
 ConstEvalCircularity:
   problemMessage: "Constant expression depends on itself."
   analyzerCode: RECURSIVE_COMPILE_TIME_CONSTANT
+  script: |
+    const foo = bar;
+    const bar = foo;
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
 
 ConstEvalNullValue:
   problemMessage: "Null value during constant evaluation."
   analyzerCode: CONST_EVAL_THROWS_EXCEPTION
+  experiments: const-functions
+  script: |
+    const dynamic a = null;
+    const dynamic b = a();
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
 
 ConstEvalNotListOrSetInSpread:
   problemMessage: "Only lists and sets can be used in spreads in constant lists and sets."
   analyzerCode: CONST_SPREAD_EXPECTED_LIST_OR_SET
+  script: |
+    import 'dart:collection';
+    class CustomIterable extends IterableBase<String> {
+      const CustomIterable();
+      Iterator<String> get iterator => <String>[].iterator;
+    }
+    const List<String> barWithCustomIterableSpread1 = [
+      ...const CustomIterable()
+    ];
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
 
 ConstEvalNotMapInSpread:
   problemMessage: "Only maps can be used in spreads in constant maps."
   analyzerCode: CONST_SPREAD_EXPECTED_MAP
+  script: |
+    const Map<String, String> mapWithCustomMap1 = {...const CustomMap()};
+    class CustomMap implements Map<String, String> {
+      const CustomMap();
+
+      @override
+      Iterable<MapEntry<String, String>> get entries => [];
+
+      @override
+      String operator [](Object? key) => throw new UnimplementedError();
+
+      @override
+      void operator []=(String key, String value) => throw new UnimplementedError();
+
+      @override
+      Map<RK, RV> cast<RK, RV>() => throw new UnimplementedError();
+
+      @override
+      void clear() => throw new UnimplementedError();
+
+      @override
+      bool containsKey(Object? key) => throw new UnimplementedError();
+
+      @override
+      bool containsValue(Object? value) => throw new UnimplementedError();
+
+      @override
+      bool get isEmpty => throw new UnimplementedError();
+
+      @override
+      bool get isNotEmpty => throw new UnimplementedError();
+
+      @override
+      Iterable<String> get keys => throw new UnimplementedError();
+
+      @override
+      int get length => throw new UnimplementedError();
+
+      @override
+      String remove(Object? key) => throw new UnimplementedError();
+
+      @override
+      Iterable<String> get values => throw new UnimplementedError();
+
+      @override
+      void addAll(Map<String, String> other) => throw new UnimplementedError();
+
+      @override
+      void addEntries(Iterable<MapEntry<String, String>> newEntries) =>
+          throw new UnimplementedError();
+
+      @override
+      void forEach(void f(String key, String value)) =>
+          throw new UnimplementedError();
+
+      @override
+      String putIfAbsent(String key, String ifAbsent()) =>
+          throw new UnimplementedError();
+
+      @override
+      void updateAll(String update(String key, String value)) =>
+          throw new UnimplementedError();
+
+      @override
+      void removeWhere(bool predicate(String key, String value)) =>
+          throw new UnimplementedError();
+
+      String update(String key, String update(String value),
+              {String ifAbsent()?}) =>
+          throw new UnimplementedError();
+
+      Map<K2, V2> map<K2, V2>(MapEntry<K2, V2> f(String key, String value)) =>
+          throw new UnimplementedError();
+    }
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
 
 ConstEvalExtension:
   problemMessage: "Extension operations can't be used in constant expressions."
   analyzerCode: NOT_CONSTANT_EXPRESSION
+  experiments: const-functions
+  script: |
+    extension Foo on int {
+      int x() => 42;
+    }
+    const bar = 1.x();
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
 
 ConstEvalExternalConstructor:
   problemMessage: "External constructors can't be evaluated in constant expressions."
+  script: |
+    class Foo {
+      external const Foo();
+    }
+    const bar = Foo();
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
 
 ConstEvalExternalFactory:
   problemMessage: "External factory constructors can't be evaluated in constant expressions."
+  script: |
+    class Foo {
+      external const factory Foo();
+    }
+    const bar = Foo();
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
 
 ConstEvalUnevaluated:
   problemMessage: "Couldn't evaluate constant expression."
@@ -279,23 +561,44 @@ ConstEvalError:
 
 ConstEvalUnhandledCoreException:
   problemMessage: "Unhandled core exception: #stringOKEmpty"
+  experiments: const-functions
+  script: |
+    const foo = [].single;
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
 
 ConstEvalUnhandledException:
   problemMessage: "Unhandled exception: #constant"
+  experiments: const-functions
+  script: |
+    const foo = doThrow();
+    int doThrow() => throw 42;
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
 
 NotConstantExpression:
   problemMessage: "#string is not a constant expression."
   analyzerCode: NOT_CONSTANT_EXPRESSION
+  script: |
+    void foo() {
+      const x = new Map();
+    }
+  exampleAllowMultipleReports: true
 
 NotAConstantExpression:
   problemMessage: "Not a constant expression."
   analyzerCode: NOT_CONSTANT_EXPRESSION
+  script: |
+    foo() {
+      var a = 0;
+      const b = a;
+    }
 
 MissingExplicitConst:
   problemMessage: "Constant expression expected."
   correctionMessage: "Try inserting 'const'."
   analyzerCode: NOT_CONSTANT_EXPRESSION
-  script: >
+  script: |
     class A {
       final x;
       const A(): x = [];
@@ -333,6 +636,7 @@ NonAsciiIdentifier:
   correctionMessage: "Try using an US-ASCII letter, a digit, '_' (an underscore), or '$' (a dollar sign)."
   analyzerCode: ILLEGAL_CHARACTER
   expression: "å"
+  exampleAllowOtherCodes: true
 
 NonAsciiWhitespace:
   problemMessage: "The non-ASCII space character #unicode can only be used in strings and comments."
@@ -354,6 +658,11 @@ ExperimentNotEnabledOffByDefault:
   problemMessage: "This requires the experimental '#string' language feature to be enabled."
   correctionMessage: "Try passing the '--enable-experiment=#string' command line option."
   analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT
+  script: |
+    // @dart=3.5
+    void foo() {
+      int i = 42_42_42_42;
+    }
 
 ExperimentDisabled:
   problemMessage: "This requires the '#string' language feature to be enabled."
@@ -368,7 +677,7 @@ EmptyNamedParameterList:
   problemMessage: "Named parameter lists cannot be empty."
   correctionMessage: "Try adding a named parameter to the list."
   analyzerCode: "MISSING_IDENTIFIER"
-  script: >
+  script: |
     foo({}) {}
 
     main() {
@@ -407,7 +716,7 @@ RecordLiteralOnePositionalFieldNoTrailingComma:
     ```dart
     var r = const (1,);
     ```
-  script: >
+  script: |
     main() {
       var record = const (1);
     }
@@ -447,7 +756,7 @@ RecordLiteralZeroFieldsWithTrailingComma:
     ```dart
     var r = (3, 4);
     ```
-  script: >
+  script: |
     main() {
       var record = (,);
     }
@@ -488,7 +797,7 @@ EmptyRecordTypeNamedFieldsList:
     ```dart
     void f((int, int) r) {}
     ```
-  script: >
+  script: |
     main() {
       (int, int, {/*missing*/}) record = (1, 2,);
     }
@@ -528,7 +837,7 @@ RecordTypeZeroFieldsButTrailingComma:
     ```dart
     void f((int, int) r) {}
     ```
-  script: >
+  script: |
     main() {
       (,) record = ();
     }
@@ -565,7 +874,7 @@ RecordTypeOnePositionalFieldNoTrailingComma:
     ```dart
     void f((int,) r) {}
     ```
-  script: >
+  script: |
     main() {
       (int /* missing trailing comma */) record = const (1, );
     }
@@ -594,7 +903,7 @@ EmptyOptionalParameterList:
   problemMessage: "Optional parameter lists cannot be empty."
   correctionMessage: "Try adding an optional parameter to the list."
   analyzerCode: "MISSING_IDENTIFIER"
-  script: >
+  script: |
     foo([]) {}
 
     main() {
@@ -605,19 +914,19 @@ ExpectedElseOrComma:
   index: 46
   problemMessage: "Expected 'else' or comma."
   analyzerCode: ParserErrorCode.EXPECTED_ELSE_OR_COMMA
-
-ExpectedBlock:
-  problemMessage: "Expected a block."
-  correctionMessage: "Try adding {}."
-  analyzerCode: EXPECTED_TOKEN
-  script: "try finally {}"
+  script: |
+    void foo(int i) {
+      var x = [
+        if (i > 2) 2
+        2
+      ];
+    }
 
 ExpectedBlockToSkip:
   problemMessage: "Expected a function body or '=>'."
   # TODO(ahe): In some scenarios, we can suggest removing the 'static' keyword.
   correctionMessage: "Try adding {}."
   analyzerCode: MISSING_FUNCTION_BODY
-  script: "main();"
 
 ExpectedBody:
   problemMessage: "Expected a function body or '=>'."
@@ -639,6 +948,7 @@ ExpectedButGot:
   # a ',' would also have worked. We don't have enough information to give a
   # good suggestion.
   analyzerCode: EXPECTED_TOKEN
+  exampleAllowOtherCodes: true
   script:
     - "main() => true ? 1;"
     - "main() => foo(x: 1 y: 2);"
@@ -696,6 +1006,9 @@ MultipleLibraryDirectives:
   problemMessage: "Only one library directive may be declared in a file."
   correctionMessage: "Try removing all but one of the library directives."
   analyzerCode: ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES
+  script:
+    library foo;
+    library bar;
 
 MultipleExtends:
   index: 28
@@ -712,6 +1025,7 @@ MultipleWith:
   correctionMessage: "Try combining all of the with clauses into a single clause."
   analyzerCode: ParserErrorCode.MULTIPLE_WITH_CLAUSES
   script: "class A extends B with C, D with E {}"
+  exampleAllowOtherCodes: true
 
 WithBeforeExtends:
   index: 11
@@ -726,6 +1040,7 @@ ImplementsBeforeExtends:
   correctionMessage: "Try moving the extends clause before the implements clause."
   analyzerCode: ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS
   script: "class A implements B extends C {}"
+  exampleAllowOtherCodes: true
 
 ImplementsBeforeOn:
   index: 43
@@ -733,6 +1048,7 @@ ImplementsBeforeOn:
   correctionMessage: "Try moving the on clause before the implements clause."
   analyzerCode: ParserErrorCode.IMPLEMENTS_BEFORE_ON
   script: "mixin A implements B on C {}"
+  exampleAllowOtherCodes: true
 
 ImplementsBeforeWith:
   index: 42
@@ -740,6 +1056,7 @@ ImplementsBeforeWith:
   correctionMessage: "Try moving the with clause before the implements clause."
   analyzerCode: ParserErrorCode.IMPLEMENTS_BEFORE_WITH
   script: "class A extends B implements C with D {}"
+  exampleAllowOtherCodes: true
 
 ImplementsRepeated:
   problemMessage: "'#name' can only be implemented once."
@@ -765,6 +1082,7 @@ MultipleImplements:
   correctionMessage: "Try combining all of the implements clauses into a single clause."
   analyzerCode: MULTIPLE_IMPLEMENTS_CLAUSES
   script: "class A implements B implements C, D {}"
+  exampleAllowOtherCodes: true
 
 MultipleClauses:
   problemMessage: "Each '#string' definition can have at most one '#string2' clause."
@@ -788,6 +1106,7 @@ MultipleOnClauses:
   correctionMessage: "Try combining all of the on clauses into a single clause."
   analyzerCode: ParserErrorCode.MULTIPLE_ON_CLAUSES
   script: "mixin A on B on C, D {}"
+  exampleAllowOtherCodes: true
 
 MixinWithClause:
   index: 154
@@ -795,23 +1114,23 @@ MixinWithClause:
   analyzerCode: ParserErrorCode.MIXIN_WITH_CLAUSE
   script: "mixin M {} mixin N with M {}"
 
-ExtendsFutureOr:
-  problemMessage: "The type 'FutureOr' can't be used in an 'extends' clause."
-
 ImplementsFutureOr:
   problemMessage: "The type 'FutureOr' can't be used in an 'implements' clause."
+  script: |
+    import 'dart:async';
+    class Foo implements FutureOr<String> {}
 
 ExtendsNever:
   problemMessage: "The type 'Never' can't be used in an 'extends' clause."
+  script: |
+    class Foo extends Never {}
+  exampleAllowOtherCodes: true
 
 ImplementsNever:
   problemMessage: "The type 'Never' can't be used in an 'implements' clause."
-
-ExtendsVoid:
-  problemMessage: "The type 'void' can't be used in an 'extends' clause."
-
-ImplementsVoid:
-  problemMessage: "The type 'void' can't be used in an 'implements' clause."
+  script:
+    class Foo implements Never {}
+  exampleAllowOtherCodes: true
 
 ExpectedClassBody:
   index: 8
@@ -905,20 +1224,33 @@ ExpectedSwitchStatementBody:
 ExpectedDeclaration:
   problemMessage: "Expected a declaration, but got '#lexeme'."
   analyzerCode: EXPECTED_EXECUTABLE
+  script: |
+    var get b, c;
+  exampleAllowOtherCodes: true
 
 ExpectedClassMember:
   problemMessage: "Expected a class member, but got '#lexeme'."
   analyzerCode: EXPECTED_CLASS_MEMBER
+  script: |
+    class Foo {
+      Foo() : this.new = 42;
+    }
+  exampleAllowOtherCodes: true
+  exampleAllowMultipleReports: true
 
 ExpectedFunctionBody:
   problemMessage: "Expected a function body, but got '#lexeme'."
   analyzerCode: MISSING_FUNCTION_BODY
+  script: |
+    var get b, c;
+  exampleAllowOtherCodes: true
+  exampleAllowMultipleReports: true
 
 ExpectedHexDigit:
   problemMessage: "A hex digit (0-9 or A-F) must follow '0x'."
   # No tip, seems obvious from the error message.
   analyzerCode: MISSING_HEX_DIGIT
-  script: >
+  script: |
     main() {
       var i = 0x;
     }
@@ -941,24 +1273,34 @@ EqualityCannotBeEqualityOperand:
   problemMessage: "A comparison expression can't be an operand of another comparison expression."
   correctionMessage: "Try putting parentheses around one of the comparisons."
   analyzerCode: ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND
+  exampleAllowOtherCodes: true
   script:
     - "main() { var b = a < b < c; }"
     - "main() { var b = a == b != c; }"
 
-ExpectedOpenParens:
-  problemMessage: "Expected '('."
-
 ExpectedString:
   problemMessage: "Expected a String, but got '#lexeme'."
   analyzerCode: EXPECTED_STRING_LITERAL
+  script: |
+    import foo;
+  exampleAllowOtherCodes: true
 
 ExpectedToken:
   problemMessage: "Expected to find '#string'."
   analyzerCode: EXPECTED_TOKEN
+  script: |
+    void foo() {
+      switch (1) {
+        C<int, int> case 1: break;
+      }
+    }
 
 ExpectedType:
   problemMessage: "Expected a type, but got '#lexeme'."
   analyzerCode: EXPECTED_TYPE_NAME
+  script: |
+    extension try<T> on Class<T> {}
+  exampleAllowOtherCodes: true
 
 VarAsTypeName:
   index: 61
@@ -966,6 +1308,7 @@ VarAsTypeName:
   analyzerCode: ParserErrorCode.VAR_AS_TYPE_NAME
   script:
     - "class A { Map<String, var> m; }"
+  exampleAllowOtherCodes: true
 
 MissingExpressionInThrow:
   index: 32
@@ -992,6 +1335,7 @@ FunctionTypedParameterVar:
     - "void f(const x()) {}"
     - "void f(final x()) {}"
     - "void f(var x()) {}"
+  exampleAllowOtherCodes: true
 
 AbstractClassMember:
   index: 51
@@ -1029,7 +1373,7 @@ AbstractExtensionField:
   problemMessage: "Extension fields can't be declared 'abstract'."
   correctionMessage: "Try removing the 'abstract' keyword."
   analyzerCode: ABSTRACT_EXTENSION_FIELD
-  exampleAllowMoreCodes: true
+  exampleAllowOtherCodes: true
   script:
     - "extension C on int {abstract static var f;}"
 
@@ -1066,7 +1410,7 @@ AbstractFinalInterfaceClass:
   problemMessage: "An 'abstract' class can't be declared as both 'final' and 'interface'."
   correctionMessage: "Try removing either the 'final' or 'interface' keyword."
   analyzerCode: ParserErrorCode.ABSTRACT_FINAL_INTERFACE_CLASS
-  index: 177
+  index: 50
   script:
     - "abstract final interface class C {}"
 
@@ -1141,8 +1485,8 @@ CovariantMember:
   correctionMessage: "Try removing the 'covariant' keyword."
   analyzerCode: ParserErrorCode.COVARIANT_MEMBER
   script:
-    - "static covariant get x => 0;"
-    - "covariant int m() => 0;"
+    - "class A { covariant get x => 0; }"
+    - "class A { covariant int m() => 0; }"
 
 VarReturnType:
   index: 12
@@ -1179,6 +1523,7 @@ ConflictingModifiers:
   script:
     - "class C { const var x; }"
     - "class C { var const x; }"
+  exampleAllowOtherCodes: true
 
 ConstFactory:
   index: 62
@@ -1206,11 +1551,26 @@ NonConstFactory:
   problemMessage: "Cannot invoke a non-'const' factory where a const expression is expected."
   correctionMessage: "Try using a constructor or factory that is 'const'."
   analyzerCode: NOT_CONSTANT_EXPRESSION
+  script: |
+    class Foo {
+      Foo();
+      factory Foo.f() => new Foo();
+    }
+    void foo() {
+      const Foo.f();
+    }
 
 NonConstConstructor:
   problemMessage: "Cannot invoke a non-'const' constructor where a const expression is expected."
   correctionMessage: "Try using a constructor or factory that is 'const'."
   analyzerCode: NOT_CONSTANT_EXPRESSION
+  script: |
+    class Foo {
+      Foo();
+    }
+    void foo() {
+      const Foo();
+    }
 
 ModifierOutOfOrder:
   index: 56
@@ -1224,6 +1584,8 @@ ModifierOutOfOrder:
     - "class C { static external f(); }"
     - "class C { final static int f = 5; }"
     - "class C { var static f; }"
+    - "var external foo; main(){}"
+  exampleAllowOtherCodes: true
 
 TypeBeforeFactory:
   index: 57
@@ -1257,8 +1619,8 @@ CovariantAndStatic:
   correctionMessage: "Try removing either the 'covariant' or 'static' keyword."
   analyzerCode: ParserErrorCode.COVARIANT_AND_STATIC
   script:
-    - "class C { covariant static A f; }"
-    - "class C { static covariant A f; }"
+    - "class A {} class C { covariant static A? f; }"
+    - "class A {} class C { static covariant A? f; }"
 
 DuplicatedModifier:
   index: 70
@@ -1268,6 +1630,7 @@ DuplicatedModifier:
   comment: |-
     Parameters:
     0: the modifier that was duplicated
+  exampleAllowOtherCodes: true
   script:
     - "class C { const const m; }"
     - "class C { external external f(); }"
@@ -1275,19 +1638,16 @@ DuplicatedModifier:
     - "class C { static static var m; }"
     - "class C { var var m; }"
 
-ExternalConstructorWithBody:
-  index: 87
-  problemMessage: "External constructors can't have a body."
-  correctionMessage: "Try removing the body of the constructor, or removing the keyword 'external'."
-  analyzerCode: ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY
-  script:
-    - "class C { external C() {} }"
-
 ExternalConstructorWithFieldInitializers:
-  index: 178
+  index: 87
   problemMessage: "An external constructor can't initialize fields."
   correctionMessage: "Try removing the field initializers, or removing the keyword 'external'."
   analyzerCode: ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS
+  script: |
+    class Foo {
+      var x = -1;
+      external Foo.x(this.x);
+    }
 
 ExternalFactoryWithBody:
   index: 86
@@ -1296,12 +1656,7 @@ ExternalFactoryWithBody:
   analyzerCode: ParserErrorCode.EXTERNAL_FACTORY_WITH_BODY
   script:
     - "class C { external factory C() {} }"
-
-ExternalField:
-  index: 50
-  problemMessage: "Fields can't be declared to be 'external'."
-  correctionMessage: "Try removing the keyword 'external', or replacing the field by an external getter and/or setter."
-  analyzerCode: ParserErrorCode.EXTERNAL_FIELD
+  exampleAllowOtherCodes: true
 
 ExternalFieldInitializer:
   problemMessage: "External fields cannot have initializers."
@@ -1329,6 +1684,10 @@ ExternalLateField:
 InitializerForStaticField:
   problemMessage: "'#name' isn't an instance field of this class."
   analyzerCode: INITIALIZER_FOR_STATIC_FIELD
+  script: |
+    class Foo {
+      Foo() : initializer = true { }
+    }
 
 MoreThanOneSuperInitializer:
   problemMessage: "Can't have more than one 'super' initializer."
@@ -1371,31 +1730,18 @@ ExtraneousModifier:
   correctionMessage: "Try removing '#lexeme'."
   analyzerCode: ParserErrorCode.EXTRANEOUS_MODIFIER
   script:
-    - "var String foo; main(){}"
-    - "var set foo; main(){}"
-    - "var final foo; main(){}"
-    - "var var foo; main(){}"
-    - "var const foo; main(){}"
     - "var abstract foo; main(){}"
     - "var static foo; main(){}"
-    - "var external foo; main(){}"
-    - "get var foo; main(){}"
-    - "set var foo; main(){}"
-    - "final var foo; main(){}"
-    - "var var foo; main(){}"
-    - "const var foo; main(){}"
     - "abstract var foo; main(){}"
     - "static var foo; main(){}"
-    - "external var foo; main(){}"
-    - "set foo; main(){}"
     - "abstract foo; main(){}"
     - "static foo; main(){}"
-    - "external foo; main(){}"
     - "abstract enum foo {bar}"
     - "abstract void foo() {}"
     - "static void foo() {}"
     - "abstract typedef foo();"
     - "static typedef foo();"
+  exampleAllowOtherCodes: true
 
 ExtraneousModifierInExtension:
   index: 98
@@ -1459,6 +1805,7 @@ FinalAndCovariant:
   script:
     - "class C { covariant final f = 5; }"
     - "class C { final covariant f = 5; }"
+  exampleAllowOtherCodes: true
 
 FinalAndCovariantLateWithInitializer:
   index: 101
@@ -1521,6 +1868,15 @@ BreakOutsideOfLoop:
 
 InvalidBreakTarget:
   problemMessage: "Can't break to '#name'."
+  script: |
+    void foo() {
+      switch (1) {
+        L: case 1:
+          foo() {
+            break L;
+          }
+      }
+    }
 
 BreakTargetOutsideFunction:
   problemMessage: "Can't break to '#name' in a different function."
@@ -1543,6 +1899,7 @@ AnonymousBreakTargetOutsideFunction:
         break;
       }
     }
+  exampleAllowOtherCodes: true
 
 ContinueLabelInvalid:
   problemMessage: "A 'continue' label must be on a loop or a switch member."
@@ -1557,9 +1914,20 @@ ContinueOutsideOfLoop:
   analyzerCode: ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP
   script:
     - "main() { continue; }"
+  exampleAllowOtherCodes: true
 
 InvalidContinueTarget:
   problemMessage: "Can't continue at '#name'."
+  script: |
+    void foo() {
+      switch (1) {
+        L: case 1:
+          foo() {
+            continue L;
+          }
+      }
+    }
+  exampleAllowOtherCodes: true
 
 ContinueTargetOutsideFunction:
   problemMessage: "Can't continue at '#name' in a different function."
@@ -1582,6 +1950,7 @@ AnonymousContinueTargetOutsideFunction:
         continue;
       }
     }
+  exampleAllowOtherCodes: true
 
 ContinueWithoutLabelInCase:
   index: 64
@@ -1589,7 +1958,7 @@ ContinueWithoutLabelInCase:
   correctionMessage: "Try adding a label associated with one of the case clauses to the continue statement."
   analyzerCode: ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE
   script:
-    - "main() { switch (x) {case 1: continue;} }"
+    - "main(List<String> x) { switch (x) {case 1: continue;} }"
 
 DuplicateLabelInSwitchStatement:
   index: 72
@@ -1636,8 +2005,8 @@ InvalidVoid:
   correctionMessage: "Try removing 'void' keyword or replace it with 'var', 'final', or a type."
   analyzerCode: EXPECTED_TYPE_NAME
   script:
-    - "void x; main() {}"
-    - "foo(void x) {} main() { foo(null); }"
+    - "class Foo extends void {}"
+  exampleAllowOtherCodes: true
 
 VoidWithTypeArguments:
   problemMessage: "Type 'void' can't have type arguments."
@@ -1654,6 +2023,15 @@ InvalidInitializer:
   problemMessage: "Not a valid initializer."
   correctionMessage: "To initialize a field, use the syntax 'name = value'."
   analyzerCode: ParserErrorCode.INVALID_INITIALIZER
+  script: |
+    class A {
+      int a = 0;
+    }
+
+    class B extends A {
+      B() : super.a = 42;
+    }
+  exampleAllowOtherCodes: true
 
 FieldInitializedOutsideDeclaringClass:
   index: 88
@@ -1662,12 +2040,13 @@ FieldInitializedOutsideDeclaringClass:
   analyzerCode: ParserErrorCode.FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS
   script:
     - "class A { int a; } class C extends A { C() : super.a = 42; }"
+  exampleAllowOtherCodes: true
 
 FinalFieldNotInitialized:
   problemMessage: "Final field '#name' is not initialized."
   correctionMessage: "Try to initialize the field in the declaration or in every constructor."
   analyzerCode: FINAL_NOT_INITIALIZED
-  script: >
+  script: |
     class C {
       final int x;
     }
@@ -1676,7 +2055,7 @@ FinalFieldNotInitializedByConstructor:
   problemMessage: "Final field '#name' is not initialized by this constructor."
   correctionMessage: "Try to initialize the field using an initializing formal or a field initializer."
   analyzerCode: FINAL_NOT_INITIALIZED_CONSTRUCTOR_1
-  script: >
+  script: |
     class C {
       final int x;
       C(this.x) {}
@@ -1687,7 +2066,7 @@ MissingExponent:
   problemMessage: "Numbers in exponential notation should always contain an exponent (an integer number with an optional sign)."
   correctionMessage: "Make sure there is an exponent, and remove any whitespace before it."
   analyzerCode: MISSING_DIGIT
-  script: >
+  script: |
     main() {
       var i = 1e;
     }
@@ -1696,7 +2075,7 @@ PositionalParameterWithEquals:
   problemMessage: "Positional optional parameters can't use ':' to specify a default value."
   correctionMessage: "Try replacing ':' with '='."
   analyzerCode: WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER
-  script: >
+  script: |
     main() {
       foo([a: 1]) => print(a);
       foo(2);
@@ -1767,7 +2146,7 @@ InvalidEscapeStarted:
   problemMessage: "The string '\\' can't stand alone."
   correctionMessage: "Try adding another backslash (\\) to escape the '\\'."
   analyzerCode: ParserErrorCode.INVALID_UNICODE_ESCAPE_STARTED
-  exampleAllowMoreCodes: true
+  exampleAllowOtherCodes: true
   expression:
     - |
       print('Hello, World!\
@@ -1803,6 +2182,7 @@ UnexpectedToken:
   analyzerCode: UNEXPECTED_TOKEN
   script:
     - "import 'b.dart' d as b;"
+  exampleAllowOtherCodes: true
 
 UnexpectedTokens:
   problemMessage: "Unexpected tokens."
@@ -1865,6 +2245,7 @@ UnmatchedToken:
     - "main("
     - "main(){"
     - "main(){[}"
+  exampleAllowOtherCodes: true
 
 UnsupportedOperator:
   problemMessage: "The '#lexeme' operator is not supported."
@@ -1919,6 +2300,7 @@ UnterminatedString:
       main() => r'''
     - >
       main() => r\"\"\"
+  exampleAllowOtherCodes: true
 
 UnterminatedToken:
   # This is a fall-back message that shouldn't happen.
@@ -1930,40 +2312,49 @@ UnterminatedToken:
 Unspecified:
   problemMessage: "#string"
 
-WeakWithStrongDillLibrary:
-  problemMessage: "Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety."
-
-StrongWithWeakDillLibrary:
-  problemMessage: "Loaded library is compiled with unsound null safety and cannot be used in compilation for sound null safety."
-
-InvalidNnbdDillLibrary:
-  problemMessage: "Trying to use library with invalid null safety."
-
 AbstractNotSync:
   problemMessage: "Abstract methods can't use 'async', 'async*', or 'sync*'."
   analyzerCode: NON_SYNC_ABSTRACT_METHOD
+  script: |
+    abstract class Foo {
+      Future<void> bar() async;
+    }
+  exampleAllowOtherCodes: true
 
 AwaitAsIdentifier:
   problemMessage: "'await' can't be used as an identifier in 'async', 'async*', or 'sync*' methods."
   analyzerCode: ASYNC_KEYWORD_USED_AS_IDENTIFIER
+  script: |
+    Future<void> foo() async {
+      int await = 1;
+    }
 
 AwaitNotAsync:
   problemMessage: "'await' can only be used in 'async' or 'async*' methods."
   analyzerCode: AWAIT_IN_WRONG_CONTEXT
+  script: |
+    void foo() {
+      await null;
+    }
 
 BuiltInIdentifierAsType:
   problemMessage: "The built-in identifier '#lexeme' can't be used as a type."
   analyzerCode: BUILT_IN_IDENTIFIER_AS_TYPE
+  script: |
+    class Foo<as extends Comparable<as>> {}
+  exampleAllowOtherCodes: true
 
 BuiltInIdentifierInDeclaration:
   problemMessage: "Can't use '#lexeme' as a name here."
   analyzerCode: BUILT_IN_IDENTIFIER_IN_DECLARATION
+  script: |
+    class late {}
 
 AwaitForNotAsync:
   problemMessage: "The asynchronous for-in can only be used in functions marked with 'async' or 'async*'."
   correctionMessage: "Try marking the function body with either 'async' or 'async*', or removing the 'await' before the for loop."
   analyzerCode: ASYNC_FOR_IN_WRONG_CONTEXT
-  script: >
+  script: |
     main(o) sync* {
       await for (var e in o) {}
     }
@@ -1971,14 +2362,27 @@ AwaitForNotAsync:
 ConstructorNotSync:
   problemMessage: "Constructor bodies can't use 'async', 'async*', or 'sync*'."
   analyzerCode: NON_SYNC_CONSTRUCTOR
+  script: |
+    class Foo {
+      Foo() async {}
+    }
 
 FactoryNotSync:
   problemMessage: "Factory bodies can't use 'async', 'async*', or 'sync*'."
   analyzerCode: NON_SYNC_FACTORY
+  script: |
+    class Foo {
+      Foo._();
+      factory Foo.x() async => new Foo._();
+    }
 
 GeneratorReturnsValue:
   problemMessage: "'sync*' and 'async*' can't return a value."
   analyzerCode: RETURN_IN_GENERATOR
+  script: |
+    Iterable<int> foo() sync* {
+      return [42];
+    }
 
 InvalidInlineFunctionType:
   problemMessage: "Inline function types cannot be used for parameters in a generic function type."
@@ -1989,14 +2393,26 @@ InvalidInlineFunctionType:
 SetterNotSync:
   problemMessage: "Setters can't use 'async', 'async*', or 'sync*'."
   analyzerCode: INVALID_MODIFIER_ON_SETTER
+  script: |
+    set foo(int x) async {}
 
 YieldAsIdentifier:
   problemMessage: "'yield' can't be used as an identifier in 'async', 'async*', or 'sync*' methods."
   analyzerCode: ASYNC_KEYWORD_USED_AS_IDENTIFIER
+  script: |
+    Future<void> foo() async {
+      int yield = 1;
+    }
 
 YieldNotGenerator:
   problemMessage: "'yield' can only be used in 'sync*' or 'async*' methods."
   analyzerCode: YIELD_IN_NON_GENERATOR
+  script: |
+    Future<int> f() => Future.value(7);
+    List<int> g() {
+      yield f();
+      return [];
+    }
 
 OnlyTry:
   index: 20
@@ -2010,9 +2426,9 @@ TypeAfterVar:
   problemMessage: "Variables can't be declared using both 'var' and a type name."
   correctionMessage: "Try removing 'var.'"
   analyzerCode: ParserErrorCode.VAR_AND_TYPE
-
-AssertExtraneousArgument:
-  problemMessage: "`assert` can't have more than two arguments."
+  script:
+    - "var String foo; main(){}"
+  exampleAllowOtherCodes: true
 
 PositionalAfterNamedArgument:
   problemMessage: "Place positional arguments before named arguments."
@@ -2022,31 +2438,46 @@ PositionalAfterNamedArgument:
 ExpectedNamedArgument:
   problemMessage: "Expected named argument."
   analyzerCode: EXTRA_POSITIONAL_ARGUMENTS
+  script: |
+    // @dart=2.16
+    void foo({int x = 1, int y = 2}) {}
+    void bar() => foo(x: 42, ,);
+  exampleAllowOtherCodes: true
 
 AssertAsExpression:
   problemMessage: "`assert` can't be used as an expression."
+  script: |
+    int assert(int x) {
+      if (x == 0) return 42;
+      return assert(x-1) + 1;
+    }
+  exampleAllowOtherCodes: true
 
 FunctionTypeDefaultValue:
   problemMessage: "Can't have a default value in a function type."
   analyzerCode: DEFAULT_VALUE_IN_FUNCTION_TYPE
+  script: |
+    void Function({dynamic obj = Object})? x;
 
 PrivateNamedParameter:
   problemMessage: "A named parameter can't start with an underscore ('_')."
   analyzerCode: PRIVATE_OPTIONAL_PARAMETER
-
-NoFormals:
-  problemMessage: "A function should have formal parameters."
-  correctionMessage: "Try adding '()' after '#lexeme', or add 'get' before '#lexeme' to declare a getter."
-  analyzerCode: MISSING_FUNCTION_PARAMETERS
+  script: |
+    void foo({int? _hello}) {}
 
 GetterWithFormals:
   problemMessage: "A getter can't have formal parameters."
   correctionMessage: "Try removing '(...)'."
   analyzerCode: GETTER_WITH_PARAMETERS
+  script: |
+    int get foo(int x) => 42;
 
 SetterWithWrongNumberOfFormals:
   problemMessage: "A setter should have exactly one formal parameter."
   analyzerCode: WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER
+  script:
+    - "var set foo; main(){}"
+  exampleAllowOtherCodes: true
 
 CatchSyntax:
   index: 84
@@ -2071,27 +2502,55 @@ SuperNullAware:
   problemMessage: "The operator '?.' cannot be used with 'super' because 'super' cannot be null."
   correctionMessage: "Try replacing '?.' with '.'"
   analyzerCode: ParserErrorCode.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER
+  script: |
+    class Super {
+      Super.named();
+    }
+    class Class extends Super {
+      Class() : super?.named();
+    }
+  exampleAllowOtherCodes: true
 
 NullAwareCascadeOutOfOrder:
   index: 96
   problemMessage: "The '?..' cascade operator must be first in the cascade sequence."
   correctionMessage: "Try moving the '?..' operator to be the first cascade operator in the sequence."
   analyzerCode: ParserErrorCode.NULL_AWARE_CASCADE_OUT_OF_ORDER
+  script: |
+    void foo(int? x) {
+      x
+        ..hashCode
+        ?..isEven;
+    }
+  exampleAllowOtherCodes: true
 
 ConstFieldWithoutInitializer:
   problemMessage: "The const variable '#name' must be initialized."
   correctionMessage: "Try adding an initializer ('= expression') to the declaration."
   analyzerCode: CONST_NOT_INITIALIZED
+  script:
+    - "var const foo; main(){}"
+  exampleAllowOtherCodes: true
 
 FinalFieldWithoutInitializer:
   problemMessage: "The final variable '#name' must be initialized."
   correctionMessage: "Try adding an initializer ('= expression') to the declaration."
   analyzerCode: FINAL_NOT_INITIALIZED
+  script:
+    - "var final foo; main(){}"
+  exampleAllowOtherCodes: true
 
 MetadataTypeArguments:
   index: 91
   problemMessage: "An annotation can't use type arguments."
   analyzerCode: ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS
+  script: |
+    // @dart=2.12
+    class C<T> {
+      const C();
+    }
+    @C<int>() // Error
+    void foo() {}
 
 MetadataTypeArgumentsUninstantiated:
   index: 114
@@ -2120,6 +2579,13 @@ MetadataSpaceBeforeParenthesis:
 ConstructorNotFound:
   problemMessage: "Couldn't find constructor '#name'."
   analyzerCode: CONSTRUCTOR_NOT_FOUND
+  script: |
+    class Foo {
+      Foo.bar() {}
+    }
+    void baz() {
+      new Foo.baz();
+    }
 
 ConstructorWithReturnType:
   index: 55
@@ -2197,42 +2663,76 @@ FieldInitializerOutsideConstructor:
   hasPublishedDocs: true
   script:
     - "class C { void m(this.x); }"
+  exampleAllowOtherCodes: true
 
 SuperParameterInitializerOutsideConstructor:
   problemMessage: "Super-initializer formal parameters can only be used in generative constructors."
   correctionMessage: "Try removing 'super.'."
+  script: |
+    class A {
+      A(int x);
+    }
+    class C extends A {
+      C(super._);
+      factory C.r2(super._) = C; // Error.
+    }
+  exampleAllowOtherCodes: true
 
 RedirectionTargetNotFound:
   problemMessage: "Redirection constructor target not found: '#name'"
   analyzerCode: REDIRECT_TO_MISSING_CONSTRUCTOR
+  script: |
+    class Class {
+      factory Class.a() = Class.nonexisting;
+    }
 
 CyclicTypedef:
   problemMessage: "The typedef '#name' has a reference to itself."
   analyzerCode: TYPE_ALIAS_CANNOT_REFERENCE_ITSELF
+  script: |
+    typedef Foo = Foo;
 
 TypeNotFound:
   problemMessage: "Type '#name' not found."
   analyzerCode: UNDEFINED_CLASS
+  script: |
+    Bar? foo() {
+      return null;
+    }
 
 NameNotFound:
   problemMessage: "Undefined name '#name'."
   analyzerCode: UNDEFINED_NAME
+  script: |
+    void foo() => bar;
 
 MemberNotFound:
   problemMessage: "Member not found: '#name'."
   analyzerCode: UNDEFINED_GETTER
+  script: |
+    class Foo {}
+    void bar() => Foo.baz();
 
 GetterNotFound:
   problemMessage: "Getter not found: '#name'."
   analyzerCode: UNDEFINED_GETTER
+  script:
+    void set onlySetter(value) {}
+    void foo() => print(onlySetter);
 
 SetterNotFound:
   problemMessage: "Setter not found: '#name'."
   analyzerCode: UNDEFINED_SETTER
+  script: |
+    void x() {
+      foo = 42;
+    }
 
 MethodNotFound:
   problemMessage: "Method not found: '#name'."
   analyzerCode: UNDEFINED_METHOD
+  script: |
+    void foo() => z("Hello, World!");
 
 CandidateFound:
   problemMessage: "Found this candidate, but the arguments don't match."
@@ -2242,33 +2742,61 @@ CandidateFoundIsDefaultConstructor:
   problemMessage: "The class '#name' has a constructor that takes no arguments."
   severity: CONTEXT
 
-MissingArgumentList:
-  problemMessage: "Constructor invocations must have an argument list."
-
 TooFewArguments:
   problemMessage: "Too few positional arguments: #count required, #count2 given."
   analyzerCode: NOT_ENOUGH_REQUIRED_ARGUMENTS
+  script: |
+    void foo(int i) {}
+    void bar() {
+      foo();
+    }
 
 TooManyArguments:
   problemMessage: "Too many positional arguments: #count allowed, but #count2 found."
   correctionMessage: "Try removing the extra positional arguments."
   analyzerCode: EXTRA_POSITIONAL_ARGUMENTS
+  script: |
+    void foo(int i) {}
+    void bar() {
+      foo(1, 2);
+    }
 
 NoSuchNamedParameter:
   problemMessage: "No named parameter with the name '#name'."
   analyzerCode: UNDEFINED_NAMED_PARAMETER
+  script: |
+    void foo(int i) => i.toString(hello: 42);
 
 AbstractClassInstantiation:
   problemMessage: "The class '#name' is abstract and can't be instantiated."
   analyzerCode: NEW_WITH_ABSTRACT_CLASS
+  script: |
+    abstract class Foo {}
+    main() { new Foo(); }
 
 EnumInstantiation:
   problemMessage: "Enums can't be instantiated."
   analyzerCode: INSTANTIATE_ENUM
+  script: |
+    enum E {
+      a, b, c;
+      factory E.x() {
+        return const E();
+      }
+    }
 
 AbstractRedirectedClassInstantiation:
   problemMessage: "Factory redirects to class '#name', which is abstract and can't be instantiated."
   analyzerCode: FACTORY_REDIRECTS_TO_ABSTRACT_CLASS
+  script: |
+    abstract class A {
+      A._();
+      factory A() = B;
+    }
+
+    abstract class B extends A {
+      B() : super._();
+    }
 
 MissingImplementationNotAbstract:
   problemMessage: |
@@ -2290,38 +2818,86 @@ MissingImplementationCause:
 
 InterfaceCheck:
   problemMessage: "The implementation of '#name' in the non-abstract class '#name2' does not conform to its interface."
+  script: |
+    class A {
+      void foo() {}
+    }
+
+    abstract class B extends A {
+      void foo([a]);
+    }
+
+    class C extends B {}
 
 NamedMixinOverride:
   problemMessage: "The mixin application class '#name' introduces an erroneous override of '#name2'."
+  script: |
+    class Super {
+      void extendedConcreteMixedInConcreteMethod() {}
+    }
+
+    mixin class Mixin {
+      void extendedConcreteMixedInConcreteMethod(int i) {}
+    }
+
+    class NamedMixin = Super with Mixin;
 
 ImplicitMixinOverride:
   problemMessage: "Applying the mixin '#name' to '#name2' introduces an erroneous override of '#name3'."
+  script: |
+    abstract class Super {
+      String get extendedGetterMixedInField => '';
+    }
+
+    mixin Mixin {
+      int extendedGetterMixedInField = 0;
+    }
+
+    abstract class Class extends Super with Mixin { }
 
 ListLiteralTooManyTypeArguments:
   problemMessage: "List literal requires exactly one type argument."
   analyzerCode: EXPECTED_ONE_LIST_TYPE_ARGUMENTS
-
-SetLiteralTooManyTypeArguments:
-  problemMessage: "A set literal requires exactly one type argument."
-
-MapLiteralTypeArgumentMismatch:
-  problemMessage: "A map literal requires exactly two type arguments."
-  analyzerCode: EXPECTED_TWO_MAP_TYPE_ARGUMENTS
+  script: |
+    void foo() {
+      var x = <int, int>[];
+    }
 
 SetOrMapLiteralTooManyTypeArguments:
   problemMessage: "A set or map literal requires exactly one or two type arguments, respectively."
+  script: |
+    var x = <int, int, int>{};
 
 LoadLibraryTakesNoArguments:
   problemMessage: "'loadLibrary' takes no arguments."
   analyzerCode: LOAD_LIBRARY_TAKES_NO_ARGUMENTS
+  script:
+    main.dart: |
+      import "lib.dart" deferred as lib;
+      void main() {
+        lib.loadLibrary(10);
+      }
+    lib.dart: ""
 
 TypeArgumentMismatch:
   problemMessage: "Expected #count type arguments."
   analyzerCode: WRONG_NUMBER_OF_TYPE_ARGUMENTS
+  script: |
+    void foo() {
+      new List<int, int>.filled(0, 42);
+    }
 
 NotAType:
   problemMessage: "'#name' isn't a type."
   analyzerCode: NOT_A_TYPE
+  script:
+    main.dart: |
+      import 'lib.dart' as prefix;
+
+      void foo() {
+        prefix.NonExisting? e;
+      }
+    lib.dart: ""
 
 NotATypeContext:
   problemMessage: "This isn't a type."
@@ -2442,15 +3018,14 @@ FastaCLIArgumentRequired:
 NamedFunctionExpression:
   problemMessage: "A function expression can't have a name."
   analyzerCode: NAMED_FUNCTION_EXPRESSION
+  script: |
+    var x = void f<T>(T t) {};
 
 NativeClauseShouldBeAnnotation:
   index: 23
   problemMessage: "Native clause in this form is deprecated."
   correctionMessage: "Try removing this native clause and adding @native() or @native('native-name') before the declaration."
   analyzerCode: ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION
-
-ReturnTypeFunctionExpression:
-  problemMessage: "A function expression can't have a return type."
 
 InternalProblemUnhandled:
   problemMessage: "Unhandled #string in #string2."
@@ -2562,35 +3137,63 @@ MissingPrefixInDeferredImport:
   problemMessage: "Deferred imports should have a prefix."
   correctionMessage: "Try adding a prefix to the import by adding an 'as' clause."
   analyzerCode: ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT
+  script:
+    main.dart: |
+      import 'lib.dart' deferred;
+    lib.dart: ""
 
 DeferredAfterPrefix:
   index: 68
   problemMessage: "The deferred keyword should come immediately before the prefix ('as' clause)."
   correctionMessage: "Try moving the deferred keyword before the prefix."
   analyzerCode: ParserErrorCode.DEFERRED_AFTER_PREFIX
+  script:
+    main.dart: |
+      import "lib.dart" as foo deferred;
+    lib.dart: ""
 
 DuplicateDeferred:
   index: 71
   problemMessage: "An import directive can only have one 'deferred' keyword."
   correctionMessage: "Try removing all but one 'deferred' keyword."
   analyzerCode: ParserErrorCode.DUPLICATE_DEFERRED
+  script:
+    main.dart: |
+      import "lib.dart" deferred as foo deferred;
+    lib.dart: ""
 
 DeferredTypeAnnotation:
   problemMessage: "The type '#type' is deferred loaded via prefix '#name' and can't be used as a type annotation."
   correctionMessage: "Try removing 'deferred' from the import of '#name' or use a supertype of '#type' that isn't deferred."
   analyzerCode: TYPE_ANNOTATION_DEFERRED_CLASS
+  script:
+    main.dart: |
+      import 'lib.dart' deferred as lib;
+      void foo(Object x) {
+        x as lib.C;
+      }
+    lib.dart: |
+      class C {}
 
 DuplicatePrefix:
   index: 73
   problemMessage: "An import directive can only have one prefix ('as' clause)."
   correctionMessage: "Try removing all but one prefix."
   analyzerCode: ParserErrorCode.DUPLICATE_PREFIX
+  script:
+    main.dart: |
+      import "lib.dart" as foo as bar;
+    lib.dart: ""
 
 PrefixAfterCombinator:
   index: 6
   problemMessage: "The prefix ('as' clause) should come before any show/hide combinators."
   correctionMessage: "Try moving the prefix before the combinators."
   analyzerCode: ParserErrorCode.PREFIX_AFTER_COMBINATOR
+  script:
+    main.dart: |
+      import "lib.dart" show Foo hide Foo as Foo;
+    lib.dart: ""
 
 DuplicatedExport:
   problemMessage: "'#name' is exported from both '#uri' and '#uri2'."
@@ -2621,14 +3224,22 @@ CyclicClassHierarchy:
     - "class C = Object with C;"
     - "class C extends C {}"
     - "class C implements C {}"
+  exampleAllowMultipleReports: true
 
 ExtendingEnum:
   problemMessage: "'#name' is an enum and can't be extended or implemented."
   analyzerCode: EXTENDS_ENUM
+  script: |
+    enum Foo { a, b, c; }
+    abstract class Bar extends Foo {}
+  exampleAllowOtherCodes: true
 
 ExtendingRestricted:
   problemMessage: "'#name' is restricted and can't be extended or implemented."
   analyzerCode: EXTENDS_DISALLOWED_CLASS
+  script: |
+    abstract class Foo extends String {}
+  exampleAllowOtherCodes: true
 
 NoUnnamedConstructorInObject:
   problemMessage: "'Object' has no unnamed constructor."
@@ -2678,12 +3289,19 @@ IllegalMixinDueToConstructors:
   # a class with a constructor is used as a mixin
   problemMessage: "Can't use '#name' as a mixin because it has constructors."
   analyzerCode: MIXIN_DECLARES_CONSTRUCTOR # CompileTimeErrorCode
+  script: |
+    // @dart=2.19
+    class B with Error {}
 
 MixinDeclaresConstructor:
   # a mixin declaration contains a constructor declaration
   index: 95
   problemMessage: "Mixins can't declare constructors."
   analyzerCode: ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR
+  script: |
+    mixin M {
+      const M();
+    }
 
 IllegalMixinDueToConstructorsCause:
   problemMessage: "This constructor prevents using '#name' as a mixin."
@@ -2905,6 +3523,10 @@ ConflictsWithImplicitSetterCause:
 ConflictsWithTypeParameter:
   problemMessage: "Conflicts with type variable '#name'."
   analyzerCode: CONFLICTING_TYPE_VARIABLE_AND_MEMBER
+  script: |
+    enum E2<values> {
+      element;
+    }
 
 ConflictsWithTypeParameterCause:
   problemMessage: "This is the type variable."
@@ -3002,13 +3624,34 @@ InheritedMembersConflictCause2:
 IllegalMixin:
   problemMessage: "The type '#name' can't be mixed in."
   analyzerCode: ILLEGAL_MIXIN
+  script: |
+    class SuperClass {}
+    mixin Mixin<T> {}
+    class Class<T, M extends Mixin<T>> extends SuperClass with M {}
+  exampleAllowOtherCodes: true
 
 OverrideTypeParametersMismatch:
   problemMessage: "Declared type variables of '#name' doesn't match those on overridden method '#name2'."
   analyzerCode: INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS
+  script: |
+    class Super {
+      void foo<X>() {}
+    }
+
+    class Sub extends Super {
+      void foo<X, Y>() {}
+    }
 
 OverrideTypeParametersBoundMismatch:
   problemMessage: "Declared bound '#type' of type variable '#name' of '#name2' doesn't match the bound '#type2' on overridden method '#name3'."
+  script: |
+    class Super {
+      void foo<X extends String>() {}
+    }
+
+    class Sub extends Super {
+      void foo<X extends bool>() {}
+    }
 
 OverriddenMethodCause:
   problemMessage: "This is the overridden method ('#name')."
@@ -3017,32 +3660,88 @@ OverriddenMethodCause:
 OverrideMismatchNamedParameter:
   problemMessage: "The method '#name' doesn't have the named parameter '#name2' of overridden method '#name3'."
   analyzerCode: INVALID_OVERRIDE_NAMED
+  script: |
+    abstract class A {
+      int foo({int x = 0}) => x + 42;
+    }
+
+    class B implements A {
+      int foo({int y = 0}) => y + 42;
+    }
 
 OverrideFewerNamedArguments:
   problemMessage: "The method '#name' has fewer named arguments than those of overridden method '#name2'."
   analyzerCode: INVALID_OVERRIDE_NAMED
+  script: |
+    abstract class A {
+      int foo({int x = 0, int y = 0}) => x + y + 42;
+    }
+
+    class B implements A {
+      int foo({int x = 0}) => x + 42;
+    }
 
 OverrideFewerPositionalArguments:
   problemMessage: "The method '#name' has fewer positional arguments than those of overridden method '#name2'."
   analyzerCode: INVALID_OVERRIDE_POSITIONAL
+  script: |
+    abstract class A {
+      int foo(int x, int y) => x + y + 42;
+    }
+
+    class B implements A {
+      int foo(int x) => x + 42;
+    }
 
 OverrideMoreRequiredArguments:
   problemMessage: "The method '#name' has more required arguments than those of overridden method '#name2'."
   analyzerCode: INVALID_OVERRIDE_REQUIRED
+  script: |
+    abstract class A {
+      int foo(int x) => x + 42;
+    }
+
+    class B implements A {
+      int foo(int x, int y) => x + y + 42;
+    }
 
 OverrideTypeMismatchParameter:
   problemMessage: "The parameter '#name' of the method '#name2' has type '#type', which does not match the corresponding type, '#type2', in the overridden method, '#name3'."
   correctionMessage: "Change to a supertype of '#type2', or, for a covariant parameter, a subtype."
   analyzerCode: INVALID_METHOD_OVERRIDE
+  script: |
+    abstract class A {
+      int foo(int x) => x + 42;
+    }
+
+    class B implements A {
+      int foo(String x) => x.length + 42;
+    }
 
 OverrideTypeMismatchReturnType:
   problemMessage: "The return type of the method '#name' is '#type', which does not match the return type, '#type2', of the overridden method, '#name2'."
   correctionMessage: "Change to a subtype of '#type2'."
   analyzerCode: INVALID_METHOD_OVERRIDE
+  script: |
+    abstract class A {
+      int foo() => 42;
+    }
+
+    class B implements A {
+      String foo() => "42";
+    }
 
 OverrideTypeMismatchSetter:
   problemMessage: "The field '#name' has type '#type', which does not match the corresponding type, '#type2', in the overridden setter, '#name2'."
   analyzerCode: INVALID_METHOD_OVERRIDE
+  script: |
+    abstract class A {
+      void set x(Object? y);
+    }
+
+    class B implements A {
+      int? x;
+    }
 
 OverrideMismatchRequiredNamedParameter:
   problemMessage: "The required named parameter '#name' in method '#name2' is not required in overridden method '#name3'."
@@ -3057,14 +3756,16 @@ OverrideMismatchRequiredNamedParameter:
 InvalidGetterSetterType:
   problemMessage: "The type '#type' of the getter '#name' is not a subtype of the type '#type2' of the setter '#name2'."
   script: |
+    //@dart=3.5
     abstract class A {
       num get property;
-      void set property(int i);
+      set property(int i);
     }
 
 InvalidGetterSetterTypeGetterInherited:
   problemMessage: "The type '#type' of the inherited getter '#name' is not a subtype of the type '#type2' of the setter '#name2'."
   script: |
+    //@dart=3.5
     abstract class A {
       num get property;
     }
@@ -3075,6 +3776,7 @@ InvalidGetterSetterTypeGetterInherited:
 InvalidGetterSetterTypeFieldInherited:
   problemMessage: "The type '#type' of the inherited field '#name' is not a subtype of the type '#type2' of the setter '#name2'."
   script: |
+    //@dart=3.5
     abstract class A {
       final num property;
       A(this.property);
@@ -3086,6 +3788,7 @@ InvalidGetterSetterTypeFieldInherited:
 InvalidGetterSetterTypeSetterInheritedGetter:
   problemMessage: "The type '#type' of the getter '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'."
   script: |
+    //@dart=3.5
     abstract class A {
       void set property(int i);
     }
@@ -3096,6 +3799,7 @@ InvalidGetterSetterTypeSetterInheritedGetter:
 InvalidGetterSetterTypeSetterInheritedField:
   problemMessage: "The type '#type' of the field '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'."
   script: |
+    //@dart=3.5
     abstract class A {
       void set property(int i);
     }
@@ -3107,6 +3811,7 @@ InvalidGetterSetterTypeSetterInheritedField:
 InvalidGetterSetterTypeBothInheritedField:
   problemMessage: "The type '#type' of the inherited field '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'."
   script: |
+    //@dart=3.5
     abstract class A {
       final num property;
       A(this.property);
@@ -3119,6 +3824,7 @@ InvalidGetterSetterTypeBothInheritedField:
 InvalidGetterSetterTypeBothInheritedGetter:
   problemMessage: "The type '#type' of the inherited getter '#name' is not a subtype of the type '#type2' of the inherited setter '#name2'."
   script: |
+    //@dart=3.5
     abstract class A {
       num get property;
     }
@@ -3148,6 +3854,8 @@ PartOfSelf:
 TypeParameterDuplicatedName:
   problemMessage: "A type variable can't have the same name as another."
   analyzerCode: DUPLICATE_DEFINITION
+  script: |
+    class C<A, A> {}
 
 TypeParameterDuplicatedNameCause:
   problemMessage: "The other type variable named '#name'."
@@ -3156,6 +3864,8 @@ TypeParameterDuplicatedNameCause:
 TypeParameterSameNameAsEnclosing:
   problemMessage: "A type variable can't have the same name as its enclosing declaration."
   analyzerCode: CONFLICTING_TYPE_VARIABLE_AND_CLASS
+  script: |
+    class C<C> {}
 
 AnnotationOnTypeArgument:
   problemMessage: "Type arguments can't have annotations because they aren't declarations."
@@ -3227,6 +3937,10 @@ ExternalTypedef:
 
 OperatorWithOptionalFormals:
   problemMessage: "An operator can't have optional parameters."
+  script: |
+    class Foo {
+      operator ==([Object a = 0]) => true;
+    }
 
 OperatorWithTypeParameters:
   index: 120
@@ -3242,17 +3956,30 @@ OperatorWithTypeParameters:
 PlatformPrivateLibraryAccess:
   problemMessage: "Can't access platform private library."
   analyzerCode: IMPORT_INTERNAL_LIBRARY
+  script: |
+    import "dart:_internal";
 
 TypedefNotFunction:
   problemMessage: "Can't create typedef from non-function type."
   analyzerCode: INVALID_GENERIC_FUNCTION_TYPE
+  script: |
+    // @dart=2.12
+    class Foo<X> {}
+    typedef Bar<X> = Foo<X>;
 
 TypedefNotType:
   problemMessage: "Can't create typedef from non-type."
   analyzerCode: INVALID_TYPE_IN_TYPEDEF
+  script: |
+    typedef Foo = ;
+  exampleAllowOtherCodes: true
 
 TypedefTypeParameterNotConstructor:
   problemMessage: "Can't use a typedef denoting a type variable as a constructor, nor for a static member access."
+  script: |
+    typedef Foo<Bar> = Bar;
+    class Baz extends Foo<C> {}
+    class C {}
 
 TypedefTypeParameterNotConstructorCause:
   problemMessage: "This is the type variable ultimately denoted."
@@ -3281,6 +4008,7 @@ LibraryDirectiveNotFirst:
     - "class Foo{} library l;"
     - "import 'x.dart'; library l;"
     - "part 'a.dart'; library l;"
+  exampleAllowOtherCodes: true
 
 ImportAfterPart:
   index: 10
@@ -3289,12 +4017,14 @@ ImportAfterPart:
   analyzerCode: ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE
   script:
     - "part 'foo.dart'; import 'bar.dart';"
+  exampleAllowOtherCodes: true
 
 ExportAfterPart:
   index: 75
   problemMessage: "Export directives must precede part directives."
   correctionMessage: "Try moving the export directives before the part directives."
   analyzerCode: ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE
+  exampleAllowOtherCodes: true
   script:
     - "part 'foo.dart'; export 'bar.dart';"
 
@@ -3304,8 +4034,14 @@ DirectiveAfterDeclaration:
   correctionMessage: "Try moving the directive before any declarations."
   analyzerCode: ParserErrorCode.DIRECTIVE_AFTER_DECLARATION
   script:
-    - "class foo { } import 'bar.dart';"
-    - "class foo { } export 'bar.dart';"
+    - main.dart: |
+        class foo { }
+        import 'bar.dart';
+      bar.dart: ""
+    - main.dart: |
+        class foo { }
+        export 'bar.dart';
+      bar.dart: ""
 
 NonPartOfDirectiveInPart:
   problemMessage: "The part-of directive must be the only directive in a part."
@@ -3374,6 +4110,7 @@ RedirectionInNonFactory:
   analyzerCode: ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR
   script:
     - "class C { C() = D; }"
+  exampleAllowOtherCodes: true
 
 TopLevelOperator:
   index: 14
@@ -3475,10 +4212,18 @@ PartExportContext:
 
 SupertypeIsFunction:
   problemMessage: "Can't use a function type as supertype."
+  script: |
+    mixin M on Function() {}
 
 DeferredPrefixDuplicated:
   problemMessage: "Can't use the name '#name' for a deferred library, as the name is used elsewhere."
   analyzerCode: SHARED_DEFERRED_PREFIX
+  script:
+    main.dart: |
+      import 'lib1.dart' deferred as foo;
+      import 'lib2.dart' as foo;
+    lib1.dart: ""
+    lib2.dart: ""
 
 DeferredPrefixDuplicatedCause:
   problemMessage: "'#name' is used here."
@@ -3490,7 +4235,7 @@ TypeArgumentsOnTypeVariable:
   correctionMessage: "Try removing the type arguments."
   analyzerCode: ParserErrorCode.TYPE_ARGUMENTS_ON_TYPE_VARIABLE
   script:
-    - "dynamic<T>(x) => 0"
+    - "void method<S>(S<int> a) {}"
 
 # Use this message when a duplicated declaration is introduced.  For example:
 #
@@ -3530,7 +4275,6 @@ DuplicatedDeclarationSyntheticCause:
 # Use this message when a duplicated declaration is used.
 DuplicatedDeclarationUse:
   problemMessage: "Can't use '#name' because it is declared more than once."
-  exampleAllowMoreCodes: true
   script:
     - main.dart: |
         // This test can't pass as tests must produce only one error message.
@@ -3554,10 +4298,18 @@ DuplicatedDeclarationUse:
 DuplicatedNamedArgument:
   problemMessage: "Duplicated named argument '#name'."
   analyzerCode: DUPLICATE_NAMED_ARGUMENT
+  script: |
+    foo({required int named}) {}
+
+    main() {
+      foo(named: 1, named: 2);
+    }
 
 DuplicatedParameterName:
   problemMessage: "Duplicated parameter name '#name'."
   analyzerCode: DUPLICATE_DEFINITION
+  script: |
+    foo({required int named, required int named}) {}
 
 DuplicatedParameterNameCause:
   problemMessage: "Other parameter named '#name'."
@@ -3575,10 +4327,6 @@ MemberWithSameNameAsClass:
     - "class C { set C(x) => 42; }"
     - "class C { int? C; }"
     - "class C { int? A, B, C, D, E; }"
-
-EnumConstantSameNameAsEnclosing:
-  problemMessage: "Name of enum constant '#name' can't be the same as the enum's own name."
-  analyzerCode: ENUM_CONSTANT_WITH_ENUM_NAME
 
 MissingOperatorKeyword:
   index: 31
@@ -3600,7 +4348,7 @@ InvalidOperator:
 
 NotBinaryOperator:
   problemMessage: "'#lexeme' isn't a binary operator."
-  script: >
+  script: |
     class C { operator~() { return null; } }
 
     main() {
@@ -3610,14 +4358,27 @@ NotBinaryOperator:
 
 OperatorParameterMismatch0:
   problemMessage: "Operator '#name' shouldn't have any parameters."
+  script: |
+    class Foo {
+      operator ~(a) => true;
+    }
 
 OperatorParameterMismatch1:
   problemMessage: "Operator '#name' should have exactly one parameter."
   analyzerCode: WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
+  script: |
+    class Foo {
+      operator ==() => true;
+    }
+  exampleAllowOtherCodes: true
 
 OperatorParameterMismatch2:
   problemMessage: "Operator '#name' should have exactly two parameters."
   analyzerCode: WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
+  script: |
+    class Foo {
+      operator []=(a, b, c) => true;
+    }
 
 OperatorMinusParameterMismatch:
   problemMessage: "Operator '#name' should have zero or one parameter."
@@ -3625,6 +4386,10 @@ OperatorMinusParameterMismatch:
     With zero parameters, it has the syntactic form '-a', formally known as 'unary-'.
     With one parameter, it has the syntactic form 'a - b', formally known as '-'.
   analyzerCode: WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS
+  script: |
+    class Foo {
+      operator -(a, b) => true;
+    }
 
 SupertypeIsIllegal:
   problemMessage: "The type '#name' can't be used as supertype."
@@ -3679,15 +4444,32 @@ SuperExtensionTypeIsTypeParameter:
 PartOfLibraryNameMismatch:
   problemMessage: "Using '#uri' as part of '#name' but its 'part of' declaration says '#name2'."
   analyzerCode: PART_OF_DIFFERENT_LIBRARY
+  script:
+    main.dart: |
+      library foo;
+      part 'lib.dart';
+    lib.dart: |
+      part of bar;
 
 PartOfUseUri:
   problemMessage: "Using '#uri' as part of '#uri2' but its 'part of' declaration says '#name'."
   correctionMessage: "Try changing the 'part of' declaration to use a relative file name."
   analyzerCode: PART_OF_UNNAMED_LIBRARY
+  script:
+    main.dart: |
+      part 'lib.dart';
+    lib.dart: |
+      part of foo;
 
 PartOfUriMismatch:
   problemMessage: "Using '#uri' as part of '#uri2' but its 'part of' declaration says '#uri3'."
   analyzerCode: PART_OF_DIFFERENT_LIBRARY
+  script:
+    main.dart: |
+      part 'lib.dart';
+    lib.dart: |
+      part of 'lib2.dart';
+    lib2.dart: ""
 
 MissingMain:
   problemMessage: "No 'main' method found."
@@ -3721,19 +4503,38 @@ InvalidThisInInitializer:
 
 ThisAccessInFieldInitializer:
   problemMessage: "Can't access 'this' in a field initializer to read '#name'."
+  script: |
+    class Foo {
+      int a = 2;
+      int b = a + 42;
+    }
 
 ThisOrSuperAccessInFieldInitializer:
   problemMessage: "Can't access '#string' in a field initializer."
   analyzerCode: THIS_ACCESS_FROM_INITIALIZER
+  script: |
+    class C {
+      var x = this;
+    }
 
 ThisAsIdentifier:
   problemMessage: "Expected identifier, but got 'this'."
   analyzerCode: INVALID_REFERENCE_TO_THIS
+  script: |
+    class C {}
+    void foo() {
+      C.this();
+    }
 
 # TODO(johnniwinther): Confusing message, it should probably mention that `super` is not available.
 SuperAsIdentifier:
   problemMessage: "Expected identifier, but got 'super'."
   analyzerCode: SUPER_AS_EXPRESSION
+  script: |
+    class C {}
+    void foo() {
+      C.super();
+    }
 
 InvalidAugmentSuper:
   problemMessage: "'augment super' is only allowed in member augmentations."
@@ -3742,10 +4543,13 @@ SuperAsExpression:
   problemMessage: "Can't use 'super' as an expression."
   correctionMessage: "To delegate a constructor to a super constructor, put the super call as an initializer."
   analyzerCode: SUPER_AS_EXPRESSION
+  script: |
+    abstract class A {}
 
-SwitchExpressionNotAssignable:
-  problemMessage: "Type '#type' of the switch expression isn't assignable to the type '#type2' of this case expression."
-  analyzerCode: SWITCH_EXPRESSION_NOT_ASSIGNABLE
+    class B extends A {
+      B(): super()?.foo() {}
+    }
+  exampleAllowOtherCodes: true
 
 SwitchExpressionNotAssignableCause:
   problemMessage: "The switch expression is here."
@@ -3781,6 +4585,14 @@ SwitchHasMultipleDefaults:
 SwitchCaseFallThrough:
   problemMessage: "Switch case may fall through to the next case."
   analyzerCode: CASE_BLOCK_NOT_TERMINATED
+  script: |
+    // @dart=2.19
+    method(e) {
+      switch (e) {
+        case 0: print(0);
+        case 1: print(1);
+      }
+    }
 
 FieldAlreadyInitializedAtDeclaration:
   problemMessage: "'#name' is a final instance variable that was initialized at the declaration."
@@ -3857,9 +4669,6 @@ TypeVariableInConstantContext:
         }
       }
 
-SuperclassMethodArgumentMismatch:
-  problemMessage: "Superclass doesn't have a method named '#name' with matching arguments."
-
 SuperclassHasNoMember:
   problemMessage: "Superclass has no member named '#name'."
   analyzerCode: UNDEFINED_SUPER_GETTER
@@ -3867,14 +4676,38 @@ SuperclassHasNoMember:
 SuperclassHasNoGetter:
   problemMessage: "Superclass has no getter named '#name'."
   analyzerCode: UNDEFINED_SUPER_GETTER
+  script: |
+    class Super {}
+
+    class Class extends Super {
+      method() {
+        super.missingSuperGetter;
+      }
+    }
 
 SuperclassHasNoSetter:
   problemMessage: "Superclass has no setter named '#name'."
   analyzerCode: UNDEFINED_SUPER_SETTER
+  script: |
+    class Super {}
+
+    class Class extends Super {
+      method() {
+        super.missingSuperSetter = 42;
+      }
+    }
 
 SuperclassHasNoMethod:
   problemMessage: "Superclass has no method named '#name'."
   analyzerCode: UNDEFINED_SUPER_METHOD
+  script: |
+    class Super {}
+
+    class Class extends Super {
+      method() {
+        super.missingSuperMethod();
+      }
+    }
 
 SuperclassHasNoConstructor:
   problemMessage: "Superclass has no constructor named '#name'."
@@ -3902,10 +4735,20 @@ SuperclassHasNoConstructor:
 SuperclassHasNoDefaultConstructor:
   problemMessage: "The superclass, '#name', has no unnamed constructor that takes no arguments."
   analyzerCode: NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT
+  script: |
+    class Foo {
+      Foo(int x);
+    }
+    class Bar extends Foo { }
 
 ConstConstructorNonFinalField:
   problemMessage: "Constructor is marked 'const' so all fields must be final."
   analyzerCode: CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD
+  script: |
+    class Foo {
+      int i;
+      const Foo(this.i);
+    }
 
 ConstConstructorNonFinalFieldCause:
   problemMessage: "Field isn't final, but constructor is 'const'."
@@ -3913,6 +4756,11 @@ ConstConstructorNonFinalFieldCause:
 
 ConstConstructorLateFinalFieldError:
   problemMessage: "Can't have a late final field in a class with a const constructor."
+  script: |
+    class Foo {
+      late final int i = 42;
+      const Foo();
+    }
 
 ConstConstructorLateFinalFieldCause:
   problemMessage: "This constructor is const."
@@ -3939,11 +4787,11 @@ ConstConstructorWithNonConstSuper:
         const B.foo() : super.bar();
       }
 
-AccessError:
-  problemMessage: "Access error: '#name'."
-
 ExpressionNotMetadata:
   problemMessage: "This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor."
+  script: |
+    @foo
+    void foo() {}
 
 ExpectedAnInitializer:
   index: 36
@@ -3959,6 +4807,7 @@ MissingAssignmentInInitializer:
   analyzerCode: ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER
   script:
     - "class C { C() : x(3) {} }"
+  exampleAllowOtherCodes: true
 
 RedirectingConstructorWithBody:
   index: 22
@@ -3967,14 +4816,27 @@ RedirectingConstructorWithBody:
   analyzerCode: ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY
   script:
     - "class C { C() : this.x() {} }"
+  exampleAllowOtherCodes: true
 
 CannotAssignToParenthesizedExpression:
   problemMessage: "Can't assign to a parenthesized expression."
   analyzerCode: ASSIGNMENT_TO_PARENTHESIZED_EXPRESSION
+  script: |
+    int i = 42;
+    int test2() {
+      return (i) ++ (i);
+    }
+  exampleAllowOtherCodes: true
 
 NotAnLvalue:
   problemMessage: "Can't assign to this."
   analyzerCode: NOT_AN_LVALUE
+  script: |
+    class Foo {
+      void bar() {
+        --toString();
+      }
+    }
 
 CannotAssignToSuper:
   problemMessage: "Can't assign to super."
@@ -4008,37 +4870,60 @@ CantInferPackagesFromPackageUri:
 
 PackageNotFound:
   problemMessage: "Couldn't resolve the package '#name' in '#uri'."
+  script: |
+    import 'package:foo/foo.dart';
+  exampleAllowOtherCodes: true
 
 InvalidPackageUri:
   problemMessage: "Invalid package URI '#uri':\n  #string."
+  script: |
+    import 'package:foo';
+  exampleAllowOtherCodes: true
 
 CouldNotParseUri:
   problemMessage: "Couldn't parse URI '#string':\n  #string2."
+  script: |
+    import ' dart:async';
+  exampleAllowOtherCodes: true
 
 ExpectedUri:
   problemMessage: "Expected a URI."
+  script: |
+    import ' dart:async';
+  exampleAllowOtherCodes: true
 
 InterpolationInUri:
   problemMessage: "Can't use string interpolation in a URI."
   analyzerCode: INVALID_LITERAL_IN_CONFIGURATION
+  script: |
+    import 'package:/foo/$bar.dart';
+  exampleAllowOtherCodes: true
 
 IntegerLiteralIsOutOfRange:
   problemMessage: "The integer literal #string can't be represented in 64 bits."
   correctionMessage: "Try using the BigInt class if you need an integer larger than 9,223,372,036,854,775,807 or less than -9,223,372,036,854,775,808."
   analyzerCode: INTEGER_LITERAL_OUT_OF_RANGE
+  script: |
+    void foo() {
+      int i = 9223372036854775808;
+    }
 
 ColonInPlaceOfIn:
   index: 54
   problemMessage: "For-in loops use 'in' rather than a colon."
   correctionMessage: "Try replacing the colon with the keyword 'in'."
   analyzerCode: ParserErrorCode.COLON_IN_PLACE_OF_IN
+  script: |
+    void foo() {
+      for(var x : []) {}
+    }
 
 BinaryOperatorWrittenOut:
   index: 112
   problemMessage: "Binary operator '#string' is written as '#string2' instead of the written out word."
   correctionMessage: "Try replacing '#string' with '#string2'."
   analyzerCode: ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT
-  script: >
+  script: |
     int foo(int x, int y) => x xor y;
 
 ExternalFactoryRedirection:
@@ -4046,11 +4931,16 @@ ExternalFactoryRedirection:
   problemMessage: "A redirecting factory can't be external."
   correctionMessage: "Try removing the 'external' modifier."
   analyzerCode: ParserErrorCode.EXTERNAL_FACTORY_REDIRECTION
+  script: |
+    class Foo {
+      Foo._(int i);
+      external factory Foo.x(int i) = Foo._;
+    }
 
 ArgumentTypeNotAssignable:
   problemMessage: "The argument type '#type' can't be assigned to the parameter type '#type2'."
   analyzerCode: ARGUMENT_TYPE_NOT_ASSIGNABLE
-  script: >
+  script: |
     method(int i) {}
     main() {
       method(1.5);
@@ -4059,7 +4949,7 @@ ArgumentTypeNotAssignable:
 InvalidAssignmentError:
   problemMessage: "A value of type '#type' can't be assigned to a variable of type '#type2'."
   analyzerCode: INVALID_ASSIGNMENT
-  script: >
+  script: |
     main() {
       int i;
       i = 1.5;
@@ -4079,9 +4969,6 @@ PatchExtensionOrigin:
   problemMessage: "This is the origin extension."
   severity: CONTEXT
 
-PatchDeclarationMismatch:
-  problemMessage: "This patch doesn't match origin declaration."
-
 PatchDeclarationOrigin:
   problemMessage: "This is the origin declaration."
   severity: CONTEXT
@@ -4089,10 +4976,6 @@ PatchDeclarationOrigin:
 PatchInjectionFailed:
   problemMessage: "Can't inject public '#name' into '#uri'."
   correctionMessage: "Make '#name' private, or make sure injected library has \"dart\" scheme and is private (e.g. \"dart:_internal\")."
-
-PatchNonExternal:
-  problemMessage: "Can't apply this patch as its origin declaration isn't external."
-  correctionMessage: "Try adding 'external' to the origin declaration."
 
 InvalidCastFunctionExpr:
   problemMessage: "The function expression type '#type' isn't of expected type '#type2'."
@@ -4134,20 +5017,25 @@ InvalidCastTopLevelFunction:
   correctionMessage: "Change the type of the function or the context in which it is used."
   analyzerCode: INVALID_CAST_FUNCTION
 
-InvalidCatchArguments:
-  problemMessage: "Invalid catch arguments."
-  analyzerCode: INVALID_CATCH_ARGUMENTS
-
 InvalidUseOfNullAwareAccess:
   problemMessage: "Cannot use '?.' here."
   correctionMessage: "Try using '.'."
   analyzerCode: INVALID_USE_OF_NULL_AWARE_ACCESS
+  script: |
+    class Super {
+      Super.named();
+    }
+
+    class Class extends Super {
+      Class() : super?.named();
+    }
+  exampleAllowOtherCodes: true
 
 UndefinedGetter:
   problemMessage: "The getter '#name' isn't defined for the type '#type'."
   correctionMessage: "Try correcting the name to the name of an existing getter, or defining a getter or field named '#name'."
   analyzerCode: UNDEFINED_GETTER
-  script: >
+  script: |
     class C {}
     test(C c) {
       print(c.foo);
@@ -4157,7 +5045,7 @@ UndefinedSetter:
   problemMessage: "The setter '#name' isn't defined for the type '#type'."
   correctionMessage: "Try correcting the name to the name of an existing setter, or defining a setter or field named '#name'."
   analyzerCode: UNDEFINED_SETTER
-  script: >
+  script: |
     class C {}
     test(C c) {
       c.foo = 0;
@@ -4167,7 +5055,7 @@ UndefinedMethod:
   problemMessage: "The method '#name' isn't defined for the type '#type'."
   correctionMessage: "Try correcting the name to the name of an existing method, or defining a method named '#name'."
   analyzerCode: UNDEFINED_METHOD
-  script: >
+  script: |
     class C {}
     test(C c) {
       c.foo();
@@ -4177,27 +5065,11 @@ UndefinedOperator:
   problemMessage: "The operator '#name' isn't defined for the type '#type'."
   correctionMessage: "Try correcting the operator to an existing operator, or defining a '#name' operator."
   analyzerCode: UNDEFINED_METHOD
-  script: >
+  script: |
     class C {}
     test(C c) {
       c + 0;
     }
-
-UndefinedExtensionGetter:
-  problemMessage: "The getter '#name' isn't defined for the extension '#type'."
-  correctionMessage: "Try correcting the name to the name of an existing getter, or defining a getter or field named '#name'."
-
-UndefinedExtensionSetter:
-  problemMessage: "The setter '#name' isn't defined for the extension '#type'."
-  correctionMessage: "Try correcting the name to the name of an existing setter, or defining a setter or field named '#name'."
-
-UndefinedExtensionMethod:
-  problemMessage: "The method '#name' isn't defined for the extension '#type'."
-  correctionMessage: "Try correcting the name to the name of an existing method, or defining a method name '#name'."
-
-UndefinedExtensionOperator:
-  problemMessage: "The operator '#name' isn't defined for the extension '#type'."
-  correctionMessage: "Try correcting the operator to an existing operator, or defining a '#name' operator."
 
 AmbiguousExtensionMethod:
   problemMessage: "The method '#name' is defined in multiple extensions for '#type' and neither is more specific."
@@ -4306,14 +5178,33 @@ CantInferTypeDueToCircularity:
   problemMessage: "Can't infer the type of '#string': circularity found during type inference."
   correctionMessage: "Specify the type explicitly."
   analyzerCode: RECURSIVE_COMPILE_TIME_CONSTANT
+  script: |
+    enum CyclicReference {
+      e1(e2),
+      e2(e1);
+
+      final CyclicReference other;
+      const CyclicReference(this.other);
+    }
+  exampleAllowOtherCodes: true
 
 AmbiguousSupertypes:
   problemMessage: "'#name' can't implement both '#type' and '#type2'"
   analyzerCode: AMBIGUOUS_SUPERTYPES
+  script: |
+    class A<T> {}
+    mixin class B<T> implements A<T> {}
+    class C<T> implements A<T> {}
+    class D implements B<String>, C<int> {}
 
 MixinInferenceNoMatchingClass:
   problemMessage: "Type parameters couldn't be inferred for the mixin '#name' because '#name2' does not implement the mixin's supertype constraint '#type'."
   analyzerCode: MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION
+  script: |
+    abstract class A<T> {}
+    mixin M<T> on A<T> {}
+    class C extends Object with M {}
+  exampleAllowOtherCodes: true
 
 ImplicitCallOfNonMethod:
   problemMessage: "Cannot invoke an instance of '#type' because it declares 'call' to be something other than a method."
@@ -4337,15 +5228,21 @@ ExpectedOneExpression:
 ForInLoopNotAssignable:
   problemMessage: "Can't assign to this, so it can't be used in a for-in loop."
   statement: "for (1 in []) {}"
+  exampleAllowOtherCodes: true
 
 ForInLoopExactlyOneVariable:
   problemMessage: "A for-in loop can't have more than one loop variable."
   statement: "for (var x, y in []) {}"
+  exampleAllowOtherCodes: true
 
 ForInLoopWithConstVariable:
   problemMessage: "A for-in loop-variable can't be 'const'."
   correctionMessage: "Try removing the 'const' modifier."
   analyzerCode: FOR_IN_WITH_CONST_VARIABLE
+  script: |
+    void foo() {
+      for(const i in [42]) {}
+    }
 
 ForInLoopElementTypeNotAssignable:
   problemMessage: "A value of type '#type' can't be assigned to a variable of type '#type2'."
@@ -4370,7 +5267,7 @@ InitializingFormalTypeMismatch:
   problemMessage: "The type of parameter '#name', '#type' is not a subtype of the corresponding field's type, '#type2'."
   correctionMessage: "Try changing the type of parameter '#name' to a subtype of '#type2'."
   analyzerCode: INVALID_PARAMETER_DECLARATION
-  script: >
+  script: |
     class C {
       int x;
       C(num this.x);
@@ -4438,7 +5335,7 @@ BoundIssueViaRawTypeWithNonSimpleBounds:
   problemMessage: "Generic type '#name' can't be used without type arguments in a type variable bound."
   correctionMessage: "Try providing type arguments to '#name' here."
   analyzerCode: NOT_INSTANTIATED_BOUND
-  script: >
+  script: |
     class Hest<X extends Hest<X>> {}
     class Fisk<Y extends Hest> {}
 
@@ -4450,14 +5347,14 @@ BoundIssueViaLoopNonSimplicity:
   problemMessage: "Generic type '#name' can't be used without type arguments in the bounds of its own type variables."
   correctionMessage: "Try providing type arguments to '#name' here."
   analyzerCode: NOT_INSTANTIATED_BOUND
-  script: >
+  script: |
     class Hest<X extends Hest> {}
 
 BoundIssueViaCycleNonSimplicity:
   problemMessage: "Generic type '#name' can't be used without type arguments in the bounds of its own type variables. It is referenced indirectly through '#name2'."
   correctionMessage: "Try providing type arguments to '#name2' here or to some other raw types in the bounds along the reference chain."
   analyzerCode: NOT_INSTANTIATED_BOUND
-  script: >
+  script: |
     class Hest<X extends Fisk> {}
     class Fisk<Y extends Hest> {}
 
@@ -4503,6 +5400,11 @@ CantUsePrefixWithNullAware:
 CantUseControlFlowOrSpreadAsConstant:
   problemMessage: "'#lexeme' is not supported in constant expressions."
   analyzerCode: NOT_CONSTANT_EXPRESSION
+  script: |
+    test() {
+      const List<int> list1 = const [for (var i = 1; i < 4; i++) i];
+    }
+  exampleAllowOtherCodes: true
 
 CantUseDeferredPrefixAsConstant:
   problemMessage: >
@@ -4528,6 +5430,7 @@ CyclicRedirectingFactoryConstructors:
       factory Foo.bar() = Foo.foo;
     }
     main() { var foo = new Foo.foo(); }
+  exampleAllowMultipleReports: true
 
 GenericFunctionTypeInBound:
   problemMessage: "Type variables can't have generic function types in their bounds."
@@ -4576,6 +5479,12 @@ ImplicitReturnNull:
 RethrowNotCatch:
   problemMessage: "'rethrow' can only be used in catch clauses."
   analyzerCode: RETHROW_OUTSIDE_CATCH
+  script: |
+    void foo() {
+      try {
+        rethrow;
+      } catch (e) {}
+    }
 
 InvokeNonFunction:
   problemMessage: "'#name' isn't a function or method and can't be invoked."
@@ -4607,7 +5516,7 @@ DefaultValueInRedirectingFactoryConstructor:
 UntranslatableUri:
   problemMessage: "Not found: '#uri'"
   analyzerCode: URI_DOES_NOT_EXIST
-  exampleAllowMoreCodes: true # PackageNotFound will precede this message.
+  exampleAllowOtherCodes: true # PackageNotFound will precede this message.
   script: |
     import "package:expect/non_existing_file";
 
@@ -4679,11 +5588,6 @@ IncompatibleRedirecteeFunctionType:
         factory A.f(int x) = A.g;
         A.g(int x, int y) {}
       }
-    - >-
-      class A<T extends int> {
-         factory A() = B<T, int>;
-      }
-      class B<T extends int, S extends String> implements A<T> {}
 
 RedirectingFactoryIncompatibleTypeArgument:
   problemMessage: "The type '#type' doesn't extend '#type2'."
@@ -4704,7 +5608,7 @@ IncorrectTypeArgument:
   problemMessage: "Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2'."
   correctionMessage: "Try changing type arguments so that they conform to the bounds."
   analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
-  script: >
+  script: |
     class C<T extends num> {}
     main() { new C<String>(); }
 
@@ -4712,7 +5616,7 @@ IncorrectTypeArgumentQualified:
   problemMessage: "Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3.#name2'."
   correctionMessage: "Try changing type arguments so that they conform to the bounds."
   analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
-  script: >
+  script: |
     class C<T> { foo<U extends num>() {} }
     main() { new C<String>().foo<String>(); }
 
@@ -4720,7 +5624,7 @@ IncorrectTypeArgumentInferred:
   problemMessage: "Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2'."
   correctionMessage: "Try specifying type arguments explicitly so that they conform to the bounds."
   analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
-  script: >
+  script: |
     foo<T extends List<S>, S extends num>(T t) {}
     main() { foo(<String>[""]); }
 
@@ -4728,7 +5632,7 @@ IncorrectTypeArgumentQualifiedInferred:
   problemMessage: "Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3.#name2'."
   correctionMessage: "Try specifying type arguments explicitly so that they conform to the bounds."
   analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
-  script: >
+  script: |
     class A { foo<T extends List<S>, S extends num>(T t) {} }
     main() { new A().foo(<String>[""]); }
 
@@ -4763,7 +5667,7 @@ SuperBoundedHint:
 MixinApplicationIncompatibleSupertype:
   problemMessage: "'#type' doesn't implement '#type2' so it can't be used with '#type3'."
   analyzerCode: MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE
-  script: >-
+  script: |-
     class I {}
     mixin M on I {}
     class C = Object with M;
@@ -4802,6 +5706,13 @@ GenericFunctionTypeAsTypeArgumentThroughTypedef:
   problemMessage: "Generic function type '#type' used as a type argument through typedef '#type2'."
   correctionMessage: "Try providing a non-generic function type explicitly."
   analyzerCode: GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT
+  script:
+    main.dart: |
+      // @dart=2.12
+      import 'lib.dart';
+      test(T3 t3a) {}
+    lib.dart: |
+      typedef T3 = List<void Function<T>(T)>;
 
 # These two message templates are used for constructing supplemental text
 # about the origins of raw interface types in error messages containing types.
@@ -4833,6 +5744,12 @@ ObjectMixesIn:
 InstanceAndSynthesizedStaticConflict:
   problemMessage: "This instance member conflicts with the synthesized static member called '#name'."
   analyzerCode: CONFLICTING_STATIC_AND_INSTANCE
+  script: |
+    enum E {
+      e1, e2;
+
+      void set values(List<E> val) {}
+    }
 
 FfiAbiSpecificIntegerInvalid:
   # Used by dart:ffi
@@ -5114,7 +6031,7 @@ CantHaveOptionalParameters:
 SpreadElementTypeMismatch:
   problemMessage: "Can't assign spread elements of type '#type' to collection elements of type '#type2'."
   analyzerCode: LIST_ELEMENT_TYPE_NOT_ASSIGNABLE
-  script: >
+  script: |
     main() {
       List<String> a = <String>["foo"];
       List<int> b = <int>[...a];
@@ -5137,7 +6054,7 @@ SpreadMapEntryTypeMismatch:
 SpreadMapEntryElementKeyTypeMismatch:
   problemMessage: "Can't assign spread entry keys of type '#type' to map entry keys of type '#type2'."
   analyzerCode: MAP_KEY_TYPE_NOT_ASSIGNABLE
-  script: >
+  script: |
     main() {
       Map<String, int> a = <String, int>{"foo": 42};
       Map<int, int> b = <int, int>{...a};
@@ -5146,7 +6063,7 @@ SpreadMapEntryElementKeyTypeMismatch:
 SpreadMapEntryElementValueTypeMismatch:
   problemMessage: "Can't assign spread entry values of type '#type' to map entry values of type '#type2'."
   analyzerCode: MAP_VALUE_TYPE_NOT_ASSIGNABLE
-  script: >
+  script: |
     main() {
       Map<String, int> a = <String, int>{"foo": 42};
       Map<String, String> b = <String, String>{...a};
@@ -5155,14 +6072,14 @@ SpreadMapEntryElementValueTypeMismatch:
 CantDisambiguateNotEnoughInformation:
   problemMessage: "Not enough type information to disambiguate between literal set and literal map."
   correctionMessage: "Try providing type arguments for the literal explicitly to disambiguate it."
-  script: >
+  script: |
     foo(dynamic spread) {
       var a = {...spread};
     }
 
 CantDisambiguateAmbiguousInformation:
   problemMessage: "Both Iterable and Map spread elements encountered in ambiguous literal."
-  script: >
+  script: |
     foo(Iterable<int> iterableSpread, Map<int, int> mapSpread) {
       var c = {...iterableSpread, ...mapSpread};
     }
@@ -5177,7 +6094,7 @@ SpreadMapElement:
 
 NonNullAwareSpreadIsNull:
   problemMessage: "Can't spread a value with static type '#type'."
-  script: >
+  script: |
     main() {
       <int>[...null];
     }
@@ -5194,31 +6111,33 @@ NonPositiveArrayDimensions:
 
 InvalidTypeParameterInSupertype:
   problemMessage: "Can't use implicitly 'out' variable '#name' in an '#string2' position in supertype '#name2'."
-  script: >
+  script: |
     class A<X> {}
     class B<Y> extends A<Function(Y)> {}
 
 InvalidTypeParameterInSupertypeWithVariance:
   problemMessage: "Can't use '#string' type variable '#name' in an '#string2' position in supertype '#name2'."
-  script: >
+  script: |
     class A<out X> {}
     class B<out Y> extends A<Function(Y)> {}
+  exampleAllowOtherCodes: true
 
 InvalidTypeParameterVariancePosition:
   problemMessage: "Can't use '#string' type variable '#name' in an '#string2' position."
-  script: >
+  script: |
     class A<out T> {
       void method(T x) {}
-    }
+  exampleAllowOtherCodes: true
 
 InvalidTypeParameterVariancePositionInReturnType:
   problemMessage: "Can't use '#string' type variable '#name' in an '#string2' position in the return type."
-  script: >
+  script: |
     class A<in T> {
       T method() {
         return null;
       }
     }
+  exampleAllowOtherCodes: true
 
 CombinedMemberSignatureFailed:
   problemMessage: "Class '#name' inherits multiple members named '#name2' with incompatible signatures."
@@ -5255,27 +6174,59 @@ ExtensionTypeCombinedMemberSignatureFailed:
 
 LanguageVersionTooHighExplicit:
   problemMessage: "The specified language version #count.#count2 is too high. The highest supported language version is #count3.#count4."
-  script: >
-    // @dart = 100.200
+  script: |
+    // @dart=100.200
+  exampleAllowMultipleReports: true
 
 LanguageVersionTooHighPackage:
   problemMessage: "The language version #count.#count2 specified for the package '#name' is too high. The highest supported language version is #count3.#count4."
+  script:
+    .dart_tool/package_config.json: |
+      {
+        "configVersion": 2,
+        "packages": [
+          {
+            "name": "foo",
+            "rootUri": "../foo/",
+            "languageVersion": "42.84"
+          }
+        ]
+      }
+    main.dart: |
+      import 'package:foo/lib.dart';
+    foo/lib.dart: ""
 
 LanguageVersionTooLowExplicit:
   problemMessage: "The specified language version #count.#count2 is too low. The lowest supported language version is #count3.#count4."
-  script: >
-    // @dart = 2.9
+  script: |
+    // @dart=2.9
+  exampleAllowMultipleReports: true
 
 LanguageVersionTooLowPackage:
   problemMessage: "The language version #count.#count2 specified for the package '#name' is too low. The lowest supported language version is #count3.#count4."
+  script:
+    .dart_tool/package_config.json: |
+      {
+        "configVersion": 2,
+        "packages": [
+          {
+            "name": "foo",
+            "rootUri": "../foo/",
+            "languageVersion": "2.11"
+          }
+        ]
+      }
+    main.dart: |
+      import 'package:foo/lib.dart';
+    foo/lib.dart: ""
 
 LanguageVersionInvalidInDotPackages:
   problemMessage: "The language version is not specified correctly in the packages file."
-  exampleAllowMoreCodes: true
+  exampleAllowOtherCodes: true
   script:
     main.dart: "import 'package:foo/foo.dart';"
     lib/foo.dart: "// blah blah blah"
-    .dart_tool/package_config.json: >
+    .dart_tool/package_config.json: |
       {
           "configVersion": 2,
           "packages": [
@@ -5290,13 +6241,11 @@ LanguageVersionInvalidInDotPackages:
 LanguageVersionMismatchInPart:
   problemMessage: "The language version override has to be the same in the library and its part(s)."
   script:
-    main.dart: >
+    main.dart: |
       // @dart = 2.13
-
       part 'part.dart';
-    part.dart: >
+    part.dart: |
       // @dart = 2.12
-
       part of 'main.dart';
 
 LanguageVersionMismatchInPatch:
@@ -5316,12 +6265,33 @@ LanguageVersionPatchContext:
 
 ExplicitExtensionArgumentMismatch:
   problemMessage: "Explicit extension application requires exactly 1 positional argument."
+  script: |
+    extension Extension on int {
+      method(a) {}
+    }
+    main() {
+      int i = 42;
+      Extension(i, i).method(null);
+    }
 
 ExplicitExtensionTypeArgumentMismatch:
   problemMessage: "Explicit extension application of extension '#name' takes '#count' type argument(s)."
+  script: |
+    extension Extension on int {
+      method(a) {}
+    }
+    main() {
+      int i = 42;
+      Extension<int>(i).method(null);
+    }
 
 ExplicitExtensionAsExpression:
   problemMessage: "Explicit extension application cannot be used as an expression."
+  script: |
+    extension Extension on int {}
+    errors(int i) {
+      Extension(i);
+    }
 
 ExplicitExtensionAsLvalue:
   problemMessage: "Explicit extension application cannot be a target for assignment."
@@ -5338,15 +6308,27 @@ MultipleVarianceModifiers:
   problemMessage: "Each type parameter can have at most one variance modifier."
   correctionMessage: "Use at most one of the 'in', 'out', or 'inout' modifiers."
   analyzerCode: ParserErrorCode.MULTIPLE_VARIANCE_MODIFIERS
+  experiments: variance
+  script: |
+    class C<in out X> {}
+
 
 VariableCouldBeNullDueToWrite:
   problemMessage: "Variable '#name' could not be promoted due to an assignment."
   correctionMessage: "Try null checking the variable after the assignment.  See #string"
+  script: |
+    void foo(int? i, int? j) {
+      if (i == null) return;
+      i = j;
+      i.isEven;
+    }
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
 
 FieldNotPromotedBecauseNotEnabled:
   problemMessage: "'#name' couldn't be promoted because field promotion is only available in Dart 3.2 and above."
   correctionMessage: "See #string"
-  script: >
+  script: |
     // @dart=3.1
     class C {
       final int? _i;
@@ -5357,11 +6339,13 @@ FieldNotPromotedBecauseNotEnabled:
         c._i.isEven;
       }
     }
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
 
 FieldNotPromotedBecauseNotField:
   problemMessage: "'#name' refers to a getter so it couldn't be promoted."
   correctionMessage: "See #string"
-  script: >
+  script: |
     class C {
       int? get _i => 0;
     }
@@ -5370,11 +6354,13 @@ FieldNotPromotedBecauseNotField:
         c._i.isEven;
       }
     }
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
 
 FieldNotPromotedBecauseNotPrivate:
   problemMessage: "'#name' refers to a public property so it couldn't be promoted."
   correctionMessage: "See #string"
-  script: >
+  script: |
     class C {
       final int? i;
       C(this.i);
@@ -5384,11 +6370,13 @@ FieldNotPromotedBecauseNotPrivate:
         c.i.isEven;
       }
     }
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
 
 FieldNotPromotedBecauseExternal:
   problemMessage: "'#name' refers to an external field so it couldn't be promoted."
   correctionMessage: "See #string"
-  script: >
+  script: |
     class C {
       external final int? _i;
     }
@@ -5397,11 +6385,13 @@ FieldNotPromotedBecauseExternal:
         c._i.isEven;
       }
     }
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
 
 FieldNotPromotedBecauseNotFinal:
   problemMessage: "'#name' refers to a non-final field so it couldn't be promoted."
   correctionMessage: "See #string"
-  script: >
+  script: |
     class C {
       int? _i;
       C(this._i);
@@ -5411,11 +6401,13 @@ FieldNotPromotedBecauseNotFinal:
         c._i.isEven;
       }
     }
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
 
 FieldNotPromotedBecauseConflictingGetter:
   problemMessage: "'#name' couldn't be promoted because there is a conflicting getter in class '#name2'."
   correctionMessage: "See #string"
-  script: >
+  script: |
     class C {
       final int? _i;
       C(this._i);
@@ -5428,11 +6420,13 @@ FieldNotPromotedBecauseConflictingGetter:
         c._i.isEven;
       }
     }
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
 
 FieldNotPromotedBecauseConflictingField:
   problemMessage: "'#name' couldn't be promoted because there is a conflicting non-promotable field in class '#name2'."
   correctionMessage: "See #string"
-  script: >
+  script: |
     class C {
       final int? _i;
       C(this._i);
@@ -5446,11 +6440,13 @@ FieldNotPromotedBecauseConflictingField:
         c._i.isEven;
       }
     }
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
 
 FieldNotPromotedBecauseConflictingNsmForwarder:
   problemMessage: "'#name' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class '#name2'."
   correctionMessage: "See #string"
-  script: >
+  script: |
     class C {
       final int? _i;
       C(this._i);
@@ -5463,40 +6459,77 @@ FieldNotPromotedBecauseConflictingNsmForwarder:
         c._i.isEven;
       }
     }
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
 
 ThisNotPromoted:
   problemMessage: "'this' can't be promoted."
   correctionMessage: "See #string"
+  script: |
+    extension on int? {
+      bool extension_explicit_this() {
+        if (this == null) return false;
+        return this.isEven;
+      }
+    }
+  includeErrorContext: true
+  exampleAllowOtherCodes: true
 
 NullablePropertyAccessError:
   problemMessage: "Property '#name' cannot be accessed on '#type' because it is potentially null."
   correctionMessage: "Try accessing using ?. instead."
+  script: |
+    bool foo(int? i) => i.isEven;
 
 NullableMethodCallError:
   problemMessage: "Method '#name' cannot be called on '#type' because it is potentially null."
   correctionMessage: "Try calling using ?. instead."
+  script: |
+    void foo(int? i) => i.abs();
 
 NullableExpressionCallError:
   problemMessage: "Can't use an expression of type '#type' as a function because it's potentially null."
   correctionMessage: "Try calling using ?.call instead."
+  script: |
+    void foo(Function()? f) => f();
 
 NullableOperatorCallError:
   problemMessage: "Operator '#name' cannot be called on '#type' because it is potentially null."
+  script: |
+    void foo(int? i) => i - 1;
 
 NullableTearoffError:
   problemMessage: "Can't tear off method '#name' from a potentially null value."
+  script: |
+    class Foo {
+      void call() {}
+    }
+    void x(Foo? f) {
+      Function y = f;
+    }
 
 NullableSpreadError:
   problemMessage: "An expression whose value can be 'null' must be null-checked before it can be dereferenced."
+  script: |
+    void foo(List<int>? bar) => [...bar];
 
 ThrowingNotAssignableToObjectError:
   problemMessage: "Can't throw a value of '#type' since it is neither dynamic nor non-nullable."
+  script: |
+    void foo(String? s) => throw s;
 
 RequiredNamedParameterHasDefaultValueError:
   problemMessage: "Named parameter '#name' is required and can't have a default value."
+  script: |
+    error() {
+      void g({required int b = 42}) {}
+    }
 
 ValueForRequiredParameterNotProvidedError:
   problemMessage: "Required named parameter '#name' must be provided."
+  script: |
+    void foo({required int i}) {}
+    void bar() { foo(); }
 
 OptionalNonNullableWithoutInitializerError:
   problemMessage: "The parameter '#name' can't have a value of 'null' because of its type '#type', but the implicit default value is 'null'."
@@ -5508,17 +6541,54 @@ OptionalNonNullableWithoutInitializerError:
 
 FieldNonNullableWithoutInitializerError:
   problemMessage: "Field '#name' should be initialized because its type '#type' doesn't allow null."
+  script: |
+    class Foo {
+      int x;
+    }
 
 FieldNonNullableNotInitializedByConstructorError:
   problemMessage: "This constructor should initialize field '#name' because its type '#type' doesn't allow null."
+  script: |
+    class Foo {
+      int x;
+      Foo(this.x);
+      Foo.other();
+    }
 
 ExperimentOptOutExplicit:
   problemMessage: "The '#string' language feature is disabled for this library."
   correctionMessage: "Try removing the `@dart=` annotation or setting the language version to #string2 or higher."
+  script: |
+    // @dart=2.14
+    class Foo {}
+    bar() {
+      var baz = Foo.new;
+    }
+  exampleAllowOtherCodes: true
 
 ExperimentOptOutImplicit:
   problemMessage: "The '#string' language feature is disabled for this library."
   correctionMessage: "Try removing the package language version or setting the language version to #string2 or higher."
+  script:
+    .dart_tool/package_config.json: |
+      {
+        "configVersion": 2,
+        "packages": [
+          {
+            "name": "foo",
+            "rootUri": "../foo/",
+            "languageVersion": "2.14"
+          }
+        ]
+      }
+    main.dart: |
+      import 'package:foo/lib.dart';
+    foo/lib.dart: |
+      class Foo {}
+      bar() {
+        var baz = Foo.new;
+      }
+  exampleAllowOtherCodes: true
 
 ExperimentOptOutComment:
   problemMessage: "This is the annotation that opts out this library from the '#string' language feature."
@@ -5526,18 +6596,30 @@ ExperimentOptOutComment:
 
 AwaitInLateLocalInitializer:
   problemMessage: "`await` expressions are not supported in late local initializers."
+  script: |
+    Future<void> foo() async {
+      late dynamic x = await null;
+    }
 
 NullableSuperclassError:
   problemMessage: "Can't extend '#name' because it's nullable."
   correctionMessage: "Try removing the question mark."
+  script: |
+    class Foo extends Object? {}
 
 NullableInterfaceError:
   problemMessage: "Can't implement '#name' because it's nullable."
   correctionMessage: "Try removing the question mark."
+  script: |
+    class Foo {}
+    class Bar implements Foo? {}
 
 NullableMixinError:
   problemMessage: "Can't mix '#name' in because it's nullable."
   correctionMessage: "Try removing the question mark."
+  script: |
+    mixin Foo {}
+    class Bar = Object with Foo?;
 
 JsInteropDartClassExtendsJSClass:
   problemMessage: "Dart class '#name' cannot extend JS interop class '#name2'."
@@ -5756,7 +6838,7 @@ NonNullableNotAssignedError:
 FinalNotAssignedError:
   problemMessage: "Final variable '#name' must be assigned before it can be used."
   analyzerCode: READ_POTENTIALLY_UNASSIGNED_FINAL
-  script: >
+  script: |
     method(bool b) {
       final int i;
       if (b) {
@@ -5864,7 +6946,7 @@ MainNotFunctionDeclaration:
 
 MainNotFunctionDeclarationExported:
   problemMessage: "The exported 'main' declaration must be a function declaration."
-  exampleAllowMoreCodes: true
+  exampleAllowOtherCodes: true
   script:
     main.dart:
       export 'lib.dart';
@@ -5878,7 +6960,7 @@ MainTooManyRequiredParameters:
 
 MainTooManyRequiredParametersExported:
   problemMessage: "The exported 'main' method must have at most 2 required parameters."
-  exampleAllowMoreCodes: true
+  exampleAllowOtherCodes: true
   script:
     main.dart:
       export 'lib.dart';
@@ -5892,7 +6974,7 @@ MainRequiredNamedParameters:
 
 MainRequiredNamedParametersExported:
   problemMessage: "The exported 'main' method cannot have required named parameters."
-  exampleAllowMoreCodes: true
+  exampleAllowOtherCodes: true
   script:
     main.dart:
       export 'lib.dart';
@@ -5906,7 +6988,7 @@ MainWrongParameterType:
 
 MainWrongParameterTypeExported:
   problemMessage: "The type '#type' of the first parameter of the exported 'main' method is not a supertype of '#type2'."
-  exampleAllowMoreCodes: true
+  exampleAllowOtherCodes: true
   script:
     main.dart:
       export 'lib.dart';
@@ -5916,11 +6998,6 @@ MainWrongParameterTypeExported:
 ExportedMain:
   problemMessage: "This is exported 'main' declaration."
   severity: CONTEXT
-
-UnexpectedModifierInNonNnbd:
-  problemMessage: "The modifier '#lexeme' is only available in null safe libraries."
-  exampleAllowMoreCodes: true
-  analyzerCode: UNEXPECTED_TOKEN
 
 UnsupportedDartExt:
   problemMessage: "Dart native extensions are no longer supported."
@@ -5981,12 +7058,16 @@ NewAsSelector:
   script: |
     method(dynamic d) => d.new;
 
-EnumDeclaresConstFactory:
-  problemMessage: "Enums can't declare const factory constructors."
-  correctionMessage: "Try removing the factory constructor declaration."
-
 PositionalSuperParametersAndArguments:
   problemMessage: "Positional super-initializer parameters cannot be used when the super initializer has positional arguments."
+  script: |
+    class Foo {
+      Foo(int foo);
+    }
+
+    class Bar extends Foo {
+      Bar(super.foo) : super(42);
+    }
 
 SuperInitializerParameter:
   problemMessage: "This is the super-initializer parameter."
@@ -5994,35 +7075,76 @@ SuperInitializerParameter:
 
 EnumSupertypeOfNonAbstractClass:
   problemMessage: "Non-abstract class '#name' has 'Enum' as a superinterface."
+  script: |
+    class Foo extends Enum {
+      int get index => 42;
+    }
+  exampleAllowOtherCodes: true
 
 EnumNonConstConstructor:
   problemMessage: "Generative enum constructors must be marked as 'const'."
+  script: |
+    enum Foo {
+      bar;
+
+      Foo();
+    }
+  exampleAllowOtherCodes: true
 
 EnumConstructorSuperInitializer:
   problemMessage: "Enum constructors can't contain super-initializers."
+  script: |
+    enum E2 {
+      one.named1();
+
+      const E2.named1() : super();
+    }
 
 EnumConstructorTearoff:
   problemMessage: "Enum constructors can't be torn off."
+  script: |
+    enum Foo { a, b, c}
+    void bar() {
+      Foo.new;
+    }
 
 EnumFactoryRedirectsToConstructor:
   problemMessage: "Enum factory constructors can't redirect to generative constructors."
+  script: |
+    enum E {
+      a, b, c;
+      const factory E.f3() = E;
+    }
 
 EnumContainsValuesDeclaration:
   problemMessage: "An enum can't declare a member named 'values'."
+  script: |
+    enum E1 {
+      element;
+      static const List<E1> values = [E1.element];
+    }
 
 EnumImplementerContainsValuesDeclaration:
   problemMessage: "'#name' has 'Enum' as a superinterface and can't contain non-static member with name 'values'."
+  script: |
+    mixin M1 on Enum {
+      final int values = 42;
+    }
 
 EnumInheritsRestricted:
   problemMessage: "An enum can't inherit a member named '#name'."
+  script: |
+    mixin class A1 {
+      int get hashCode => 42;
+    }
+
+    enum E1 with A1 {
+      element
+    }
 
 EnumInheritsRestrictedMember:
   problemMessage: "This is the inherited member"
   severity: CONTEXT
-
-MacroClassNotDeclaredMacro:
-  problemMessage: "Non-abstract class '#name' implements 'Macro' but isn't declared as a macro class."
-  correctionMessage: "Try adding the 'macro' class modifier."
 
 UnmatchedAugmentationClassMember:
   problemMessage: "Augmentation member '#name' doesn't match a member in the augmented class."
@@ -6065,82 +7187,48 @@ UnmatchedAugmentationConstructor:
   correctionMessage: "Try changing the name to an existing constructor or removing the 'augment' modifier."
   experiments: augmentations
 
-UnmatchedPatchConstructor:
-  problemMessage: "Patch constructor '#name' doesn't match a constructor in the origin class."
-  correctionMessage: "Try changing the name to an existing constructor or removing the '@patch' annotation."
-
-NonAugmentationClassMemberConflict:
-  problemMessage: "Member '#name' conflicts with an existing member of the same name in the augmented class."
-  correctionMessage: "Try changing the name of the member or adding an 'augment' modifier."
-  experiments: augmentations
-
-NonPatchClassMemberConflict:
-  problemMessage: "Member '#name' conflicts with an existing member of the same name in the origin class."
-  correctionMessage: "Try changing the name of the member or adding an '@patch' annotation."
-
-NonAugmentationLibraryMemberConflict:
-  problemMessage: "Member '#name' conflicts with an existing member of the same name in the augmented library."
-  correctionMessage: "Try changing the name of the member or adding an 'augment' modifier."
-  experiments: augmentations
-
-NonPatchLibraryMemberConflict:
-  problemMessage: "Member '#name' conflicts with an existing member of the same name in the origin library."
-  correctionMessage: "Try changing the name of the member or adding an '@patch' annotation."
-
-NonAugmentationLibraryConflict:
-  problemMessage: "Declaration '#name' conflicts with an existing declaration of the same name in the augmented library."
-  correctionMessage: "Try changing the name of the declaration."
-  experiments: augmentations
-
-NonPatchLibraryConflict:
-  problemMessage: "Declaration '#name' conflicts with an existing declaration of the same name in the origin library."
-  correctionMessage: "Try changing the name of the declaration."
-
-NonAugmentationClassConflict:
-  problemMessage: "Class '#name' conflicts with an existing class of the same name in the augmented library."
-  correctionMessage: "Try changing the name of the class or adding an 'augment' modifier."
-  experiments: augmentations
-
-NonPatchClassConflict:
-  problemMessage: "Class '#name' conflicts with an existing class of the same name in the origin library."
-  correctionMessage: "Try changing the name of the class or adding an '@patch' annotation."
-
-NonAugmentationConstructorConflict:
-  problemMessage: "Constructor '#name' conflicts with an existing constructor of the same name in the augmented class."
-  correctionMessage: "Try changing the name of the constructor or adding an 'augment' modifier."
-  experiments: augmentations
-
-NonPatchConstructorConflict:
-  problemMessage: "Constructor '#name' conflicts with an existing constructor of the same name in the origin class."
-  correctionMessage: "Try changing the name of the constructor or adding an '@patch' annotation."
-
 NonAugmentationMemberConflictCause:
   problemMessage: "This is the existing member."
-  severity: CONTEXT
-
-NonAugmentationClassConflictCause:
-  problemMessage: "This is the existing class."
   severity: CONTEXT
 
 NonAugmentationDeclarationConflictCause:
   problemMessage: "This is the existing declaration."
   severity: CONTEXT
 
-NonAugmentationConstructorConflictCause:
-  problemMessage: "This is the existing constructor."
-  severity: CONTEXT
-
 OptionalSuperParameterWithoutInitializer:
   problemMessage: "Type '#type' of the optional super-initializer parameter '#name' doesn't allow 'null', but the parameter doesn't have a default value, and the default value can't be copied from the corresponding parameter of the super constructor."
+  script: |
+    class Foo {
+      Foo([num x = 3.14]) {}
+    }
+
+    class Bar extends Foo {
+      Bar([int super.x]);
+    }
 
 EnumContainsRestrictedInstanceDeclaration:
   problemMessage: "An enum can't declare a non-abstract member named '#name'."
+  script: |
+    enum E1 {
+      element;
+      bool operator==(Object other) => true;
+    }
 
 EnumImplementerContainsRestrictedInstanceDeclaration:
   problemMessage: "'#name' has 'Enum' as a superinterface and can't contain non-static members with name '#name2'."
+  script: |
+    class Foo extends Enum {
+      int get index => 42;
+    }
+  exampleAllowOtherCodes: true
 
 EnumAbstractMember:
   problemMessage: "Enums can't declare abstract members."
+  script: |
+    enum E1 {
+      element;
+      void foo();
+    }
 
 MixinInheritsFromNotObject:
   problemMessage: "The class '#name' can't be used as a mixin because it extends a class other than 'Object'."
@@ -6220,6 +7308,8 @@ NameNotFoundInRecordNameGet:
 
 ObjectMemberNameUsedForRecordField:
   problemMessage: "Record field names can't be the same as a member from 'Object'."
+  script: |
+    (int hashCode,) foo1() => throw 0;
 
 RecordFieldsCantBePrivate:
   problemMessage: "Record field names can't be private."
@@ -6236,6 +7326,11 @@ NamedFieldClashesWithPositionalFieldInRecord:
 EnumWithNameValues:
   problemMessage: "The name 'values' is not a valid name for an enum. Try using a different name."
   analyzerCode: ENUM_WITH_NAME_VALUES
+  script: |
+    enum values {
+      foo, bar;
+    }
+  exampleAllowOtherCodes: true
 
 InheritedRestrictedMemberOfEnumImplementer:
   problemMessage: "A concrete instance member named '#name' can't be inherited from '#name2' in a class that implements 'Enum'."
@@ -6815,21 +7910,51 @@ WasmImportOrExportInUserCode:
 
 WeakReferenceNotStatic:
   problemMessage: "Weak reference pragma can be used on a static method only."
+  script: |
+    class A {
+      @pragma('weak-tearoff-reference')
+      external T Function()? weakReference12<T>(T Function()? x);
+    }
 
 WeakReferenceNotOneArgument:
   problemMessage: "Weak reference should take one required positional argument."
+  script: |
+    @pragma('weak-tearoff-reference')
+    Function? weakRef1({Function? x}) => x;
 
 WeakReferenceReturnTypeNotNullable:
   problemMessage: "Return type of a weak reference should be nullable."
+  script: |
+    @pragma('weak-tearoff-reference')
+    Function weakRef(Function x) => x;
 
 WeakReferenceMismatchReturnAndArgumentTypes:
   problemMessage: "Return and argument types of a weak reference should match."
+  script: |
+    @pragma('weak-tearoff-reference')
+    Function? weakRef(void Function() x) => x;
 
 WeakReferenceTargetNotStaticTearoff:
   problemMessage: "The target of weak reference should be a tearoff of a static method."
+  script: |
+    @pragma('weak-tearoff-reference')
+    Function? validWeakRef(Function? x) => x;
+    class B {}
+    void foo() {
+      validWeakRef(B.new);
+    }
 
 WeakReferenceTargetHasParameters:
   problemMessage: "The target of weak reference should not take parameters."
+  script: |
+    @pragma('weak-tearoff-reference')
+    Function? validWeakRef(Function? x) => x;
+    class B {
+      static int arg1(int x) => 42;
+    }
+    void foo() {
+      validWeakRef(B.arg1);
+    }
 
 ObsoleteColonForDefaultValue:
   problemMessage: "Using a colon as a separator before a default value is no longer supported."
@@ -6885,15 +8010,15 @@ JointPatternVariableWithLabelDefault:
   script: |
     test(x) { switch(x) { case var a: default: return a; } }
 
-UnsupportedMacroApplication:
-  problemMessage: "This macro application didn't apply correctly."
-
-UnhandledMacroApplication:
-  problemMessage: "This macro application didn't apply correctly due to an unhandled #name."
-
 ScriptTagInPartFile:
   problemMessage: "A part file cannot have script tag."
   correctionMessage: "Try removing the script tag or the 'part of' directive."
+  script:
+    main.dart: |
+      part 'part.dart';
+    part.dart: |
+      #!dart
+      part of 'main.dart';
 
 NonCovariantTypeParameterInRepresentationType:
   problemMessage: "An extension type parameter can't be used non-covariantly in its representation type."
@@ -7137,21 +8262,12 @@ ExtensionTypeImplementsDeferred:
       extension type ET(d.A id) implements d.A {}
     lib.dart: |
       class A {}
+  exampleAllowOtherCodes: true
 
 RecordUsedAsCallable:
   problemMessage: "The 'call' property on the record type isn't directly callable but could be invoked by `.call(...)`"
   script: |
-    test(({dynamic call} r) => r(0);
-
-InvalidMacroApplicationTarget:
-  problemMessage: "The macro can only be applied to #string."
-
-NoMacroApplicationTarget:
-  problemMessage: "The macro can not be applied to this declaration."
-
-MacroDefinitionApplicationSameLibraryCycle:
-  problemMessage: "The macro '#name' can't be applied in the same library cycle where it is defined."
-  correctionMessage: Try moving it to a different library that does not import the one where it is applied.
+    test(({dynamic call}) r) => r(0);
 
 ExperimentExpiredEnabled:
   problemMessage: "The experiment '#name' has expired and can't be enabled."
@@ -7191,7 +8307,7 @@ DotShorthandsConstructorInvocationWithTypeArguments:
   problemMessage: "A dot shorthand constructor invocation can't have type arguments."
   correctionMessage: "Try adding the class name and type arguments explicitly before the constructor name."
   experiments: dot-shorthands
-  script: >
+  script: |
     class C<X> {
       C.foo();
     }
@@ -7202,7 +8318,7 @@ DotShorthandsConstructorInvocationWithTypeArguments:
 DotShorthandsInvalidContext:
   problemMessage: "No type was provided to find the dot shorthand '#name'."
   experiments: dot-shorthands
-  script: >
+  script: |
     void main() {
       var x = .one;
     }
@@ -7211,7 +8327,7 @@ DotShorthandsUndefinedGetter:
   problemMessage: "The static getter or field '#name' isn't defined for the type '#type'."
   correctionMessage: "Try correcting the name to the name of an existing static getter or field, or defining a getter or field named '#name'."
   experiments: dot-shorthands
-  script: >
+  script: |
     class C {
       C get foo => C();
     }
@@ -7223,10 +8339,13 @@ DotShorthandsUndefinedInvocation:
   problemMessage: "The static method or constructor '#name' isn't defined for the type '#type'."
   correctionMessage: "Try correcting the name to the name of an existing static method or constructor, or defining a static method or constructor named '#name'."
   experiments: dot-shorthands
-  script: >
+  script: |
     class C {
       C foo() => C();
     }
     void main() {
       C c = .foo();
     }
+
+ExpressionEvaluationKnownVariableUnavailable:
+  problemMessage: "The variable '#name' is unavailable in this expression evaluation."

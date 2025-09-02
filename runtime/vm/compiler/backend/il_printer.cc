@@ -1237,6 +1237,24 @@ void InvokeMathCFunctionInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   Definition::PrintOperandsTo(f);
 }
 
+void TsanReadWriteInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+  instance()->PrintTo(f);
+  f->Printf(" . %s", slot().Name());
+  if (kind_ == kRead) {
+    f->AddString(", read");
+  } else {
+    f->AddString(", write");
+  }
+}
+
+void TsanFuncEntryExitInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+  if (kind_ == kEntry) {
+    f->AddString("entry");
+  } else {
+    f->AddString("exit");
+  }
+}
+
 void GraphEntryInstr::PrintBlockHeaderTo(BaseTextBuffer* f) const {
   f->Printf("B%" Pd "[graph]:%" Pd, block_id(), GetDeoptId());
 }

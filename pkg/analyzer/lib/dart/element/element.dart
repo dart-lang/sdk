@@ -1047,6 +1047,16 @@ abstract class ElementDirective
   /// The library fragment that contains this object.
   LibraryFragment get libraryFragment;
 
+  /// The metadata associated with the element or fragment.
+  ///
+  /// If the receiver is an element that has fragments, the list will include
+  /// all of the metadata from all of the fragments.
+  ///
+  /// The list will be empty if the receiver does not have any metadata or if
+  /// the library containing this element has not yet been fully resolved.
+  @override
+  Metadata get metadata;
+
   /// The interpretation of the URI specified in the directive.
   DirectiveUri get uri;
 }
@@ -1496,6 +1506,7 @@ abstract class ExtensionTypeFragment implements InterfaceFragment {
   ExtensionTypeFragment? get previousFragment;
 
   /// The primary constructor of this extension.
+  @Deprecated('Use ExtensionTypeElement.primaryConstructor instead')
   ConstructorFragment get primaryConstructor;
 
   /// The primary constructor of this extension.
@@ -1503,6 +1514,7 @@ abstract class ExtensionTypeFragment implements InterfaceFragment {
   ConstructorFragment get primaryConstructor2;
 
   /// The representation of this extension.
+  @Deprecated('Use ExtensionTypeElement.representation instead')
   FieldFragment get representation;
 
   /// The representation of this extension.
@@ -2506,6 +2518,7 @@ abstract class InterfaceFragment implements InstanceFragment {
   InterfaceElement get element;
 
   /// The interfaces that are implemented by this fragment.
+  @Deprecated('Use InterfaceElement.interfaces instead')
   List<InterfaceType> get interfaces;
 
   /// The mixins that are applied by this fragment.
@@ -2513,6 +2526,7 @@ abstract class InterfaceFragment implements InstanceFragment {
   /// [ClassFragment] and [EnumFragment] can have mixins.
   ///
   /// [MixinFragment] cannot have mixins, so the empty list is returned.
+  @Deprecated('Use InterfaceElement.mixins instead')
   List<InterfaceType> get mixins;
 
   @override
@@ -2522,6 +2536,7 @@ abstract class InterfaceFragment implements InstanceFragment {
   InterfaceFragment? get previousFragment;
 
   /// The superclass declared by this fragment.
+  @Deprecated('Use InterfaceElement.supertype instead')
   InterfaceType? get supertype;
 }
 
@@ -3412,6 +3427,9 @@ sealed class NamespaceCombinator {
 abstract class PartInclude implements ElementDirective {
   /// The [LibraryFragment], if [uri] is a [DirectiveUriWithUnit].
   LibraryFragment? get includedFragment;
+
+  /// The offset of the `part` keyword.
+  int get partKeywordOffset;
 }
 
 /// A pattern variable.

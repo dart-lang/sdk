@@ -95,6 +95,7 @@ static method nonExhaustiveFixedField(self::A a) → dynamic
   return block {
     core::int #t12;
     final synthesized self::A #0#0 = a;
+    final const synthesized core::int #0#2 = #C1;
     #L5:
     {
       {

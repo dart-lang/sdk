@@ -35,7 +35,7 @@ import 'package:foo.bar/a.dart';
 
 void f(A a) {}
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 41, 1)],
+      [error(HintCode.deprecatedMemberUse, 41, 1)],
     );
   }
 
@@ -53,7 +53,7 @@ import 'package:aaa/a.dart';
 
 void f(A a) {}
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 37, 1)],
+      [error(HintCode.deprecatedMemberUse, 37, 1)],
     );
   }
 }
@@ -110,7 +110,7 @@ import 'package:aaa/a.dart';
 
 void f(A a) {}
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 37, 1)],
+      [error(HintCode.deprecatedMemberUse, 37, 1)],
     );
   }
 
@@ -125,7 +125,8 @@ void f(A a) {}
     Map<String, String> nameToLibPath,
   ) {
     var packages = nameToLibPath.entries.map(
-      (entry) => '''{
+      (entry) =>
+          '''{
     "languageVersion": "2.2",
     "name": "${entry.key}",
     "packageUri": ".",
@@ -165,7 +166,7 @@ import 'package:aaa/a.dart';
 
 void f(A a) {}
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 37, 1)],
+      [error(HintCode.deprecatedMemberUse, 37, 1)],
     );
   }
 
@@ -189,7 +190,7 @@ import 'package:aaa/a.dart';
 
 void f(A a) {}
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 37, 1)],
+      [error(HintCode.deprecatedMemberUse, 37, 1)],
     );
   }
 }
@@ -249,7 +250,7 @@ void f() {
   x += 2;
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 42, 1)],
+      [error(HintCode.deprecatedMemberUse, 42, 1)],
     );
   }
 
@@ -266,7 +267,7 @@ void f() {
   x += 2;
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 42, 1)],
+      [error(HintCode.deprecatedMemberUse, 42, 1)],
     );
   }
 
@@ -297,7 +298,7 @@ void f() {
   x = 0;
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 42, 1)],
+      [error(HintCode.deprecatedMemberUse, 42, 1)],
     );
   }
 
@@ -314,7 +315,7 @@ void f() {
   x = 0;
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 42, 1)],
+      [error(HintCode.deprecatedMemberUse, 42, 1)],
     );
   }
 
@@ -331,7 +332,7 @@ void f(A a) {
   a();
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 45, 3)],
+      [error(HintCode.deprecatedMemberUse, 45, 3)],
     );
   }
 
@@ -344,7 +345,7 @@ class A {}
       code: r'''
 void f(A a) {}
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 36, 1)],
+      [error(HintCode.deprecatedMemberUse, 36, 1)],
     );
   }
 
@@ -389,7 +390,7 @@ f(A a, A b) {
   a += b;
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 45, 6)],
+      [error(HintCode.deprecatedMemberUse, 45, 6)],
     );
   }
 
@@ -408,7 +409,7 @@ int g(Object s) =>
     _ => 7,
   };
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 69, 3)],
+      [error(HintCode.deprecatedMemberUse, 69, 3)],
     );
   }
 
@@ -427,7 +428,7 @@ int g(Object s) =>
     _ => 7,
   };
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 74, 3)],
+      [error(HintCode.deprecatedMemberUse, 74, 3)],
     );
   }
 
@@ -449,9 +450,9 @@ void f() {
 }
 ''',
       [
-        error(HintCode.DEPRECATED_MEMBER_USE, 43, 1),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 45, 1),
-        error(HintCode.DEPRECATED_MEMBER_USE, 50, 3),
+        error(HintCode.deprecatedMemberUse, 43, 1),
+        error(WarningCode.unusedLocalVariable, 45, 1),
+        error(HintCode.deprecatedMemberUse, 50, 3),
       ],
     );
   }
@@ -473,8 +474,8 @@ void f() {
 }
 ''',
       [
-        error(HintCode.DEPRECATED_MEMBER_USE, 43, 1),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 45, 1),
+        error(HintCode.deprecatedMemberUse, 43, 1),
+        error(WarningCode.unusedLocalVariable, 45, 1),
       ],
     );
   }
@@ -496,8 +497,8 @@ void f() {
 }
 ''',
       [
-        error(HintCode.DEPRECATED_MEMBER_USE, 43, 1),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 45, 1),
+        error(HintCode.deprecatedMemberUse, 43, 1),
+        error(WarningCode.unusedLocalVariable, 45, 1),
       ],
     );
   }
@@ -516,9 +517,9 @@ f() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 39, 1),
+        error(WarningCode.unusedLocalVariable, 39, 1),
         error(
-          HintCode.DEPRECATED_MEMBER_USE,
+          HintCode.deprecatedMemberUse,
           44,
           5,
           messageContains: ["'A.named' is deprecated and shouldn't be used."],
@@ -544,8 +545,8 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 45, 1),
-        error(HintCode.DEPRECATED_MEMBER_USE, 50, 3),
+        error(WarningCode.unusedLocalVariable, 45, 1),
+        error(HintCode.deprecatedMemberUse, 50, 3),
       ],
     );
   }
@@ -560,7 +561,7 @@ library a;
       '''
 export 'package:aaa/a.dart';
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 0, 28)],
+      [error(HintCode.deprecatedMemberUse, 0, 28)],
     );
   }
 
@@ -574,7 +575,7 @@ library a;
       '''
 export 'lib2.dart';
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 0, 19)],
+      [error(HintCode.deprecatedMemberUseFromSamePackage, 0, 19)],
     );
   }
 
@@ -591,7 +592,7 @@ void f() {
   E(0).foo;
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 42, 1)],
+      [error(HintCode.deprecatedMemberUse, 42, 1)],
     );
   }
 
@@ -611,7 +612,7 @@ void f(A a) {
   a.foo;
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 48, 3)],
+      [error(HintCode.deprecatedMemberUse, 48, 3)],
     );
   }
 
@@ -631,7 +632,7 @@ void f(A a) {
   a.foo = 0;
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 48, 3)],
+      [error(HintCode.deprecatedMemberUse, 48, 3)],
     );
   }
 
@@ -680,7 +681,7 @@ import 'package:aaa/a.dart';
 ''',
       [
         error(
-          HintCode.DEPRECATED_MEMBER_USE,
+          HintCode.deprecatedMemberUse,
           24,
           28,
           messageContains: ['package:aaa/a.dart'],
@@ -707,9 +708,9 @@ class C {
 const z = C(x: '');
 ''',
       [
-        error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1, 53, 1),
-        error(ParserErrorCode.MISSING_IDENTIFIER, 82, 1),
-        error(ParserErrorCode.EXPECTED_TOKEN, 82, 1),
+        error(CompileTimeErrorCode.finalNotInitializedConstructor1, 53, 1),
+        error(ParserErrorCode.missingIdentifier, 82, 1),
+        error(ParserErrorCode.expectedToken, 82, 1),
       ],
     );
   }
@@ -982,7 +983,7 @@ void f(A a) {
   return a[1];
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 52, 4)],
+      [error(HintCode.deprecatedMemberUse, 52, 4)],
     );
   }
 
@@ -1001,7 +1002,7 @@ enum E {
   }
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 68, 1)],
+      [error(HintCode.deprecatedMemberUse, 68, 1)],
     );
   }
 
@@ -1018,7 +1019,7 @@ extension E on int {
   }
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 67, 1)],
+      [error(HintCode.deprecatedMemberUse, 67, 1)],
     );
   }
 
@@ -1039,7 +1040,7 @@ void f() {
   A();
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 43, 1)],
+      [error(HintCode.deprecatedMemberUse, 43, 1)],
     );
   }
 
@@ -1059,7 +1060,7 @@ void f() {
   A();
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 43, 1)],
+      [error(HintCode.deprecatedMemberUse, 43, 1)],
     );
   }
 
@@ -1082,7 +1083,7 @@ void f() {
       [
         // https://github.com/dart-lang/linter/issues/4752
         // Highlights `A`.
-        error(HintCode.DEPRECATED_MEMBER_USE, 43, 1),
+        error(HintCode.deprecatedMemberUse, 43, 1),
       ],
     );
   }
@@ -1102,7 +1103,7 @@ f() {
 ''',
       [
         error(
-          HintCode.DEPRECATED_MEMBER_USE,
+          HintCode.deprecatedMemberUse,
           48,
           7,
           messageContains: ["'A.named' is deprecated and shouldn't be used."],
@@ -1127,7 +1128,7 @@ void f() {
   A();
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 43, 1)],
+      [error(HintCode.deprecatedMemberUse, 43, 1)],
     );
   }
 
@@ -1144,7 +1145,7 @@ f() {
   return new A(1);
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 48, 1)],
+      [error(HintCode.deprecatedMemberUse, 48, 1)],
     );
   }
 
@@ -1164,7 +1165,7 @@ void f(A a) {
   a.foo();
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 48, 3)],
+      [error(HintCode.deprecatedMemberUse, 48, 3)],
     );
   }
 
@@ -1177,7 +1178,7 @@ int f() => 0;
       code: r'''
 var x = f();
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 37, 1)],
+      [error(HintCode.deprecatedMemberUse, 37, 1)],
     );
   }
 
@@ -1192,7 +1193,7 @@ var x = f();
 ''',
       [
         error(
-          HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE,
+          HintCode.deprecatedMemberUseWithMessage,
           37,
           1,
           text: "'f' is deprecated and shouldn't be used. 0.9.",
@@ -1212,7 +1213,7 @@ var x = f();
 ''',
       [
         error(
-          HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE,
+          HintCode.deprecatedMemberUseWithMessage,
           37,
           1,
           text: "'f' is deprecated and shouldn't be used. 0.9.",
@@ -1232,7 +1233,7 @@ var x = f();
 ''',
       [
         error(
-          HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE,
+          HintCode.deprecatedMemberUseWithMessage,
           37,
           1,
           text: "'f' is deprecated and shouldn't be used. Really!",
@@ -1252,7 +1253,7 @@ var x = f();
 ''',
       [
         error(
-          HintCode.DEPRECATED_MEMBER_USE,
+          HintCode.deprecatedMemberUse,
           37,
           1,
           text: "'f' is deprecated and shouldn't be used.",
@@ -1272,7 +1273,7 @@ var x = f();
 ''',
       [
         error(
-          HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE,
+          HintCode.deprecatedMemberUseWithMessage,
           37,
           1,
           text: "'f' is deprecated and shouldn't be used. Are you sure?",
@@ -1297,7 +1298,7 @@ void f(A a) {
   a.foo();
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 39, 3)],
+      [error(HintCode.deprecatedMemberUseFromSamePackage, 39, 3)],
     );
   }
 
@@ -1333,7 +1334,7 @@ void f(A a) {
 ''',
       [
         error(
-          HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE,
+          HintCode.deprecatedMemberUseWithMessage,
           48,
           3,
           text: "'foo' is deprecated and shouldn't be used. 0.9.",
@@ -1368,12 +1369,12 @@ var z = C(x: '');
 ''',
       [
         error(
-          CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD,
+          CompileTimeErrorCode.initializingFormalForNonExistentField,
           21,
           5,
         ),
-        error(ParserErrorCode.MISSING_IDENTIFIER, 26, 1),
-        error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 42, 1),
+        error(ParserErrorCode.missingIdentifier, 26, 1),
+        error(CompileTimeErrorCode.undefinedNamedParameter, 42, 1),
       ],
     );
   }
@@ -1391,7 +1392,7 @@ f(A a, A b) {
   return a + b;
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 52, 5)],
+      [error(HintCode.deprecatedMemberUse, 52, 5)],
     );
   }
 
@@ -1403,7 +1404,7 @@ void f({@deprecated int x = 0}) {}
       code: r'''
 void g() => f(x: 1);
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 43, 1)],
+      [error(HintCode.deprecatedMemberUse, 43, 1)],
     );
   }
 
@@ -1451,7 +1452,7 @@ class C {
   C({B this.a = instance});
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 57, 1)],
+      [error(HintCode.deprecatedMemberUse, 57, 1)],
     );
   }
 
@@ -1510,7 +1511,7 @@ void f() {
   foo(a: 0);
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 47, 1)],
+      [error(HintCode.deprecatedMemberUse, 47, 1)],
     );
   }
 
@@ -1529,7 +1530,7 @@ void f(A a) {
   a.foo(a: 0);
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 52, 1)],
+      [error(HintCode.deprecatedMemberUse, 52, 1)],
     );
   }
 
@@ -1545,7 +1546,7 @@ void f(A a) {
   a.foo(0);
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 51, 1)],
+      [error(HintCode.deprecatedMemberUse, 51, 1)],
     );
   }
 
@@ -1609,7 +1610,7 @@ void f() {
   x++;
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 42, 1)],
+      [error(HintCode.deprecatedMemberUse, 42, 1)],
     );
   }
 
@@ -1641,7 +1642,7 @@ void f() {
   x++;
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 42, 1)],
+      [error(HintCode.deprecatedMemberUse, 42, 1)],
     );
   }
 
@@ -1658,7 +1659,7 @@ void f() {
   A.foo;
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 44, 3)],
+      [error(HintCode.deprecatedMemberUse, 44, 3)],
     );
   }
 
@@ -1675,7 +1676,7 @@ void f() {
   A.foo;
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 42, 1)],
+      [error(HintCode.deprecatedMemberUse, 42, 1)],
     );
   }
 
@@ -1692,7 +1693,7 @@ void f() {
   ++x;
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 44, 1)],
+      [error(HintCode.deprecatedMemberUse, 44, 1)],
     );
   }
 
@@ -1709,7 +1710,7 @@ void f() {
   ++x;
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 44, 1)],
+      [error(HintCode.deprecatedMemberUse, 44, 1)],
     );
   }
 
@@ -1728,7 +1729,7 @@ class B extends A {
   }
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 74, 3)],
+      [error(HintCode.deprecatedMemberUse, 74, 3)],
     );
   }
 
@@ -1740,7 +1741,7 @@ class A {
   A.named() : this(a: 0);
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 61, 1)],
+      [error(HintCode.deprecatedMemberUseFromSamePackage, 61, 1)],
     );
   }
 
@@ -1760,7 +1761,7 @@ void f(A a) {
   a.foo = 0;
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 48, 3)],
+      [error(HintCode.deprecatedMemberUse, 48, 3)],
     );
   }
 
@@ -1774,7 +1775,7 @@ class A {}
 // ignore: unused_import
 import '$externalLibUri' show A;
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 58, 1)],
+      [error(HintCode.deprecatedMemberUse, 58, 1)],
     );
   }
 
@@ -1793,7 +1794,7 @@ class B extends A {
 ''',
       [
         error(
-          HintCode.DEPRECATED_MEMBER_USE,
+          HintCode.deprecatedMemberUse,
           57,
           13,
           text: "'A.named' is deprecated and shouldn't be used.",
@@ -1817,7 +1818,7 @@ class B extends A {
 ''',
       [
         error(
-          HintCode.DEPRECATED_MEMBER_USE,
+          HintCode.deprecatedMemberUse,
           57,
           7,
           text: "'A' is deprecated and shouldn't be used.",
@@ -1837,7 +1838,7 @@ void f() {
   print(x);
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 48, 1)],
+      [error(HintCode.deprecatedMemberUse, 48, 1)],
     );
   }
 
@@ -1852,7 +1853,7 @@ void f(int a) {
   a = x;
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 51, 1)],
+      [error(HintCode.deprecatedMemberUse, 51, 1)],
     );
   }
 
@@ -1867,7 +1868,7 @@ void f() {
   x + 1;
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 42, 1)],
+      [error(HintCode.deprecatedMemberUse, 42, 1)],
     );
   }
 
@@ -1883,7 +1884,7 @@ class A {
   A() : f = x;
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 66, 1)],
+      [error(HintCode.deprecatedMemberUse, 66, 1)],
     );
   }
 
@@ -1896,7 +1897,7 @@ int x = 1;
       code: r'''
 int f() => x;
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 40, 1)],
+      [error(HintCode.deprecatedMemberUse, 40, 1)],
     );
   }
 
@@ -1911,7 +1912,7 @@ void f() {
   x;
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 42, 1)],
+      [error(HintCode.deprecatedMemberUse, 42, 1)],
     );
   }
 
@@ -1926,7 +1927,7 @@ void f() {
   [for (;x;) 0];
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 49, 1)],
+      [error(HintCode.deprecatedMemberUse, 49, 1)],
     );
   }
 
@@ -1941,7 +1942,7 @@ void f() {
   for (;x;) {}
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 48, 1)],
+      [error(HintCode.deprecatedMemberUse, 48, 1)],
     );
   }
 
@@ -1956,7 +1957,7 @@ void f() {
   [if (x) 0];
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 47, 1)],
+      [error(HintCode.deprecatedMemberUse, 47, 1)],
     );
   }
 
@@ -1971,7 +1972,7 @@ void f() {
   if (x) {}
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 46, 1)],
+      [error(HintCode.deprecatedMemberUse, 46, 1)],
     );
   }
 
@@ -1986,7 +1987,7 @@ void f() {
   [x];
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 43, 1)],
+      [error(HintCode.deprecatedMemberUse, 43, 1)],
     );
   }
 
@@ -2002,8 +2003,8 @@ void f() {
 }
 ''',
       [
-        error(HintCode.DEPRECATED_MEMBER_USE, 47, 1),
-        error(HintCode.DEPRECATED_MEMBER_USE, 50, 1),
+        error(HintCode.deprecatedMemberUse, 47, 1),
+        error(HintCode.deprecatedMemberUse, 50, 1),
       ],
     );
   }
@@ -2020,7 +2021,7 @@ void f() {
   g(a: x);
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 70, 1)],
+      [error(HintCode.deprecatedMemberUse, 70, 1)],
     );
   }
 
@@ -2035,7 +2036,7 @@ int f() {
   return x;
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 48, 1)],
+      [error(HintCode.deprecatedMemberUse, 48, 1)],
     );
   }
 
@@ -2050,7 +2051,7 @@ void f() {
   ({x});
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 44, 1)],
+      [error(HintCode.deprecatedMemberUse, 44, 1)],
     );
   }
 
@@ -2065,7 +2066,7 @@ void f() {
   [...x];
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 46, 1)],
+      [error(HintCode.deprecatedMemberUse, 46, 1)],
     );
   }
 
@@ -2083,7 +2084,7 @@ void f(int a) {
   }
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 69, 1)],
+      [error(HintCode.deprecatedMemberUse, 69, 1)],
     );
   }
 
@@ -2103,7 +2104,7 @@ void f(int a) {
   }
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 85, 1)],
+      [error(HintCode.deprecatedMemberUse, 85, 1)],
     );
   }
 
@@ -2118,7 +2119,7 @@ void f() {
   switch (x) {}
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 50, 1)],
+      [error(HintCode.deprecatedMemberUse, 50, 1)],
     );
   }
 
@@ -2135,7 +2136,7 @@ void f() {
   switch (x) {}
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 66, 1)],
+      [error(HintCode.deprecatedMemberUse, 66, 1)],
     );
   }
 
@@ -2150,7 +2151,7 @@ void f() {
   -x;
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 43, 1)],
+      [error(HintCode.deprecatedMemberUse, 43, 1)],
     );
   }
 
@@ -2166,7 +2167,7 @@ void f() {
   var v = x;
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 85, 1)],
+      [error(HintCode.deprecatedMemberUse, 85, 1)],
     );
   }
 
@@ -2181,7 +2182,7 @@ void f() {
   while (x) {}
 }
 ''',
-      [error(HintCode.DEPRECATED_MEMBER_USE, 49, 1)],
+      [error(HintCode.deprecatedMemberUse, 49, 1)],
     );
   }
 

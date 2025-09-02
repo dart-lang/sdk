@@ -11,6 +11,10 @@ Future<void> main(List<String> args) async {
   int limit = -1;
 
   Dart2jsTester dart2jsTester = new Dart2jsTester(
-      useExperimentalInvalidation, fast, addDebugBreaks, limit);
+    useExperimentalInvalidation,
+    fast,
+    addDebugBreaks,
+    limit,
+  );
   await dart2jsTester.test();
 }

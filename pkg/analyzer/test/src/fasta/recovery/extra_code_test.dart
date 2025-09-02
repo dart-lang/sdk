@@ -35,7 +35,7 @@ class C {
   m() => new A<@annotation C>();
 }
 ''',
-      [ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT],
+      [ParserErrorCode.annotationOnTypeArgument],
       '''
 const annotation = null;
 class A<E> {}
@@ -56,7 +56,7 @@ class MiscellaneousTest extends AbstractRecoveryTest {
 class B = Object with A {}
 ''',
       // TODO(danrubel): Consolidate and improve error message.
-      [ParserErrorCode.EXPECTED_EXECUTABLE, ParserErrorCode.EXPECTED_TOKEN],
+      [ParserErrorCode.expectedExecutable, ParserErrorCode.expectedToken],
       '''
 class B = Object with A;
 ''',
@@ -69,7 +69,7 @@ int get g(x) => 0;
 ''';
     var unit = parseCompilationUnit(
       content,
-      codes: [ParserErrorCode.GETTER_WITH_PARAMETERS],
+      codes: [ParserErrorCode.getterWithParameters],
     );
     validateTokenStream(unit.beginToken);
 
@@ -103,7 +103,7 @@ f(x) {
   while (1 < x < 3) {}
 }
 ''',
-      codes: [ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND],
+      codes: [ParserErrorCode.equalityCannotBeEqualityOperand],
     );
   }
 
@@ -141,7 +141,7 @@ Map<int, int> map = <int, int>{};
 mixin M {}
 mixin N with M {}
 ''',
-      [ParserErrorCode.MIXIN_WITH_CLAUSE],
+      [ParserErrorCode.mixinWithClause],
       '''
 mixin M {}
 mixin N {}
@@ -181,7 +181,7 @@ final Map v = {
   'c': () => new C(),
 };
 ''',
-      [ParserErrorCode.UNEXPECTED_TOKEN],
+      [ParserErrorCode.unexpectedToken],
       '''
 class C {}
 final Map v = {
@@ -202,7 +202,7 @@ class ModifiersTest extends AbstractRecoveryTest {
       '''
 static class A {}
 ''',
-      [ParserErrorCode.EXTRANEOUS_MODIFIER],
+      [ParserErrorCode.extraneousModifier],
       '''
 class A {}
 ''',
@@ -215,7 +215,7 @@ class A {}
 main() {}
 const int get foo => 499;
 ''',
-      [ParserErrorCode.EXTRANEOUS_MODIFIER],
+      [ParserErrorCode.extraneousModifier],
       '''
 main() {}
 int get foo => 499;
@@ -229,7 +229,7 @@ int get foo => 499;
 main() {}
 const int foo() => 499;
 ''',
-      [ParserErrorCode.EXTRANEOUS_MODIFIER],
+      [ParserErrorCode.extraneousModifier],
       '''
 main() {}
 int foo() => 499;
@@ -243,7 +243,7 @@ int foo() => 499;
 main() {}
 const set foo(v) => 499;
 ''',
-      [ParserErrorCode.EXTRANEOUS_MODIFIER],
+      [ParserErrorCode.extraneousModifier],
       '''
 main() {}
 set foo(v) => 499;
@@ -265,7 +265,7 @@ class MultipleTypeTest extends AbstractRecoveryTest {
       '''
 String void bar() { }
 ''',
-      [ParserErrorCode.UNEXPECTED_TOKEN],
+      [ParserErrorCode.unexpectedToken],
       '''
 String bar() { }
 ''',
@@ -287,7 +287,7 @@ class Foo extends A, B {
   Foo() { }
 }
 ''',
-      [ParserErrorCode.UNEXPECTED_TOKEN, ParserErrorCode.UNEXPECTED_TOKEN],
+      [ParserErrorCode.unexpectedToken, ParserErrorCode.unexpectedToken],
       '''
 class A { }
 class B { }
@@ -305,7 +305,7 @@ class C {
   foo() {};
 }
 ''',
-      [ParserErrorCode.EXPECTED_CLASS_MEMBER],
+      [ParserErrorCode.expectedClassMember],
       '''
 class C {
   foo() {}
@@ -319,7 +319,7 @@ class C {
       '''
 foo() {};
 ''',
-      [ParserErrorCode.UNEXPECTED_TOKEN],
+      [ParserErrorCode.unexpectedToken],
       '''
 foo() {}
 ''',
@@ -333,7 +333,7 @@ class C {
   ;foo() {}
 }
 ''',
-      [ParserErrorCode.EXPECTED_CLASS_MEMBER],
+      [ParserErrorCode.expectedClassMember],
       '''
 class C {
   foo() {}
@@ -350,7 +350,7 @@ class C {
       '''
 ;foo() {}
 ''',
-      [ParserErrorCode.EXPECTED_EXECUTABLE],
+      [ParserErrorCode.expectedExecutable],
       '''
 foo() {}
 ''',
@@ -365,7 +365,7 @@ class C {
   bar() {}
 }
 ''',
-      [ParserErrorCode.EXPECTED_CLASS_MEMBER],
+      [ParserErrorCode.expectedClassMember],
       '''
 class C {
   foo() {}
@@ -381,7 +381,7 @@ class C {
 foo() {};
 bar() {}
 ''',
-      [ParserErrorCode.UNEXPECTED_TOKEN],
+      [ParserErrorCode.unexpectedToken],
       '''
 foo() {}
 bar() {}
@@ -398,7 +398,7 @@ class VarianceModifierTest extends AbstractRecoveryTest {
       '''
 class A<in out X> {}
 ''',
-      [ParserErrorCode.MULTIPLE_VARIANCE_MODIFIERS],
+      [ParserErrorCode.multipleVarianceModifiers],
       '''
 class A<in X> {}
 ''',

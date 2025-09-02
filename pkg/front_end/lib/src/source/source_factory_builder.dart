@@ -64,22 +64,22 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   @override
   final bool isConst;
 
-  SourceFactoryBuilder(
-      {required this.name,
-      required this.libraryBuilder,
-      required this.declarationBuilder,
-      required this.fileUri,
-      required this.fileOffset,
-      required FactoryReferences factoryReferences,
-      required NameScheme nameScheme,
-      required FactoryDeclaration introductory,
-      required List<FactoryDeclaration> augmentations,
-      required this.isConst})
-      : _nameScheme = nameScheme,
-        _factoryReferences = factoryReferences,
-        _memberName = nameScheme.getDeclaredName(name),
-        _introductory = introductory,
-        _augmentations = augmentations {
+  SourceFactoryBuilder({
+    required this.name,
+    required this.libraryBuilder,
+    required this.declarationBuilder,
+    required this.fileUri,
+    required this.fileOffset,
+    required FactoryReferences factoryReferences,
+    required NameScheme nameScheme,
+    required FactoryDeclaration introductory,
+    required List<FactoryDeclaration> augmentations,
+    required this.isConst,
+  }) : _nameScheme = nameScheme,
+       _factoryReferences = factoryReferences,
+       _memberName = nameScheme.getDeclaredName(name),
+       _introductory = introductory,
+       _augmentations = augmentations {
     if (augmentations.isEmpty) {
       _augmentedDeclarations = augmentations;
       _lastDeclaration = introductory;
@@ -169,13 +169,19 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   }
 
   @override
-  int computeDefaultTypes(ComputeDefaultTypeContext context,
-      {required bool inErrorRecovery}) {
-    int count = _introductory.computeDefaultTypes(context,
-        inErrorRecovery: inErrorRecovery);
+  int computeDefaultTypes(
+    ComputeDefaultTypeContext context, {
+    required bool inErrorRecovery,
+  }) {
+    int count = _introductory.computeDefaultTypes(
+      context,
+      inErrorRecovery: inErrorRecovery,
+    );
     for (FactoryDeclaration augmentation in _augmentations) {
-      count += augmentation.computeDefaultTypes(context,
-          inErrorRecovery: inErrorRecovery);
+      count += augmentation.computeDefaultTypes(
+        context,
+        inErrorRecovery: inErrorRecovery,
+      );
     }
     return count;
   }
@@ -183,11 +189,16 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   @override
   // Coverage-ignore(suite): Not run.
   void checkVariance(
-      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
+    SourceClassBuilder sourceClassBuilder,
+    TypeEnvironment typeEnvironment,
+  ) {}
 
   @override
-  void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
-      TypeEnvironment typeEnvironment) {
+  void checkTypes(
+    SourceLibraryBuilder library,
+    NameSpace nameSpace,
+    TypeEnvironment typeEnvironment,
+  ) {
     _introductory.checkTypes(library, nameSpace, typeEnvironment);
     for (FactoryDeclaration augmentation in _augmentations) {
       augmentation.checkTypes(library, nameSpace, typeEnvironment);
@@ -204,16 +215,18 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
 
     if (_introductory.redirectionTarget != null) {
       _introductory.checkRedirectingFactory(
-          libraryBuilder: libraryBuilder,
-          factoryBuilder: this,
-          typeEnvironment: typeEnvironment);
+        libraryBuilder: libraryBuilder,
+        factoryBuilder: this,
+        typeEnvironment: typeEnvironment,
+      );
     }
     for (FactoryDeclaration augmentation in _augmentations) {
       if (augmentation.redirectionTarget != null) {
         augmentation.checkRedirectingFactory(
-            libraryBuilder: libraryBuilder,
-            factoryBuilder: this,
-            typeEnvironment: typeEnvironment);
+          libraryBuilder: libraryBuilder,
+          factoryBuilder: this,
+          typeEnvironment: typeEnvironment,
+        );
       }
     }
   }
@@ -232,66 +245,76 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   void buildOutlineNodes(BuildNodesCallback f) {
     for (FactoryDeclaration augmentedDeclaration in _augmentedDeclarations) {
       augmentedDeclaration.buildOutlineNodes(
-          libraryBuilder: libraryBuilder,
-          factoryBuilder: this,
-          nameScheme: _nameScheme,
-          factoryReferences: null,
-          isConst: isConst,
-          f: noAddBuildNodesCallback);
-    }
-    _lastDeclaration.buildOutlineNodes(
         libraryBuilder: libraryBuilder,
         factoryBuilder: this,
         nameScheme: _nameScheme,
-        factoryReferences: _factoryReferences,
-        f: f,
-        isConst: isConst);
+        factoryReferences: null,
+        isConst: isConst,
+        f: noAddBuildNodesCallback,
+      );
+    }
+    _lastDeclaration.buildOutlineNodes(
+      libraryBuilder: libraryBuilder,
+      factoryBuilder: this,
+      nameScheme: _nameScheme,
+      factoryReferences: _factoryReferences,
+      f: f,
+      isConst: isConst,
+    );
   }
 
   bool _hasInferredRedirectionTarget = false;
 
-  void inferRedirectionTarget(ClassHierarchy classHierarchy,
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
+  void inferRedirectionTarget(
+    ClassHierarchy classHierarchy,
+    List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+  ) {
     if (_hasInferredRedirectionTarget) return;
     _hasInferredRedirectionTarget = true;
     _introductory.inferRedirectionTarget(
+      libraryBuilder: libraryBuilder,
+      factoryBuilder: this,
+      classHierarchy: classHierarchy,
+      delayedDefaultValueCloners: delayedDefaultValueCloners,
+    );
+    for (FactoryDeclaration augmentation in _augmentations) {
+      augmentation.inferRedirectionTarget(
         libraryBuilder: libraryBuilder,
         factoryBuilder: this,
         classHierarchy: classHierarchy,
-        delayedDefaultValueCloners: delayedDefaultValueCloners);
-    for (FactoryDeclaration augmentation in _augmentations) {
-      augmentation.inferRedirectionTarget(
-          libraryBuilder: libraryBuilder,
-          factoryBuilder: this,
-          classHierarchy: classHierarchy,
-          delayedDefaultValueCloners: delayedDefaultValueCloners);
+        delayedDefaultValueCloners: delayedDefaultValueCloners,
+      );
     }
   }
 
   bool _hasBuiltOutlineExpressions = false;
 
   @override
-  void buildOutlineExpressions(ClassHierarchy classHierarchy,
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
+  void buildOutlineExpressions(
+    ClassHierarchy classHierarchy,
+    List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+  ) {
     inferRedirectionTarget(classHierarchy, delayedDefaultValueCloners);
     if (_hasBuiltOutlineExpressions) return;
     _hasBuiltOutlineExpressions = true;
 
     _introductory.buildOutlineExpressions(
+      libraryBuilder: libraryBuilder,
+      factoryBuilder: this,
+      classHierarchy: classHierarchy,
+      delayedDefaultValueCloners: delayedDefaultValueCloners,
+      annotatables: annotatables,
+      annotatablesFileUri: _procedure.fileUri,
+    );
+    for (FactoryDeclaration augmentation in _augmentations) {
+      augmentation.buildOutlineExpressions(
         libraryBuilder: libraryBuilder,
         factoryBuilder: this,
         classHierarchy: classHierarchy,
         delayedDefaultValueCloners: delayedDefaultValueCloners,
         annotatables: annotatables,
-        annotatablesFileUri: _procedure.fileUri);
-    for (FactoryDeclaration augmentation in _augmentations) {
-      augmentation.buildOutlineExpressions(
-          libraryBuilder: libraryBuilder,
-          factoryBuilder: this,
-          classHierarchy: classHierarchy,
-          delayedDefaultValueCloners: delayedDefaultValueCloners,
-          annotatables: annotatables,
-          annotatablesFileUri: _procedure.fileUri);
+        annotatablesFileUri: _procedure.fileUri,
+      );
     }
   }
 
@@ -310,7 +333,10 @@ class InferableRedirectingFactory implements InferableMember {
   final List<DelayedDefaultValueCloner> _delayedDefaultValueCloners;
 
   InferableRedirectingFactory(
-      this._builder, this._classHierarchy, this._delayedDefaultValueCloners);
+    this._builder,
+    this._classHierarchy,
+    this._delayedDefaultValueCloners,
+  );
 
   @override
   Member get member => _builder.invokeTarget;
@@ -318,7 +344,9 @@ class InferableRedirectingFactory implements InferableMember {
   @override
   void inferMemberTypes(ClassHierarchyBase classHierarchy) {
     _builder.inferRedirectionTarget(
-        _classHierarchy, _delayedDefaultValueCloners);
+      _classHierarchy,
+      _delayedDefaultValueCloners,
+    );
   }
 
   @override
@@ -335,10 +363,11 @@ class InferableRedirectingFactory implements InferableMember {
       name += ".${_builder.name}";
     }
     _builder.libraryBuilder.addProblem(
-        templateCantInferTypeDueToCircularity.withArguments(name),
-        _builder.fileOffset,
-        name.length,
-        _builder.fileUri);
+      codeCantInferTypeDueToCircularity.withArguments(name),
+      _builder.fileOffset,
+      name.length,
+      _builder.fileUri,
+    );
   }
 }
 
@@ -359,15 +388,17 @@ class FactoryReferences {
   /// compilations during an incremental compilation, these are the references
   /// used for the same factory constructor and tear-off in the previous
   /// compilation.
-  FactoryReferences._(
-      {required Reference? preExistingFactoryReference,
-      required Reference? preExistingTearOffReference,
-      required bool hasTearOffLowering})
-      : _factoryReference = preExistingFactoryReference,
-        _tearOffReference = preExistingTearOffReference,
-        _hasTearOffLowering = hasTearOffLowering,
-        assert(!(preExistingTearOffReference != null && !hasTearOffLowering),
-            "Unexpected tear off reference $preExistingTearOffReference.");
+  FactoryReferences._({
+    required Reference? preExistingFactoryReference,
+    required Reference? preExistingTearOffReference,
+    required bool hasTearOffLowering,
+  }) : _factoryReference = preExistingFactoryReference,
+       _tearOffReference = preExistingTearOffReference,
+       _hasTearOffLowering = hasTearOffLowering,
+       assert(
+         !(preExistingTearOffReference != null && !hasTearOffLowering),
+         "Unexpected tear off reference $preExistingTearOffReference.",
+       );
 
   /// Creates a [FactoryReferences] object preloaded with the pre-existing
   /// references from [indexedContainer], if available.
@@ -390,15 +421,18 @@ class FactoryReferences {
 
     if (indexedContainer != null) {
       preExistingFactoryReference = indexedContainer.lookupConstructorReference(
-          nameScheme.getConstructorMemberName(name, isTearOff: false).name);
+        nameScheme.getConstructorMemberName(name, isTearOff: false).name,
+      );
       preExistingTearOffReference = indexedContainer.lookupGetterReference(
-          nameScheme.getConstructorMemberName(name, isTearOff: true).name);
+        nameScheme.getConstructorMemberName(name, isTearOff: true).name,
+      );
     }
 
     return new FactoryReferences._(
-        preExistingFactoryReference: preExistingFactoryReference,
-        preExistingTearOffReference: preExistingTearOffReference,
-        hasTearOffLowering: hasTearOffLowering);
+      preExistingFactoryReference: preExistingFactoryReference,
+      preExistingTearOffReference: preExistingTearOffReference,
+      hasTearOffLowering: hasTearOffLowering,
+    );
   }
 
   /// Registers that [builder] is created for the pre-existing references
@@ -407,7 +441,9 @@ class FactoryReferences {
   /// This must be called before [factoryReference] and [tearOffReference] are
   /// accessed.
   void registerReference(
-      ReferenceMap referenceMap, SourceFactoryBuilder builder) {
+    ReferenceMap referenceMap,
+    SourceFactoryBuilder builder,
+  ) {
     if (_factoryReference != null) {
       referenceMap.registerNamedBuilder(_factoryReference!, builder);
     }
@@ -426,6 +462,7 @@ class FactoryReferences {
   /// If a tear-off lowering is created for the factory constructor, this is
   /// distinct from [factoryReference], otherwise it is the same [Reference] as
   /// [factoryReference].
-  Reference get tearOffReference => _tearOffReference ??=
-      _hasTearOffLowering ? new Reference() : factoryReference;
+  Reference get tearOffReference => _tearOffReference ??= _hasTearOffLowering
+      ? new Reference()
+      : factoryReference;
 }

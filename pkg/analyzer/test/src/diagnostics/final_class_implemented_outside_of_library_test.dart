@@ -35,7 +35,7 @@ final class Bar implements Foo {}
 ''',
       [
         error(
-          CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
           46,
           3,
         ),
@@ -66,7 +66,7 @@ final class B implements A {
 ''',
       [
         error(
-          CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
           42,
           1,
         ),
@@ -87,7 +87,7 @@ final class Bar implements FooTypedef {}
 ''',
       [
         error(
-          CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
           46,
           10,
         ),
@@ -108,7 +108,7 @@ final class Bar implements FooTypedef {}
 ''',
       [
         error(
-          CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
           72,
           10,
         ),
@@ -135,7 +135,7 @@ enum Bar implements Foo { bar }
 ''',
       [
         error(
-          CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
           39,
           3,
         ),
@@ -156,7 +156,7 @@ enum Bar implements FooTypedef { bar }
 ''',
       [
         error(
-          CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
           39,
           10,
         ),
@@ -177,7 +177,7 @@ enum Bar implements FooTypedef { bar }
 ''',
       [
         error(
-          CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
           65,
           10,
         ),

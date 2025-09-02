@@ -241,15 +241,15 @@ class _PropertyInducingElementTypeInference
     _status = _InferenceStatus.beingInferred;
 
     var enclosingElement = _element.enclosingElement;
-    var enclosingInterfaceElement =
-        enclosingElement.ifTypeOrNull<InterfaceElementImpl>();
+    var enclosingInterfaceElement = enclosingElement
+        .ifTypeOrNull<InterfaceElementImpl>();
 
     var scope = LinkingNodeContext.get(variableDeclaration).scope;
 
     var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
     var astResolver = AstResolver(
       _linker,
-      initializerFragment.libraryFragment as LibraryFragmentImpl,
+      initializerFragment.libraryFragment,
       scope,
       analysisOptions,
       enclosingClassElement: enclosingInterfaceElement,

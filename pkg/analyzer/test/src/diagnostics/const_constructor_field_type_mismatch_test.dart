@@ -25,7 +25,7 @@ class C<T> {
 const int y = 1;
 var v = const C<int>();
 ''',
-      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 27, 1)],
+      [error(CompileTimeErrorCode.invalidAssignment, 27, 1)],
     );
   }
 
@@ -38,7 +38,7 @@ class A {
 }
 var v = const A(0);
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 40, 10)],
+      [error(CompileTimeErrorCode.undefinedClass, 40, 10)],
     );
   }
 
@@ -51,7 +51,7 @@ class A {
 }
 var v = const A(null);
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 40, 10)],
+      [error(CompileTimeErrorCode.undefinedClass, 40, 10)],
     );
   }
 }

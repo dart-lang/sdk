@@ -556,7 +556,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        dart:math as <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+        dart:math as <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:0)
       prefixes
         <testLibraryFragment>::@prefix2::0
           fragments: @null

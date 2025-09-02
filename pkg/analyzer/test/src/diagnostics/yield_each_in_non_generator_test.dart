@@ -22,7 +22,7 @@ f() async {
   yield* 0;
 }
 ''',
-      [error(CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR, 14, 9)],
+      [error(CompileTimeErrorCode.yieldEachInNonGenerator, 14, 9)],
     );
   }
 
@@ -38,7 +38,7 @@ f() {
   yield* 0;
 }
 ''',
-      [error(CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR, 0, 0)],
+      [error(CompileTimeErrorCode.yieldEachInNonGenerator, 0, 0)],
     );
   }
 }

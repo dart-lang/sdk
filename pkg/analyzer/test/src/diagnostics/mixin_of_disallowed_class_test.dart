@@ -20,7 +20,7 @@ class MixinOfDisallowedClassTest extends PubPackageResolutionTest {
       '''
 class A extends Object with bool {}
 ''',
-      [error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 28, 4)],
+      [error(CompileTimeErrorCode.mixinOfDisallowedClass, 28, 4)],
     );
   }
 
@@ -29,7 +29,7 @@ class A extends Object with bool {}
       '''
 class A extends Object with double {}
 ''',
-      [error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 28, 6)],
+      [error(CompileTimeErrorCode.mixinOfDisallowedClass, 28, 6)],
     );
   }
 
@@ -39,7 +39,7 @@ class A extends Object with double {}
 import 'dart:async';
 class A extends Object with FutureOr {}
 ''',
-      [error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 49, 8)],
+      [error(CompileTimeErrorCode.mixinOfDisallowedClass, 49, 8)],
     );
   }
 
@@ -49,7 +49,7 @@ class A extends Object with FutureOr {}
 import 'dart:async';
 class A extends Object with FutureOr<int> {}
 ''',
-      [error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 49, 13)],
+      [error(CompileTimeErrorCode.mixinOfDisallowedClass, 49, 13)],
     );
   }
 
@@ -59,7 +59,7 @@ class A extends Object with FutureOr<int> {}
 import 'dart:async';
 class A<T> extends Object with FutureOr<T> {}
 ''',
-      [error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 52, 11)],
+      [error(CompileTimeErrorCode.mixinOfDisallowedClass, 52, 11)],
     );
   }
 
@@ -68,7 +68,7 @@ class A<T> extends Object with FutureOr<T> {}
       '''
 class A extends Object with int {}
 ''',
-      [error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 28, 3)],
+      [error(CompileTimeErrorCode.mixinOfDisallowedClass, 28, 3)],
     );
   }
 
@@ -86,7 +86,7 @@ augment class A with int {}
 
     await assertErrorsInFile2(a, []);
     await assertErrorsInFile2(b, [
-      error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 39, 3),
+      error(CompileTimeErrorCode.mixinOfDisallowedClass, 39, 3),
     ]);
   }
 
@@ -95,7 +95,7 @@ augment class A with int {}
       '''
 class A extends Object with Null {}
 ''',
-      [error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 28, 4)],
+      [error(CompileTimeErrorCode.mixinOfDisallowedClass, 28, 4)],
     );
   }
 
@@ -104,7 +104,7 @@ class A extends Object with Null {}
       '''
 class A extends Object with num {}
 ''',
-      [error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 28, 3)],
+      [error(CompileTimeErrorCode.mixinOfDisallowedClass, 28, 3)],
     );
   }
 
@@ -113,7 +113,7 @@ class A extends Object with num {}
       '''
 class A extends Object with Record {}
 ''',
-      [error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 28, 6)],
+      [error(CompileTimeErrorCode.mixinOfDisallowedClass, 28, 6)],
     );
   }
 
@@ -122,7 +122,7 @@ class A extends Object with Record {}
       '''
 class A extends Object with String {}
 ''',
-      [error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 28, 6)],
+      [error(CompileTimeErrorCode.mixinOfDisallowedClass, 28, 6)],
     );
   }
 
@@ -132,7 +132,7 @@ class A extends Object with String {}
 class A {}
 class C = A with bool;
 ''',
-      [error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 28, 4)],
+      [error(CompileTimeErrorCode.mixinOfDisallowedClass, 28, 4)],
     );
   }
 
@@ -142,7 +142,7 @@ class C = A with bool;
 class A {}
 class C = A with double;
 ''',
-      [error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 28, 6)],
+      [error(CompileTimeErrorCode.mixinOfDisallowedClass, 28, 6)],
     );
   }
 
@@ -153,7 +153,7 @@ import 'dart:async';
 class A {}
 class C = A with FutureOr;
 ''',
-      [error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 49, 8)],
+      [error(CompileTimeErrorCode.mixinOfDisallowedClass, 49, 8)],
     );
   }
 
@@ -163,7 +163,7 @@ class C = A with FutureOr;
 class A {}
 class C = A with int;
 ''',
-      [error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 28, 3)],
+      [error(CompileTimeErrorCode.mixinOfDisallowedClass, 28, 3)],
     );
   }
 
@@ -173,7 +173,7 @@ class C = A with int;
 class A {}
 class C = A with Null;
 ''',
-      [error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 28, 4)],
+      [error(CompileTimeErrorCode.mixinOfDisallowedClass, 28, 4)],
     );
   }
 
@@ -183,7 +183,7 @@ class C = A with Null;
 class A {}
 class C = A with num;
 ''',
-      [error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 28, 3)],
+      [error(CompileTimeErrorCode.mixinOfDisallowedClass, 28, 3)],
     );
   }
 
@@ -193,7 +193,7 @@ class C = A with num;
 class A {}
 class C = A with String;
 ''',
-      [error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 28, 6)],
+      [error(CompileTimeErrorCode.mixinOfDisallowedClass, 28, 6)],
     );
   }
 
@@ -204,8 +204,8 @@ class A {}
 class C = A with String, num;
 ''',
       [
-        error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 28, 6),
-        error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 36, 3),
+        error(CompileTimeErrorCode.mixinOfDisallowedClass, 28, 6),
+        error(CompileTimeErrorCode.mixinOfDisallowedClass, 36, 3),
       ],
     );
   }
@@ -217,7 +217,7 @@ enum E with int {
   v
 }
 ''',
-      [error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 12, 3)],
+      [error(CompileTimeErrorCode.mixinOfDisallowedClass, 12, 3)],
     );
   }
 
@@ -235,7 +235,7 @@ augment enum A with int {}
 
     await assertErrorsInFile2(a, []);
     await assertErrorsInFile2(b, [
-      error(CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS, 38, 3),
+      error(CompileTimeErrorCode.mixinOfDisallowedClass, 38, 3),
     ]);
   }
 }

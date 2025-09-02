@@ -21,11 +21,16 @@ class ForInResult {
   final Expression? syntheticAssignment;
   final Statement? expressionSideEffects;
 
-  ForInResult(this.variable, this.iterable, this.syntheticAssignment,
-      this.expressionSideEffects);
+  ForInResult(
+    this.variable,
+    this.iterable,
+    this.syntheticAssignment,
+    this.expressionSideEffects,
+  );
 
   @override
-  String toString() => 'ForInResult($variable,$iterable,'
+  String toString() =>
+      'ForInResult($variable,$iterable,'
       '$syntheticAssignment,$expressionSideEffects)';
 }
 
@@ -55,16 +60,24 @@ class LocalForInVariable implements ForInVariable {
 
   @override
   Expression inferAssignment(InferenceVisitorBase visitor, DartType rhsType) {
-    DartType variableType =
-        visitor.computeGreatestClosure(variableSet.variable.type);
+    DartType variableType = visitor.computeGreatestClosure(
+      variableSet.variable.type,
+    );
     Expression rhs = visitor.ensureAssignable(
-        variableType, rhsType, variableSet.value,
-        errorTemplate: templateForInLoopElementTypeNotAssignable,
-        isVoidAllowed: true);
+      variableType,
+      rhsType,
+      variableSet.value,
+      errorTemplate: codeForInLoopElementTypeNotAssignable,
+      isVoidAllowed: true,
+    );
 
     variableSet.value = rhs..parent = variableSet;
     visitor.flowAnalysis.write(
-        variableSet, variableSet.variable, new SharedTypeView(rhsType), null);
+      variableSet,
+      variableSet.variable,
+      new SharedTypeView(rhsType),
+      null,
+    );
     return variableSet;
   }
 }
@@ -99,20 +112,28 @@ class PropertyForInVariable implements ForInVariable {
 
   @override
   DartType computeElementType(InferenceVisitorBase visitor) {
-    ExpressionInferenceResult receiverResult =
-        visitor.inferExpression(propertySet.receiver, const UnknownType());
+    ExpressionInferenceResult receiverResult = visitor.inferExpression(
+      propertySet.receiver,
+      const UnknownType(),
+    );
     propertySet.receiver = receiverResult.expression..parent = propertySet;
     DartType receiverType = receiverResult.inferredType;
     ObjectAccessTarget writeTarget = visitor.findInterfaceMember(
-        receiverType, propertySet.name, propertySet.fileOffset,
-        isSetter: true, instrumented: true, includeExtensionMethods: true);
+      receiverType,
+      propertySet.name,
+      propertySet.fileOffset,
+      isSetter: true,
+      instrumented: true,
+      includeExtensionMethods: true,
+    );
     DartType elementType = _writeType = writeTarget.getSetterType(visitor);
     Expression? error = visitor.reportMissingInterfaceMember(
-        writeTarget,
-        receiverType,
-        propertySet.name,
-        propertySet.fileOffset,
-        templateUndefinedSetter);
+      writeTarget,
+      receiverType,
+      propertySet.name,
+      propertySet.fileOffset,
+      codeUndefinedSetter,
+    );
     if (error != null) {
       _rhs = error;
     } else {
@@ -121,10 +142,11 @@ class PropertyForInVariable implements ForInVariable {
             receiverType == const DynamicType()) {
           // Coverage-ignore-block(suite): Not run.
           visitor.instrumentation!.record(
-              visitor.uriForInstrumentation,
-              propertySet.fileOffset,
-              'target',
-              new InstrumentationValueForMember(writeTarget.member!));
+            visitor.uriForInstrumentation,
+            propertySet.fileOffset,
+            'target',
+            new InstrumentationValueForMember(writeTarget.member!),
+          );
         }
       }
       _rhs = propertySet.value;
@@ -135,13 +157,19 @@ class PropertyForInVariable implements ForInVariable {
   @override
   Expression inferAssignment(InferenceVisitorBase visitor, DartType rhsType) {
     Expression rhs = visitor.ensureAssignable(
-        visitor.computeGreatestClosure(_writeType!), rhsType, _rhs!,
-        errorTemplate: templateForInLoopElementTypeNotAssignable,
-        isVoidAllowed: true);
+      visitor.computeGreatestClosure(_writeType!),
+      rhsType,
+      _rhs!,
+      errorTemplate: codeForInLoopElementTypeNotAssignable,
+      isVoidAllowed: true,
+    );
 
     propertySet.value = rhs..parent = propertySet;
-    ExpressionInferenceResult result = visitor
-        .inferExpression(propertySet, const UnknownType(), isVoidAllowed: true);
+    ExpressionInferenceResult result = visitor.inferExpression(
+      propertySet,
+      const UnknownType(),
+      isVoidAllowed: true,
+    );
     return result.expression;
   }
 }
@@ -158,8 +186,12 @@ class AbstractSuperPropertyForInVariable implements ForInVariable {
   DartType computeElementType(InferenceVisitorBase visitor) {
     DartType receiverType = visitor.thisType!;
     ObjectAccessTarget writeTarget = visitor.findInterfaceMember(
-        receiverType, superPropertySet.name, superPropertySet.fileOffset,
-        isSetter: true, instrumented: true);
+      receiverType,
+      superPropertySet.name,
+      superPropertySet.fileOffset,
+      isSetter: true,
+      instrumented: true,
+    );
     assert(writeTarget.isInstanceMember || writeTarget.isObjectMember);
     return _writeType = writeTarget.getSetterType(visitor);
   }
@@ -167,15 +199,18 @@ class AbstractSuperPropertyForInVariable implements ForInVariable {
   @override
   Expression inferAssignment(InferenceVisitorBase visitor, DartType rhsType) {
     Expression rhs = visitor.ensureAssignable(
-        visitor.computeGreatestClosure(_writeType!),
-        rhsType,
-        superPropertySet.value,
-        errorTemplate: templateForInLoopElementTypeNotAssignable,
-        isVoidAllowed: true);
+      visitor.computeGreatestClosure(_writeType!),
+      rhsType,
+      superPropertySet.value,
+      errorTemplate: codeForInLoopElementTypeNotAssignable,
+      isVoidAllowed: true,
+    );
     superPropertySet.value = rhs..parent = superPropertySet;
     ExpressionInferenceResult result = visitor.inferExpression(
-        superPropertySet, const UnknownType(),
-        isVoidAllowed: true);
+      superPropertySet,
+      const UnknownType(),
+      isVoidAllowed: true,
+    );
     return result.expression;
   }
 }
@@ -191,26 +226,35 @@ class SuperPropertyForInVariable implements ForInVariable {
   DartType computeElementType(InferenceVisitorBase visitor) {
     DartType receiverType = visitor.thisType!;
     ObjectAccessTarget writeTarget = visitor.findInterfaceMember(
-        receiverType, superPropertySet.name, superPropertySet.fileOffset,
-        isSetter: true, instrumented: true);
-    assert(writeTarget.isInstanceMember ||
-        // Coverage-ignore(suite): Not run.
-        writeTarget.isObjectMember);
+      receiverType,
+      superPropertySet.name,
+      superPropertySet.fileOffset,
+      isSetter: true,
+      instrumented: true,
+    );
+    assert(
+      writeTarget.isInstanceMember ||
+          // Coverage-ignore(suite): Not run.
+          writeTarget.isObjectMember,
+    );
     return _writeType = writeTarget.getSetterType(visitor);
   }
 
   @override
   Expression inferAssignment(InferenceVisitorBase visitor, DartType rhsType) {
     Expression rhs = visitor.ensureAssignable(
-        visitor.computeGreatestClosure(_writeType!),
-        rhsType,
-        superPropertySet.value,
-        errorTemplate: templateForInLoopElementTypeNotAssignable,
-        isVoidAllowed: true);
+      visitor.computeGreatestClosure(_writeType!),
+      rhsType,
+      superPropertySet.value,
+      errorTemplate: codeForInLoopElementTypeNotAssignable,
+      isVoidAllowed: true,
+    );
     superPropertySet.value = rhs..parent = superPropertySet;
     ExpressionInferenceResult result = visitor.inferExpression(
-        superPropertySet, const UnknownType(),
-        isVoidAllowed: true);
+      superPropertySet,
+      const UnknownType(),
+      isVoidAllowed: true,
+    );
     return result.expression;
   }
 }
@@ -226,16 +270,23 @@ class StaticForInVariable implements ForInVariable {
 
   @override
   Expression inferAssignment(InferenceVisitorBase visitor, DartType rhsType) {
-    DartType setterType =
-        visitor.computeGreatestClosure(staticSet.target.setterType);
+    DartType setterType = visitor.computeGreatestClosure(
+      staticSet.target.setterType,
+    );
     Expression rhs = visitor.ensureAssignable(
-        setterType, rhsType, staticSet.value,
-        errorTemplate: templateForInLoopElementTypeNotAssignable,
-        isVoidAllowed: true);
+      setterType,
+      rhsType,
+      staticSet.value,
+      errorTemplate: codeForInLoopElementTypeNotAssignable,
+      isVoidAllowed: true,
+    );
 
     staticSet.value = rhs..parent = staticSet;
-    ExpressionInferenceResult result = visitor
-        .inferExpression(staticSet, const UnknownType(), isVoidAllowed: true);
+    ExpressionInferenceResult result = visitor.inferExpression(
+      staticSet,
+      const UnknownType(),
+      isVoidAllowed: true,
+    );
     return result.expression;
   }
 }
@@ -248,24 +299,38 @@ class ExtensionSetForInVariable implements ForInVariable {
 
   @override
   DartType computeElementType(InferenceVisitorBase visitor) {
-    ExpressionInferenceResult receiverResult = visitor.inferExpression(
-        extensionSet.receiver, const UnknownType(),
-        isVoidAllowed: false);
+    DartType receiverContextType = visitor
+        .computeExplicitExtensionReceiverContextType(
+          extensionSet.extension,
+          extensionSet.knownTypeArguments,
+        );
 
-    List<DartType> extensionTypeArguments =
-        visitor.computeExtensionTypeArgument(extensionSet.extension,
-            extensionSet.explicitTypeArguments, receiverResult.inferredType,
-            treeNodeForTesting: extensionSet);
+    ExpressionInferenceResult receiverResult = visitor.inferExpression(
+      extensionSet.receiver,
+      receiverContextType,
+      isVoidAllowed: false,
+    );
+
+    List<DartType> extensionTypeArguments = visitor
+        .computeExtensionTypeArgument(
+          extensionSet.extension,
+          extensionSet.knownTypeArguments,
+          receiverResult.inferredType,
+          treeNodeForTesting: extensionSet,
+        );
 
     DartType receiverType = visitor.getExtensionReceiverType(
-        extensionSet.extension, extensionTypeArguments);
+      extensionSet.extension,
+      extensionTypeArguments,
+    );
 
     ObjectAccessTarget target = new ExtensionAccessTarget(
-        receiverType,
-        extensionSet.target,
-        null,
-        ClassMemberKind.Setter,
-        extensionTypeArguments);
+      receiverType,
+      extensionSet.setter,
+      null,
+      ClassMemberKind.Setter,
+      extensionTypeArguments,
+    );
 
     setterType = target.getSetterType(visitor);
     return setterType!;
@@ -275,14 +340,19 @@ class ExtensionSetForInVariable implements ForInVariable {
   Expression inferAssignment(InferenceVisitorBase visitor, DartType rhsType) {
     assert(setterType != null);
     Expression rhs = visitor.ensureAssignable(
-        setterType!, rhsType, extensionSet.value,
-        errorTemplate: templateForInLoopElementTypeNotAssignable,
-        isVoidAllowed: true);
+      setterType!,
+      rhsType,
+      extensionSet.value,
+      errorTemplate: codeForInLoopElementTypeNotAssignable,
+      isVoidAllowed: true,
+    );
 
     extensionSet.value = rhs..parent = extensionSet;
     ExpressionInferenceResult result = visitor.inferExpression(
-        extensionSet, const UnknownType(),
-        isVoidAllowed: true);
+      extensionSet,
+      const UnknownType(),
+      isVoidAllowed: true,
+    );
     return result.expression;
   }
 }

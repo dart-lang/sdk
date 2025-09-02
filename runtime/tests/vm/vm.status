@@ -138,7 +138,6 @@ cc/VerifyImplicit_Crash: Crash # Negative tests of VerifiedMemory should crash i
 dart/appjit_cha_deopt_test: Pass, Slow # Quite slow in debug mode, uses --optimization-counter-threshold=100
 dart/b162922506_test: SkipSlow # Generates very large input file
 dart/hash_map_probes_limit_test: SkipSlow # Test includes large program compilation.
-dart/many_functions_test: SkipSlow # Too slow in debug mode.
 dart/minimal_kernel_test: SkipSlow # gen_kernel is too slow in debug mode
 dart/regress47472_test: Pass, Slow # Slow due to throwing 1 million exceptions.
 dart/spawn_shutdown_test: Pass, Slow # VM Shutdown test, It can take some time for all the isolates to shutdown in a Debug build.
@@ -382,6 +381,9 @@ dart/emit_aot_size_info_flag_test: SkipByDesign # This test is for VM AOT only a
 dart/split_aot_kernel_generation2_test: SkipByDesign # This test is for VM AOT only and is quite slow (so we don't run it in debug mode).
 dart/split_aot_kernel_generation_test: SkipByDesign # This test is for VM AOT only and is quite slow (so we don't run it in debug mode).
 
+[ $mode == debug || $sanitizer != none || $system == android || $system == fuchsia || $hot_reload || $qemu || $simulator ]
+dart/generated/*: SkipSlow
+
 # It makes no sense to run any test that uses spawnURI under the simulator
 # as that would involve running CFE (the front end) in simulator mode
 # to compile the URI file specified in spawnURI code.
@@ -391,6 +393,9 @@ dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
 dart/finalizer/finalizer_isolate_groups_run_gc_test: SkipByDesign # uses spawnUri.
 dart/isolates/send_object_to_spawn_uri_isolate_test: SkipByDesign # uses spawnUri
 dart/issue32950_test: SkipByDesign # uses spawnUri.
+
+[ $runtime != dart_precompiled || $sanitizer != tsan ]
+dart/tsan/*: SkipByDesign
 
 [ $runtime != dart_precompiled || $sanitizer != msan && $sanitizer != tsan ]
 dart/sanitizer_compatibility_test: SkipByDesign

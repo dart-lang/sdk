@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart.developer;
+part of "dart:developer";
 
 /// Service protocol is the protocol that a client like the Observatory
 /// could use to access the services provided by the Dart VM for
@@ -88,8 +88,6 @@ final class Service {
     bool enable = false,
     bool? silenceOutput,
   }) async {
-    // TODO: When NNBD is complete, delete the following line.
-    ArgumentError.checkNotNull(enable, 'enable');
     // Port to receive response from service isolate.
     final RawReceivePort receivePort = new RawReceivePort(
       null,
@@ -116,8 +114,6 @@ final class Service {
   /// the [isolate] parameter.
   @Since('3.2')
   static String? getIsolateId(Isolate isolate) {
-    // TODO: When NNBD is complete, delete the following line.
-    ArgumentError.checkNotNull(isolate, 'isolate');
     return _getIsolateIdFromSendPort(isolate.controlPort);
   }
 
@@ -127,8 +123,6 @@ final class Service {
   /// protocol.
   @Deprecated("Use getIsolateId instead")
   static String? getIsolateID(Isolate isolate) {
-    // TODO: When NNBD is complete, delete the following line.
-    ArgumentError.checkNotNull(isolate, 'isolate');
     return _getIsolateIdFromSendPort(isolate.controlPort);
   }
 

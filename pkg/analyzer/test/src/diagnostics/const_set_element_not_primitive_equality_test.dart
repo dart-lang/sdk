@@ -27,13 +27,7 @@ main() {
   const {A.a};
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY,
-          104,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constSetElementNotPrimitiveEquality, 104, 3)],
     );
   }
 
@@ -48,13 +42,7 @@ main() {
   const {const A()};
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY,
-          74,
-          9,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constSetElementNotPrimitiveEquality, 74, 9)],
     );
   }
 
@@ -75,13 +63,7 @@ main() {
   const {B.a};
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY,
-          116,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constSetElementNotPrimitiveEquality, 116, 3)],
     );
   }
 
@@ -101,13 +83,7 @@ main() {
   print(m);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY,
-          128,
-          9,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constSetElementNotPrimitiveEquality, 128, 9)],
     );
   }
 
@@ -128,13 +104,7 @@ main() {
   const B({A()});
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY,
-          110,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constSetElementNotPrimitiveEquality, 110, 3)],
     );
   }
 
@@ -150,13 +120,7 @@ const x = {
   (a: 0, b: const A()),
 };
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY,
-          71,
-          20,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constSetElementNotPrimitiveEquality, 71, 20)],
     );
   }
 
@@ -172,13 +136,7 @@ const x = {
   (0, const A()),
 };
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY,
-          71,
-          14,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constSetElementNotPrimitiveEquality, 71, 14)],
     );
   }
 
@@ -194,13 +152,7 @@ main() {
   const [...{A()}];
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY,
-          79,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constSetElementNotPrimitiveEquality, 79, 3)],
     );
   }
 
@@ -216,13 +168,7 @@ main() {
   const {...[A()]};
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY,
-          75,
-          8,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constSetElementNotPrimitiveEquality, 75, 8)],
     );
   }
 
@@ -238,13 +184,7 @@ main() {
   const {...{A()}};
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY,
-          79,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constSetElementNotPrimitiveEquality, 79, 3)],
     );
   }
 
@@ -262,13 +202,7 @@ main() {
   const {const B()};
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY,
-          109,
-          9,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constSetElementNotPrimitiveEquality, 109, 9)],
     );
   }
 
@@ -282,13 +216,7 @@ class A {
   int get hashCode => 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY,
-          11,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constSetElementNotPrimitiveEquality, 11, 3)],
     );
   }
 

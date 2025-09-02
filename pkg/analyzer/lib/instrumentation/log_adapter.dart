@@ -70,8 +70,9 @@ class InstrumentationLogAdapter implements InstrumentationService {
     Object exception,
     StackTrace stackTrace,
   ) {
-    String timeStamp =
-        time == null ? 'null' : time.millisecondsSinceEpoch.toString();
+    String timeStamp = time == null
+        ? 'null'
+        : time.millisecondsSinceEpoch.toString();
     String exceptionText = exception.toString();
     String stackTraceText = stackTrace.toString();
     _instrumentationLogger.log(

@@ -214,8 +214,8 @@ void f() {
 ''',
       [
         // No lint.
-        error(CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT, 30, 5),
-        error(CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT, 57, 5),
+        error(CompileTimeErrorCode.recursiveFactoryRedirect, 30, 5),
+        error(CompileTimeErrorCode.recursiveFactoryRedirect, 57, 5),
       ],
     );
   }

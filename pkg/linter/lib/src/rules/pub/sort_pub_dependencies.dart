@@ -15,7 +15,7 @@ class SortPubDependencies extends LintRule {
     : super(name: LintNames.sort_pub_dependencies, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.sort_pub_dependencies;
+  DiagnosticCode get diagnosticCode => LinterLintCode.sortPubDependencies;
 
   @override
   PubspecVisitor<void> get pubspecVisitor => Visitor(this);
@@ -49,9 +49,8 @@ class Visitor extends PubspecVisitor<void> {
       return lc1.compareTo(lc2);
     }
 
-    var depsByLocation =
-        dependencies.toList()
-          ..sort((d1, d2) => compare(d1.name?.span.start, d2.name?.span.start));
+    var depsByLocation = dependencies.toList()
+      ..sort((d1, d2) => compare(d1.name?.span.start, d2.name?.span.start));
     var previousName = '';
     for (var dep in depsByLocation) {
       var name = dep.name;

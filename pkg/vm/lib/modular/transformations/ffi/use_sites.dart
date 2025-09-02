@@ -6,19 +6,19 @@
 // avoid cyclic dependency between `package:vm/modular` and `package:front_end`.
 import 'package:front_end/src/codes/cfe_codes.dart'
     show
-        messageFfiAddressOfMustBeNative,
-        messageFfiAddressPosition,
-        messageFfiAddressReceiver,
-        messageFfiCreateOfStructOrUnion,
-        messageFfiExceptionalReturnNull,
-        messageFfiExpectedConstant,
-        templateFfiDartTypeMismatch,
-        templateFfiNativeCallableListenerReturnVoid,
-        templateFfiExpectedConstantArg,
-        templateFfiExpectedExceptionalReturn,
-        templateFfiExpectedNoExceptionalReturn,
-        templateFfiExtendsOrImplementsSealedClass,
-        templateFfiNotStatic;
+        codeFfiAddressOfMustBeNative,
+        codeFfiAddressPosition,
+        codeFfiAddressReceiver,
+        codeFfiCreateOfStructOrUnion,
+        codeFfiExceptionalReturnNull,
+        codeFfiExpectedConstant,
+        codeFfiDartTypeMismatch,
+        codeFfiNativeCallableListenerReturnVoid,
+        codeFfiExpectedConstantArg,
+        codeFfiExpectedExceptionalReturn,
+        codeFfiExpectedNoExceptionalReturn,
+        codeFfiExtendsOrImplementsSealedClass,
+        codeFfiNotStatic;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/clone.dart';
@@ -158,7 +158,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         target.name != Name("#fromTypedDataBase") &&
         target.name != Name("#fromTypedData")) {
       diagnosticReporter.report(
-        messageFfiCreateOfStructOrUnion,
+        codeFfiCreateOfStructOrUnion,
         node.fileOffset,
         1,
         node.location?.file,
@@ -599,7 +599,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         // Check return type.
         if (ffiFuncType.returnType != VoidType()) {
           diagnosticReporter.report(
-            templateFfiNativeCallableListenerReturnVoid.withArguments(
+            codeFfiNativeCallableListenerReturnVoid.withArguments(
               ffiFuncType.returnType,
             ),
             func.fileOffset,
@@ -664,7 +664,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         // remaining invocations occur are places where `<expr>.address` is
         // disallowed, so issue an error.
         diagnosticReporter.report(
-          messageFfiAddressPosition,
+          codeFfiAddressPosition,
           node.fileOffset,
           1,
           node.location?.file,
@@ -1138,7 +1138,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final isStaticFunction = _isStaticFunction(func);
     if (fromFunction && !isStaticFunction) {
       diagnosticReporter.report(
-        templateFfiNotStatic.withArguments(fromFunctionMethod.name.text),
+        codeFfiNotStatic.withArguments(fromFunctionMethod.name.text),
         func.fileOffset,
         1,
         func.location?.file,
@@ -1185,7 +1185,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         expectedReturnClass.superclass == unionClass) {
       if (hasExceptionalReturn) {
         diagnosticReporter.report(
-          templateFfiExpectedNoExceptionalReturn.withArguments(
+          codeFfiExpectedNoExceptionalReturn.withArguments(
             ffiFuncType.returnType,
           ),
           node.fileOffset,
@@ -1198,7 +1198,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       // The exceptional return value is not optional for other return types.
       if (!hasExceptionalReturn) {
         diagnosticReporter.report(
-          templateFfiExpectedExceptionalReturn.withArguments(
+          codeFfiExpectedExceptionalReturn.withArguments(
             ffiFuncType.returnType,
           ),
           node.fileOffset,
@@ -1214,7 +1214,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           !(exceptionalReturn is ConstantExpression &&
               exceptionalReturn.constant is PrimitiveConstant)) {
         diagnosticReporter.report(
-          messageFfiExpectedConstant,
+          codeFfiExpectedConstant,
           node.fileOffset,
           1,
           node.location?.file,
@@ -1227,7 +1227,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           (exceptionalReturn is ConstantExpression &&
               exceptionalReturn.constant is NullConstant)) {
         diagnosticReporter.report(
-          messageFfiExceptionalReturnNull,
+          codeFfiExceptionalReturnNull,
           node.fileOffset,
           1,
           node.location?.file,
@@ -1241,7 +1241,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
       if (!env.isSubtypeOf(returnType, funcType.returnType)) {
         diagnosticReporter.report(
-          templateFfiDartTypeMismatch.withArguments(
+          codeFfiDartTypeMismatch.withArguments(
             returnType,
             funcType.returnType,
           ),
@@ -1839,7 +1839,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final Class? extended = _extendsOrImplementsSealedClass(klass);
     if (extended != null) {
       diagnosticReporter.report(
-        templateFfiExtendsOrImplementsSealedClass.withArguments(extended.name),
+        codeFfiExtendsOrImplementsSealedClass.withArguments(extended.name),
         klass.fileOffset,
         1,
         klass.location?.file,
@@ -1852,7 +1852,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final isLeaf = getIsLeafBoolean(node);
     if (isLeaf == null) {
       diagnosticReporter.report(
-        templateFfiExpectedConstantArg.withArguments('isLeaf'),
+        codeFfiExpectedConstantArg.withArguments('isLeaf'),
         node.fileOffset,
         1,
         node.location?.file,
@@ -1896,7 +1896,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
     if (nativeAnnotation == null) {
       diagnosticReporter.report(
-        messageFfiAddressOfMustBeNative,
+        codeFfiAddressOfMustBeNative,
         arg.fileOffset,
         1,
         node.location?.file,
@@ -1991,7 +1991,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       return node;
     }
 
-    final newName = '${target.name.text}#$methodPostfix';
+    final newName = '#${target.name.text}#$methodPostfix';
     final Procedure newTarget;
     final parent = target.parent;
     final members = switch (parent) {
@@ -2212,7 +2212,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     }
 
     diagnosticReporter.report(
-      messageFfiAddressReceiver,
+      codeFfiAddressReceiver,
       argument.fileOffset,
       1,
       argument.location?.file,

@@ -82,13 +82,7 @@ class B extends A {
   B() : assert(f != 0);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
-          66,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.implicitThisReferenceInInitializer, 66, 1)],
     );
   }
 
@@ -100,13 +94,7 @@ class A {
   int get f => 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
-          25,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.implicitThisReferenceInInitializer, 25, 1)],
     );
   }
 
@@ -119,13 +107,7 @@ class A {
   var f;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
-          31,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.implicitThisReferenceInInitializer, 31, 1)],
     );
   }
 
@@ -149,13 +131,7 @@ class A {
   final y = x;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
-          37,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.implicitThisReferenceInInitializer, 37, 1)],
     );
   }
 
@@ -167,13 +143,7 @@ class A {
   final y = x<int>;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
-          39,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.implicitThisReferenceInInitializer, 39, 1)],
     );
   }
 
@@ -193,13 +163,7 @@ class A {
   void _foo() {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
-          87,
-          4,
-        ),
-      ],
+      [error(CompileTimeErrorCode.implicitThisReferenceInInitializer, 87, 4)],
     );
   }
 
@@ -212,13 +176,7 @@ class A {
   f() {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
-          31,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.implicitThisReferenceInInitializer, 31, 1)],
     );
   }
 
@@ -230,13 +188,7 @@ class A {
   int m() => 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
-          27,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.implicitThisReferenceInInitializer, 27, 1)],
     );
   }
 
@@ -294,13 +246,7 @@ class A {
   var f;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
-          39,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.implicitThisReferenceInInitializer, 39, 1)],
     );
   }
 
@@ -345,13 +291,7 @@ class B extends A {
   var f;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
-          56,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.implicitThisReferenceInInitializer, 56, 1)],
     );
   }
 

@@ -24,7 +24,7 @@ class A {
 class B {
   factory B() = A;
 }''',
-      [error(CompileTimeErrorCode.REDIRECT_TO_INVALID_RETURN_TYPE, 47, 1)],
+      [error(CompileTimeErrorCode.redirectToInvalidReturnType, 47, 1)],
     );
   }
 }

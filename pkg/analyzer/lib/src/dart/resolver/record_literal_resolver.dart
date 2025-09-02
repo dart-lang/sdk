@@ -113,7 +113,7 @@ class RecordLiteralResolver {
         if (name.startsWith('_')) {
           _diagnosticReporter.atNode(
             nameNode,
-            CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE,
+            CompileTimeErrorCode.invalidFieldNamePrivate,
           );
         } else {
           var index = RecordTypeExtension.positionalFieldIndex(name);
@@ -121,13 +121,13 @@ class RecordLiteralResolver {
             if (index < positionalCount) {
               _diagnosticReporter.atNode(
                 nameNode,
-                CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL,
+                CompileTimeErrorCode.invalidFieldNamePositional,
               );
             }
           } else if (isForbiddenNameForRecordField(name)) {
             _diagnosticReporter.atNode(
               nameNode,
-              CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT,
+              CompileTimeErrorCode.invalidFieldNameFromObject,
             );
           }
         }
@@ -136,18 +136,16 @@ class RecordLiteralResolver {
   }
 
   DartType _resolveField(ExpressionImpl field, TypeImpl contextType) {
-    var staticType =
-        _resolver
-            .analyzeExpression(field, SharedTypeSchemaView(contextType))
-            .unwrapTypeView<TypeImpl>();
+    var staticType = _resolver
+        .analyzeExpression(field, SharedTypeSchemaView(contextType))
+        .unwrapTypeView<TypeImpl>();
     field = _resolver.popRewrite()!;
 
     // Implicit cast from `dynamic`.
     if (contextType is! UnknownInferredType && staticType is DynamicType) {
-      var greatestClosureOfSchema =
-          _resolver.operations
-              .greatestClosureOfSchema(SharedTypeSchemaView(contextType))
-              .unwrapTypeView<TypeImpl>();
+      var greatestClosureOfSchema = _resolver.operations
+          .greatestClosureOfSchema(SharedTypeSchemaView(contextType))
+          .unwrapTypeView<TypeImpl>();
       if (!_resolver.typeSystem.isSubtypeOf(
         staticType,
         greatestClosureOfSchema,
@@ -157,10 +155,7 @@ class RecordLiteralResolver {
     }
 
     if (staticType is VoidType) {
-      _diagnosticReporter.atNode(
-        field,
-        CompileTimeErrorCode.USE_OF_VOID_RESULT,
-      );
+      _diagnosticReporter.atNode(field, CompileTimeErrorCode.useOfVoidResult);
     }
 
     return staticType;

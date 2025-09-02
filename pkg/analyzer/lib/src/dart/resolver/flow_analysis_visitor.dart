@@ -21,6 +21,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart' show TypeSystemImpl;
@@ -182,17 +183,18 @@ class FlowAnalysisHelper {
                 PromotableElementImpl
               >;
     }
-    flow = FlowAnalysis<
-      AstNodeImpl,
-      StatementImpl,
-      ExpressionImpl,
-      PromotableElementImpl,
-      SharedTypeView
-    >(
-      typeOperations,
-      assignedVariables!,
-      typeAnalyzerOptions: typeAnalyzerOptions,
-    );
+    flow =
+        FlowAnalysis<
+          AstNodeImpl,
+          StatementImpl,
+          ExpressionImpl,
+          PromotableElementImpl,
+          SharedTypeView
+        >(
+          typeOperations,
+          assignedVariables!,
+          typeAnalyzerOptions: typeAnalyzerOptions,
+        );
   }
 
   /// This method is called whenever the [ResolverVisitor] leaves the body or
@@ -346,7 +348,9 @@ class FlowAnalysisHelper {
       var variables = node.variables;
       for (var i = 0; i < variables.length; ++i) {
         var variable = variables[i];
-        var declaredElement = variable.declaredElement!;
+        var declaredFragment =
+            variable.declaredFragment as LocalVariableFragmentImpl;
+        var declaredElement = declaredFragment.element;
         flow!.declare(
           declaredElement,
           SharedTypeView(declaredElement.type),
@@ -366,8 +370,8 @@ class FlowAnalysisHelper {
   }) {
     AssignedVariables<AstNodeImpl, PromotableElementImpl> assignedVariables =
         retainDataForTesting
-            ? AssignedVariablesForTesting()
-            : AssignedVariables();
+        ? AssignedVariablesForTesting()
+        : AssignedVariables();
     var assignedVariablesVisitor = _AssignedVariablesVisitor(assignedVariables);
     assignedVariablesVisitor._declareParameters(parameters);
     if (visit != null) {
@@ -445,13 +449,15 @@ class TypeSystemOperations
         TypeAnalyzerOperationsMixin<
           PromotableElementImpl,
           InterfaceTypeImpl,
-          InterfaceElementImpl
+          InterfaceElementImpl,
+          AstNodeImpl
         >
     implements
         TypeAnalyzerOperations<
           PromotableElementImpl,
           InterfaceTypeImpl,
-          InterfaceElementImpl
+          InterfaceElementImpl,
+          AstNodeImpl
         > {
   final bool strictCasts;
   final TypeSystemImpl typeSystem;
@@ -632,6 +638,11 @@ class TypeSystemOperations
   @override
   bool isBottomType(SharedTypeView type) {
     return type.unwrapTypeView<TypeImpl>().isBottom;
+  }
+
+  @override
+  bool isBoundOmitted(SharedTypeParameter typeParameter) {
+    return typeParameter.boundShared == null;
   }
 
   @override
@@ -886,15 +897,13 @@ class TypeSystemOperations
     required List<(String, SharedType)> named,
   }) {
     return RecordTypeImpl(
-      positionalFields:
-          positional.map((type) {
-            return RecordTypePositionalFieldImpl(type: type as DartType);
-          }).toList(),
-      namedFields:
-          named.map((namedType) {
-            var (name, type) = namedType;
-            return RecordTypeNamedFieldImpl(name: name, type: type as DartType);
-          }).toList(),
+      positionalFields: positional.map((type) {
+        return RecordTypePositionalFieldImpl(type: type as DartType);
+      }).toList(),
+      namedFields: named.map((namedType) {
+        var (name, type) = namedType;
+        return RecordTypeNamedFieldImpl(name: name, type: type as DartType);
+      }).toList(),
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
@@ -908,6 +917,18 @@ class TypeSystemOperations
         elementTypeSchema.unwrapTypeSchemaView<TypeImpl>(),
       ),
     );
+  }
+
+  @override
+  TypeImpl substituteTypeFromIterables(
+    covariant TypeImpl typeToSubstitute,
+    List<SharedTypeParameter> typeParameters,
+    List<SharedType> types,
+  ) {
+    return Substitution.fromPairs2(
+      typeParameters.cast(),
+      types.cast(),
+    ).substituteType(typeToSubstitute);
   }
 
   @override
@@ -1003,7 +1024,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
       node.stackTraceParameter,
     ]) {
       if (identifier != null) {
-        assignedVariables.declare(identifier.declaredElement!);
+        assignedVariables.declare(identifier.declaredFragment!.element);
       }
     }
     super.visitCatchClause(node);
@@ -1194,7 +1215,8 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
         grandParent is FieldDeclaration) {
       throw StateError('Should not visit top level declarations');
     }
-    var declaredElement = node.declaredElement as PromotableElementImpl;
+    var declaredElement =
+        node.declaredFragment?.element as PromotableElementImpl;
     assignedVariables.declare(declaredElement);
     if (declaredElement.isLate && node.initializer != null) {
       assignedVariables.beginNode();
@@ -1247,7 +1269,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
           assignedVariables.write(element);
         }
       } else if (forLoopParts is ForEachPartsWithDeclarationImpl) {
-        var variable = forLoopParts.loopVariable.declaredElement!;
+        var variable = forLoopParts.loopVariable.declaredFragment!.element;
         assignedVariables.declare(variable);
       } else if (forLoopParts is ForEachPartsWithPatternImpl) {
         for (var variable in forLoopParts.variables) {
@@ -1297,10 +1319,9 @@ class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
   TypeImpl getType(SimpleIdentifierImpl node, {required bool isRead}) {
     var variable = node.element as InternalVariableElement;
     if (variable is PromotableElementImpl) {
-      var promotedType =
-          isRead
-              ? _manager.flow?.variableRead(node, variable)
-              : _manager.flow?.promotedType(variable);
+      var promotedType = isRead
+          ? _manager.flow?.variableRead(node, variable)
+          : _manager.flow?.promotedType(variable);
       if (promotedType != null) {
         return promotedType.unwrapTypeView<TypeImpl>();
       }

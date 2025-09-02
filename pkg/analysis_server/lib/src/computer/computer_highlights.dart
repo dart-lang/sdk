@@ -787,7 +787,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
         exceptionParameter.name,
         HighlightRegionType.LOCAL_VARIABLE_DECLARATION,
         additionalSemanticTokenModifiers: _additionalModifiersForElement(
-          exceptionParameter.declaredElement,
+          exceptionParameter.declaredFragment?.element,
         ),
       );
     }
@@ -797,7 +797,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
         stackTraceParameter.name,
         HighlightRegionType.LOCAL_VARIABLE_DECLARATION,
         additionalSemanticTokenModifiers: _additionalModifiersForElement(
-          stackTraceParameter.declaredElement,
+          stackTraceParameter.declaredFragment?.element,
         ),
       );
     }
@@ -922,7 +922,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
       node.name,
       HighlightRegionType.LOCAL_VARIABLE_DECLARATION,
       additionalSemanticTokenModifiers: _additionalModifiersForElement(
-        node.declaredElement,
+        node.declaredFragment?.element,
       ),
     );
 
@@ -1831,7 +1831,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    var element = node.declaredFragment?.element ?? node.declaredElement;
+    var element = node.declaredFragment?.element;
     if (element is FieldElement) {
       computer._addRegion_token(
         node.name,

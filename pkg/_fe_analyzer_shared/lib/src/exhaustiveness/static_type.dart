@@ -496,18 +496,15 @@ class WrappedStaticType extends _BaseStaticType {
   @override
   late final StaticType nonNullable =
       wrappedType.nonNullable == wrappedType &&
-              impliedType.nonNullable == impliedType
-          ? this
-          : new WrappedStaticType(
-            wrappedType.nonNullable,
-            impliedType.nonNullable,
-          );
+          impliedType.nonNullable == impliedType
+      ? this
+      : new WrappedStaticType(wrappedType.nonNullable, impliedType.nonNullable);
 
   @override
   late final StaticType nullable =
       wrappedType.nullable == wrappedType && impliedType.nullable == impliedType
-          ? this
-          : new WrappedStaticType(wrappedType.nullable, impliedType.nullable);
+      ? this
+      : new WrappedStaticType(wrappedType.nullable, impliedType.nullable);
 
   @override
   void typeToDart(DartTemplateBuffer buffer) {

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -117,7 +116,7 @@ analyzer:
       source: TestSource(),
       offset: 0,
       length: 1,
-      diagnosticCode: WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR,
+      diagnosticCode: WarningCode.returnTypeInvalidForCatchError,
       arguments: [
         ['x'],
         ['y'],
@@ -142,7 +141,7 @@ analyzer:
       source: TestSource(),
       offset: 0,
       length: 1,
-      diagnosticCode: WarningCode.UNUSED_LOCAL_VARIABLE,
+      diagnosticCode: WarningCode.unusedLocalVariable,
       arguments: [
         ['x'],
       ],
@@ -167,7 +166,7 @@ analyzer:
       source: TestSource(),
       offset: 0,
       length: 1,
-      diagnosticCode: CompileTimeErrorCode.INVALID_ASSIGNMENT,
+      diagnosticCode: CompileTimeErrorCode.invalidAssignment,
       arguments: [
         ['x'],
         ['y'],
@@ -193,7 +192,7 @@ analyzer:
       source: TestSource(),
       offset: 0,
       length: 1,
-      diagnosticCode: WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR,
+      diagnosticCode: WarningCode.returnTypeInvalidForCatchError,
       arguments: [
         ['x'],
         ['y'],

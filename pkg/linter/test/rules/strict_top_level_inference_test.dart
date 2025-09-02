@@ -582,7 +582,7 @@ abstract class C implements I, J {
 ''',
       [
         // In the presense of this error, we do not report.
-        error(CompileTimeErrorCode.NO_COMBINED_SUPER_SIGNATURE, 104, 1),
+        error(CompileTimeErrorCode.noCombinedSuperSignature, 104, 1),
       ],
     );
   }

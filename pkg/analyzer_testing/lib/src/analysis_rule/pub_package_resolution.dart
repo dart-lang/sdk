@@ -13,12 +13,12 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart'; // ignore: implemen
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/dart/analysis/experiments.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/error/codes.dart'; // ignore: implementation_imports
-import 'package:analyzer/src/lint/util.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/test_utilities/mock_sdk.dart'; // ignore: implementation_imports
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:analyzer_testing/mock_packages/mock_packages.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
+import 'package:analyzer_testing/src/spelunker.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
@@ -153,9 +153,9 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
 
   /// Error codes that by default should be ignored in test expectations.
   List<DiagnosticCode> get ignoredDiagnosticCodes => [
-    WarningCode.UNUSED_ELEMENT,
-    WarningCode.UNUSED_FIELD,
-    WarningCode.UNUSED_LOCAL_VARIABLE,
+    WarningCode.unusedElement,
+    WarningCode.unusedField,
+    WarningCode.unusedLocalVariable,
   ];
 
   /// The path to the root of the external packages.
@@ -182,12 +182,9 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   List<String> get _collectionIncludedPaths => [workspaceRootPath];
 
   /// The diagnostics that were computed during analysis.
-  List<Diagnostic> get _diagnostics =>
-      result.diagnostics
-          .where(
-            (e) => !ignoredDiagnosticCodes.any((c) => e.diagnosticCode == c),
-          )
-          .toList();
+  List<Diagnostic> get _diagnostics => result.diagnostics
+      .where((e) => !ignoredDiagnosticCodes.any((c) => e.diagnosticCode == c))
+      .toList();
 
   Folder get _sdkRoot => newFolder('/sdk');
 
@@ -212,9 +209,7 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
     List<Diagnostic> diagnostics,
     List<ExpectedDiagnostic> expectedDiagnostics,
   ) {
-    //
     // Match actual diagnostics to expected diagnostics.
-    //
     var unmatchedActual = diagnostics.toList();
     var unmatchedExpected = expectedDiagnostics.toList();
     var actualIndex = 0;
@@ -236,99 +231,33 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
         actualIndex++;
       }
     }
-    //
-    // Write the results.
-    //
+
+    // Print the results to the terminal.
     var buffer = StringBuffer();
     if (unmatchedExpected.isNotEmpty) {
-      buffer.writeln('Expected but did not find:');
-      for (var expected in unmatchedExpected) {
-        buffer.write('  ');
-        if (expected is ExpectedError) {
-          buffer.write(expected._code);
-        }
-        if (expected is ExpectedLint) {
-          buffer.write(expected._lintName);
-        }
-        buffer.write(' [');
-        buffer.write(expected._offset);
-        buffer.write(', ');
-        buffer.write(expected._length);
-        if (expected._messageContains != null) {
-          buffer.write(', messageContains: ');
-          buffer.write(json.encode(expected._messageContains.toString()));
-        }
-        if (expected._correctionContains != null) {
-          buffer.write(', correctionContains: ');
-          buffer.write(json.encode(expected._correctionContains.toString()));
-        }
-        buffer.writeln(']');
-      }
+      buffer.write(missingExpectedMessage(unmatchedExpected));
     }
     if (unmatchedActual.isNotEmpty) {
-      if (buffer.isNotEmpty) {
-        buffer.writeln();
-      }
-      buffer.writeln('Found but did not expect:');
-      for (var actual in unmatchedActual) {
-        buffer.write('  ');
-        buffer.write(actual.diagnosticCode);
-        buffer.write(' [');
-        buffer.write(actual.offset);
-        buffer.write(', ');
-        buffer.write(actual.length);
-        buffer.write(', ');
-        buffer.write(actual.message);
-        if (actual.correctionMessage != null) {
-          buffer.write(', ');
-          buffer.write(json.encode(actual.correctionMessage));
-        }
-        buffer.writeln(']');
-      }
+      buffer.write(unexpectedMessage(unmatchedActual));
     }
-    if (buffer.isNotEmpty) {
-      diagnostics.sort(
-        (first, second) => first.offset.compareTo(second.offset),
-      );
-      buffer.writeln();
-      buffer.writeln('To accept the current state, expect:');
-      for (var actual in diagnostics) {
-        late String diagnosticKind;
-        Object? description;
-        if (actual.diagnosticCode is LintCode) {
-          diagnosticKind = 'lint';
-        } else {
-          diagnosticKind = 'error';
-          description = actual.diagnosticCode;
-        }
-        buffer.write('  $diagnosticKind(');
-        if (description != null) {
-          buffer.write(description);
-          buffer.write(', ');
-        }
-        buffer.write(actual.offset);
-        buffer.write(', ');
-        buffer.write(actual.length);
-        buffer.writeln('),');
-      }
+    if (unmatchedExpected.isNotEmpty || unmatchedActual.isNotEmpty) {
+      buffer.write(correctionMessage(diagnostics));
 
       if (dumpAstOnFailures) {
         buffer.writeln();
         buffer.writeln();
-        try {
-          var astSink = StringBuffer();
 
+        try {
           Spelunker(
             result.unit.toSource(),
-            sink: astSink,
+            sink: buffer,
             featureSet: result.unit.featureSet,
           ).spelunk();
-          buffer.write(astSink);
-          buffer.writeln();
-          // I hereby choose to catch this type.
         } on ArgumentError catch (_) {
           // Perhaps we encountered a parsing error while spelunking.
         }
+
+        buffer.writeln();
       }
 
       fail(buffer.toString());
@@ -371,6 +300,54 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   Future<void> assertNoDiagnosticsInFile(String path) async =>
       assertDiagnosticsInFile(path, const []);
 
+  /// Text to display upon failure, which indicates possible corrections.
+  @visibleForOverriding
+  String correctionMessage(List<Diagnostic> diagnostics) {
+    var buffer = StringBuffer();
+    diagnostics.sort((first, second) => first.offset.compareTo(second.offset));
+    buffer.writeln();
+    buffer.writeln('To accept the current state, expect:');
+    for (var actual in diagnostics) {
+      if (actual.diagnosticCode is LintCode) {
+        buffer.write('  lint(');
+      } else {
+        buffer.write('  error(${actual.diagnosticCode}, ');
+      }
+      buffer.write('${actual.offset}, ${actual.length}),');
+    }
+
+    return buffer.toString();
+  }
+
+  /// Text to display upon failure, indicating that [unmatchedExpected]
+  /// diagnostics were expected, but not found.
+  @visibleForOverriding
+  String missingExpectedMessage(List<ExpectedDiagnostic> unmatchedExpected) {
+    var buffer = StringBuffer();
+    buffer.writeln('Expected but did not find:');
+    for (var expected in unmatchedExpected) {
+      buffer.write('  ');
+      if (expected is ExpectedError) {
+        buffer.write(expected._code);
+      }
+      if (expected is ExpectedLint) {
+        buffer.write(expected._lintName);
+      }
+      buffer.write(' [${expected._offset}, ');
+      buffer.write(expected._length);
+      if (expected._messageContains case Pattern messageContains) {
+        buffer.write(', messageContains: ');
+        buffer.write(json.encode(messageContains.toString()));
+      }
+      if (expected._correctionContains case Pattern correctionContains) {
+        buffer.write(', correctionContains: ');
+        buffer.write(json.encode(correctionContains.toString()));
+      }
+      buffer.writeln(']');
+    }
+    return buffer.toString();
+  }
+
   @override
   File newFile(String path, String content) {
     if (_analysisContextCollection != null && !path.endsWith('.dart')) {
@@ -412,6 +389,27 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   Future<void> tearDown() async {
     await _analysisContextCollection?.dispose();
     _analysisContextCollection = null;
+  }
+
+  /// Text to display upon failure, indicating that [unmatchedActual]
+  /// diagnostics were found, but unexpected.
+  @visibleForOverriding
+  String unexpectedMessage(List<Diagnostic> unmatchedActual) {
+    var buffer = StringBuffer();
+    if (buffer.isNotEmpty) {
+      buffer.writeln();
+    }
+    buffer.writeln('Found but did not expect:');
+    for (var actual in unmatchedActual) {
+      buffer.write('  ${actual.diagnosticCode} [');
+      buffer.write('${actual.offset}, ${actual.length}, ${actual.message}');
+      if (actual.correctionMessage case Pattern correctionMessage) {
+        buffer.write(', ');
+        buffer.write(json.encode(correctionMessage));
+      }
+      buffer.writeln(']');
+    }
+    return buffer.toString();
   }
 
   void writePackageConfig(String path, PackageConfigFileBuilder config) {

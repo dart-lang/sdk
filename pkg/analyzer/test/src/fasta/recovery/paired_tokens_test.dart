@@ -26,7 +26,7 @@ class AngleBracketsTest extends AbstractRecoveryTest {
       '''
 List<List<int>
 ''',
-      [ScannerErrorCode.EXPECTED_TOKEN],
+      [ScannerErrorCode.expectedToken],
       '''
 List<List<int>> _s_;
 ''',
@@ -38,7 +38,7 @@ List<List<int>> _s_;
       '''
 List<List<int> f;
 ''',
-      [ParserErrorCode.EXPECTED_TOKEN],
+      [ParserErrorCode.expectedToken],
       '''
 List<List<int>> f;
 ''',
@@ -51,7 +51,7 @@ List<List<int>> f;
       '''
 Map<List<int, List<String>>
 ''',
-      [ScannerErrorCode.EXPECTED_TOKEN],
+      [ScannerErrorCode.expectedToken],
       '''
 Map<List<int>, List<String>> _s_;
 ''',
@@ -64,7 +64,7 @@ Map<List<int>, List<String>> _s_;
       '''
 Map<List<int, List<String>> f;
 ''',
-      [ParserErrorCode.EXPECTED_TOKEN],
+      [ParserErrorCode.expectedToken],
       '''
 Map<List<int, List<String>>> f;
 ''',
@@ -76,7 +76,7 @@ Map<List<int, List<String>>> f;
       '''
 List<int double> f;
 ''',
-      [ParserErrorCode.EXPECTED_TOKEN],
+      [ParserErrorCode.expectedToken],
       '''
 List<int, double> f;
 ''',
@@ -89,7 +89,7 @@ List<int, double> f;
       '''
 List<int
 ''',
-      [ScannerErrorCode.EXPECTED_TOKEN],
+      [ScannerErrorCode.expectedToken],
       '''
 List<int> _s_;
 ''',
@@ -101,7 +101,7 @@ List<int> _s_;
       '''
 List<int f;
 ''',
-      [ParserErrorCode.EXPECTED_TOKEN],
+      [ParserErrorCode.expectedToken],
       '''
 List<int> f;
 ''',
@@ -114,17 +114,17 @@ List<int> f;
 f<T>>() => null;
 ''',
       [
-        ParserErrorCode.TOP_LEVEL_OPERATOR,
-        ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
-        ParserErrorCode.MISSING_FUNCTION_BODY,
+        ParserErrorCode.topLevelOperator,
+        ParserErrorCode.missingFunctionParameters,
+        ParserErrorCode.missingFunctionBody,
       ],
       '''
 f<T> > () => null;
 ''',
       expectedDiagnosticsInValidCode: [
-        ParserErrorCode.TOP_LEVEL_OPERATOR,
-        ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
-        ParserErrorCode.MISSING_FUNCTION_BODY,
+        ParserErrorCode.topLevelOperator,
+        ParserErrorCode.missingFunctionParameters,
+        ParserErrorCode.missingFunctionBody,
       ],
     );
   }
@@ -135,8 +135,8 @@ f<T> > () => null;
 f<T extends Function()() => null;
 ''',
       [
-        ParserErrorCode.EXPECTED_TOKEN,
-        ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
+        ParserErrorCode.expectedToken,
+        ParserErrorCode.missingFunctionParameters,
       ],
       '''
 f<T extends Function()>() => null;
@@ -150,8 +150,8 @@ f<T extends Function()>() => null;
 f<T extends Function<X>()() => null;
 ''',
       [
-        ParserErrorCode.EXPECTED_TOKEN,
-        ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
+        ParserErrorCode.expectedToken,
+        ParserErrorCode.missingFunctionParameters,
       ],
       '''
 f<T extends Function<X>()>() => null;
@@ -164,7 +164,7 @@ f<T extends Function<X>()>() => null;
       '''
 f<T>=() => null;
 ''',
-      [ParserErrorCode.UNEXPECTED_TOKEN],
+      [ParserErrorCode.unexpectedToken],
       '''
 f<T>() => null;
 ''',
@@ -176,7 +176,7 @@ f<T>() => null;
       '''
 f<T extends List<int>>=() => null;
 ''',
-      [ParserErrorCode.UNEXPECTED_TOKEN],
+      [ParserErrorCode.unexpectedToken],
       '''
 f<T extends List<int>>() => null;
 ''',
@@ -189,8 +189,8 @@ f<T extends List<int>>() => null;
 f<T() => null;
 ''',
       [
-        ParserErrorCode.EXPECTED_TOKEN,
-        ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
+        ParserErrorCode.expectedToken,
+        ParserErrorCode.missingFunctionParameters,
       ],
       '''
 f<T>() => null;
@@ -204,8 +204,8 @@ f<T>() => null;
 f<T extends List<int>() => null;
 ''',
       [
-        ParserErrorCode.EXPECTED_TOKEN,
-        ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
+        ParserErrorCode.expectedToken,
+        ParserErrorCode.missingFunctionParameters,
       ],
       '''
 f<T extends List<int>>() => null;
@@ -224,7 +224,7 @@ f(x) {
   if (x != null) {
 }
 ''',
-      [ScannerErrorCode.EXPECTED_TOKEN],
+      [ScannerErrorCode.expectedToken],
       '''
 f(x) {
   if (x != null) {}
@@ -243,7 +243,7 @@ f(x) {
   while (x == null) {}
 }
 ''',
-      [ScannerErrorCode.EXPECTED_TOKEN],
+      [ScannerErrorCode.expectedToken],
       '''
 f(x) {
   if (x != null) {}
@@ -261,7 +261,7 @@ f(x) {
 f(x) {
 class C {}
 ''',
-      [ScannerErrorCode.EXPECTED_TOKEN],
+      [ScannerErrorCode.expectedToken],
       '''
 f(x) {}
 class C {}
@@ -277,7 +277,7 @@ class C {}
 f(x) {
 g(y) => y;
 ''',
-      [ScannerErrorCode.EXPECTED_TOKEN],
+      [ScannerErrorCode.expectedToken],
       '''
 f(x) {}
 g(y) => y;
@@ -290,7 +290,7 @@ g(y) => y;
       '''
 f(x) {
 ''',
-      [ScannerErrorCode.EXPECTED_TOKEN],
+      [ScannerErrorCode.expectedToken],
       '''
 f(x) {}
 ''',
@@ -305,7 +305,7 @@ f(x) {}
 f(x) {
 int y = 0;
 ''',
-      [ScannerErrorCode.EXPECTED_TOKEN],
+      [ScannerErrorCode.expectedToken],
       '''
 f(x) {}
 int y = 0;
@@ -322,7 +322,7 @@ class BracketsTest extends AbstractRecoveryTest {
       '''
 f(x) => l[x
 ''',
-      [ScannerErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN],
+      [ScannerErrorCode.expectedToken, ParserErrorCode.expectedToken],
       '''
 f(x) => l[x];
 ''',
@@ -334,7 +334,7 @@ f(x) => l[x];
       '''
 f(x) => l?[x
 ''',
-      [ScannerErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN],
+      [ScannerErrorCode.expectedToken, ParserErrorCode.expectedToken],
       '''
 f(x) => l?[x];
 ''',
@@ -346,7 +346,7 @@ f(x) => l?[x];
       '''
 var x = [[0], [1];
 ''',
-      [ScannerErrorCode.EXPECTED_TOKEN],
+      [ScannerErrorCode.expectedToken],
       '''
 var x = [[0], [1]];
 ''',
@@ -358,7 +358,7 @@ var x = [[0], [1]];
       '''
 var x = [[0], [1, [2]];
 ''',
-      [ScannerErrorCode.EXPECTED_TOKEN],
+      [ScannerErrorCode.expectedToken],
       '''
 var x = [[0], [1, [2]]];
 ''',
@@ -370,7 +370,7 @@ var x = [[0], [1, [2]]];
       '''
 var x = [0 1];
 ''',
-      [ParserErrorCode.EXPECTED_TOKEN],
+      [ParserErrorCode.expectedToken],
       '''
 var x = [0, 1];
 ''',
@@ -382,7 +382,7 @@ var x = [0, 1];
       '''
 var x = [0, 1
 ''',
-      [ScannerErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN],
+      [ScannerErrorCode.expectedToken, ParserErrorCode.expectedToken],
       '''
 var x = [0, 1];
 ''',
@@ -402,7 +402,7 @@ f(x) {
   if (x
 }
 ''',
-      [ScannerErrorCode.EXPECTED_TOKEN],
+      [ScannerErrorCode.expectedToken],
       '''
 f(x) {
   if (x);
@@ -421,7 +421,7 @@ f(x) {
   while(x != null) {}
 }
 ''',
-      [ScannerErrorCode.EXPECTED_TOKEN],
+      [ScannerErrorCode.expectedToken],
       '''
 f(x) {
   if (x);
@@ -438,7 +438,7 @@ f(x) {
 f(x
 class C {}
 ''',
-      [ScannerErrorCode.EXPECTED_TOKEN, ParserErrorCode.MISSING_FUNCTION_BODY],
+      [ScannerErrorCode.expectedToken, ParserErrorCode.missingFunctionBody],
       '''
 f(x) {}
 class C {}
@@ -451,7 +451,7 @@ class C {}
       '''
 f(x
 ''',
-      [ScannerErrorCode.EXPECTED_TOKEN, ParserErrorCode.MISSING_FUNCTION_BODY],
+      [ScannerErrorCode.expectedToken, ParserErrorCode.missingFunctionBody],
       '''
 f(x) {}
 ''',

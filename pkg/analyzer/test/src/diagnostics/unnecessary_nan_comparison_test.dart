@@ -24,7 +24,7 @@ void f(List<double> list) {
   }
 }
 ''',
-      [error(WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE, 56, 10)],
+      [error(WarningCode.unnecessaryNanComparisonFalse, 56, 10)],
     );
   }
 
@@ -35,7 +35,7 @@ void f(double d) {
   d == double.nan;
 }
 ''',
-      [error(WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE, 23, 13)],
+      [error(WarningCode.unnecessaryNanComparisonFalse, 23, 13)],
     );
   }
 
@@ -46,7 +46,7 @@ void f(double d) {
   double.nan == d;
 }
 ''',
-      [error(WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE, 21, 13)],
+      [error(WarningCode.unnecessaryNanComparisonFalse, 21, 13)],
     );
   }
 
@@ -57,7 +57,7 @@ void f(double d) {
   d != double.nan;
 }
 ''',
-      [error(WarningCode.UNNECESSARY_NAN_COMPARISON_TRUE, 23, 13)],
+      [error(WarningCode.unnecessaryNanComparisonTrue, 23, 13)],
     );
   }
 
@@ -68,7 +68,7 @@ void f(double d) {
   double.nan != d;
 }
 ''',
-      [error(WarningCode.UNNECESSARY_NAN_COMPARISON_TRUE, 21, 13)],
+      [error(WarningCode.unnecessaryNanComparisonTrue, 21, 13)],
     );
   }
 }

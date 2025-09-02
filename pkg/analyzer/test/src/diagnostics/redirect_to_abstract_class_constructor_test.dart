@@ -23,13 +23,7 @@ abstract class A {
   A._();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.REDIRECT_TO_ABSTRACT_CLASS_CONSTRUCTOR,
-          35,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.redirectToAbstractClassConstructor, 35, 3)],
     );
   }
 
@@ -43,13 +37,7 @@ class A {
 
 abstract class B extends A {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.REDIRECT_TO_ABSTRACT_CLASS_CONSTRUCTOR,
-          32,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.redirectToAbstractClassConstructor, 32, 1)],
     );
   }
 

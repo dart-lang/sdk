@@ -965,16 +965,14 @@ class Search {
     }
 
     var rootVariable = element.rootVariable;
-    var transitiveVariables =
-        rootVariable is JoinPatternVariableElementImpl
-            ? rootVariable.transitiveVariables
-            : [rootVariable];
+    var transitiveVariables = rootVariable is JoinPatternVariableElementImpl
+        ? rootVariable.transitiveVariables
+        : [rootVariable];
 
     // Prepare a binding element for the variable.
-    var bindElement =
-        transitiveVariables
-            .whereType<BindPatternVariableElementImpl>()
-            .firstOrNull;
+    var bindElement = transitiveVariables
+        .whereType<BindPatternVariableElementImpl>()
+        .firstOrNull;
     if (bindElement == null) {
       return const <SearchResult>[];
     }
@@ -1752,7 +1750,7 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
   }
 
   void _addResult(SyntacticEntity entity, SearchResultKind kind) {
-    bool isQualified = entity is AstNode ? entity.parent is Label : false;
+    bool isQualified = entity is AstNode && entity.parent is Label;
     var enclosingFragment = _getEnclosingFragment(
       enclosingLibraryFragment,
       entity.offset,

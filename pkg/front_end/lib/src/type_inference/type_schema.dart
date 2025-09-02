@@ -18,24 +18,29 @@ bool isKnown(DartType schema) => !schema.accept(const _HasUnknownVisitor());
 /// Converts a [DartType] to a string, representing the unknown type as `?`.
 String typeSchemaToString(DartType schema) {
   StringBuffer buffer = new StringBuffer();
-  new TypeSchemaPrinter(buffer, syntheticNames: globalDebuggingNames)
-      .writeNode(schema);
+  new TypeSchemaPrinter(
+    buffer,
+    syntheticNames: globalDebuggingNames,
+  ).writeNode(schema);
   return '$buffer';
 }
 
 // Coverage-ignore(suite): Not run.
 /// Extension of [Printer] that represents the unknown type as `?`.
 class TypeSchemaPrinter extends Printer {
-  TypeSchemaPrinter(StringSink sink,
-      {NameSystem? syntheticNames,
-      bool showOffsets = false,
-      ImportTable? importTable,
-      Annotator? annotator})
-      : super(sink,
-            syntheticNames: syntheticNames,
-            showOffsets: showOffsets,
-            importTable: importTable,
-            annotator: annotator);
+  TypeSchemaPrinter(
+    StringSink sink, {
+    NameSystem? syntheticNames,
+    bool showOffsets = false,
+    ImportTable? importTable,
+    Annotator? annotator,
+  }) : super(
+         sink,
+         syntheticNames: syntheticNames,
+         showOffsets: showOffsets,
+         importTable: importTable,
+         annotator: annotator,
+       );
 
   @override
   void defaultDartType(covariant UnknownType node) {

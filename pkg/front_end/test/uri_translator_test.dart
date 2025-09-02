@@ -18,14 +18,21 @@ void main() {
 @reflectiveTest
 class UriTranslatorImplTest {
   UriTranslator translator = new UriTranslator(
-      new ProcessedOptions(),
-      new TargetLibrariesSpecification('vm', {
-        'core': new LibraryInfo('core',
-            Uri.parse('org-dartlang-test:///sdk/core/core.dart'), const []),
-        'math': new LibraryInfo('core',
-            Uri.parse('org-dartlang-test:///sdk/math/math.dart'), const []),
-      }),
-      PackageConfig.empty);
+    new ProcessedOptions(),
+    new TargetLibrariesSpecification('vm', {
+      'core': new LibraryInfo(
+        'core',
+        Uri.parse('org-dartlang-test:///sdk/core/core.dart'),
+        const [],
+      ),
+      'math': new LibraryInfo(
+        'core',
+        Uri.parse('org-dartlang-test:///sdk/math/math.dart'),
+        const [],
+      ),
+    }),
+    PackageConfig.empty,
+  );
 
   void test_isPlatformImplementation() {
     bool isPlatform(String uriStr) {
@@ -40,11 +47,15 @@ class UriTranslatorImplTest {
   }
 
   void test_translate_dart() {
-    expect(translator.translate(Uri.parse('dart:core')),
-        Uri.parse('org-dartlang-test:///sdk/core/core.dart'));
+    expect(
+      translator.translate(Uri.parse('dart:core')),
+      Uri.parse('org-dartlang-test:///sdk/core/core.dart'),
+    );
     expect(translator.translate(Uri.parse('dart:core/string.dart')), null);
 
-    expect(translator.translate(Uri.parse('dart:math')),
-        Uri.parse('org-dartlang-test:///sdk/math/math.dart'));
+    expect(
+      translator.translate(Uri.parse('dart:math')),
+      Uri.parse('org-dartlang-test:///sdk/math/math.dart'),
+    );
   }
 }

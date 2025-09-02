@@ -22,7 +22,7 @@ class B {
   int A = 0;
   factory B() = A;
 }''',
-      [error(CompileTimeErrorCode.REDIRECT_TO_NON_CLASS, 39, 1)],
+      [error(CompileTimeErrorCode.redirectToNonClass, 39, 1)],
     );
   }
 
@@ -32,7 +32,7 @@ class B {
 class B {
   factory B() = A;
 }''',
-      [error(CompileTimeErrorCode.REDIRECT_TO_NON_CLASS, 26, 1)],
+      [error(CompileTimeErrorCode.redirectToNonClass, 26, 1)],
     );
   }
 }

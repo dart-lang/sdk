@@ -22,6 +22,22 @@ class C extends self::B {
 }
 static method main() → dynamic {
   self::A? a;
-  let final self::A? #t1 = a in #t1 == null ?{self::B?} null : #t1.{self::A::b} = #t1.{self::A::b}{self::B}.{self::B::+}(1){(core::int) → self::C};
-  self::B? c = let final self::A? #t2 = a in #t2 == null ?{self::B?} null : let final self::B #t3 = #t2.{self::A::b}{self::B} in let final self::C #t4 = #t2.{self::A::b} = #t3.{self::B::+}(1){(core::int) → self::C} in #t3;
+  self::expect(null, let final self::A? #t1 = a in #t1 == null ?{self::B?} null : #t1{self::A}.{self::A::b}{self::B});
+  let final self::A? #t2 = a in #t2 == null ?{self::B?} null : #t2{self::A}.{self::A::b} = #t2{self::A}.{self::A::b}{self::B}.{self::B::+}(1){(core::int) → self::C};
+  self::expect(null, let final self::A? #t3 = a in #t3 == null ?{self::B?} null : #t3{self::A}.{self::A::b}{self::B});
+  self::B? c1 = let final self::A? #t4 = a in #t4 == null ?{self::B?} null : let final self::B #t5 = #t4{self::A}.{self::A::b}{self::B} in let final void #t6 = #t4{self::A}.{self::A::b} = #t5.{self::B::+}(1){(core::int) → self::C} in #t5;
+  self::expect(null, let final self::A? #t7 = a in #t7 == null ?{self::B?} null : #t7{self::A}.{self::A::b}{self::B});
+  self::expect(null, c1);
+  a = new self::A::•(new self::B::•());
+  self::expect(false, (let final self::A #t8 = a{self::A} in #t8 == null ?{self::B?} null : #t8.{self::A::b}{self::B}) is self::C);
+  let final self::A #t9 = a{self::A} in #t9 == null ?{self::B?} null : #t9.{self::A::b} = #t9.{self::A::b}{self::B}.{self::B::+}(1){(core::int) → self::C};
+  self::expect(true, (let final self::A #t10 = a{self::A} in #t10 == null ?{self::B?} null : #t10.{self::A::b}{self::B}) is self::C);
+  a = new self::A::•(new self::B::•());
+  self::B? c2 = let final self::A #t11 = a{self::A} in #t11 == null ?{self::B?} null : let final self::B #t12 = #t11.{self::A::b}{self::B} in let final void #t13 = #t11.{self::A::b} = #t12.{self::B::+}(1){(core::int) → self::C} in #t12;
+  self::expect(true, (let final self::A #t14 = a{self::A} in #t14 == null ?{self::B?} null : #t14.{self::A::b}{self::B}) is self::C);
+  self::expect(false, c2 is self::C);
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
 }

@@ -27,7 +27,7 @@ var v = const (a.c, );
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_CONSTANT_RECORD_FIELD_FROM_DEFERRED_LIBRARY,
+          CompileTimeErrorCode.nonConstantRecordFieldFromDeferredLibrary,
           51,
           1,
         ),

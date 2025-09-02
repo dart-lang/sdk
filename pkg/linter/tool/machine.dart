@@ -5,16 +5,16 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:args/args.dart';
 import 'package:collection/collection.dart';
 import 'package:linter/src/rules.dart';
-import 'package:linter/src/utils.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
 import 'messages_info.dart';
+import 'util/io.dart';
 import 'util/path_utils.dart';
 
 /// Generates a list of built-in lint rules in JSON suitable for
@@ -23,9 +23,8 @@ import 'util/path_utils.dart';
 /// **Deprecated:** This tool and the resulting generated file in
 /// `tool/machine/rules.json` are deprecated and should not be relied on.
 void main(List<String> args) async {
-  var parser =
-      ArgParser()
-        ..addFlag('write', abbr: 'w', help: 'Write `rules.json` file.');
+  var parser = ArgParser()
+    ..addFlag('write', abbr: 'w', help: 'Write `rules.json` file.');
   var options = parser.parse(args);
 
   var json = await generateRulesJson();

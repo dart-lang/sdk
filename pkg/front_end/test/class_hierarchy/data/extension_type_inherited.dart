@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 extension type ExtensionType(int id) {
   /*member: ExtensionType.id:
    extensionTypeBuilder=ExtensionType,
@@ -30,7 +29,7 @@ extension type ExtensionType(int id) {
    extensionTypeBuilder=ExtensionType,
    isSourceDeclaration
   */
-  int operator[] (int index) => id;
+  int operator [](int index) => id;
 
   /*member: ExtensionType.staticField:
    extensionTypeBuilder=ExtensionType,
@@ -122,7 +121,7 @@ class Class {
    classBuilder=Class,
    isSourceDeclaration
   */
-  int operator[] (int index) => id;
+  int operator [](int index) => id;
   /*member: Class.staticField#cls:
    classBuilder=Class,
    isSourceDeclaration

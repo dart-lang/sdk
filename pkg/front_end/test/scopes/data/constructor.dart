@@ -8,11 +8,11 @@ class Class {
   var field;
 
   Class.empty()
-      : field = /*
+    : field = /*
    class=Class,
    member=empty
   */
-            x {
+          x {
     /*
      class=Class,
      member=empty
@@ -21,12 +21,12 @@ class Class {
   }
 
   Class.oneParameter(a)
-      : field = /*
+    : field = /*
    class=Class,
    member=oneParameter,
    variables=[a]
   */
-            x {
+          x {
     /*
      class=Class,
      member=oneParameter,
@@ -36,14 +36,14 @@ class Class {
   }
 
   Class.twoParameters(a, b)
-      : field = /*
+    : field = /*
    class=Class,
    member=twoParameters,
    variables=[
     a,
     b]
   */
-            x {
+          x {
     /*
      class=Class,
      member=twoParameters,
@@ -55,14 +55,14 @@ class Class {
   }
 
   Class.optionalParameter(a, [b])
-      : field = /*
+    : field = /*
    class=Class,
    member=optionalParameter,
    variables=[
     a,
     b]
   */
-            x {
+          x {
     /*
      class=Class,
      member=optionalParameter,
@@ -74,14 +74,14 @@ class Class {
   }
 
   Class.namedParameter(a, {b})
-      : field = /*
+    : field = /*
    class=Class,
    member=namedParameter,
    variables=[
     a,
     b]
   */
-            x {
+          x {
     /*
      class=Class,
      member=namedParameter,
@@ -111,12 +111,12 @@ class Foo2<E extends num> {
   }
 
   Foo2._()
-      : field = /*
+    : field = /*
    class=Foo2,
    member=_,
    typeParameters=[Foo2.E]
   */
-            x {
+          x {
     /*
      class=Foo2,
      member=_,

@@ -25,7 +25,7 @@ const String generatedNamesPath = 'linter/lib/src/lint_names.g.dart';
 
 const lintCodesFile = GeneratedErrorCodeFile(
   path: generatedCodesPath,
-  preferredImportUri: 'package:linter/src/lint_codes.dart',
+  parentLibrary: 'package:linter/src/lint_codes.dart',
 );
 
 const linterLintCodeInfo = ErrorClassInfo(
@@ -46,60 +46,63 @@ GeneratedFile get generatedCodesFile =>
 // Instead modify 'pkg/linter/messages.yaml' and run
 // 'dart run pkg/linter/tool/generate_lints.dart' to update.
 
-// We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
-// code, as they match names declared in the source configuration files.
-// ignore_for_file: constant_identifier_names
-
 // Generated comments don't quite align with flutter style.
 // ignore_for_file: flutter_style_todos
 
 // Generator currently outputs double quotes for simplicity.
 // ignore_for_file: prefer_single_quotes
-
-import 'analyzer.dart';
-
-class LinterLintCode extends LintCode {
 ''');
+      if (literateApiEnabled) {
+        out.write('''
 
+// Generated `withArguments` methods always use block bodies for simplicity.
+// ignore_for_file: prefer_expression_function_bodies
+''');
+      }
+      out.write('''
+
+part of 'lint_codes.dart';
+
+class LinterLintCode extends LintCodeWithExpectedTypes {
+''');
+      var memberAccumulator = MemberAccumulator();
       for (var MapEntry(key: errorName, value: codeInfo)
           in lintMessages['LintCode']!.entries) {
         var lintName = codeInfo.sharedName ?? errorName;
         if (messagesRuleInfo[lintName]!.removed) continue;
-        out.write(codeInfo.toAnalyzerComments(indent: '  '));
-        if (codeInfo.deprecatedMessage case var deprecatedMessage?) {
-          out.writeln('  @Deprecated("$deprecatedMessage")');
-        }
-        out.writeln('  static const LintCode $errorName =');
-        out.writeln(
-          codeInfo.toAnalyzerCode(
-            linterLintCodeInfo,
-            errorName,
-            sharedNameReference: 'LintNames.$lintName',
-            useExplicitConst: false,
-          ),
+        codeInfo.toAnalyzerCode(
+          linterLintCodeInfo,
+          errorName,
+          sharedNameReference: 'LintNames.$lintName',
+          memberAccumulator: memberAccumulator,
         );
-        out.writeln();
       }
 
-      out.writeln('''
+      var removedLintName = 'removedLint';
+      memberAccumulator.constants[removedLintName] =
+          '''
   /// A lint code that removed lints can specify as their `lintCode`.
   ///
   /// Avoid other usages as it should be made unnecessary and removed.
-  static const LintCode removed_lint = LinterLintCode(
+  static const LintCode $removedLintName = LinterLintCode(
     'removed_lint',
     'Removed lint.',
+    expectedTypes: [],
   );
-''');
+''';
 
-      out.writeln('''
+      memberAccumulator.constructors[''] = '''
   const LinterLintCode(
     super.name,
     super.problemMessage, {
+    super.expectedTypes,
     super.correctionMessage,
     super.hasPublishedDocs,
     String? uniqueName,
   }) : super(uniqueName: 'LintCode.\${uniqueName ?? name}');
+''';
 
+      memberAccumulator.accessors['url'] = '''
   @override
   String get url {
     if (hasPublishedDocs) {
@@ -107,8 +110,42 @@ class LinterLintCode extends LintCode {
     }
     return 'https://dart.dev/lints/\$name';
   }
+''';
+      memberAccumulator.writeTo(out);
+      out.writeln('}');
+
+      if (literateApiEnabled) {
+        out.write('''
+
+final class LinterLintTemplate<T extends Function> extends LinterLintCode {
+  final T withArguments;
+
+  /// Initialize a newly created error code to have the given [name].
+  const LinterLintTemplate(
+    super.name,
+    super.problemMessage, {
+    required this.withArguments,
+    required super.expectedTypes,
+    super.correctionMessage,
+    super.hasPublishedDocs = false,
+    super.uniqueName,
+  });
+}
+
+final class LinterLintWithoutArguments extends LinterLintCode
+    with DiagnosticWithoutArguments {
+  /// Initialize a newly created error code to have the given [name].
+  const LinterLintWithoutArguments(
+    super.name,
+    super.problemMessage, {
+    required super.expectedTypes,
+    super.correctionMessage,
+    super.hasPublishedDocs = false,
+    super.uniqueName,
+  });
 }
 ''');
+      }
       return out.toString();
     });
 

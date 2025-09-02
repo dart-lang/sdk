@@ -47,10 +47,9 @@ class RecordTypeBuilder extends TypeBuilder {
       typeSystem: typeSystem,
       node: node,
       fieldTypes: node.fields.map((field) => field.type.typeOrThrow).toList(),
-      nullabilitySuffix:
-          node.question != null
-              ? NullabilitySuffix.question
-              : NullabilitySuffix.none,
+      nullabilitySuffix: node.question != null
+          ? NullabilitySuffix.question
+          : NullabilitySuffix.none,
     );
   }
 
@@ -100,18 +99,16 @@ class RecordTypeBuilder extends TypeBuilder {
       }
     }
 
-    var positionalFields =
-        node.positionalFields.map((field) {
-          return RecordTypePositionalFieldImpl(type: nextFieldType());
-        }).toList();
+    var positionalFields = node.positionalFields.map((field) {
+      return RecordTypePositionalFieldImpl(type: nextFieldType());
+    }).toList();
 
-    var namedFields =
-        node.namedFields?.fields.map((field) {
-          return RecordTypeNamedFieldImpl(
-            name: field.name.lexeme,
-            type: nextFieldType(),
-          );
-        }).toList();
+    var namedFields = node.namedFields?.fields.map((field) {
+      return RecordTypeNamedFieldImpl(
+        name: field.name.lexeme,
+        type: nextFieldType(),
+      );
+    }).toList();
 
     return node.type = RecordTypeImpl(
       positionalFields: positionalFields,

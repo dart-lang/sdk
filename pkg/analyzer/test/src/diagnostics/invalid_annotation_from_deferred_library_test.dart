@@ -27,13 +27,7 @@ library root;
 import 'lib1.dart' deferred as a;
 @a.C() main () {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY,
-          49,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.invalidAnnotationFromDeferredLibrary, 49, 3)],
     );
   }
 
@@ -51,7 +45,7 @@ class C { const C(int i); }
       [
         error(
           CompileTimeErrorCode
-              .INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY,
+              .invalidAnnotationConstantValueFromDeferredLibrary,
           81,
           1,
         ),
@@ -71,13 +65,7 @@ library root;
 import 'lib1.dart' deferred as a;
 @a.v main () {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY,
-          49,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.invalidAnnotationFromDeferredLibrary, 49, 3)],
     );
   }
 
@@ -92,13 +80,7 @@ library root;
 import 'lib1.dart' deferred as a;
 @a.C.name() main () {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY,
-          49,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.invalidAnnotationFromDeferredLibrary, 49, 3)],
     );
   }
 }

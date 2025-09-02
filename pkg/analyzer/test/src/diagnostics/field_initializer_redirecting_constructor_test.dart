@@ -27,7 +27,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR,
+          CompileTimeErrorCode.fieldInitializerRedirectingConstructor,
           60,
           6,
         ),
@@ -46,7 +46,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR,
+          CompileTimeErrorCode.fieldInitializerRedirectingConstructor,
           46,
           6,
         ),
@@ -65,7 +65,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR,
+          CompileTimeErrorCode.fieldInitializerRedirectingConstructor,
           42,
           6,
         ),
@@ -85,7 +85,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR,
+          CompileTimeErrorCode.fieldInitializerRedirectingConstructor,
           84,
           6,
         ),
@@ -105,7 +105,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR,
+          CompileTimeErrorCode.fieldInitializerRedirectingConstructor,
           70,
           6,
         ),
@@ -125,7 +125,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR,
+          CompileTimeErrorCode.fieldInitializerRedirectingConstructor,
           69,
           6,
         ),

@@ -1114,7 +1114,7 @@ extension Baz on Bar {
     });
   });
 
-  group('part files expression compilations |', () {
+  group('part files expression compilations same line and offset exists |', () {
     // WARNING: The (main) source and the part source have been constructed
     // so that the same offset (71) is valid on both, and both have an 'x'
     // variable, where one is a String and the other is an int. The 4 dots after
@@ -1124,7 +1124,7 @@ part 'part.dart';
 void main() {
   String x = "foo";
   // padding....
-  foo();
+  foo(); // Line 5, column 3, offset 71
   print(x);
 }''';
     var partSource = r'''
@@ -1132,7 +1132,7 @@ part of 'test.dart';
 void foo() {
   int x = 42;
   // Breakpoint: BP1
-  print(x);
+  print(x); // Line 5, column 3, offset 71
 }''';
 
     setUpAll(() async {
@@ -1149,6 +1149,50 @@ void foo() {
         expression: 'x + 1',
       );
       expect(result, '43');
+    });
+  });
+
+  group('part files expression compilations line and offset mismatch |', () {
+    var source = r'''
+
+
+
+
+// Line 5 is this one. There is nothing before it.
+part 'part.dart';
+void main() {
+  String x = "foo";
+  foo();
+  // Breakpoint: BP2
+  print(x);
+}''';
+    var partSource = r'''
+part of 'test.dart';
+void foo() {
+  int x = 42;
+  // Breakpoint: BP1
+  print(x); // Line 5, column 3
+}''';
+
+    setUpAll(() async {
+      await driver.initSource(setup, source, partSource: partSource);
+    });
+
+    tearDownAll(() async {
+      await driver.cleanupTest();
+    });
+
+    test('can evaluate in part file', () async {
+      var result = await driver.evaluateDartExpressionInFrame(
+        breakpointId: 'BP1',
+        expression: 'x + 1',
+      );
+      expect(result, '43');
+      result = await driver.evaluateDartExpressionInFrame(
+        breakpointId: 'BP2',
+        expression: 'x.length',
+      );
+      expect(result, '3');
     });
   });
 }

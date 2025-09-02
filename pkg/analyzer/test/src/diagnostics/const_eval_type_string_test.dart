@@ -28,7 +28,7 @@ const y = B(x);
 ''',
       [
         error(
-          CompileTimeErrorCode.CONST_EVAL_TYPE_STRING,
+          CompileTimeErrorCode.constEvalTypeString,
           70,
           4,
           contextMessages: [
@@ -41,8 +41,8 @@ const y = B(x);
             ),
           ],
         ),
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 72, 1),
-        error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 72, 1),
+        error(CompileTimeErrorCode.undefinedIdentifier, 72, 1),
+        error(CompileTimeErrorCode.constWithNonConstantArgument, 72, 1),
       ],
     );
   }

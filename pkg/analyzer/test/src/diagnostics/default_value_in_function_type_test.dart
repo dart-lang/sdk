@@ -21,7 +21,7 @@ class DefaultValueInFunctionTypeTest extends PubPackageResolutionTest {
       '''
 typedef F = int Function({Map<String, String> m = const {}});
 ''',
-      [error(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 48, 1)],
+      [error(ParserErrorCode.defaultValueInFunctionType, 48, 1)],
     );
   }
 
@@ -33,8 +33,8 @@ typedef F = int Function({Map<String, String> m = const {}});
 typedef F = int Function({Object m = const {1, 2: 3}});
 ''',
       [
-        error(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 35, 1),
-        error(CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH, 37, 15),
+        error(ParserErrorCode.defaultValueInFunctionType, 35, 1),
+        error(CompileTimeErrorCode.ambiguousSetOrMapLiteralBoth, 37, 15),
       ],
     );
   }
@@ -44,7 +44,7 @@ typedef F = int Function({Object m = const {1, 2: 3}});
       '''
 typedef F = int Function([Map<String, String> m = const {}]);
 ''',
-      [error(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 48, 1)],
+      [error(ParserErrorCode.defaultValueInFunctionType, 48, 1)],
     );
   }
 
@@ -53,7 +53,7 @@ typedef F = int Function([Map<String, String> m = const {}]);
       '''
 typedef F([x = 0]);
 ''',
-      [error(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 13, 1)],
+      [error(ParserErrorCode.defaultValueInFunctionType, 13, 1)],
     );
   }
 
@@ -62,7 +62,7 @@ typedef F([x = 0]);
       '''
 typedef F([x = 0]);
 ''',
-      [error(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 13, 1)],
+      [error(ParserErrorCode.defaultValueInFunctionType, 13, 1)],
     );
   }
 
@@ -75,7 +75,7 @@ void f() {
   A<void Function([int x = 42])>();
 }
 ''',
-      [error(ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE, 51, 1)],
+      [error(ParserErrorCode.defaultValueInFunctionType, 51, 1)],
     );
     // The expression is resolved, even if it is invalid.
     assertType(findNode.integerLiteral('42'), 'int');

@@ -36,7 +36,7 @@ class DataDriven extends MultiCorrectionProducer {
         importedUris.add(uri.relativeUri);
       }
     }
-    var matchers = ElementMatcher.matchersForNode(node, token);
+    var matchers = ElementMatcher.matchersForNode(node, token, library);
     if (matchers.isEmpty) {
       // The node doesn't represent any element that can be transformed.
       return const [];

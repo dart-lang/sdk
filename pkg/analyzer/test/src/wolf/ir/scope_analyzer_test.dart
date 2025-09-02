@@ -47,19 +47,18 @@ class ScopeAnalyzerTest {
 
   void test_affectedStateVariables_coalescesRedundantWrites() {
     _analyze(
-      (ir) =>
-          ir
-            ..ordinaryFunction(parameterCount: 4)
-            ..label('alloc')
-            ..alloc(2)
-            ..label('block')
-            ..block(3, 0)
-            ..writeLocal(0)
-            ..writeLocal(1)
-            ..writeLocal(0)
-            ..end()
-            ..release(2)
-            ..end(),
+      (ir) => ir
+        ..ordinaryFunction(parameterCount: 4)
+        ..label('alloc')
+        ..alloc(2)
+        ..label('block')
+        ..block(3, 0)
+        ..writeLocal(0)
+        ..writeLocal(1)
+        ..writeLocal(0)
+        ..end()
+        ..release(2)
+        ..end(),
     );
     check(
       affectedStateVariables(labelToScope['block']!),
@@ -68,23 +67,22 @@ class ScopeAnalyzerTest {
 
   void test_affectedStateVariables_coalescesRedundantWrites_inInnerBlock() {
     _analyze(
-      (ir) =>
-          ir
-            ..ordinaryFunction(parameterCount: 5)
-            ..label('alloc')
-            ..alloc(3)
-            ..label('outer block')
-            ..block(4, 0)
-            ..writeLocal(0)
-            ..writeLocal(1)
-            ..label('inner block')
-            ..block(2, 0)
-            ..writeLocal(0)
-            ..writeLocal(2)
-            ..end()
-            ..end()
-            ..release(3)
-            ..end(),
+      (ir) => ir
+        ..ordinaryFunction(parameterCount: 5)
+        ..label('alloc')
+        ..alloc(3)
+        ..label('outer block')
+        ..block(4, 0)
+        ..writeLocal(0)
+        ..writeLocal(1)
+        ..label('inner block')
+        ..block(2, 0)
+        ..writeLocal(0)
+        ..writeLocal(2)
+        ..end()
+        ..end()
+        ..release(3)
+        ..end(),
     );
     check(
       affectedStateVariables(labelToScope['inner block']!),
@@ -100,52 +98,49 @@ class ScopeAnalyzerTest {
 
   void test_affectedStateVariables_ignoresUnusedVariables() {
     _analyze(
-      (ir) =>
-          ir
-            ..ordinaryFunction(parameterCount: 1)
-            ..label('alloc')
-            ..alloc(2)
-            ..label('block')
-            ..block(0, 0)
-            ..end()
-            ..release(2)
-            ..end(),
+      (ir) => ir
+        ..ordinaryFunction(parameterCount: 1)
+        ..label('alloc')
+        ..alloc(2)
+        ..label('block')
+        ..block(0, 0)
+        ..end()
+        ..release(2)
+        ..end(),
     );
     check(affectedStateVariables(labelToScope['block']!)).isEmpty();
   }
 
   void test_affectedStateVariables_ignoresVariablesReleasedInsideScope() {
     _analyze(
-      (ir) =>
-          ir
-            ..ordinaryFunction(parameterCount: 3)
-            ..label('block')
-            ..block(2, 0)
-            ..label('alloc')
-            ..alloc(2)
-            ..writeLocal(0)
-            ..writeLocal(1)
-            ..release(2)
-            ..end()
-            ..end(),
+      (ir) => ir
+        ..ordinaryFunction(parameterCount: 3)
+        ..label('block')
+        ..block(2, 0)
+        ..label('alloc')
+        ..alloc(2)
+        ..writeLocal(0)
+        ..writeLocal(1)
+        ..release(2)
+        ..end()
+        ..end(),
     );
     check(affectedStateVariables(labelToScope['block']!)).isEmpty();
   }
 
   void test_affectedStateVariables_tracksLocalVariableWrites() {
     _analyze(
-      (ir) =>
-          ir
-            ..ordinaryFunction(parameterCount: 3)
-            ..label('alloc')
-            ..alloc(2)
-            ..label('block')
-            ..block(2, 0)
-            ..writeLocal(0)
-            ..writeLocal(1)
-            ..end()
-            ..release(2)
-            ..end(),
+      (ir) => ir
+        ..ordinaryFunction(parameterCount: 3)
+        ..label('alloc')
+        ..alloc(2)
+        ..label('block')
+        ..block(2, 0)
+        ..writeLocal(0)
+        ..writeLocal(1)
+        ..end()
+        ..release(2)
+        ..end(),
     );
     check(
       affectedStateVariables(labelToScope['block']!),
@@ -155,21 +150,20 @@ class ScopeAnalyzerTest {
   void
   test_affectedStateVariables_tracksLocalVariableWrites_whenLaterWrittenInEnclosingBlock() {
     _analyze(
-      (ir) =>
-          ir
-            ..ordinaryFunction(parameterCount: 3)
-            ..label('x')
-            ..alloc(1)
-            ..label('outer block')
-            ..block(2, 0)
-            ..label('inner block')
-            ..block(1, 0)
-            ..writeLocal(0)
-            ..end()
-            ..writeLocal(0)
-            ..end()
-            ..release(1)
-            ..end(),
+      (ir) => ir
+        ..ordinaryFunction(parameterCount: 3)
+        ..label('x')
+        ..alloc(1)
+        ..label('outer block')
+        ..block(2, 0)
+        ..label('inner block')
+        ..block(1, 0)
+        ..writeLocal(0)
+        ..end()
+        ..writeLocal(0)
+        ..end()
+        ..release(1)
+        ..end(),
     );
     check(
       affectedStateVariables(labelToScope['inner block']!),
@@ -182,21 +176,20 @@ class ScopeAnalyzerTest {
   void
   test_affectedStateVariables_tracksLocalVariableWrites_whenPreviouslyWrittenInEnclosingBlock() {
     _analyze(
-      (ir) =>
-          ir
-            ..ordinaryFunction(parameterCount: 3)
-            ..label('x')
-            ..alloc(1)
-            ..label('outer block')
-            ..block(2, 0)
-            ..writeLocal(0)
-            ..label('inner block')
-            ..block(1, 0)
-            ..writeLocal(0)
-            ..end()
-            ..end()
-            ..release(1)
-            ..end(),
+      (ir) => ir
+        ..ordinaryFunction(parameterCount: 3)
+        ..label('x')
+        ..alloc(1)
+        ..label('outer block')
+        ..block(2, 0)
+        ..writeLocal(0)
+        ..label('inner block')
+        ..block(1, 0)
+        ..writeLocal(0)
+        ..end()
+        ..end()
+        ..release(1)
+        ..end(),
     );
     check(
       affectedStateVariables(labelToScope['inner block']!),
@@ -209,38 +202,36 @@ class ScopeAnalyzerTest {
   void
   test_affectedStateVariables_tracksReallocatedLocalsAsSeparateStateVars() {
     _analyze(
-      (ir) =>
-          ir
-            ..ordinaryFunction(parameterCount: 1)
-            ..block(0, 0)
-            ..label('x')
-            ..alloc(1)
-            ..release(1)
-            ..end()
-            ..block(0, 0)
-            ..label('y')
-            ..alloc(1)
-            ..release(1)
-            ..end()
-            ..end(),
+      (ir) => ir
+        ..ordinaryFunction(parameterCount: 1)
+        ..block(0, 0)
+        ..label('x')
+        ..alloc(1)
+        ..release(1)
+        ..end()
+        ..block(0, 0)
+        ..label('y')
+        ..alloc(1)
+        ..release(1)
+        ..end()
+        ..end(),
     );
     check(labelToStateVar['x']!).not((s) => s.equals(labelToStateVar['y']!));
   }
 
   void test_allocIndexToStateVar() {
     _analyze(
-      (ir) =>
-          ir
-            ..ordinaryFunction(parameterCount: 1)
-            ..label('x')
-            ..alloc(2)
-            ..label('y')
-            ..alloc(3)
-            ..release(3)
-            ..label('z')
-            ..alloc(2)
-            ..release(4)
-            ..end(),
+      (ir) => ir
+        ..ordinaryFunction(parameterCount: 1)
+        ..label('x')
+        ..alloc(2)
+        ..label('y')
+        ..alloc(3)
+        ..release(3)
+        ..label('z')
+        ..alloc(2)
+        ..release(4)
+        ..end(),
     );
     check(
       scopeAnalysisResult.allocIndexToStateVar(0),
@@ -267,25 +258,24 @@ class ScopeAnalyzerTest {
 
   void test_ancestorContainingAddress() {
     _analyze(
-      (ir) =>
-          ir
-            ..label('function')
-            ..ordinaryFunction(parameterCount: 1)
-            ..label('block1')
-            ..block(0, 0)
-            ..label('block2')
-            ..block(0, 0)
-            ..label('block2end')
-            ..end()
-            ..label('block3')
-            ..block(0, 0)
-            ..end()
-            ..label('block1end')
-            ..end()
-            ..label('block4')
-            ..block(0, 0)
-            ..end()
-            ..end(),
+      (ir) => ir
+        ..label('function')
+        ..ordinaryFunction(parameterCount: 1)
+        ..label('block1')
+        ..block(0, 0)
+        ..label('block2')
+        ..block(0, 0)
+        ..label('block2end')
+        ..end()
+        ..label('block3')
+        ..block(0, 0)
+        ..end()
+        ..label('block1end')
+        ..end()
+        ..label('block4')
+        ..block(0, 0)
+        ..end()
+        ..end(),
     );
     check(
       scopeAnalysisResult.ancestorContainingAddress(
@@ -315,27 +305,25 @@ class ScopeAnalyzerTest {
 
   void test_beginAddress() {
     _analyze(
-      (ir) =>
-          ir
-            ..ordinaryFunction(parameterCount: 1)
-            ..label('block')
-            ..block(0, 0)
-            ..end()
-            ..end(),
+      (ir) => ir
+        ..ordinaryFunction(parameterCount: 1)
+        ..label('block')
+        ..block(0, 0)
+        ..end()
+        ..end(),
     );
     check(scopeAnalysisResult.beginAddress(labelToScope['block']!)).equals(1);
   }
 
   void test_endAddress() {
     _analyze(
-      (ir) =>
-          ir
-            ..ordinaryFunction(parameterCount: 1)
-            ..label('block')
-            ..block(0, 0)
-            ..label('end')
-            ..end()
-            ..end(),
+      (ir) => ir
+        ..ordinaryFunction(parameterCount: 1)
+        ..label('block')
+        ..block(0, 0)
+        ..label('end')
+        ..end()
+        ..end(),
     );
     check(
       scopeAnalysisResult.endAddress(labelToScope['block']!),
@@ -344,20 +332,19 @@ class ScopeAnalyzerTest {
 
   void test_lastDescendant() {
     _analyze(
-      (ir) =>
-          ir
-            ..label('function')
-            ..ordinaryFunction(parameterCount: 1)
-            ..label('block1')
-            ..block(0, 0)
-            ..end()
-            ..label('block2')
-            ..block(0, 0)
-            ..label('block3')
-            ..block(0, 0)
-            ..end()
-            ..end()
-            ..end(),
+      (ir) => ir
+        ..label('function')
+        ..ordinaryFunction(parameterCount: 1)
+        ..label('block1')
+        ..block(0, 0)
+        ..end()
+        ..label('block2')
+        ..block(0, 0)
+        ..label('block3')
+        ..block(0, 0)
+        ..end()
+        ..end()
+        ..end(),
     );
     check(
       scopeAnalysisResult.beginAddress(
@@ -383,23 +370,22 @@ class ScopeAnalyzerTest {
 
   void test_mostRecentScope_manyScopes() {
     _analyze(
-      (ir) =>
-          ir
-            ..label('function')
-            ..ordinaryFunction(parameterCount: 1)
-            ..label('block1')
-            ..block(0, 0)
-            ..label('block2')
-            ..block(0, 0)
-            ..end()
-            ..label('block3')
-            ..block(0, 0)
-            ..end()
-            ..end()
-            ..label('block4')
-            ..block(0, 0)
-            ..end()
-            ..end(),
+      (ir) => ir
+        ..label('function')
+        ..ordinaryFunction(parameterCount: 1)
+        ..label('block1')
+        ..block(0, 0)
+        ..label('block2')
+        ..block(0, 0)
+        ..end()
+        ..label('block3')
+        ..block(0, 0)
+        ..end()
+        ..end()
+        ..label('block4')
+        ..block(0, 0)
+        ..end()
+        ..end(),
     );
     check(
       scopeAnalysisResult.mostRecentScope(ir.labelToAddress('function')!),
@@ -432,12 +418,11 @@ class ScopeAnalyzerTest {
 
   void test_mostRecentScope_oneScope() {
     _analyze(
-      (ir) =>
-          ir
-            ..label('function')
-            ..ordinaryFunction(parameterCount: 1)
-            ..label('end')
-            ..end(),
+      (ir) => ir
+        ..label('function')
+        ..ordinaryFunction(parameterCount: 1)
+        ..label('end')
+        ..end(),
     );
     check(
       scopeAnalysisResult.mostRecentScope(ir.labelToAddress('function')!),
@@ -449,38 +434,36 @@ class ScopeAnalyzerTest {
 
   void test_onAlloc_distinguishesAllocations() {
     _analyze(
-      (ir) =>
-          ir
-            ..ordinaryFunction(parameterCount: 1)
-            ..label('x')
-            ..alloc(1)
-            ..label('y')
-            ..alloc(1)
-            ..release(2)
-            ..end(),
+      (ir) => ir
+        ..ordinaryFunction(parameterCount: 1)
+        ..label('x')
+        ..alloc(1)
+        ..label('y')
+        ..alloc(1)
+        ..release(2)
+        ..end(),
     );
     check(labelToStateVar['x']!).not((s) => s.equals(labelToStateVar['y']!));
   }
 
   void test_parent() {
     _analyze(
-      (ir) =>
-          ir
-            ..label('function')
-            ..ordinaryFunction(parameterCount: 1)
-            ..label('block1')
-            ..block(0, 0)
-            ..label('block2')
-            ..block(0, 0)
-            ..end()
-            ..label('block3')
-            ..block(0, 0)
-            ..end()
-            ..end()
-            ..label('block4')
-            ..block(0, 0)
-            ..end()
-            ..end(),
+      (ir) => ir
+        ..label('function')
+        ..ordinaryFunction(parameterCount: 1)
+        ..label('block1')
+        ..block(0, 0)
+        ..label('block2')
+        ..block(0, 0)
+        ..end()
+        ..label('block3')
+        ..block(0, 0)
+        ..end()
+        ..end()
+        ..label('block4')
+        ..block(0, 0)
+        ..end()
+        ..end(),
     );
     check(scopeAnalysisResult.parent(labelToScope['function']!)).equals(-1);
     check(
@@ -499,13 +482,12 @@ class ScopeAnalyzerTest {
 
   void test_scopeCount() {
     _analyze(
-      (ir) =>
-          ir
-            ..ordinaryFunction(parameterCount: 1)
-            ..label('block')
-            ..block(0, 0)
-            ..end()
-            ..end(),
+      (ir) => ir
+        ..ordinaryFunction(parameterCount: 1)
+        ..label('block')
+        ..block(0, 0)
+        ..end()
+        ..end(),
     );
     check(scopeAnalysisResult.scopeCount).equals(2);
   }
@@ -513,25 +495,22 @@ class ScopeAnalyzerTest {
   void test_stateVarAffected() {
     late StateVar stateVar;
     _analyze(
-      (ir) =>
-          ir
-            ..ordinaryFunction(parameterCount: 4)
-            ..onAnalyze(
-              (eventListener) => stateVar = eventListener.createStateVar(),
-            )
-            ..drop()
-            ..label('block1')
-            ..block(1, 0)
-            ..drop()
-            ..end()
-            ..label('block2')
-            ..block(1, 0)
-            ..onAnalyze(
-              (eventListener) => eventListener.stateVarAffected(stateVar),
-            )
-            ..drop()
-            ..end()
-            ..end(),
+      (ir) => ir
+        ..ordinaryFunction(parameterCount: 4)
+        ..onAnalyze(
+          (eventListener) => stateVar = eventListener.createStateVar(),
+        )
+        ..drop()
+        ..label('block1')
+        ..block(1, 0)
+        ..drop()
+        ..end()
+        ..label('block2')
+        ..block(1, 0)
+        ..onAnalyze((eventListener) => eventListener.stateVarAffected(stateVar))
+        ..drop()
+        ..end()
+        ..end(),
     );
     check(
       affectedStateVariables(labelToScope['block1']!),
@@ -542,15 +521,14 @@ class ScopeAnalyzerTest {
   void test_stateVarCount() {
     createExtraStateVarPerScope = false;
     _analyze(
-      (ir) =>
-          ir
-            ..ordinaryFunction(parameterCount: 1)
-            ..alloc(2)
-            ..alloc(3)
-            ..release(3)
-            ..alloc(2)
-            ..release(4)
-            ..end(),
+      (ir) => ir
+        ..ordinaryFunction(parameterCount: 1)
+        ..alloc(2)
+        ..alloc(3)
+        ..release(3)
+        ..alloc(2)
+        ..release(4)
+        ..end(),
     );
     check(scopeAnalysisResult.stateVarCount).equals(7);
   }

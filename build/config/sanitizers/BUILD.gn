@@ -6,42 +6,16 @@ import("//build/config/sanitizers/sanitizers.gni")
 
 # Contains the dependencies needed for sanitizers to link into executables and
 # shared_libraries. Unconditionally depend upon this target as it is empty if
-# |is_asan|, |is_lsan|, |is_tsan|, |is_msan| and |use_custom_libcxx| are false.
+# |using_sanitizer| is false.
 group("deps") {
-  deps = [ "//third_party/instrumented_libraries:deps" ]
-  if (is_asan || is_hwasan || is_lsan || is_msan || is_tsan || is_ubsan) {
+  if (using_sanitizer) {
     public_configs = [ ":sanitizer_options_link_helper" ]
-    deps += [ ":options_sources" ]
-  }
-  if (use_custom_libcxx) {
-    deps += [ "//buildtools/third_party/libc++:libcxx_proxy" ]
+    deps = [ ":options_sources" ]
   }
 }
 
 config("sanitizer_options_link_helper") {
-  ldflags = [ "-Wl,-u_sanitizer_options_link_helper" ]
-  if (is_asan) {
-    ldflags += [ "-fsanitize=address" ]
-  }
-  if (is_hwasan && is_android && current_cpu == "arm64") {
-    ldflags += [ "-fsanitize=hwaddress" ]
-  }
-  if (is_lsan) {
-    ldflags += [ "-fsanitize=leak" ]
-  }
-  if (is_msan) {
-    ldflags += [ "-fsanitize=memory" ]
-  }
-  if (is_tsan) {
-    ldflags += [ "-fsanitize=thread" ]
-  }
-  if (is_ubsan) {
-    ldflags += [
-      "-fsanitize=undefined",
-      "-fsanitize=float-divide-by-zero",
-      "-fsanitize=float-cast-overflow",
-    ]
-  }
+  ldflags = [ "-Wl,-u,_sanitizer_options_link_helper" ]
 }
 
 source_set("options_sources") {
@@ -49,17 +23,6 @@ source_set("options_sources") {
     ":deps",
     "//:gn_visibility",
   ]
+  include_dirs = [ "../../../runtime" ]
   sources = [ "//build/sanitizers/sanitizer_options.cc" ]
-
-  if (is_asan) {
-    sources += [ "//build/sanitizers/asan_suppressions.cc" ]
-  }
-
-  if (is_lsan) {
-    sources += [ "//build/sanitizers/lsan_suppressions.cc" ]
-  }
-
-  if (is_tsan) {
-    sources += [ "//build/sanitizers/tsan_suppressions.cc" ]
-  }
 }

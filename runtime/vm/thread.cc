@@ -84,6 +84,8 @@ Thread::Thread(bool is_vm_isolate)
       double_truncate_round_supported_(
           TargetCPUFeatures::double_truncate_round_supported() ? 1 : 0),
       tsan_utils_(DO_IF_TSAN(new TsanUtils()) DO_IF_NOT_TSAN(nullptr)),
+      current_tag_(UserTag::null()),
+      default_tag_(UserTag::null()),
       task_kind_(kUnknownTask),
 #if defined(SUPPORT_TIMELINE)
       dart_stream_(ASSERT_NOTNULL(Timeline::GetDartStream())),
@@ -148,6 +150,7 @@ Thread::Thread(bool is_vm_isolate)
 #endif
 
   memset(&unboxed_runtime_arg_, 0, sizeof(simd128_value_t));
+  set_user_tag(UserTags::kDefaultUserTag);
 }
 
 static const double double_nan_constant = NAN;
@@ -262,6 +265,17 @@ void Thread::set_sticky_error(const Error& value) {
 
 void Thread::ClearStickyError() {
   sticky_error_ = Error::null();
+}
+
+void Thread::set_current_tag(const UserTag& tag) {
+  uword user_tag = tag.tag();
+  ASSERT(user_tag < kUwordMax);
+  set_user_tag(user_tag);
+  current_tag_ = tag.ptr();
+}
+
+void Thread::set_default_tag(const UserTag& tag) {
+  default_tag_ = tag.ptr();
 }
 
 ErrorPtr Thread::StealStickyError() {
@@ -548,6 +562,14 @@ void Thread::EnterIsolateGroupAsMutator(IsolateGroup* isolate_group,
 #endif
 
   thread->AssertDartMutatorInvariants();
+
+  StackZone zone(thread);
+  HANDLESCOPE(thread);
+  if (isolate_group->tag_table() != GrowableObjectArray::null()) {
+    // Set up default UserTag.
+    const UserTag& default_tag = UserTag::Handle(UserTag::DefaultTag(thread));
+    thread->set_current_tag(default_tag);
+  }
 }
 
 void Thread::ExitIsolateGroupAsMutator(bool bypass_safepoint) {
@@ -1106,6 +1128,9 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
     visitor->VisitPointers(&pointers_to_verify_at_exit_[0],
                            pointers_to_verify_at_exit_.length());
   }
+
+  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&current_tag_));
+  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&default_tag_));
 }
 
 class RestoreWriteBarrierInvariantVisitor : public ObjectPointerVisitor {
@@ -1646,6 +1671,16 @@ void Thread::set_forward_table_new(WeakTable* table) {
 void Thread::set_forward_table_old(WeakTable* table) {
   std::unique_ptr<WeakTable> value(table);
   forward_table_old_ = std::move(value);
+}
+
+void Thread::VisitMutators(MutatorThreadVisitor* visitor) {
+  if (visitor == nullptr) {
+    return;
+  }
+  IsolateGroup::ForEach([&](IsolateGroup* group) {
+    group->thread_registry()->ForEachThread(
+        [&](Thread* thread) { visitor->VisitMutatorThread(thread); });
+  });
 }
 
 #if !defined(PRODUCT)

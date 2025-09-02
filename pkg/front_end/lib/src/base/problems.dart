@@ -12,22 +12,22 @@ import 'messages.dart'
         LocatedMessage,
         Message,
         noLength,
-        templateInternalProblemDebugAbort,
-        templateInternalProblemUnexpected,
-        templateInternalProblemUnhandled,
-        templateInternalProblemUnimplemented,
-        templateInternalProblemUnsupported;
+        codeInternalProblemDebugAbort,
+        codeInternalProblemUnexpected,
+        codeInternalProblemUnhandled,
+        codeInternalProblemUnimplemented,
+        codeInternalProblemUnsupported;
 
 // Coverage-ignore(suite): Not run.
 class DebugAbort {
   final LocatedMessage message;
 
   DebugAbort(Uri? uri, int charOffset, CfeSeverity severity, StackTrace trace)
-      : message = uri != null
-            ? templateInternalProblemDebugAbort
+    : message = uri != null
+          ? codeInternalProblemDebugAbort
                 .withArguments(severityTexts[severity]!, "$trace")
                 .withLocation(uri, charOffset, noLength)
-            : templateInternalProblemDebugAbort
+          : codeInternalProblemDebugAbort
                 .withArguments(severityTexts[severity]!, "$trace")
                 .withoutLocation();
 
@@ -48,13 +48,17 @@ class DebugAbort {
 Never internalProblem(Message message, int charOffset, Uri? uri) {
   if (uri != null) {
     throw command_line_reporting
-        .formatNoSourceLine(message.withLocation(uri, charOffset, noLength),
-            CfeSeverity.internalProblem)
+        .formatNoSourceLine(
+          message.withLocation(uri, charOffset, noLength),
+          CfeSeverity.internalProblem,
+        )
         .plain;
   } else {
     throw command_line_reporting
         .formatNoSourceLine(
-            message.withoutLocation(), CfeSeverity.internalProblem)
+          message.withoutLocation(),
+          CfeSeverity.internalProblem,
+        )
         .plain;
   }
 }
@@ -62,33 +66,37 @@ Never internalProblem(Message message, int charOffset, Uri? uri) {
 // Coverage-ignore(suite): Not run.
 Never unimplemented(String what, int charOffset, Uri? uri) {
   return internalProblem(
-      templateInternalProblemUnimplemented.withArguments(what),
-      charOffset,
-      uri);
+    codeInternalProblemUnimplemented.withArguments(what),
+    charOffset,
+    uri,
+  );
 }
 
 // Coverage-ignore(suite): Not run.
 Never unhandled(String what, String where, int charOffset, Uri? uri) {
   return internalProblem(
-      templateInternalProblemUnhandled.withArguments(what, where),
-      charOffset,
-      uri);
+    codeInternalProblemUnhandled.withArguments(what, where),
+    charOffset,
+    uri,
+  );
 }
 
 // Coverage-ignore(suite): Not run.
 Never unexpected(String expected, String actual, int charOffset, Uri? uri) {
   return internalProblem(
-      templateInternalProblemUnexpected.withArguments(expected, actual),
-      charOffset,
-      uri);
+    codeInternalProblemUnexpected.withArguments(expected, actual),
+    charOffset,
+    uri,
+  );
 }
 
 // Coverage-ignore(suite): Not run.
 Never unsupported(String operation, int charOffset, Uri? uri) {
   return internalProblem(
-      templateInternalProblemUnsupported.withArguments(operation),
-      charOffset,
-      uri);
+    codeInternalProblemUnsupported.withArguments(operation),
+    charOffset,
+    uri,
+  );
 }
 
 // Coverage-ignore(suite): Not run.

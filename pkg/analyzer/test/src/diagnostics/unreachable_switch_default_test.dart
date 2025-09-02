@@ -27,7 +27,7 @@ void f(bool x) {
   }
 }
 ''',
-      [error(WarningCode.UNREACHABLE_SWITCH_DEFAULT, 67, 7)],
+      [error(WarningCode.unreachableSwitchDefault, 67, 7)],
     );
   }
 
@@ -47,7 +47,7 @@ String f(E e) {
   }
 }
 ''',
-      [error(WarningCode.UNREACHABLE_SWITCH_DEFAULT, 122, 7)],
+      [error(WarningCode.unreachableSwitchDefault, 122, 7)],
     );
   }
 
@@ -88,7 +88,7 @@ String f(A x) {
   }
 }
 ''',
-      [error(WarningCode.UNREACHABLE_SWITCH_DEFAULT, 160, 7)],
+      [error(WarningCode.unreachableSwitchDefault, 160, 7)],
     );
   }
 }

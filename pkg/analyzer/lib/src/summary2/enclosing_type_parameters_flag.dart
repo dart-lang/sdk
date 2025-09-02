@@ -22,14 +22,10 @@ class EnclosingTypeParameterReferenceFlag {
               if (!field.isSynthetic || field.isEnumValues) {
                 var result = _hasTypeParameterReference(topElement, field.type);
                 field.firstFragment.hasEnclosingTypeParameterReference = result;
-                field
-                    .getter
-                    ?.firstFragment
-                    .hasEnclosingTypeParameterReference = result;
-                field
-                    .setter
-                    ?.firstFragment
-                    .hasEnclosingTypeParameterReference = result;
+                field.getter?.firstFragment.hasEnclosingTypeParameterReference =
+                    result;
+                field.setter?.firstFragment.hasEnclosingTypeParameterReference =
+                    result;
               }
             }
 
@@ -41,8 +37,9 @@ class EnclosingTypeParameterReferenceFlag {
                   propertyAccessor.type,
                 );
                 propertyAccessor
-                    .firstFragment
-                    .hasEnclosingTypeParameterReference = result;
+                        .firstFragment
+                        .hasEnclosingTypeParameterReference =
+                    result;
                 if (propertyAccessor.variable case FieldElementImpl field) {
                   field.firstFragment.hasEnclosingTypeParameterReference =
                       result;
@@ -64,13 +61,15 @@ class EnclosingTypeParameterReferenceFlag {
             // Top-level variables dont have type parameters.
             if (!topElement.isSynthetic) {
               topElement
-                  .getter
-                  ?.firstFragment
-                  .hasEnclosingTypeParameterReference = false;
+                      .getter
+                      ?.firstFragment
+                      .hasEnclosingTypeParameterReference =
+                  false;
               topElement
-                  .setter
-                  ?.firstFragment
-                  .hasEnclosingTypeParameterReference = false;
+                      .setter
+                      ?.firstFragment
+                      .hasEnclosingTypeParameterReference =
+                  false;
             }
         }
       }

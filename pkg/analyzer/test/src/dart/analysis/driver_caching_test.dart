@@ -62,7 +62,7 @@ int b = a;
 
     // `strict-cast: true`, so has errors.
     assertErrorsInList(await _computeTestFileDiagnostics(), [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 23, 1),
+      error(CompileTimeErrorCode.invalidAssignment, 23, 1),
     ]);
   }
 
@@ -345,11 +345,10 @@ void f() {
   }
 
   void _assertHasLintReported(List<Diagnostic> diagnostics, String name) {
-    var matching =
-        diagnostics.where((element) {
-          var diagnosticCode = element.diagnosticCode;
-          return diagnosticCode is LintCode && diagnosticCode.name == name;
-        }).toList();
+    var matching = diagnostics.where((element) {
+      var diagnosticCode = element.diagnosticCode;
+      return diagnosticCode is LintCode && diagnosticCode.name == name;
+    }).toList();
     expect(matching, hasLength(1));
   }
 

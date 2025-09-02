@@ -27,8 +27,9 @@ class GenericMetadataDisabledParserTest extends FastaParserTestCase
     List<ExpectedError>? errors,
     required ExpectedError? disabledError,
   }) {
-    var combinedErrors =
-        disabledError == null ? errors : [disabledError, ...?errors];
+    var combinedErrors = disabledError == null
+        ? errors
+        : [disabledError, ...?errors];
     return parseCompilationUnit(
       content,
       errors: combinedErrors,
@@ -52,11 +53,7 @@ mixin GenericMetadataParserTest on FastaParserTestCase {
   void test_className_prefixed_constructorName_absent() {
     var compilationUnit = _parseCompilationUnit(
       '@p.A<B>() class C {}',
-      disabledError: expectedError(
-        ParserErrorCode.EXPERIMENT_NOT_ENABLED,
-        4,
-        1,
-      ),
+      disabledError: expectedError(ParserErrorCode.experimentNotEnabled, 4, 1),
     );
     var classDeclaration =
         compilationUnit.declarations.single as ClassDeclaration;
@@ -72,11 +69,7 @@ mixin GenericMetadataParserTest on FastaParserTestCase {
   void test_className_prefixed_constructorName_present() {
     var compilationUnit = _parseCompilationUnit(
       '@p.A<B>.ctor() class C {}',
-      disabledError: expectedError(
-        ParserErrorCode.EXPERIMENT_NOT_ENABLED,
-        4,
-        1,
-      ),
+      disabledError: expectedError(ParserErrorCode.experimentNotEnabled, 4, 1),
     );
     var classDeclaration =
         compilationUnit.declarations.single as ClassDeclaration;
@@ -92,11 +85,7 @@ mixin GenericMetadataParserTest on FastaParserTestCase {
   void test_className_unprefixed_constructorName_absent() {
     var compilationUnit = _parseCompilationUnit(
       '@A<B>() class C {}',
-      disabledError: expectedError(
-        ParserErrorCode.EXPERIMENT_NOT_ENABLED,
-        2,
-        1,
-      ),
+      disabledError: expectedError(ParserErrorCode.experimentNotEnabled, 2, 1),
     );
     var classDeclaration =
         compilationUnit.declarations.single as ClassDeclaration;
@@ -111,11 +100,7 @@ mixin GenericMetadataParserTest on FastaParserTestCase {
   void test_className_unprefixed_constructorName_present() {
     var compilationUnit = _parseCompilationUnit(
       '@A<B>.ctor() class C {}',
-      disabledError: expectedError(
-        ParserErrorCode.EXPERIMENT_NOT_ENABLED,
-        2,
-        1,
-      ),
+      disabledError: expectedError(ParserErrorCode.experimentNotEnabled, 2, 1),
     );
     var classDeclaration =
         compilationUnit.declarations.single as ClassDeclaration;
@@ -132,16 +117,12 @@ mixin GenericMetadataParserTest on FastaParserTestCase {
       '@p.x<A> class C {}',
       errors: [
         expectedError(
-          ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED,
+          ParserErrorCode.annotationWithTypeArgumentsUninstantiated,
           6,
           1,
         ),
       ],
-      disabledError: expectedError(
-        ParserErrorCode.EXPERIMENT_NOT_ENABLED,
-        4,
-        1,
-      ),
+      disabledError: expectedError(ParserErrorCode.experimentNotEnabled, 4, 1),
     );
     var classDeclaration =
         compilationUnit.declarations.single as ClassDeclaration;
@@ -159,16 +140,12 @@ mixin GenericMetadataParserTest on FastaParserTestCase {
       '@x<A> class C {}',
       errors: [
         expectedError(
-          ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED,
+          ParserErrorCode.annotationWithTypeArgumentsUninstantiated,
           4,
           1,
         ),
       ],
-      disabledError: expectedError(
-        ParserErrorCode.EXPERIMENT_NOT_ENABLED,
-        2,
-        1,
-      ),
+      disabledError: expectedError(ParserErrorCode.experimentNotEnabled, 2, 1),
     );
     var classDeclaration =
         compilationUnit.declarations.single as ClassDeclaration;
@@ -184,11 +161,11 @@ mixin GenericMetadataParserTest on FastaParserTestCase {
     _parseCompilationUnit(
       '@p.A.ctor<B>() class C {}',
       errors: [
-        expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 9, 1),
-        expectedError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 10, 1),
-        expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 1),
-        expectedError(ParserErrorCode.TOP_LEVEL_OPERATOR, 11, 1),
-        expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 15, 5),
+        expectedError(ParserErrorCode.expectedExecutable, 9, 1),
+        expectedError(ParserErrorCode.missingConstFinalVarOrType, 10, 1),
+        expectedError(ParserErrorCode.expectedToken, 10, 1),
+        expectedError(ParserErrorCode.topLevelOperator, 11, 1),
+        expectedError(ParserErrorCode.missingFunctionBody, 15, 5),
       ],
       disabledError: null,
     );
@@ -199,18 +176,14 @@ mixin GenericMetadataParserTest on FastaParserTestCase {
       '@p<A>.B.ctor() class C {}',
       errors: [
         expectedError(
-          ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED,
+          ParserErrorCode.annotationWithTypeArgumentsUninstantiated,
           6,
           1,
         ),
-        expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 7, 1),
-        expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 15, 5),
+        expectedError(ParserErrorCode.expectedExecutable, 7, 1),
+        expectedError(ParserErrorCode.missingFunctionBody, 15, 5),
       ],
-      disabledError: expectedError(
-        ParserErrorCode.EXPERIMENT_NOT_ENABLED,
-        2,
-        1,
-      ),
+      disabledError: expectedError(ParserErrorCode.experimentNotEnabled, 2, 1),
     );
   }
 

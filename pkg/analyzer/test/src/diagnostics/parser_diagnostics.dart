@@ -79,9 +79,8 @@ class ParserDiagnosticsTest {
       ResolvedAstPrinter(
         sink: sink,
         elementPrinter: elementPrinter,
-        configuration:
-            ResolvedNodeTextConfiguration()
-              ..withTokenPreviousNext = withTokenPreviousNext,
+        configuration: ResolvedNodeTextConfiguration()
+          ..withTokenPreviousNext = withTokenPreviousNext,
         withResolution: false,
         withOffsets: withOffsets,
       ),

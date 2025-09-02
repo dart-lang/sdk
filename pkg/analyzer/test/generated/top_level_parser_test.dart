@@ -80,10 +80,10 @@ class TopLevelParserTest extends FastaParserTestCase {
     expect(member, isNotNull);
     assertErrors(
       errors: [
-        expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 12, 2),
-        expectedError(ParserErrorCode.EXPECTED_TOKEN, 13, 1),
-        expectedError(ParserErrorCode.MISSING_IDENTIFIER, 14, 0),
-        expectedError(ParserErrorCode.MISSING_IDENTIFIER, 14, 0),
+        expectedError(ParserErrorCode.expectedTypeName, 12, 2),
+        expectedError(ParserErrorCode.expectedToken, 13, 1),
+        expectedError(ParserErrorCode.missingIdentifier, 14, 0),
+        expectedError(ParserErrorCode.missingIdentifier, 14, 0),
       ],
     );
 
@@ -299,9 +299,7 @@ class TopLevelParserTest extends FastaParserTestCase {
     CompilationUnitMember member = parseFullCompilationUnitMember();
     expect(member, isNotNull);
     if (!allowNativeClause) {
-      assertErrorsWithCodes([
-        ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION,
-      ]);
+      assertErrorsWithCodes([ParserErrorCode.nativeClauseShouldBeAnnotation]);
     } else {
       assertNoErrors();
     }
@@ -340,9 +338,7 @@ class A native 'something' {
     if (allowNativeClause) {
       assertNoErrors();
     } else {
-      assertErrorsWithCodes([
-        ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION,
-      ]);
+      assertErrorsWithCodes([ParserErrorCode.nativeClauseShouldBeAnnotation]);
     }
     expect(member, TypeMatcher<ClassDeclaration>());
     var declaration = member as ClassDeclaration;
@@ -443,7 +439,7 @@ class A native 'something' {
   void test_parseClassDeclaration_typeParameters_extends_void() {
     parseCompilationUnit(
       'class C<T extends void>{}',
-      errors: [expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 18, 4)],
+      errors: [expectedError(ParserErrorCode.expectedTypeName, 18, 4)],
     );
   }
 
@@ -463,7 +459,7 @@ class A native 'something' {
     var diagnosticCodes = <DiagnosticCode>[];
     // This used to be deferred to later in the pipeline, but is now being
     // reported by the parser.
-    diagnosticCodes.add(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE);
+    diagnosticCodes.add(CompileTimeErrorCode.builtInIdentifierAsType);
     CompilationUnit unit = parseCompilationUnit(
       'abstract<dynamic> _abstract = new abstract.A();',
       codes: diagnosticCodes,
@@ -556,7 +552,7 @@ class A native 'something' {
     expect(unit, isNotNull);
     // This used to be deferred to later in the pipeline, but is now being
     // reported by the parser.
-    assertErrorsWithCodes([CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE]);
+    assertErrorsWithCodes([CompileTimeErrorCode.builtInIdentifierAsType]);
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(0));
     expect(unit.declarations, hasLength(1));
@@ -568,7 +564,7 @@ class A native 'something' {
     expect(unit, isNotNull);
     // This used to be deferred to later in the pipeline, but is now being
     // reported by the parser.
-    assertErrorsWithCodes([CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE]);
+    assertErrorsWithCodes([CompileTimeErrorCode.builtInIdentifierAsType]);
     expect(unit.scriptTag, isNull);
     expect(unit.directives, hasLength(0));
     expect(unit.declarations, hasLength(1));
@@ -1736,7 +1732,7 @@ enum E {
         parseFullCompilationUnitMember() as GenericTypeAlias;
     expect(alias, isNotNull);
     assertErrors(
-      errors: [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 11, 1)],
+      errors: [expectedError(ParserErrorCode.missingIdentifier, 11, 1)],
     );
     expect(alias.name, isNotNull);
     expect(alias.name.lexeme, 'F');
@@ -1754,7 +1750,7 @@ enum E {
         parseFullCompilationUnitMember() as GenericTypeAlias;
     expect(alias, isNotNull);
     assertErrors(
-      errors: [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 10, 2)],
+      errors: [expectedError(ParserErrorCode.missingIdentifier, 10, 2)],
     );
     expect(alias.name, isNotNull);
     expect(alias.name.lexeme, 'F');
@@ -1772,7 +1768,7 @@ enum E {
         parseFullCompilationUnitMember() as GenericTypeAlias;
     expect(alias, isNotNull);
     assertErrors(
-      errors: [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 10, 1)],
+      errors: [expectedError(ParserErrorCode.missingIdentifier, 10, 1)],
     );
     expect(alias.name, isNotNull);
     expect(alias.name.lexeme, 'F');
@@ -2148,7 +2144,7 @@ mixin A {
   void test_parseTopLevelVariable_external_late() {
     var unit = parseCompilationUnit(
       'external late int? i;',
-      errors: [expectedError(ParserErrorCode.EXTERNAL_LATE_FIELD, 0, 8)],
+      errors: [expectedError(ParserErrorCode.externalLateField, 0, 8)],
     );
     var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
     expect(declaration.externalKeyword, isNotNull);
@@ -2157,7 +2153,7 @@ mixin A {
   void test_parseTopLevelVariable_external_late_final() {
     var unit = parseCompilationUnit(
       'external late final int? i;',
-      errors: [expectedError(ParserErrorCode.EXTERNAL_LATE_FIELD, 0, 8)],
+      errors: [expectedError(ParserErrorCode.externalLateField, 0, 8)],
     );
     var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
     expect(declaration.externalKeyword, isNotNull);
@@ -2166,7 +2162,7 @@ mixin A {
   void test_parseTopLevelVariable_final_late() {
     var unit = parseCompilationUnit(
       'final late a;',
-      errors: [expectedError(ParserErrorCode.MODIFIER_OUT_OF_ORDER, 6, 4)],
+      errors: [expectedError(ParserErrorCode.modifierOutOfOrder, 6, 4)],
     );
     var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
     var declarationList = declaration.variables;
@@ -2178,9 +2174,7 @@ mixin A {
   void test_parseTopLevelVariable_late() {
     var unit = parseCompilationUnit(
       'late a;',
-      errors: [
-        expectedError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 5, 1),
-      ],
+      errors: [expectedError(ParserErrorCode.missingConstFinalVarOrType, 5, 1)],
     );
     var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
     var declarationList = declaration.variables;
@@ -2201,9 +2195,7 @@ mixin A {
   void test_parseTopLevelVariable_late_init() {
     var unit = parseCompilationUnit(
       'late a = 0;',
-      errors: [
-        expectedError(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 5, 1),
-      ],
+      errors: [expectedError(ParserErrorCode.missingConstFinalVarOrType, 5, 1)],
     );
     var declaration = unit.declarations[0] as TopLevelVariableDeclaration;
     var declarationList = declaration.variables;

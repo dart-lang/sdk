@@ -10,10 +10,11 @@ void main() {
   Expect.stringEquals("[ A, B ]", "${strings}");
   Expect.stringEquals("[ B, A ]", "${strings.reverse(const Link<String>())}");
 
-  strings = (new LinkBuilder<String>()
-        ..addLast("A")
-        ..addLast("B"))
-      .toLink(const Link<String>());
+  strings =
+      (new LinkBuilder<String>()
+            ..addLast("A")
+            ..addLast("B"))
+          .toLink(const Link<String>());
 
   Expect.stringEquals("[ A, B ]", "${strings}");
   Expect.stringEquals("[ B, A ]", "${strings.reverse(const Link<String>())}");
@@ -33,15 +34,19 @@ void main() {
   Expect.stringEquals("[ A, B ]", "${strings}");
   Expect.stringEquals("[ B, A ]", "${strings.reverse(const Link<String>())}");
 
-  strings = (new LinkBuilder<String>()
-        ..addLast("A")
-        ..addLast("B"))
-      .toLink(const Link<String>());
+  strings =
+      (new LinkBuilder<String>()
+            ..addLast("A")
+            ..addLast("B"))
+          .toLink(const Link<String>());
 
   Expect.stringEquals("[ A, B ]", "${strings}");
   Expect.stringEquals("[ B, A ]", "${strings.reverse(const Link<String>())}");
 
-  Link<int> ints =
-      const Link<int>().prepend(1).reverse(const Link<int>()).tail!.prepend(1);
+  Link<int> ints = const Link<int>()
+      .prepend(1)
+      .reverse(const Link<int>())
+      .tail!
+      .prepend(1);
   Expect.stringEquals("[ 1 ]", "${ints}");
 }

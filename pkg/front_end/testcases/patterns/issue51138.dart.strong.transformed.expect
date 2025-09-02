@@ -8,10 +8,14 @@ static method test(core::List<dynamic> list) → core::String {
     final synthesized core::List<dynamic> #0#0 = list;
     synthesized core::bool #0#4;
     synthesized core::bool #0#4#isSet = false;
+    final const synthesized core::int #0#3 = #C1;
+    final const synthesized core::int #0#7 = #C2;
     synthesized dynamic #0#6;
     synthesized core::bool #0#6#isSet = false;
     synthesized dynamic #0#9;
     synthesized core::bool #0#9#isSet = false;
+    final const synthesized core::int #0#10 = #C3;
+    final const synthesized core::int #0#12 = #C4;
     #L1:
     {
       {

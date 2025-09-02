@@ -23,10 +23,10 @@ class Test {
   B? member2;
 
   static void test(Test? t) {
-    /*@type=Test?*/ /*@promotedType=Test*/ t
+      t
         ?. /*@target=Test.member*/ member = /*@typeArgs=B*/ f();
 
-    t?. /*@target=Test.member2*/ /*@target=Test.member2*/ member2 ??= /*@typeArgs=B?*/ f();
+    /*@type=Test*//*@target=Test.member2*/t?. /*@target=Test.member2*/  member2 ??= /*@typeArgs=B?*/ f();
 
     t?. /*@target=Test.member*/ /*@target=Test.member*/ member /*@target=B.+*/ += /*@typeArgs=C*/ f();
 
@@ -35,15 +35,15 @@ class Test {
     t?. /*@target=Test.member*/ /*@target=Test.member*/ member /*@target=B.&*/ &= /*@typeArgs=A*/ f();
 
     /*@target=B.-*/ --t
-        ?. /*@target=Test.member*/ /*@target=Test.member*/ member;
+        ?.   /*@target=Test.member*//*@target=Test.member*/member;
 
-    t?. /*@target=Test.member*/ /*@target=Test.member*/ member /*@target=B.-*/ --;
+    t?.   /*@target=Test.member*//*@target=Test.member*/member /*@target=B.-*/ --;
 
-    var /*@type=B?*/ v1 = /*@type=Test?*/ /*@promotedType=Test*/ t
+    var /*@type=B?*/ v1 =   t
         ?. /*@target=Test.member*/ member = /*@typeArgs=B*/ f();
 
-    var /*@type=B?*/ v2 = t
-        ?. /*@target=Test.member2*/ /*@target=Test.member2*/ member2 ??= /*@typeArgs=B?*/ f();
+    var /*@type=B?*/ v2 = /*@type=Test*//*@target=Test.member2*/t
+        ?. /*@target=Test.member2*/  member2 ??= /*@typeArgs=B?*/ f();
 
     var /*@type=B?*/ v3 = t
         ?. /*@target=Test.member*/ /*@target=Test.member*/ member /*@target=B.+*/ += /*@typeArgs=C*/ f();
@@ -55,10 +55,10 @@ class Test {
         ?. /*@target=Test.member*/ /*@target=Test.member*/ member /*@target=B.&*/ &= /*@typeArgs=A*/ f();
 
     var /*@type=B?*/ v6 = /*@target=B.-*/ --t
-        ?. /*@target=Test.member*/ /*@target=Test.member*/ member;
+        ?.   /*@target=Test.member*//*@target=Test.member*/member;
 
     var /*@type=B?*/ v7 = t
-        ?. /*@target=Test.member*/ /*@target=Test.member*/ member /*@target=B.-*/ --;
+        ?.   /*@target=Test.member*//*@target=Test.member*/member /*@target=B.-*/ --;
   }
 }
 

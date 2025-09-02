@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class LateFinalFieldWithConstConstructorTest extends PubPackageResolutionTest {
   static const _errorCode =
-      CompileTimeErrorCode.LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR;
+      CompileTimeErrorCode.lateFinalFieldWithConstConstructor;
 
   test_class_hasConstConstructor_instance_hasInitializer() async {
     await assertErrorsInCode(
@@ -121,7 +121,7 @@ extension E on int {
   late final int i;
 }
 ''',
-      [error(CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD, 38, 1)],
+      [error(CompileTimeErrorCode.extensionDeclaresInstanceField, 38, 1)],
     );
   }
 }

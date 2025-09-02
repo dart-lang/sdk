@@ -29,16 +29,16 @@ class C {
 }
 ''',
       errors: [
-        expectedError(ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 18, 4),
-        expectedError(ParserErrorCode.MISSING_IDENTIFIER, 23, 3),
-        expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 23, 3),
-        expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 23, 3),
-        expectedError(ParserErrorCode.MISSING_KEYWORD_OPERATOR, 27, 1),
-        expectedError(ParserErrorCode.INVALID_OPERATOR, 27, 1),
-        expectedError(ParserErrorCode.MISSING_METHOD_PARAMETERS, 27, 1),
-        expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 29, 4),
-        expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 29, 4),
-        expectedError(ParserErrorCode.EXPECTED_CLASS_MEMBER, 33, 1),
+        expectedError(ParserErrorCode.missingAssignmentInInitializer, 18, 4),
+        expectedError(ParserErrorCode.missingIdentifier, 23, 3),
+        expectedError(ParserErrorCode.missingFunctionBody, 23, 3),
+        expectedError(ParserErrorCode.expectedClassMember, 23, 3),
+        expectedError(ParserErrorCode.missingKeywordOperator, 27, 1),
+        expectedError(ParserErrorCode.invalidOperator, 27, 1),
+        expectedError(ParserErrorCode.missingMethodParameters, 27, 1),
+        expectedError(ParserErrorCode.missingFunctionBody, 29, 4),
+        expectedError(ParserErrorCode.expectedClassMember, 29, 4),
+        expectedError(ParserErrorCode.expectedClassMember, 33, 1),
       ],
     );
   }
@@ -315,7 +315,7 @@ class C {
 }
 ''',
       featureSet: FeatureSets.language_2_13,
-      errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 14, 3)],
+      errors: [expectedError(ParserErrorCode.experimentNotEnabled, 14, 3)],
     );
     var classDeclaration = unit.declarations.single as ClassDeclaration;
     var constructorDeclaration =

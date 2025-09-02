@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
-    show Message, LocatedMessage, messageWasmImportOrExportInUserCode;
+    show Message, LocatedMessage, codeWasmImportOrExportInUserCode;
 import 'package:_js_interop_checks/js_interop_checks.dart';
 import 'package:_js_interop_checks/src/js_interop.dart' as jsInteropHelper;
 import 'package:_js_interop_checks/src/transformations/shared_interop_transformer.dart';
@@ -41,7 +41,7 @@ enum Mode {
 }
 
 class Dart2WasmConstantsBackend extends ConstantsBackend {
-  const Dart2WasmConstantsBackend();
+  const Dart2WasmConstantsBackend() : super(keepLocals: false);
 
   @override
   bool get supportsUnevaluatedConstants => true;
@@ -599,7 +599,7 @@ void _checkWasmImportExportPragmas(List<Library> libraries, CoreTypes coreTypes,
             if (pragmaName.value == 'wasm:import' ||
                 pragmaName.value == 'wasm:export') {
               diagnosticReporter.report(
-                messageWasmImportOrExportInUserCode,
+                codeWasmImportOrExportInUserCode,
                 annotation.fileOffset,
                 0,
                 library.fileUri,

@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/name_union.dart';
 import 'package:analyzer/src/fine/library_manifest.dart';
+import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/summary2/bundle_writer.dart';
 import 'package:analyzer/src/summary2/detach_nodes.dart';
 import 'package:analyzer/src/summary2/enclosing_type_parameters_flag.dart';
@@ -85,6 +86,10 @@ class Linker {
   /// from which it was created.
   ast.AstNode? getLinkingNode2(Fragment fragment) {
     return elementNodes[fragment];
+  }
+
+  bool isLinkingElement(Element element) {
+    return builders.containsKey(element.library?.uri);
   }
 
   void link({
@@ -221,8 +226,13 @@ class Linker {
       _computeLibraryScopes(performance: performance);
     });
 
+    globalResultRequirements?.addExcludedLibraries(
+      builders.values.map((builder) => builder.uri),
+    );
+
     _createTypeSystem();
     _resolveTypes();
+    _computeHasNonFinalField();
     _setDefaultSupertypes();
 
     _buildClassSyntheticConstructors();
@@ -256,10 +266,52 @@ class Linker {
     }
   }
 
-  void _computeLibraryScopes({required OperationPerformanceImpl performance}) {
-    for (var library in builders.values) {
-      library.buildElements();
+  /// Set [InterfaceElementImpl.hasNonFinalField] for classes and mixins.
+  ///
+  /// We actually use it only for classes (which can have `const` constructors),
+  /// but mixins contribute to it.
+  void _computeHasNonFinalField() {
+    var linkingElements = builders.values
+        .expand((builder) => builder.element.children)
+        .whereType<InterfaceElementImpl>()
+        .toSet();
+
+    var alreadyComputed = Set<InterfaceElementImpl>.identity();
+
+    bool computeFor(InterfaceElementImpl element) {
+      if (!linkingElements.contains(element) || !alreadyComputed.add(element)) {
+        return element.hasNonFinalField;
+      }
+
+      var hasNonFinalField = [
+        element.supertype,
+        ...element.mixins,
+      ].nonNulls.any((type) => computeFor(type.element));
+
+      hasNonFinalField |= element.fields.any((field) {
+        return !field.isFinal &&
+            !field.isConst &&
+            !field.isStatic &&
+            !field.isSynthetic;
+      });
+
+      return element.hasNonFinalField = hasNonFinalField;
     }
+
+    for (var element in linkingElements) {
+      computeFor(element);
+    }
+  }
+
+  void _computeLibraryScopes({required OperationPerformanceImpl performance}) {
+    globalResultRequirements.untracked(
+      reason: 'No complete elements yet',
+      operation: () {
+        for (var library in builders.values) {
+          library.buildElements();
+        }
+      },
+    );
 
     _buildExportScopes();
   }

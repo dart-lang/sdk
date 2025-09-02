@@ -32,7 +32,7 @@ class ErrorReporterTest extends PubPackageResolutionTest {
     );
     reporter.atElement2(
       element,
-      CompileTimeErrorCode.CAST_TO_NON_TYPE,
+      CompileTimeErrorCode.castToNonType,
       arguments: ['A'],
     );
 
@@ -53,7 +53,7 @@ extension on int {}
     );
     reporter.atElement2(
       element,
-      CompileTimeErrorCode.CAST_TO_NON_TYPE,
+      CompileTimeErrorCode.castToNonType,
       arguments: ['A'],
     );
 
@@ -95,7 +95,7 @@ main() {
 
     reporter.atNode(
       findNode.simple('x'),
-      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+      CompileTimeErrorCode.argumentTypeNotAssignable,
       arguments: [firstType, secondType, ''],
     );
 
@@ -136,7 +136,7 @@ main() {
     );
     reporter.atNode(
       findNode.simple('x'),
-      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+      CompileTimeErrorCode.argumentTypeNotAssignable,
       arguments: [firstType, secondType, ''],
     );
 
@@ -165,7 +165,7 @@ main() {
     var reporter = DiagnosticReporter(listener, source);
     reporter.atNode(
       findNode.simple('x'),
-      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+      CompileTimeErrorCode.argumentTypeNotAssignable,
       arguments: [fa.variables.type!.type!, fb.variables.type!.type!, ''],
     );
 
@@ -196,7 +196,7 @@ main() {
     var reporter = DiagnosticReporter(listener, source);
     reporter.atNode(
       findNode.simple('x'),
-      CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+      CompileTimeErrorCode.argumentTypeNotAssignable,
       arguments: [ba.variables.type!.type!, bb.variables.type!.type!, ''],
     );
 
@@ -225,7 +225,7 @@ zap: baz
 
     reporter.atSourceSpan(
       span,
-      AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE,
+      AnalysisOptionsWarningCode.unsupportedOptionWithLegalValue,
       arguments: ['test', 'zip', 'zap'],
     );
     expect(listener.diagnostics, hasLength(1));

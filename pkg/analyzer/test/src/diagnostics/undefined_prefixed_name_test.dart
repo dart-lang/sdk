@@ -22,7 +22,7 @@ class UndefinedPrefixedNameTest extends PubPackageResolutionTest {
 import 'lib.dart' as p;
 f() => p.c;
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME, 33, 1)],
+      [error(CompileTimeErrorCode.undefinedPrefixedName, 33, 1)],
     );
   }
 
@@ -35,7 +35,7 @@ void f() {
   p.new;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME, 39, 3)],
+      [error(CompileTimeErrorCode.undefinedPrefixedName, 39, 3)],
     );
   }
 
@@ -48,7 +48,7 @@ f() {
   p.c = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME, 34, 1)],
+      [error(CompileTimeErrorCode.undefinedPrefixedName, 34, 1)],
     );
   }
 }

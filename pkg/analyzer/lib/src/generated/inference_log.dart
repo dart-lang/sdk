@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/type_inference/shared_inference_log.dart';
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -221,6 +222,27 @@ final class _InferenceLogWriterImpl extends SharedInferenceLogWriterImpl
   void exitBodyOrInitializer() {
     assert(_inBodyOrInitializer, 'Not in a method body or initializer');
     _inBodyOrInitializer = false;
+  }
+
+  @override
+  void recordExpressionRewrite({
+    Object? oldExpression,
+    required Object newExpression,
+  }) {
+    if (oldExpression != null) {
+      assertExpressionWasRecorded(oldExpression);
+    }
+    _recordedExpressions[newExpression] = true;
+    super.recordExpressionRewrite(
+      oldExpression: oldExpression,
+      newExpression: newExpression,
+    );
+  }
+
+  @override
+  void recordNullShortedType(Object expression, SharedType type) {
+    assertExpressionWasRecorded(expression);
+    super.recordNullShortedType(expression, type);
   }
 
   @override

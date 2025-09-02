@@ -22,7 +22,7 @@ enum E<T, U> {
   v<int>()
 }
 ''',
-      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM, 18, 5)],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsEnum, 18, 5)],
     );
   }
 
@@ -33,7 +33,7 @@ enum E<T> {
   v<int, int>()
 }
 ''',
-      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM, 15, 10)],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsEnum, 15, 10)],
     );
   }
 }

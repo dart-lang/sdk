@@ -22,7 +22,7 @@ mixin A {
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 1),
+      error(ParserErrorCode.mixinDeclaresConstructor, 12, 1),
     ]);
 
     // Mixins cannot have constructors.

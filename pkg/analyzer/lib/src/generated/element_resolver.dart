@@ -348,13 +348,13 @@ class ElementResolver {
       if (name != null) {
         _diagnosticReporter.atNode(
           node,
-          CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER,
+          CompileTimeErrorCode.undefinedConstructorInInitializer,
           arguments: [superType, name.name],
         );
       } else {
         _diagnosticReporter.atNode(
           node,
-          CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
+          CompileTimeErrorCode.undefinedConstructorInInitializerDefault,
           arguments: [superType],
         );
       }
@@ -367,7 +367,7 @@ class ElementResolver {
           )) {
         _diagnosticReporter.atNode(
           node,
-          CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR,
+          CompileTimeErrorCode.nonGenerativeConstructor,
           arguments: [element],
         );
       }
@@ -404,17 +404,14 @@ class ElementResolver {
       case SuperContext.static:
         _diagnosticReporter.atNode(
           node,
-          CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT,
+          CompileTimeErrorCode.superInInvalidContext,
         );
       case SuperContext.extension:
-        _diagnosticReporter.atNode(
-          node,
-          CompileTimeErrorCode.SUPER_IN_EXTENSION,
-        );
+        _diagnosticReporter.atNode(node, CompileTimeErrorCode.superInExtension);
       case SuperContext.extensionType:
         _diagnosticReporter.atNode(
           node,
-          CompileTimeErrorCode.SUPER_IN_EXTENSION_TYPE,
+          CompileTimeErrorCode.superInExtensionType,
         );
     }
   }

@@ -22,7 +22,7 @@ class ClassHierarchyBuilder
   final Map<Class, ClassHierarchyNode> classNodes = {};
 
   final Map<ExtensionTypeDeclaration, ExtensionTypeHierarchyNode>
-      extensionTypeNodes = {};
+  extensionTypeNodes = {};
 
   final ClassBuilder objectClassBuilder;
 
@@ -40,9 +40,9 @@ class ClassHierarchyBuilder
   late Types types;
 
   ClassHierarchyBuilder(this.objectClassBuilder, this.loader, this.coreTypes)
-      : objectClass = objectClassBuilder.cls,
-        futureClass = coreTypes.futureClass,
-        functionClass = coreTypes.functionClass {
+    : objectClass = objectClassBuilder.cls,
+      futureClass = coreTypes.futureClass,
+      functionClass = coreTypes.functionClass {
     types = new Types(this);
   }
 
@@ -52,8 +52,10 @@ class ClassHierarchyBuilder
   }
 
   ClassHierarchyNode getNodeFromClassBuilder(ClassBuilder classBuilder) {
-    return classNodes[classBuilder.cls] ??=
-        new ClassHierarchyNodeBuilder(this, classBuilder).build();
+    return classNodes[classBuilder.cls] ??= new ClassHierarchyNodeBuilder(
+      this,
+      classBuilder,
+    ).build();
   }
 
   ClassHierarchyNode getNodeFromClass(Class cls) {
@@ -62,17 +64,24 @@ class ClassHierarchyBuilder
   }
 
   ExtensionTypeHierarchyNode getNodeFromExtensionTypeDeclarationBuilder(
-      ExtensionTypeDeclarationBuilder extensionTypeBuilder) {
+    ExtensionTypeDeclarationBuilder extensionTypeBuilder,
+  ) {
     return extensionTypeNodes[extensionTypeBuilder.extensionTypeDeclaration] ??=
-        new ExtensionTypeHierarchyNodeBuilder(this, extensionTypeBuilder)
-            .build();
+        new ExtensionTypeHierarchyNodeBuilder(
+          this,
+          extensionTypeBuilder,
+        ).build();
   }
 
   ExtensionTypeHierarchyNode getNodeFromExtensionType(
-      ExtensionTypeDeclaration extensionType) {
+    ExtensionTypeDeclaration extensionType,
+  ) {
     return extensionTypeNodes[extensionType] ??
-        getNodeFromExtensionTypeDeclarationBuilder(loader
-            .computeExtensionTypeBuilderFromTargetExtensionType(extensionType));
+        getNodeFromExtensionTypeDeclarationBuilder(
+          loader.computeExtensionTypeBuilderFromTargetExtensionType(
+            extensionType,
+          ),
+        );
   }
 
   Supertype? asSupertypeOf(InterfaceType subtype, Class supertype) {
@@ -112,16 +121,21 @@ class ClassHierarchyBuilder
 
   @override
   InterfaceType? getInterfaceTypeAsInstanceOfClass(
-      InterfaceType type, Class superclass) {
+    InterfaceType type,
+    Class superclass,
+  ) {
     if (type.classNode == superclass) return type;
-    return asSupertypeOf(type, superclass)
-        ?.asInterfaceType
-        .withDeclaredNullability(type.nullability);
+    return asSupertypeOf(
+      type,
+      superclass,
+    )?.asInterfaceType.withDeclaredNullability(type.nullability);
   }
 
   @override
   List<DartType>? getInterfaceTypeArgumentsAsInstanceOfClass(
-      InterfaceType type, Class superclass) {
+    InterfaceType type,
+    Class superclass,
+  ) {
     if (type.classReference == superclass.reference) return type.typeArguments;
     return asSupertypeOf(type, superclass)?.typeArguments;
   }
@@ -134,10 +148,11 @@ class ClassHierarchyBuilder
 
   // Coverage-ignore(suite): Not run.
   InterfaceType _getLegacyLeastUpperBoundInternal(
-      TypeDeclarationType type1,
-      TypeDeclarationType type2,
-      List<ClassHierarchyNode> supertypeNodes1,
-      List<ClassHierarchyNode> supertypeNodes2) {
+    TypeDeclarationType type1,
+    TypeDeclarationType type2,
+    List<ClassHierarchyNode> supertypeNodes1,
+    List<ClassHierarchyNode> supertypeNodes2,
+  ) {
     Set<ClassHierarchyNode> supertypeNodesSet1 = supertypeNodes1.toSet();
     List<ClassHierarchyNode> common = <ClassHierarchyNode>[];
 
@@ -148,10 +163,14 @@ class ClassHierarchyBuilder
         continue;
       }
       if (supertypeNodesSet1.contains(node)) {
-        DartType candidate1 =
-            getTypeAsInstanceOf(type1, node.classBuilder.cls)!;
-        DartType candidate2 =
-            getTypeAsInstanceOf(type2, node.classBuilder.cls)!;
+        DartType candidate1 = getTypeAsInstanceOf(
+          type1,
+          node.classBuilder.cls,
+        )!;
+        DartType candidate2 = getTypeAsInstanceOf(
+          type2,
+          node.classBuilder.cls,
+        )!;
         if (candidate1 == candidate2) {
           common.add(node);
         }
@@ -165,7 +184,8 @@ class ClassHierarchyBuilder
         return coreTypes.objectNullableRawType;
       } else {
         return coreTypes.objectRawType(
-            uniteNullabilities(type1.nullability, type2.nullability));
+          uniteNullabilities(type1.nullability, type2.nullability),
+        );
       }
     }
     common.sort(ClassHierarchyNode.compareMaxInheritancePath);
@@ -173,9 +193,12 @@ class ClassHierarchyBuilder
     for (int i = 0; i < common.length - 1; i++) {
       ClassHierarchyNode node = common[i];
       if (node.maxInheritancePath != common[i + 1].maxInheritancePath) {
-        return getTypeAsInstanceOf(type1, node.classBuilder.cls)!
-                .withDeclaredNullability(
-                    uniteNullabilities(type1.nullability, type2.nullability))
+        return getTypeAsInstanceOf(
+              type1,
+              node.classBuilder.cls,
+            )!.withDeclaredNullability(
+              uniteNullabilities(type1.nullability, type2.nullability),
+            )
             as InterfaceType;
       } else {
         do {
@@ -188,60 +211,79 @@ class ClassHierarchyBuilder
       return coreTypes.objectNullableRawType;
     } else {
       return coreTypes.objectRawType(
-          uniteNullabilities(type1.nullability, type2.nullability));
+        uniteNullabilities(type1.nullability, type2.nullability),
+      );
     }
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   InterfaceType getLegacyLeastUpperBound(
-      InterfaceType type1, InterfaceType type2) {
+    InterfaceType type1,
+    InterfaceType type2,
+  ) {
     if (type1 == type2) return type1;
 
     return getLegacyLeastUpperBoundFromSupertypeLists(
-        type1, type2, <InterfaceType>[type1], <InterfaceType>[type2]);
+      type1,
+      type2,
+      <InterfaceType>[type1],
+      <InterfaceType>[type2],
+    );
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   InterfaceType getLegacyLeastUpperBoundFromSupertypeLists(
-      TypeDeclarationType type1,
-      TypeDeclarationType type2,
-      List<InterfaceType> supertypes1,
-      List<InterfaceType> supertypes2) {
+    TypeDeclarationType type1,
+    TypeDeclarationType type2,
+    List<InterfaceType> supertypes1,
+    List<InterfaceType> supertypes2,
+  ) {
     List<ClassHierarchyNode> supertypeNodes1 = <ClassHierarchyNode>[
       for (InterfaceType supertype in supertypes1)
-        ...getNodeFromClass(supertype.classNode).computeAllSuperNodes(this)
+        ...getNodeFromClass(supertype.classNode).computeAllSuperNodes(this),
     ];
     List<ClassHierarchyNode> supertypeNodes2 = <ClassHierarchyNode>[
       for (InterfaceType supertype in supertypes2)
-        ...getNodeFromClass(supertype.classNode).computeAllSuperNodes(this)
+        ...getNodeFromClass(supertype.classNode).computeAllSuperNodes(this),
     ];
 
     return _getLegacyLeastUpperBoundInternal(
-        type1, type2, supertypeNodes1, supertypeNodes2);
+      type1,
+      type2,
+      supertypeNodes1,
+      supertypeNodes2,
+    );
   }
 
   static ClassHierarchyBuilder build(
-      ClassBuilder objectClass,
-      List<SourceClassBuilder> classes,
-      List<SourceExtensionTypeDeclarationBuilder> extensionTypes,
-      SourceLoader loader,
-      CoreTypes coreTypes) {
-    ClassHierarchyBuilder hierarchy =
-        new ClassHierarchyBuilder(objectClass, loader, coreTypes);
+    ClassBuilder objectClass,
+    List<SourceClassBuilder> classes,
+    List<SourceExtensionTypeDeclarationBuilder> extensionTypes,
+    SourceLoader loader,
+    CoreTypes coreTypes,
+  ) {
+    ClassHierarchyBuilder hierarchy = new ClassHierarchyBuilder(
+      objectClass,
+      loader,
+      coreTypes,
+    );
     for (int i = 0; i < classes.length; i++) {
       SourceClassBuilder classBuilder = classes[i];
-      hierarchy.classNodes[classBuilder.cls] =
-          new ClassHierarchyNodeBuilder(hierarchy, classBuilder).build();
+      hierarchy.classNodes[classBuilder.cls] = new ClassHierarchyNodeBuilder(
+        hierarchy,
+        classBuilder,
+      ).build();
     }
     for (int i = 0; i < extensionTypes.length; i++) {
       SourceExtensionTypeDeclarationBuilder extensionTypeBuilder =
           extensionTypes[i];
-      hierarchy.extensionTypeNodes[
-              extensionTypeBuilder.extensionTypeDeclaration] =
-          new ExtensionTypeHierarchyNodeBuilder(hierarchy, extensionTypeBuilder)
-              .build();
+      hierarchy.extensionTypeNodes[extensionTypeBuilder
+          .extensionTypeDeclaration] = new ExtensionTypeHierarchyNodeBuilder(
+        hierarchy,
+        extensionTypeBuilder,
+      ).build();
     }
     return hierarchy;
   }

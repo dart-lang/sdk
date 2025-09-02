@@ -140,7 +140,7 @@ Future<List<int>> f() async {}
 ''',
       errorFilter: (error) {
         return error.diagnosticCode ==
-            CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE;
+            CompileTimeErrorCode.illegalAsyncReturnType;
       },
     );
   }
@@ -166,7 +166,7 @@ al.Future<int> f() async {}
 ''',
       errorFilter: (error) {
         return error.diagnosticCode ==
-            CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE;
+            CompileTimeErrorCode.illegalAsyncReturnType;
       },
     );
   }
@@ -196,7 +196,7 @@ Future<int> f() async {}
 ''',
       errorFilter: (error) {
         return error.diagnosticCode ==
-            CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE;
+            CompileTimeErrorCode.illegalAsyncReturnType;
       },
     );
   }

@@ -38,8 +38,10 @@ abstract class TokenStreamRewriter {
 
     Token next = token.next!;
     int offset = next.charOffset;
-    BeginToken leftParen =
-        next = new SyntheticBeginToken(TokenType.OPEN_PAREN, offset);
+    BeginToken leftParen = next = new SyntheticBeginToken(
+      TokenType.OPEN_PAREN,
+      offset,
+    );
     if (includeIdentifier) {
       next = _setNext(
         next,

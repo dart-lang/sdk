@@ -30,7 +30,7 @@ abstract class C implements A, B {
   set foo(int _) {}
 }
 ''',
-      [error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 103, 3)],
+      [error(CompileTimeErrorCode.conflictingFieldAndMethod, 103, 3)],
     );
   }
 
@@ -49,7 +49,7 @@ abstract class C implements A, B {}
 ''',
       [
         error(
-          CompileTimeErrorCode.CONFLICTING_INHERITED_METHOD_AND_SETTER,
+          CompileTimeErrorCode.conflictingInheritedMethodAndSetter,
           77,
           1,
           contextMessages: [message(testFile, 17, 3), message(testFile, 45, 3)],
@@ -73,7 +73,7 @@ abstract class C with A implements B {}
 ''',
       [
         error(
-          CompileTimeErrorCode.CONFLICTING_INHERITED_METHOD_AND_SETTER,
+          CompileTimeErrorCode.conflictingInheritedMethodAndSetter,
           77,
           1,
           contextMessages: [message(testFile, 17, 3), message(testFile, 45, 3)],
@@ -97,7 +97,7 @@ abstract class C extends A implements B {}
 ''',
       [
         error(
-          CompileTimeErrorCode.CONFLICTING_INHERITED_METHOD_AND_SETTER,
+          CompileTimeErrorCode.conflictingInheritedMethodAndSetter,
           77,
           1,
           contextMessages: [message(testFile, 17, 3), message(testFile, 45, 3)],
@@ -121,7 +121,7 @@ abstract class C extends A with B {}
 ''',
       [
         error(
-          CompileTimeErrorCode.CONFLICTING_INHERITED_METHOD_AND_SETTER,
+          CompileTimeErrorCode.conflictingInheritedMethodAndSetter,
           77,
           1,
           contextMessages: [message(testFile, 17, 3), message(testFile, 45, 3)],
@@ -145,7 +145,7 @@ extension type C(Object? it) implements A, B {}
 ''',
       [
         error(
-          CompileTimeErrorCode.CONFLICTING_INHERITED_METHOD_AND_SETTER,
+          CompileTimeErrorCode.conflictingInheritedMethodAndSetter,
           119,
           1,
           contextMessages: [message(testFile, 38, 3), message(testFile, 87, 3)],

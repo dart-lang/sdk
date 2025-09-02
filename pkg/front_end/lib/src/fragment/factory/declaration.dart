@@ -44,49 +44,60 @@ abstract class FactoryDeclaration {
 
   ConstructorReferenceBuilder? get redirectionTarget;
 
-  void createEncoding(
-      {required ProblemReporting problemReporting,
-      required DeclarationBuilder declarationBuilder,
-      required SourceFactoryBuilder factoryBuilder,
-      required TypeParameterFactory typeParameterFactory,
-      required FactoryEncodingStrategy encodingStrategy});
+  void createEncoding({
+    required ProblemReporting problemReporting,
+    required DeclarationBuilder declarationBuilder,
+    required SourceFactoryBuilder factoryBuilder,
+    required TypeParameterFactory typeParameterFactory,
+    required FactoryEncodingStrategy encodingStrategy,
+  });
 
-  void buildOutlineExpressions(
-      {required Iterable<Annotatable> annotatables,
-      required Uri annotatablesFileUri,
-      required SourceLibraryBuilder libraryBuilder,
-      required SourceFactoryBuilder factoryBuilder,
-      required ClassHierarchy classHierarchy,
-      required List<DelayedDefaultValueCloner> delayedDefaultValueCloners});
+  void buildOutlineExpressions({
+    required Iterable<Annotatable> annotatables,
+    required Uri annotatablesFileUri,
+    required SourceLibraryBuilder libraryBuilder,
+    required SourceFactoryBuilder factoryBuilder,
+    required ClassHierarchy classHierarchy,
+    required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+  });
 
-  void buildOutlineNodes(
-      {required SourceLibraryBuilder libraryBuilder,
-      required SourceFactoryBuilder factoryBuilder,
-      required BuildNodesCallback f,
-      required NameScheme nameScheme,
-      required FactoryReferences? factoryReferences,
-      required bool isConst});
+  void buildOutlineNodes({
+    required SourceLibraryBuilder libraryBuilder,
+    required SourceFactoryBuilder factoryBuilder,
+    required BuildNodesCallback f,
+    required NameScheme nameScheme,
+    required FactoryReferences? factoryReferences,
+    required bool isConst,
+  });
 
   /// Checks this factory builder if it is for a redirecting factory.
-  void checkRedirectingFactory(
-      {required SourceLibraryBuilder libraryBuilder,
-      required SourceFactoryBuilder factoryBuilder,
-      required TypeEnvironment typeEnvironment});
+  void checkRedirectingFactory({
+    required SourceLibraryBuilder libraryBuilder,
+    required SourceFactoryBuilder factoryBuilder,
+    required TypeEnvironment typeEnvironment,
+  });
 
-  void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
-      TypeEnvironment typeEnvironment);
+  void checkTypes(
+    SourceLibraryBuilder library,
+    NameSpace nameSpace,
+    TypeEnvironment typeEnvironment,
+  );
 
-  int computeDefaultTypes(ComputeDefaultTypeContext context,
-      {required bool inErrorRecovery});
+  int computeDefaultTypes(
+    ComputeDefaultTypeContext context, {
+    required bool inErrorRecovery,
+  });
 
-  void inferRedirectionTarget(
-      {required SourceLibraryBuilder libraryBuilder,
-      required SourceFactoryBuilder factoryBuilder,
-      required ClassHierarchy classHierarchy,
-      required List<DelayedDefaultValueCloner> delayedDefaultValueCloners});
+  void inferRedirectionTarget({
+    required SourceLibraryBuilder libraryBuilder,
+    required SourceFactoryBuilder factoryBuilder,
+    required ClassHierarchy classHierarchy,
+    required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+  });
 
-  void resolveRedirectingFactory(
-      {required SourceLibraryBuilder libraryBuilder});
+  void resolveRedirectingFactory({
+    required SourceLibraryBuilder libraryBuilder,
+  });
 
   bool get isRedirectingFactory;
 }
@@ -103,32 +114,39 @@ class FactoryDeclarationImpl
   }
 
   @override
-  void createEncoding(
-      {required ProblemReporting problemReporting,
-      required DeclarationBuilder declarationBuilder,
-      required SourceFactoryBuilder factoryBuilder,
-      required TypeParameterFactory typeParameterFactory,
-      required FactoryEncodingStrategy encodingStrategy}) {
+  void createEncoding({
+    required ProblemReporting problemReporting,
+    required DeclarationBuilder declarationBuilder,
+    required SourceFactoryBuilder factoryBuilder,
+    required TypeParameterFactory typeParameterFactory,
+    required FactoryEncodingStrategy encodingStrategy,
+  }) {
     _fragment.builder = factoryBuilder;
-    var (typeParameters, returnType) =
-        encodingStrategy.createTypeParametersAndReturnType(
-            declarationBuilder: declarationBuilder,
-            declarationTypeParameterFragments:
-                _fragment.enclosingDeclaration.typeParameters,
-            typeParameterFactory: typeParameterFactory,
-            fullName: _fragment.constructorName.fullName,
-            fileUri: _fragment.fileUri,
-            fullNameOffset: _fragment.constructorName.fullNameOffset,
-            fullNameLength: _fragment.constructorName.fullNameLength);
+    var (typeParameters, returnType) = encodingStrategy
+        .createTypeParametersAndReturnType(
+          declarationBuilder: declarationBuilder,
+          declarationTypeParameterFragments:
+              _fragment.enclosingDeclaration.typeParameters,
+          typeParameterFactory: typeParameterFactory,
+          fullName: _fragment.constructorName.fullName,
+          fileUri: _fragment.fileUri,
+          fullNameOffset: _fragment.constructorName.fullNameOffset,
+          fullNameLength: _fragment.constructorName.fullNameLength,
+        );
     _typeParameters = typeParameters;
     _returnType = returnType;
     _fragment.typeParameterNameSpace.addTypeParameters(
-        problemReporting, typeParameters,
-        ownerName: _fragment.name, allowNameConflict: true);
-    _encoding = new FactoryEncoding(_fragment,
-        typeParameters: typeParameters,
-        returnType: returnType,
-        redirectionTarget: _fragment.redirectionTarget);
+      problemReporting,
+      typeParameters,
+      ownerName: _fragment.name,
+      allowNameConflict: true,
+    );
+    _encoding = new FactoryEncoding(
+      _fragment,
+      typeParameters: typeParameters,
+      returnType: returnType,
+      redirectionTarget: _fragment.redirectionTarget,
+    );
   }
 
   @override
@@ -176,31 +194,37 @@ class FactoryDeclarationImpl
   }
 
   @override
-  void buildOutlineExpressions(
-      {required Iterable<Annotatable> annotatables,
-      required Uri annotatablesFileUri,
-      required SourceLibraryBuilder libraryBuilder,
-      required SourceFactoryBuilder factoryBuilder,
-      required ClassHierarchy classHierarchy,
-      required List<DelayedDefaultValueCloner> delayedDefaultValueCloners}) {
+  void buildOutlineExpressions({
+    required Iterable<Annotatable> annotatables,
+    required Uri annotatablesFileUri,
+    required SourceLibraryBuilder libraryBuilder,
+    required SourceFactoryBuilder factoryBuilder,
+    required ClassHierarchy classHierarchy,
+    required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+  }) {
     _fragment.formals?.infer(classHierarchy);
 
-    BodyBuilderContext bodyBuilderContext =
-        createBodyBuilderContext(factoryBuilder);
+    BodyBuilderContext bodyBuilderContext = createBodyBuilderContext(
+      factoryBuilder,
+    );
 
     for (Annotatable annotatable in annotatables) {
       MetadataBuilder.buildAnnotations(
-          annotatable: annotatable,
-          annotatableFileUri: annotatablesFileUri,
-          metadata: _fragment.metadata,
-          bodyBuilderContext: bodyBuilderContext,
-          libraryBuilder: libraryBuilder,
-          scope: _fragment.enclosingScope);
+        annotatable: annotatable,
+        annotatableFileUri: annotatablesFileUri,
+        metadata: _fragment.metadata,
+        bodyBuilderContext: bodyBuilderContext,
+        libraryBuilder: libraryBuilder,
+        scope: _fragment.enclosingScope,
+      );
     }
     if (_typeParameters != null) {
       for (int i = 0; i < _typeParameters.length; i++) {
         _typeParameters[i].buildOutlineExpressions(
-            libraryBuilder, bodyBuilderContext, classHierarchy);
+          libraryBuilder,
+          bodyBuilderContext,
+          classHierarchy,
+        );
       }
     }
 
@@ -211,75 +235,97 @@ class FactoryDeclarationImpl
       // consuming too much memory.
       for (FormalParameterBuilder formal in _fragment.formals!) {
         formal.buildOutlineExpressions(
-            libraryBuilder, factoryBuilder.declarationBuilder,
-            scope: _fragment.typeParameterScope,
-            buildDefaultValue: FormalParameterBuilder
-                .needsDefaultValuesBuiltAsOutlineExpressions(factoryBuilder));
+          libraryBuilder,
+          factoryBuilder.declarationBuilder,
+          scope: _fragment.typeParameterScope,
+          buildDefaultValue:
+              FormalParameterBuilder // force line break
+              .needsDefaultValuesBuiltAsOutlineExpressions(factoryBuilder),
+        );
       }
     }
 
     _encoding.buildOutlineExpressions(
-        delayedDefaultValueCloners: delayedDefaultValueCloners);
+      delayedDefaultValueCloners: delayedDefaultValueCloners,
+    );
   }
 
   @override
-  void buildOutlineNodes(
-      {required SourceLibraryBuilder libraryBuilder,
-      required SourceFactoryBuilder factoryBuilder,
-      required BuildNodesCallback f,
-      required NameScheme nameScheme,
-      required FactoryReferences? factoryReferences,
-      required bool isConst}) {
+  void buildOutlineNodes({
+    required SourceLibraryBuilder libraryBuilder,
+    required SourceFactoryBuilder factoryBuilder,
+    required BuildNodesCallback f,
+    required NameScheme nameScheme,
+    required FactoryReferences? factoryReferences,
+    required bool isConst,
+  }) {
     _encoding.buildOutlineNodes(
-        libraryBuilder: libraryBuilder,
-        factoryBuilder: factoryBuilder,
-        f: f,
-        name: _fragment.name,
-        nameScheme: nameScheme,
-        factoryReferences: factoryReferences,
-        isConst: isConst);
+      libraryBuilder: libraryBuilder,
+      factoryBuilder: factoryBuilder,
+      f: f,
+      name: _fragment.name,
+      nameScheme: nameScheme,
+      factoryReferences: factoryReferences,
+      isConst: isConst,
+    );
   }
 
   @override
-  void checkRedirectingFactory(
-      {required SourceLibraryBuilder libraryBuilder,
-      required SourceFactoryBuilder factoryBuilder,
-      required TypeEnvironment typeEnvironment}) {
+  void checkRedirectingFactory({
+    required SourceLibraryBuilder libraryBuilder,
+    required SourceFactoryBuilder factoryBuilder,
+    required TypeEnvironment typeEnvironment,
+  }) {
     _encoding.checkRedirectingFactory(
-        libraryBuilder: libraryBuilder,
-        factoryBuilder: factoryBuilder,
-        typeEnvironment: typeEnvironment);
+      libraryBuilder: libraryBuilder,
+      factoryBuilder: factoryBuilder,
+      typeEnvironment: typeEnvironment,
+    );
   }
 
   @override
-  void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
-      TypeEnvironment typeEnvironment) {
+  void checkTypes(
+    SourceLibraryBuilder library,
+    NameSpace nameSpace,
+    TypeEnvironment typeEnvironment,
+  ) {
     if (_fragment.redirectionTarget != null) {
       // Default values are not required on redirecting factory constructors so
       // we don't call [checkInitializersInFormals].
     } else {
-      library.checkInitializersInFormals(_fragment.formals, typeEnvironment,
-          isAbstract: _fragment.modifiers.isAbstract,
-          isExternal: _fragment.modifiers.isExternal);
+      library.checkInitializersInFormals(
+        _fragment.formals,
+        typeEnvironment,
+        isAbstract: _fragment.modifiers.isAbstract,
+        isExternal: _fragment.modifiers.isExternal,
+      );
     }
   }
 
   @override
-  int computeDefaultTypes(ComputeDefaultTypeContext context,
-      {required bool inErrorRecovery}) {
-    int count = context.computeDefaultTypesForVariables(_typeParameters,
-        // Type parameters are inherited from the enclosing declaration, so if
-        // it has issues, so do the constructors.
-        inErrorRecovery: inErrorRecovery);
+  int computeDefaultTypes(
+    ComputeDefaultTypeContext context, {
+    required bool inErrorRecovery,
+  }) {
+    int count = context.computeDefaultTypesForVariables(
+      _typeParameters,
+      // Type parameters are inherited from the enclosing declaration, so if
+      // it has issues, so do the constructors.
+      inErrorRecovery: inErrorRecovery,
+    );
     context.reportGenericFunctionTypesForFormals(_fragment.formals);
     return count;
   }
 
   @override
   BodyBuilderContext createBodyBuilderContext(
-      SourceFactoryBuilder factoryBuilder) {
+    SourceFactoryBuilder factoryBuilder,
+  ) {
     return new FactoryBodyBuilderContext(
-        factoryBuilder, this, _encoding.procedure);
+      factoryBuilder,
+      this,
+      _encoding.procedure,
+    );
   }
 
   @override
@@ -297,24 +343,28 @@ class FactoryDeclarationImpl
   }
 
   @override
-  void inferRedirectionTarget(
-      {required SourceLibraryBuilder libraryBuilder,
-      required SourceFactoryBuilder factoryBuilder,
-      required ClassHierarchy classHierarchy,
-      required List<DelayedDefaultValueCloner> delayedDefaultValueCloners}) {
-    BodyBuilderContext bodyBuilderContext =
-        createBodyBuilderContext(factoryBuilder);
+  void inferRedirectionTarget({
+    required SourceLibraryBuilder libraryBuilder,
+    required SourceFactoryBuilder factoryBuilder,
+    required ClassHierarchy classHierarchy,
+    required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+  }) {
+    BodyBuilderContext bodyBuilderContext = createBodyBuilderContext(
+      factoryBuilder,
+    );
     _encoding.inferRedirectionTarget(
-        libraryBuilder: libraryBuilder,
-        declarationBuilder: factoryBuilder.declarationBuilder,
-        bodyBuilderContext: bodyBuilderContext,
-        classHierarchy: classHierarchy,
-        delayedDefaultValueCloners: delayedDefaultValueCloners);
+      libraryBuilder: libraryBuilder,
+      declarationBuilder: factoryBuilder.declarationBuilder,
+      bodyBuilderContext: bodyBuilderContext,
+      classHierarchy: classHierarchy,
+      delayedDefaultValueCloners: delayedDefaultValueCloners,
+    );
   }
 
   @override
-  void resolveRedirectingFactory(
-      {required SourceLibraryBuilder libraryBuilder}) {
+  void resolveRedirectingFactory({
+    required SourceLibraryBuilder libraryBuilder,
+  }) {
     _encoding.resolveRedirectingFactory(libraryBuilder: libraryBuilder);
   }
 
@@ -348,7 +398,8 @@ abstract class FactoryFragmentDeclaration {
   void becomeNative(SourceLoader loader);
 
   BodyBuilderContext createBodyBuilderContext(
-      SourceFactoryBuilder factoryBuilder);
+    SourceFactoryBuilder factoryBuilder,
+  );
 
   FormalParameterBuilder? getFormal(Identifier identifier);
 

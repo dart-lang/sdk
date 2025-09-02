@@ -51,13 +51,25 @@
 #    to disable this feature. For more on library language version override, see
 #    https://dart.dev/to/language-version-override
 #
-# 3. expired: (optional boolean)
+# 3. experimentalReleaseVersion: (optional #.#)
+#    The Dart SDK version (<major>.<minor>) in which the experiment can be used
+#    by enabling the experiment flag.
+#
+#    If this field is specified, then the experiment may be enabled in this
+#    version or later versions, by specifying the flag on the command line.
+#    (e.g. --enable-experiment=non-nullable).
+#
+#    If `sdk/lib/_internal/allowed_experiments.json` is updated, this field
+#    specifies the version that enables this experiment for those libraries
+#    and packages.
+#
+# 4. expired: (optional boolean)
 #    If true, then the experiment can no longer be enabled by specifying the
 #    flag on the command line, and the corresponding entry is slated for
 #    eventual removal from this file. If this field is omitted, then 'expired'
 #    is considered to be false.
 #
-# 4. validation: (optional string)
+# 5. validation: (optional string)
 #    If provided this should be a program that prints "feature enabled" on
 #    stdout if the feature is enabled, and throws or fails to compile otherwise.
 #    The intended use for this is to be able to run generic tests for each
@@ -74,11 +86,11 @@
 # the feature as it is being developed.
 #
 # Experimental release:
-#    When an experiment is released, then the 'experimentalReleaseVersion' field
-# is added indicating which version of the SDK contains this new language
-# feature for libraries and packages in mentioned in
-# `sdk/lib/_internal/allowed_experiments.json`. For other libraries and
-# packages, passing the experiment flag is still required to turn on the
+#    When we want to allow certain libraries and packages to enable the language
+# feature by default, we add an entry to the
+# `sdk/lib/_internal/allowed_experiments.json` allow list and then we bump the
+# `experimentalReleaseVersion` field to the latest version. For other libraries
+# and packages, passing the experiment flag is still required to turn on the
 # experiment.
 #
 # Shipped:
@@ -146,10 +158,6 @@ features:
   inference-update-4:
     help: "A bundle of updates to type inference."
 
-  dot-shorthands:
-    experimentalReleaseVersion: '3.9.0'
-    help: "Shorter dot syntax for static accesses."
-
 # Experiment flag only used for testing.
   test-experiment:
     help: >-
@@ -162,6 +170,18 @@ features:
 #
 # Shipped flags should be marked retired the following stable release.
 #
+
+  dot-shorthands:
+    enabledIn: '3.10.0'
+    experimentalReleaseVersion: '3.9.0'
+    validation: |
+      enum E { a }
+      main() {
+        if (E.a == .a) {
+          print('feature enabled');
+        }
+      }
+    help: "Shorter dot syntax for static accesses."
 
 
   getter-setter-error:

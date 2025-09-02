@@ -28,7 +28,7 @@ Object f(bool x) {
   };
 }
 ''',
-      [error(WarningCode.UNREACHABLE_SWITCH_CASE, 82, 2)],
+      [error(WarningCode.unreachableSwitchCase, 82, 2)],
     );
   }
 
@@ -44,10 +44,10 @@ Object f(bool x) {
 }
 ''',
       [
-        error(WarningCode.DEAD_CODE, 57, 9),
-        error(WarningCode.UNREACHABLE_SWITCH_CASE, 62, 2),
-        error(WarningCode.DEAD_CODE, 72, 10),
-        error(WarningCode.UNREACHABLE_SWITCH_CASE, 78, 2),
+        error(WarningCode.deadCode, 57, 9),
+        error(WarningCode.unreachableSwitchCase, 62, 2),
+        error(WarningCode.deadCode, 72, 10),
+        error(WarningCode.unreachableSwitchCase, 78, 2),
       ],
     );
   }
@@ -73,7 +73,7 @@ Object f(E e, bool b) => switch (e) {
   E.e1 when b => 2,
 };
 ''',
-      [error(WarningCode.UNREACHABLE_SWITCH_CASE, 96, 2)],
+      [error(WarningCode.unreachableSwitchCase, 96, 2)],
     );
   }
 
@@ -87,7 +87,7 @@ int f(Object? x) {
   };
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 45, 10)],
+      [error(CompileTimeErrorCode.undefinedClass, 45, 10)],
     );
   }
 }
@@ -107,7 +107,7 @@ void f(bool x) {
   }
 }
 ''',
-      [error(WarningCode.UNREACHABLE_SWITCH_CASE, 67, 4)],
+      [error(WarningCode.unreachableSwitchCase, 67, 4)],
     );
   }
 
@@ -125,7 +125,7 @@ void f(Object? x) {
   };
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 69, 10)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 69, 10)],
     );
   }
 
@@ -143,7 +143,7 @@ void f(Object? x) {
   };
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 69, 10)],
+      [error(CompileTimeErrorCode.undefinedClass, 69, 10)],
     );
   }
 
@@ -178,7 +178,7 @@ void f(E e, bool b) {
   }
 }
 ''',
-      [error(WarningCode.UNREACHABLE_SWITCH_CASE, 115, 4)],
+      [error(WarningCode.unreachableSwitchCase, 115, 4)],
     );
   }
 
@@ -196,11 +196,11 @@ void f(int x) {
 }
 ''',
       [
-        error(WarningCode.DEAD_CODE, 64, 4),
-        error(WarningCode.UNREACHABLE_SWITCH_CASE, 64, 4),
-        error(WarningCode.DEAD_CODE, 80, 4),
-        error(WarningCode.UNREACHABLE_SWITCH_CASE, 80, 4),
-        error(WarningCode.DEAD_CODE, 98, 6),
+        error(WarningCode.deadCode, 64, 4),
+        error(WarningCode.unreachableSwitchCase, 64, 4),
+        error(WarningCode.deadCode, 80, 4),
+        error(WarningCode.unreachableSwitchCase, 80, 4),
+        error(WarningCode.deadCode, 98, 6),
       ],
     );
   }

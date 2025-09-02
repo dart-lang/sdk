@@ -67,10 +67,17 @@ class FunctionCollector {
     }
 
     // Ensure any procedures marked as exported are enqueued.
-    String? exportName =
-        translator.getPragma(member, "wasm:export", member.name.text);
+    final text = member.name.text;
+    String? exportName = translator.getPragma(member, "wasm:export", text);
     if (exportName != null) {
       getFunction(member.reference);
+    }
+
+    // Whether a procedure is strongly or weakly exported, we must not use its
+    // name as the export name of a different function.
+    exportName ??= translator.getPragma(member, "wasm:weak-export", text);
+    if (exportName != null) {
+      translator.exportNamer.reserveName(exportName);
     }
   }
 
@@ -154,14 +161,10 @@ class FunctionCollector {
       // Export the function from the main module if it is callable from
       // dynamic submodules.
       if (translator.dynamicModuleSupportEnabled &&
-          !translator.isDynamicSubmodule) {
-        final callableReferenceId =
-            translator.dynamicModuleInfo?.metadata.callableReferenceIds[target];
-        if (callableReferenceId != null) {
-          translator.mainModule.exports.export(
-              _generateDynamicSubmoduleCallableName(callableReferenceId),
-              function);
-        }
+          !translator.isDynamicSubmodule &&
+          member.isDynamicSubmoduleCallable(translator.coreTypes)) {
+        translator.exporter
+            .exportDynamicCallable(translator.mainModule, function, target);
       }
 
       translator.compilationQueue.add(AstCompilationTask(function,
@@ -170,24 +173,19 @@ class FunctionCollector {
     });
   }
 
-  String _generateDynamicSubmoduleCallableName(int key) => '#dc$key';
-
   w.BaseFunction _importFunctionToDynamicSubmodule(Reference target) {
     assert(translator.isDynamicSubmodule);
 
     // Export the function from the main module if it is callable from
     // dynamic submodules.
-    final dynamicSubmoduleCallableReferenceId =
-        translator.dynamicModuleInfo?.metadata.callableReferenceIds[target];
-    if (dynamicSubmoduleCallableReferenceId == null) {
+    if (!target.asMember.isDynamicSubmoduleCallable(translator.coreTypes)) {
       throw StateError(
           'Cannot invoke ${target.asMember} since it is not labeled as '
           'callable in the dynamic interface.');
     }
     return translator.dynamicSubmodule.functions.import(
         translator.mainModule.moduleName,
-        _generateDynamicSubmoduleCallableName(
-            dynamicSubmoduleCallableReferenceId),
+        translator.dynamicModuleInfo!.metadata.callableReferenceNames[target]!,
         translator.signatureForMainModule(target),
         getFunctionName(target));
   }

@@ -21,7 +21,7 @@ class MixinsSuperClassTest extends PubPackageResolutionTest {
 mixin class A {}
 class B extends A with A {}
 ''',
-      [error(CompileTimeErrorCode.MIXINS_SUPER_CLASS, 40, 1)],
+      [error(CompileTimeErrorCode.mixinsSuperClass, 40, 1)],
     );
   }
 
@@ -32,7 +32,7 @@ mixin class A {}
 typedef B = A;
 class C extends A with B {}
 ''',
-      [error(CompileTimeErrorCode.MIXINS_SUPER_CLASS, 55, 1)],
+      [error(CompileTimeErrorCode.mixinsSuperClass, 55, 1)],
     );
   }
 
@@ -42,7 +42,7 @@ class C extends A with B {}
 mixin class A {}
 class B = A with A;
 ''',
-      [error(CompileTimeErrorCode.MIXINS_SUPER_CLASS, 34, 1)],
+      [error(CompileTimeErrorCode.mixinsSuperClass, 34, 1)],
     );
   }
 
@@ -53,7 +53,7 @@ mixin class A {}
 typedef B = A;
 class C = A with B;
 ''',
-      [error(CompileTimeErrorCode.MIXINS_SUPER_CLASS, 49, 1)],
+      [error(CompileTimeErrorCode.mixinsSuperClass, 49, 1)],
     );
   }
 }

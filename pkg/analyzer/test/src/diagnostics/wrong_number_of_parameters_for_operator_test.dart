@@ -75,7 +75,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS,
+          CompileTimeErrorCode.wrongNumberOfParametersForOperatorMinus,
           21,
           1,
         ),
@@ -97,13 +97,7 @@ class A {
   operator $name($parameters) {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR,
-          21,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.wrongNumberOfParametersForOperator, 21, 1)],
     );
   }
 

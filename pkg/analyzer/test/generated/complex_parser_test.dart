@@ -125,11 +125,7 @@ class ComplexParserTest extends FastaParserTestCase {
         parseExpression(
               'x xor y',
               errors: [
-                expectedError(
-                  ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT,
-                  2,
-                  3,
-                ),
+                expectedError(ParserErrorCode.binaryOperatorWrittenOut, 2, 3),
               ],
             )
             as BinaryExpression;
@@ -145,11 +141,7 @@ class ComplexParserTest extends FastaParserTestCase {
         parseExpression(
               'x > 0 and y > 1',
               errors: [
-                expectedError(
-                  ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT,
-                  6,
-                  3,
-                ),
+                expectedError(ParserErrorCode.binaryOperatorWrittenOut, 6, 3),
               ],
             )
             as BinaryExpression;
@@ -428,7 +420,7 @@ class C {
     var expression =
         parseExpression(
               "x == y != z",
-              codes: [ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND],
+              codes: [ParserErrorCode.equalityCannotBeEqualityOperand],
             )
             as BinaryExpression;
     expect(expression.leftOperand, isBinaryExpression);
@@ -448,7 +440,7 @@ class C {
     var expression =
         parseExpression(
               "super == y != z",
-              codes: [ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND],
+              codes: [ParserErrorCode.equalityCannotBeEqualityOperand],
             )
             as BinaryExpression;
     expect(expression.leftOperand, isBinaryExpression);

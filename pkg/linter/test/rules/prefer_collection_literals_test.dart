@@ -548,7 +548,7 @@ void f() {
 ''',
       [
         // No lints.
-        error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 40, 15),
+        error(CompileTimeErrorCode.undefinedFunction, 40, 15),
       ],
     );
   }

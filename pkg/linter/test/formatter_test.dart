@@ -3,8 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/source/line_info.dart';
-import 'package:linter/src/test_utilities/analysis_error_info.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/source/file_source.dart';
+import 'package:analyzer_testing/utilities/extensions/resource_provider.dart';
 import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 
@@ -16,73 +17,64 @@ void main() {
 }
 
 void defineTests() {
-  group('formatter', () {
-    test('pluralize', () {
-      expect(pluralize('issue', 0), '0 issues');
-      expect(pluralize('issue', 1), '1 issue');
-      expect(pluralize('issue', 2), '2 issues');
-    });
+  group(ReportFormatter, () {
+    late Diagnostic diagnostic;
+    late StringBuffer out;
+    late String sourcePath;
+    late ReportFormatter reporter;
 
-    group('reporter', () {
-      late DiagnosticInfo info;
-      late StringBuffer out;
-      late String sourcePath;
-      late ReportFormatter reporter;
+    setUp(() async {
+      var type = MockDiagnosticType()..displayName = 'test';
+      var code = TestDiagnosticCode('mock_code', 'MSG')..type = type;
 
-      setUp(() async {
-        var lineInfo = LineInfo([3, 6, 9]);
-
-        var type = MockDiagnosticType()..displayName = 'test';
-
-        var code = TestDiagnosticCode('mock_code', 'MSG')..type = type;
-
-        await d.dir('project', [
-          d.file('foo.dart', '''
+      await d.dir('project', [
+        d.file('foo.dart', '''
 var x = 11;
 var y = 22;
 var z = 33;
 '''),
-        ]).create();
-        sourcePath = '${d.sandbox}/project/foo.dart';
-        var source = MockSource(sourcePath);
+      ]).create();
+      sourcePath = PhysicalResourceProvider.INSTANCE.convertPath(
+        '${d.sandbox}/project/foo.dart',
+      );
+      var file = PhysicalResourceProvider.INSTANCE.getFile(sourcePath);
+      var source = FileSource(file);
 
-        var error = Diagnostic.tmp(
-          source: source,
-          offset: 10,
-          length: 3,
-          diagnosticCode: code,
-        );
+      diagnostic = Diagnostic.tmp(
+        source: source,
+        offset: 25,
+        length: 3,
+        diagnosticCode: code,
+      );
 
-        info = DiagnosticInfo([error], lineInfo);
-        out = StringBuffer();
-        reporter = ReportFormatter([info], out)..write();
-      });
+      out = StringBuffer();
+      reporter = ReportFormatter([diagnostic], out)..write();
+    });
 
-      test('count', () {
-        expect(reporter.errorCount, 1);
-      });
+    test('count', () {
+      expect(reporter.diagnosticCount, 1);
+    });
 
-      test('write', () {
-        expect(out.toString().trim(), '''$sourcePath 3:2 [test] MSG
+    test('write', () {
+      expect(out.toString().trim(), '''$sourcePath 3:2 [test] MSG
 var z = 33;
  ^^^
 
 files analyzed, 1 issue found.''');
-      });
+    });
 
-      test('stats', () {
-        out.clear();
-        ReportFormatter([info], out).write();
-        expect(
-          out.toString(),
-          startsWith('''$sourcePath 3:2 [test] MSG
+    test('stats', () {
+      out.clear();
+      ReportFormatter([diagnostic], out).write();
+      expect(
+        out.toString(),
+        startsWith('''$sourcePath 3:2 [test] MSG
 var z = 33;
  ^^^
 
 files analyzed, 1 issue found.
 '''),
-        );
-      });
+      );
     });
   });
 }

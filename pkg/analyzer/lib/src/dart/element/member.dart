@@ -54,21 +54,14 @@ class SubstitutedConstructorElementImpl extends SubstitutedExecutableElementImpl
 
   @override
   List<ConstructorFragmentImpl> get fragments {
-    return [
-      for (
-        ConstructorFragmentImpl? fragment = firstFragment;
-        fragment != null;
-        fragment = fragment.nextFragment
-      )
-        fragment,
-    ];
+    return baseElement.fragments;
   }
 
   @override
   bool get isConst => baseElement.isConst;
 
   @override
-  bool get isDefaultConstructor => baseElement.isConst;
+  bool get isDefaultConstructor => baseElement.isDefaultConstructor;
 
   @override
   bool get isFactory => baseElement.isFactory;
@@ -186,6 +179,12 @@ abstract class SubstitutedElementImpl implements Element {
 
   @override
   String get displayName => baseElement.displayName;
+
+  @override
+  FragmentImpl get firstFragment;
+
+  @override
+  List<FragmentImpl> get fragments;
 
   @override
   int get id => baseElement.id;
@@ -317,7 +316,7 @@ abstract class SubstitutedExecutableElementImpl extends SubstitutedElementImpl
   Element? get enclosingElement2 => enclosingElement;
 
   @override
-  ExecutableFragment get firstFragment;
+  ExecutableFragmentImpl get firstFragment;
 
   @override
   List<InternalFormalParameterElement> get formalParameters {
@@ -345,15 +344,8 @@ abstract class SubstitutedExecutableElementImpl extends SubstitutedElementImpl
   }
 
   @override
-  List<ExecutableFragment> get fragments {
-    return [
-      for (
-        ExecutableFragment? fragment = firstFragment;
-        fragment != null;
-        fragment = fragment.nextFragment
-      )
-        fragment,
-    ];
+  List<ExecutableFragmentImpl> get fragments {
+    return baseElement.fragments;
   }
 
   @override
@@ -525,14 +517,7 @@ class SubstitutedFieldElementImpl extends SubstitutedVariableElementImpl
 
   @override
   List<FieldFragmentImpl> get fragments {
-    return [
-      for (
-        FieldFragmentImpl? fragment = firstFragment;
-        fragment != null;
-        fragment = fragment.nextFragment
-      )
-        fragment,
-    ];
+    return baseElement.fragments;
   }
 
   @override
@@ -685,10 +670,12 @@ class SubstitutedFieldFormalParameterElementImpl
   }
 
   @override
-  FieldFormalParameterFragment get firstFragment => baseElement.firstFragment;
+  FieldFormalParameterFragmentImpl get firstFragment {
+    return baseElement.firstFragment;
+  }
 
   @override
-  List<FieldFormalParameterFragment> get fragments {
+  List<FieldFormalParameterFragmentImpl> get fragments {
     return baseElement.fragments;
   }
 
@@ -757,22 +744,15 @@ class SubstitutedFormalParameterElementImpl
   Element? get enclosingElement2 => enclosingElement;
 
   @override
-  FormalParameterFragment get firstFragment => baseElement.firstFragment;
+  FormalParameterFragmentImpl get firstFragment => baseElement.firstFragment;
 
   @override
   List<FormalParameterElementImpl> get formalParameters =>
       baseElement.formalParameters;
 
   @override
-  List<FormalParameterFragment> get fragments {
-    return [
-      for (
-        FormalParameterFragment? fragment = firstFragment;
-        fragment != null;
-        fragment = fragment.nextFragment
-      )
-        fragment,
-    ];
+  List<FormalParameterFragmentImpl> get fragments {
+    return baseElement.fragments;
   }
 
   @override
@@ -936,14 +916,7 @@ class SubstitutedGetterElementImpl
 
   @override
   List<GetterFragmentImpl> get fragments {
-    return [
-      for (
-        GetterFragmentImpl? fragment = firstFragment;
-        fragment != null;
-        fragment = fragment.nextFragment
-      )
-        fragment,
-    ];
+    return baseElement.fragments;
   }
 
   @override
@@ -1015,14 +988,7 @@ class SubstitutedMethodElementImpl extends SubstitutedExecutableElementImpl
 
   @override
   List<MethodFragmentImpl> get fragments {
-    return [
-      for (
-        MethodFragmentImpl? fragment = firstFragment;
-        fragment != null;
-        fragment = fragment.nextFragment
-      )
-        fragment,
-    ];
+    return baseElement.fragments;
   }
 
   @override
@@ -1173,14 +1139,7 @@ class SubstitutedSetterElementImpl
 
   @override
   List<SetterFragmentImpl> get fragments {
-    return [
-      for (
-        SetterFragmentImpl? fragment = firstFragment;
-        fragment != null;
-        fragment = fragment.nextFragment
-      )
-        fragment,
-    ];
+    return baseElement.fragments;
   }
 
   @override
@@ -1248,10 +1207,12 @@ class SubstitutedSuperFormalParameterElementImpl
       super.baseElement as SuperFormalParameterElementImpl;
 
   @override
-  SuperFormalParameterFragment get firstFragment => baseElement.firstFragment;
+  SuperFormalParameterFragmentImpl get firstFragment {
+    return baseElement.firstFragment;
+  }
 
   @override
-  List<SuperFormalParameterFragment> get fragments {
+  List<SuperFormalParameterFragmentImpl> get fragments {
     return baseElement.fragments;
   }
 

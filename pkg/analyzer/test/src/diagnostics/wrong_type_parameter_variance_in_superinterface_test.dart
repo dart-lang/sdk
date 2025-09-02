@@ -25,7 +25,7 @@ class B<X> extends A<F<X>> {}
 ''',
       [
         error(
-          CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+          CompileTimeErrorCode.wrongTypeParameterVarianceInSuperinterface,
           55,
           1,
         ),
@@ -52,7 +52,7 @@ class B<X> extends A<F2<X>> {}
 ''',
       [
         error(
-          CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+          CompileTimeErrorCode.wrongTypeParameterVarianceInSuperinterface,
           90,
           1,
         ),
@@ -78,7 +78,7 @@ class B<X> extends A<F2<X>> {}
 ''',
       [
         error(
-          CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+          CompileTimeErrorCode.wrongTypeParameterVarianceInSuperinterface,
           90,
           1,
         ),
@@ -102,7 +102,7 @@ class B<X> implements A<F<X>> {}
 ''',
       [
         error(
-          CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+          CompileTimeErrorCode.wrongTypeParameterVarianceInSuperinterface,
           55,
           1,
         ),
@@ -134,7 +134,7 @@ class B<X> extends Object with A<F<X>> {}
 ''',
       [
         error(
-          CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+          CompileTimeErrorCode.wrongTypeParameterVarianceInSuperinterface,
           55,
           1,
         ),
@@ -167,7 +167,7 @@ class B<X> = A<F<X>> with M;
 ''',
       [
         error(
-          CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+          CompileTimeErrorCode.wrongTypeParameterVarianceInSuperinterface,
           63,
           1,
         ),
@@ -185,7 +185,7 @@ class B<X> = A<F<X>> with M;
 ''',
       [
         error(
-          CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+          CompileTimeErrorCode.wrongTypeParameterVarianceInSuperinterface,
           66,
           1,
         ),
@@ -220,7 +220,7 @@ class B<X> = Object with M implements A<F<X>>;
 ''',
       [
         error(
-          CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+          CompileTimeErrorCode.wrongTypeParameterVarianceInSuperinterface,
           66,
           1,
         ),
@@ -254,7 +254,7 @@ class B<X> = Object with M<F<X>>;
 ''',
       [
         error(
-          CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+          CompileTimeErrorCode.wrongTypeParameterVarianceInSuperinterface,
           55,
           1,
         ),
@@ -288,7 +288,7 @@ enum E<X> implements A<F<X>> {
 ''',
       [
         error(
-          CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+          CompileTimeErrorCode.wrongTypeParameterVarianceInSuperinterface,
           54,
           1,
         ),
@@ -326,7 +326,7 @@ enum E<X> with A<F<X>> {
 ''',
       [
         error(
-          CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+          CompileTimeErrorCode.wrongTypeParameterVarianceInSuperinterface,
           54,
           1,
         ),
@@ -362,7 +362,7 @@ extension type B<T>(A<void Function(Object?)> it)
 ''',
       [
         error(
-          CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+          CompileTimeErrorCode.wrongTypeParameterVarianceInSuperinterface,
           31,
           1,
         ),
@@ -387,7 +387,7 @@ extension type B<T>(A<Never Function(Object?)> it)
 ''',
       [
         error(
-          CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+          CompileTimeErrorCode.wrongTypeParameterVarianceInSuperinterface,
           31,
           1,
         ),
@@ -404,7 +404,7 @@ mixin B<X> implements A<F<X>> {}
 ''',
       [
         error(
-          CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+          CompileTimeErrorCode.wrongTypeParameterVarianceInSuperinterface,
           55,
           1,
         ),
@@ -436,7 +436,7 @@ mixin B<X> on A<F<X>> {}
 ''',
       [
         error(
-          CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+          CompileTimeErrorCode.wrongTypeParameterVarianceInSuperinterface,
           55,
           1,
         ),
@@ -467,7 +467,7 @@ class B<X> extends A<void Function<Y extends X>()> {}
 ''',
       [
         error(
-          CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+          CompileTimeErrorCode.wrongTypeParameterVarianceInSuperinterface,
           22,
           1,
         ),

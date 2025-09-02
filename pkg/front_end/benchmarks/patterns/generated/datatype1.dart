@@ -39,9 +39,7 @@ class Sub0 extends Base1 {
 }
 
 List<Base1> createData1() {
-  return [
-    Sub0(),
-  ];
+  return [Sub0()];
 }
 
 void incByDynamicDispatch1(Base1 base, Counter counter) {

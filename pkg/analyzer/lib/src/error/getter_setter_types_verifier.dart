@@ -98,7 +98,7 @@ class GetterSetterTypesVerifier {
 
             _diagnosticReporter.atElement2(
               errorElement,
-              CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES,
+              CompileTimeErrorCode.getterNotSubtypeSetterTypes,
               arguments: [getterName, getterType, setterType, setterName],
             );
           }
@@ -139,7 +139,7 @@ class GetterSetterTypesVerifier {
     if (!_typeSystem.isSubtypeOf(getterType, setterType)) {
       _diagnosticReporter.atElement2(
         getter,
-        CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES,
+        CompileTimeErrorCode.getterNotSubtypeSetterTypes,
         arguments: [name, getterType, setterType, name],
       );
     }

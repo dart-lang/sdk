@@ -518,8 +518,6 @@ class DynamicModuleInfo {
     final classId =
         (translator.classInfo[cls]!.classId as AbsoluteClassId).value;
 
-    metadata.callableReferenceIds[target] ??=
-        metadata.callableReferenceIds.length;
     // The class must be allocated in order for the target to be live.
     translator.functions.recordClassTargetUse(classId, target);
   }
@@ -535,8 +533,6 @@ class DynamicModuleInfo {
 
     // Generate static members immediately since they are unconditionally
     // callable.
-    metadata.callableReferenceIds[target] ??=
-        metadata.callableReferenceIds.length;
     translator.functions.getFunction(target);
   }
 

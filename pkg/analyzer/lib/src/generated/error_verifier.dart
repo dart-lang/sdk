@@ -6,8 +6,6 @@ import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/parser/util.dart' as shared;
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
-    show Variance;
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -18,7 +16,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -42,6 +39,7 @@ import 'package:analyzer/src/error/constructor_fields_verifier.dart';
 import 'package:analyzer/src/error/correct_override.dart';
 import 'package:analyzer/src/error/duplicate_definition_verifier.dart';
 import 'package:analyzer/src/error/getter_setter_types_verifier.dart';
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/error/literal_element_verifier.dart';
 import 'package:analyzer/src/error/required_parameters_verifier.dart';
 import 'package:analyzer/src/error/return_type_verifier.dart';
@@ -58,7 +56,7 @@ import 'package:collection/collection.dart';
 
 /// Check that none of the type [parameters] references itself in its bound.
 ///
-/// See [CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND].
+/// See [CompileTimeErrorCode.typeParameterSupertypeOfItsBound].
 void checkForTypeParameterBoundRecursion(
   DiagnosticReporter diagnosticReporter,
   List<TypeParameter> parameters,
@@ -89,7 +87,7 @@ void checkForTypeParameterBoundRecursion(
           // assume `element.bound` is non-`null`.
           diagnosticReporter.atToken(
             parameter.name,
-            CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
+            CompileTimeErrorCode.typeParameterSupertypeOfItsBound,
             arguments: [element.displayName, element.bound!],
           );
           break;
@@ -410,7 +408,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (!_enclosingExecutable.isAsynchronous) {
       diagnosticReporter.atToken(
         node.awaitKeyword,
-        CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT,
+        CompileTimeErrorCode.awaitInWrongContext,
       );
     }
     checkForUseOfVoidResult(node.expression);
@@ -469,7 +467,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (labelElement is LabelElementImpl && labelElement.isOnSwitchMember) {
         diagnosticReporter.atNode(
           labelNode,
-          CompileTimeErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER,
+          CompileTimeErrorCode.breakLabelOnSwitchMember,
         );
       }
     }
@@ -499,10 +497,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _enclosingClass = declarationElement.asElement2;
 
       List<ClassMember> members = node.members;
-      if (!declarationElement.element.isDartCoreFunctionImpl) {
+      if (!declarationElement.element.isDartCoreFunction) {
         _checkForBuiltInIdentifierAsName(
           node.name,
-          CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME,
+          CompileTimeErrorCode.builtInIdentifierAsTypeName,
         );
       }
       _checkForConflictingClassTypeVariableErrorCodes();
@@ -565,7 +563,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     _checkForBuiltInIdentifierAsName(
       node.name,
-      CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME,
+      CompileTimeErrorCode.builtInIdentifierAsTypedefName,
     );
     try {
       _enclosingClass = firstFragment.asElement2;
@@ -632,7 +630,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _checkForNonConstGenerativeEnumConstructor(node);
         _checkForInvalidModifierOnBody(
           node.body,
-          CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR,
+          CompileTimeErrorCode.invalidModifierOnConstructor,
         );
         if (!_checkForConstConstructorWithNonConstSuper(node)) {
           _checkForConstConstructorWithNonFinalField(node, element);
@@ -688,7 +686,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         defaultValue,
         defaultValue.typeOrThrow,
         node.declaredFragment!.element.type,
-        CompileTimeErrorCode.INVALID_ASSIGNMENT,
+        CompileTimeErrorCode.invalidAssignment,
       );
     }
 
@@ -740,7 +738,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       _checkForBuiltInIdentifierAsName(
         node.name,
-        CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME,
+        CompileTimeErrorCode.builtInIdentifierAsTypeName,
       );
       _checkForConflictingEnumTypeVariableErrorCodes(declaredFragment);
       var implementsClause = node.implementsClause;
@@ -760,7 +758,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         if (element.constants.isEmpty) {
           diagnosticReporter.atToken(
             node.name,
-            CompileTimeErrorCode.ENUM_WITHOUT_CONSTANTS,
+            CompileTimeErrorCode.enumWithoutConstants,
           );
         }
       }
@@ -829,7 +827,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (name != null) {
       _checkForBuiltInIdentifierAsName(
         name,
-        CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME,
+        CompileTimeErrorCode.builtInIdentifierAsExtensionName,
       );
     }
     super.visitExtensionDeclaration(node);
@@ -849,7 +847,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       _checkForBuiltInIdentifierAsName(
         node.name,
-        CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_TYPE_NAME,
+        CompileTimeErrorCode.builtInIdentifierAsExtensionTypeName,
       );
       _checkForConflictingExtensionTypeTypeVariableErrorCodes(declaredFragment);
 
@@ -857,7 +855,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForRepeatedType(
         libraryContext.setOfImplements(firstFragment.asElement2),
         node.implementsClause?.interfaces,
-        CompileTimeErrorCode.IMPLEMENTS_REPEATED,
+        CompileTimeErrorCode.implementsRepeated,
       );
       _checkForConflictingClassMembers(declaredFragment);
       _checkForConflictingGenerics(node);
@@ -906,7 +904,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (fields.isConst) {
         diagnosticReporter.atToken(
           fields.keyword!,
-          CompileTimeErrorCode.CONST_INSTANCE_FIELD,
+          CompileTimeErrorCode.constInstanceField,
         );
       }
     }
@@ -951,7 +949,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (loopVariable.isConst) {
         diagnosticReporter.atToken(
           loopVariable.keyword!,
-          CompileTimeErrorCode.FOR_IN_WITH_CONST_VARIABLE,
+          CompileTimeErrorCode.forInWithConstVariable,
         );
       }
     }
@@ -1055,7 +1053,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitFunctionTypeAlias(covariant FunctionTypeAliasImpl node) {
     _checkForBuiltInIdentifierAsName(
       node.name,
-      CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME,
+      CompileTimeErrorCode.builtInIdentifierAsTypedefName,
     );
     _checkForMainFunction1(node.name, node.declaredFragment!);
     _checkForTypeAliasCannotReferenceItself(
@@ -1084,7 +1082,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     _checkForBuiltInIdentifierAsName(
       node.name,
-      CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME,
+      CompileTimeErrorCode.builtInIdentifierAsTypedefName,
     );
     _checkForMainFunction1(node.name, node.declaredFragment!);
     _checkForTypeAliasCannotReferenceItself(node.name, fragment);
@@ -1105,7 +1103,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (node.prefix != null) {
       _checkForBuiltInIdentifierAsName(
         node.prefix!.token,
-        CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_PREFIX_NAME,
+        CompileTimeErrorCode.builtInIdentifierAsPrefixName,
       );
     }
     if (importElement != null) {
@@ -1287,7 +1285,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       List<ClassMember> members = node.members;
       _checkForBuiltInIdentifierAsName(
         node.name,
-        CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME,
+        CompileTimeErrorCode.builtInIdentifierAsTypeName,
       );
       _checkForConflictingClassTypeVariableErrorCodes();
 
@@ -1326,10 +1324,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     // TODO(brianwilkerson): Figure out the right rule for when 'native' is
     // allowed.
     if (!_isInSystemLibrary) {
-      diagnosticReporter.atNode(
-        node,
-        ParserErrorCode.NATIVE_CLAUSE_IN_NON_SDK_CODE,
-      );
+      diagnosticReporter.atNode(node, ParserErrorCode.nativeClauseInNonSdkCode);
     }
     super.visitNativeClause(node);
   }
@@ -1518,8 +1513,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (_enclosingClass is ExtensionTypeElement) {
       diagnosticReporter.atToken(
         node.superKeyword,
-        CompileTimeErrorCode
-            .EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER,
+        CompileTimeErrorCode.extensionTypeConstructorWithSuperFormalParameter,
       );
       return;
     }
@@ -1529,7 +1523,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         constructor.isNonRedirectingGenerative)) {
       diagnosticReporter.atToken(
         node.superKeyword,
-        CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION,
+        CompileTimeErrorCode.invalidSuperFormalParameterLocation,
       );
       return;
     }
@@ -1542,10 +1536,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       diagnosticReporter.atToken(
         node.name,
         node.isNamed
-            ? CompileTimeErrorCode
-                .SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED
+            ? CompileTimeErrorCode.superFormalParameterWithoutAssociatedNamed
             : CompileTimeErrorCode
-                .SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL,
+                  .superFormalParameterWithoutAssociatedPositional,
       );
       return;
     }
@@ -1556,8 +1549,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     )) {
       diagnosticReporter.atToken(
         node.name,
-        CompileTimeErrorCode
-            .SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED,
+        CompileTimeErrorCode.superFormalParameterTypeIsNotSubtypeOfAssociated,
         arguments: [element.type, superParameter.type],
       );
     }
@@ -1641,7 +1633,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitTypeParameter(TypeParameter node) {
     _checkForBuiltInIdentifierAsName(
       node.name,
-      CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME,
+      CompileTimeErrorCode.builtInIdentifierAsTypeParameterName,
     );
     _checkForTypeAnnotationDeferredClass(node.bound);
     _checkForGenericFunctionType(node.bound);
@@ -1722,7 +1714,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForRepeatedType(
         libraryContext.setOfImplements(declarationElement.asElement2),
         implementsClause?.interfaces,
-        CompileTimeErrorCode.IMPLEMENTS_REPEATED,
+        CompileTimeErrorCode.implementsRepeated,
       );
       _checkImplementsSuperClass(implementsClause);
       _checkMixinsSuperClass(withClause);
@@ -1753,7 +1745,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Given a list of [directives] that have the same prefix, generate an error
   /// if there is more than one import and any of those imports is deferred.
   ///
-  /// See [CompileTimeErrorCode.SHARED_DEFERRED_PREFIX].
+  /// See [CompileTimeErrorCode.sharedDeferredPrefix].
   void _checkDeferredPrefixCollision(List<ImportDirective> directives) {
     int count = directives.length;
     if (count > 1) {
@@ -1762,7 +1754,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         if (deferredToken != null) {
           diagnosticReporter.atToken(
             deferredToken,
-            CompileTimeErrorCode.SHARED_DEFERRED_PREFIX,
+            CompileTimeErrorCode.sharedDeferredPrefix,
           );
         }
       }
@@ -1774,15 +1766,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     FieldElement fieldElement,
   ) {
     if (fieldElement.isAbstract) {
-      diagnosticReporter.atToken(
-        identifier,
-        CompileTimeErrorCode.ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER,
+      diagnosticReporter.report(
+        CompileTimeErrorCode.abstractFieldConstructorInitializer.at(identifier),
       );
     }
     if (fieldElement.isExternal) {
       diagnosticReporter.atToken(
         identifier,
-        CompileTimeErrorCode.EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER,
+        CompileTimeErrorCode.externalFieldConstructorInitializer,
       );
     }
   }
@@ -1796,20 +1787,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         if (declaredElement.isAbstract) {
           diagnosticReporter.atToken(
             node.name,
-            CompileTimeErrorCode.ABSTRACT_FIELD_INITIALIZER,
+            CompileTimeErrorCode.abstractFieldInitializer,
           );
         }
         if (declaredElement.isExternal) {
           diagnosticReporter.atToken(
             node.name,
-            CompileTimeErrorCode.EXTERNAL_FIELD_INITIALIZER,
+            CompileTimeErrorCode.externalFieldInitializer,
           );
         }
       } else if (declaredElement is TopLevelVariableElement) {
         if (declaredElement.isExternal) {
           diagnosticReporter.atToken(
             node.name,
-            CompileTimeErrorCode.EXTERNAL_VARIABLE_INITIALIZER,
+            CompileTimeErrorCode.externalVariableInitializer,
           );
         }
       }
@@ -1818,8 +1809,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Verify that all classes of the given [withClause] are valid.
   ///
-  /// See [CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR],
-  /// [CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT].
+  /// See [CompileTimeErrorCode.mixinClassDeclaresConstructor],
+  /// [CompileTimeErrorCode.mixinInheritsFromNotObject].
   bool _checkForAllMixinErrorCodes(WithClauseImpl? withClause) {
     if (withClause == null) {
       return false;
@@ -1837,14 +1828,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         mixinTypeIndex++;
         if (_checkForExtendsOrImplementsDisallowedClass(
           mixinName,
-          CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
+          CompileTimeErrorCode.mixinOfDisallowedClass,
         )) {
           problemReported = true;
         } else {
           var mixinElement = mixinType.element;
           if (_checkForExtendsOrImplementsDeferredClass(
             mixinName,
-            CompileTimeErrorCode.MIXIN_DEFERRED_CLASS,
+            CompileTimeErrorCode.mixinDeferredClass,
           )) {
             problemReported = true;
           }
@@ -1909,7 +1900,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         }
         diagnosticReporter.atNode(
           redirectedConstructor,
-          CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR,
+          CompileTimeErrorCode.redirectToMissingConstructor,
           arguments: [constructorStrName, redirectedType],
         );
       }
@@ -1928,7 +1919,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     )) {
       diagnosticReporter.atNode(
         redirectedConstructor,
-        CompileTimeErrorCode.REDIRECT_TO_INVALID_RETURN_TYPE,
+        CompileTimeErrorCode.redirectToInvalidReturnType,
         arguments: [redirectedReturnType, constructorReturnType],
       );
       return;
@@ -1936,7 +1927,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       // Check parameters.
       diagnosticReporter.atNode(
         redirectedConstructor,
-        CompileTimeErrorCode.REDIRECT_TO_INVALID_FUNCTION_TYPE,
+        CompileTimeErrorCode.redirectToInvalidFunctionType,
         arguments: [redirectedType, constructorType],
       );
     }
@@ -1948,7 +1939,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// element in the node was `null`, then this method is not called. The
   /// [exportedLibrary] is the library element containing the exported element.
   ///
-  /// See [CompileTimeErrorCode.AMBIGUOUS_EXPORT].
+  /// See [CompileTimeErrorCode.ambiguousExport].
   void _checkForAmbiguousExport(
     ExportDirectiveImpl directive,
     LibraryExportImpl libraryExport,
@@ -1968,7 +1959,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (prevElement != null && prevElement != element) {
         diagnosticReporter.atNode(
           directive.uri,
-          CompileTimeErrorCode.AMBIGUOUS_EXPORT,
+          CompileTimeErrorCode.ambiguousExport,
           arguments: [name, prevElement.library!.uri, element.library!.uri],
         );
         return;
@@ -1986,12 +1977,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }) {
     if (element is MultiplyDefinedElementImpl) {
       var conflictingMembers = element.conflictingElements;
-      var libraryNames =
-          conflictingMembers.map((e) => _getLibraryName(e)).toList();
+      var libraryNames = conflictingMembers
+          .map((e) => _getLibraryName(e))
+          .toList();
       libraryNames.sort();
       diagnosticReporter.atToken(
         name,
-        CompileTimeErrorCode.AMBIGUOUS_IMPORT,
+        CompileTimeErrorCode.ambiguousImport,
         arguments: [name.lexeme, libraryNames.quotedAndCommaSeparatedWithAnd],
       );
     }
@@ -1999,9 +1991,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Verify that the given [expression] is not final.
   ///
-  /// See [CompileTimeErrorCode.ASSIGNMENT_TO_CONST],
-  /// [CompileTimeErrorCode.ASSIGNMENT_TO_FINAL], and
-  /// [CompileTimeErrorCode.ASSIGNMENT_TO_METHOD].
+  /// See [CompileTimeErrorCode.assignmentToConst],
+  /// [CompileTimeErrorCode.assignmentToFinal], and
+  /// [CompileTimeErrorCode.assignmentToMethod].
   void _checkForAssignmentToFinal(Expression expression) {
     // TODO(scheglov): Check SimpleIdentifier(s) as all other nodes.
     if (expression is! SimpleIdentifier) return;
@@ -2023,7 +2015,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (element.isConst) {
         diagnosticReporter.atNode(
           expression,
-          CompileTimeErrorCode.ASSIGNMENT_TO_CONST,
+          CompileTimeErrorCode.assignmentToConst,
         );
       }
     } else if (element is GetterElement) {
@@ -2031,18 +2023,18 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (variable.isConst) {
         diagnosticReporter.atNode(
           expression,
-          CompileTimeErrorCode.ASSIGNMENT_TO_CONST,
+          CompileTimeErrorCode.assignmentToConst,
         );
       } else if (variable is FieldElement && variable.isSynthetic) {
         diagnosticReporter.atNode(
           highlightedNode,
-          CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER,
+          CompileTimeErrorCode.assignmentToFinalNoSetter,
           arguments: [variable.name!, variable.enclosingElement.displayName],
         );
       } else {
         diagnosticReporter.atNode(
           highlightedNode,
-          CompileTimeErrorCode.ASSIGNMENT_TO_FINAL,
+          CompileTimeErrorCode.assignmentToFinal,
           arguments: [variable.name!],
         );
       }
@@ -2050,19 +2042,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         element is TopLevelFunctionElement) {
       diagnosticReporter.atNode(
         expression,
-        CompileTimeErrorCode.ASSIGNMENT_TO_FUNCTION,
+        CompileTimeErrorCode.assignmentToFunction,
       );
     } else if (element is MethodElement) {
       diagnosticReporter.atNode(
         expression,
-        CompileTimeErrorCode.ASSIGNMENT_TO_METHOD,
+        CompileTimeErrorCode.assignmentToMethod,
       );
     } else if (element is InterfaceElement ||
         element is DynamicElementImpl ||
         element is TypeParameterElement) {
       diagnosticReporter.atNode(
         expression,
-        CompileTimeErrorCode.ASSIGNMENT_TO_TYPE,
+        CompileTimeErrorCode.assignmentToType,
       );
     }
   }
@@ -2071,7 +2063,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (_isInLateLocalVariable.last) {
       diagnosticReporter.atToken(
         node.awaitKeyword,
-        CompileTimeErrorCode.AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER,
+        CompileTimeErrorCode.awaitInLateLocalVariableInitializer,
       );
     }
   }
@@ -2082,7 +2074,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (typeSystem.isIncompatibleWithAwait(expressionType)) {
       diagnosticReporter.atToken(
         node.awaitKeyword,
-        CompileTimeErrorCode.AWAIT_OF_INCOMPATIBLE_TYPE,
+        CompileTimeErrorCode.awaitOfIncompatibleType,
       );
     }
   }
@@ -2103,7 +2095,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (type != null && type.isDartCoreFunction) {
         diagnosticReporter.atNode(
           superclass,
-          WarningCode.DEPRECATED_EXTENDS_FUNCTION,
+          WarningCode.deprecatedExtendsFunction,
         );
       }
     }
@@ -2114,7 +2106,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         if (type != null && type.isDartCoreFunction) {
           diagnosticReporter.atNode(
             interface,
-            WarningCode.DEPRECATED_IMPLEMENTS_FUNCTION,
+            WarningCode.deprecatedImplementsFunction,
           );
           break;
         }
@@ -2125,10 +2117,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       for (NamedType mixin in withClause.mixinTypes) {
         var type = mixin.type;
         if (type != null && type.isDartCoreFunction) {
-          diagnosticReporter.atNode(
-            mixin,
-            WarningCode.DEPRECATED_MIXIN_FUNCTION,
-          );
+          diagnosticReporter.atNode(mixin, WarningCode.deprecatedMixinFunction);
         }
       }
     }
@@ -2137,8 +2126,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Verify that if a class is implementing a base class or mixin, it must be
   /// within the same library as that class or mixin.
   ///
-  /// See [CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY],
-  /// [CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY].
+  /// See [CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary],
+  /// [CompileTimeErrorCode.baseMixinImplementedOutsideOfLibrary].
   void _checkForBaseClassOrMixinImplementedOutsideOfLibrary(
     ImplementsClause? implementsClause,
   ) {
@@ -2146,11 +2135,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (NamedType interface in implementsClause.interfaces) {
       var interfaceType = interface.type;
       if (interfaceType is InterfaceType) {
-        var implementedInterfaces =
-            [
-              interfaceType,
-              ...interfaceType.element.allSupertypes,
-            ].map((e) => e.element).toList();
+        var implementedInterfaces = [
+          interfaceType,
+          ...interfaceType.element.allSupertypes,
+        ].map((e) => e.element).toList();
         for (var interfaceElement in implementedInterfaces) {
           if ((interfaceElement is ClassElementImpl &&
                       interfaceElement.isBase ||
@@ -2162,16 +2150,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             // to avoid double errors if implementing `int`.
             if (interfaceElement is ClassElementImpl &&
                 !interfaceElement.isSealed) {
-              diagnosticReporter.atNode(
-                interface,
-                CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
-                arguments: [interfaceElement.name!],
+              diagnosticReporter.report(
+                CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary
+                    .withArguments(implementedClassName: interfaceElement.name!)
+                    .at(interface),
               );
             } else if (interfaceElement is MixinElement) {
-              diagnosticReporter.atNode(
-                interface,
-                CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
-                arguments: [interfaceElement.name!],
+              diagnosticReporter.report(
+                CompileTimeErrorCode.baseMixinImplementedOutsideOfLibrary
+                    .withArguments(implementedMixinName: interfaceElement.name!)
+                    .at(interface),
               );
             }
             break;
@@ -2184,10 +2172,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Verify that the given [token] is not a keyword, and generates the
   /// given [code] on the identifier if it is a keyword.
   ///
-  /// See [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME],
-  /// [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME],
-  /// [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME], and
-  /// [CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME].
+  /// See [CompileTimeErrorCode.builtInIdentifierAsExtensionName],
+  /// [CompileTimeErrorCode.builtInIdentifierAsTypeName],
+  /// [CompileTimeErrorCode.builtInIdentifierAsTypeParameterName], and
+  /// [CompileTimeErrorCode.builtInIdentifierAsTypedefName].
   void _checkForBuiltInIdentifierAsName(Token token, DiagnosticCode code) {
     if (token.type.isKeyword && token.keyword?.isPseudo != true) {
       diagnosticReporter.atToken(token, code, arguments: [token.lexeme]);
@@ -2197,7 +2185,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Verify that if a class is being mixed in and class modifiers are enabled
   /// in that class' library, then it must be a mixin class.
   ///
-  /// See [CompileTimeErrorCode.CLASS_USED_AS_MIXIN].
+  /// See [CompileTimeErrorCode.classUsedAsMixin].
   void _checkForClassUsedAsMixin(WithClause? withClause) {
     if (withClause != null) {
       for (NamedType withMixin in withClause.mixinTypes) {
@@ -2212,7 +2200,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               !_mayIgnoreClassModifiers(withElement.library)) {
             diagnosticReporter.atNode(
               withMixin,
-              CompileTimeErrorCode.CLASS_USED_AS_MIXIN,
+              CompileTimeErrorCode.classUsedAsMixin,
               arguments: [withElement.name!],
             );
           }
@@ -2224,9 +2212,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Verify that the [_enclosingClass] does not have a method and getter pair
   /// with the same name, via inheritance.
   ///
-  /// See [CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE],
-  /// [CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD], and
-  /// [CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD].
+  /// See [CompileTimeErrorCode.conflictingStaticAndInstance],
+  /// [CompileTimeErrorCode.conflictingMethodAndField], and
+  /// [CompileTimeErrorCode.conflictingFieldAndMethod].
   void _checkForConflictingClassMembers(InterfaceFragmentImpl fragment) {
     var enclosingClass = _enclosingClass;
     if (enclosingClass == null) {
@@ -2258,7 +2246,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         void reportStaticConflict(InternalExecutableElement inherited) {
           diagnosticReporter.atElement2(
             method.asElement2,
-            CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
+            CompileTimeErrorCode.conflictingStaticAndInstance,
             arguments: [
               enclosingClass.displayName,
               name,
@@ -2286,7 +2274,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       void reportFieldConflict(InternalPropertyAccessorElement inherited) {
         diagnosticReporter.atElement2(
           method.asElement2,
-          CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD,
+          CompileTimeErrorCode.conflictingMethodAndField,
           arguments: [
             enclosingClass.displayName,
             name,
@@ -2323,7 +2311,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (accessor.isStatic && inherited != null) {
         diagnosticReporter.atElement2(
           accessor.asElement2,
-          CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
+          CompileTimeErrorCode.conflictingStaticAndInstance,
           arguments: [
             enclosingClass.displayName,
             name,
@@ -2338,7 +2326,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         }
         diagnosticReporter.atElement2(
           accessor.asElement2,
-          CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD,
+          CompileTimeErrorCode.conflictingFieldAndMethod,
           arguments: [
             enclosingClass.displayName,
             name,
@@ -2363,7 +2351,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         if (setter is InternalPropertyAccessorElement) {
           diagnosticReporter.atElement2(
             enclosingClass,
-            CompileTimeErrorCode.CONFLICTING_INHERITED_METHOD_AND_SETTER,
+            CompileTimeErrorCode.conflictingInheritedMethodAndSetter,
             arguments: [
               enclosingClass.kind.displayName,
               enclosingClass.displayName,
@@ -2410,10 +2398,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       // name is same as the name of the enclosing class
       if (enclosingClass.name == name) {
-        var code =
-            enclosingClass is MixinElement
-                ? CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MIXIN
-                : CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS;
+        var code = enclosingClass is MixinElement
+            ? CompileTimeErrorCode.conflictingTypeVariableAndMixin
+            : CompileTimeErrorCode.conflictingTypeVariableAndClass;
         diagnosticReporter.atElement2(typeParameter, code, arguments: [name]);
       }
       // check members
@@ -2421,12 +2408,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           enclosingClass.getMethod(name) != null ||
           enclosingClass.getGetter(name) != null ||
           enclosingClass.getSetter(name) != null) {
-        var code =
-            enclosingClass is MixinElement
-                ? CompileTimeErrorCode
-                    .CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN
-                : CompileTimeErrorCode
-                    .CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS;
+        var code = enclosingClass is MixinElement
+            ? CompileTimeErrorCode.conflictingTypeVariableAndMemberMixin
+            : CompileTimeErrorCode.conflictingTypeVariableAndMemberClass;
         diagnosticReporter.atElement2(typeParameter, code, arguments: [name]);
       }
     }
@@ -2441,7 +2425,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (fragment.name == name) {
         diagnosticReporter.atElement2(
           typeParameter.asElement2,
-          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_ENUM,
+          CompileTimeErrorCode.conflictingTypeVariableAndEnum,
           arguments: [name],
         );
       }
@@ -2452,7 +2436,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           element.getSetter(name) != null) {
         diagnosticReporter.atElement2(
           typeParameter.asElement2,
-          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM,
+          CompileTimeErrorCode.conflictingTypeVariableAndMemberEnum,
           arguments: [name],
         );
       }
@@ -2470,7 +2454,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (fragment.name == name) {
         diagnosticReporter.atElement2(
           typeParameter.asElement2,
-          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE,
+          CompileTimeErrorCode.conflictingTypeVariableAndExtensionType,
           arguments: [name],
         );
       }
@@ -2482,8 +2466,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           element.getSetter(name) != null) {
         diagnosticReporter.atElement2(
           typeParameter.asElement2,
-          CompileTimeErrorCode
-              .CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE,
+          CompileTimeErrorCode.conflictingTypeVariableAndMemberExtensionType,
           arguments: [name],
         );
       }
@@ -2492,8 +2475,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Verify all conflicts between type variable and enclosing extension.
   ///
-  /// See [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION], and
-  /// [CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION].
+  /// See [CompileTimeErrorCode.conflictingTypeVariableAndExtension], and
+  /// [CompileTimeErrorCode.conflictingTypeVariableAndMemberExtension].
   void _checkForConflictingExtensionTypeVariableErrorCodes() {
     for (TypeParameterElement typeParameter
         in _enclosingExtension!.typeParameters) {
@@ -2504,7 +2487,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (_enclosingExtension!.name == name) {
         diagnosticReporter.atElement2(
           typeParameter,
-          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION,
+          CompileTimeErrorCode.conflictingTypeVariableAndExtension,
           arguments: [name],
         );
       }
@@ -2514,7 +2497,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           _enclosingExtension!.getSetter(name) != null) {
         diagnosticReporter.atElement2(
           typeParameter,
-          CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION,
+          CompileTimeErrorCode.conflictingTypeVariableAndMemberExtension,
           arguments: [name],
         );
       }
@@ -2536,7 +2519,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (error is IncompatibleInterfacesClassHierarchyError) {
         diagnosticReporter.atToken(
           node.name,
-          CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
+          CompileTimeErrorCode.conflictingGenericInterfaces,
           arguments: [
             _enclosingClass!.kind.displayName,
             _enclosingClass!.name!,
@@ -2569,7 +2552,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         if (redirectingInitializerCount > 0) {
           diagnosticReporter.atNode(
             initializer,
-            CompileTimeErrorCode.MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS,
+            CompileTimeErrorCode.multipleRedirectingConstructorInvocations,
           );
         }
         if (declaration.factoryKeyword == null) {
@@ -2583,7 +2566,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             }
             diagnosticReporter.atNode(
               invocation,
-              CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR,
+              CompileTimeErrorCode.redirectGenerativeToMissingConstructor,
               arguments: [constructorStrName, enclosingNamedType],
             );
           } else {
@@ -2591,7 +2574,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               diagnosticReporter.atNode(
                 initializer,
                 CompileTimeErrorCode
-                    .REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR,
+                    .redirectGenerativeToNonGenerativeConstructor,
               );
             }
           }
@@ -2608,13 +2591,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         if (enclosingClass is EnumElement) {
           diagnosticReporter.atToken(
             initializer.superKeyword,
-            CompileTimeErrorCode.SUPER_IN_ENUM_CONSTRUCTOR,
+            CompileTimeErrorCode.superInEnumConstructor,
           );
         } else if (superInitializerCount == 1) {
           // Only report the second (first illegal) superinitializer.
           diagnosticReporter.atNode(
             initializer,
-            CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS,
+            CompileTimeErrorCode.multipleSuperInitializers,
           );
         }
         superInitializer = initializer;
@@ -2629,20 +2612,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           if (enclosingClass is! EnumElement) {
             diagnosticReporter.atNode(
               initializer,
-              CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR,
+              CompileTimeErrorCode.superInRedirectingConstructor,
             );
           }
         }
         if (initializer is ConstructorFieldInitializer) {
           diagnosticReporter.atNode(
             initializer,
-            CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR,
+            CompileTimeErrorCode.fieldInitializerRedirectingConstructor,
           );
         }
         if (initializer is AssertInitializer) {
           diagnosticReporter.atNode(
             initializer,
-            CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR,
+            CompileTimeErrorCode.assertInRedirectingConstructor,
           );
         }
       }
@@ -2661,7 +2644,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         }
         diagnosticReporter.atToken(
           superInitializer.superKeyword,
-          CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST,
+          CompileTimeErrorCode.superInvocationNotLast,
           arguments: [constructorStrName],
         );
       }
@@ -2675,8 +2658,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Return `true` if an error is reported here, and the caller should stop
   /// checking the constructor for constant-related errors.
   ///
-  /// See [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER], and
-  /// [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD].
+  /// See [CompileTimeErrorCode.constConstructorWithNonConstSuper], and
+  /// [CompileTimeErrorCode.constConstructorWithMixinWithField].
   bool _checkForConstConstructorWithNonConstSuper(
     ConstructorDeclaration constructor,
   ) {
@@ -2716,7 +2699,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var field = instanceFields.single;
       diagnosticReporter.atNode(
         constructor.returnType,
-        CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD,
+        CompileTimeErrorCode.constConstructorWithMixinWithField,
         arguments: ["'${field.enclosingElement.name}.${field.name}'"],
       );
       return true;
@@ -2726,7 +2709,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           .join(', ');
       diagnosticReporter.atNode(
         constructor.returnType,
-        CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELDS,
+        CompileTimeErrorCode.constConstructorWithMixinWithFields,
         arguments: [fieldNames],
       );
       return true;
@@ -2753,15 +2736,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     // Often there is an explicit `super()` invocation, report on it.
-    var superInvocation =
-        constructor.initializers
-            .whereType<SuperConstructorInvocation>()
-            .firstOrNull;
+    var superInvocation = constructor.initializers
+        .whereType<SuperConstructorInvocation>()
+        .firstOrNull;
     var errorNode = superInvocation ?? constructor.returnType;
 
     diagnosticReporter.atNode(
       errorNode,
-      CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER,
+      CompileTimeErrorCode.constConstructorWithNonConstSuper,
       arguments: [element.enclosingElement.displayName],
     );
     return true;
@@ -2787,7 +2769,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
     diagnosticReporter.atConstructorDeclaration(
       constructor,
-      CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD,
+      CompileTimeErrorCode.constConstructorWithNonFinalField,
     );
   }
 
@@ -2796,7 +2778,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// always non-`null`. The [namedType] is the name of the type defining the
   /// constructor, always non-`null`.
   ///
-  /// See [CompileTimeErrorCode.CONST_DEFERRED_CLASS].
+  /// See [CompileTimeErrorCode.constDeferredClass].
   void _checkForConstDeferredClass(
     InstanceCreationExpression expression,
     ConstructorName constructorName,
@@ -2805,7 +2787,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (namedType.isDeferred) {
       diagnosticReporter.atNode(
         constructorName,
-        CompileTimeErrorCode.CONST_DEFERRED_CLASS,
+        CompileTimeErrorCode.constDeferredClass,
       );
     }
   }
@@ -2813,12 +2795,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Verify that the given throw [expression] is not enclosed in a 'const'
   /// constructor declaration.
   ///
-  /// See [CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION].
+  /// See [CompileTimeErrorCode.constConstructorThrowsException].
   void _checkForConstEvalThrowsException(ThrowExpression expression) {
     if (_enclosingExecutable.isConstConstructor) {
       diagnosticReporter.atNode(
         expression,
-        CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION,
+        CompileTimeErrorCode.constConstructorThrowsException,
       );
     }
   }
@@ -2839,7 +2821,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (constructorElement != null && !constructorElement.isFactory) {
         diagnosticReporter.atNode(
           namedType,
-          CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS,
+          CompileTimeErrorCode.instantiateAbstractClass,
         );
       }
     }
@@ -2854,7 +2836,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (type.element is MixinElement) {
       diagnosticReporter.atNode(
         namedType,
-        CompileTimeErrorCode.MIXIN_INSTANTIATE,
+        CompileTimeErrorCode.mixinInstantiate,
       );
     }
   }
@@ -2865,7 +2847,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// This method assumes that the instance creation or dot shorthand
   /// constructor invocation was tested to be 'const' before being called.
   ///
-  /// See [CompileTimeErrorCode.CONST_WITH_NON_CONST].
+  /// See [CompileTimeErrorCode.constWithNonConst].
   void _checkForConstWithNonConst(
     Expression expression,
     ConstructorElement? constructorElement,
@@ -2875,12 +2857,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (keyword != null) {
         diagnosticReporter.atToken(
           keyword,
-          CompileTimeErrorCode.CONST_WITH_NON_CONST,
+          CompileTimeErrorCode.constWithNonConst,
         );
       } else {
         diagnosticReporter.atNode(
           expression,
-          CompileTimeErrorCode.CONST_WITH_NON_CONST,
+          CompileTimeErrorCode.constWithNonConst,
         );
       }
     }
@@ -2894,8 +2876,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// This method assumes that the instance creation was tested to be 'const'
   /// before being called.
   ///
-  /// See [CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR], and
-  /// [CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT].
+  /// See [CompileTimeErrorCode.constWithUndefinedConstructor], and
+  /// [CompileTimeErrorCode.constWithUndefinedConstructorDefault].
   void _checkForConstWithUndefinedConstructor(
     InstanceCreationExpression expression,
     ConstructorName constructorName,
@@ -2910,13 +2892,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (name != null) {
       diagnosticReporter.atNode(
         name,
-        CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR,
+        CompileTimeErrorCode.constWithUndefinedConstructor,
         arguments: [namedType.qualifiedName, name.name],
       );
     } else {
       diagnosticReporter.atNode(
         constructorName,
-        CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
+        CompileTimeErrorCode.constWithUndefinedConstructorDefault,
         arguments: [namedType.qualifiedName],
       );
     }
@@ -2924,10 +2906,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   void _checkForDeadNullCoalesce(TypeImpl lhsType, Expression rhs) {
     if (typeSystem.isStrictlyNonNullable(lhsType)) {
-      diagnosticReporter.atNode(
-        rhs,
-        StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION,
-      );
+      diagnosticReporter.atNode(rhs, StaticWarningCode.deadNullAwareExpression);
     }
   }
 
@@ -2941,7 +2920,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (element is ExtensionElement) {
         diagnosticReporter.atNode(
           directive.uri,
-          CompileTimeErrorCode.DEFERRED_IMPORT_OF_EXTENSION,
+          CompileTimeErrorCode.deferredImportOfExtension,
         );
         return;
       }
@@ -2951,7 +2930,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Verify that any deferred imports in the given compilation [unit] have a
   /// unique prefix.
   ///
-  /// See [CompileTimeErrorCode.SHARED_DEFERRED_PREFIX].
+  /// See [CompileTimeErrorCode.sharedDeferredPrefix].
   void _checkForDeferredPrefixCollisions(CompilationUnit unit) {
     NodeList<Directive> directives = unit.directives;
     int count = directives.length;
@@ -3003,7 +2982,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (iterableType is DynamicType && strictCasts) {
       diagnosticReporter.atNode(
         node.iterable,
-        CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE,
+        CompileTimeErrorCode.forInOfInvalidType,
         arguments: [iterableType, loopNamedType],
       );
       return false;
@@ -3027,10 +3006,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     // TODO(rnystrom): Move this into mostSpecificTypeArgument()?
     iterableType = typeSystem.resolveToBound(iterableType);
 
-    var requiredSequenceType =
-        awaitKeyword != null
-            ? _typeProvider.streamDynamicType
-            : _typeProvider.iterableDynamicType;
+    var requiredSequenceType = awaitKeyword != null
+        ? _typeProvider.streamDynamicType
+        : _typeProvider.iterableDynamicType;
 
     if (typeSystem.isTop(iterableType)) {
       iterableType = requiredSequenceType;
@@ -3043,7 +3021,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     )) {
       diagnosticReporter.atNode(
         node.iterable,
-        CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE,
+        CompileTimeErrorCode.forInOfInvalidType,
         arguments: [iterableType, loopNamedType],
       );
       return false;
@@ -3051,10 +3029,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     TypeImpl? sequenceElementType;
     {
-      var sequenceElement =
-          awaitKeyword != null
-              ? _typeProvider.streamElement
-              : _typeProvider.iterableElement;
+      var sequenceElement = awaitKeyword != null
+          ? _typeProvider.streamElement
+          : _typeProvider.iterableElement;
       var sequenceType = iterableType.asInstanceOf(sequenceElement);
       if (sequenceType != null) {
         sequenceElementType = sequenceType.typeArguments[0];
@@ -3086,7 +3063,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (implicitCallMethod == null) {
         diagnosticReporter.atNode(
           node.iterable,
-          CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE,
+          CompileTimeErrorCode.forInOfInvalidElementType,
           arguments: [iterableType, loopNamedType, variableType],
         );
       } else {
@@ -3121,7 +3098,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         )) {
           diagnosticReporter.atNode(
             node.iterable,
-            CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE,
+            CompileTimeErrorCode.forInOfInvalidElementType,
             arguments: [iterableType, loopNamedType, variableType],
           );
         }
@@ -3144,7 +3121,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (isWellBounded is NotWellBoundedTypeResult) {
         diagnosticReporter.atToken(
           node.name,
-          CompileTimeErrorCode.ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED,
+          CompileTimeErrorCode.enumInstantiatedToBoundsIsNotWellBounded,
         );
       }
     }
@@ -3155,7 +3132,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// [LibraryExport] retrieved from the node, if the element in the node was
   /// `null`, then this method is not called.
   ///
-  /// See [CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY].
+  /// See [CompileTimeErrorCode.exportInternalLibrary].
   void _checkForExportInternalLibrary(
     ExportDirective directive,
     LibraryExport libraryExport,
@@ -3187,7 +3164,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     // first place.
     diagnosticReporter.atNode(
       directive,
-      CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY,
+      CompileTimeErrorCode.exportInternalLibrary,
       arguments: [directive.uri.stringValue!],
     );
   }
@@ -3195,28 +3172,28 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Verifies that the given [superclass], found in an extends-clause, is not a
   /// deferred class.
   ///
-  /// See [CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS].
+  /// See [CompileTimeErrorCode.extendsDeferredClass].
   void _checkForExtendsDeferredClass(NamedType? superclass) {
     if (superclass == null) {
       return;
     }
     _checkForExtendsOrImplementsDeferredClass(
       superclass,
-      CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS,
+      CompileTimeErrorCode.extendsDeferredClass,
     );
   }
 
   /// Verifies that the given [superclass], found in an extends-clause, is not a
   /// class such as 'num' or 'String'.
   ///
-  /// See [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS].
+  /// See [CompileTimeErrorCode.extendsDisallowedClass].
   bool _checkForExtendsDisallowedClass(NamedType? superclass) {
     if (superclass == null) {
       return false;
     }
     return _checkForExtendsOrImplementsDisallowedClass(
       superclass,
-      CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+      CompileTimeErrorCode.extendsDisallowedClass,
     );
   }
 
@@ -3225,9 +3202,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ///
   /// See [_checkForExtendsDeferredClass],
   /// [_checkForAllMixinErrorCodes],
-  /// [CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS],
-  /// [CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS], and
-  /// [CompileTimeErrorCode.MIXIN_DEFERRED_CLASS].
+  /// [CompileTimeErrorCode.extendsDeferredClass],
+  /// [CompileTimeErrorCode.implementsDeferredClass], and
+  /// [CompileTimeErrorCode.mixinDeferredClass].
   bool _checkForExtendsOrImplementsDeferredClass(
     NamedType namedType,
     DiagnosticCode code,
@@ -3278,7 +3255,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (var field in node.fields.variables) {
       diagnosticReporter.atToken(
         field.name,
-        CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD,
+        CompileTimeErrorCode.extensionDeclaresInstanceField,
       );
     }
   }
@@ -3288,7 +3265,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (node.hasObjectMemberName) {
         diagnosticReporter.atToken(
           node.name,
-          CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT,
+          CompileTimeErrorCode.extensionDeclaresMemberOfObject,
         );
       }
     }
@@ -3297,7 +3274,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (node.hasObjectMemberName) {
         diagnosticReporter.atToken(
           node.name,
-          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT,
+          CompileTimeErrorCode.extensionTypeDeclaresMemberOfObject,
         );
       }
     }
@@ -3309,7 +3286,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (_enclosingClass is ExtensionTypeElement) {
       diagnosticReporter.atToken(
         node.superKeyword,
-        CompileTimeErrorCode.EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION,
+        CompileTimeErrorCode.extensionTypeConstructorWithSuperInvocation,
       );
     }
   }
@@ -3326,7 +3303,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (var field in node.fields.variables) {
       diagnosticReporter.atToken(
         field.name,
-        CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD,
+        CompileTimeErrorCode.extensionTypeDeclaresInstanceField,
       );
     }
   }
@@ -3342,19 +3319,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (var type in clause.interfaces) {
       _checkForExtendsOrImplementsDeferredClass(
         type,
-        CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS,
+        CompileTimeErrorCode.implementsDeferredClass,
       );
     }
   }
 
   void _checkForExtensionTypeImplementsItself(
     ExtensionTypeDeclarationImpl node,
-    ExtensionTypeFragmentImpl element,
+    ExtensionTypeFragmentImpl fragment,
   ) {
-    if (element.hasImplementsSelfReference) {
+    if (fragment.element.hasImplementsSelfReference) {
       diagnosticReporter.atToken(
         node.name,
-        CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_ITSELF,
+        CompileTimeErrorCode.extensionTypeImplementsItself,
       );
     }
   }
@@ -3364,22 +3341,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     required ExtensionTypeElementImpl element,
   }) {
     void report(String memberName, List<ExecutableElement> candidates) {
-      var contextMessages =
-          candidates.map<DiagnosticMessage>((executable) {
-            var nonSynthetic = executable.nonSynthetic;
-            var container = executable.enclosingElement as InterfaceElement;
-            return DiagnosticMessageImpl(
-              filePath:
-                  executable.firstFragment.libraryFragment.source.fullName,
-              offset: nonSynthetic.firstFragment.nameOffset!,
-              length: nonSynthetic.firstFragment.name!.length,
-              message: "Inherited from '${container.name}'",
-              url: null,
-            );
-          }).toList();
+      var contextMessages = candidates.map<DiagnosticMessage>((executable) {
+        var nonSynthetic = executable.nonSynthetic;
+        var container = executable.enclosingElement as InterfaceElement;
+        return DiagnosticMessageImpl(
+          filePath: executable.firstFragment.libraryFragment.source.fullName,
+          offset: nonSynthetic.firstFragment.nameOffset!,
+          length: nonSynthetic.firstFragment.name!.length,
+          message: "Inherited from '${container.name}'",
+          url: null,
+        );
+      }).toList();
       diagnosticReporter.atToken(
         node.name,
-        CompileTimeErrorCode.EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT,
+        CompileTimeErrorCode.extensionTypeInheritedMemberConflict,
         arguments: [node.name.lexeme, memberName],
         contextMessages: contextMessages,
       );
@@ -3403,12 +3378,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   void _checkForExtensionTypeRepresentationDependsOnItself(
     ExtensionTypeDeclarationImpl node,
-    ExtensionTypeFragmentImpl element,
+    ExtensionTypeFragmentImpl fragment,
   ) {
-    if (element.hasRepresentationSelfReference) {
+    if (fragment.element.hasRepresentationSelfReference) {
       diagnosticReporter.atToken(
         node.name,
-        CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF,
+        CompileTimeErrorCode.extensionTypeRepresentationDependsOnItself,
       );
     }
   }
@@ -3422,7 +3397,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (representationType.isBottom) {
       diagnosticReporter.atNode(
         node.representation.fieldType,
-        CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM,
+        CompileTimeErrorCode.extensionTypeRepresentationTypeBottom,
       );
     }
   }
@@ -3435,7 +3410,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         if (member.isAbstract) {
           diagnosticReporter.atNode(
             member,
-            CompileTimeErrorCode.EXTENSION_TYPE_WITH_ABSTRACT_MEMBER,
+            CompileTimeErrorCode.extensionTypeWithAbstractMember,
             arguments: [member.name.lexeme, node.name.lexeme],
           );
         }
@@ -3446,7 +3421,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Verify that the given field formal [parameter] is in a constructor
   /// declaration.
   ///
-  /// See [CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR].
+  /// See [CompileTimeErrorCode.fieldInitializerOutsideConstructor].
   void _checkForFieldInitializingFormalRedirectingConstructor(
     FieldFormalParameter parameter,
   ) {
@@ -3462,7 +3437,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (constructor.factoryKeyword != null) {
         diagnosticReporter.atNode(
           parameter,
-          CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR,
+          CompileTimeErrorCode.fieldInitializerFactoryConstructor,
         );
         return;
       }
@@ -3471,7 +3446,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         if (initializer is RedirectingConstructorInvocation) {
           diagnosticReporter.atNode(
             parameter,
-            CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR,
+            CompileTimeErrorCode.fieldInitializerRedirectingConstructor,
           );
           return;
         }
@@ -3479,7 +3454,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     } else {
       diagnosticReporter.atNode(
         parameter,
-        CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR,
+        CompileTimeErrorCode.fieldInitializerOutsideConstructor,
       );
     }
   }
@@ -3487,8 +3462,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Verify that the given variable declaration [list] has only initialized
   /// variables if the list is final or const.
   ///
-  /// See [CompileTimeErrorCode.CONST_NOT_INITIALIZED], and
-  /// [CompileTimeErrorCode.FINAL_NOT_INITIALIZED].
+  /// See [CompileTimeErrorCode.constNotInitialized], and
+  /// [CompileTimeErrorCode.finalNotInitialized].
   void _checkForFinalNotInitialized(VariableDeclarationList list) {
     if (_isInNativeClass || list.isSynthetic) {
       return;
@@ -3509,7 +3484,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         if (isConst) {
           diagnosticReporter.atToken(
             variable.name,
-            CompileTimeErrorCode.CONST_NOT_INITIALIZED,
+            CompileTimeErrorCode.constNotInitialized,
             arguments: [variable.name.lexeme],
           );
         } else {
@@ -3523,7 +3498,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           } else if (!variable.isLate) {
             diagnosticReporter.atToken(
               variable.name,
-              CompileTimeErrorCode.FINAL_NOT_INITIALIZED,
+              CompileTimeErrorCode.finalNotInitialized,
               arguments: [variable.name.lexeme],
             );
           }
@@ -3536,8 +3511,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// final fields are initialized.  Cases in which there is at least one
   /// constructor are handled in [_checkForFinalNotInitialized].
   ///
-  /// See [CompileTimeErrorCode.CONST_NOT_INITIALIZED], and
-  /// [CompileTimeErrorCode.FINAL_NOT_INITIALIZED].
+  /// See [CompileTimeErrorCode.constNotInitialized], and
+  /// [CompileTimeErrorCode.finalNotInitialized].
   void _checkForFinalNotInitializedInClass(
     InstanceFragmentImpl fragment,
     List<ClassMember> members,
@@ -3563,8 +3538,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Check that if a direct supertype of a node is final, then it must be in
   /// the same library.
   ///
-  /// See [CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY],
-  /// [CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY],
+  /// See [CompileTimeErrorCode.finalClassExtendedOutsideOfLibrary],
+  /// [CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary],
   /// [CompileTimeErrorCode.
   /// FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY].
   void _checkForFinalSupertypeOutsideOfLibrary(
@@ -3584,7 +3559,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             !_mayIgnoreClassModifiers(element.library)) {
           diagnosticReporter.atNode(
             superclass,
-            CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
+            CompileTimeErrorCode.finalClassExtendedOutsideOfLibrary,
             arguments: [element.name!],
           );
         }
@@ -3594,11 +3569,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       for (NamedType namedType in implementsClause.interfaces) {
         var type = namedType.type;
         if (type is InterfaceType) {
-          var implementedInterfaces =
-              [
-                type,
-                ...type.element.allSupertypes,
-              ].map((e) => e.element).toList();
+          var implementedInterfaces = [
+            type,
+            ...type.element.allSupertypes,
+          ].map((e) => e.element).toList();
           for (var element in implementedInterfaces) {
             if (element is ClassElement &&
                 element.isFinal &&
@@ -3617,7 +3591,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
               diagnosticReporter.atNode(
                 namedType,
-                CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+                CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
                 arguments: [element.name!],
               );
               break;
@@ -3639,7 +3613,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             diagnosticReporter.atNode(
               namedType,
               CompileTimeErrorCode
-                  .FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY,
+                  .finalClassUsedAsMixinConstraintOutsideOfLibrary,
               arguments: [element.name!],
             );
           }
@@ -3659,7 +3633,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (type is FunctionType && type.typeParameters.isNotEmpty) {
       diagnosticReporter.atNode(
         node,
-        CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND,
+        CompileTimeErrorCode.genericFunctionTypeCannotBeBound,
       );
     }
   }
@@ -3680,7 +3654,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (languageVersionToken != null) {
       diagnosticReporter.atToken(
         languageVersionToken,
-        CompileTimeErrorCode.ILLEGAL_LANGUAGE_VERSION_OVERRIDE,
+        CompileTimeErrorCode.illegalLanguageVersionOverride,
         arguments: ['$sourceLanguageConstraint'],
       );
     }
@@ -3689,8 +3663,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Verify that the given implements [clause] does not implement classes such
   /// as 'num' or 'String'.
   ///
-  /// See [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS],
-  /// [CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS].
+  /// See [CompileTimeErrorCode.implementsDisallowedClass],
+  /// [CompileTimeErrorCode.implementsDeferredClass].
   bool _checkForImplementsClauseErrorCodes(ImplementsClause? clause) {
     if (clause == null) {
       return false;
@@ -3699,12 +3673,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (NamedType type in clause.interfaces) {
       if (_checkForExtendsOrImplementsDisallowedClass(
         type,
-        CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
+        CompileTimeErrorCode.implementsDisallowedClass,
       )) {
         foundError = true;
       } else if (_checkForExtendsOrImplementsDeferredClass(
         type,
-        CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS,
+        CompileTimeErrorCode.implementsDeferredClass,
       )) {
         foundError = true;
       }
@@ -3742,7 +3716,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     // `directive.uri.stringValue` is non-`null`.
     diagnosticReporter.atNode(
       directive.uri,
-      CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY,
+      CompileTimeErrorCode.importInternalLibrary,
       arguments: [directive.uri.stringValue!],
     );
   }
@@ -3750,7 +3724,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Check that the given [typeReference] is not a type reference and that then
   /// the [name] is reference to an instance member.
   ///
-  /// See [CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER].
+  /// See [CompileTimeErrorCode.instanceAccessToStaticMember].
   void _checkForInstanceAccessToStaticMember(
     InterfaceElement? typeReference,
     Expression? target,
@@ -3797,7 +3771,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// mixin.
   ///
   /// See
-  /// [CompileTimeErrorCode.INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY].
+  /// [CompileTimeErrorCode.interfaceClassExtendedOutsideOfLibrary].
   void _checkForInterfaceClassOrMixinSuperclassOutsideOfLibrary(
     NamedType? superclass,
     WithClause? withClause,
@@ -3813,7 +3787,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             !_mayIgnoreClassModifiers(superclassElement.library)) {
           diagnosticReporter.atNode(
             superclass,
-            CompileTimeErrorCode.INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
+            CompileTimeErrorCode.interfaceClassExtendedOutsideOfLibrary,
             arguments: [superclassElement.name!],
           );
         }
@@ -3825,7 +3799,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// given [argument]. This is used for prefix and postfix expressions where
   /// the argument value is implicit.
   ///
-  /// See [CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE].
+  /// See [CompileTimeErrorCode.argumentTypeNotAssignable].
   void _checkForIntNotAssignable(ExpressionImpl argument) {
     var parameterElement = argument.correspondingParameter;
     var parameterType = parameterElement?.type;
@@ -3834,20 +3808,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         argument,
         parameterType,
         _intType,
-        CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+        CompileTimeErrorCode.argumentTypeNotAssignable,
       );
     }
   }
 
   /// Verify that the given [annotation] isn't defined in a deferred library.
   ///
-  /// See [CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY].
+  /// See [CompileTimeErrorCode.invalidAnnotationFromDeferredLibrary].
   void _checkForInvalidAnnotationFromDeferredLibrary(Annotation annotation) {
     Identifier nameIdentifier = annotation.name;
     if (nameIdentifier is PrefixedIdentifier && nameIdentifier.isDeferred) {
       diagnosticReporter.atNode(
         annotation.name,
-        CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY,
+        CompileTimeErrorCode.invalidAnnotationFromDeferredLibrary,
       );
     }
   }
@@ -3865,20 +3839,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (staticElement.isSynthetic) {
         diagnosticReporter.atNode(
           initializer,
-          CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD,
+          CompileTimeErrorCode.initializerForNonExistentField,
           arguments: [fieldName.name],
         );
       } else if (staticElement.isStatic) {
         diagnosticReporter.atNode(
           initializer,
-          CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD,
+          CompileTimeErrorCode.initializerForStaticField,
           arguments: [fieldName.name],
         );
       }
     } else {
       diagnosticReporter.atNode(
         initializer,
-        CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD,
+        CompileTimeErrorCode.initializerForNonExistentField,
         arguments: [fieldName.name],
       );
       return;
@@ -3897,10 +3871,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (_currentLibrary.featureSet.isEnabled(Feature.enhanced_enums)) {
         diagnosticReporter.atNode(
           node,
-          CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR,
+          CompileTimeErrorCode.invalidReferenceToGenerativeEnumConstructor,
         );
       } else {
-        diagnosticReporter.atNode(node, CompileTimeErrorCode.INSTANTIATE_ENUM);
+        diagnosticReporter.atNode(node, CompileTimeErrorCode.instantiateEnum);
       }
     }
   }
@@ -3908,9 +3882,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Verify that if the given [identifier] is part of a constructor
   /// initializer, then it does not implicitly reference 'this' expression.
   ///
-  /// See [CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER],
-  /// [CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY], and
-  /// [CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC].
+  /// See [CompileTimeErrorCode.implicitThisReferenceInInitializer],
+  /// [CompileTimeErrorCode.instanceMemberAccessFromFactory], and
+  /// [CompileTimeErrorCode.instanceMemberAccessFromStatic].
   void _checkForInvalidInstanceMemberAccess(SimpleIdentifier identifier) {
     if (_isInComment) {
       return;
@@ -3961,17 +3935,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (_enclosingExecutable.inStaticMethod) {
       diagnosticReporter.atNode(
         identifier,
-        CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC,
+        CompileTimeErrorCode.instanceMemberAccessFromStatic,
       );
     } else if (_enclosingExecutable.inFactoryConstructor) {
       diagnosticReporter.atNode(
         identifier,
-        CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY,
+        CompileTimeErrorCode.instanceMemberAccessFromFactory,
       );
     } else {
       diagnosticReporter.atNode(
         identifier,
-        CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
+        CompileTimeErrorCode.implicitThisReferenceInInitializer,
         arguments: [identifier.name],
       );
     }
@@ -3995,12 +3969,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Verify that the usage of the given 'this' is valid.
   ///
-  /// See [CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS].
+  /// See [CompileTimeErrorCode.invalidReferenceToThis].
   void _checkForInvalidReferenceToThis(ThisExpression expression) {
     if (!_hasAccessToThis) {
       diagnosticReporter.atNode(
         expression,
-        CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS,
+        CompileTimeErrorCode.invalidReferenceToThis,
       );
     }
   }
@@ -4027,14 +4001,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     diagnosticReporter.atToken(
       lateKeyword,
-      CompileTimeErrorCode.LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR,
+      CompileTimeErrorCode.lateFinalFieldWithConstConstructor,
     );
   }
 
   /// Verify that the elements of the given list [literal] are subtypes of the
   /// list's static type.
   ///
-  /// See [CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE].
+  /// See [CompileTimeErrorCode.listElementTypeNotAssignable].
   void _checkForListElementTypeNotAssignable(ListLiteral literal) {
     // Determine the list's element type. We base this on the static type and
     // not the literal's type arguments because in strong mode, the type
@@ -4075,7 +4049,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (declaredFragment is! TopLevelFunctionFragment) {
       diagnosticReporter.atToken(
         nameToken,
-        CompileTimeErrorCode.MAIN_IS_NOT_FUNCTION,
+        CompileTimeErrorCode.mainIsNotFunction,
       );
     }
   }
@@ -4096,20 +4070,21 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     var parameters = parameterList.parameters;
     var positional = parameters.where((e) => e.isPositional).toList();
-    var requiredPositional =
-        parameters.where((e) => e.isRequiredPositional).toList();
+    var requiredPositional = parameters
+        .where((e) => e.isRequiredPositional)
+        .toList();
 
     if (requiredPositional.length > 2) {
       diagnosticReporter.atToken(
         functionDeclaration.name,
-        CompileTimeErrorCode.MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS,
+        CompileTimeErrorCode.mainHasTooManyRequiredPositionalParameters,
       );
     }
 
     if (parameters.any((e) => e.isRequiredNamed)) {
       diagnosticReporter.atToken(
         functionDeclaration.name,
-        CompileTimeErrorCode.MAIN_HAS_REQUIRED_NAMED_PARAMETERS,
+        CompileTimeErrorCode.mainHasRequiredNamedParameters,
       );
     }
 
@@ -4120,7 +4095,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (!typeSystem.isSubtypeOf(listOfString, type)) {
         diagnosticReporter.atNode(
           first.notDefault.typeOrSelf,
-          CompileTimeErrorCode.MAIN_FIRST_POSITIONAL_PARAMETER_TYPE,
+          CompileTimeErrorCode.mainFirstPositionalParameterType,
         );
       }
     }
@@ -4175,11 +4150,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (expressionType is InterfaceType) {
       var enumElement = expressionType.element;
       if (enumElement is EnumElement) {
-        var constantNames =
-            enumElement.fields
-                .where((field) => field.isEnumConstant)
-                .map((field) => field.name)
-                .toSet();
+        var constantNames = enumElement.fields
+            .where((field) => field.isEnumConstant)
+            .map((field) => field.name)
+            .toSet();
 
         for (var member in statement.members) {
           Expression? caseConstant;
@@ -4214,7 +4188,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           diagnosticReporter.atOffset(
             offset: offset,
             length: end - offset,
-            diagnosticCode: StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
+            diagnosticCode: StaticWarningCode.missingEnumConstantInSwitch,
             arguments: [constantName!],
           );
         }
@@ -4225,7 +4199,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           diagnosticReporter.atOffset(
             offset: offset,
             length: end - offset,
-            diagnosticCode: StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
+            diagnosticCode: StaticWarningCode.missingEnumConstantInSwitch,
             arguments: ['null'],
           );
         }
@@ -4237,7 +4211,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// constructor. The [mixinName] is the node to report problem on. The
   /// [mixinElement] is the mixing to evaluate.
   ///
-  /// See [CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR].
+  /// See [CompileTimeErrorCode.mixinClassDeclaresConstructor].
   bool _checkForMixinClassDeclaresConstructor(
     NamedType mixinName,
     InterfaceElement mixinElement,
@@ -4246,7 +4220,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (!constructor.isSynthetic && !constructor.isFactory) {
         diagnosticReporter.atNode(
           mixinName,
-          CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR,
+          CompileTimeErrorCode.mixinClassDeclaresConstructor,
           arguments: [mixinElement.name!],
         );
         return true;
@@ -4258,8 +4232,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Verify that mixin classes must have 'Object' as their superclass and that
   /// they do not have a constructor.
   ///
-  /// See [CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR],
-  /// [CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT].
+  /// See [CompileTimeErrorCode.mixinClassDeclaresConstructor],
+  /// [CompileTimeErrorCode.mixinInheritsFromNotObject].
   void _checkForMixinClassErrorCodes(
     NamedCompilationUnitMember node,
     List<ClassMember> members,
@@ -4277,7 +4251,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             if (!member.isTrivial) {
               diagnosticReporter.atNode(
                 member.returnType,
-                CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR,
+                CompileTimeErrorCode.mixinClassDeclaresConstructor,
                 arguments: [element.name!],
               );
             }
@@ -4288,14 +4262,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (superclass != null && !superclass.typeOrThrow.isDartCoreObject) {
         diagnosticReporter.atNode(
           superclass,
-          CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT,
+          CompileTimeErrorCode.mixinClassDeclarationExtendsNotObject,
           arguments: [element.name!],
         );
       } else if (withClause != null &&
           !(element.isMixinApplication && withClause.mixinTypes.length < 2)) {
         diagnosticReporter.atNode(
           withClause,
-          CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT,
+          CompileTimeErrorCode.mixinClassDeclarationExtendsNotObject,
           arguments: [element.name!],
         );
       }
@@ -4307,7 +4281,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// The [mixinName] is the node to report problem on. The [mixinElement] is
   /// the mixing to evaluate.
   ///
-  /// See [CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT].
+  /// See [CompileTimeErrorCode.mixinInheritsFromNotObject].
   bool _checkForMixinInheritsNotFromObject(
     NamedType mixinName,
     InterfaceElement mixinElement,
@@ -4318,8 +4292,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     var mixinSupertype = mixinElement.supertype;
     if (mixinSupertype == null || mixinSupertype.isDartCoreObject) {
-      // TODO(scheglov): don't use firstFragment
-      var mixins = mixinElement.firstFragment.mixins;
+      var mixins = mixinElement.mixins;
       if (mixins.isEmpty ||
           mixinElement.isMixinApplication && mixins.length < 2) {
         return false;
@@ -4328,7 +4301,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     diagnosticReporter.atNode(
       mixinName,
-      CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT,
+      CompileTimeErrorCode.mixinInheritsFromNotObject,
       arguments: [mixinElement.name!],
     );
     return true;
@@ -4360,7 +4333,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         // so we can safely rely on `mixinName.type` being non-`null`.
         diagnosticReporter.atToken(
           mixinName.name,
-          CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+          CompileTimeErrorCode.mixinApplicationNotImplementedInterface,
           arguments: [mixinName.type!, superType, constraint],
         );
         return true;
@@ -4398,12 +4371,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (superMember == null) {
         var isSetter = name.endsWith('=');
 
-        var errorCode =
-            isSetter
-                ? CompileTimeErrorCode
-                    .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_SETTER
-                : CompileTimeErrorCode
-                    .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER;
+        var errorCode = isSetter
+            ? CompileTimeErrorCode.mixinApplicationNoConcreteSuperInvokedSetter
+            : CompileTimeErrorCode.mixinApplicationNoConcreteSuperInvokedMember;
 
         if (isSetter) {
           name = name.substring(0, name.length - 1);
@@ -4427,8 +4397,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         if (!isCorrect) {
           diagnosticReporter.atNode(
             mixinName,
-            CompileTimeErrorCode
-                .MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE,
+            CompileTimeErrorCode.mixinApplicationConcreteSuperInvokedMemberType,
             arguments: [name, mixinMember.type, superMember.type],
           );
           return true;
@@ -4471,7 +4440,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           }
           diagnosticReporter.atNode(
             namedType,
-            CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
+            CompileTimeErrorCode.privateCollisionInMixinApplication,
             arguments: [name, namedType.name.lexeme, conflictingName],
           );
           return true;
@@ -4491,7 +4460,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           // non-`null`.
           diagnosticReporter.atNode(
             namedType,
-            CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION,
+            CompileTimeErrorCode.privateCollisionInMixinApplication,
             arguments: [
               name,
               namedType.name.lexeme,
@@ -4540,12 +4509,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Checks to ensure that the given native function [body] is in SDK code.
   ///
-  /// See [ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE].
+  /// See [ParserErrorCode.nativeFunctionBodyInNonSdkCode].
   void _checkForNativeFunctionBodyInNonSdkCode(NativeFunctionBody body) {
     if (!_isInSystemLibrary) {
       diagnosticReporter.atNode(
         body,
-        ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE,
+        ParserErrorCode.nativeFunctionBodyInNonSdkCode,
       );
     }
   }
@@ -4557,7 +4526,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// This method assumes that the instance creation was tested to be 'new'
   /// before being called.
   ///
-  /// See [CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR].
+  /// See [CompileTimeErrorCode.newWithUndefinedConstructor].
   void _checkForNewWithUndefinedConstructor(
     InstanceCreationExpression expression,
     ConstructorName constructorName,
@@ -4580,13 +4549,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (name != null) {
       diagnosticReporter.atNode(
         name,
-        CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR,
+        CompileTimeErrorCode.newWithUndefinedConstructor,
         arguments: [namedType.qualifiedName, name.name],
       );
     } else {
       diagnosticReporter.atNode(
         constructorName,
-        CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
+        CompileTimeErrorCode.newWithUndefinedConstructorDefault,
         arguments: [namedType.qualifiedName],
       );
     }
@@ -4596,7 +4565,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// constructor of its superclass, there should be such default constructor -
   /// implicit or explicit.
   ///
-  /// See [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT].
+  /// See [CompileTimeErrorCode.noDefaultSuperConstructorImplicit].
   void _checkForNoDefaultSuperConstructorImplicit(ClassFragmentImpl fragment) {
     // do nothing if there is explicit constructor
     var constructors = fragment.element.constructors;
@@ -4604,7 +4573,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
     // prepare super
-    var superType = fragment.supertype;
+    var superType = fragment.element.supertype;
     if (superType == null) {
       return;
     }
@@ -4615,7 +4584,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (superUnnamedConstructor.isFactory) {
         diagnosticReporter.atElement2(
           fragment.asElement2,
-          CompileTimeErrorCode.NON_GENERATIVE_IMPLICIT_CONSTRUCTOR,
+          CompileTimeErrorCode.nonGenerativeImplicitConstructor,
           arguments: [
             superElement.name ?? '',
             fragment.name ?? '',
@@ -4634,7 +4603,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       // real problem was already reported.
       diagnosticReporter.atElement2(
         fragment.asElement2,
-        CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
+        CompileTimeErrorCode.noDefaultSuperConstructorImplicit,
         arguments: [superType, fragment.displayName],
       );
     }
@@ -4664,7 +4633,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       // no generative constructors. State this clearly to users.
       diagnosticReporter.atNode(
         superclass!,
-        CompileTimeErrorCode.NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS,
+        CompileTimeErrorCode.noGenerativeConstructorsInSuperclass,
         arguments: [_enclosingClass!.name!, superElement.name!],
       );
       return true;
@@ -4678,7 +4647,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         node.factoryKeyword == null) {
       diagnosticReporter.atConstructorDeclaration(
         node,
-        CompileTimeErrorCode.NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR,
+        CompileTimeErrorCode.nonConstGenerativeEnumConstructor,
       );
     }
   }
@@ -4688,7 +4657,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// * has explicit type arguments
   /// * is not start of the statement
   ///
-  /// See [CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT].
+  /// See [CompileTimeErrorCode.nonConstMapAsExpressionStatement].
   void _checkForNonConstMapAsExpressionStatement3(SetOrMapLiteral literal) {
     // "const"
     if (literal.constKeyword != null) {
@@ -4711,7 +4680,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     // TODO(srawlins): Add any tests showing this is reported.
     diagnosticReporter.atNode(
       literal,
-      CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT,
+      CompileTimeErrorCode.nonConstMapAsExpressionStatement,
     );
   }
 
@@ -4738,7 +4707,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         diagnosticReporter.atNode(
           typeParameterNode,
           CompileTimeErrorCode
-              .NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE,
+              .nonCovariantTypeParameterPositionInRepresentationType,
         );
       }
     }
@@ -4757,14 +4726,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     diagnosticReporter.atToken(
       variableList.variables.first.name,
-      CompileTimeErrorCode.NON_FINAL_FIELD_IN_ENUM,
+      CompileTimeErrorCode.nonFinalFieldInEnum,
     );
   }
 
   /// Verify that the given method [declaration] of operator `[]=`, has `void`
   /// return type.
   ///
-  /// See [CompileTimeErrorCode.NON_VOID_RETURN_FOR_OPERATOR].
+  /// See [CompileTimeErrorCode.nonVoidReturnForOperator].
   void _checkForNonVoidReturnTypeForOperator(MethodDeclaration declaration) {
     // check that []= operator
     if (declaration.name.lexeme != "[]=") {
@@ -4777,7 +4746,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (type is! VoidType) {
         diagnosticReporter.atNode(
           annotation,
-          CompileTimeErrorCode.NON_VOID_RETURN_FOR_OPERATOR,
+          CompileTimeErrorCode.nonVoidReturnForOperator,
         );
       }
     }
@@ -4786,14 +4755,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Verify the [namedType], used as the return type of a setter, is valid
   /// (either `null` or the type 'void').
   ///
-  /// See [CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER].
+  /// See [CompileTimeErrorCode.nonVoidReturnForSetter].
   void _checkForNonVoidReturnTypeForSetter(TypeAnnotation? namedType) {
     if (namedType != null) {
       DartType type = namedType.typeOrThrow;
       if (type is! VoidType) {
         diagnosticReporter.atNode(
           namedType,
-          CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER,
+          CompileTimeErrorCode.nonVoidReturnForSetter,
         );
       }
     }
@@ -4821,7 +4790,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       diagnosticReporter.atNode(
         field,
-        CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+        CompileTimeErrorCode.notInitializedNonNullableInstanceField,
         arguments: [field.name.lexeme],
       );
     }
@@ -4871,7 +4840,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (variable.initializer == null) {
         diagnosticReporter.atToken(
           variable.name,
-          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE,
+          CompileTimeErrorCode.notInitializedNonNullableVariable,
           arguments: [variable.name.lexeme],
         );
       }
@@ -4880,8 +4849,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Verify that all classes of the given [onClause] are valid.
   ///
-  /// See [CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS],
-  /// [CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS].
+  /// See [CompileTimeErrorCode.mixinSuperClassConstraintDisallowedClass],
+  /// [CompileTimeErrorCode.mixinSuperClassConstraintDeferredClass].
   bool _checkForOnClauseErrorCodes(MixinOnClause? onClause) {
     if (onClause == null) {
       return false;
@@ -4892,13 +4861,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (type is InterfaceType) {
         if (_checkForExtendsOrImplementsDisallowedClass(
           namedType,
-          CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS,
+          CompileTimeErrorCode.mixinSuperClassConstraintDisallowedClass,
         )) {
           problemReported = true;
         } else {
           if (_checkForExtendsOrImplementsDeferredClass(
             namedType,
-            CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS,
+            CompileTimeErrorCode.mixinSuperClassConstraintDeferredClass,
           )) {
             problemReported = true;
           }
@@ -4914,7 +4883,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// This method assumes that the method declaration was tested to be an
   /// operator declaration before being called.
   ///
-  /// See [CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR].
+  /// See [CompileTimeErrorCode.optionalParameterInOperator].
   void _checkForOptionalParameterInOperator(MethodDeclaration declaration) {
     var parameterList = declaration.parameters;
     if (parameterList == null) {
@@ -4926,7 +4895,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (formalParameter.isOptional) {
         diagnosticReporter.atNode(
           formalParameter,
-          CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR,
+          CompileTimeErrorCode.optionalParameterInOperator,
         );
       }
     }
@@ -4960,10 +4929,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     bool isNegated = node.immediatelyNegated;
 
     bool treatedAsDouble = node.staticType == _typeProvider.doubleType;
-    bool valid =
-        treatedAsDouble
-            ? IntegerLiteralImpl.isValidAsDouble(source)
-            : IntegerLiteralImpl.isValidAsInteger(source, isNegated);
+    bool valid = treatedAsDouble
+        ? IntegerLiteralImpl.isValidAsDouble(source)
+        : IntegerLiteralImpl.isValidAsInteger(source, isNegated);
 
     if (!valid) {
       var lexeme = node.literal.lexeme;
@@ -4980,8 +4948,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       diagnosticReporter.atNode(
         node,
         treatedAsDouble
-            ? CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE
-            : CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE,
+            ? CompileTimeErrorCode.integerLiteralImpreciseAsDouble
+            : CompileTimeErrorCode.integerLiteralOutOfRange,
         arguments: messageArguments,
       );
     }
@@ -5001,7 +4969,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     diagnosticReporter.atToken(
       name,
-      CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER,
+      CompileTimeErrorCode.privateOptionalParameter,
     );
   }
 
@@ -5009,7 +4977,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// generative constructor and references itself directly or indirectly. The
   /// [constructorElement] is the constructor element.
   ///
-  /// See [CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT].
+  /// See [CompileTimeErrorCode.recursiveConstructorRedirect].
   void _checkForRecursiveConstructorRedirect(
     ConstructorDeclaration declaration,
     ConstructorElement constructorElement,
@@ -5025,7 +4993,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         if (_hasRedirectingFactoryConstructorCycle(constructorElement)) {
           diagnosticReporter.atNode(
             initializer,
-            CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT,
+            CompileTimeErrorCode.recursiveConstructorRedirect,
           );
         }
         return;
@@ -5037,7 +5005,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// constructor and references itself directly or indirectly. The
   /// constructor [element] is the element introduced by the declaration.
   ///
-  /// See [CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT].
+  /// See [CompileTimeErrorCode.recursiveFactoryRedirect].
   bool _checkForRecursiveFactoryRedirect(
     ConstructorDeclaration declaration,
     ConstructorElement element,
@@ -5054,7 +5022,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     // report error
     diagnosticReporter.atNode(
       redirectedConstructorNode,
-      CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
+      CompileTimeErrorCode.recursiveFactoryRedirect,
     );
     return true;
   }
@@ -5074,7 +5042,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           parameter.defaultValue != null) {
         diagnosticReporter.atToken(
           parameter.name!,
-          CompileTimeErrorCode.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR,
+          CompileTimeErrorCode.defaultValueInRedirectingFactoryConstructor,
         );
       }
     }
@@ -5096,7 +5064,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
       diagnosticReporter.atNode(
         redirectedConstructor,
-        CompileTimeErrorCode.REDIRECT_TO_ABSTRACT_CLASS_CONSTRUCTOR,
+        CompileTimeErrorCode.redirectToAbstractClassConstructor,
         arguments: [constructorStrName, redirectedClass.name!],
       );
     }
@@ -5109,7 +5077,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Check whether the redirecting constructor, [element], is const, and
   /// [redirectedElement], its redirectee, is not const.
   ///
-  /// See [CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR].
+  /// See [CompileTimeErrorCode.redirectToNonConstConstructor].
   void _checkForRedirectToNonConstConstructor(
     ConstructorElement element,
     ConstructorElement? redirectedElement,
@@ -5121,7 +5089,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         !redirectedElement.isConst) {
       diagnosticReporter.atEntity(
         errorEntity,
-        CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR,
+        CompileTimeErrorCode.redirectToNonConstConstructor,
       );
     }
   }
@@ -5171,12 +5139,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Check that the given rethrow [expression] is inside of a catch clause.
   ///
-  /// See [CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH].
+  /// See [CompileTimeErrorCode.rethrowOutsideCatch].
   void _checkForRethrowOutsideCatch(RethrowExpression expression) {
     if (_enclosingExecutable.catchClauseLevel == 0) {
       diagnosticReporter.atNode(
         expression,
-        CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH,
+        CompileTimeErrorCode.rethrowOutsideCatch,
       );
     }
   }
@@ -5184,7 +5152,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Check that if the given constructor [declaration] is generative, then
   /// it does not have an expression function body.
   ///
-  /// See [CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR].
+  /// See [CompileTimeErrorCode.returnInGenerativeConstructor].
   void _checkForReturnInGenerativeConstructor(
     ConstructorDeclaration declaration,
   ) {
@@ -5200,21 +5168,21 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     diagnosticReporter.atNode(
       body,
-      CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR,
+      CompileTimeErrorCode.returnInGenerativeConstructor,
     );
   }
 
   /// Checks that every supertype which is sealed is also declared in the
   /// current library.
   ///
-  /// See [CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY].
+  /// See [CompileTimeErrorCode.sealedClassSubtypeOutsideOfLibrary].
   void _checkForSealedSupertypeOutsideOfLibrary(List<NamedType> supertypes) {
     for (NamedType namedType in supertypes) {
       if (namedType.type case InterfaceType(:ClassElement element)) {
         if (element.isSealed && element.library != _currentLibrary) {
           diagnosticReporter.atNode(
             namedType,
-            CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY,
+            CompileTimeErrorCode.sealedClassSubtypeOutsideOfLibrary,
             arguments: [element.name!],
           );
         }
@@ -5225,7 +5193,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Verify that the elements in the given set [literal] are subtypes of the
   /// set's static type.
   ///
-  /// See [CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE].
+  /// See [CompileTimeErrorCode.setElementTypeNotAssignable].
   void _checkForSetElementTypeNotAssignable3(SetOrMapLiteral literal) {
     // Determine the set's element type. We base this on the static type and
     // not the literal's type arguments because in strong mode, the type
@@ -5260,7 +5228,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Check the given [typeReference] and that the [name] is not a reference to
   /// an instance member.
   ///
-  /// See [CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER].
+  /// See [CompileTimeErrorCode.staticAccessToInstanceMember].
   void _checkForStaticAccessToInstanceMember(
     InterfaceElement? typeReference,
     SimpleIdentifier name,
@@ -5282,7 +5250,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
       diagnosticReporter.atNode(
         name,
-        CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER,
+        CompileTimeErrorCode.staticAccessToInstanceMember,
         arguments: [name.name],
       );
     }
@@ -5299,7 +5267,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     )) {
       diagnosticReporter.atNode(
         expression,
-        CompileTimeErrorCode.THROW_OF_INVALID_TYPE,
+        CompileTimeErrorCode.throwOfInvalidType,
         arguments: [type],
       );
     }
@@ -5308,7 +5276,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Verify that the given [element] does not reference itself directly.
   /// If it does, report the error on the [nameToken].
   ///
-  /// See [CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF].
+  /// See [CompileTimeErrorCode.typeAliasCannotReferenceItself].
   void _checkForTypeAliasCannotReferenceItself(
     Token nameToken,
     TypeAliasFragmentImpl element,
@@ -5316,19 +5284,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (element.hasSelfReference) {
       diagnosticReporter.atToken(
         nameToken,
-        CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
+        CompileTimeErrorCode.typeAliasCannotReferenceItself,
       );
     }
   }
 
   /// Verify that the [type] is not a deferred type.
   ///
-  /// See [CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS].
+  /// See [CompileTimeErrorCode.typeAnnotationDeferredClass].
   void _checkForTypeAnnotationDeferredClass(TypeAnnotation? type) {
     if (type is NamedType && type.isDeferred) {
       diagnosticReporter.atNode(
         type,
-        CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS,
+        CompileTimeErrorCode.typeAnnotationDeferredClass,
         arguments: [type.qualifiedName],
       );
     }
@@ -5336,7 +5304,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Check that none of the type [parameters] references itself in its bound.
   ///
-  /// See [CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND].
+  /// See [CompileTimeErrorCode.typeParameterSupertypeOfItsBound].
   void _checkForTypeParameterBoundRecursion(List<TypeParameter> parameters) {
     checkForTypeParameterBoundRecursion(diagnosticReporter, parameters);
   }
@@ -5353,7 +5321,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         // type parameters, or a local function's type parameters).
         diagnosticReporter.atToken(
           name,
-          CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC,
+          CompileTimeErrorCode.typeParameterReferencedByStatic,
         );
       }
     }
@@ -5363,9 +5331,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// super constructor invocation nor a redirecting constructor invocation,
   /// that the superclass has a default generative constructor.
   ///
-  /// See [CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT],
-  /// [CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR], and
-  /// [CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT].
+  /// See [CompileTimeErrorCode.undefinedConstructorInInitializerDefault],
+  /// [CompileTimeErrorCode.nonGenerativeConstructor], and
+  /// [CompileTimeErrorCode.noDefaultSuperConstructorExplicit].
   void _checkForUndefinedConstructorInInitializerImplicit(
     ConstructorDeclaration constructor,
   ) {
@@ -5413,7 +5381,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (superUnnamedConstructor == null) {
       diagnosticReporter.atNode(
         constructor.returnType,
-        CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
+        CompileTimeErrorCode.undefinedConstructorInInitializerDefault,
         arguments: [superElement.name!],
       );
       return;
@@ -5422,21 +5390,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (superUnnamedConstructor.isFactory) {
       diagnosticReporter.atNode(
         constructor.returnType,
-        CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR,
+        CompileTimeErrorCode.nonGenerativeConstructor,
         arguments: [superUnnamedConstructor],
       );
       return;
     }
 
-    var requiredPositionalParameterCount =
-        superUnnamedConstructor.formalParameters
-            .where((parameter) => parameter.isRequiredPositional)
-            .length;
-    var requiredNamedParameters =
-        superUnnamedConstructor.formalParameters
-            .where((parameter) => parameter.isRequiredNamed)
-            .map((parameter) => parameter.name)
-            .toSet();
+    var requiredPositionalParameterCount = superUnnamedConstructor
+        .formalParameters
+        .where((parameter) => parameter.isRequiredPositional)
+        .length;
+    var requiredNamedParameters = superUnnamedConstructor.formalParameters
+        .where((parameter) => parameter.isRequiredNamed)
+        .map((parameter) => parameter.name)
+        .toSet();
 
     void reportError(DiagnosticCode code, List<Object> arguments) {
       Identifier returnType = constructor.returnType;
@@ -5454,10 +5421,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (!_currentLibrary.featureSet.isEnabled(Feature.super_parameters)) {
       if (requiredPositionalParameterCount != 0 ||
           requiredNamedParameters.isNotEmpty) {
-        reportError(
-          CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT,
-          [superType],
-        );
+        reportError(CompileTimeErrorCode.noDefaultSuperConstructorExplicit, [
+          superType,
+        ]);
       }
       return;
     }
@@ -5472,7 +5438,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             superParametersResult.positionalArgumentCount ||
         requiredNamedParameters.isNotEmpty) {
       reportError(
-        CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS,
+        CompileTimeErrorCode.implicitSuperInitializerMissingArguments,
         [superType],
       );
     }
@@ -5492,30 +5458,30 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     List<Object> arguments = const [];
     if (operator.type == TokenType.QUESTION) {
       if (nullAwareElementOrMapEntryKind == null) {
-        code = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
+        code = StaticWarningCode.invalidNullAwareOperator;
         endToken = operator.next!;
         arguments = ['?[', '['];
       } else {
         switch (nullAwareElementOrMapEntryKind) {
           case _NullAwareElementOrMapEntryKind.element:
-            code = StaticWarningCode.INVALID_NULL_AWARE_ELEMENT;
+            code = StaticWarningCode.invalidNullAwareElement;
           case _NullAwareElementOrMapEntryKind.mapEntryKey:
-            code = StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_KEY;
+            code = StaticWarningCode.invalidNullAwareMapEntryKey;
           case _NullAwareElementOrMapEntryKind.mapEntryValue:
-            code = StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_VALUE;
+            code = StaticWarningCode.invalidNullAwareMapEntryValue;
         }
       }
     } else if (operator.type == TokenType.QUESTION_PERIOD) {
-      code = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
+      code = StaticWarningCode.invalidNullAwareOperator;
       arguments = [operator.lexeme, '.'];
     } else if (operator.type == TokenType.QUESTION_PERIOD_PERIOD) {
-      code = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
+      code = StaticWarningCode.invalidNullAwareOperator;
       arguments = [operator.lexeme, '..'];
     } else if (operator.type == TokenType.PERIOD_PERIOD_PERIOD_QUESTION) {
-      code = StaticWarningCode.INVALID_NULL_AWARE_OPERATOR;
+      code = StaticWarningCode.invalidNullAwareOperator;
       arguments = [operator.lexeme, '...'];
     } else if (operator.type == TokenType.BANG) {
-      code = StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION;
+      code = StaticWarningCode.unnecessaryNonNullAssertion;
     } else {
       return;
     }
@@ -5572,7 +5538,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     if (typeSystem.isStrictlyNonNullable(targetType)) {
-      if (code == StaticWarningCode.INVALID_NULL_AWARE_OPERATOR) {
+      if (code == StaticWarningCode.invalidNullAwareOperator) {
         var previousOperator = previousShortCircuitingOperator(target);
         if (previousOperator != null) {
           diagnosticReporter.reportError(
@@ -5600,7 +5566,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// defined in the enclosing class rather than in a superclass.
   ///
   /// See
-  /// [CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER].
+  /// [CompileTimeErrorCode.unqualifiedReferenceToNonLocalStaticMember].
   void _checkForUnqualifiedReferenceToNonLocalStaticMember(
     SimpleIdentifier name,
   ) {
@@ -5628,22 +5594,23 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (element is ExecutableElement && !element.isStatic) {
       return;
     }
-    if (element is MethodElement) {
+    if (name.parent case MethodInvocation(
+      :var methodName,
+    ) when name == methodName) {
       // Invalid methods are reported in
-      // [MethodInvocationResolver._resolveReceiverNull].
+      // [MethodInvocationResolver._reportInstanceAccessToStaticMember].
       return;
     }
     if (_enclosingExtension != null) {
       diagnosticReporter.atNode(
         name,
-        CompileTimeErrorCode
-            .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE,
+        CompileTimeErrorCode.unqualifiedReferenceToStaticMemberOfExtendedType,
         arguments: [enclosingElement.displayName],
       );
     } else {
       diagnosticReporter.atNode(
         name,
-        CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
+        CompileTimeErrorCode.unqualifiedReferenceToNonLocalStaticMember,
         arguments: [enclosingElement.displayName],
       );
     }
@@ -5661,7 +5628,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (fieldElement == null || fieldElement.isSynthetic) {
         diagnosticReporter.atNode(
           parameter,
-          CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD,
+          CompileTimeErrorCode.initializingFormalForNonExistentField,
           arguments: [parameter.name.lexeme],
         );
       } else {
@@ -5672,19 +5639,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           if (fieldElement.isSynthetic) {
             diagnosticReporter.atNode(
               parameter,
-              CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD,
+              CompileTimeErrorCode.initializingFormalForNonExistentField,
               arguments: [parameter.name.lexeme],
             );
           } else if (fieldElement.isStatic) {
             diagnosticReporter.atNode(
               parameter,
-              CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD,
+              CompileTimeErrorCode.initializerForStaticField,
               arguments: [parameter.name.lexeme],
             );
           } else if (!typeSystem.isSubtypeOf(declaredType, fieldType)) {
             diagnosticReporter.atNode(
               parameter,
-              CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE,
+              CompileTimeErrorCode.fieldInitializingFormalNotAssignable,
               arguments: [declaredType, fieldType],
             );
           }
@@ -5692,13 +5659,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           if (fieldElement.isSynthetic) {
             diagnosticReporter.atNode(
               parameter,
-              CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD,
+              CompileTimeErrorCode.initializingFormalForNonExistentField,
               arguments: [parameter.name.lexeme],
             );
           } else if (fieldElement.isStatic) {
             diagnosticReporter.atNode(
               parameter,
-              CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD,
+              CompileTimeErrorCode.initializerForStaticField,
               arguments: [parameter.name.lexeme],
             );
           }
@@ -5717,7 +5684,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// This method assumes that the method declaration was tested to be an
   /// operator declaration before being called.
   ///
-  /// See [CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR].
+  /// See [CompileTimeErrorCode.wrongNumberOfParametersForOperator].
   bool _checkForWrongNumberOfParametersForOperator(
     MethodDeclaration declaration,
   ) {
@@ -5758,14 +5725,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (expected != -1 && numParameters != expected) {
       diagnosticReporter.atToken(
         nameToken,
-        CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR,
+        CompileTimeErrorCode.wrongNumberOfParametersForOperator,
         arguments: [name, expected, numParameters],
       );
       return true;
     } else if ("-" == name && numParameters > 1) {
       diagnosticReporter.atToken(
         nameToken,
-        CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS,
+        CompileTimeErrorCode.wrongNumberOfParametersForOperatorMinus,
         arguments: [numParameters],
       );
       return true;
@@ -5775,7 +5742,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   void _checkForWrongTypeParameterVarianceInField(FieldDeclarationImpl node) {
     if (_enclosingClass != null) {
-      for (var typeParameter in _enclosingClass!.asElement.typeParameters) {
+      for (var typeParameter in _enclosingClass!.typeParameters) {
         if (!typeParameter.isLegacyCovariant) {
           var fields = node.fields;
           var fieldFragment = fields.variables.first.declaredFragment!;
@@ -5811,7 +5778,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    for (var typeParameter in _enclosingClass!.asElement.typeParameters) {
+    for (var typeParameter in _enclosingClass!.typeParameters) {
       if (typeParameter.isLegacyCovariant) {
         continue;
       }
@@ -5871,7 +5838,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForWrongTypeParameterVarianceInSuperinterfaces() {
     void checkOne(DartType? superInterface) {
       if (superInterface != null) {
-        for (var typeParameter in _enclosingClass!.asElement.typeParameters) {
+        for (var typeParameter in _enclosingClass!.typeParameters) {
           var superVariance = typeParameter.computeVarianceInType(
             superInterface,
           );
@@ -5887,9 +5854,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           if (!superVariance.greaterThanOrEqual(typeParameter.variance)) {
             if (!typeParameter.isLegacyCovariant) {
               diagnosticReporter.atElement2(
-                typeParameter.asElement2,
+                typeParameter,
                 CompileTimeErrorCode
-                    .WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+                    .wrongExplicitTypeParameterVarianceInSuperinterface,
                 arguments: [
                   typeParameter.name ?? '',
                   typeParameter.variance.keyword,
@@ -5899,9 +5866,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               );
             } else {
               diagnosticReporter.atElement2(
-                typeParameter.asElement2,
-                CompileTimeErrorCode
-                    .WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
+                typeParameter,
+                CompileTimeErrorCode.wrongTypeParameterVarianceInSuperinterface,
                 arguments: [typeParameter.name ?? '', superInterface],
               );
             }
@@ -5935,13 +5901,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// only components that allow explicit variance modifiers.
   void _checkForWrongVariancePosition(
     Variance variance,
-    TypeParameterFragmentImpl typeParameter,
+    TypeParameterElementImpl typeParameter,
     SyntacticEntity errorTarget,
   ) {
     if (!variance.greaterThanOrEqual(typeParameter.variance)) {
       diagnosticReporter.atEntity(
         errorTarget,
-        CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_POSITION,
+        CompileTimeErrorCode.wrongTypeParameterVariancePosition,
         arguments: [
           typeParameter.variance.keyword,
           typeParameter.name ?? '',
@@ -5954,7 +5920,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Verify that the current class does not have the same class in the
   /// 'extends' and 'implements' clauses.
   ///
-  /// See [CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS].
+  /// See [CompileTimeErrorCode.implementsSuperClass].
   void _checkImplementsSuperClass(ImplementsClause? implementsClause) {
     if (implementsClause == null) {
       return;
@@ -5970,7 +5936,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (type is InterfaceType && type.element == superElement) {
         diagnosticReporter.atNode(
           interfaceNode,
-          CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS,
+          CompileTimeErrorCode.implementsSuperClass,
           arguments: [superElement],
         );
       }
@@ -5993,12 +5959,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForRepeatedType(
         libraryContext.setOfOn(declarationFragment.asElement2),
         onClause?.superclassConstraints,
-        CompileTimeErrorCode.ON_REPEATED,
+        CompileTimeErrorCode.onRepeated,
       );
       _checkForRepeatedType(
         libraryContext.setOfImplements(declarationFragment.asElement2),
         implementsClause?.interfaces,
-        CompileTimeErrorCode.IMPLEMENTS_REPEATED,
+        CompileTimeErrorCode.implementsRepeated,
       );
       _checkForConflictingGenerics(node);
       _checkForBaseClassOrMixinImplementedOutsideOfLibrary(implementsClause);
@@ -6018,7 +5984,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Verify that the current class does not have the same class in the
   /// 'extends' and 'with' clauses.
   ///
-  /// See [CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS].
+  /// See [CompileTimeErrorCode.implementsSuperClass].
   void _checkMixinsSuperClass(WithClause? withClause) {
     if (withClause == null) {
       return;
@@ -6034,7 +6000,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (type is InterfaceType && type.element == superElement) {
         diagnosticReporter.atNode(
           mixinNode,
-          CompileTimeErrorCode.MIXINS_SUPER_CLASS,
+          CompileTimeErrorCode.mixinsSuperClass,
           arguments: [superElement],
         );
       }
@@ -6072,7 +6038,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (keyword != null) {
         diagnosticReporter.atToken(
           keyword,
-          CompileTimeErrorCode.INVALID_USE_OF_COVARIANT,
+          CompileTimeErrorCode.invalidUseOfCovariant,
         );
       }
     }
@@ -6117,7 +6083,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             var errorTarget = _parameterName(parameter) ?? parameter;
             diagnosticReporter.atEntity(
               errorTarget,
-              CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER,
+              CompileTimeErrorCode.defaultValueOnRequiredParameter,
             );
           }
         } else if (defaultValuesAreExpected) {
@@ -6131,7 +6097,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                 diagnosticReporter.atEntity(
                   errorTarget,
                   CompileTimeErrorCode
-                      .MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION,
+                      .missingDefaultValueForParameterWithAnnotation,
                 );
               } else {
                 if (!_isWildcardSuperFormalPositionalParameter(parameter)) {
@@ -6139,9 +6105,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                     errorTarget,
                     parameterElement.isPositional
                         ? CompileTimeErrorCode
-                            .MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL
-                        : CompileTimeErrorCode
-                            .MISSING_DEFAULT_VALUE_FOR_PARAMETER,
+                              .missingDefaultValueForParameterPositional
+                        : CompileTimeErrorCode.missingDefaultValueForParameter,
                     arguments: [parameterName?.lexeme ?? '?'],
                   );
                 }
@@ -6153,12 +6118,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  bool _computeThisAccessForFunctionBody(FunctionBody node) => switch (node
-      .parent) {
-    ConstructorDeclaration(:var factoryKeyword) => factoryKeyword == null,
-    MethodDeclaration(:var isStatic) => !isStatic,
-    _ => _hasAccessToThis,
-  };
+  bool _computeThisAccessForFunctionBody(FunctionBody node) =>
+      switch (node.parent) {
+        ConstructorDeclaration(:var factoryKeyword) => factoryKeyword == null,
+        MethodDeclaration(:var isStatic) => !isStatic,
+        _ => _hasAccessToThis,
+      };
 
   /// Given an [expression] in a switch case whose value is expected to be an
   /// enum constant, return the name of the constant.
@@ -6188,10 +6153,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (name == null) {
       return '';
     }
-    var imports =
-        _currentUnit.withEnclosing
-            .expand((fragment) => fragment.libraryImports)
-            .toList();
+    var imports = _currentUnit.withEnclosing
+        .expand((fragment) => fragment.libraryImports)
+        .toList();
     int count = imports.length;
     for (int i = 0; i < count; i++) {
       if (identical(imports[i].importedLibrary, library)) {
@@ -6345,7 +6309,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       diagnosticReporter.atOffset(
         offset: offset,
         length: length,
-        diagnosticCode: WarningCode.MULTIPLE_COMBINATORS,
+        diagnosticCode: WarningCode.multipleCombinators,
       );
     }
   }
@@ -6562,7 +6526,7 @@ class _UninstantiatedBoundChecker extends RecursiveAstVisitor<void> {
       //  has been reported.
       _diagnosticReporter.atNode(
         node,
-        CompileTimeErrorCode.NOT_INSTANTIATED_BOUND,
+        CompileTimeErrorCode.notInstantiatedBound,
       );
     }
   }

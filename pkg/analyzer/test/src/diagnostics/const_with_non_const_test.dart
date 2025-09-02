@@ -27,7 +27,7 @@ main() {
   const A(B());
 }
 ''',
-      [error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 57, 3)],
+      [error(CompileTimeErrorCode.constWithNonConst, 57, 3)],
     );
   }
 
@@ -54,7 +54,7 @@ class A {
 class B = A with M;
 var b = const B();
 ''',
-      [error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 78, 5)],
+      [error(CompileTimeErrorCode.constWithNonConst, 78, 5)],
     );
   }
 
@@ -95,7 +95,7 @@ void f() {
   const A(0);
 }
 ''',
-      [error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 57, 5)],
+      [error(CompileTimeErrorCode.constWithNonConst, 57, 5)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -131,7 +131,7 @@ void f() {
   const A(0);
 }
 ''',
-      [error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 38, 5)],
+      [error(CompileTimeErrorCode.constWithNonConst, 38, 5)],
     );
 
     var node = findNode.singleInstanceCreationExpression;

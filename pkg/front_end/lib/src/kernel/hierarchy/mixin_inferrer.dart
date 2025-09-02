@@ -9,7 +9,7 @@ import 'package:kernel/src/bounds_checks.dart';
 import 'package:kernel/type_algebra.dart';
 
 import '../../base/messages.dart'
-    show Message, templateMixinInferenceNoMatchingClass;
+    show Message, codeMixinInferenceNoMatchingClass;
 import '../../base/problems.dart' show unexpected, unsupported;
 import '../../source/source_class_builder.dart';
 import '../../type_inference/type_schema.dart';
@@ -22,13 +22,19 @@ class BuilderMixinInferrer {
   final ClassHierarchyBase classHierarchyBase;
 
   BuilderMixinInferrer(
-      this.classBuilder, this.classHierarchyBase, this.typeParametersToSolveFor)
-      : coreTypes = classHierarchyBase.coreTypes,
-        _mixinInferenceSolution =
-            new _MixinInferenceSolution(typeParametersToSolveFor);
+    this.classBuilder,
+    this.classHierarchyBase,
+    this.typeParametersToSolveFor,
+  ) : coreTypes = classHierarchyBase.coreTypes,
+      _mixinInferenceSolution = new _MixinInferenceSolution(
+        typeParametersToSolveFor,
+      );
 
   void generateConstraints(
-      Class mixinClass, Supertype baseType, Supertype mixinSupertype) {
+    Class mixinClass,
+    Supertype baseType,
+    Supertype mixinSupertype,
+  ) {
     if (_mixinInferenceSolution.isUnsolvable) {
       // The currently observed equalities are already unsolvable, and adding
       // more will not change that.
@@ -71,12 +77,13 @@ class BuilderMixinInferrer {
           (mixinSuperclass.superclass != coreTypes.objectClass ||
               mixinSuperclass.implementedTypes.length != 2)) {
         unexpected(
-            'Compiler-generated mixin applications have a mixin or else '
-                'implement exactly one type',
-            '$mixinSuperclass implements '
-                '${mixinSuperclass.implementedTypes.length} types',
-            mixinSuperclass.fileOffset,
-            mixinSuperclass.fileUri);
+          'Compiler-generated mixin applications have a mixin or else '
+              'implement exactly one type',
+          '$mixinSuperclass implements '
+              '${mixinSuperclass.implementedTypes.length} types',
+          mixinSuperclass.fileOffset,
+          mixinSuperclass.fileUri,
+        );
       }
       Substitution substitution = Substitution.fromSupertype(mixinSupertype);
       Supertype s0, s1;
@@ -99,26 +106,34 @@ class BuilderMixinInferrer {
     } else {
       // Find the type U0 which is baseType as an instance of mixinSupertype's
       // class.
-      Supertype? supertype =
-          asInstantiationOf(baseType, mixinSupertype.classNode);
+      Supertype? supertype = asInstantiationOf(
+        baseType,
+        mixinSupertype.classNode,
+      );
       if (supertype == null) {
-        // Coverage-ignore-block(suite): Not run.
         reportProblem(
-            templateMixinInferenceNoMatchingClass.withArguments(mixinClass.name,
-                baseType.classNode.name, mixinSupertype.asInterfaceType),
-            mixinClass);
+          codeMixinInferenceNoMatchingClass.withArguments(
+            mixinClass.name,
+            baseType.classNode.name,
+            mixinSupertype.asInterfaceType,
+          ),
+          mixinClass,
+        );
         return;
       }
-      InterfaceType u0 = Substitution.fromSupertype(baseType)
-          .substituteSupertype(supertype)
-          .asInterfaceType;
+      InterfaceType u0 = Substitution.fromSupertype(
+        baseType,
+      ).substituteSupertype(supertype).asInterfaceType;
       // We want to solve U0 = S0 where S0 is mixinSupertype, but we only have
       // a subtype constraints.  Solve for equality by solving
       // both U0 <: S0 and S0 <: U0.
       InterfaceType s0 = mixinSupertype.asInterfaceType;
 
-      _mixinInferenceSolution.addSolutionFor(s0, u0,
-          unsupportedErrorReporter: this);
+      _mixinInferenceSolution.addSolutionFor(
+        s0,
+        u0,
+        unsupportedErrorReporter: this,
+      );
     }
   }
 
@@ -136,9 +151,13 @@ class BuilderMixinInferrer {
     if (_mixinInferenceSolution.isUnsolvable) {
       // Coverage-ignore-block(suite): Not run.
       reportProblem(
-          templateMixinInferenceNoMatchingClass.withArguments(mixinClass.name,
-              baseType.classNode.name, mixinSupertype.asInterfaceType),
-          mixinClass);
+        codeMixinInferenceNoMatchingClass.withArguments(
+          mixinClass.name,
+          baseType.classNode.name,
+          mixinSupertype.asInterfaceType,
+        ),
+        mixinClass,
+      );
     }
     // Generate new type parameters with the solution as bounds.
     List<TypeParameter> parameters;
@@ -149,19 +168,20 @@ class BuilderMixinInferrer {
       parameters = [
         for (TypeParameter typeParameter in mixinClass.typeParameters)
           new TypeParameter(
-              typeParameter.name,
-              _mixinInferenceSolution.solution[typeParameter] ??
-                  typeParameter.bound,
-              typeParameter.defaultType)
+            typeParameter.name,
+            _mixinInferenceSolution.solution[typeParameter] ??
+                typeParameter.bound,
+            typeParameter.defaultType,
+          ),
       ];
     }
     // Bounds might mention the mixin class's type parameters so we have to
     // substitute them before calling instantiate to bounds.
     Substitution substitution =
         Substitution.fromPairs(mixinClass.typeParameters, [
-      for (TypeParameter parameter in parameters)
-        new TypeParameterType.withDefaultNullability(parameter)
-    ]);
+          for (TypeParameter parameter in parameters)
+            new TypeParameterType.withDefaultNullability(parameter),
+        ]);
     for (TypeParameter p in parameters) {
       p.bound = substitution.substituteType(p.bound);
     }
@@ -174,24 +194,34 @@ class BuilderMixinInferrer {
 
   Supertype? asInstantiationOf(Supertype type, Class superclass) {
     List<DartType>? arguments = classHierarchyBase.getTypeArgumentsAsInstanceOf(
-        type.asInterfaceType, superclass);
+      type.asInterfaceType,
+      superclass,
+    );
     if (arguments == null) return null;
     return new Supertype(superclass, arguments);
   }
 
-  // Coverage-ignore(suite): Not run.
   void reportProblem(Message message, Class kernelClass) {
     int length = classBuilder.isMixinApplication
         ? 1
-        : classBuilder.fullNameForErrors.length;
+        :
+          // Coverage-ignore(suite): Not run.
+          classBuilder.fullNameForErrors.length;
     classBuilder.libraryBuilder.addProblem(
-        message, classBuilder.fileOffset, length, classBuilder.fileUri);
+      message,
+      classBuilder.fileOffset,
+      length,
+      classBuilder.fileUri,
+    );
   }
 
   // Coverage-ignore(suite): Not run.
   Never reportUnsupportedProblem(String operation) {
     return unsupported(
-        operation, classBuilder.fileOffset, classBuilder.fileUri);
+      operation,
+      classBuilder.fileOffset,
+      classBuilder.fileUri,
+    );
   }
 }
 
@@ -199,7 +229,7 @@ class _MixinInferenceSolution {
   Map<TypeParameter, DartType>? _typeParameterSolution = {};
   final List<TypeParameter> typeParametersToSolveFor;
   final Map<StructuralParameter, StructuralParameter>
-      structuralTypeParameterEqualityAssumptions =
+  structuralTypeParameterEqualityAssumptions =
       <StructuralParameter, StructuralParameter>{};
 
   _MixinInferenceSolution(this.typeParametersToSolveFor);
@@ -208,8 +238,11 @@ class _MixinInferenceSolution {
 
   bool get isUnsolvable => _typeParameterSolution == null;
 
-  void addSolutionFor(DartType type1, DartType type2,
-      {required BuilderMixinInferrer unsupportedErrorReporter}) {
+  void addSolutionFor(
+    DartType type1,
+    DartType type2, {
+    required BuilderMixinInferrer unsupportedErrorReporter,
+  }) {
     if (_typeParameterSolution == null) {
       // The inference has already failed at an earlier stage, so the constraint
       // gathering can stop.
@@ -217,16 +250,24 @@ class _MixinInferenceSolution {
     }
 
     _typeParameterSolution = _mergeInferenceByUnificationResults(
-        _solveForEquality(type1, type2,
-            unsupportedErrorReporter: unsupportedErrorReporter),
-        _typeParameterSolution);
+      _solveForEquality(
+        type1,
+        type2,
+        unsupportedErrorReporter: unsupportedErrorReporter,
+      ),
+      _typeParameterSolution,
+    );
   }
 
   Map<TypeParameter, DartType>? _solveForEquality(
-      DartType type1, DartType type2,
-      {required BuilderMixinInferrer unsupportedErrorReporter}) {
-    assert(!(containsTypeParameter(type1, {...typeParametersToSolveFor}) &&
-        containsTypeParameter(type2, {...typeParametersToSolveFor})));
+    DartType type1,
+    DartType type2, {
+    required BuilderMixinInferrer unsupportedErrorReporter,
+  }) {
+    assert(
+      !(containsTypeParameter(type1, {...typeParametersToSolveFor}) &&
+          containsTypeParameter(type2, {...typeParametersToSolveFor})),
+    );
     assert(type1 is! TypedefType);
     assert(type2 is! TypedefType);
     if (type1 is TypeParameterType &&
@@ -243,8 +284,9 @@ class _MixinInferenceSolution {
       case AuxiliaryType():
         // Coverage-ignore(suite): Not run.
         return unsupportedErrorReporter.reportUnsupportedProblem(
-            "_MixinInferenceSolution._solveForEquality"
-            "(${type1.runtimeType}, ${type2.runtimeType})");
+          "_MixinInferenceSolution._solveForEquality"
+          "(${type1.runtimeType}, ${type2.runtimeType})",
+        );
       case InvalidType():
         // Coverage-ignore(suite): Not run.
         if (type2 is! InvalidType) {
@@ -292,33 +334,43 @@ class _MixinInferenceSolution {
             return null;
           }
           for (int i = 0; i < type1.typeParameters.length; i++) {
-            structuralTypeParameterEqualityAssumptions[
-                type1.typeParameters[i]] = type2.typeParameters[i];
-            structuralTypeParameterEqualityAssumptions[
-                type2.typeParameters[i]] = type1.typeParameters[i];
+            structuralTypeParameterEqualityAssumptions[type1
+                    .typeParameters[i]] =
+                type2.typeParameters[i];
+            structuralTypeParameterEqualityAssumptions[type2
+                    .typeParameters[i]] =
+                type1.typeParameters[i];
           }
           Map<TypeParameter, DartType>? result = _solveForEquality(
-              type1.returnType, type2.returnType,
-              unsupportedErrorReporter: unsupportedErrorReporter);
+            type1.returnType,
+            type2.returnType,
+            unsupportedErrorReporter: unsupportedErrorReporter,
+          );
           if (result == null) {
             return null;
           }
           for (int i = 0; i < type1.typeParameters.length; i++) {
             result = _mergeInferenceByUnificationResults(
-                _solveForEquality(type1.typeParameters[i].bound,
-                    type2.typeParameters[i].bound,
-                    unsupportedErrorReporter: unsupportedErrorReporter),
-                result);
+              _solveForEquality(
+                type1.typeParameters[i].bound,
+                type2.typeParameters[i].bound,
+                unsupportedErrorReporter: unsupportedErrorReporter,
+              ),
+              result,
+            );
             if (result == null) {
               return null;
             }
           }
           for (int i = 0; i < type1.positionalParameters.length; i++) {
             result = _mergeInferenceByUnificationResults(
-                _solveForEquality(type1.positionalParameters[i],
-                    type2.positionalParameters[i],
-                    unsupportedErrorReporter: unsupportedErrorReporter),
-                result);
+              _solveForEquality(
+                type1.positionalParameters[i],
+                type2.positionalParameters[i],
+                unsupportedErrorReporter: unsupportedErrorReporter,
+              ),
+              result,
+            );
             if (result == null) {
               return null;
             }
@@ -326,7 +378,8 @@ class _MixinInferenceSolution {
           Map<String, NamedType> namedParameterByName1 = <String, NamedType>{
             for (NamedType namedType in type1.namedParameters)
               namedType // Coverage-ignore(suite): Not run.
-                  .name: namedType
+                      .name:
+                  namedType,
           };
           for (NamedType namedType in type2.namedParameters) {
             // Coverage-ignore-block(suite): Not run.
@@ -334,10 +387,13 @@ class _MixinInferenceSolution {
               return null;
             } else {
               result = _mergeInferenceByUnificationResults(
-                  _solveForEquality(namedParameterByName1[namedType.name]!.type,
-                      namedType.type,
-                      unsupportedErrorReporter: unsupportedErrorReporter),
-                  result);
+                _solveForEquality(
+                  namedParameterByName1[namedType.name]!.type,
+                  namedType.type,
+                  unsupportedErrorReporter: unsupportedErrorReporter,
+                ),
+                result,
+              );
               if (result == null) {
                 return null;
               }
@@ -352,22 +408,27 @@ class _MixinInferenceSolution {
       case TypedefType():
         // Coverage-ignore(suite): Not run.
         return unsupportedErrorReporter.reportUnsupportedProblem(
-            "_MixinInferenceSolution._solveForEquality"
-            "(${type1.runtimeType}, ${type2.runtimeType})");
+          "_MixinInferenceSolution._solveForEquality"
+          "(${type1.runtimeType}, ${type2.runtimeType})",
+        );
       case FutureOrType():
         // Coverage-ignore(suite): Not run.
         if (type2 is! FutureOrType) {
           return null;
         } else {
-          return _solveForEquality(type1.typeArgument, type2.typeArgument,
-              unsupportedErrorReporter: unsupportedErrorReporter);
+          return _solveForEquality(
+            type1.typeArgument,
+            type2.typeArgument,
+            unsupportedErrorReporter: unsupportedErrorReporter,
+          );
         }
       case IntersectionType():
         // Coverage-ignore(suite): Not run.
         // Intersection types can't appear in supertypes.
         return unsupportedErrorReporter.reportUnsupportedProblem(
-            "_MixinInferenceSolution._solveForEquality"
-            "(${type1.runtimeType}, ${type2.runtimeType})");
+          "_MixinInferenceSolution._solveForEquality"
+          "(${type1.runtimeType}, ${type2.runtimeType})",
+        );
       case TypeParameterType():
         // Coverage-ignore(suite): Not run.
         if (type2 is! TypeParameterType ||
@@ -399,25 +460,32 @@ class _MixinInferenceSolution {
           Map<TypeParameter, DartType>? result = {};
           for (int i = 0; i < type1.positional.length; i++) {
             result = _mergeInferenceByUnificationResults(
-                _solveForEquality(type1.positional[i], type2.positional[i],
-                    unsupportedErrorReporter: unsupportedErrorReporter),
-                result);
+              _solveForEquality(
+                type1.positional[i],
+                type2.positional[i],
+                unsupportedErrorReporter: unsupportedErrorReporter,
+              ),
+              result,
+            );
             if (result == null) {
               return result;
             }
           }
           Map<String, NamedType> namedParameterByName1 = <String, NamedType>{
-            for (NamedType namedType in type1.named) namedType.name: namedType
+            for (NamedType namedType in type1.named) namedType.name: namedType,
           };
           for (NamedType namedType in type2.named) {
             if (!namedParameterByName1.containsKey(namedType.name)) {
               return null;
             } else {
               result = _mergeInferenceByUnificationResults(
-                  _solveForEquality(namedParameterByName1[namedType.name]!.type,
-                      namedType.type,
-                      unsupportedErrorReporter: unsupportedErrorReporter),
-                  result);
+                _solveForEquality(
+                  namedParameterByName1[namedType.name]!.type,
+                  namedType.type,
+                  unsupportedErrorReporter: unsupportedErrorReporter,
+                ),
+                result,
+              );
               if (result == null) {
                 return null;
               }
@@ -441,10 +509,13 @@ class _MixinInferenceSolution {
           Map<TypeParameter, DartType>? result = {};
           for (int i = 0; i < type1.typeArguments.length; i++) {
             result = _mergeInferenceByUnificationResults(
-                _solveForEquality(
-                    type1.typeArguments[i], type2.typeArguments[i],
-                    unsupportedErrorReporter: unsupportedErrorReporter),
-                result);
+              _solveForEquality(
+                type1.typeArguments[i],
+                type2.typeArguments[i],
+                unsupportedErrorReporter: unsupportedErrorReporter,
+              ),
+              result,
+            );
             if (result == null) {
               return null;
             }
@@ -465,10 +536,13 @@ class _MixinInferenceSolution {
           Map<TypeParameter, DartType>? result = {};
           for (int i = 0; i < type1.typeArguments.length; i++) {
             result = _mergeInferenceByUnificationResults(
-                _solveForEquality(
-                    type1.typeArguments[i], type2.typeArguments[i],
-                    unsupportedErrorReporter: unsupportedErrorReporter),
-                result);
+              _solveForEquality(
+                type1.typeArguments[i],
+                type2.typeArguments[i],
+                unsupportedErrorReporter: unsupportedErrorReporter,
+              ),
+              result,
+            );
             if (result == null) {
               return null;
             }
@@ -479,8 +553,9 @@ class _MixinInferenceSolution {
   }
 
   Map<TypeParameter, DartType>? _mergeInferenceByUnificationResults(
-      Map<TypeParameter, DartType>? result1,
-      Map<TypeParameter, DartType>? result2) {
+    Map<TypeParameter, DartType>? result1,
+    Map<TypeParameter, DartType>? result2,
+  ) {
     if (result1 == null || result2 == null) {
       return null;
     } else {

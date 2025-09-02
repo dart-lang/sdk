@@ -4,9 +4,9 @@
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/analysis_rule/rule_context.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/lint/constants.dart';
-import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:test/test.dart';

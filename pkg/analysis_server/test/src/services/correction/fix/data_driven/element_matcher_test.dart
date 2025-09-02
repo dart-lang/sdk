@@ -29,7 +29,11 @@ abstract class AbstractElementMatcherTest extends DataDrivenFixProcessorTest {
     List<String>? expectedUris,
   }) {
     var node = findNode.any(search);
-    var matchers = ElementMatcher.matchersForNode(node, node.beginToken);
+    var matchers = ElementMatcher.matchersForNode(
+      node,
+      node.beginToken,
+      testLibraryElement,
+    );
     var matchedMatchers = <ElementMatcher>[];
     for (var matcher in matchers) {
       if (expectedUris != null) {
@@ -68,7 +72,11 @@ abstract class AbstractElementMatcherTest extends DataDrivenFixProcessorTest {
     List<String>? expectedUris,
   }) {
     var node = findNode.any(search);
-    var matchers = ElementMatcher.matchersForNode(node, node.beginToken);
+    var matchers = ElementMatcher.matchersForNode(
+      node,
+      node.beginToken,
+      testLibraryElement,
+    );
     expect(matchers, hasLength(1));
     var matcher = matchers[0];
     if (expectedUris != null) {
@@ -96,6 +104,14 @@ class ElementMatcherComponentAndKindTest extends AbstractElementMatcherTest {
     ElementKind.getterKind,
     ElementKind.methodKind, // tear-off
     ElementKind.setterKind,
+  ];
+
+  /// The kinds that are expected where a static getter is allowed.
+  static List<ElementKind> staticGetterAccessorKinds = [
+    ElementKind.constantKind,
+    ElementKind.fieldKind,
+    ElementKind.getterKind,
+    ElementKind.methodKind, // tear-off
   ];
 
   /// The kinds that are expected where an invocation is allowed.
@@ -154,6 +170,148 @@ class C {}
     _assertMatcher(
       '+',
       expectedComponents: ['+', 'C'],
+      expectedKinds: [ElementKind.methodKind],
+    );
+  }
+
+  Future<void> test_dotShorthand_constructor_named() async {
+    await resolveTestCode('''
+class A {
+  final int x;
+  A.named(this.x);
+}
+void f() {
+  A a = .named(1);
+}
+''');
+    _assertMatcher(
+      'named(1)',
+      expectedComponents: ['named', 'A'],
+      expectedKinds: [ElementKind.constructorKind],
+    );
+  }
+
+  Future<void> test_dotShorthand_constructor_named_arguments() async {
+    await resolveTestCode('''
+class A {
+  final int x;
+  A.named(this.x);
+}
+void f() {
+  A a = .named(1);
+}
+''');
+    _assertMatcher(
+      '(1)',
+      expectedComponents: ['named', 'A'],
+      expectedKinds: [ElementKind.constructorKind],
+    );
+  }
+
+  Future<void> test_dotShorthand_constructor_unnamed() async {
+    await resolveTestCode('''
+class A {}
+void f() {
+  A a = .new();
+}
+''');
+    _assertMatcher(
+      'new()',
+      expectedComponents: ['new', 'A'],
+      expectedKinds: [ElementKind.constructorKind],
+    );
+  }
+
+  Future<void> test_dotShorthand_enum() async {
+    await resolveTestCode('''
+enum E { a, b, c }
+E f() {
+  return .a;
+}
+''');
+    _assertMatcher(
+      'a;',
+      expectedComponents: ['a', 'E'],
+      expectedKinds: staticGetterAccessorKinds,
+    );
+  }
+
+  Future<void> test_dotShorthand_field() async {
+    await resolveTestCode('''
+class C {
+  static C? field = null;
+}
+void f() {
+  C? c = .field;
+}
+''');
+    _assertMatcher(
+      'field;',
+      expectedComponents: ['field', 'C'],
+      expectedKinds: staticGetterAccessorKinds,
+    );
+  }
+
+  Future<void> test_dotShorthand_getter() async {
+    await resolveTestCode('''
+class C {
+  static C get getter => C();
+}
+void f() {
+  C c = .getter;
+}
+''');
+    _assertMatcher(
+      'getter;',
+      expectedComponents: ['getter', 'C'],
+      expectedKinds: staticGetterAccessorKinds,
+    );
+  }
+
+  Future<void> test_dotShorthand_method() async {
+    await resolveTestCode('''
+class A {
+  static A method() => A();
+}
+void f() {
+  A a = .method();
+}
+''');
+    _assertMatcher(
+      'method();',
+      expectedComponents: ['method', 'A'],
+      expectedKinds: [ElementKind.methodKind, ElementKind.constructorKind],
+    );
+  }
+
+  Future<void> test_dotShorthand_method_arguments() async {
+    await resolveTestCode('''
+class A {
+  static A method({required int x}) => A();
+}
+void f() {
+  A a = .method(x: 1);
+}
+''');
+    _assertMatcher(
+      '(x: 1);',
+      expectedComponents: ['method', 'A'],
+      expectedKinds: [ElementKind.methodKind],
+    );
+  }
+
+  Future<void> test_dotShorthand_method_typeArguments() async {
+    await resolveTestCode('''
+class A {
+  static A method<T>(T t) => A();
+}
+void f() {
+  A a = .method<int>(1);
+}
+''');
+    _assertMatcher(
+      'method<int>(1);',
+      expectedComponents: ['method', 'A'],
       expectedKinds: [ElementKind.methodKind],
     );
   }

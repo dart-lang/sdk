@@ -8,6 +8,7 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/extensions/code_action.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
@@ -748,7 +749,7 @@ class A {
   void a() => c((cell) => cell.south);
   void b() => c((cell) => cell.west);
 
-  ${1:void} ${2:c}(${3:Function(dynamic cell)} ${4:param0}) {}
+  ${1:void} ${2:c}(${3:Function(cell)} ${4:param0}) {}
 }
 ''';
 
@@ -806,7 +807,7 @@ useFunction(int g(a, b)) {}
 
     const expectedContent = r'''
 void f() {
-  ${1:int Function(dynamic a, dynamic b)} ${2:test};
+  ${1:int Function(a, b)} ${2:test};
   useFunction(test);
 }
 

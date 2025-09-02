@@ -21,14 +21,19 @@ Future<void> main(List<String> args) async {
   retainDataForTesting = true;
   computeSharedExpressionForTesting = true;
 
-  Directory dataDir = new Directory.fromUri(Platform.script
-      .resolve('../../../_fe_analyzer_shared/test/metadata/evaluate_data'));
-  await runTests<String>(dataDir,
-      args: args,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest: runTestFor(const MetadataDataComputer(), [defaultCfeConfig]),
-      preserveWhitespaceInAnnotations: true);
+  Directory dataDir = new Directory.fromUri(
+    Platform.script.resolve(
+      '../../../_fe_analyzer_shared/test/metadata/evaluate_data',
+    ),
+  );
+  await runTests<String>(
+    dataDir,
+    args: args,
+    createUriForFileName: createUriForFileName,
+    onFailure: onFailure,
+    runTest: runTestFor(const MetadataDataComputer(), [defaultCfeConfig]),
+    preserveWhitespaceInAnnotations: true,
+  );
 }
 
 class MetadataDataComputer extends CfeDataComputer<String> {
@@ -44,18 +49,23 @@ class MetadataDataComputer extends CfeDataComputer<String> {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeMemberData(CfeTestResultData testResultData, Member member,
-      Map<Id, ActualData<String>> actualMap,
-      {bool? verbose}) {
+  void computeMemberData(
+    CfeTestResultData testResultData,
+    Member member,
+    Map<Id, ActualData<String>> actualMap, {
+    bool? verbose,
+  }) {
     member.accept(
-        new MetadataDataExtractor(testResultData.compilerResult, actualMap));
+      new MetadataDataExtractor(testResultData.compilerResult, actualMap),
+    );
   }
 }
 
 class MetadataDataExtractor extends CfeDataExtractor<String> {
-  MetadataDataExtractor(InternalCompilerResult compilerResult,
-      Map<Id, ActualData<String>> actualMap)
-      : super(compilerResult, actualMap);
+  MetadataDataExtractor(
+    InternalCompilerResult compilerResult,
+    Map<Id, ActualData<String>> actualMap,
+  ) : super(compilerResult, actualMap);
 
   @override
   String? computeMemberValue(Id id, Member member) {
@@ -66,8 +76,12 @@ class MetadataDataExtractor extends CfeDataExtractor<String> {
         List<String> list = [];
         for (MetadataBuilder metadataBuilder in metadata) {
           shared.Expression resolved = metadataBuilder.expression!;
-          list.addAll(evaluationToText(resolved,
-              getFieldInitializer: getFieldInitializer));
+          list.addAll(
+            evaluationToText(
+              resolved,
+              getFieldInitializer: getFieldInitializer,
+            ),
+          );
         }
         return '\n${list.join('\n')}';
       }

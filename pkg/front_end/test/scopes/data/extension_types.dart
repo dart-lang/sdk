@@ -6,55 +6,46 @@ final x = 'scope-marker';
 
 extension type ExtensionType(String field) {
   ExtensionType.empty()
-  : field = /*
+    : field = /*
    member=ExtensionType|constructor#empty,
    static
   */
-  x {
-  /*cfe.
+          x {
+    /*
    member=ExtensionType|constructor#empty,
    static,
    variables=[#this]
   */
-  /*ddc.
-   member=ExtensionType|constructor#empty,
-   static
-  */
-  x;
+    x;
   }
 
   ExtensionType.oneParameter(a)
-      : field = /*
+    : field = /*
        member=ExtensionType|constructor#oneParameter,
        static,
        variables=[a]
       */
-  x {
-  /*cfe.
+          x {
+    /*
    member=ExtensionType|constructor#oneParameter,
    static,
    variables=[
     #this,
     a]
   */
-  /*ddc.
-   member=ExtensionType|constructor#oneParameter,
-   static,
-   variables=[a]
-  */
-  x;
+    x;
   }
 
   ExtensionType.twoParameters(a, b)
-      : field = /*
+    : field = /*
        member=ExtensionType|constructor#twoParameters,
        static,
        variables=[
         a,
         b]
       */
-  x {
-  /*cfe.
+          x {
+    /*
    member=ExtensionType|constructor#twoParameters,
    static,
    variables=[
@@ -62,26 +53,19 @@ extension type ExtensionType(String field) {
     a,
     b]
   */
-  /*ddc.
-   member=ExtensionType|constructor#twoParameters,
-   static,
-   variables=[
-    a,
-    b]
-  */
-  x;
+    x;
   }
 
   ExtensionType.optionalParameter(a, [b])
-      : field = /*
+    : field = /*
        member=ExtensionType|constructor#optionalParameter,
        static,
        variables=[
         a,
         b]
       */
-  x {
-  /*cfe.
+          x {
+    /*
    member=ExtensionType|constructor#optionalParameter,
    static,
    variables=[
@@ -89,26 +73,19 @@ extension type ExtensionType(String field) {
     a,
     b]
   */
-  /*ddc.
-   member=ExtensionType|constructor#optionalParameter,
-   static,
-   variables=[
-    a,
-    b]
-  */
-  x;
+    x;
   }
 
   ExtensionType.namedParameter(a, {b})
-      : field = /*
+    : field = /*
        member=ExtensionType|constructor#namedParameter,
        static,
        variables=[
         a,
         b]
       */
-  x {
-  /*cfe.
+          x {
+    /*
    member=ExtensionType|constructor#namedParameter,
    static,
    variables=[
@@ -116,24 +93,12 @@ extension type ExtensionType(String field) {
     a,
     b]
   */
-  /*ddc.
-   member=ExtensionType|constructor#namedParameter,
-   static,
-   variables=[
-    a,
-    b]
-  */
-  x;
+    x;
   }
 
   empty() {
-    /*cfe.
+    /*
      member=ExtensionType|empty,
-     static,
-     variables=[#this]
-    */
-    /*ddc.
-     member=ExtensionType|get#empty,
      static,
      variables=[#this]
     */
@@ -141,15 +106,8 @@ extension type ExtensionType(String field) {
   }
 
   oneParameter(a) {
-    /*cfe.
+    /*
      member=ExtensionType|oneParameter,
-     static,
-     variables=[
-      #this,
-      a]
-    */
-    /*ddc.
-     member=ExtensionType|get#oneParameter,
      static,
      variables=[
       #this,
@@ -159,16 +117,8 @@ extension type ExtensionType(String field) {
   }
 
   twoParameters(a, b) {
-    /*cfe.
+    /*
      member=ExtensionType|twoParameters,
-     static,
-     variables=[
-      #this,
-      a,
-      b]
-    */
-    /*ddc.
-     member=ExtensionType|get#twoParameters,
      static,
      variables=[
       #this,
@@ -179,16 +129,8 @@ extension type ExtensionType(String field) {
   }
 
   optionalParameter(a, [b]) {
-    /*cfe.
+    /*
      member=ExtensionType|optionalParameter,
-     static,
-     variables=[
-      #this,
-      a,
-      b]
-    */
-    /*ddc.
-     member=ExtensionType|get#optionalParameter,
      static,
      variables=[
       #this,
@@ -199,16 +141,8 @@ extension type ExtensionType(String field) {
   }
 
   namedParameter(a, {b}) {
-    /*cfe.
+    /*
      member=ExtensionType|namedParameter,
-     static,
-     variables=[
-      #this,
-      a,
-      b]
-    */
-    /*ddc.
-     member=ExtensionType|get#namedParameter,
      static,
      variables=[
       #this,
@@ -219,18 +153,10 @@ extension type ExtensionType(String field) {
   }
 
   oneTypeParameter<T>() {
-    /*cfe.
+    /*
      member=ExtensionType|oneTypeParameter,
      static,
      typeParameters=[ExtensionType|oneTypeParameter.T],
-     variables=[#this]
-    */
-    /*ddc.
-     member=ExtensionType|get#oneTypeParameter,
-     static,
-     typeParameters=[
-      ExtensionType|oneTypeParameter.T,
-      T],
      variables=[#this]
     */
     x;
@@ -239,25 +165,17 @@ extension type ExtensionType(String field) {
 
 extension type GenericExtension<T>(T field) {
   classTypeParameter() {
-    /*cfe.
+    /*
      member=GenericExtension|classTypeParameter,
      static,
      typeParameters=[GenericExtension|classTypeParameter.T],
-     variables=[#this]
-    */
-    /*ddc.
-     member=GenericExtension|get#classTypeParameter,
-     static,
-     typeParameters=[
-      GenericExtension|classTypeParameter.T,
-      GenericExtension|get#classTypeParameter.T],
      variables=[#this]
     */
     x;
   }
 
   mixedTypeParameter<S>() {
-    /*cfe.
+    /*
      member=GenericExtension|mixedTypeParameter,
      static,
      typeParameters=[
@@ -265,20 +183,10 @@ extension type GenericExtension<T>(T field) {
       GenericExtension|mixedTypeParameter.T],
      variables=[#this]
     */
-    /*ddc.
-     member=GenericExtension|get#mixedTypeParameter,
-     static,
-     typeParameters=[
-      GenericExtension|get#mixedTypeParameter.T,
-      GenericExtension|mixedTypeParameter.S,
-      GenericExtension|mixedTypeParameter.T,
-      S],
-     variables=[#this]
-    */
     x;
   }
-  static var staticField = /*member=GenericExtension|staticField*/
-  x;
+
+  static var staticField = /*member=GenericExtension|staticField*/ x;
 
   static empty() {
     /*

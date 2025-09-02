@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -23,10 +24,13 @@ class UnnecessaryNullAwareOperatorOnExtensionOnNullable extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.unnecessary_null_aware_operator_on_extension_on_nullable;
+      LinterLintCode.unnecessaryNullAwareOperatorOnExtensionOnNullable;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addIndexExpression(this, visitor);
     registry.addMethodInvocation(this, visitor);
@@ -48,9 +52,9 @@ class _Visitor extends SimpleAstVisitor<void> {
         _isExtensionOnNullableType(
           node.inSetterContext()
               ? node
-                  .thisOrAncestorOfType<AssignmentExpression>()
-                  ?.writeElement
-                  ?.enclosingElement
+                    .thisOrAncestorOfType<AssignmentExpression>()
+                    ?.writeElement
+                    ?.enclosingElement
               : node.element?.enclosingElement,
         )) {
       rule.reportAtToken(question);

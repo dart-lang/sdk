@@ -178,6 +178,7 @@ Try correcting the name to the name of an existing setter, or defining a setter 
         core::print(y);
       }
     }
+    const core::int constant = #C1;
     for (final dynamic #t18 in <dynamic>[]) {
       invalid-expression "pkg/front_end/testcases/general/for_in_without_declaration.dart:46:10: Error: Can't assign to the const variable 'constant'.
     for (constant in []) {}
@@ -188,3 +189,7 @@ Try correcting the name to the name of an existing setter, or defining a setter 
 static field core::bool topLevelField = true;
 static field dynamic untypedTopLevelField;
 static method main() → dynamic {}
+
+constants  {
+  #C1 = 0
+}

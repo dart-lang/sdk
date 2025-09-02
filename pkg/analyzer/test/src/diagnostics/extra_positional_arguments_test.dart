@@ -27,13 +27,7 @@ main() {
   const A(0);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED,
-          55,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.extraPositionalArgumentsCouldBeNamed, 55, 1)],
     );
   }
 
@@ -47,13 +41,7 @@ class B extends A {
   const B() : super(0);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED,
-          76,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.extraPositionalArgumentsCouldBeNamed, 76, 1)],
     );
   }
 
@@ -68,13 +56,7 @@ main() {
   const B(0);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED,
-          70,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.extraPositionalArgumentsCouldBeNamed, 70, 1)],
     );
   }
 
@@ -89,13 +71,7 @@ main() {
   g(f());
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED,
-          56,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.extraPositionalArgumentsCouldBeNamed, 56, 3)],
     );
     assertType(
       findNode.methodInvocation('f()').typeArgumentTypes!.single,
@@ -110,13 +86,7 @@ main() {
   (int x, {int y = 0}) {} (0, 1);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED,
-          39,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.extraPositionalArgumentsCouldBeNamed, 39, 1)],
     );
   }
 
@@ -129,12 +99,8 @@ enum E {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED,
-          13,
-          1,
-        ),
-        error(WarningCode.UNUSED_ELEMENT_PARAMETER, 33, 1),
+        error(CompileTimeErrorCode.extraPositionalArgumentsCouldBeNamed, 13, 1),
+        error(WarningCode.unusedElementParameter, 33, 1),
       ],
     );
   }
@@ -147,7 +113,7 @@ extension type const A(int it) {}
 @A(0, 1)
 void f() {}
 ''',
-      [error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 41, 1)],
+      [error(CompileTimeErrorCode.extraPositionalArguments, 41, 1)],
     );
   }
 
@@ -159,13 +125,7 @@ main() {
   f(0, 1, '2');
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED,
-          26,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.extraPositionalArgumentsCouldBeNamed, 26, 1)],
     );
   }
 
@@ -179,12 +139,8 @@ main() {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED,
-          71,
-          1,
-        ),
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 71, 1),
+        error(CompileTimeErrorCode.extraPositionalArgumentsCouldBeNamed, 71, 1),
+        error(CompileTimeErrorCode.undefinedIdentifier, 71, 1),
       ],
     );
   }
@@ -202,7 +158,7 @@ main() {
   const A(0);
 }
 ''',
-      [error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 44, 1)],
+      [error(CompileTimeErrorCode.extraPositionalArguments, 44, 1)],
     );
   }
 
@@ -216,7 +172,7 @@ class B extends A {
   const B() : super(0);
 }
 ''',
-      [error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 65, 1)],
+      [error(CompileTimeErrorCode.extraPositionalArguments, 65, 1)],
     );
   }
 
@@ -227,7 +183,7 @@ enum E {
   v(0)
 }
 ''',
-      [error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 13, 1)],
+      [error(CompileTimeErrorCode.extraPositionalArguments, 13, 1)],
     );
   }
 
@@ -238,7 +194,7 @@ main() {
   (int x) {} (0, 1);
 }
 ''',
-      [error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 26, 1)],
+      [error(CompileTimeErrorCode.extraPositionalArguments, 26, 1)],
     );
   }
 
@@ -250,7 +206,7 @@ main() {
   f(0, 1, '2');
 }
 ''',
-      [error(CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS, 20, 1)],
+      [error(CompileTimeErrorCode.extraPositionalArguments, 20, 1)],
     );
   }
 }

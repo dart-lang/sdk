@@ -40,27 +40,35 @@ final class FixInFileProcessor {
     // like many more errors than generators.
     if (alreadyCalculated != null) {
       generators = generators
-          .where((generator) => !alreadyCalculated!
-              .contains(getAlreadyCalculatedValue(generator)))
+          .where(
+            (generator) => !alreadyCalculated!.contains(
+              getAlreadyCalculatedValue(generator),
+            ),
+          )
           .toList(growable: false);
     }
     if (generators.isEmpty) {
       return const <Fix>[];
     }
 
-    var diagnostics = _fixContext.unitResult.diagnostics
-        .where((e) => diagnostic.diagnosticCode.name == e.diagnosticCode.name);
+    var diagnostics = _fixContext.unitResult.diagnostics.where(
+      (e) => diagnostic.diagnosticCode.name == e.diagnosticCode.name,
+    );
     if (diagnostics.length < 2) {
       return const <Fix>[];
     }
 
     var fixes = <Fix>[];
     for (var generator in generators) {
-      if (generator(context: StubCorrectionProducerContext.instance)
-          .canBeAppliedAcrossSingleFile) {
-        _FixState fixState = _EmptyFixState(ChangeBuilder(
+      if (generator(
+        context: StubCorrectionProducerContext.instance,
+      ).canBeAppliedAcrossSingleFile) {
+        _FixState fixState = _EmptyFixState(
+          ChangeBuilder(
             workspace: _fixContext.workspace,
-            defaultEol: CorrectionUtils(_fixContext.unitResult).endOfLine));
+            defaultEol: CorrectionUtils(_fixContext.unitResult).endOfLine,
+          ),
+        );
 
         // First, try to fix the specific error we started from. We should only
         // include fix-all-in-file when we produce an individual fix at this
@@ -73,8 +81,12 @@ final class FixInFileProcessor {
           error: diagnostic,
           correctionUtils: _fixContext.correctionUtils,
         );
-        fixState =
-            await _fixDiagnostic(fixContext, fixState, generator, diagnostic);
+        fixState = await _fixDiagnostic(
+          fixContext,
+          fixState,
+          generator,
+          diagnostic,
+        );
 
         // The original error was not fixable; continue to next generator.
         if (!(fixState.builder as ChangeBuilderImpl).hasEdits) {

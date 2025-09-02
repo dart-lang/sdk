@@ -36,23 +36,33 @@ Future<void> collectLog(DateTime time, HttpRequest request) async {
   } on FormatException catch (e) {
     print(e);
     return badRequest(
-        request, HttpStatus.badRequest, "Malformed JSON data: ${e.message}.");
+      request,
+      HttpStatus.badRequest,
+      "Malformed JSON data: ${e.message}.",
+    );
   }
   if (data is! Map) {
     return badRequest(
-        request, HttpStatus.badRequest, "Malformed JSON data: not a map.");
+      request,
+      HttpStatus.badRequest,
+      "Malformed JSON data: not a map.",
+    );
   }
   if (data["type"] != "crash") {
-    return badRequest(request, HttpStatus.badRequest,
-        "Malformed JSON data: type should be 'crash'.");
+    return badRequest(
+      request,
+      HttpStatus.badRequest,
+      "Malformed JSON data: type should be 'crash'.",
+    );
   }
   await request.response.close();
   String year = "${time.year}".padLeft(4, "0");
   String month = "${time.month}".padLeft(2, "0");
   String day = "${time.day}".padLeft(2, "0");
   String us = "${time.microsecondsSinceEpoch}".padLeft(19, '0');
-  Uri? uri = Uri.base
-      .resolve("crash_logs/${data['client']}/$year-$month-$day/$us.log");
+  Uri? uri = Uri.base.resolve(
+    "crash_logs/${data['client']}/$year-$month-$day/$us.log",
+  );
   File file = new File.fromUri(uri);
   await file.parent.create(recursive: true);
   await file.writeAsString(json);

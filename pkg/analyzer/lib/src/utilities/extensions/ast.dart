@@ -164,6 +164,16 @@ extension ExtensionElementExtension on ExtensionElement {
       extendedType.ifTypeOrNull<InterfaceType>()?.element;
 }
 
+extension FieldDeclarationExtension on FieldDeclaration {
+  Element get firstVariableElement =>
+      fields.variables.first.declaredFragment!.element;
+}
+
+extension TopLevelVariableDeclarationExtension on TopLevelVariableDeclaration {
+  Element get firstVariableElement =>
+      variables.variables.first.declaredFragment!.element;
+}
+
 extension VariableDeclarationExtension on VariableDeclaration {
   FieldElementImpl get declaredFieldElement {
     return declaredFragment!.element as FieldElementImpl;

@@ -25,7 +25,7 @@ class A {
 @A.named()
 void f() {}
 ''',
-      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 51, 5)],
+      [error(CompileTimeErrorCode.missingRequiredArgument, 51, 5)],
     );
   }
 
@@ -39,7 +39,7 @@ class A {
 @A()
 void f() {}
 ''',
-      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 43, 1)],
+      [error(CompileTimeErrorCode.missingRequiredArgument, 43, 1)],
     );
   }
 
@@ -57,7 +57,7 @@ import 'a.dart' as a;
 @a.A.named()
 void f() {}
 ''',
-      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 28, 5)],
+      [error(CompileTimeErrorCode.missingRequiredArgument, 28, 5)],
     );
   }
 
@@ -75,7 +75,7 @@ import 'a.dart' as a;
 @a.A()
 void f() {}
 ''',
-      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 26, 1)],
+      [error(CompileTimeErrorCode.missingRequiredArgument, 26, 1)],
     );
   }
 
@@ -101,7 +101,7 @@ main() {
   new C();
 }
 ''',
-      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 52, 1)],
+      [error(CompileTimeErrorCode.missingRequiredArgument, 52, 1)],
     );
   }
 
@@ -113,7 +113,7 @@ class C {
   C.named() : this();
 }
 ''',
-      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 47, 6)],
+      [error(CompileTimeErrorCode.missingRequiredArgument, 47, 6)],
     );
   }
 
@@ -128,7 +128,7 @@ class D extends C {
   D() : super();
 }
 ''',
-      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 66, 7)],
+      [error(CompileTimeErrorCode.missingRequiredArgument, 66, 7)],
     );
   }
 
@@ -152,7 +152,7 @@ enum E {
   const E({required int a});
 }
 ''',
-      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 11, 1)],
+      [error(CompileTimeErrorCode.missingRequiredArgument, 11, 1)],
     );
   }
 
@@ -164,7 +164,7 @@ enum E {
   const E({required int a});
 }
 ''',
-      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 11, 1)],
+      [error(CompileTimeErrorCode.missingRequiredArgument, 11, 1)],
     );
   }
 
@@ -177,7 +177,7 @@ main() {
   f();
 }
 ''',
-      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 40, 1)],
+      [error(CompileTimeErrorCode.missingRequiredArgument, 40, 1)],
     );
   }
 
@@ -190,7 +190,7 @@ main() {
   f.call();
 }
 ''',
-      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 46, 2)],
+      [error(CompileTimeErrorCode.missingRequiredArgument, 46, 2)],
     );
   }
 
@@ -202,7 +202,7 @@ g() {
   f()();
 }
 ''',
-      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 57, 5)],
+      [error(CompileTimeErrorCode.missingRequiredArgument, 57, 5)],
     );
   }
 
@@ -216,7 +216,7 @@ f() {
   new A().m();
 }
 ''',
-      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 58, 1)],
+      [error(CompileTimeErrorCode.missingRequiredArgument, 58, 1)],
     );
   }
 
@@ -233,7 +233,7 @@ f() {
   new A().m();
 }
 ''',
-      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 37, 1)],
+      [error(CompileTimeErrorCode.missingRequiredArgument, 37, 1)],
     );
   }
 
@@ -248,7 +248,7 @@ class C {
   F m() => ({required String x}) => throw '';
 }
 ''',
-      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 20, 7)],
+      [error(CompileTimeErrorCode.missingRequiredArgument, 20, 7)],
     );
   }
 }

@@ -19,15 +19,16 @@ class TypeParameterFragment {
 
   SourceNominalParameterBuilder? _builder;
 
-  TypeParameterFragment(
-      {required this.metadata,
-      required this.name,
-      required this.nameOffset,
-      required this.fileUri,
-      required this.kind,
-      required this.isWildcard,
-      required this.variableName,
-      required this.typeParameterScope});
+  TypeParameterFragment({
+    required this.metadata,
+    required this.name,
+    required this.nameOffset,
+    required this.fileUri,
+    required this.kind,
+    required this.isWildcard,
+    required this.variableName,
+    required this.typeParameterScope,
+  });
 
   SourceNominalParameterBuilder get builder {
     assert(_builder != null, "Builder has not been set for $this.");

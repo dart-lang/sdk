@@ -312,10 +312,9 @@ class ElementPrinter {
         enclosingFragment is! GenericFunctionTypeFragment) {
       // Positional parameters don't have actual references.
       // But we fabricate one to make the output better.
-      var enclosingStr =
-          enclosingFragment != null
-              ? _fragmentToReferenceString(enclosingFragment)
-              : 'root';
+      var enclosingStr = enclosingFragment != null
+          ? _fragmentToReferenceString(enclosingFragment)
+          : 'root';
       return '$enclosingStr::@formalParameter::${fragment.name}';
     } else if (fragment is JoinPatternVariableFragmentImpl) {
       return [

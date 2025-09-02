@@ -173,15 +173,13 @@ class LspAnalysisServer extends AnalysisServer {
 
     channel.listen(scheduleMessage, onDone: done, onError: socketError);
 
-    if (AnalysisServer.supportsPlugins) {
-      _pluginChangeSubscription = pluginManager.pluginsChanged.listen(
-        (_) => _onPluginsChanged(),
-      );
+    _pluginChangeSubscription = pluginManager.pluginsChanged.listen(
+      (_) => _onPluginsChanged(),
+    );
 
-      // TODO(srawlins): Listen to
-      // `notificationManager.pluginAnalysisStatusChanges` and perform "on idle"
-      // tasks.
-    }
+    // TODO(srawlins): Listen to
+    // `notificationManager.pluginAnalysisStatusChanges` and perform "on idle"
+    // tasks.
   }
 
   /// The hosted location of the client application.
@@ -251,15 +249,13 @@ class LspAnalysisServer extends AnalysisServer {
 
   @override
   set pluginManager(PluginManager value) {
-    if (AnalysisServer.supportsPlugins) {
-      // we exchange the plugin manager in tests
-      super.pluginManager = value;
-      _pluginChangeSubscription?.cancel();
+    // we exchange the plugin manager in tests
+    super.pluginManager = value;
+    _pluginChangeSubscription?.cancel();
 
-      _pluginChangeSubscription = pluginManager.pluginsChanged.listen(
-        (_) => _onPluginsChanged(),
-      );
-    }
+    _pluginChangeSubscription = pluginManager.pluginsChanged.listen(
+      (_) => _onPluginsChanged(),
+    );
   }
 
   /// Whether or not the client has advertised support for
@@ -1092,11 +1088,9 @@ class LspAnalysisServer extends AnalysisServer {
     String path,
     plugin.HasToJson changeForPlugins,
   ) {
-    if (AnalysisServer.supportsPlugins) {
-      pluginManager.setAnalysisUpdateContentParams(
-        plugin.AnalysisUpdateContentParams({path: changeForPlugins}),
-      );
-    }
+    pluginManager.setAnalysisUpdateContentParams(
+      plugin.AnalysisUpdateContentParams({path: changeForPlugins}),
+    );
   }
 
   void _onPluginsChanged() {
@@ -1160,21 +1154,19 @@ class LspAnalysisServer extends AnalysisServer {
       driver.priorityFiles = priorityFilesList;
     }
 
-    if (AnalysisServer.supportsPlugins) {
-      var pluginPriorities = plugin.AnalysisSetPriorityFilesParams(
-        priorityFilesList,
-      );
-      pluginManager.setAnalysisSetPriorityFilesParams(pluginPriorities);
+    var pluginPriorities = plugin.AnalysisSetPriorityFilesParams(
+      priorityFilesList,
+    );
+    pluginManager.setAnalysisSetPriorityFilesParams(pluginPriorities);
 
-      // Plugins send most of their analysis results via notifications, but with
-      // LSP we're supposed to have them available per request. Assume that
-      // we'll only receive requests for files that are currently open.
-      var pluginSubscriptions = plugin.AnalysisSetSubscriptionsParams({
-        for (var service in plugin.AnalysisService.values)
-          service: priorityFilesList,
-      });
-      pluginManager.setAnalysisSetSubscriptionsParams(pluginSubscriptions);
-    }
+    // Plugins send most of their analysis results via notifications, but with
+    // LSP we're supposed to have them available per request. Assume that
+    // we'll only receive requests for files that are currently open.
+    var pluginSubscriptions = plugin.AnalysisSetSubscriptionsParams({
+      for (var service in plugin.AnalysisService.values)
+        service: priorityFilesList,
+    });
+    pluginManager.setAnalysisSetSubscriptionsParams(pluginSubscriptions);
 
     notificationManager.setSubscriptions({
       for (var service in protocol.AnalysisService.values)

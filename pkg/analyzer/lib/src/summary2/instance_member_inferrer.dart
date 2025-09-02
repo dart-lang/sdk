@@ -129,8 +129,9 @@ class InstanceMemberInferrer {
       getterName,
     );
     if (overriddenGetters != null) {
-      overriddenGetters =
-          overriddenGetters.whereType<InternalGetterElement>().toList();
+      overriddenGetters = overriddenGetters
+          .whereType<InternalGetterElement>()
+          .toList();
     } else {
       overriddenGetters = const [];
     }
@@ -508,10 +509,9 @@ class InstanceMemberInferrer {
     var superType = classElement.supertype;
     if (superType != null) {
       var index = classElement.constructors.indexOf(constructor);
-      var superConstructors =
-          superType.element.constructors
-              .where((element) => element.isAccessibleIn(classElement.library))
-              .toList();
+      var superConstructors = superType.element.constructors
+          .where((element) => element.isAccessibleIn(classElement.library))
+          .toList();
       if (index < superConstructors.length) {
         var baseConstructor = superConstructors[index];
         var substitution = Substitution.fromInterfaceType(superType);

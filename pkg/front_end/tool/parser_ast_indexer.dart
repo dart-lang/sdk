@@ -16,8 +16,9 @@ class AstIndexer extends IgnoreSomeForCompatibilityAstVisitor {
   String? currentContainerName;
 
   String? nameOfEntitySpanning(int position) {
-    int? nodeIndex =
-        moveNodeIndexPastMetadata(findNodeIndexSpanningPosition(position));
+    int? nodeIndex = moveNodeIndexPastMetadata(
+      findNodeIndexSpanningPosition(position),
+    );
     if (nodeIndex != null) {
       return positionNodeName[nodeIndex];
     }
@@ -196,7 +197,9 @@ class AstIndexer extends IgnoreSomeForCompatibilityAstVisitor {
   }
 
   void containerMethod(
-      BeginAndEndTokenParserAstNode node, String nameIdentifier) {
+    BeginAndEndTokenParserAstNode node,
+    String nameIdentifier,
+  ) {
     positionStartEndIndex.add(node.beginToken.charOffset);
     positionStartEndIndex.add(node.endToken.charEnd);
     // TODO(jensj): Setters.
@@ -207,7 +210,9 @@ class AstIndexer extends IgnoreSomeForCompatibilityAstVisitor {
   }
 
   void containerFields(
-      BeginAndEndTokenParserAstNode node, List<IdentifierHandle> names) {
+    BeginAndEndTokenParserAstNode node,
+    List<IdentifierHandle> names,
+  ) {
     positionStartEndIndex.add(node.beginToken.charOffset);
     positionStartEndIndex.add(node.endToken.charEnd);
     String? firstName;

@@ -16,13 +16,13 @@ class IfStatementTest extends PartialCodeTest {
       'if_statement',
       [
         TestDescriptor('keyword', 'if', [
-          ParserErrorCode.MISSING_IDENTIFIER,
-          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.missingIdentifier,
+          ParserErrorCode.expectedToken,
         ], "if (_s_)"),
         TestDescriptor(
           'leftParen',
           'if (',
-          [ParserErrorCode.MISSING_IDENTIFIER, ScannerErrorCode.EXPECTED_TOKEN],
+          [ParserErrorCode.missingIdentifier, ScannerErrorCode.expectedToken],
           "if (_s_)",
           failing: [
             'assert',
@@ -35,7 +35,7 @@ class IfStatementTest extends PartialCodeTest {
           ],
         ),
         TestDescriptor('condition', 'if (a', [
-          ScannerErrorCode.EXPECTED_TOKEN,
+          ScannerErrorCode.expectedToken,
         ], "if (a)"),
       ],
       PartialCodeTest.statementSuffixes,
@@ -50,9 +50,9 @@ class IfStatementTest extends PartialCodeTest {
           'keyword',
           'if',
           [
-            ParserErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.MISSING_IDENTIFIER,
-            ParserErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.expectedToken,
+            ParserErrorCode.missingIdentifier,
+            ParserErrorCode.expectedToken,
           ],
           "if (_s_);",
           allFailing: true,
@@ -60,14 +60,14 @@ class IfStatementTest extends PartialCodeTest {
         TestDescriptor(
           'leftParen',
           'if (',
-          [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
+          [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
           "if (_s_);",
           allFailing: true,
         ),
         TestDescriptor(
           'condition',
           'if (a',
-          [ParserErrorCode.EXPECTED_TOKEN],
+          [ParserErrorCode.expectedToken],
           "if (a);",
           allFailing: true,
         ),

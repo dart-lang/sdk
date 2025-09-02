@@ -47,7 +47,7 @@ ExportDirective
       r'''
 export 'dart:math' hide Unresolved;
 ''',
-      [error(WarningCode.UNDEFINED_HIDDEN_NAME, 24, 10)],
+      [error(WarningCode.undefinedHiddenName, 24, 10)],
     );
 
     var node = findNode.singleExportDirective;
@@ -102,7 +102,7 @@ ExportDirective
       r'''
 export 'dart:math' show Unresolved;
 ''',
-      [error(WarningCode.UNDEFINED_SHOWN_NAME, 24, 10)],
+      [error(WarningCode.undefinedShownName, 24, 10)],
     );
 
     var node = findNode.singleExportDirective;
@@ -373,7 +373,7 @@ ExportDirective
       r'''
 export 'a.dart';
 ''',
-      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 8)],
+      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 8)],
     );
 
     var node = findNode.export('a.dart');
@@ -431,7 +431,7 @@ export 'a.dart';
       r'''
 export ':net';
 ''',
-      [error(CompileTimeErrorCode.INVALID_URI, 7, 6)],
+      [error(CompileTimeErrorCode.invalidUri, 7, 6)],
     );
 
     var node = findNode.export('export');
@@ -452,7 +452,7 @@ ExportDirective
       r'''
 export '${'foo'}.dart';
 ''',
-      [error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 7, 15)],
+      [error(CompileTimeErrorCode.uriWithInterpolation, 7, 15)],
     );
 
     var node = findNode.export('export');
@@ -483,7 +483,7 @@ ExportDirective
       r'''
 export 'foo:bar';
 ''',
-      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 9)],
+      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 9)],
     );
 
     var node = findNode.export('export');
@@ -508,7 +508,7 @@ part of my.lib;
       r'''
 export 'a.dart';
 ''',
-      [error(CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, 7, 8)],
+      [error(CompileTimeErrorCode.exportOfNonLibrary, 7, 8)],
     );
 
     var node = findNode.export('a.dart');
@@ -533,7 +533,7 @@ part of 'test.dart';
       r'''
 export 'a.dart';
 ''',
-      [error(CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, 7, 8)],
+      [error(CompileTimeErrorCode.exportOfNonLibrary, 7, 8)],
     );
 
     var node = findNode.export('a.dart');
@@ -564,7 +564,7 @@ ExportDirective
       r'''
 export 'package:foo/foo2.dart';
 ''',
-      [error(CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, 7, 23)],
+      [error(CompileTimeErrorCode.exportOfNonLibrary, 7, 23)],
     );
 
     var node = findNode.export('package:foo');
@@ -619,9 +619,7 @@ export 'c.dart';
 ''');
 
     await resolveFile2(b);
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 25, 8),
-    ]);
+    assertErrorsInResult([error(CompileTimeErrorCode.uriDoesNotExist, 25, 8)]);
 
     var node = findNode.export('c.dart');
     assertResolvedNodeText(node, r'''
@@ -647,7 +645,7 @@ export ':net';
 ''');
 
     await resolveFile2(b);
-    assertErrorsInResult([error(CompileTimeErrorCode.INVALID_URI, 25, 6)]);
+    assertErrorsInResult([error(CompileTimeErrorCode.invalidUri, 25, 6)]);
 
     var node = findNode.export('export');
     assertResolvedNodeText(node, r'''
@@ -674,7 +672,7 @@ export '${'foo'}.dart';
 
     await resolveFile2(b);
     assertErrorsInResult([
-      error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 25, 15),
+      error(CompileTimeErrorCode.uriWithInterpolation, 25, 15),
     ]);
 
     var node = findNode.export('export');
@@ -711,9 +709,7 @@ export 'foo:bar';
 ''');
 
     await resolveFile2(b);
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 25, 9),
-    ]);
+    assertErrorsInResult([error(CompileTimeErrorCode.uriDoesNotExist, 25, 9)]);
 
     var node = findNode.export('export');
     assertResolvedNodeText(node, r'''
@@ -744,7 +740,7 @@ part of my.lib;
 
     await resolveFile2(b);
     assertErrorsInResult([
-      error(CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, 25, 8),
+      error(CompileTimeErrorCode.exportOfNonLibrary, 25, 8),
     ]);
 
     var node = findNode.export('c.dart');
@@ -776,7 +772,7 @@ part of 'b.dart';
 
     await resolveFile2(b);
     assertErrorsInResult([
-      error(CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, 25, 8),
+      error(CompileTimeErrorCode.exportOfNonLibrary, 25, 8),
     ]);
 
     var node = findNode.export('c.dart');

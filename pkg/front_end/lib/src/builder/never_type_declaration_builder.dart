@@ -15,39 +15,42 @@ class NeverTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
   final LibraryBuilder coreLibrary;
 
   NeverTypeDeclarationBuilder(DartType type, this.coreLibrary, int charOffset)
-      : super("Never", type, coreLibrary, charOffset) {
+    : super("Never", type, coreLibrary, charOffset) {
     assert(coreLibrary.importUri == dartCore);
   }
 
   @override
   DartType buildAliasedType(
-      LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder,
-      List<TypeBuilder>? arguments,
-      TypeUse typeUse,
-      Uri fileUri,
-      int charOffset,
-      ClassHierarchyBase? hierarchy,
-      {required bool hasExplicitTypeArguments}) {
+    LibraryBuilder library,
+    NullabilityBuilder nullabilityBuilder,
+    List<TypeBuilder>? arguments,
+    TypeUse typeUse,
+    Uri fileUri,
+    int charOffset,
+    ClassHierarchyBase? hierarchy, {
+    required bool hasExplicitTypeArguments,
+  }) {
     return type.withDeclaredNullability(nullabilityBuilder.build());
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   DartType buildAliasedTypeWithBuiltArguments(
-      LibraryBuilder library,
-      Nullability nullability,
-      List<DartType> arguments,
-      TypeUse typeUse,
-      Uri fileUri,
-      int charOffset,
-      {required bool hasExplicitTypeArguments}) {
+    LibraryBuilder library,
+    Nullability nullability,
+    List<DartType> arguments,
+    TypeUse typeUse,
+    Uri fileUri,
+    int charOffset, {
+    required bool hasExplicitTypeArguments,
+  }) {
     return type.withDeclaredNullability(nullability);
   }
 
   @override
-  Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
-          {required Map<TypeParameterBuilder, TraversalState>
-              typeParametersTraversalState}) =>
-      Nullability.nonNullable;
+  Nullability computeNullabilityWithArguments(
+    List<TypeBuilder>? typeArguments, {
+    required Map<TypeParameterBuilder, TraversalState>
+    typeParametersTraversalState,
+  }) => Nullability.nonNullable;
 }

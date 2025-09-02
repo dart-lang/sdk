@@ -33,7 +33,7 @@ platforms:
   - ios
   - web
 ''',
-      [PubspecWarningCode.INVALID_PLATFORMS_FIELD],
+      [PubspecWarningCode.invalidPlatformsField],
     );
   }
 
@@ -44,7 +44,7 @@ name: foo
 version: 1.0.0
 platforms: true
 ''',
-      [PubspecWarningCode.INVALID_PLATFORMS_FIELD],
+      [PubspecWarningCode.invalidPlatformsField],
     );
   }
 
@@ -55,7 +55,7 @@ name: foo
 version: 1.0.0
 platforms: []
 ''',
-      [PubspecWarningCode.INVALID_PLATFORMS_FIELD],
+      [PubspecWarningCode.invalidPlatformsField],
     );
   }
 
@@ -66,7 +66,7 @@ name: foo
 version: 1.0.0
 platforms: 42
 ''',
-      [PubspecWarningCode.INVALID_PLATFORMS_FIELD],
+      [PubspecWarningCode.invalidPlatformsField],
     );
   }
 
@@ -103,7 +103,7 @@ version: 1.0.0
 platforms:
   windåse:
 ''',
-      [PubspecWarningCode.UNKNOWN_PLATFORM],
+      [PubspecWarningCode.unknownPlatform],
     );
   }
 
@@ -115,7 +115,7 @@ version: 1.0.0
 platforms:
   Windows:
 ''',
-      [PubspecWarningCode.UNKNOWN_PLATFORM],
+      [PubspecWarningCode.unknownPlatform],
     );
   }
 }

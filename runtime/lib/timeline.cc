@@ -15,15 +15,6 @@ namespace dart {
 
 // Native implementations for the dart:developer library.
 
-DEFINE_NATIVE_ENTRY(Timeline_isDartStreamEnabled, 0, 0) {
-#if defined(SUPPORT_TIMELINE)
-  if (Timeline::GetDartStream()->enabled()) {
-    return Bool::True().ptr();
-  }
-#endif
-  return Bool::False().ptr();
-}
-
 DEFINE_NATIVE_ENTRY(Timeline_getNextTaskId, 0, 0) {
 #if !defined(SUPPORT_TIMELINE)
   return Integer::New(0);

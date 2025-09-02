@@ -57,7 +57,7 @@ class FunctionReferenceResolver {
         // interpreted as a type literal (e.g. `List<int>`).
         _diagnosticReporter.atNode(
           typeArguments,
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
           arguments: [
             function.constructorName.type.qualifiedName,
             function.constructorName.name!.name,
@@ -105,7 +105,7 @@ class FunctionReferenceResolver {
     if (prefixType is DynamicType) {
       _diagnosticReporter.atNode(
         function,
-        CompileTimeErrorCode.GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC,
+        CompileTimeErrorCode.genericMethodTypeInstantiationOnDynamic,
       );
       node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
       return true;
@@ -122,10 +122,9 @@ class FunctionReferenceResolver {
     if (typeArgumentList.arguments.length != typeParameters.length) {
       if (name == null &&
           errorCode ==
-              CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION) {
+              CompileTimeErrorCode.wrongNumberOfTypeArgumentsFunction) {
         errorCode =
-            CompileTimeErrorCode
-                .WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION;
+            CompileTimeErrorCode.wrongNumberOfTypeArgumentsAnonymousFunction;
         _diagnosticReporter.atNode(
           typeArgumentList,
           errorCode,
@@ -188,14 +187,13 @@ class FunctionReferenceResolver {
       if (_resolver.enclosingExtension != null) {
         _resolver.diagnosticReporter.atNode(
           nameNode,
-          CompileTimeErrorCode
-              .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE,
+          CompileTimeErrorCode.unqualifiedReferenceToStaticMemberOfExtendedType,
           arguments: [enclosingElement.displayName],
         );
       } else {
         _resolver.diagnosticReporter.atNode(
           nameNode,
-          CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
+          CompileTimeErrorCode.unqualifiedReferenceToNonLocalStaticMember,
           arguments: [enclosingElement.displayName],
         );
       }
@@ -203,8 +201,7 @@ class FunctionReferenceResolver {
         enclosingElement.name == null) {
       _resolver.diagnosticReporter.atNode(
         nameNode,
-        CompileTimeErrorCode
-            .INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION,
+        CompileTimeErrorCode.instanceAccessToStaticMemberOfUnnamedExtension,
         arguments: [nameNode.name, element.kind.displayName],
       );
     } else {
@@ -212,7 +209,7 @@ class FunctionReferenceResolver {
       // it can only be `null` for extensions, and we handle that case above.
       _resolver.diagnosticReporter.atNode(
         nameNode,
-        CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
+        CompileTimeErrorCode.instanceAccessToStaticMember,
         arguments: [
           nameNode.name,
           element.kind.displayName,
@@ -264,7 +261,7 @@ class FunctionReferenceResolver {
             typeArguments,
             name,
             rawType.typeParameters,
-            CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,
+            CompileTimeErrorCode.wrongNumberOfTypeArgumentsFunction,
           );
 
           var invokeType = rawType.instantiate(typeArgumentTypes);
@@ -278,7 +275,7 @@ class FunctionReferenceResolver {
         // tearoff feature is enabled.
         _diagnosticReporter.atNode(
           node.function,
-          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
+          CompileTimeErrorCode.disallowedTypeInstantiationExpression,
         );
         node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
       } else if (rawType is DynamicType) {
@@ -300,7 +297,7 @@ class FunctionReferenceResolver {
       node.typeArguments!,
       MethodElement.CALL_METHOD_NAME,
       callMethodType.typeParameters,
-      CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,
+      CompileTimeErrorCode.wrongNumberOfTypeArgumentsFunction,
     );
     var callReference = ImplicitCallReferenceImpl(
       expression: node.function,
@@ -331,7 +328,7 @@ class FunctionReferenceResolver {
       node.typeArguments!,
       name.name,
       element.typeParameters,
-      CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
+      CompileTimeErrorCode.wrongNumberOfTypeArguments,
     );
     var type = element.instantiateImpl(
       typeArguments: typeArguments,
@@ -353,7 +350,7 @@ class FunctionReferenceResolver {
       // tearoff feature is enabled.
       _diagnosticReporter.atNode(
         node.function,
-        CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
+        CompileTimeErrorCode.disallowedTypeInstantiationExpression,
       );
     }
     _resolve(node: node, rawType: rawType);
@@ -379,7 +376,7 @@ class FunctionReferenceResolver {
     if (member.isStatic) {
       _resolver.diagnosticReporter.atNode(
         function.propertyName,
-        CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
+        CompileTimeErrorCode.extensionOverrideAccessToStaticMember,
       );
       // Continue to resolve type.
     }
@@ -387,7 +384,7 @@ class FunctionReferenceResolver {
     if (function.isCascaded) {
       _resolver.diagnosticReporter.atToken(
         override.name,
-        CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE,
+        CompileTimeErrorCode.extensionOverrideWithCascade,
       );
       // Continue to resolve type.
     }
@@ -410,18 +407,17 @@ class FunctionReferenceResolver {
     SimpleIdentifier methodName,
     FunctionTypeImpl receiverType,
   ) {
-    var methodElement =
-        _resolver.typePropertyResolver
-            .resolve(
-              receiver: receiver,
-              receiverType: receiverType,
-              name: methodName.name,
-              hasRead: true,
-              hasWrite: false,
-              propertyErrorEntity: methodName,
-              nameErrorEntity: methodName,
-            )
-            .getter2;
+    var methodElement = _resolver.typePropertyResolver
+        .resolve(
+          receiver: receiver,
+          receiverType: receiverType,
+          name: methodName.name,
+          hasRead: true,
+          hasWrite: false,
+          propertyErrorEntity: methodName,
+          nameErrorEntity: methodName,
+        )
+        .getter2;
     if (methodElement != null && methodElement.isStatic) {
       _reportInvalidAccessToStaticMember(
         methodName,
@@ -441,7 +437,7 @@ class FunctionReferenceResolver {
     if (prefixElement == null) {
       _diagnosticReporter.atNode(
         function.prefix,
-        CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
+        CompileTimeErrorCode.undefinedIdentifier,
         arguments: [function.name],
       );
       function.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
@@ -453,9 +449,9 @@ class FunctionReferenceResolver {
     function.prefix.setPseudoExpressionStaticType(
       prefixElement is PromotableElementImpl
           ? _resolver.localVariableTypeProvider.getType(
-            function.prefix,
-            isRead: true,
-          )
+              function.prefix,
+              isRead: true,
+            )
           : prefixElement.referenceType,
     );
     var functionName = function.identifier.name;
@@ -465,7 +461,7 @@ class FunctionReferenceResolver {
       if (functionElement == null) {
         _diagnosticReporter.atNode(
           function.identifier,
-          CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME,
+          CompileTimeErrorCode.undefinedPrefixedName,
           arguments: [functionName, function.prefix.name],
         );
         function.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
@@ -510,7 +506,7 @@ class FunctionReferenceResolver {
       // If it is known, we must report the bad type instantiation here.
       _diagnosticReporter.atNode(
         function.identifier,
-        CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
+        CompileTimeErrorCode.disallowedTypeInstantiationExpression,
       );
     }
     _resolver.analyzeExpression(function, _resolver.operations.unknownType);
@@ -555,7 +551,7 @@ class FunctionReferenceResolver {
       if (targetType is DynamicType) {
         _diagnosticReporter.atNode(
           node,
-          CompileTimeErrorCode.GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC,
+          CompileTimeErrorCode.genericMethodTypeInstantiationOnDynamic,
         );
         node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
         return;
@@ -582,7 +578,7 @@ class FunctionReferenceResolver {
         // If it is known, we must report the bad type instantiation here.
         _diagnosticReporter.atNode(
           function.propertyName,
-          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
+          CompileTimeErrorCode.disallowedTypeInstantiationExpression,
         );
       }
 
@@ -590,18 +586,17 @@ class FunctionReferenceResolver {
       return;
     }
 
-    var propertyElement =
-        _resolver.typePropertyResolver
-            .resolve(
-              receiver: function.realTarget,
-              receiverType: targetType,
-              name: function.propertyName.name,
-              hasRead: true,
-              hasWrite: false,
-              propertyErrorEntity: function.propertyName,
-              nameErrorEntity: function,
-            )
-            .getter2;
+    var propertyElement = _resolver.typePropertyResolver
+        .resolve(
+          receiver: function.realTarget,
+          receiverType: targetType,
+          name: function.propertyName.name,
+          hasRead: true,
+          hasWrite: false,
+          propertyErrorEntity: function.propertyName,
+          nameErrorEntity: function,
+        )
+        .getter2;
 
     if (propertyElement is TypeParameterElement) {
       _resolve(node: node, rawType: propertyElement!.type);
@@ -703,7 +698,7 @@ class FunctionReferenceResolver {
         } else {
           _diagnosticReporter.atNode(
             function,
-            CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
+            CompileTimeErrorCode.undefinedIdentifier,
             arguments: [function.name],
           );
           function.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
@@ -747,7 +742,7 @@ class FunctionReferenceResolver {
       } else {
         _resolver.diagnosticReporter.atNode(
           function,
-          CompileTimeErrorCode.UNDEFINED_METHOD,
+          CompileTimeErrorCode.undefinedMethod,
           arguments: [function.name, receiverType],
         );
         function.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
@@ -862,7 +857,7 @@ class FunctionReferenceResolver {
       node.typeArguments!,
       element.name,
       element.typeParameters,
-      CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
+      CompileTimeErrorCode.wrongNumberOfTypeArguments,
     );
     var type = element.instantiateImpl(
       typeArguments: typeArguments,
@@ -931,18 +926,17 @@ class FunctionReferenceResolver {
       return element?.referenceType;
     }
 
-    var element =
-        _resolver.typePropertyResolver
-            .resolve(
-              receiver: receiver,
-              receiverType: receiverType,
-              name: name.name,
-              hasRead: true,
-              hasWrite: false,
-              propertyErrorEntity: name,
-              nameErrorEntity: nameErrorEntity,
-            )
-            .getter2;
+    var element = _resolver.typePropertyResolver
+        .resolve(
+          receiver: receiver,
+          receiverType: receiverType,
+          name: name.name,
+          hasRead: true,
+          hasWrite: false,
+          propertyErrorEntity: name,
+          nameErrorEntity: nameErrorEntity,
+        )
+        .getter2;
     name.element = element;
     if (element != null && element.isStatic) {
       _reportInvalidAccessToStaticMember(
@@ -963,18 +957,15 @@ extension on Element {
   /// `null` is returned. For [PropertyAccessorElement], the return value is
   /// returned. For all other elements, their `type` property is returned.
   DartType? get referenceType {
-    if (this is ConstructorElement) {
-      return (this as ConstructorElement).type;
-    } else if (this is TopLevelFunctionElement) {
-      return (this as TopLevelFunctionElement).type;
-    } else if (this is PropertyAccessorElement) {
-      return (this as PropertyAccessorElement).returnType;
-    } else if (this is MethodElement) {
-      return (this as MethodElement).type;
-    } else if (this is VariableElement) {
-      return (this as VariableElement).type;
-    } else {
-      return null;
-    }
+    var self = this;
+    return switch (self) {
+      ConstructorElement() => self.type,
+      TopLevelFunctionElement() => self.type,
+      LocalFunctionElement() => self.type,
+      PropertyAccessorElement() => self.returnType,
+      MethodElement() => self.type,
+      VariableElement() => self.type,
+      _ => null,
+    };
   }
 }

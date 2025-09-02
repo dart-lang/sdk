@@ -36,7 +36,8 @@ class ReferenceMap {
   /// Returns the [ExtensionTypeDeclarationBuilder] corresponding to
   /// [reference], if any.
   ExtensionTypeDeclarationBuilder? lookupExtensionTypeDeclarationBuilder(
-      Reference reference) {
+    Reference reference,
+  ) {
     NamedBuilder? builder = _map[reference];
     if (builder is ExtensionTypeDeclarationBuilder) {
       return builder;

@@ -9,20 +9,30 @@ import 'package:kernel/ast.dart';
 
 Future<void> main(List<String> args) async {
   await run(
-      cfeOnlyEntryPoints, 'pkg/front_end/test/static_types/cfe_allowed.json',
-      analyzedUrisFilter: cfeOnly,
-      verbose: args.contains('-v'),
-      generate: args.contains('-g'));
+    cfeOnlyEntryPoints,
+    'pkg/front_end/test/static_types/cfe_allowed.json',
+    analyzedUrisFilter: cfeOnly,
+    verbose: args.contains('-v'),
+    generate: args.contains('-g'),
+  );
 }
 
-Future<void> run(List<Uri> entryPoints, String allowedListPath,
-    {bool verbose = false,
-    bool generate = false,
-    bool Function(Uri uri)? analyzedUrisFilter}) async {
-  await runAnalysis(entryPoints,
-      (DiagnosticMessageHandler onDiagnostic, Component component) {
+Future<void> run(
+  List<Uri> entryPoints,
+  String allowedListPath, {
+  bool verbose = false,
+  bool generate = false,
+  bool Function(Uri uri)? analyzedUrisFilter,
+}) async {
+  await runAnalysis(entryPoints, (
+    DiagnosticMessageHandler onDiagnostic,
+    Component component,
+  ) {
     new DynamicVisitor(
-            onDiagnostic, component, allowedListPath, analyzedUrisFilter)
-        .run(verbose: verbose, generate: generate);
+      onDiagnostic,
+      component,
+      allowedListPath,
+      analyzedUrisFilter,
+    ).run(verbose: verbose, generate: generate);
   });
 }

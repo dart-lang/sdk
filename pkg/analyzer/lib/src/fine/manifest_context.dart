@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/fine/lookup_name.dart';
 import 'package:analyzer/src/fine/manifest_id.dart';
 import 'package:analyzer/src/fine/manifest_item.dart';
@@ -56,7 +57,7 @@ class EncodeContext {
   }
 
   T withTypeParameters<T>(
-    List<TypeParameterElement> typeParameters,
+    List<TypeParameterElementImpl> typeParameters,
     T Function(List<ManifestTypeParameter> typeParameters) operation,
   ) {
     for (var typeParameter in typeParameters) {
@@ -207,6 +208,7 @@ final class ManifestElement {
 enum ManifestElementKind {
   class_,
   enum_,
+  extension_,
   extensionType,
   mixin_,
   typeAlias,
@@ -226,6 +228,8 @@ enum ManifestElementKind {
         return ManifestElementKind.class_;
       case EnumElement():
         return ManifestElementKind.enum_;
+      case ExtensionElement():
+        return ManifestElementKind.extension_;
       case ExtensionTypeElement():
         return ManifestElementKind.extensionType;
       case MixinElement():
@@ -370,15 +374,15 @@ extension LinkedElementFactoryExtension on LinkedElementFactory {
       case MixinElement():
         topLevelItem = manifest.declaredMixins[topLevelName];
       case GetterElement():
-        return manifest.declaredGetters[topLevelName]?.id;
+        return manifest.declaredGetters[topLevelName]!.id;
       case SetterElement():
-        return manifest.declaredSetters[topLevelName]?.id;
+        return manifest.declaredSetters[topLevelName]!.id;
       case TopLevelFunctionElement():
-        return manifest.declaredFunctions[topLevelName]?.id;
+        return manifest.declaredFunctions[topLevelName]!.id;
       case TopLevelVariableElement():
-        return manifest.declaredVariables[topLevelName]?.id;
+        return manifest.declaredVariables[topLevelName]!.id;
       case TypeAliasElement():
-        return manifest.declaredTypeAliases[topLevelName]?.id;
+        return manifest.declaredTypeAliases[topLevelName]!.id;
     }
 
     if (topLevelItem == null) {
@@ -392,17 +396,42 @@ extension LinkedElementFactoryExtension on LinkedElementFactory {
       return topLevelItem.id;
     }
 
-    // TODO(scheglov): When implementation is complete, cast unconditionally.
-    if (topLevelItem is InterfaceItem) {
-      var memberName = memberElement.lookupName!.asLookupName;
-      if (element is ConstructorElement) {
-        return topLevelItem.getConstructorId(memberName);
-      }
-      var methodId = topLevelItem.getInterfaceMethodId(memberName);
-      // TODO(scheglov): When implementation is complete, null assert.
-      return methodId;
+    // If not top-level element, then a member in [InstanceElement].
+    var memberName = memberElement.lookupName!.asLookupName;
+    topLevelItem as InstanceItem;
+
+    switch (element) {
+      case FieldElement():
+        if (topLevelItem.getDeclaredFieldId(memberName) case var result?) {
+          return result;
+        }
+      case GetterElement():
+        if (topLevelItem.getDeclaredGetterId(memberName) case var result?) {
+          return result;
+        }
+      case SetterElement():
+        if (topLevelItem.getDeclaredSetterId(memberName) case var result?) {
+          return result;
+        }
+      case MethodElement():
+        if (topLevelItem.getDeclaredMethodId(memberName) case var result?) {
+          return result;
+        }
     }
 
-    return null;
+    // If we get here, the top-level container is not [ExtensionElement].
+    // So, it must be [InterfaceElement].
+    topLevelItem as InterfaceItem;
+
+    if (element is ConstructorElement) {
+      return topLevelItem.getConstructorId(memberName)!;
+    }
+
+    // In rare cases the member is not declared by the element, but added
+    // to the interface as a result of top-merge.
+    return topLevelItem.getInterfaceMethodId(memberName) ??
+        (throw '[runtimeType: ${element.runtimeType}]'
+            '[topLevelName: $topLevelName]'
+            '[memberName: $memberName]');
   }
 }

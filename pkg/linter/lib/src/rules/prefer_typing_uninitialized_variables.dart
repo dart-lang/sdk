@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
@@ -21,12 +23,15 @@ class PreferTypingUninitializedVariables extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.prefer_typing_uninitialized_variables_for_field,
-    LinterLintCode.prefer_typing_uninitialized_variables_for_local_variable,
+    LinterLintCode.preferTypingUninitializedVariablesForField,
+    LinterLintCode.preferTypingUninitializedVariablesForLocalVariable,
   ];
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addVariableDeclarationList(this, visitor);
   }
@@ -43,11 +48,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     for (var v in node.variables) {
       if (v.initializer == null && !v.isAugmentation) {
-        var code =
-            node.parent is FieldDeclaration
-                ? LinterLintCode.prefer_typing_uninitialized_variables_for_field
-                : LinterLintCode
-                    .prefer_typing_uninitialized_variables_for_local_variable;
+        var code = node.parent is FieldDeclaration
+            ? LinterLintCode.preferTypingUninitializedVariablesForField
+            : LinterLintCode.preferTypingUninitializedVariablesForLocalVariable;
         rule.reportAtNode(v, diagnosticCode: code);
       }
     }

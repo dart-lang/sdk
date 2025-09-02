@@ -277,6 +277,7 @@ static method test() → void {
   self::x{dynamic}.foo(){dynamic}.bar.{dynamic}baz = 42;
   {
     final synthesized dynamic #0#0 = self::x;
+    final const synthesized core::int #0#1 = #C5;
     if(#0#0{dynamic}.<(#C5) as core::bool) {
       core::print("<3");
     }
@@ -284,6 +285,7 @@ static method test() → void {
   #L1:
   {
     final synthesized dynamic #1#0 = self::x;
+    final const synthesized core::int #1#3 = #C6;
     {
       if(#1#0 is dynamic && #C6 =={core::num::==}{(core::Object) → core::bool} #1#0{dynamic}.foo) {
         {

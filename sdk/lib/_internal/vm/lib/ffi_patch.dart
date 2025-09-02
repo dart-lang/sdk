@@ -517,6 +517,7 @@ external int _loadUint64(Object typedDataBase, int offsetInBytes);
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
 @pragma("vm:prefer-inline")
+@pragma("vm:external-name", "Ffi_loadAbiSpecificInt")
 external int _loadAbiSpecificInt<T extends AbiSpecificInteger>(
   Object typedDataBase,
   int offsetInBytes,
@@ -525,6 +526,7 @@ external int _loadAbiSpecificInt<T extends AbiSpecificInteger>(
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
 @pragma("vm:prefer-inline")
+@pragma("vm:external-name", "Ffi_loadAbiSpecificIntAtIndex")
 external int _loadAbiSpecificIntAtIndex<T extends AbiSpecificInteger>(
   Object typedDataBase,
   int offsetInBytes,
@@ -610,7 +612,8 @@ external void _storeUint64(Object typedDataBase, int offsetInBytes, int value);
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
 @pragma("vm:prefer-inline")
-external int _storeAbiSpecificInt<T extends AbiSpecificInteger>(
+@pragma("vm:external-name", "Ffi_storeAbiSpecificInt")
+external void _storeAbiSpecificInt<T extends AbiSpecificInteger>(
   Object typedDataBase,
   int offsetInBytes,
   int value,
@@ -619,7 +622,8 @@ external int _storeAbiSpecificInt<T extends AbiSpecificInteger>(
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
 @pragma("vm:prefer-inline")
-external int _storeAbiSpecificIntAtIndex<T extends AbiSpecificInteger>(
+@pragma("vm:external-name", "Ffi_storeAbiSpecificIntAtIndex")
+external void _storeAbiSpecificIntAtIndex<T extends AbiSpecificInteger>(
   Object typedDataBase,
   int offsetInBytes,
   int index,

@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:meta/meta.dart';
 
 class MockLibraryImportElement implements Element {
@@ -159,7 +160,7 @@ extension ElementOrNullExtension on FragmentImpl? {
     } else if (self is InterfaceFragmentImpl) {
       return self.element;
     } else if (self is LabelFragmentImpl) {
-      return self.element2;
+      return self.element;
     } else if (self is LocalVariableFragmentImpl) {
       return self.element;
     } else if (self is NeverFragmentImpl) {
@@ -412,12 +413,10 @@ extension TypeAliasElementImplExtension on TypeAliasFragmentImpl {
 
 extension TypeParameterElement2Extension on TypeParameterElement {
   TypeParameterElementImpl freshCopy() {
-    var fragment = TypeParameterFragmentImpl(
-      name: name,
-      firstTokenOffset: null,
-    );
-    fragment.bound = bound;
-    return TypeParameterElementImpl(firstFragment: fragment, name: name);
+    var fragment = TypeParameterFragmentImpl(name: name);
+    var element = TypeParameterElementImpl(firstFragment: fragment);
+    element.bound = bound as TypeImpl?;
+    return element;
   }
 }
 

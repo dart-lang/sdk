@@ -15,7 +15,7 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/bounds_checks.dart' show VarianceCalculationValue;
 import 'package:kernel/src/unaliasing.dart';
 
-import '../codes/cfe_codes.dart' show messageSupertypeIsFunction, noLength;
+import '../codes/cfe_codes.dart' show codeSupertypeIsFunction, noLength;
 import '../kernel/implicit_field_type.dart';
 import '../kernel/type_algorithms.dart';
 import '../source/source_library_builder.dart';
@@ -47,13 +47,14 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
   final bool hasFunctionFormalParameterSyntax;
 
   factory FunctionTypeBuilderImpl(
-      TypeBuilder returnType,
-      List<StructuralParameterBuilder>? typeParameters,
-      List<ParameterBuilder>? formals,
-      NullabilityBuilder nullabilityBuilder,
-      Uri? fileUri,
-      int charOffset,
-      {bool hasFunctionFormalParameterSyntax = false}) {
+    TypeBuilder returnType,
+    List<StructuralParameterBuilder>? typeParameters,
+    List<ParameterBuilder>? formals,
+    NullabilityBuilder nullabilityBuilder,
+    Uri? fileUri,
+    int charOffset, {
+    bool hasFunctionFormalParameterSyntax = false,
+  }) {
     bool isExplicit = true;
     if (!returnType.isExplicit) {
       isExplicit = false;
@@ -82,27 +83,30 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
             nullabilityBuilder,
             fileUri,
             charOffset,
-            hasFunctionFormalParameterSyntax)
+            hasFunctionFormalParameterSyntax,
+          )
         :
-        // Coverage-ignore(suite): Not run.
-        new _InferredFunctionTypeBuilder(
+          // Coverage-ignore(suite): Not run.
+          new _InferredFunctionTypeBuilder(
             returnType,
             typeParameters,
             formals,
             nullabilityBuilder,
             fileUri,
             charOffset,
-            hasFunctionFormalParameterSyntax);
+            hasFunctionFormalParameterSyntax,
+          );
   }
 
   FunctionTypeBuilderImpl._(
-      this.returnType,
-      this.typeParameters,
-      this.formals,
-      this.nullabilityBuilder,
-      this.fileUri,
-      this.charOffset,
-      this.hasFunctionFormalParameterSyntax);
+    this.returnType,
+    this.typeParameters,
+    this.formals,
+    this.nullabilityBuilder,
+    this.fileUri,
+    this.charOffset,
+    this.hasFunctionFormalParameterSyntax,
+  );
 
   @override
   TypeName? get typeName => null;
@@ -151,31 +155,48 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
   }
 
   DartType _buildInternal(
-      LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy) {
+    LibraryBuilder library,
+    TypeUse typeUse,
+    ClassHierarchyBase? hierarchy,
+  ) {
     DartType aliasedType = buildAliased(library, typeUse, hierarchy);
     return unalias(aliasedType);
   }
 
   @override
   DartType buildAliased(
-      LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy) {
+    LibraryBuilder library,
+    TypeUse typeUse,
+    ClassHierarchyBase? hierarchy,
+  ) {
     assert(hierarchy != null || isExplicit, "Cannot build $this.");
-    DartType builtReturnType =
-        returnType.buildAliased(library, TypeUse.returnType, hierarchy);
+    DartType builtReturnType = returnType.buildAliased(
+      library,
+      TypeUse.returnType,
+      hierarchy,
+    );
     List<DartType> positionalParameters = <DartType>[];
     List<NamedType>? namedParameters;
     int requiredParameterCount = 0;
     if (formals != null) {
       for (ParameterBuilder formal in formals!) {
-        DartType type =
-            formal.type.buildAliased(library, TypeUse.parameterType, hierarchy);
+        DartType type = formal.type.buildAliased(
+          library,
+          TypeUse.parameterType,
+          hierarchy,
+        );
         if (formal.isPositional) {
           positionalParameters.add(type);
           if (formal.isRequiredPositional) requiredParameterCount++;
         } else if (formal.isNamed) {
           namedParameters ??= <NamedType>[];
-          namedParameters.add(new NamedType(formal.name!, type,
-              isRequired: formal.isRequiredNamed));
+          namedParameters.add(
+            new NamedType(
+              formal.name!,
+              type,
+              isRequired: formal.isRequiredNamed,
+            ),
+          );
         }
       }
       if (namedParameters != null) {
@@ -192,16 +213,18 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
       }
     }
     return new FunctionType(
-        positionalParameters, builtReturnType, nullabilityBuilder.build(),
-        namedParameters: namedParameters ?? const <NamedType>[],
-        typeParameters: newTypeParameters ?? const <StructuralParameter>[],
-        requiredParameterCount: requiredParameterCount);
+      positionalParameters,
+      builtReturnType,
+      nullabilityBuilder.build(),
+      namedParameters: namedParameters ?? const <NamedType>[],
+      typeParameters: newTypeParameters ?? const <StructuralParameter>[],
+      requiredParameterCount: requiredParameterCount,
+    );
   }
 
   @override
   Supertype? buildSupertype(LibraryBuilder library, TypeUse typeUse) {
-    library.addProblem(
-        messageSupertypeIsFunction, charOffset, noLength, fileUri);
+    library.addProblem(codeSupertypeIsFunction, charOffset, noLength, fileUri);
     return null;
   }
 
@@ -212,32 +235,45 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
 
   @override
   FunctionTypeBuilder withNullabilityBuilder(
-      NullabilityBuilder nullabilityBuilder) {
-    return new FunctionTypeBuilderImpl(returnType, typeParameters, formals,
-        nullabilityBuilder, fileUri, charOffset);
+    NullabilityBuilder nullabilityBuilder,
+  ) {
+    return new FunctionTypeBuilderImpl(
+      returnType,
+      typeParameters,
+      formals,
+      nullabilityBuilder,
+      fileUri,
+      charOffset,
+    );
   }
 
   @override
-  Nullability computeNullability(
-      {required Map<TypeParameterBuilder, TraversalState>
-          typeParametersTraversalState}) {
+  Nullability computeNullability({
+    required Map<TypeParameterBuilder, TraversalState>
+    typeParametersTraversalState,
+  }) {
     return nullabilityBuilder.build();
   }
 
   @override
   VarianceCalculationValue computeTypeParameterBuilderVariance(
-      NominalParameterBuilder variable,
-      {required SourceLoader sourceLoader}) {
+    NominalParameterBuilder variable, {
+    required SourceLoader sourceLoader,
+  }) {
     List<StructuralParameterBuilder>? typeParameters = this.typeParameters;
     List<ParameterBuilder>? formals = this.formals;
     TypeBuilder returnType = this.returnType;
 
     Variance result = Variance.unrelated;
     if (returnType is! OmittedTypeBuilder) {
-      result = result.meet(returnType
-          .computeTypeParameterBuilderVariance(variable,
-              sourceLoader: sourceLoader)
-          .variance!);
+      result = result.meet(
+        returnType
+            .computeTypeParameterBuilderVariance(
+              variable,
+              sourceLoader: sourceLoader,
+            )
+            .variance!,
+      );
     }
     if (typeParameters != null) {
       for (StructuralParameterBuilder typeParameter in typeParameters) {
@@ -246,8 +282,10 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
         // invocation of [computeVariance] below is made to simply figure out
         // if [variable] occurs in the bound.
         if (typeParameter.bound != null &&
-            typeParameter.bound!.computeTypeParameterBuilderVariance(variable,
-                    sourceLoader: sourceLoader) !=
+            typeParameter.bound!.computeTypeParameterBuilderVariance(
+                  variable,
+                  sourceLoader: sourceLoader,
+                ) !=
                 VarianceCalculationValue.calculatedUnrelated) {
           result = Variance.invariant;
         }
@@ -255,30 +293,42 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
     }
     if (formals != null) {
       for (ParameterBuilder formal in formals) {
-        result = result.meet(Variance.contravariant.combine(formal.type
-            .computeTypeParameterBuilderVariance(variable,
-                sourceLoader: sourceLoader)
-            .variance!));
+        result = result.meet(
+          Variance.contravariant.combine(
+            formal.type
+                .computeTypeParameterBuilderVariance(
+                  variable,
+                  sourceLoader: sourceLoader,
+                )
+                .variance!,
+          ),
+        );
       }
     }
     return new VarianceCalculationValue.fromVariance(result);
   }
 
   @override
-  TypeDeclarationBuilder? computeUnaliasedDeclaration(
-          {required bool isUsedAsClass}) =>
-      null;
+  TypeDeclarationBuilder? computeUnaliasedDeclaration({
+    required bool isUsedAsClass,
+  }) => null;
 
   @override
-  void collectReferencesFrom(Map<TypeParameterBuilder, int> parameterIndices,
-      List<List<int>> edges, int index) {
+  void collectReferencesFrom(
+    Map<TypeParameterBuilder, int> parameterIndices,
+    List<List<int>> edges,
+    int index,
+  ) {
     List<StructuralParameterBuilder>? typeParameters = this.typeParameters;
     List<ParameterBuilder>? formals = this.formals;
     TypeBuilder returnType = this.returnType;
     if (typeParameters != null) {
       for (StructuralParameterBuilder typeParameter in typeParameters) {
-        typeParameter.bound
-            ?.collectReferencesFrom(parameterIndices, edges, index);
+        typeParameter.bound?.collectReferencesFrom(
+          parameterIndices,
+          edges,
+          index,
+        );
       }
     }
     if (formals != null) {
@@ -291,10 +341,11 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
 
   @override
   TypeBuilder? substituteRange(
-      Map<TypeParameterBuilder, TypeBuilder> upperSubstitution,
-      Map<TypeParameterBuilder, TypeBuilder> lowerSubstitution,
-      TypeParameterFactory typeParameterFactory,
-      {final Variance variance = Variance.covariant}) {
+    Map<TypeParameterBuilder, TypeBuilder> upperSubstitution,
+    Map<TypeParameterBuilder, TypeBuilder> lowerSubstitution,
+    TypeParameterFactory typeParameterFactory, {
+    final Variance variance = Variance.covariant,
+  }) {
     List<StructuralParameterBuilder>? typeParameters = this.typeParameters;
     List<ParameterBuilder>? formals = this.formals;
     TypeBuilder returnType = this.returnType;
@@ -311,16 +362,19 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
         TypeBuilder? bound;
         if (variable.bound != null) {
           bound = variable.bound!.substituteRange(
-              upperSubstitution, lowerSubstitution, typeParameterFactory,
-              variance: Variance.invariant);
+            upperSubstitution,
+            lowerSubstitution,
+            typeParameterFactory,
+            variance: Variance.invariant,
+          );
         }
         if (bound != null) {
           newTypeParameters ??= typeParameters.toList();
           StructuralParameterBuilder newTypeParameterBuilder =
-              newTypeParameters[i] = typeParameterFactory
-                  .createStructuralParameterBuilder(
-                      new SyntheticStructuralParameterDeclaration(variable))
-                ..bound = bound;
+              newTypeParameters[i] =
+                  typeParameterFactory.createStructuralParameterBuilder(
+                    new SyntheticStructuralParameterDeclaration(variable),
+                  )..bound = bound;
           if (functionTypeUpperSubstitution == null) {
             functionTypeUpperSubstitution = {...upperSubstitution};
             functionTypeLowerSubstitution = {...lowerSubstitution};
@@ -328,10 +382,11 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
           functionTypeUpperSubstitution[variable] =
               functionTypeLowerSubstitution![variable] =
                   new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-                      newTypeParameterBuilder,
-                      const NullabilityBuilder.omitted(),
-                      instanceTypeParameterAccess:
-                          InstanceTypeParameterAccessState.Unexpected);
+                    newTypeParameterBuilder,
+                    const NullabilityBuilder.omitted(),
+                    instanceTypeParameterAccess:
+                        InstanceTypeParameterAccessState.Unexpected,
+                  );
         }
       }
     }
@@ -339,33 +394,39 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
       for (int i = 0; i < formals.length; i++) {
         ParameterBuilder formal = formals[i];
         TypeBuilder? parameterType = formal.type.substituteRange(
-            functionTypeUpperSubstitution ?? upperSubstitution,
-            functionTypeLowerSubstitution ?? lowerSubstitution,
-            typeParameterFactory,
-            variance: variance.combine(Variance.contravariant));
+          functionTypeUpperSubstitution ?? upperSubstitution,
+          functionTypeLowerSubstitution ?? lowerSubstitution,
+          typeParameterFactory,
+          variance: variance.combine(Variance.contravariant),
+        );
         if (parameterType != null) {
           newFormals ??= new List.of(formals);
           newFormals[i] = new FunctionTypeParameterBuilder(
-              formal.kind, parameterType, formal.name);
+            formal.kind,
+            parameterType,
+            formal.name,
+          );
         }
       }
     }
     newReturnType = returnType.substituteRange(
-        functionTypeUpperSubstitution ?? upperSubstitution,
-        functionTypeLowerSubstitution ?? lowerSubstitution,
-        typeParameterFactory,
-        variance: variance);
+      functionTypeUpperSubstitution ?? upperSubstitution,
+      functionTypeLowerSubstitution ?? lowerSubstitution,
+      typeParameterFactory,
+      variance: variance,
+    );
 
     if (newTypeParameters != null ||
         newFormals != null ||
         newReturnType != null) {
       return new FunctionTypeBuilderImpl(
-          newReturnType ?? returnType,
-          newTypeParameters ?? typeParameters,
-          newFormals ?? formals,
-          this.nullabilityBuilder,
-          this.fileUri,
-          this.charOffset);
+        newReturnType ?? returnType,
+        newTypeParameters ?? typeParameters,
+        newFormals ?? formals,
+        this.nullabilityBuilder,
+        this.fileUri,
+        this.charOffset,
+      );
     }
     return null;
   }
@@ -401,20 +462,23 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
     if (typeParameters != null) {
       for (StructuralParameterBuilder typeParameter in typeParameters) {
         if (typeParameter.bound != null) {
-          typesAndDependencies
-              .addAll(typeParameter.bound!.findRawTypesWithInboundReferences());
+          typesAndDependencies.addAll(
+            typeParameter.bound!.findRawTypesWithInboundReferences(),
+          );
         }
         if (typeParameter.defaultType != null) {
           // Coverage-ignore-block(suite): Not run.
           typesAndDependencies.addAll(
-              typeParameter.defaultType!.findRawTypesWithInboundReferences());
+            typeParameter.defaultType!.findRawTypesWithInboundReferences(),
+          );
         }
       }
     }
     if (formals != null) {
       for (ParameterBuilder formal in formals) {
-        typesAndDependencies
-            .addAll(formal.type.findRawTypesWithInboundReferences());
+        typesAndDependencies.addAll(
+          formal.type.findRawTypesWithInboundReferences(),
+        );
       }
     }
     return typesAndDependencies;
@@ -427,15 +491,22 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
 /// either explicit or omitted.
 class _ExplicitFunctionTypeBuilder extends FunctionTypeBuilderImpl {
   _ExplicitFunctionTypeBuilder(
-      TypeBuilder returnType,
-      List<StructuralParameterBuilder>? typeParameters,
-      List<ParameterBuilder>? formals,
-      NullabilityBuilder nullabilityBuilder,
-      Uri? fileUri,
-      int charOffset,
-      bool hasFunctionFormalParameterSyntax)
-      : super._(returnType, typeParameters, formals, nullabilityBuilder,
-            fileUri, charOffset, hasFunctionFormalParameterSyntax);
+    TypeBuilder returnType,
+    List<StructuralParameterBuilder>? typeParameters,
+    List<ParameterBuilder>? formals,
+    NullabilityBuilder nullabilityBuilder,
+    Uri? fileUri,
+    int charOffset,
+    bool hasFunctionFormalParameterSyntax,
+  ) : super._(
+        returnType,
+        typeParameters,
+        formals,
+        nullabilityBuilder,
+        fileUri,
+        charOffset,
+        hasFunctionFormalParameterSyntax,
+      );
 
   @override
   bool get isExplicit => true;
@@ -443,8 +514,11 @@ class _ExplicitFunctionTypeBuilder extends FunctionTypeBuilderImpl {
   DartType? _type;
 
   @override
-  DartType build(LibraryBuilder library, TypeUse typeUse,
-      {ClassHierarchyBase? hierarchy}) {
+  DartType build(
+    LibraryBuilder library,
+    TypeUse typeUse, {
+    ClassHierarchyBase? hierarchy,
+  }) {
     return _type ??= _buildInternal(library, typeUse, hierarchy);
   }
 }
@@ -458,29 +532,42 @@ class _ExplicitFunctionTypeBuilder extends FunctionTypeBuilderImpl {
 class _InferredFunctionTypeBuilder extends FunctionTypeBuilderImpl
     with InferableTypeBuilderMixin {
   _InferredFunctionTypeBuilder(
-      TypeBuilder returnType,
-      List<StructuralParameterBuilder>? typeParameters,
-      List<ParameterBuilder>? formals,
-      NullabilityBuilder nullabilityBuilder,
-      Uri? fileUri,
-      int charOffset,
-      bool hasFunctionFormalParameterSyntax)
-      : super._(returnType, typeParameters, formals, nullabilityBuilder,
-            fileUri, charOffset, hasFunctionFormalParameterSyntax);
+    TypeBuilder returnType,
+    List<StructuralParameterBuilder>? typeParameters,
+    List<ParameterBuilder>? formals,
+    NullabilityBuilder nullabilityBuilder,
+    Uri? fileUri,
+    int charOffset,
+    bool hasFunctionFormalParameterSyntax,
+  ) : super._(
+        returnType,
+        typeParameters,
+        formals,
+        nullabilityBuilder,
+        fileUri,
+        charOffset,
+        hasFunctionFormalParameterSyntax,
+      );
 
   @override
   bool get isExplicit => false;
 
   @override
-  DartType build(LibraryBuilder library, TypeUse typeUse,
-      {ClassHierarchyBase? hierarchy}) {
+  DartType build(
+    LibraryBuilder library,
+    TypeUse typeUse, {
+    ClassHierarchyBase? hierarchy,
+  }) {
     if (hasType) {
       return type;
     } else if (hierarchy != null) {
       return registerType(_buildInternal(library, typeUse, hierarchy));
     } else {
-      InferableTypeUse inferableTypeUse =
-          new InferableTypeUse(library as SourceLibraryBuilder, this, typeUse);
+      InferableTypeUse inferableTypeUse = new InferableTypeUse(
+        library as SourceLibraryBuilder,
+        this,
+        typeUse,
+      );
       library.loader.inferableTypes.registerInferableType(inferableTypeUse);
       return new InferredType.fromInferableTypeUse(inferableTypeUse);
     }

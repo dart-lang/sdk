@@ -45,56 +45,70 @@ class DelayedDefaultValueCloner {
   /// isn't performed twice.
   bool _hasCloned = false;
 
-  DelayedDefaultValueCloner(this.original, this.synthesized,
-      {this.identicalSignatures = true,
-      List<int?>? positionalSuperParameters = null,
-      List<String>? namedSuperParameters = null,
-      this.isOutlineNode = false,
-      required LibraryBuilder libraryBuilder})
-      : _positionalSuperParameters = positionalSuperParameters,
-        _namedSuperParameters = namedSuperParameters,
-        _libraryBuilder = libraryBuilder,
-        // Check that [positionalSuperParameters] and [namedSuperParameters] are
-        // provided or omitted together.
-        assert((positionalSuperParameters == null) ==
-            (namedSuperParameters == null)),
-        assert(positionalSuperParameters == null ||
-            () {
-              // Check that [positionalSuperParameters] is sorted if it's
-              // provided. The `null` values are allowed in-between the sorted
-              // values.
-              for (int i = -1, j = 0;
-                  j < positionalSuperParameters.length;
-                  j++) {
-                int? currentValue = positionalSuperParameters[j];
-                if (currentValue != null) {
-                  if (i == -1 || positionalSuperParameters[i]! < currentValue) {
-                    i = j;
-                  } else {
-                    return false;
-                  }
-                }
-              }
-              return true;
-            }()),
-        assert(namedSuperParameters == null ||
-            () {
-              // Check that [namedSuperParameters] are the subset of and in the
-              // same order as the named parameters of [_synthesized].
-              int superParameterIndex = 0;
-              for (int namedParameterIndex = 0;
-                  namedParameterIndex <
-                          synthesized.function!.namedParameters.length &&
-                      superParameterIndex < namedSuperParameters.length;
-                  namedParameterIndex++) {
-                if (synthesized
-                        .function!.namedParameters[namedParameterIndex].name ==
-                    namedSuperParameters[superParameterIndex]) {
-                  ++superParameterIndex;
-                }
-              }
-              return superParameterIndex == namedSuperParameters.length;
-            }());
+  DelayedDefaultValueCloner(
+    this.original,
+    this.synthesized, {
+    this.identicalSignatures = true,
+    List<int?>? positionalSuperParameters = null,
+    List<String>? namedSuperParameters = null,
+    this.isOutlineNode = false,
+    required LibraryBuilder libraryBuilder,
+  }) : _positionalSuperParameters = positionalSuperParameters,
+       _namedSuperParameters = namedSuperParameters,
+       _libraryBuilder = libraryBuilder,
+       // Check that [positionalSuperParameters] and [namedSuperParameters] are
+       // provided or omitted together.
+       assert(
+         (positionalSuperParameters == null) == (namedSuperParameters == null),
+       ),
+       assert(
+         positionalSuperParameters == null ||
+             () {
+               // Check that [positionalSuperParameters] is sorted if it's
+               // provided. The `null` values are allowed in-between the sorted
+               // values.
+               for (
+                 int i = -1, j = 0;
+                 j < positionalSuperParameters.length;
+                 j++
+               ) {
+                 int? currentValue = positionalSuperParameters[j];
+                 if (currentValue != null) {
+                   if (i == -1 ||
+                       positionalSuperParameters[i]! < currentValue) {
+                     i = j;
+                   } else {
+                     return false;
+                   }
+                 }
+               }
+               return true;
+             }(),
+       ),
+       assert(
+         namedSuperParameters == null ||
+             () {
+               // Check that [namedSuperParameters] are the subset of and in the
+               // same order as the named parameters of [_synthesized].
+               int superParameterIndex = 0;
+               for (
+                 int namedParameterIndex = 0;
+                 namedParameterIndex <
+                         synthesized.function!.namedParameters.length &&
+                     superParameterIndex < namedSuperParameters.length;
+                 namedParameterIndex++
+               ) {
+                 if (synthesized
+                         .function!
+                         .namedParameters[namedParameterIndex]
+                         .name ==
+                     namedSuperParameters[superParameterIndex]) {
+                   ++superParameterIndex;
+                 }
+               }
+               return superParameterIndex == namedSuperParameters.length;
+             }(),
+       );
 
   void cloneDefaultValues(TypeEnvironment typeEnvironment) {
     if (_hasCloned) return;
@@ -113,14 +127,18 @@ class DelayedDefaultValueCloner {
     FunctionNode _synthesized = synthesized.function!;
 
     if (identicalSignatures) {
-      assert(_positionalSuperParameters != null ||
-          _synthesized.positionalParameters.length ==
-              _original.positionalParameters.length);
+      assert(
+        _positionalSuperParameters != null ||
+            _synthesized.positionalParameters.length ==
+                _original.positionalParameters.length,
+      );
       List<int?>? positionalSuperParameters = _positionalSuperParameters;
       for (int i = 0; i < _original.positionalParameters.length; i++) {
         if (positionalSuperParameters == null) {
-          _cloneInitializer(_original.positionalParameters[i],
-              _synthesized.positionalParameters[i]);
+          _cloneInitializer(
+            _original.positionalParameters[i],
+            _synthesized.positionalParameters[i],
+          );
         } else if (i < positionalSuperParameters.length) {
           int? superParameterIndex = positionalSuperParameters[i];
           if (superParameterIndex != null) {
@@ -129,16 +147,21 @@ class DelayedDefaultValueCloner {
             VariableDeclaration synthesizedParameter =
                 _synthesized.positionalParameters[superParameterIndex];
             _cloneDefaultValueForSuperParameters(
-                originalParameter, synthesizedParameter, typeEnvironment,
-                isOptional:
-                    superParameterIndex >= _synthesized.requiredParameterCount);
+              originalParameter,
+              synthesizedParameter,
+              typeEnvironment,
+              isOptional:
+                  superParameterIndex >= _synthesized.requiredParameterCount,
+            );
           }
         }
       }
 
-      assert(_namedSuperParameters != null ||
-          _synthesized.namedParameters.length ==
-              _original.namedParameters.length);
+      assert(
+        _namedSuperParameters != null ||
+            _synthesized.namedParameters.length ==
+                _original.namedParameters.length,
+      );
       List<String>? namedSuperParameters = _namedSuperParameters;
       int superParameterNameIndex = 0;
       Map<String, int> originalNamedParameterIndices = {};
@@ -148,7 +171,9 @@ class DelayedDefaultValueCloner {
       for (int i = 0; i < _synthesized.namedParameters.length; i++) {
         if (namedSuperParameters == null) {
           _cloneInitializer(
-              _original.namedParameters[i], _synthesized.namedParameters[i]);
+            _original.namedParameters[i],
+            _synthesized.namedParameters[i],
+          );
         } else if (superParameterNameIndex < namedSuperParameters.length &&
             namedSuperParameters[superParameterNameIndex] ==
                 _synthesized.namedParameters[i].name) {
@@ -162,8 +187,11 @@ class DelayedDefaultValueCloner {
             VariableDeclaration synthesizedParameter =
                 _synthesized.namedParameters[i];
             _cloneDefaultValueForSuperParameters(
-                originalParameter, synthesizedParameter, typeEnvironment,
-                isOptional: !synthesizedParameter.isRequired);
+              originalParameter,
+              synthesizedParameter,
+              typeEnvironment,
+              isOptional: !synthesizedParameter.isRequired,
+            );
           } else {
             // TODO(cstefantsova): Handle the erroneous case of missing names.
           }
@@ -187,7 +215,9 @@ class DelayedDefaultValueCloner {
               }
             } else {
               _cloneInitializer(
-                  _original.positionalParameters[i], synthesizedParameter);
+                _original.positionalParameters[i],
+                synthesizedParameter,
+              );
             }
           }
         } else {
@@ -235,8 +265,10 @@ class DelayedDefaultValueCloner {
     _hasCloned = true;
   }
 
-  void _cloneInitializer(VariableDeclaration originalParameter,
-      VariableDeclaration clonedParameter) {
+  void _cloneInitializer(
+    VariableDeclaration originalParameter,
+    VariableDeclaration clonedParameter,
+  ) {
     if (originalParameter.initializer != null) {
       CloneVisitorNotMembers cloner = _cloner ??= new CloneVisitorNotMembers();
       clonedParameter.initializer = cloner.clone(originalParameter.initializer!)
@@ -247,17 +279,20 @@ class DelayedDefaultValueCloner {
   }
 
   void _cloneDefaultValueForSuperParameters(
-      VariableDeclaration originalParameter,
-      VariableDeclaration synthesizedParameter,
-      TypeEnvironment typeEnvironment,
-      {required bool isOptional}) {
+    VariableDeclaration originalParameter,
+    VariableDeclaration synthesizedParameter,
+    TypeEnvironment typeEnvironment, {
+    required bool isOptional,
+  }) {
     Expression? originalParameterInitializer = originalParameter.initializer;
     DartType? originalParameterInitializerType = originalParameterInitializer
         ?.getStaticType(new StaticTypeContext(synthesized, typeEnvironment));
     DartType synthesizedParameterType = synthesizedParameter.type;
     if (originalParameterInitializerType != null &&
         typeEnvironment.isSubtypeOf(
-            originalParameterInitializerType, synthesizedParameterType)) {
+          originalParameterInitializerType,
+          synthesizedParameterType,
+        )) {
       _cloneInitializer(originalParameter, synthesizedParameter);
     } else if (originalParameterInitializer == null && isOptional) {
       synthesizedParameter.initializer = new NullLiteral()
@@ -266,11 +301,14 @@ class DelayedDefaultValueCloner {
       synthesizedParameter.hasDeclaredInitializer = false;
       if (synthesizedParameterType.isPotentiallyNonNullable) {
         _libraryBuilder.addProblem(
-            templateOptionalSuperParameterWithoutInitializer.withArguments(
-                synthesizedParameter.type, synthesizedParameter.name!),
-            synthesizedParameter.fileOffset,
-            synthesizedParameter.name?.length ?? 1,
-            _libraryBuilder.fileUri);
+          codeOptionalSuperParameterWithoutInitializer.withArguments(
+            synthesizedParameter.type,
+            synthesizedParameter.name!,
+          ),
+          synthesizedParameter.fileOffset,
+          synthesizedParameter.name?.length ?? 1,
+          synthesized.fileUri,
+        );
         synthesizedParameter.isErroneouslyInitialized = true;
       }
     }
@@ -290,8 +328,12 @@ class TypeDependency {
   final bool copyReturnType;
   bool _hasBeenInferred = false;
 
-  TypeDependency(this.synthesized, this.original, this.substitution,
-      {required this.copyReturnType});
+  TypeDependency(
+    this.synthesized,
+    this.original,
+    this.substitution, {
+    required this.copyReturnType,
+  });
 
   void copyInferred() {
     if (_hasBeenInferred) return;
@@ -300,8 +342,9 @@ class TypeDependency {
           synthesized.function!.positionalParameters[i];
       VariableDeclaration originalParameter =
           original.function!.positionalParameters[i];
-      synthesizedParameter.type =
-          substitution.substituteType(originalParameter.type);
+      synthesizedParameter.type = substitution.substituteType(
+        originalParameter.type,
+      );
       if (!synthesizedParameter.hasDeclaredInitializer) {
         synthesizedParameter.hasDeclaredInitializer =
             originalParameter.hasDeclaredInitializer;
@@ -312,16 +355,18 @@ class TypeDependency {
           synthesized.function!.namedParameters[i];
       VariableDeclaration originalParameter =
           original.function!.namedParameters[i];
-      synthesizedParameter.type =
-          substitution.substituteType(originalParameter.type);
+      synthesizedParameter.type = substitution.substituteType(
+        originalParameter.type,
+      );
       if (!synthesizedParameter.hasDeclaredInitializer) {
         synthesizedParameter.hasDeclaredInitializer =
             originalParameter.hasDeclaredInitializer;
       }
     }
     if (copyReturnType) {
-      synthesized.function!.returnType =
-          substitution.substituteType(original.function!.returnType);
+      synthesized.function!.returnType = substitution.substituteType(
+        original.function!.returnType,
+      );
     }
     _hasBeenInferred = true;
   }

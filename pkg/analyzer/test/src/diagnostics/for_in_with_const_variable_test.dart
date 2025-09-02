@@ -24,7 +24,7 @@ f() {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.FOR_IN_WITH_CONST_VARIABLE, 13, 5)],
+      [error(CompileTimeErrorCode.forInWithConstVariable, 13, 5)],
     );
   }
 }

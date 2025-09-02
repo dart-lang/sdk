@@ -65,27 +65,27 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   late final Procedure _invokeTarget;
   late final Procedure? _readTarget;
 
-  SourceMethodBuilder(
-      {required this.fileUri,
-      required this.fileOffset,
-      required this.name,
-      required this.libraryBuilder,
-      required this.declarationBuilder,
-      required this.isStatic,
-      required Modifiers modifiers,
-      required NameScheme nameScheme,
-      required MethodDeclaration introductory,
-      required List<MethodDeclaration> augmentations,
-      required Reference? reference,
-      required Reference? tearOffReference})
-      : _nameScheme = nameScheme,
-        _introductory = introductory,
-        _modifiers = modifiers,
-        isOperator = introductory.isOperator,
-        _reference = reference ?? new Reference(),
-        _tearOffReference = tearOffReference,
-        _memberName = nameScheme.getDeclaredName(name),
-        _augmentations = augmentations;
+  SourceMethodBuilder({
+    required this.fileUri,
+    required this.fileOffset,
+    required this.name,
+    required this.libraryBuilder,
+    required this.declarationBuilder,
+    required this.isStatic,
+    required Modifiers modifiers,
+    required NameScheme nameScheme,
+    required MethodDeclaration introductory,
+    required List<MethodDeclaration> augmentations,
+    required Reference? reference,
+    required Reference? tearOffReference,
+  }) : _nameScheme = nameScheme,
+       _introductory = introductory,
+       _modifiers = modifiers,
+       isOperator = introductory.isOperator,
+       _reference = reference ?? new Reference(),
+       _tearOffReference = tearOffReference,
+       _memberName = nameScheme.getDeclaredName(name),
+       _augmentations = augmentations;
 
   @override
   Builder get parent => declarationBuilder ?? libraryBuilder;
@@ -117,22 +117,29 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   void buildOutlineNodes(BuildNodesCallback f) {
     List<MethodDeclaration> augmentedFragments = [
       _introductory,
-      ..._augmentations
+      ..._augmentations,
     ];
     // TODO(johnniwinther): Support augmenting a concrete method with an
     //  abstract method.
     MethodDeclaration lastFragment = augmentedFragments.removeLast();
-    lastFragment.buildOutlineNode(libraryBuilder, _nameScheme, f,
-        reference: _reference,
-        tearOffReference: _tearOffReference,
-        classTypeParameters: classBuilder?.cls.typeParameters);
+    lastFragment.buildOutlineNode(
+      libraryBuilder,
+      _nameScheme,
+      f,
+      reference: _reference,
+      tearOffReference: _tearOffReference,
+      classTypeParameters: classBuilder?.cls.typeParameters,
+    );
 
     for (MethodDeclaration augmented in augmentedFragments) {
       augmented.buildOutlineNode(
-          libraryBuilder, _nameScheme, noAddBuildNodesCallback,
-          reference: new Reference(),
-          tearOffReference: new Reference(),
-          classTypeParameters: classBuilder?.cls.typeParameters);
+        libraryBuilder,
+        _nameScheme,
+        noAddBuildNodesCallback,
+        reference: new Reference(),
+        tearOffReference: new Reference(),
+        classTypeParameters: classBuilder?.cls.typeParameters,
+      );
     }
     _invokeTarget = lastFragment.invokeTarget;
     _readTarget = lastFragment.readTarget;
@@ -141,35 +148,42 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   bool hasBuiltOutlineExpressions = false;
 
   @override
-  void buildOutlineExpressions(ClassHierarchy classHierarchy,
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
+  void buildOutlineExpressions(
+    ClassHierarchy classHierarchy,
+    List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+  ) {
     if (!hasBuiltOutlineExpressions) {
       _introductory.buildOutlineExpressions(
+        classHierarchy: classHierarchy,
+        libraryBuilder: libraryBuilder,
+        declarationBuilder: declarationBuilder,
+        methodBuilder: this,
+        annotatable: _invokeTarget,
+        annotatableFileUri: _invokeTarget.fileUri,
+        isClassInstanceMember: isClassInstanceMember,
+      );
+      for (int i = 0; i < _augmentations.length; i++) {
+        MethodDeclaration augmentation = _augmentations[i];
+        augmentation.buildOutlineExpressions(
           classHierarchy: classHierarchy,
           libraryBuilder: libraryBuilder,
           declarationBuilder: declarationBuilder,
           methodBuilder: this,
           annotatable: _invokeTarget,
           annotatableFileUri: _invokeTarget.fileUri,
-          isClassInstanceMember: isClassInstanceMember);
-      for (int i = 0; i < _augmentations.length; i++) {
-        MethodDeclaration augmentation = _augmentations[i];
-        augmentation.buildOutlineExpressions(
-            classHierarchy: classHierarchy,
-            libraryBuilder: libraryBuilder,
-            declarationBuilder: declarationBuilder,
-            methodBuilder: this,
-            annotatable: _invokeTarget,
-            annotatableFileUri: _invokeTarget.fileUri,
-            isClassInstanceMember: isClassInstanceMember);
+          isClassInstanceMember: isClassInstanceMember,
+        );
       }
       hasBuiltOutlineExpressions = true;
     }
   }
 
   @override
-  void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
-      TypeEnvironment typeEnvironment) {
+  void checkTypes(
+    SourceLibraryBuilder library,
+    NameSpace nameSpace,
+    TypeEnvironment typeEnvironment,
+  ) {
     // TODO(johnniwinther): Updated checks for default values to handle
     // default values declared on the introductory method and omitted on the
     // augmenting method.
@@ -182,7 +196,9 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
 
   @override
   void checkVariance(
-      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {
+    SourceClassBuilder sourceClassBuilder,
+    TypeEnvironment typeEnvironment,
+  ) {
     if (!isClassInstanceMember) return;
     _introductory.checkVariance(sourceClassBuilder, typeEnvironment);
     for (int i = 0; i < _augmentations.length; i++) {
@@ -192,9 +208,7 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   }
 
   @override
-  Iterable<Reference> get exportedMemberReferences => [
-        _reference,
-      ];
+  Iterable<Reference> get exportedMemberReferences => [_reference];
 
   List<ClassMember>? _localMembers;
 
@@ -232,8 +246,10 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   Reference? get writeTargetReference => null;
 
   @override
-  int computeDefaultTypes(ComputeDefaultTypeContext context,
-      {required bool inErrorRecovery}) {
+  int computeDefaultTypes(
+    ComputeDefaultTypeContext context, {
+    required bool inErrorRecovery,
+  }) {
     int count = _introductory.computeDefaultTypes(context);
     for (int i = 0; i < _augmentations.length; i++) {
       MethodDeclaration augmentation = _augmentations[i];
@@ -254,11 +270,16 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   Set<ClassMember>? _overrideDependencies;
 
   void _registerOverrideDependency(
-      ClassMembersBuilder membersBuilder, Set<ClassMember> overriddenMembers) {
+    ClassMembersBuilder membersBuilder,
+    Set<ClassMember> overriddenMembers,
+  ) {
     assert(
-        overriddenMembers.every((overriddenMember) =>
-            overriddenMember.declarationBuilder != classBuilder),
-        "Unexpected override dependencies for $this: $overriddenMembers");
+      overriddenMembers.every(
+        (overriddenMember) =>
+            overriddenMember.declarationBuilder != classBuilder,
+      ),
+      "Unexpected override dependencies for $this: $overriddenMembers",
+    );
     _classMembersBuilder ??= membersBuilder;
     _overrideDependencies ??= {};
     _overrideDependencies!.addAll(overriddenMembers);
@@ -268,8 +289,11 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
     if (_typeEnsured) return;
     if (_classMembersBuilder != null) {
       assert(_overrideDependencies != null);
-      _introductory.ensureTypes(_classMembersBuilder!,
-          declarationBuilder as SourceClassBuilder, _overrideDependencies);
+      _introductory.ensureTypes(
+        _classMembersBuilder!,
+        declarationBuilder as SourceClassBuilder,
+        _overrideDependencies,
+      );
       _overrideDependencies = null;
       _classMembersBuilder = null;
     }
@@ -279,8 +303,9 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
 
 class _MethodClassMember implements ClassMember {
   final SourceMethodBuilder _builder;
-  late final Covariance _covariance =
-      new Covariance.fromMethod(_builder.invokeTarget as Procedure);
+  late final Covariance _covariance = new Covariance.fromMethod(
+    _builder.invokeTarget as Procedure,
+  );
 
   @override
   final UriOffsetLength uriOffset;
@@ -320,21 +345,30 @@ class _MethodClassMember implements ClassMember {
   // Coverage-ignore(suite): Not run.
   MemberResult getMemberResult(ClassMembersBuilder membersBuilder) {
     if (isStatic) {
-      return new StaticMemberResult(getMember(membersBuilder), memberKind,
-          isDeclaredAsField: false,
-          fullName: '${declarationBuilder.name}.${_builder.memberName.text}');
+      return new StaticMemberResult(
+        getMember(membersBuilder),
+        memberKind,
+        isDeclaredAsField: false,
+        fullName: '${declarationBuilder.name}.${_builder.memberName.text}',
+      );
     } else if (_builder.isExtensionTypeMember) {
       ExtensionTypeDeclaration extensionTypeDeclaration =
           (declarationBuilder as ExtensionTypeDeclarationBuilder)
               .extensionTypeDeclaration;
       Member member = getTearOff(membersBuilder) ?? getMember(membersBuilder);
       return new ExtensionTypeMemberResult(
-          extensionTypeDeclaration, member, memberKind, name,
-          isDeclaredAsField: false);
+        extensionTypeDeclaration,
+        member,
+        memberKind,
+        name,
+        isDeclaredAsField: false,
+      );
     } else {
       return new TypeDeclarationInstanceMemberResult(
-          getMember(membersBuilder), memberKind,
-          isDeclaredAsField: false);
+        getMember(membersBuilder),
+        memberKind,
+        isDeclaredAsField: false,
+      );
     }
   }
 
@@ -403,7 +437,9 @@ class _MethodClassMember implements ClassMember {
 
   @override
   void registerOverrideDependency(
-      ClassMembersBuilder membersBuilder, Set<ClassMember> overriddenMembers) {
+    ClassMembersBuilder membersBuilder,
+    Set<ClassMember> overriddenMembers,
+  ) {
     _builder._registerOverrideDependency(membersBuilder, overriddenMembers);
   }
 

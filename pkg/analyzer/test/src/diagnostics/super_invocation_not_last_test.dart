@@ -22,7 +22,7 @@ class A {
   A(int? x) : super(), assert(x != null);
 }
 ''',
-      [error(CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST, 24, 5)],
+      [error(CompileTimeErrorCode.superInvocationNotLast, 24, 5)],
     );
   }
 
@@ -34,7 +34,7 @@ class A {
   A() : super(), x = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST, 33, 5)],
+      [error(CompileTimeErrorCode.superInvocationNotLast, 33, 5)],
     );
   }
 

@@ -26,14 +26,20 @@ class InvalidTypeBuilderImpl extends InvalidTypeBuilder {
   InvalidTypeBuilderImpl(this.fileUri, this.charOffset);
 
   @override
-  DartType build(LibraryBuilder library, TypeUse typeUse,
-      {ClassHierarchyBase? hierarchy}) {
+  DartType build(
+    LibraryBuilder library,
+    TypeUse typeUse, {
+    ClassHierarchyBase? hierarchy,
+  }) {
     return const InvalidType();
   }
 
   @override
   DartType buildAliased(
-      LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy) {
+    LibraryBuilder library,
+    TypeUse typeUse,
+    ClassHierarchyBase? hierarchy,
+  ) {
     return const InvalidType();
   }
 
@@ -79,9 +85,10 @@ class InvalidTypeBuilderImpl extends InvalidTypeBuilder {
   }
 
   @override
-  Nullability computeNullability(
-      {required Map<TypeParameterBuilder, TraversalState>
-          typeParametersTraversalState}) {
+  Nullability computeNullability({
+    required Map<TypeParameterBuilder, TraversalState>
+    typeParametersTraversalState,
+  }) {
     // TODO(johnniwinther,cstefantsova): Consider implementing
     // invalidNullability.
     return Nullability.nullable;
@@ -89,15 +96,19 @@ class InvalidTypeBuilderImpl extends InvalidTypeBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
-  void collectReferencesFrom(Map<TypeParameterBuilder, int> parameterIndices,
-      List<List<int>> edges, int index) {}
+  void collectReferencesFrom(
+    Map<TypeParameterBuilder, int> parameterIndices,
+    List<List<int>> edges,
+    int index,
+  ) {}
 
   @override
   TypeBuilder? substituteRange(
-      Map<TypeParameterBuilder, TypeBuilder> upperSubstitution,
-      Map<TypeParameterBuilder, TypeBuilder> lowerSubstitution,
-      TypeParameterFactory typeParameterFactory,
-      {Variance variance = Variance.covariant}) {
+    Map<TypeParameterBuilder, TypeBuilder> upperSubstitution,
+    Map<TypeParameterBuilder, TypeBuilder> lowerSubstitution,
+    TypeParameterFactory typeParameterFactory, {
+    Variance variance = Variance.covariant,
+  }) {
     return null;
   }
 

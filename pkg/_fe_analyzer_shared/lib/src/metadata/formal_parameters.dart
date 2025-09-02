@@ -44,13 +44,13 @@ class FormalParameter {
             resolvedDefaultValue == null
         ? null
         : new FormalParameter(
-          resolvedMetadata ?? metadata,
-          resolvedTypeAnnotation ?? typeAnnotation,
-          name,
-          resolvedDefaultValue ?? defaultValue,
-          isNamed: isNamed,
-          isRequired: isRequired,
-        );
+            resolvedMetadata ?? metadata,
+            resolvedTypeAnnotation ?? typeAnnotation,
+            name,
+            resolvedDefaultValue ?? defaultValue,
+            isNamed: isNamed,
+            isRequired: isRequired,
+          );
   }
 
   @override

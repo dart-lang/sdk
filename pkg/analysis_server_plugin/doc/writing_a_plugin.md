@@ -12,17 +12,17 @@ name: test_analyzer_plugin
 version: 0.0.1
 
 environment:
-  sdk: '>=3.6.0 <4.0.0'
+  sdk: ^3.7.0
 
 dependencies:
-  analysis_server_plugin: any
-  analyzer: ^7.2.0
+  analysis_server_plugin: ^0.2.2
+  analyzer: ^8.0.0
 ```
 
 There is nothing special about this pubspec; note that we need a dependency on
 the `analysis_server_plugin` package, and on the `analyzer` package, supporting
-at least 7.2.0. The version of the analyzer package needs to move lockstep with
-the Dart SDK. For Dart 3.8.0-70.1.beta, `^7.2.0` is a good version constraint.
+at least 8.0.0. The version of the analyzer package needs to move lockstep with
+the Dart SDK. For Dart 3.10.0-75.1.beta, `^8.0.0` is a good version constraint.
 
 ## The main Dart file
 
