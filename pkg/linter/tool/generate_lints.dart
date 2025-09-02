@@ -51,15 +51,9 @@ GeneratedFile get generatedCodesFile =>
 
 // Generator currently outputs double quotes for simplicity.
 // ignore_for_file: prefer_single_quotes
-''');
-      if (literateApiEnabled) {
-        out.write('''
 
 // Generated `withArguments` methods always use block bodies for simplicity.
 // ignore_for_file: prefer_expression_function_bodies
-''');
-      }
-      out.write('''
 
 part of 'lint_codes.dart';
 
@@ -114,8 +108,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       memberAccumulator.writeTo(out);
       out.writeln('}');
 
-      if (literateApiEnabled) {
-        out.write('''
+      out.write('''
 
 final class LinterLintTemplate<T extends Function> extends LinterLintCode {
   final T withArguments;
@@ -145,7 +138,6 @@ final class LinterLintWithoutArguments extends LinterLintCode
   });
 }
 ''');
-      }
       return out.toString();
     });
 

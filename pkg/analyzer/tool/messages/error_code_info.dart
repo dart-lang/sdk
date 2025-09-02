@@ -115,20 +115,6 @@ const hintCodesFile = GeneratedErrorCodeFile(
   parentLibrary: 'package:analyzer/src/dart/error/hint_codes.dart',
 );
 
-/// If `true`, the new literate API should be generated.
-///
-/// This flag exists as a temporary measure, so that the literate API generation
-/// logic can be introduced in steps:
-/// - First, the logic to generate templates is introduced, but disabled; it can
-///   be easily verified that this change is safe because it doesn't change the
-///   generated code.
-/// - Then, this constant is turned on, causing templates to be generated;
-///   although this causes a lot of generated code to change, it can be verified
-///   that this change is safe by inspecting the code that refers to this
-///   constant.
-/// - Then, this constant is inlined.
-const literateApiEnabled = true;
-
 const manifestWarningCodeFile = GeneratedErrorCodeFile(
   path: 'analyzer/lib/src/manifest/manifest_warning_code.g.dart',
   parentLibrary: 'package:analyzer/src/manifest/manifest_warning_code.dart',
@@ -744,7 +730,7 @@ abstract class ErrorCodeInfo {
         "Error code declares parameters using a `parameters` entry, but "
         "doesn't use them",
       );
-    } else if (!literateApiEnabled || parameters == null) {
+    } else if (parameters == null) {
       // Do not generate literate API yet.
       className = errorClassInfo.name;
     } else if (parameters.isNotEmpty) {

@@ -190,12 +190,10 @@ DiagnosticType get type => ${errorClass.typeCode};
       memberAccumulator.writeTo(out);
       out.writeln('}');
 
-      if (literateApiEnabled) {
-        out.writeln();
-        _outputDerivedClass(errorClass, withArguments: true);
-        out.writeln();
-        _outputDerivedClass(errorClass, withArguments: false);
-      }
+      out.writeln();
+      _outputDerivedClass(errorClass, withArguments: true);
+      out.writeln();
+      _outputDerivedClass(errorClass, withArguments: false);
     }
   }
 
