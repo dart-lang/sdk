@@ -12,7 +12,7 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/utilities/extensions/string.dart';
+import 'package:analyzer_utilities/extensions/string.dart';
 import 'package:test/test.dart';
 
 /// A description of a message that is expected to be reported with an error.
