@@ -30,8 +30,11 @@ abstract class NavigationCollector {
   /// Record a new navigation region corresponding to the given [range] that
   /// should navigate to the given [targetLocation].
   void addRange(
-      SourceRange range, ElementKind targetKind, Location targetLocation,
-      {analyzer.Fragment? targetFragment});
+    SourceRange range,
+    ElementKind targetKind,
+    Location targetLocation, {
+    analyzer.Fragment? targetFragment,
+  });
 
   /// Record a new navigation region with the given [offset] and [length] that
   /// should navigate to the given [targetNameLocation].
@@ -40,9 +43,13 @@ abstract class NavigationCollector {
   /// [analyzer.Fragment], but in a few cases this method is invoked without an
   /// element. The element is provided to associate it with the target, and
   /// later update the target.
-  void addRegion(int offset, int length, ElementKind targetKind,
-      Location targetNameLocation,
-      {analyzer.Fragment? targetFragment});
+  void addRegion(
+    int offset,
+    int length,
+    ElementKind targetKind,
+    Location targetNameLocation, {
+    analyzer.Fragment? targetFragment,
+  });
 }
 
 /// An object used to produce navigation regions.
@@ -52,7 +59,9 @@ abstract class NavigationContributor {
   /// Contribute navigation regions for the portion of the file specified by the
   /// given [request] into the given [collector].
   void computeNavigation(
-      NavigationRequest request, NavigationCollector collector);
+    NavigationRequest request,
+    NavigationCollector collector,
+  );
 }
 
 /// A generator that will generate an 'analysis.navigation' notification.
@@ -76,15 +85,24 @@ class NavigationGenerator {
       try {
         contributor.computeNavigation(request, collector);
       } catch (exception, stackTrace) {
-        notifications.add(PluginErrorParams(
-                false, exception.toString(), stackTrace.toString())
-            .toNotification());
+        notifications.add(
+          PluginErrorParams(
+            false,
+            exception.toString(),
+            stackTrace.toString(),
+          ).toNotification(),
+        );
       }
     }
     collector.createRegions();
-    notifications.add(AnalysisNavigationParams(
-            request.path, collector.regions, collector.targets, collector.files)
-        .toNotification());
+    notifications.add(
+      AnalysisNavigationParams(
+        request.path,
+        collector.regions,
+        collector.targets,
+        collector.files,
+      ).toNotification(),
+    );
     return GeneratorResult(null, notifications);
   }
 
@@ -92,21 +110,29 @@ class NavigationGenerator {
   /// specified by the given [request]. If any of the contributors throws an
   /// exception, also create a non-fatal 'plugin.error' notification.
   GeneratorResult<AnalysisGetNavigationResult> generateNavigationResponse(
-      NavigationRequest request) {
+    NavigationRequest request,
+  ) {
     var notifications = <Notification>[];
     var collector = NavigationCollectorImpl();
     for (var contributor in contributors) {
       try {
         contributor.computeNavigation(request, collector);
       } catch (exception, stackTrace) {
-        notifications.add(PluginErrorParams(
-                false, exception.toString(), stackTrace.toString())
-            .toNotification());
+        notifications.add(
+          PluginErrorParams(
+            false,
+            exception.toString(),
+            stackTrace.toString(),
+          ).toNotification(),
+        );
       }
     }
     collector.createRegions();
     var result = AnalysisGetNavigationResult(
-        collector.files, collector.targets, collector.regions);
+      collector.files,
+      collector.targets,
+      collector.regions,
+    );
     return GeneratorResult(result, notifications);
   }
 }

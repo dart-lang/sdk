@@ -43,16 +43,20 @@ class OutlineMixinTest extends AbstractPluginTest {
 
   Future<void> test_sendOutlineNotification() async {
     await plugin.handleAnalysisSetContextRoots(
-        AnalysisSetContextRootsParams([contextRoot1]));
+      AnalysisSetContextRootsParams([contextRoot1]),
+    );
 
     var notificationReceived = Completer<void>();
-    channel.listen(null, onNotification: (Notification notification) {
-      expect(notification, isNotNull);
-      var params = AnalysisOutlineParams.fromNotification(notification);
-      expect(params.file, filePath1);
-      expect(params.outline, hasLength(3));
-      notificationReceived.complete();
-    });
+    channel.listen(
+      null,
+      onNotification: (Notification notification) {
+        expect(notification, isNotNull);
+        var params = AnalysisOutlineParams.fromNotification(notification);
+        expect(params.file, filePath1);
+        expect(params.outline, hasLength(3));
+        notificationReceived.complete();
+      },
+    );
     await plugin.sendOutlineNotification(filePath1);
     await notificationReceived.future;
   }
@@ -79,7 +83,7 @@ class _TestServerPlugin extends MockServerPlugin with OutlineMixin {
   List<OutlineContributor> getOutlineContributors(String path) {
     return <OutlineContributor>[
       _TestOutlineContributor(2),
-      _TestOutlineContributor(1)
+      _TestOutlineContributor(1),
     ];
   }
 

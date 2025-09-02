@@ -37,9 +37,12 @@ class PluginIsolateChannelTest {
 
   Future<void> test_close() async {
     var done = false;
-    channel.listen((Request request) {}, onDone: () {
-      done = true;
-    });
+    channel.listen(
+      (Request request) {},
+      onDone: () {
+        done = true;
+      },
+    );
     channel.close();
     await _pumpEventQueue();
     expect(done, isTrue);

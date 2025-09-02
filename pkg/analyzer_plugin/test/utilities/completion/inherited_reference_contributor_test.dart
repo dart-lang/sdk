@@ -29,10 +29,7 @@ class InheritedReferenceContributorTest extends DartCompletionContributorTest {
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(
-      config: PackageConfigFileBuilder(),
-      meta: true,
-    );
+    writeTestPackageConfig(config: PackageConfigFileBuilder(), meta: true);
   }
 
   /// Sanity check. Permutations tested in local_ref_contributor.
@@ -52,8 +49,12 @@ class B extends A {
 ''');
     await computeSuggestions();
 
-    assertSuggestMethod('foo', 'A', 'bool',
-        defaultArgListString: 'bar, baz: baz');
+    assertSuggestMethod(
+      'foo',
+      'A',
+      'bool',
+      defaultArgListString: 'bar, baz: baz',
+    );
   }
 
   Future<void> test_AwaitExpression_inherited() async {
@@ -252,7 +253,7 @@ class B extends A {
   }
 
   Future<void>
-      test_method_parameters_mixed_required_and_positional_local() async {
+  test_method_parameters_mixed_required_and_positional_local() async {
     addTestSource('''
 class A {
   void m(x, [int y]) {}

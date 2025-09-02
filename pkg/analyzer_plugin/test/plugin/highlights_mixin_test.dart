@@ -43,16 +43,20 @@ class HighlightsMixinTest extends AbstractPluginTest {
 
   Future<void> test_sendHighlightsNotification() async {
     await plugin.handleAnalysisSetContextRoots(
-        AnalysisSetContextRootsParams([contextRoot1]));
+      AnalysisSetContextRootsParams([contextRoot1]),
+    );
 
     var notificationReceived = Completer<void>();
-    channel.listen(null, onNotification: (Notification notification) {
-      expect(notification, isNotNull);
-      var params = AnalysisHighlightsParams.fromNotification(notification);
-      expect(params.file, filePath1);
-      expect(params.regions, hasLength(5));
-      notificationReceived.complete();
-    });
+    channel.listen(
+      null,
+      onNotification: (Notification notification) {
+        expect(notification, isNotNull);
+        var params = AnalysisHighlightsParams.fromNotification(notification);
+        expect(params.file, filePath1);
+        expect(params.regions, hasLength(5));
+        notificationReceived.complete();
+      },
+    );
     await plugin.sendHighlightsNotification(filePath1);
     await notificationReceived.future;
   }
@@ -65,7 +69,9 @@ class _TestHighlightsContributor implements HighlightsContributor {
 
   @override
   void computeHighlights(
-      HighlightsRequest request, HighlightsCollector collector) {
+    HighlightsRequest request,
+    HighlightsCollector collector,
+  ) {
     for (var i = 0; i < elementCount; i++) {
       collector.addRegion(i, 20, HighlightRegionType.METHOD_DECLARATION);
     }
@@ -79,7 +85,7 @@ class _TestServerPlugin extends MockServerPlugin with HighlightsMixin {
   List<HighlightsContributor> getHighlightsContributors(String path) {
     return <HighlightsContributor>[
       _TestHighlightsContributor(2),
-      _TestHighlightsContributor(3)
+      _TestHighlightsContributor(3),
     ];
   }
 

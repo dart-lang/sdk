@@ -40,10 +40,12 @@ class CompletionMixinTest extends AbstractPluginTest {
 
   Future<void> test_handleCompletionGetSuggestions() async {
     await plugin.handleAnalysisSetContextRoots(
-        AnalysisSetContextRootsParams([contextRoot1]));
+      AnalysisSetContextRootsParams([contextRoot1]),
+    );
 
     var result = await plugin.handleCompletionGetSuggestions(
-        CompletionGetSuggestionsParams(filePath1, 13));
+      CompletionGetSuggestionsParams(filePath1, 13),
+    );
     expect(result, isNotNull);
     expect(result.results, hasLength(3));
   }
@@ -56,7 +58,9 @@ class _TestCompletionContributor implements CompletionContributor {
 
   @override
   Future<void> computeSuggestions(
-      CompletionRequest request, CompletionCollector collector) async {
+    CompletionRequest request,
+    CompletionCollector collector,
+  ) async {
     if ((collector as CompletionCollectorImpl).offset == null) {
       collector.offset = 1;
       collector.length = 2;
@@ -72,23 +76,36 @@ class _TestServerPlugin extends MockServerPlugin with CompletionMixin {
 
   CompletionSuggestion createSuggestion() {
     return CompletionSuggestion(
-        CompletionSuggestionKind.IDENTIFIER, 1, '', 0, 0, false, false);
+      CompletionSuggestionKind.IDENTIFIER,
+      1,
+      '',
+      0,
+      0,
+      false,
+      false,
+    );
   }
 
   @override
   List<CompletionContributor> getCompletionContributors(String path) {
     return <CompletionContributor>[
-      _TestCompletionContributor(
-          <CompletionSuggestion>[createSuggestion(), createSuggestion()]),
+      _TestCompletionContributor(<CompletionSuggestion>[
+        createSuggestion(),
+        createSuggestion(),
+      ]),
       _TestCompletionContributor(<CompletionSuggestion>[createSuggestion()]),
     ];
   }
 
   @override
   Future<CompletionRequest> getCompletionRequest(
-      CompletionGetSuggestionsParams parameters) async {
+    CompletionGetSuggestionsParams parameters,
+  ) async {
     var result = MockResolvedUnitResult();
     return DartCompletionRequestImpl(
-        resourceProvider, parameters.offset, result);
+      resourceProvider,
+      parameters.offset,
+      result,
+    );
   }
 }

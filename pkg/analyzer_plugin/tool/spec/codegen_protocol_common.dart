@@ -9,25 +9,37 @@ import 'codegen_dart_protocol.dart';
 import 'from_html.dart';
 import 'implied_types.dart';
 
-GeneratedFile clientTarget(bool responseRequiresRequestTime,
-        CodegenUriConverterKind uriConverterKind) =>
-    GeneratedFile(
-        'analysis_server_client/lib/src/protocol/protocol_common.dart',
-        (pkgRoot) async {
-      var visitor = CodegenCommonVisitor('analyzer_plugin',
-          responseRequiresRequestTime, uriConverterKind, readApi(pkgRoot),
-          forClient: true);
-      return visitor.collectCode(visitor.visitApi);
-    });
+GeneratedFile clientTarget(
+  bool responseRequiresRequestTime,
+  CodegenUriConverterKind uriConverterKind,
+) => GeneratedFile(
+  'analysis_server_client/lib/src/protocol/protocol_common.dart',
+  (pkgRoot) async {
+    var visitor = CodegenCommonVisitor(
+      'analyzer_plugin',
+      responseRequiresRequestTime,
+      uriConverterKind,
+      readApi(pkgRoot),
+      forClient: true,
+    );
+    return visitor.collectCode(visitor.visitApi);
+  },
+);
 
-GeneratedFile pluginTarget(bool responseRequiresRequestTime,
-        CodegenUriConverterKind uriConverterKind) =>
-    GeneratedFile('analyzer_plugin/lib/protocol/protocol_common.dart',
-        (pkgRoot) async {
-      var visitor = CodegenCommonVisitor('analyzer_plugin',
-          responseRequiresRequestTime, uriConverterKind, readApi(pkgRoot));
-      return visitor.collectCode(visitor.visitApi);
-    });
+GeneratedFile pluginTarget(
+  bool responseRequiresRequestTime,
+  CodegenUriConverterKind uriConverterKind,
+) => GeneratedFile('analyzer_plugin/lib/protocol/protocol_common.dart', (
+  pkgRoot,
+) async {
+  var visitor = CodegenCommonVisitor(
+    'analyzer_plugin',
+    responseRequiresRequestTime,
+    uriConverterKind,
+    readApi(pkgRoot),
+  );
+  return visitor.collectCode(visitor.visitApi);
+});
 
 /// A visitor that produces Dart code defining the common types associated with
 /// the API.
@@ -37,9 +49,13 @@ class CodegenCommonVisitor extends CodegenProtocolVisitor {
   /// Initialize a newly created visitor to generate code in the package with
   /// the given [packageName] corresponding to the types in the given [api] that
   /// are common to multiple protocols.
-  CodegenCommonVisitor(super.packageName, super.responseRequiresRequestTime,
-      super.uriConverterKind, super.api,
-      {this.forClient = false});
+  CodegenCommonVisitor(
+    super.packageName,
+    super.responseRequiresRequestTime,
+    super.uriConverterKind,
+    super.api, {
+    this.forClient = false,
+  });
 
   @override
   void emitImports() {
@@ -49,12 +65,15 @@ class CodegenCommonVisitor extends CodegenProtocolVisitor {
     writeln();
     if (forClient) {
       writeln(
-          "import 'package:analysis_server_client/src/protocol/protocol_internal.dart';");
+        "import 'package:analysis_server_client/src/protocol/protocol_internal.dart';",
+      );
     } else {
       writeln(
-          "import 'package:$packageName/src/protocol/protocol_internal.dart';");
+        "import 'package:$packageName/src/protocol/protocol_internal.dart';",
+      );
       writeln(
-          "import 'package:$packageName/src/utilities/client_uri_converter.dart';");
+        "import 'package:$packageName/src/utilities/client_uri_converter.dart';",
+      );
     }
     writeln();
     writeln('// ignore_for_file: flutter_style_todos');
@@ -66,8 +85,10 @@ class CodegenCommonVisitor extends CodegenProtocolVisitor {
       var node = type.apiNode;
       return node is TypeDefinition && node.isExternal;
     }).toList();
-    types.sort((first, second) =>
-        capitalize(first.camelName).compareTo(capitalize(second.camelName)));
+    types.sort(
+      (first, second) =>
+          capitalize(first.camelName).compareTo(capitalize(second.camelName)),
+    );
     return types;
   }
 }

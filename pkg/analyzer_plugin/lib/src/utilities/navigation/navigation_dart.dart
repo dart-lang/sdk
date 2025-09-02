@@ -18,13 +18,18 @@ import 'package:analyzer_plugin/utilities/navigation/document_links.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation.dart';
 
 NavigationCollector computeDartNavigation(
-    ResourceProvider resourceProvider,
-    NavigationCollector collector,
-    ParsedUnitResult result,
-    int? offset,
-    int? length) {
-  var dartCollector =
-      _DartNavigationCollector(collector, resourceProvider, offset, length);
+  ResourceProvider resourceProvider,
+  NavigationCollector collector,
+  ParsedUnitResult result,
+  int? offset,
+  int? length,
+) {
+  var dartCollector = _DartNavigationCollector(
+    collector,
+    resourceProvider,
+    offset,
+    length,
+  );
   var unit = result.unit;
   var visitor = _DartNavigationComputerVisitor(
     resourceProvider: resourceProvider,
@@ -139,7 +144,10 @@ class _DartNavigationCollector {
   }
 
   void _addRegionForFragmentRange(
-      int? offset, int? length, Fragment? fragment) {
+    int? offset,
+    int? length,
+    Fragment? fragment,
+  ) {
     if (offset == null || length == null || fragment == null) return;
 
     // If this fragment is for a synthetic element, use the first fragment for
@@ -180,15 +188,7 @@ class _DartNavigationCollector {
           offset,
           length,
           protocol.ElementKind.LIBRARY,
-          protocol.Location(
-            fullPath,
-            0,
-            0,
-            0,
-            0,
-            endLine: 0,
-            endColumn: 0,
-          ),
+          protocol.Location(fullPath, 0, 0, 0, 0, endLine: 0, endColumn: 0),
         );
       }
     }
@@ -277,11 +277,15 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitComment(Comment node) {
     super.visitComment(node);
 
-    for (var link in _documentLinkVisitor
-        .findLinks(node)
-        .where((link) => link.targetUri.isScheme('file'))) {
+    for (var link
+        in _documentLinkVisitor
+            .findLinks(node)
+            .where((link) => link.targetUri.isScheme('file'))) {
       computer._addRegionForLibrary(
-          link.offset, link.length, link.targetUri.toFilePath());
+        link.offset,
+        link.length,
+        link.targetUri.toFilePath(),
+      );
     }
   }
 
@@ -306,7 +310,10 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     if (resolvedUri is DirectiveUriWithSource) {
       var source = resolvedUri.source;
       computer._addRegionForLibrary(
-          node.uri.offset, node.uri.length, source.fullName);
+        node.uri.offset,
+        node.uri.length,
+        source.fullName,
+      );
     }
     super.visitConfiguration(node);
   }
@@ -320,7 +327,9 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     var nameToken = node.name;
     if (nameToken == null) {
       computer._addRegionForElement(
-          node.returnType, node.declaredFragment?.element);
+        node.returnType,
+        node.declaredFragment?.element,
+      );
     } else {
       node.returnType.accept(this);
       computer._addRegionForFragment(nameToken, node.declaredFragment);
@@ -347,8 +356,9 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
         computer._addRegionForElement(importPrefix.name, importPrefix.element);
       }
       // For a named constructor, the class name points at the class.
-      var classNameTargetElement =
-          node.name != null ? namedType.element : element;
+      var classNameTargetElement = node.name != null
+          ? namedType.element
+          : element;
       computer._addRegionForElement(namedType.name, classNameTargetElement);
     }
     // <TypeA, TypeB>
@@ -571,7 +581,9 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitRepresentationDeclaration(RepresentationDeclaration node) {
     if (node.constructorName?.name case var constructorName?) {
       computer._addRegionForElement(
-          constructorName, node.constructorFragment?.element);
+        constructorName,
+        node.constructorFragment?.element,
+      );
     }
     computer._addRegionForFragment(node.fieldName, node.fieldFragment);
     super.visitRepresentationDeclaration(node);
@@ -684,10 +696,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   /// If the [uri] references a value unit, then add the navigation region from
   /// the [node] to the unit.
-  void _addUriDirectiveRegion(
-    UriBasedDirective node,
-    DirectiveUri? uri,
-  ) {
+  void _addUriDirectiveRegion(UriBasedDirective node, DirectiveUri? uri) {
     if (uri is DirectiveUriWithUnit && uri.source.exists()) {
       computer._addRegionForFragment(node.uri, uri.libraryFragment);
     } else if (uri is DirectiveUriWithLibrary && uri.source.exists()) {
@@ -741,7 +750,13 @@ extension on Fragment {
     var endColumn = endLocation.columnNumber;
 
     return protocol.Location(
-        libraryFragment.source.fullName, offset, length, startLine, startColumn,
-        endLine: endLine, endColumn: endColumn);
+      libraryFragment.source.fullName,
+      offset,
+      length,
+      startLine,
+      startColumn,
+      endLine: endLine,
+      endColumn: endColumn,
+    );
   }
 }

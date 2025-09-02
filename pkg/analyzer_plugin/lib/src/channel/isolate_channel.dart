@@ -24,15 +24,20 @@ class BuiltInServerIsolateChannel extends ServerIsolateChannel {
 
   /// Initialize a newly created channel to communicate with an isolate running
   /// the given [entryPoint].
-  BuiltInServerIsolateChannel(this.entryPoint, this.pluginId,
-      InstrumentationService instrumentationService)
-      : super._(instrumentationService);
+  BuiltInServerIsolateChannel(
+    this.entryPoint,
+    this.pluginId,
+    InstrumentationService instrumentationService,
+  ) : super._(instrumentationService);
 
   @override
   Future<Isolate> _spawnIsolate() {
     return Isolate.spawn(
-        (message) => entryPoint(message as SendPort), _receivePort?.sendPort,
-        onError: _errorPort?.sendPort, onExit: _exitPort?.sendPort);
+      (message) => entryPoint(message as SendPort),
+      _receivePort?.sendPort,
+      onError: _errorPort?.sendPort,
+      onExit: _exitPort?.sendPort,
+    );
   }
 }
 
@@ -48,19 +53,25 @@ class DiscoveredServerIsolateChannel extends ServerIsolateChannel {
 
   /// Initialize a newly created channel to communicate with an isolate running
   /// the code at the given [uri].
-  DiscoveredServerIsolateChannel(this.pluginUri, this.packagesUri,
-      InstrumentationService instrumentationService)
-      : super._(instrumentationService);
+  DiscoveredServerIsolateChannel(
+    this.pluginUri,
+    this.packagesUri,
+    InstrumentationService instrumentationService,
+  ) : super._(instrumentationService);
 
   @override
   String get pluginId => pluginUri.toString();
 
   @override
   Future<Isolate> _spawnIsolate() {
-    return Isolate.spawnUri(pluginUri, <String>[], _receivePort?.sendPort,
-        onError: _errorPort?.sendPort,
-        onExit: _exitPort?.sendPort,
-        packageConfig: packagesUri);
+    return Isolate.spawnUri(
+      pluginUri,
+      <String>[],
+      _receivePort?.sendPort,
+      onError: _errorPort?.sendPort,
+      onExit: _exitPort?.sendPort,
+      packageConfig: packagesUri,
+    );
   }
 }
 
@@ -91,8 +102,11 @@ class PluginIsolateChannel implements PluginCommunicationChannel {
   }
 
   @override
-  void listen(void Function(Request request) onRequest,
-      {Function? onError, void Function()? onDone}) {
+  void listen(
+    void Function(Request request) onRequest, {
+    Function? onError,
+    void Function()? onDone,
+  }) {
     void onData(data) {
       var requestMap = data as Map<String, Object>;
       var request = Request.fromJson(requestMap);
@@ -106,8 +120,12 @@ class PluginIsolateChannel implements PluginCommunicationChannel {
     // `onError` and `cancelOnError` are always ignored, "since a ReceivePort
     // will never receive an error." It is potentially confusing to pass them
     // here, as if they had an effect. Consider removing.
-    _subscription = _receivePort.listen(onData,
-        onError: onError, onDone: onDone, cancelOnError: false);
+    _subscription = _receivePort.listen(
+      onData,
+      onError: onError,
+      onDone: onDone,
+      cancelOnError: false,
+    );
   }
 
   @override
@@ -148,15 +166,19 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
 
   /// Return a communication channel appropriate for communicating with a
   /// built-in plugin.
-  factory ServerIsolateChannel.builtIn(EntryPoint entryPoint, String pluginId,
-          InstrumentationService instrumentationService) =
-      BuiltInServerIsolateChannel;
+  factory ServerIsolateChannel.builtIn(
+    EntryPoint entryPoint,
+    String pluginId,
+    InstrumentationService instrumentationService,
+  ) = BuiltInServerIsolateChannel;
 
   /// Return a communication channel appropriate for communicating with a
   /// discovered plugin.
-  factory ServerIsolateChannel.discovered(Uri pluginUri, Uri packagesUri,
-          InstrumentationService instrumentationService) =
-      DiscoveredServerIsolateChannel;
+  factory ServerIsolateChannel.discovered(
+    Uri pluginUri,
+    Uri packagesUri,
+    InstrumentationService instrumentationService,
+  ) = DiscoveredServerIsolateChannel;
 
   /// Initialize a newly created channel.
   ServerIsolateChannel._(this.instrumentationService);
@@ -179,9 +201,12 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
   }
 
   @override
-  Future<void> listen(void Function(Response response) onResponse,
-      void Function(Notification notification) onNotification,
-      {void Function(dynamic error)? onError, void Function()? onDone}) async {
+  Future<void> listen(
+    void Function(Response response) onResponse,
+    void Function(Notification notification) onNotification, {
+    void Function(dynamic error)? onError,
+    void Function()? onDone,
+  }) async {
     if (_isolate != null) {
       throw StateError('Cannot listen to the same channel more than once.');
     }
@@ -209,10 +234,11 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
       _isolate = await _spawnIsolate();
     } catch (exception, stackTrace) {
       instrumentationService.logPluginError(
-          PluginData(pluginId, null, null),
-          RequestErrorCode.PLUGIN_ERROR.toString(),
-          exception.toString(),
-          stackTrace.toString());
+        PluginData(pluginId, null, null),
+        RequestErrorCode.PLUGIN_ERROR.toString(),
+        exception.toString(),
+        stackTrace.toString(),
+      );
       if (onError != null) {
         onError([exception.toString(), stackTrace.toString()]);
       }

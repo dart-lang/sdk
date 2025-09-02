@@ -9,10 +9,12 @@ import 'codegen_dart.dart';
 import 'from_html.dart';
 
 final GeneratedFile target = GeneratedFile(
-    'analyzer_plugin/lib/protocol/protocol_constants.dart', (pkgRoot) async {
-  var visitor = _CodegenVisitor(readApi(pkgRoot));
-  return visitor.collectCode(visitor.visitApi);
-});
+  'analyzer_plugin/lib/protocol/protocol_constants.dart',
+  (pkgRoot) async {
+    var visitor = _CodegenVisitor(readApi(pkgRoot));
+    return visitor.collectCode(visitor.visitApi);
+  },
+);
 
 /// A visitor that produces Dart code defining constants associated with the
 /// API.

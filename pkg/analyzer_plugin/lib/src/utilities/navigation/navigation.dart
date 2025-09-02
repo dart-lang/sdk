@@ -26,7 +26,11 @@ class DartNavigationRequestImpl implements DartNavigationRequest {
 
   /// Initialize a newly create request with the given data.
   DartNavigationRequestImpl(
-      this.resourceProvider, this.offset, this.length, this.result);
+    this.resourceProvider,
+    this.offset,
+    this.length,
+    this.result,
+  );
 
   @override
   String get path => result.path;
@@ -57,16 +61,28 @@ class NavigationCollectorImpl implements NavigationCollector {
 
   @override
   void addRange(
-      SourceRange range, ElementKind targetKind, Location targetLocation,
-      {analyzer.Fragment? targetFragment}) {
-    addRegion(range.offset, range.length, targetKind, targetLocation,
-        targetFragment: targetFragment);
+    SourceRange range,
+    ElementKind targetKind,
+    Location targetLocation, {
+    analyzer.Fragment? targetFragment,
+  }) {
+    addRegion(
+      range.offset,
+      range.length,
+      targetKind,
+      targetLocation,
+      targetFragment: targetFragment,
+    );
   }
 
   @override
   void addRegion(
-      int offset, int length, ElementKind targetKind, Location targetLocation,
-      {analyzer.Fragment? targetFragment}) {
+    int offset,
+    int length,
+    ElementKind targetKind,
+    Location targetLocation, {
+    analyzer.Fragment? targetFragment,
+  }) {
     var range = SourceRange(offset, length);
     // add new target
     var targets = regionMap.putIfAbsent(range, () => <int>[]);
@@ -95,15 +111,24 @@ class NavigationCollectorImpl implements NavigationCollector {
   }
 
   int _addTarget(
-      ElementKind kind, Location location, analyzer.Fragment? fragment) {
+    ElementKind kind,
+    Location location,
+    analyzer.Fragment? fragment,
+  ) {
     var pair = Pair<ElementKind, Location>(kind, location);
     var index = targetMap[pair];
     if (index == null) {
       var file = location.file;
       var fileIndex = _addFile(file);
       index = targets.length;
-      var target = NavigationTarget(kind, fileIndex, location.offset,
-          location.length, location.startLine, location.startColumn);
+      var target = NavigationTarget(
+        kind,
+        fileIndex,
+        location.offset,
+        location.length,
+        location.startLine,
+        location.startColumn,
+      );
       targets.add(target);
       targetMap[pair] = index;
       if (fragment != null) {

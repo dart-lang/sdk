@@ -439,7 +439,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     final entity = this.entity;
     var isMember = node.members.contains(entity);
     var isClosingBrace = identical(entity, node.rightBracket);
-    var isAnnotation = isClosingBrace &&
+    var isAnnotation =
+        isClosingBrace &&
         entity is Token &&
         _isPotentialAnnotation(entity.previous);
 
@@ -606,7 +607,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitDotShorthandConstructorInvocation(
-      DotShorthandConstructorInvocation node) {
+    DotShorthandConstructorInvocation node,
+  ) {
     optype.completionLocation =
         'DotShorthandConstructorInvocation_constructorName';
     optype.includeConstructorSuggestions = true;
@@ -739,7 +741,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     final entity = this.entity;
     var isMember = node.members.contains(entity);
     var isClosingBrace = identical(entity, node.rightBracket);
-    var isAnnotation = isClosingBrace &&
+    var isAnnotation =
+        isClosingBrace &&
         entity is Token &&
         _isPotentialAnnotation(entity.previous);
 
@@ -1842,9 +1845,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
         return 'function';
       } else if (parent is InstanceCreationExpression) {
         // TODO(brianwilkerson): Enable this case.
-//        if (flutter.isWidgetType(parent.staticType)) {
-//          return 'widgetConstructor';
-//        }
+        //        if (flutter.isWidgetType(parent.staticType)) {
+        //          return 'widgetConstructor';
+        //        }
         return 'constructor';
       } else if (parent is MethodInvocation) {
         return 'method';
@@ -1864,7 +1867,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       return 'recordLiteral';
     }
     throw ArgumentError(
-        'Unknown parent of ${node.runtimeType}: ${node?.parent.runtimeType}');
+      'Unknown parent of ${node.runtimeType}: ${node?.parent.runtimeType}',
+    );
   }
 
   void _extractPatternFieldInfo(PatternFieldImpl node) {

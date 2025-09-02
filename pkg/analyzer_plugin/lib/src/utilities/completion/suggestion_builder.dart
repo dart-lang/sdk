@@ -26,10 +26,11 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
   /// Add default argument list text and ranges based on the given
   /// [requiredParams] and [namedParams].
   void addDefaultArgDetails(
-      CompletionSuggestion suggestion,
-      Element element,
-      Iterable<FormalParameterElement> requiredParams,
-      Iterable<FormalParameterElement> namedParams) {
+    CompletionSuggestion suggestion,
+    Element element,
+    Iterable<FormalParameterElement> requiredParams,
+    Iterable<FormalParameterElement> namedParams,
+  ) {
     // Copied from analysis_server/lib/src/services/completion/dart/suggestion_builder.dart
     var buffer = StringBuffer();
     var ranges = <int>[];
@@ -59,17 +60,21 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
       }
     }
 
-    suggestion.defaultArgumentListString =
-        buffer.isNotEmpty ? buffer.toString() : null;
-    suggestion.defaultArgumentListTextRanges =
-        ranges.isNotEmpty ? ranges : null;
+    suggestion.defaultArgumentListString = buffer.isNotEmpty
+        ? buffer.toString()
+        : null;
+    suggestion.defaultArgumentListTextRanges = ranges.isNotEmpty
+        ? ranges
+        : null;
   }
 
   @override
-  CompletionSuggestion? forElement(Element? element,
-      {String? completion,
-      CompletionSuggestionKind? kind,
-      int relevance = DART_RELEVANCE_DEFAULT}) {
+  CompletionSuggestion? forElement(
+    Element? element, {
+    String? completion,
+    CompletionSuggestionKind? kind,
+    int relevance = DART_RELEVANCE_DEFAULT,
+  }) {
     // Copied from analysis_server/lib/src/services/completion/dart/suggestion_builder.dart
     if (element == null) {
       return null;
@@ -82,13 +87,14 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
 
     var isDeprecated = element.metadata.hasDeprecated;
     var suggestion = CompletionSuggestion(
-        kind ?? CompletionSuggestionKind.INVOCATION,
-        isDeprecated ? DART_RELEVANCE_LOW : relevance,
-        completion,
-        completion.length,
-        0,
-        isDeprecated,
-        false);
+      kind ?? CompletionSuggestionKind.INVOCATION,
+      isDeprecated ? DART_RELEVANCE_LOW : relevance,
+      completion,
+      completion.length,
+      0,
+      isDeprecated,
+      false,
+    );
 
     // Attach docs.
     var doc = removeDartDocDelimiters(element.documentationComment);
@@ -109,16 +115,22 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
         return parameter.type.getDisplayString();
       }).toList();
 
-      var requiredParameters =
-          element.formalParameters.where((param) => param.isRequiredPositional);
+      var requiredParameters = element.formalParameters.where(
+        (param) => param.isRequiredPositional,
+      );
       suggestion.requiredParameterCount = requiredParameters.length;
 
-      var namedParameters =
-          element.formalParameters.where((param) => param.isNamed);
+      var namedParameters = element.formalParameters.where(
+        (param) => param.isNamed,
+      );
       suggestion.hasNamedParameters = namedParameters.isNotEmpty;
 
       addDefaultArgDetails(
-          suggestion, element, requiredParameters, namedParameters);
+        suggestion,
+        element,
+        requiredParameters,
+        namedParameters,
+      );
     }
     return suggestion;
   }

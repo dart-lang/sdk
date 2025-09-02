@@ -83,17 +83,19 @@ class ChangeBuilderImpl implements ChangeBuilder {
   /// Initialize a newly created change builder. If the builder will be used to
   /// create changes for Dart files, then either a [session] or a [workspace]
   /// must be provided (but not both).
-  ChangeBuilderImpl(
-      {AnalysisSession? session,
-      ChangeWorkspace? workspace,
-      @Deprecated('Use defaultEol instead, as this is only a '
-          'default for files without existing EOLs')
-      String? eol,
-      String? defaultEol})
-      : assert(session == null || workspace == null),
-        assert(eol == null || defaultEol == null),
-        workspace = workspace ?? _SingleSessionWorkspace(session!),
-        defaultEol = defaultEol ?? eol ?? Platform.lineTerminator;
+  ChangeBuilderImpl({
+    AnalysisSession? session,
+    ChangeWorkspace? workspace,
+    @Deprecated(
+      'Use defaultEol instead, as this is only a '
+      'default for files without existing EOLs',
+    )
+    String? eol,
+    String? defaultEol,
+  }) : assert(session == null || workspace == null),
+       assert(eol == null || defaultEol == null),
+       workspace = workspace ?? _SingleSessionWorkspace(session!),
+       defaultEol = defaultEol ?? eol ?? Platform.lineTerminator;
 
   /// Return `true` if this builder has edits to be applied.
   bool get hasEdits {
@@ -150,24 +152,31 @@ class ChangeBuilderImpl implements ChangeBuilder {
   }) async {
     assert(file_paths.isDart(workspace.resourceProvider.pathContext, path));
     if (_genericFileEditBuilders.containsKey(path)) {
-      throw StateError("Can't create both a generic file edit and a dart file "
-          'edit for the same file');
+      throw StateError(
+        "Can't create both a generic file edit and a dart file "
+        'edit for the same file',
+      );
     }
     if (_yamlFileEditBuilders.containsKey(path)) {
-      throw StateError("Can't create both a yaml file edit and a dart file "
-          'edit for the same file');
+      throw StateError(
+        "Can't create both a yaml file edit and a dart file "
+        'edit for the same file',
+      );
     }
     var builder = _dartFileEditBuilders[path];
     if (builder == null) {
-      builder = await _createDartFileEditBuilder(path,
-          createEditsForImports: createEditsForImports);
+      builder = await _createDartFileEditBuilder(
+        path,
+        createEditsForImports: createEditsForImports,
+      );
       if (builder != null) {
         // It's not currently supported to call this method twice concurrently
         // for the same file as two builder may be produced because of the above
         // `await` so detect this and throw to avoid losing edits.
         if (_dartFileEditBuilders.containsKey(path)) {
           throw StateError(
-              "Can't add multiple edits concurrently for the same file");
+            "Can't add multiple edits concurrently for the same file",
+          );
         }
         _dartFileEditBuilders[path] = builder;
         _revertData._addedDartFileEditBuilders.add(path);
@@ -182,7 +191,9 @@ class ChangeBuilderImpl implements ChangeBuilder {
 
   @override
   Future<void> addGenericFileEdit(
-      String path, void Function(FileEditBuilder builder) buildFileEdit) async {
+    String path,
+    void Function(FileEditBuilder builder) buildFileEdit,
+  ) async {
     // Dart and YAML files should always use their specific builders because
     // otherwise we might throw below if multiple callers (such as fixes in
     // "dart fix") use different methods.
@@ -196,12 +207,16 @@ class ChangeBuilderImpl implements ChangeBuilder {
     //     'Use addYamlFileEdit for editing YAML files');
 
     if (_dartFileEditBuilders.containsKey(path)) {
-      throw StateError("Can't create both a dart file edit and a generic file "
-          'edit for the same file');
+      throw StateError(
+        "Can't create both a dart file edit and a generic file "
+        'edit for the same file',
+      );
     }
     if (_yamlFileEditBuilders.containsKey(path)) {
-      throw StateError("Can't create both a yaml file edit and a generic file "
-          'edit for the same file');
+      throw StateError(
+        "Can't create both a yaml file edit and a generic file "
+        'edit for the same file',
+      );
     }
     var builder = _genericFileEditBuilders[path];
     if (builder == null) {
@@ -215,16 +230,22 @@ class ChangeBuilderImpl implements ChangeBuilder {
   }
 
   @override
-  Future<void> addYamlFileEdit(String path,
-      void Function(YamlFileEditBuilder builder) buildFileEdit) async {
+  Future<void> addYamlFileEdit(
+    String path,
+    void Function(YamlFileEditBuilder builder) buildFileEdit,
+  ) async {
     assert(file_paths.isYaml(workspace.resourceProvider.pathContext, path));
     if (_dartFileEditBuilders.containsKey(path)) {
-      throw StateError("Can't create both a dart file edit and a yaml file "
-          'edit for the same file');
+      throw StateError(
+        "Can't create both a dart file edit and a yaml file "
+        'edit for the same file',
+      );
     }
     if (_genericFileEditBuilders.containsKey(path)) {
-      throw StateError("Can't create both a generic file edit and a yaml file "
-          'edit for the same file');
+      throw StateError(
+        "Can't create both a generic file edit and a yaml file "
+        'edit for the same file',
+      );
     }
     var builder = _yamlFileEditBuilders[path];
     if (builder == null) {
@@ -238,8 +259,12 @@ class ChangeBuilderImpl implements ChangeBuilder {
       var eol = content.endOfLine ?? defaultEol;
 
       builder = YamlFileEditBuilderImpl(
-          this, path, loadYamlDocument(content, recover: true), 0,
-          eol: eol);
+        this,
+        path,
+        loadYamlDocument(content, recover: true),
+        0,
+        eol: eol,
+      );
       _yamlFileEditBuilders[path] = builder;
       _revertData._addedYamlFileEditBuilders.add(path);
     }
@@ -276,8 +301,10 @@ class ChangeBuilderImpl implements ChangeBuilder {
     }
   }
 
-  @Deprecated('Copying change builders is expensive. Internal users of this '
-      'method now use `commit` and `revert` instead.')
+  @Deprecated(
+    'Copying change builders is expensive. Internal users of this '
+    'method now use `commit` and `revert` instead.',
+  )
   @override
   ChangeBuilder copy() {
     var copy = ChangeBuilderImpl(workspace: workspace, defaultEol: defaultEol);
@@ -310,8 +337,10 @@ class ChangeBuilderImpl implements ChangeBuilder {
     for (var entry in _dartFileEditBuilders.entries) {
       var oldBuilder = entry.value;
       if (oldBuilder.libraryChangeBuilder != null) {
-        var newBuilder =
-            oldBuilder.copyWith(copy, editBuilderMap: editBuilderMap);
+        var newBuilder = oldBuilder.copyWith(
+          copy,
+          editBuilderMap: editBuilderMap,
+        );
         copy._dartFileEditBuilders[entry.key] = newBuilder;
       }
     }
@@ -409,8 +438,11 @@ class ChangeBuilderImpl implements ChangeBuilder {
 
   /// Return a copy of the linked edit [group].
   LinkedEditGroup _copyLinkedEditGroup(LinkedEditGroup group) {
-    return LinkedEditGroup(group.positions.map(_copyPosition).toList(),
-        group.length, group.suggestions.toList());
+    return LinkedEditGroup(
+      group.positions.map(_copyPosition).toList(),
+      group.length,
+      group.suggestions.toList(),
+    );
   }
 
   /// Return a copy of the [position].
@@ -420,8 +452,10 @@ class ChangeBuilderImpl implements ChangeBuilder {
 
   /// Create and return a [DartFileEditBuilder] that can be used to build edits
   /// to the Dart file with the given [path].
-  Future<DartFileEditBuilderImpl?> _createDartFileEditBuilder(String? path,
-      {bool createEditsForImports = true}) async {
+  Future<DartFileEditBuilderImpl?> _createDartFileEditBuilder(
+    String? path, {
+    bool createEditsForImports = true,
+  }) async {
     if (path == null || !workspace.containsFile(path)) {
       return null;
     }
@@ -446,15 +480,25 @@ class ChangeBuilderImpl implements ChangeBuilder {
     if (firstFragment != null && firstFragment != declaredFragment) {
       // If the receiver is a part file builder, then proactively cache the
       // library file builder so that imports can be finalized synchronously.
-      await addDartFileEdit(firstFragment.source.fullName, (builder) {
-        libraryEditBuilder = builder as DartFileEditBuilderImpl;
-      }, createEditsForImports: createEditsForImports);
+      await addDartFileEdit(
+        firstFragment.source.fullName,
+        (builder) {
+          libraryEditBuilder = builder as DartFileEditBuilderImpl;
+        },
+        createEditsForImports: createEditsForImports,
+      );
     }
 
     var eol = unitResult.content.endOfLine ?? defaultEol;
     return DartFileEditBuilderImpl(
-        this, libraryResult, unitResult, timeStamp, libraryEditBuilder,
-        createEditsForImports: createEditsForImports, eol: eol);
+      this,
+      libraryResult,
+      unitResult,
+      timeStamp,
+      libraryEditBuilder,
+      createEditsForImports: createEditsForImports,
+      eol: eol,
+    );
   }
 
   /// Reads the EOL used in [filePath], defaulting to [Platform.lineTerminator] if
@@ -463,8 +507,9 @@ class ChangeBuilderImpl implements ChangeBuilder {
     String? eol;
     try {
       // TODO(dantup): Can this use FileContentCache?
-      var content =
-          workspace.resourceProvider.getFile(filePath).readAsStringSync();
+      var content = workspace.resourceProvider
+          .getFile(filePath)
+          .readAsStringSync();
       eol = content.endOfLine;
     } catch (_) {}
     return eol ?? defaultEol;
@@ -501,8 +546,10 @@ class ChangeBuilderImpl implements ChangeBuilder {
     var selectionRange = _selectionRange;
     if (selectionRange != null) {
       if (selectionRange.offset >= offset) {
-        _selectionRange =
-            SourceRange(selectionRange.offset + delta, selectionRange.length);
+        _selectionRange = SourceRange(
+          selectionRange.offset + delta,
+          selectionRange.length,
+        );
       }
     }
   }
@@ -537,8 +584,12 @@ class EditBuilderImpl implements EditBuilder {
   bool _isWritingEditGroup = false;
 
   /// Initialize a newly created builder to build a source edit.
-  EditBuilderImpl(this.fileEditBuilder, this.offset, this.length,
-      {this.description});
+  EditBuilderImpl(
+    this.fileEditBuilder,
+    this.offset,
+    this.length, {
+    this.description,
+  });
 
   /// The end-of-line marker used in the file being edited.
   String get eol => fileEditBuilder.eol;
@@ -549,8 +600,10 @@ class EditBuilderImpl implements EditBuilder {
       SourceEdit(offset, length, _buffer.toString(), description: description);
 
   @override
-  void addLinkedEdit(String groupName,
-      void Function(LinkedEditBuilder builder) buildLinkedEdit) {
+  void addLinkedEdit(
+    String groupName,
+    void Function(LinkedEditBuilder builder) buildLinkedEdit,
+  ) {
     var builder = createLinkedEditBuilder();
     var start = offset + _buffer.length;
     // If we're already writing an edit group we must not produce others nested
@@ -585,8 +638,12 @@ class EditBuilderImpl implements EditBuilder {
   }
 
   @override
-  void addSimpleLinkedEdit(String groupName, String text,
-      {LinkedEditSuggestionKind? kind, List<String>? suggestions}) {
+  void addSimpleLinkedEdit(
+    String groupName,
+    String text, {
+    LinkedEditSuggestionKind? kind,
+    List<String>? suggestions,
+  }) {
     addLinkedEdit(groupName, (LinkedEditBuilder builder) {
       builder.write(text);
       if (kind != null && suggestions != null) {
@@ -595,7 +652,8 @@ class EditBuilderImpl implements EditBuilder {
         }
       } else if (kind != null || suggestions != null) {
         throw ArgumentError(
-            'Either both kind and suggestions must be provided or neither.');
+          'Either both kind and suggestions must be provided or neither.',
+        );
       }
     });
   }
@@ -655,9 +713,12 @@ class FileEditBuilderImpl implements FileEditBuilder {
   /// Initialize a newly created builder to build a source file edit within the
   /// change being built by the given [changeBuilder]. The file being edited has
   /// the given absolute [path] and [timeStamp].
-  FileEditBuilderImpl(this.changeBuilder, String path, int timeStamp,
-      {required this.eol})
-      : fileEdit = SourceFileEdit(path, timeStamp);
+  FileEditBuilderImpl(
+    this.changeBuilder,
+    String path,
+    int timeStamp, {
+    required this.eol,
+  }) : fileEdit = SourceFileEdit(path, timeStamp);
 
   /// Return `true` if this builder has edits to be applied.
   bool get hasEdits => fileEdit.edits.isNotEmpty;
@@ -671,8 +732,11 @@ class FileEditBuilderImpl implements FileEditBuilder {
   }
 
   @override
-  void addInsertion(int offset, void Function(EditBuilder builder) buildEdit,
-      {bool insertBeforeExisting = false}) {
+  void addInsertion(
+    int offset,
+    void Function(EditBuilder builder) buildEdit, {
+    bool insertBeforeExisting = false,
+  }) {
     var builder = createEditBuilder(offset, 0);
     try {
       buildEdit(builder);
@@ -684,8 +748,10 @@ class FileEditBuilderImpl implements FileEditBuilder {
   @override
   void addLinkedPosition(SourceRange range, String groupName) {
     var group = changeBuilder.getLinkedEditGroup(groupName);
-    var position =
-        Position(fileEdit.file, range.offset + _deltaToOffset(range.offset));
+    var position = Position(
+      fileEdit.file,
+      range.offset + _deltaToOffset(range.offset),
+    );
     group.addPosition(position, range.length);
     var revertData = changeBuilder._revertData;
     revertData._addedLinkedEditGroupPositions
@@ -695,7 +761,9 @@ class FileEditBuilderImpl implements FileEditBuilder {
 
   @override
   void addReplacement(
-      SourceRange range, void Function(EditBuilder builder) buildEdit) {
+    SourceRange range,
+    void Function(EditBuilder builder) buildEdit,
+  ) {
     var builder = createEditBuilder(range.offset, range.length);
     try {
       buildEdit(builder);
@@ -731,20 +799,29 @@ class FileEditBuilderImpl implements FileEditBuilder {
     _revertData._addedEdits.clear();
   }
 
-  @Deprecated('Copying change builders is expensive. Internal users of this '
-      'method now use `commit` and `revert` instead.')
+  @Deprecated(
+    'Copying change builders is expensive. Internal users of this '
+    'method now use `commit` and `revert` instead.',
+  )
   FileEditBuilderImpl copyWith(ChangeBuilderImpl changeBuilder) {
     var copy = FileEditBuilderImpl(
-        changeBuilder, fileEdit.file, fileEdit.fileStamp,
-        eol: eol);
+      changeBuilder,
+      fileEdit.file,
+      fileEdit.fileStamp,
+      eol: eol,
+    );
     copy.fileEdit.edits.addAll(fileEdit.edits);
     copy.currentChangeDescription = currentChangeDescription;
     return copy;
   }
 
   EditBuilderImpl createEditBuilder(int offset, int length) {
-    return EditBuilderImpl(this, offset, length,
-        description: currentChangeDescription);
+    return EditBuilderImpl(
+      this,
+      offset,
+      length,
+      description: currentChangeDescription,
+    );
   }
 
   /// Finalize the source file edit that is being built.
@@ -802,8 +879,10 @@ class FileEditBuilderImpl implements FileEditBuilder {
   /// If [insertBeforeExisting] is `true`, inserts made at the same offset as
   /// other edits will be inserted such that they appear before them in the
   /// resulting document.
-  void _addEditBuilder(EditBuilderImpl builder,
-      {bool insertBeforeExisting = false}) {
+  void _addEditBuilder(
+    EditBuilderImpl builder, {
+    bool insertBeforeExisting = false,
+  }) {
     var edit = builder.sourceEdit;
     _addEdit(edit, insertBeforeExisting: insertBeforeExisting);
     _captureSelection(builder, edit);
@@ -913,7 +992,7 @@ class _ChangeBuilderRevertData {
   /// A map from pre-existing linked edit groups to the suggestions that were
   /// added to the group.
   final Map<LinkedEditGroup, List<LinkedEditSuggestion>>
-      _addedLinkedEditGroupSuggestions = {};
+  _addedLinkedEditGroupSuggestions = {};
 
   /// A map of absolute normalized path to generic file edit builders that have
   /// been added since the last commit.

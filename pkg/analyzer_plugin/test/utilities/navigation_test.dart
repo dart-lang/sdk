@@ -21,8 +21,12 @@ class NavigationGeneratorTest with ResourceProviderMixin {
 
   void test_none() {
     var generator = NavigationGenerator([]);
-    NavigationRequest request =
-        DartNavigationRequestImpl(resourceProvider, 0, 100, resolvedUnit);
+    NavigationRequest request = DartNavigationRequestImpl(
+      resourceProvider,
+      0,
+      100,
+      resolvedUnit,
+    );
     var result = generator.generateNavigationNotification(request);
     expect(result.notifications, hasLength(1));
   }
@@ -30,8 +34,12 @@ class NavigationGeneratorTest with ResourceProviderMixin {
   void test_normal() {
     var contributor = TestContributor();
     var generator = NavigationGenerator([contributor]);
-    NavigationRequest request =
-        DartNavigationRequestImpl(resourceProvider, 0, 100, resolvedUnit);
+    NavigationRequest request = DartNavigationRequestImpl(
+      resourceProvider,
+      0,
+      100,
+      resolvedUnit,
+    );
     var result = generator.generateNavigationNotification(request);
     expect(result.notifications, hasLength(1));
     expect(contributor.count, 1);
@@ -45,20 +53,32 @@ class NavigationGeneratorTest with ResourceProviderMixin {
     var contributor2 = TestContributor(throwException: true);
     var contributor3 = TestContributor();
     var contributor4 = TestContributor(throwException: true);
-    var generator = NavigationGenerator(
-        [contributor1, contributor2, contributor3, contributor4]);
-    NavigationRequest request =
-        DartNavigationRequestImpl(resourceProvider, 0, 100, resolvedUnit);
+    var generator = NavigationGenerator([
+      contributor1,
+      contributor2,
+      contributor3,
+      contributor4,
+    ]);
+    NavigationRequest request = DartNavigationRequestImpl(
+      resourceProvider,
+      0,
+      100,
+      resolvedUnit,
+    );
     var result = generator.generateNavigationNotification(request);
     expect(result.notifications, hasLength(3));
     expect(
-        result.notifications.where(
-            (notification) => notification.event == 'analysis.navigation'),
-        hasLength(1));
+      result.notifications.where(
+        (notification) => notification.event == 'analysis.navigation',
+      ),
+      hasLength(1),
+    );
     expect(
-        result.notifications
-            .where((notification) => notification.event == 'plugin.error'),
-        hasLength(2));
+      result.notifications.where(
+        (notification) => notification.event == 'plugin.error',
+      ),
+      hasLength(2),
+    );
     expect(contributor1.count, 1);
     expect(contributor2.count, 1);
     expect(contributor3.count, 1);
@@ -78,7 +98,9 @@ class TestContributor implements NavigationContributor {
 
   @override
   void computeNavigation(
-      NavigationRequest request, NavigationCollector collector) {
+    NavigationRequest request,
+    NavigationCollector collector,
+  ) {
     count++;
     if (throwException) {
       throw Exception();

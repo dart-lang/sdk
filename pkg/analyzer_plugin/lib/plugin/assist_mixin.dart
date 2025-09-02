@@ -27,7 +27,8 @@ mixin AssistsMixin implements ServerPlugin {
 
   @override
   Future<EditGetAssistsResult> handleEditGetAssists(
-      EditGetAssistsParams parameters) async {
+    EditGetAssistsParams parameters,
+  ) async {
     var path = parameters.file;
     var request = await getAssistRequest(parameters);
     var generator = AssistGenerator(getAssistContributors(path));
@@ -47,10 +48,15 @@ mixin AssistsMixin implements ServerPlugin {
 abstract class DartAssistsMixin implements AssistsMixin {
   @override
   Future<AssistRequest> getAssistRequest(
-      EditGetAssistsParams parameters) async {
+    EditGetAssistsParams parameters,
+  ) async {
     var path = parameters.file;
     var result = await getResolvedUnitResult(path);
     return DartAssistRequestImpl(
-        resourceProvider, parameters.offset, parameters.length, result);
+      resourceProvider,
+      parameters.offset,
+      parameters.length,
+      result,
+    );
   }
 }

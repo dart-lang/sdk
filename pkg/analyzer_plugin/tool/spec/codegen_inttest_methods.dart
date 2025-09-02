@@ -13,12 +13,15 @@ import 'from_html.dart';
 import 'to_html.dart';
 
 final GeneratedFile target = GeneratedFile(
-    'analyzer_plugin/test/integration/support/integration_test_methods.dart',
-    (pkgRoot) async {
-  var visitor =
-      CodegenInttestMethodsVisitor('analyzer_plugin', readApi(pkgRoot));
-  return visitor.collectCode(visitor.visitApi);
-});
+  'analyzer_plugin/test/integration/support/integration_test_methods.dart',
+  (pkgRoot) async {
+    var visitor = CodegenInttestMethodsVisitor(
+      'analyzer_plugin',
+      readApi(pkgRoot),
+    );
+    return visitor.collectCode(visitor.visitApi);
+  },
+);
 
 /// Visitor that generates the code for integration_test_methods.dart
 class CodegenInttestMethodsVisitor extends DartCodegenVisitor
@@ -37,8 +40,8 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
   List<String> notificationSwitchContents = <String>[];
 
   CodegenInttestMethodsVisitor(this.packageName, Api api)
-      : toHtmlVisitor = ToHtmlVisitor(api),
-        super(api) {
+    : toHtmlVisitor = ToHtmlVisitor(api),
+      super(api) {
     codeGeneratorSettings.commentLineLength = 79;
     codeGeneratorSettings.docCommentStartMarker = null;
     codeGeneratorSettings.docCommentLineLeader = '/// ';
@@ -97,7 +100,8 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
     }
     writeln("import 'package:$packageName/protocol/protocol_generated.dart';");
     writeln(
-        "import 'package:$packageName/src/protocol/protocol_internal.dart';");
+      "import 'package:$packageName/src/protocol/protocol_internal.dart';",
+    );
     writeln("import 'package:test/test.dart';");
     writeln();
     writeln("import 'integration_tests.dart';");
@@ -109,21 +113,25 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
       writeln('Server get server;');
       super.visitApi();
       writeln();
-      docComment(toHtmlVisitor.collectHtml(() {
-        toHtmlVisitor.writeln('Initialize the fields in InttestMixin, and');
-        toHtmlVisitor.writeln('ensure that notifications will be handled.');
-      }));
+      docComment(
+        toHtmlVisitor.collectHtml(() {
+          toHtmlVisitor.writeln('Initialize the fields in InttestMixin, and');
+          toHtmlVisitor.writeln('ensure that notifications will be handled.');
+        }),
+      );
       writeln('void initializeInttestMixin() {');
       indent(() {
         write(fieldInitializationCode.join());
       });
       writeln('}');
       writeln();
-      docComment(toHtmlVisitor.collectHtml(() {
-        toHtmlVisitor.writeln('Dispatch the notification named [event], and');
-        toHtmlVisitor.writeln('containing parameters [params], to the');
-        toHtmlVisitor.writeln('appropriate stream.');
-      }));
+      docComment(
+        toHtmlVisitor.collectHtml(() {
+          toHtmlVisitor.writeln('Dispatch the notification named [event], and');
+          toHtmlVisitor.writeln('containing parameters [params], to the');
+          toHtmlVisitor.writeln('appropriate stream.');
+        }),
+      );
       writeln('void dispatchNotification(String event, params) {');
       indent(() {
         writeln('var decoder = ResponseDecoder(null);');
@@ -144,42 +152,59 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
 
   @override
   void visitNotification(Notification notification) {
-    var streamName =
-        camelJoin(['on', notification.domainName, notification.event]);
-    var className = camelJoin(
-        [notification.domainName, notification.event, 'params'],
-        doCapitalize: true);
+    var streamName = camelJoin([
+      'on',
+      notification.domainName,
+      notification.event,
+    ]);
+    var className = camelJoin([
+      notification.domainName,
+      notification.event,
+      'params',
+    ], doCapitalize: true);
     writeln();
-    docComment(toHtmlVisitor.collectHtml(() {
-      toHtmlVisitor.translateHtml(notification.html);
-      toHtmlVisitor.describePayload(notification.params, 'Parameters');
-    }));
+    docComment(
+      toHtmlVisitor.collectHtml(() {
+        toHtmlVisitor.translateHtml(notification.html);
+        toHtmlVisitor.describePayload(notification.params, 'Parameters');
+      }),
+    );
     writeln('late Stream<$className> $streamName;');
     writeln();
-    docComment(toHtmlVisitor.collectHtml(() {
-      toHtmlVisitor.write('Stream controller for [$streamName].');
-    }));
+    docComment(
+      toHtmlVisitor.collectHtml(() {
+        toHtmlVisitor.write('Stream controller for [$streamName].');
+      }),
+    );
     writeln('late StreamController<$className> _$streamName;');
-    fieldInitializationCode.add(collectCode(() {
-      writeln('_$streamName = StreamController<$className>(sync: true);');
-      writeln('$streamName = _$streamName.stream.asBroadcastStream();');
-    }));
-    notificationSwitchContents.add(collectCode(() {
-      writeln("case '${notification.longEvent}':");
-      indent(() {
-        var paramsValidator = camelJoin(
-            ['is', notification.domainName, notification.event, 'params']);
-        writeln('outOfTestExpect(params, $paramsValidator);');
-        String constructorCall;
-        if (notification.params == null) {
-          constructorCall = '$className()';
-        } else {
-          constructorCall = "$className.fromJson(decoder, 'params', params)";
-        }
-        writeln('_$streamName.add($constructorCall);');
-        writeln('break;');
-      });
-    }));
+    fieldInitializationCode.add(
+      collectCode(() {
+        writeln('_$streamName = StreamController<$className>(sync: true);');
+        writeln('$streamName = _$streamName.stream.asBroadcastStream();');
+      }),
+    );
+    notificationSwitchContents.add(
+      collectCode(() {
+        writeln("case '${notification.longEvent}':");
+        indent(() {
+          var paramsValidator = camelJoin([
+            'is',
+            notification.domainName,
+            notification.event,
+            'params',
+          ]);
+          writeln('outOfTestExpect(params, $paramsValidator);');
+          String constructorCall;
+          if (notification.params == null) {
+            constructorCall = '$className()';
+          } else {
+            constructorCall = "$className.fromJson(decoder, 'params', params)";
+          }
+          writeln('_$streamName.add($constructorCall);');
+          writeln('break;');
+        });
+      }),
+    );
   }
 
   @override
@@ -201,11 +226,13 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
       args.add('{${optionalArgs.join(', ')}}');
     }
     writeln();
-    docComment(toHtmlVisitor.collectHtml(() {
-      toHtmlVisitor.translateHtml(request.html);
-      toHtmlVisitor.describePayload(request.params, 'Parameters');
-      toHtmlVisitor.describePayload(request.result, 'Returns');
-    }));
+    docComment(
+      toHtmlVisitor.collectHtml(() {
+        toHtmlVisitor.translateHtml(request.html);
+        toHtmlVisitor.describePayload(request.params, 'Parameters');
+        toHtmlVisitor.describePayload(request.result, 'Returns');
+      }),
+    );
     if (request.deprecated) {
       writeln('@deprecated');
     }
@@ -214,15 +241,20 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
     if (request.result == null) {
       futureClass = 'Future';
     } else {
-      resultClass = camelJoin([request.domainName, request.method, 'result'],
-          doCapitalize: true);
+      resultClass = camelJoin([
+        request.domainName,
+        request.method,
+        'result',
+      ], doCapitalize: true);
       futureClass = 'Future<$resultClass>';
     }
     writeln('$futureClass $methodName(${args.join(', ')}) async {');
     indent(() {
-      var requestClass = camelJoin(
-          [request.domainName, request.method, 'params'],
-          doCapitalize: true);
+      var requestClass = camelJoin([
+        request.domainName,
+        request.method,
+        'params',
+      ], doCapitalize: true);
       var paramsVar = 'null';
       var params = request.params;
       if (params != null) {

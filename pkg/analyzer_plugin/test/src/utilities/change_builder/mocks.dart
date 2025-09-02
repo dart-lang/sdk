@@ -14,7 +14,7 @@ class MockAnalysisContext implements AnalysisContext {
   ContextRoot contextRoot;
 
   MockAnalysisContext(ResourceProvider resourceProvider)
-      : contextRoot = MockContextRoot(resourceProvider);
+    : contextRoot = MockContextRoot(resourceProvider);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -28,7 +28,7 @@ class MockAnalysisSession implements AnalysisSession {
   AnalysisContext analysisContext;
 
   MockAnalysisSession(this.resourceProvider)
-      : analysisContext = MockAnalysisContext(resourceProvider);
+    : analysisContext = MockAnalysisContext(resourceProvider);
 
   @override
   dynamic noSuchMethod(Invocation invocation) {
