@@ -8396,8 +8396,6 @@ void Function::SetInstructionsSafe(const Code& value) const {
 
 void Function::AttachCode(const Code& value) const {
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
-  // Finish setting up code before activating it.
-  value.set_owner(*this);
   SetInstructions(value);
   ASSERT(Function::Handle(value.function()).IsNull() ||
          (value.function() == this->ptr()));
@@ -12275,7 +12273,7 @@ const char* FunctionType::ToCString() const {
 }
 
 void ClosureData::set_context_scope(const ContextScope& value) const {
-  untag()->set_context_scope(value.ptr());
+  untag()->set_context_scope<std::memory_order_release>(value.ptr());
 }
 
 void ClosureData::set_implicit_static_closure(const Closure& closure) const {
@@ -12824,7 +12822,8 @@ void Field::set_dependent_code(const WeakArray& array) const {
   ASSERT(IsOriginal());
   DEBUG_ASSERT(
       IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
-  untag()->set_dependent_code(array.ptr());
+  // relaxed: races with Field::Clone.
+  untag()->set_dependent_code<std::memory_order_relaxed>(array.ptr());
 }
 
 class FieldDependentArray : public WeakCodeReferences {

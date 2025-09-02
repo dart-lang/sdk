@@ -698,7 +698,7 @@ class _DynamicModuleValidator extends RecursiveVisitor {
           }
           loader.addProblem(
             codeConstructorShouldBeListedAsCallableInDynamicInterface
-                .withArguments(name),
+                .withArgumentsOld(name),
             node.fileOffset,
             noLength,
             node.location!.file,
@@ -715,18 +715,16 @@ class _DynamicModuleValidator extends RecursiveVisitor {
             }
           }
           loader.addProblem(
-            codeMemberShouldBeListedAsCallableInDynamicInterface.withArguments(
-              name,
-            ),
+            codeMemberShouldBeListedAsCallableInDynamicInterface
+                .withArgumentsOld(name),
             node.fileOffset,
             noLength,
             node.location!.file,
           );
         case Class():
           loader.addProblem(
-            codeClassShouldBeListedAsCallableInDynamicInterface.withArguments(
-              target.name,
-            ),
+            codeClassShouldBeListedAsCallableInDynamicInterface
+                .withArgumentsOld(target.name),
             node.fileOffset,
             noLength,
             node.location!.file,
@@ -734,7 +732,7 @@ class _DynamicModuleValidator extends RecursiveVisitor {
         case ExtensionTypeDeclaration():
           loader.addProblem(
             codeExtensionTypeShouldBeListedAsCallableInDynamicInterface
-                .withArguments(target.name),
+                .withArgumentsOld(target.name),
             node.fileOffset,
             noLength,
             node.location!.file,
@@ -752,7 +750,7 @@ class _DynamicModuleValidator extends RecursiveVisitor {
         !_isSpecified(baseClass, spec.extendable) &&
         !languageImplPragmas.isExtendable(baseClass)) {
       loader.addProblem(
-        codeClassShouldBeListedAsExtendableInDynamicInterface.withArguments(
+        codeClassShouldBeListedAsExtendableInDynamicInterface.withArgumentsOld(
           baseClass.name,
         ),
         node.fileOffset,
@@ -822,7 +820,7 @@ class _DynamicModuleValidator extends RecursiveVisitor {
         !languageImplPragmas.canBeOverridden(superMember)) {
       loader.addProblem(
         codeMemberShouldBeListedAsCanBeOverriddenInDynamicInterface
-            .withArguments(
+            .withArgumentsOld(
               superMember.enclosingClass!.name,
               superMember.name.text,
             ),

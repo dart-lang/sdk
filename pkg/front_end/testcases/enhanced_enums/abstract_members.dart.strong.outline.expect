@@ -21,7 +21,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // enum E4 implements InterfaceMethod { // Error.
 //      ^^
 // pkg/front_end/testcases/enhanced_enums/abstract_members.dart:24:8: Context: 'InterfaceMethod.foo' is defined here.
@@ -35,7 +34,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // enum E5 implements InterfaceGetter { // Error.
 //      ^^
 // pkg/front_end/testcases/enhanced_enums/abstract_members.dart:32:11: Context: 'InterfaceGetter.foo' is defined here.
@@ -49,7 +47,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // enum E6 implements InterfaceSetter { // Error.
 //      ^^
 // pkg/front_end/testcases/enhanced_enums/abstract_members.dart:40:12: Context: 'InterfaceSetter.foo=' is defined here.

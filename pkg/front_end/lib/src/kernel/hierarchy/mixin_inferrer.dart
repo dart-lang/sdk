@@ -112,7 +112,7 @@ class BuilderMixinInferrer {
       );
       if (supertype == null) {
         reportProblem(
-          codeMixinInferenceNoMatchingClass.withArguments(
+          codeMixinInferenceNoMatchingClass.withArgumentsOld(
             mixinClass.name,
             baseType.classNode.name,
             mixinSupertype.asInterfaceType,
@@ -151,7 +151,7 @@ class BuilderMixinInferrer {
     if (_mixinInferenceSolution.isUnsolvable) {
       // Coverage-ignore-block(suite): Not run.
       reportProblem(
-        codeMixinInferenceNoMatchingClass.withArguments(
+        codeMixinInferenceNoMatchingClass.withArgumentsOld(
           mixinClass.name,
           baseType.classNode.name,
           mixinSupertype.asInterfaceType,

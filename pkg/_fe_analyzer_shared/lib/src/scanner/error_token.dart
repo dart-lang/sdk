@@ -126,7 +126,7 @@ class NonAsciiIdentifierToken extends ErrorToken {
   String toString() => "NonAsciiIdentifierToken($character)";
 
   @override
-  Message get assertionMessage => codeNonAsciiIdentifier.withArguments(
+  Message get assertionMessage => codeNonAsciiIdentifier.withArgumentsOld(
     new String.fromCharCodes([character]),
     character,
   );
@@ -144,7 +144,7 @@ class NonAsciiWhitespaceToken extends ErrorToken {
 
   @override
   Message get assertionMessage =>
-      codeNonAsciiWhitespace.withArguments(character);
+      codeNonAsciiWhitespace.withArgumentsOld(character);
 }
 
 /// Represents an ASCII control character outside a string or comment.
@@ -160,7 +160,7 @@ class AsciiControlCharacterToken extends ErrorToken {
 
   @override
   Message get assertionMessage =>
-      codeAsciiControlCharacter.withArguments(character);
+      codeAsciiControlCharacter.withArgumentsOld(character);
 }
 
 /// Denotes an operator that is not supported in the Dart language.
@@ -170,7 +170,8 @@ class UnsupportedOperator extends ErrorToken {
   UnsupportedOperator(this.token, int charOffset) : super(charOffset);
 
   @override
-  Message get assertionMessage => codeUnsupportedOperator.withArguments(token);
+  Message get assertionMessage =>
+      codeUnsupportedOperator.withArgumentsOld(token);
 
   @override
   String toString() => "UnsupportedOperator(${token.lexeme})";
@@ -197,7 +198,7 @@ class UnterminatedString extends ErrorToken {
 
   @override
   Message get assertionMessage =>
-      codeUnterminatedString.withArguments(start, closeQuoteFor(start));
+      codeUnterminatedString.withArgumentsOld(start, closeQuoteFor(start));
 }
 
 /// Represents an unterminated token.
@@ -234,5 +235,5 @@ class UnmatchedToken extends ErrorToken {
 
   @override
   Message get assertionMessage =>
-      codeUnmatchedToken.withArguments(closeBraceFor(begin.lexeme), begin);
+      codeUnmatchedToken.withArgumentsOld(closeBraceFor(begin.lexeme), begin);
 }

@@ -307,7 +307,7 @@ class MiniAstBuilder extends StackListener {
     debugEvent("ConditionalUris");
     if (count != 0) {
       internalProblem(
-        codeInternalProblemUnsupported.withArguments("Conditional URIs"),
+        codeInternalProblemUnsupported.withArgumentsOld("Conditional URIs"),
         -1,
         null,
       );
@@ -726,7 +726,7 @@ class MiniAstBuilder extends StackListener {
       assert(optional('?', questionMark));
       var feature = ExperimentalFeatures.non_nullable;
       handleRecoverableError(
-        codeExperimentNotEnabled.withArguments(
+        codeExperimentNotEnabled.withArgumentsOld(
           feature.enableString,
           _versionAsString(ExperimentStatus.currentVersion),
         ),
@@ -739,7 +739,7 @@ class MiniAstBuilder extends StackListener {
   void reportNonNullAssertExpressionNotEnabled(Token bang) {
     var feature = ExperimentalFeatures.non_nullable;
     handleRecoverableError(
-      codeExperimentNotEnabled.withArguments(
+      codeExperimentNotEnabled.withArgumentsOld(
         feature.enableString,
         _versionAsString(ExperimentStatus.currentVersion),
       ),

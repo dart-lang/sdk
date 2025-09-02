@@ -10,7 +10,7 @@ class BlockKind {
 
   final codes.Message? message;
 
-  final codes.Template<codes.Message Function(Token token)>? template;
+  final codes.Template<codes.Message Function(Token token), Function>? template;
 
   const BlockKind._(this.name, {this.template, this.message});
 

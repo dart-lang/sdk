@@ -14,6 +14,9 @@ import 'severity.dart' show CfeSeverity;
 
 import '../util/relativize.dart' as util show isWindows, relativizeUri;
 
+import 'conversions.dart' as conversions;
+import 'codes.dart' as conversions show relativizeUri;
+
 part 'codes_generated.dart';
 
 const int noLength = 1;
@@ -104,12 +107,14 @@ class MessageCode extends Code implements Message {
   }
 }
 
-class Template<T> extends Code {
+class Template<TOld extends Function, T extends Function> extends Code {
   String get messageCode => name;
 
   final String problemMessageTemplate;
 
   final String? correctionMessageTemplate;
+
+  final TOld withArgumentsOld;
 
   final T withArguments;
 
@@ -117,6 +122,7 @@ class Template<T> extends Code {
     super.name, {
     this.correctionMessageTemplate,
     required this.problemMessageTemplate,
+    required this.withArgumentsOld,
     required this.withArguments,
     super.index = -1,
     super.analyzerCodes,

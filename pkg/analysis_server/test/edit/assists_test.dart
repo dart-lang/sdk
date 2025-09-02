@@ -57,6 +57,7 @@ class AssistsTest extends PubPackageAnalysisServerTest {
       'c',
       TestNotificationManager(),
       InstrumentationService.NULL_SERVICE,
+      isLegacy: true,
     );
     var message = 'From a plugin';
     var change = plugin.PrioritizedSourceChange(

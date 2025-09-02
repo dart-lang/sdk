@@ -82,6 +82,20 @@ abstract class IntegrationTestMixin {
     return PluginVersionCheckResult.fromJson(decoder, 'result', result);
   }
 
+  /// Details regarding the registered plugins, for analytics-reporting and
+  /// insights-reporting purposes.
+  ///
+  /// Returns
+  ///
+  /// plugins: List<PluginDetails>
+  ///
+  ///   A list of the details of all registered plugins.
+  Future<PluginDetailsResult> sendPluginDetails() async {
+    var result = await server.send('plugin.details', null);
+    var decoder = ResponseDecoder(null);
+    return PluginDetailsResult.fromJson(decoder, 'result', result);
+  }
+
   /// Used to request that the plugin exit. The server will not send any other
   /// requests after this request. The plugin should not send any responses or
   /// notifications after sending the response to this request.

@@ -603,7 +603,7 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
         }).toList();
 
         classBuilder.libraryBuilder.addProblem(
-          codeCombinedMemberSignatureFailed.withArguments(
+          codeCombinedMemberSignatureFailed.withArgumentsOld(
             name,
             declarations.first.fullNameForErrors,
           ),
@@ -990,7 +990,7 @@ class SynthesizedNonExtensionTypeMember extends SynthesizedMember {
       }).toList();
 
       extensionTypeDeclarationBuilder.libraryBuilder.addProblem(
-        codeExtensionTypeCombinedMemberSignatureFailed.withArguments(
+        codeExtensionTypeCombinedMemberSignatureFailed.withArgumentsOld(
           name,
           declarations.first.fullNameForErrors,
         ),

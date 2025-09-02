@@ -53,7 +53,7 @@ class SharedTypeAnalyzerErrors
     required SharedTypeView scrutineeType,
   }) {
     return helper.buildProblem(
-      codeSwitchExpressionNotSubtype.withArguments(
+      codeSwitchExpressionNotSubtype.withArgumentsOld(
         caseExpressionType.unwrapTypeView(),
         scrutineeType.unwrapTypeView(),
       ),
@@ -76,7 +76,7 @@ class SharedTypeAnalyzerErrors
     required Pattern duplicate,
   }) {
     return helper.buildProblem(
-      codeDuplicatePatternAssignmentVariable.withArguments(variable.name!),
+      codeDuplicatePatternAssignmentVariable.withArgumentsOld(variable.name!),
       duplicate.fileOffset,
       noLength,
       context: [
@@ -97,7 +97,7 @@ class SharedTypeAnalyzerErrors
     required RecordPatternField<TreeNode, Pattern> duplicate,
   }) {
     return helper.buildProblem(
-      codeDuplicateRecordPatternField.withArguments(name),
+      codeDuplicateRecordPatternField.withArgumentsOld(name),
       duplicate.pattern.fileOffset,
       noLength,
       context: [
@@ -184,7 +184,7 @@ class SharedTypeAnalyzerErrors
     required SharedTypeView expressionType,
   }) {
     return helper.buildProblem(
-      codeForInLoopTypeNotIterable.withArguments(
+      codeForInLoopTypeNotIterable.withArgumentsOld(
         expressionType.unwrapTypeView(),
         coreTypes.iterableNonNullableRawType,
       ),
@@ -201,7 +201,7 @@ class SharedTypeAnalyzerErrors
     required SharedTypeView requiredType,
   }) {
     return helper.buildProblem(
-      codePatternTypeMismatchInIrrefutableContext.withArguments(
+      codePatternTypeMismatchInIrrefutableContext.withArgumentsOld(
         matchedType.unwrapTypeView(),
         requiredType.unwrapTypeView(),
       ),
@@ -229,7 +229,7 @@ class SharedTypeAnalyzerErrors
     required SharedTypeView parameterType,
   }) {
     return helper.buildProblem(
-      codeArgumentTypeNotAssignable.withArguments(
+      codeArgumentTypeNotAssignable.withArgumentsOld(
         operandType.unwrapTypeView(),
         parameterType.unwrapTypeView(),
       ),
@@ -244,7 +244,7 @@ class SharedTypeAnalyzerErrors
     required SharedTypeView returnType,
   }) {
     return helper.buildProblem(
-      codeInvalidAssignmentError.withArguments(
+      codeInvalidAssignmentError.withArgumentsOld(
         returnType.unwrapTypeView(),
         coreTypes.boolNonNullableRawType,
       ),

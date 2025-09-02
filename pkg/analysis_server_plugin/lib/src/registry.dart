@@ -10,15 +10,27 @@ import 'package:analysis_server_plugin/src/correction/ignore_diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/analysis_rule/rule_context.dart';
 import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer_plugin/utilities/assist/assist.dart';
+import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 final class PluginRegistryImpl implements PluginRegistry {
-  /// Returns currently registered rules.
-  Iterable<AbstractAnalysisRule> get registeredRules => Registry.ruleRegistry;
+  final String pluginName;
+
+  final List<AssistKind> assistKinds = [];
+
+  final Map<FixKind, List<String>> fixKinds = {};
+
+  final List<String> warningRules = [];
+
+  final List<String> lintRules = [];
+
+  PluginRegistryImpl(this.pluginName);
 
   @override
   void registerAssist(ProducerGenerator generator) {
     var producer = generator(context: StubCorrectionProducerContext.instance);
-    if (producer.assistKind == null) {
+    var assistKind = producer.assistKind;
+    if (assistKind == null) {
       throw ArgumentError.value(
         generator,
         'generator',
@@ -26,13 +38,16 @@ final class PluginRegistryImpl implements PluginRegistry {
             "'assistKind'.",
       );
     }
+
     registeredAssistGenerators.registerGenerator(generator);
+    assistKinds.add(assistKind);
   }
 
   @override
   void registerFixForRule(LintCode code, ProducerGenerator generator) {
     var producer = generator(context: StubCorrectionProducerContext.instance);
-    if (producer.fixKind == null) {
+    var fixKind = producer.fixKind;
+    if (fixKind == null) {
       throw ArgumentError.value(
         generator,
         'generator',
@@ -40,27 +55,29 @@ final class PluginRegistryImpl implements PluginRegistry {
             "'fixKind'.",
       );
     }
+
     registeredFixGenerators.registerFixForLint(code, generator);
+    fixKinds.putIfAbsent(fixKind, () => []).add(code.name);
+  }
+
+  @override
+  void registerLintRule(AbstractAnalysisRule rule) {
+    Registry.ruleRegistry.registerLintRule(rule);
+    lintRules.add(rule.name);
+  }
+
+  @override
+  void registerWarningRule(AbstractAnalysisRule rule) {
+    Registry.ruleRegistry.registerWarningRule(rule);
+    warningRules.add(rule.name);
   }
 
   /// Registers the "ignore diagnostic" producer generators.
-  void registerIgnoreProducerGenerators() {
+  static void registerIgnoreProducerGenerators() {
     registeredFixGenerators.ignoreProducerGenerators.addAll([
       IgnoreDiagnosticOnLine.new,
       IgnoreDiagnosticInFile.new,
       IgnoreDiagnosticInAnalysisOptionsFile.new,
     ]);
   }
-
-  @override
-  void registerLintRule(AbstractAnalysisRule rule) {
-    Registry.ruleRegistry.registerLintRule(rule);
-  }
-
-  @override
-  void registerWarningRule(AbstractAnalysisRule rule) {
-    Registry.ruleRegistry.registerWarningRule(rule);
-  }
-
-  AbstractAnalysisRule? ruleNamed(String name) => Registry.ruleRegistry[name];
 }

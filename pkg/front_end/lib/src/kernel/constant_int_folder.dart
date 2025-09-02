@@ -62,13 +62,13 @@ abstract class ConstantIntFolder {
     if ((op == '<<' || op == '>>' || op == '>>>') && right < 0) {
       return evaluator.createEvaluationErrorConstant(
         node,
-        codeConstEvalNegativeShift.withArguments(op, '$left', '$right'),
+        codeConstEvalNegativeShift.withArgumentsOld(op, '$left', '$right'),
       );
     }
     if ((op == '%' || op == '~/') && right == 0) {
       return evaluator.createEvaluationErrorConstant(
         node,
-        codeConstEvalZeroDivisor.withArguments(op, '$left'),
+        codeConstEvalZeroDivisor.withArgumentsOld(op, '$left'),
       );
     }
     return null;
@@ -105,7 +105,7 @@ class VmConstantIntFolder extends ConstantIntFolder {
         // Coverage-ignore: Probably unreachable.
         return evaluator.createExpressionErrorConstant(
           node,
-          codeNotConstantExpression.withArguments("Unary '$op' operation"),
+          codeNotConstantExpression.withArgumentsOld("Unary '$op' operation"),
         );
     }
   }
@@ -160,7 +160,7 @@ class VmConstantIntFolder extends ConstantIntFolder {
         // Coverage-ignore: Probably unreachable.
         return evaluator.createExpressionErrorConstant(
           node,
-          codeNotConstantExpression.withArguments("Binary '$op' operation"),
+          codeNotConstantExpression.withArgumentsOld("Binary '$op' operation"),
         );
     }
   }
@@ -172,7 +172,7 @@ class VmConstantIntFolder extends ConstantIntFolder {
     } catch (e) {
       return evaluator.createEvaluationErrorConstant(
         node,
-        codeConstEvalTruncateError.withArguments('$left', '$right'),
+        codeConstEvalTruncateError.withArgumentsOld('$left', '$right'),
       );
     }
   }
@@ -232,7 +232,7 @@ class JsConstantIntFolder extends ConstantIntFolder {
         // Coverage-ignore: Probably unreachable.
         return evaluator.createExpressionErrorConstant(
           node,
-          codeNotConstantExpression.withArguments("Unary '$op' operation"),
+          codeNotConstantExpression.withArgumentsOld("Unary '$op' operation"),
         );
     }
   }
@@ -293,7 +293,7 @@ class JsConstantIntFolder extends ConstantIntFolder {
         // Coverage-ignore: Probably unreachable.
         return evaluator.createExpressionErrorConstant(
           node,
-          codeNotConstantExpression.withArguments("Binary '$op' operation"),
+          codeNotConstantExpression.withArgumentsOld("Binary '$op' operation"),
         );
     }
   }
@@ -304,7 +304,7 @@ class JsConstantIntFolder extends ConstantIntFolder {
     if (division.isNaN || division.isInfinite) {
       return evaluator.createEvaluationErrorConstant(
         node,
-        codeConstEvalTruncateError.withArguments('$left', '${right}'),
+        codeConstEvalTruncateError.withArgumentsOld('$left', '${right}'),
       );
     }
     double result = division.truncateToDouble();

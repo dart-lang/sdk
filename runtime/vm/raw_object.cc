@@ -558,7 +558,10 @@ VARIABLE_COMPRESSED_VISITOR(TypeArguments,
 VARIABLE_COMPRESSED_VISITOR(LocalVarDescriptors, raw_obj->untag()->num_entries_)
 VARIABLE_COMPRESSED_VISITOR(ExceptionHandlers, raw_obj->untag()->num_entries())
 VARIABLE_COMPRESSED_VISITOR(Context, raw_obj->untag()->num_variables_)
-VARIABLE_COMPRESSED_VISITOR(Array, Smi::Value(raw_obj->untag()->length()))
+// relaxed: for Array truncation
+VARIABLE_COMPRESSED_VISITOR(
+    Array,
+    Smi::Value(raw_obj->untag()->length<std::memory_order_relaxed>()))
 VARIABLE_COMPRESSED_VISITOR(
     TypedData,
     TypedData::ElementSizeInBytes(raw_obj->GetClassIdOfHeapObject()) *

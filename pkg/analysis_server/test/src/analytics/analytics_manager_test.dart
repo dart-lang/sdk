@@ -505,6 +505,7 @@ class AnalyticsManagerTest with ResourceProviderMixin {
     '/some/packages/path',
     TestNotificationManager(),
     InstrumentationService.NULL_SERVICE,
+    isLegacy: true,
   );
 }
 

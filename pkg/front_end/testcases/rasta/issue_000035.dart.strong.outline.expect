@@ -19,7 +19,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class C {æøC();}
 //       ^
 // pkg/front_end/testcases/rasta/issue_000035.dart:5:10: Context: 'C.æøC' is defined here.

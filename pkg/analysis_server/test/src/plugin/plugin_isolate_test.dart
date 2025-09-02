@@ -47,6 +47,7 @@ class PluginIsolateTest with ResourceProviderMixin, _ContextRoot {
       packagesPath,
       notificationManager,
       InstrumentationService.NULL_SERVICE,
+      isLegacy: true,
     );
   }
 
@@ -133,6 +134,7 @@ class PluginSessionFromDiskTest extends PluginTestSupport {
           packagesPath,
           notificationManager,
           InstrumentationService.NULL_SERVICE,
+          isLegacy: true,
         );
         var session = PluginSession(pluginIsolate);
         pluginIsolate.currentSession = session;
@@ -165,6 +167,7 @@ class PluginSessionTest with ResourceProviderMixin {
       packagesPath,
       notificationManager,
       InstrumentationService.NULL_SERVICE,
+      isLegacy: true,
     );
     session = PluginSession(pluginIsolate);
   }

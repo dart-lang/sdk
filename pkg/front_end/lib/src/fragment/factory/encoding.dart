@@ -413,7 +413,7 @@ class FactoryEncoding implements InferredTypeListener {
       if (result != null && result.isInvalidLookup) {
         _addProblemForRedirectingFactory(
           libraryBuilder: libraryBuilder,
-          message: codeDuplicatedDeclarationUse.withArguments(
+          message: codeDuplicatedDeclarationUse.withArgumentsOld(
             redirectionTarget.fullNameForErrors,
           ),
           fileOffset: redirectionTarget.charOffset,
@@ -428,7 +428,7 @@ class FactoryEncoding implements InferredTypeListener {
       } else {
         _addProblemForRedirectingFactory(
           libraryBuilder: libraryBuilder,
-          message: codeRedirectionTargetNotFound.withArguments(
+          message: codeRedirectionTargetNotFound.withArgumentsOld(
             redirectionTarget.fullNameForErrors,
           ),
           fileOffset: redirectionTarget.charOffset,
@@ -441,7 +441,7 @@ class FactoryEncoding implements InferredTypeListener {
           targetNode.enclosingClass.isAbstract) {
         _addProblemForRedirectingFactory(
           libraryBuilder: libraryBuilder,
-          message: codeAbstractRedirectedClassInstantiation.withArguments(
+          message: codeAbstractRedirectedClassInstantiation.withArgumentsOld(
             redirectionTarget.fullNameForErrors,
           ),
           fileOffset: redirectionTarget.charOffset,
@@ -565,7 +565,7 @@ class FactoryEncoding implements InferredTypeListener {
     if (_isCyclicRedirectingFactory(factoryBuilder)) {
       _addProblemForRedirectingFactory(
         libraryBuilder: libraryBuilder,
-        message: codeCyclicRedirectingFactoryConstructors.withArguments(
+        message: codeCyclicRedirectingFactoryConstructors.withArgumentsOld(
           "${factoryBuilder.declarationBuilder.name}"
           "${_fragment.name == '' ? '' : '.${_fragment.name}'}",
         ),
@@ -640,7 +640,7 @@ class FactoryEncoding implements InferredTypeListener {
       )) {
         _addProblemForRedirectingFactory(
           libraryBuilder: libraryBuilder,
-          message: codeIncompatibleRedirecteeFunctionType.withArguments(
+          message: codeIncompatibleRedirecteeFunctionType.withArgumentsOld(
             redirecteeType,
             factoryTypeWithoutTypeParameters,
           ),
@@ -705,7 +705,7 @@ class FactoryEncoding implements InferredTypeListener {
         targetFunctionType.typeParameters.length != typeArguments.length) {
       _addProblemForRedirectingFactory(
         libraryBuilder: libraryBuilder,
-        message: codeTypeArgumentMismatch.withArguments(
+        message: codeTypeArgumentMismatch.withArgumentsOld(
           targetFunctionType.typeParameters.length,
         ),
         fileOffset: redirectionTarget.charOffset,
@@ -737,7 +737,7 @@ class FactoryEncoding implements InferredTypeListener {
           _addProblemForRedirectingFactory(
             libraryBuilder: libraryBuilder,
             message: codeRedirectingFactoryIncompatibleTypeArgument
-                .withArguments(typeArgument, typeParameterBound),
+                .withArgumentsOld(typeArgument, typeParameterBound),
             fileOffset: redirectionTarget.charOffset,
             length: noLength,
             fileUri: redirectionTarget.fileUri,
@@ -749,7 +749,7 @@ class FactoryEncoding implements InferredTypeListener {
             _addProblemForRedirectingFactory(
               libraryBuilder: libraryBuilder,
               message: codeRedirectingFactoryIncompatibleTypeArgument
-                  .withArguments(typeArgument, typeParameterBound),
+                  .withArgumentsOld(typeArgument, typeParameterBound),
               fileOffset: redirectionTarget.charOffset,
               length: noLength,
               fileUri: redirectionTarget.fileUri,

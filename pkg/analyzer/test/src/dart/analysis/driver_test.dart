@@ -12278,6 +12278,105 @@ class A {
     );
   }
 
+  test_dependency_class_namedConstructor_add_isValidMixin() async {
+    configuration.withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      state.singleUnit.scopeClassElement('A').isValidMixin;
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            allConstructors: #M2
+[status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+''',
+      updatedA: r'''
+class A {
+  A.named();
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredConstructors
+          named: #M3
+        interface: #M1
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  interfaceChildrenIdsMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    childrenPropertyName: constructors
+    expectedIds: #M2
+    actualIds: #M3
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            allConstructors: #M3
+[status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+''',
+    );
+  }
+
   test_dependency_class_namedConstructor_change_getConstructors() async {
     configuration.includeDefaultConstructors();
 
@@ -39550,6 +39649,51 @@ class A {
     );
   }
 
+  test_manifest_class_constructor_isSynthetic() async {
+    configuration.includeDefaultConstructors();
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {}
+class B {
+  B();
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredConstructors
+          new: #M1
+        interface: #M2
+      B: #M3
+        declaredConstructors
+          new: #M4
+        interface: #M5
+''',
+      updatedCode: r'''
+class A {
+  A();
+}
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredConstructors
+          new: #M6
+        interface: #M2
+      B: #M3
+        declaredConstructors
+          new: #M7
+        interface: #M5
+''',
+    );
+  }
+
   test_manifest_class_constructor_metadata() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -41066,6 +41210,56 @@ abstract class D implements C {}
           map
             foo: #M10
             xxx: #M13
+''',
+    );
+  }
+
+  test_manifest_class_getter_isSynthetic() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  final int foo1 = 0;
+  int get foo2 => 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo1: #M1
+          foo2: #M2
+        declaredGetters
+          foo1: #M3
+          foo2: #M4
+        interface: #M5
+          map
+            foo1: #M3
+            foo2: #M4
+''',
+      updatedCode: r'''
+class A {
+  int get foo1 => 0;
+  final int foo2 = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo1: #M6
+          foo2: #M7
+        declaredGetters
+          foo1: #M8
+          foo2: #M9
+        interface: #M10
+          map
+            foo1: #M8
+            foo2: #M9
 ''',
     );
   }
@@ -44680,6 +44874,38 @@ class D {}
     );
   }
 
+  test_manifest_class_modifier_isSimplyBounded() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A<T> {}
+class B<T extends List<T>> {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+''',
+      updatedCode: r'''
+class A<T extends List<T>> {}
+class B<T> {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M4
+        interface: #M5
+      B: #M6
+        interface: #M7
+''',
+    );
+  }
+
   test_manifest_class_private() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -45399,6 +45625,55 @@ class A {
             foo2=: #M6
             foo3=: #M10
             foo4=: #M11
+''',
+    );
+  }
+
+  test_manifest_class_setter_isSynthetic() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int foo = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredGetters
+          foo: #M2
+        declaredSetters
+          foo=: #M3
+        interface: #M4
+          map
+            foo: #M2
+            foo=: #M3
+''',
+      updatedCode: r'''
+class A {
+  int get foo => 0;
+  set foo(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M5
+        declaredGetters
+          foo: #M6
+        declaredSetters
+          foo=: #M7
+        interface: #M8
+          map
+            foo: #M6
+            foo=: #M7
 ''',
     );
   }
@@ -55782,6 +56057,34 @@ int get a => 1;
     );
   }
 
+  test_manifest_topLevelGetter_isSynthetic() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+final int foo = 0;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      foo: #M0
+    declaredVariables
+      foo: #M1
+''',
+      updatedCode: r'''
+int get foo => 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      foo: #M2
+    declaredVariables
+      foo: #M3
+''',
+    );
+  }
+
   test_manifest_topLevelGetter_metadata() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -55930,6 +56233,39 @@ set a(int _) { 1; }
       expectedUpdatedEvents: r'''
 [operation] reuseLinkedBundle
   package:test/test.dart
+''',
+    );
+  }
+
+  test_manifest_topLevelSetter_isSynthetic() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+int foo = 0;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      foo: #M0
+    declaredSetters
+      foo=: #M1
+    declaredVariables
+      foo: #M2
+''',
+      updatedCode: r'''
+int get foo => 0;
+set foo(int _) {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      foo: #M3
+    declaredSetters
+      foo=: #M4
+    declaredVariables
+      foo: #M5
 ''',
     );
   }

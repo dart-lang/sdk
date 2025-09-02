@@ -92,7 +92,7 @@ class PrefixBuilder extends NamedBuilderImpl
   }) {
     if (deferred && member is ExtensionBuilder) {
       parent.addProblem(
-        codeDeferredExtensionImport.withArguments(name),
+        codeDeferredExtensionImport.withArgumentsOld(name),
         importOffset,
         noLength,
         fileUri,

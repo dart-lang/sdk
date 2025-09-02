@@ -1311,7 +1311,7 @@ Expression _convertToErroneousElement(
   // TODO(johnniwinther): How can this be triggered? This will fail if
   // encountered in top level inference.
   return helper!.buildProblem(
-    codeExpectedButGot.withArguments(','),
+    codeExpectedButGot.withArgumentsOld(','),
     entry.fileOffset,
     1,
   );
@@ -1447,7 +1447,7 @@ MapLiteralEntry _convertToErroneousMapEntry(
 ) {
   return new MapLiteralEntry(
     helper.buildProblem(
-      codeExpectedAfterButGot.withArguments(':'),
+      codeExpectedAfterButGot.withArgumentsOld(':'),
       element.fileOffset,
       // TODO(danrubel): what is the length of the expression?
       noLength,

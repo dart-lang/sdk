@@ -176,7 +176,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
               declaration,
             }) {
               seenTypeAliasBuilder.libraryBuilder.addProblem(
-                codeCyclicTypedef.withArguments(seenTypeAliasBuilder.name),
+                codeCyclicTypedef.withArgumentsOld(seenTypeAliasBuilder.name),
                 seenTypeAliasBuilder.fileOffset,
                 seenTypeAliasBuilder.name.length,
                 seenTypeAliasBuilder.fileUri,
@@ -392,7 +392,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       );
       return unhandled(
         codeTypeArgumentMismatch
-            .withArguments(typeParametersCount)
+            .withArgumentsOld(typeParametersCount)
             .problemMessage,
         "buildTypeArguments",
         -1,

@@ -1,0 +1,17 @@
+class Color {
+final int x;
+const Color.red(this.x);
+}
+void main() {
+Color c = const .r;
+}
+
+
+class[KeywordToken] Color[StringToken] {[BeginToken]
+final[KeywordToken] int[StringToken] x[StringToken];[SimpleToken]
+const[KeywordToken] Color[StringToken].[SimpleToken]red[StringToken]([BeginToken]this[KeywordToken].[SimpleToken]x[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+void[KeywordToken] main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+Color[StringToken] c[StringToken] =[SimpleToken] const[KeywordToken] .[SimpleToken]r[StringToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

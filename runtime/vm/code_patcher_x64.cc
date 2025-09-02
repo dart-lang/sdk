@@ -147,7 +147,7 @@ class UnoptimizedCall : public ValueObject {
   }
 
   void set_target(const Code& target) const {
-    object_pool_.SetObjectAt(code_index_, target);
+    object_pool_.SetObjectAt<std::memory_order_release>(code_index_, target);
     // No need to flush the instruction cache, since the code is not modified.
   }
 
@@ -181,7 +181,8 @@ class NativeCall : public ValueObject {
   }
 
   void set_native_function(NativeFunction func) const {
-    object_pool_.SetRawValueAt(argument_index(), reinterpret_cast<uword>(func));
+    object_pool_.SetRawValueAt<std::memory_order_relaxed>(
+        argument_index(), reinterpret_cast<uword>(func));
   }
 
   CodePtr target() const {
@@ -191,7 +192,7 @@ class NativeCall : public ValueObject {
   }
 
   void set_target(const Code& target) const {
-    object_pool_.SetObjectAt(code_index_, target);
+    object_pool_.SetObjectAt<std::memory_order_release>(code_index_, target);
     // No need to flush the instruction cache, since the code is not modified.
   }
 
@@ -220,7 +221,7 @@ class InstanceCall : public UnoptimizedCall {
   ObjectPtr data() const { return object_pool_.ObjectAt(argument_index()); }
   void set_data(const Object& data) const {
     ASSERT(data.IsArray() || data.IsICData() || data.IsMegamorphicCache());
-    object_pool_.SetObjectAt(argument_index(), data);
+    object_pool_.SetObjectAt<std::memory_order_release>(argument_index(), data);
   }
 
  private:
@@ -265,7 +266,7 @@ class PoolPointerCall : public ValueObject {
   }
 
   void SetTarget(const Code& target) const {
-    object_pool_.SetObjectAt(code_index_, target);
+    object_pool_.SetObjectAt<std::memory_order_release>(code_index_, target);
     // No need to flush the instruction cache, since the code is not modified.
   }
 
@@ -294,7 +295,7 @@ class SwitchableCallBase : public ValueObject {
 
   void SetData(const Object& data) const {
     ASSERT(!Object::Handle(object_pool_.ObjectAt(data_index())).IsCode());
-    object_pool_.SetObjectAt(data_index(), data);
+    object_pool_.SetObjectAt<std::memory_order_release>(data_index(), data);
     // No need to flush the instruction cache, since the code is not modified.
   }
 
@@ -353,7 +354,7 @@ class SwitchableCall : public SwitchableCallBase {
 
   void SetTarget(const Code& target) const {
     ASSERT(Object::Handle(object_pool_.ObjectAt(target_index())).IsCode());
-    object_pool_.SetObjectAt(target_index(), target);
+    object_pool_.SetObjectAt<std::memory_order_release>(target_index(), target);
     // No need to flush the instruction cache, since the code is not modified.
   }
 
@@ -424,7 +425,8 @@ class BareSwitchableCall : public SwitchableCallBase {
   void SetTarget(const Code& target) const {
     ASSERT(object_pool_.TypeAt(target_index()) ==
            ObjectPool::EntryType::kImmediate);
-    object_pool_.SetRawValueAt(target_index(), target.MonomorphicEntryPoint());
+    object_pool_.SetRawValueAt<std::memory_order_relaxed>(
+        target_index(), target.MonomorphicEntryPoint());
   }
 
   uword target_entry() const { return object_pool_.RawValueAt(target_index()); }

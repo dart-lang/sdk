@@ -153,7 +153,7 @@ Future<void> main() async {
       new FunctionNode(null),
       fileUri: uri,
     );
-    Message message = codeUnspecified.withArguments("My Message.");
+    Message message = codeUnspecified.withArgumentsOld("My Message.");
     Name binaryOperator = new Name("+");
     Name name = new Name("bar");
     PrefixBuilder prefixBuilder = new PrefixBuilder(

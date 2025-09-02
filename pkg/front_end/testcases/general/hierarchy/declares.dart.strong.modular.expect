@@ -12,7 +12,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class Super {
 //       ^^^^^
 // pkg/front_end/testcases/general/hierarchy/declares.dart:12:8: Context: 'Super.extendedAbstractDeclaredAbstractMethod' is defined here.
@@ -37,7 +36,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class Class extends Super implements Interface {
 //       ^^^^^
 // pkg/front_end/testcases/general/hierarchy/declares.dart:44:8: Context: 'Class.extendedAbstractDeclaredAbstractMethod' is defined here.

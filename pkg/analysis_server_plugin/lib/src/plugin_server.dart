@@ -76,13 +76,14 @@ class PluginServer {
 
   final List<Plugin> _plugins;
 
-  final _registry = PluginRegistryImpl();
-
   /// The recent state of analysis reults, to be cleared on file changes.
   final _recentState = <String, _PluginState>{};
 
-  /// The next modification stamp for a changed file in the [resourceProvider].
+  /// The next modification stamp for a changed file in the [_resourceProvider].
   int _overlayModificationStamp = 0;
+
+  /// The list of registered features for each plugin, for reporting purposes.
+  final _registries = <PluginRegistryImpl>[];
 
   PluginServer({
     required ResourceProvider resourceProvider,
@@ -90,9 +91,11 @@ class PluginServer {
   }) : _resourceProvider = OverlayResourceProvider(resourceProvider),
        _plugins = plugins {
     for (var plugin in plugins) {
-      plugin.register(_registry);
+      var registry = PluginRegistryImpl(plugin.name);
+      _registries.add(registry);
+      plugin.register(registry);
     }
-    _registry.registerIgnoreProducerGenerators();
+    PluginRegistryImpl.registerIgnoreProducerGenerators();
   }
 
   /// Handles an 'analysis.setPriorityFiles' request.
@@ -525,6 +528,30 @@ class PluginServer {
 
       case protocol.EDIT_REQUEST_GET_REFACTORING:
         result = null;
+
+      case protocol.PLUGIN_REQUEST_DETAILS:
+        var details = <protocol.PluginDetails>[];
+        for (var pluginRegistry in _registries) {
+          var assists = [
+            for (var assistKind in pluginRegistry.assistKinds)
+              protocol.AssistDescription(assistKind.id, assistKind.message),
+          ];
+          var fixes = [
+            for (var MapEntry(key: fixKind, value: codes)
+                in pluginRegistry.fixKinds.entries)
+              protocol.FixDescription(fixKind.id, fixKind.message, codes),
+          ];
+          details.add(
+            protocol.PluginDetails(
+              pluginRegistry.pluginName,
+              pluginRegistry.lintRules,
+              pluginRegistry.warningRules,
+              assists,
+              fixes,
+            ),
+          );
+        }
+        result = protocol.PluginDetailsResult(details);
 
       case protocol.PLUGIN_REQUEST_SHUTDOWN:
         _channel.sendResponse(

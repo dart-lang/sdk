@@ -466,7 +466,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     // TODO(ahe): We should probably use a context object here
     // instead of including URIs in this message.
-    Message message = codeDuplicatedExport.withArguments(
+    Message message = codeDuplicatedExport.withArgumentsOld(
       name,
       firstUri,
       secondUri,
@@ -991,7 +991,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       bool isValid = typeEnvironment.isSubtypeOf(getterType, setterType);
       if (!isValid) {
         addProblem2(
-          codeInvalidGetterSetterType.withArguments(
+          codeInvalidGetterSetterType.withArgumentsOld(
             getterType,
             getterName,
             setterType,
@@ -1000,7 +1000,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           getterUriOffset,
           context: [
             codeInvalidGetterSetterTypeSetterContext
-                .withArguments(setterName)
+                .withArgumentsOld(setterName)
                 .withLocation2(setterUriOffset),
           ],
         );
@@ -1411,7 +1411,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (issue.isGenericTypeAsArgumentIssue) {
         if (issueInferred) {
           message = codeGenericFunctionTypeInferredAsActualTypeArgument
-              .withArguments(argument);
+              .withArgumentsOld(argument);
         } else {
           message = codeGenericFunctionTypeUsedAsActualTypeArgument;
         }
@@ -1421,7 +1421,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           if (targetName != null) {
             if (issueInferred) {
               message = codeIncorrectTypeArgumentQualifiedInferred
-                  .withArguments(
+                  .withArgumentsOld(
                     argument,
                     typeParameter.bound,
                     typeParameter.name!,
@@ -1429,7 +1429,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                     targetName,
                   );
             } else {
-              message = codeIncorrectTypeArgumentQualified.withArguments(
+              message = codeIncorrectTypeArgumentQualified.withArgumentsOld(
                 argument,
                 typeParameter.bound,
                 typeParameter.name!,
@@ -1440,14 +1440,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           } else {
             if (issueInferred) {
               message = codeIncorrectTypeArgumentInstantiationInferred
-                  .withArguments(
+                  .withArgumentsOld(
                     argument,
                     typeParameter.bound,
                     typeParameter.name!,
                     targetReceiver,
                   );
             } else {
-              message = codeIncorrectTypeArgumentInstantiation.withArguments(
+              message = codeIncorrectTypeArgumentInstantiation.withArgumentsOld(
                 argument,
                 typeParameter.bound,
                 typeParameter.name!,
@@ -1460,14 +1460,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               ? targetName!
               : getGenericTypeName(issue.enclosingType!);
           if (issueInferred) {
-            message = codeIncorrectTypeArgumentInferred.withArguments(
+            message = codeIncorrectTypeArgumentInferred.withArgumentsOld(
               argument,
               typeParameter.bound,
               typeParameter.name!,
               enclosingName,
             );
           } else {
-            message = codeIncorrectTypeArgument.withArguments(
+            message = codeIncorrectTypeArgument.withArgumentsOld(
               argument,
               typeParameter.bound,
               typeParameter.name!,
@@ -1522,7 +1522,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       // Coverage-ignore-block(suite): Not run.
       (context ??= <LocatedMessage>[]).add(
         codeSuperBoundedHint
-            .withArguments(superBoundedAttempt, superBoundedAttemptInverted)
+            .withArgumentsOld(superBoundedAttempt, superBoundedAttemptInverted)
             .withLocation(fileUri, fileOffset, noLength),
       );
     }
@@ -1556,7 +1556,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               <LocatedMessage>[])
           .add(
             codeSuperBoundedHint
-                .withArguments(superBoundedAttempt, superBoundedAttemptInverted)
+                .withArgumentsOld(
+                  superBoundedAttempt,
+                  superBoundedAttemptInverted,
+                )
                 .withLocation(fileUri, fileOffset, noLength),
           );
     }
@@ -1587,7 +1590,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         fieldType.isPotentiallyNonNullable &&
         !hasInitializer) {
       addProblem(
-        codeFieldNonNullableWithoutInitializerError.withArguments(
+        codeFieldNonNullableWithoutInitializerError.withArgumentsOld(
           name,
           fieldType,
         ),
@@ -1616,7 +1619,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             formal.variable!.type.isPotentiallyNonNullable &&
             !formal.hasDeclaredInitializer) {
           addProblem(
-            codeOptionalNonNullableWithoutInitializerError.withArguments(
+            codeOptionalNonNullableWithoutInitializerError.withArgumentsOld(
               formal.name,
               formal.variable!.type,
             ),
@@ -2088,7 +2091,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       DartType unaliased = type.unalias;
       if (hasGenericFunctionTypeAsTypeArgument(unaliased)) {
         addProblem(
-          codeGenericFunctionTypeAsTypeArgumentThroughTypedef.withArguments(
+          codeGenericFunctionTypeAsTypeArgumentThroughTypedef.withArgumentsOld(
             unaliased,
             type,
           ),

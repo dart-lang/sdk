@@ -87,7 +87,7 @@ class ClassOrMixinOrExtensionIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.codeExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArgumentsOld(identifier),
       );
     } else if (identifier.type.isBuiltIn) {
       parser.reportRecoverableErrorWithToken(
@@ -149,7 +149,7 @@ class CombinatorIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.codeExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArgumentsOld(identifier),
       );
     } else if (looksLikeStartOfNextTopLevelDeclaration(identifier) &&
         (identifier.next == null ||
@@ -157,7 +157,7 @@ class CombinatorIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.codeExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArgumentsOld(identifier),
       );
     } else {
       if (!identifier.isKeywordOrIdentifier) {
@@ -213,7 +213,7 @@ class ConstructorReferenceIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.codeExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArgumentsOld(identifier),
       );
     } else {
       // Use the keyword as the identifier.
@@ -262,7 +262,7 @@ class DottedNameIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.codeExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArgumentsOld(identifier),
       );
     } else {
       if (!identifier.isKeywordOrIdentifier) {
@@ -309,7 +309,7 @@ class EnumDeclarationIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.codeExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArgumentsOld(identifier),
       );
     } else if (identifier.type.isBuiltIn) {
       parser.reportRecoverableErrorWithToken(
@@ -496,7 +496,7 @@ class FieldDeclarationIdentifierContext extends IdentifierContext {
       return parser.insertSyntheticIdentifier(
         identifier,
         this,
-        message: codes.codeExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArgumentsOld(identifier),
         messageOnToken: identifier,
       );
     } else {
@@ -598,7 +598,7 @@ class FormalParameterDeclarationIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.codeExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArgumentsOld(identifier),
       );
     } else {
       if (!identifier.isKeywordOrIdentifier) {
@@ -656,7 +656,7 @@ class RecordFieldDeclarationIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.codeExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArgumentsOld(identifier),
       );
     } else {
       if (!identifier.isKeywordOrIdentifier) {
@@ -719,13 +719,13 @@ class ImportPrefixIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.codeExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArgumentsOld(identifier),
       );
     } else if (_isOneOfFollowingValues(identifier)) {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.codeExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArgumentsOld(identifier),
       );
     } else {
       if (!identifier.isKeywordOrIdentifier) {
@@ -768,7 +768,7 @@ class LiteralSymbolIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.codeExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArgumentsOld(identifier),
       );
     } else {
       // Use the keyword as the identifier.
@@ -814,7 +814,7 @@ class LocalFunctionDeclarationIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.codeExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArgumentsOld(identifier),
       );
     } else {
       if (!identifier.isKeywordOrIdentifier) {
@@ -858,7 +858,7 @@ class LabelDeclarationIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.codeExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArgumentsOld(identifier),
       );
     } else {
       if (!identifier.isKeywordOrIdentifier) {
@@ -899,7 +899,7 @@ class LabelReferenceIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.codeExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArgumentsOld(identifier),
       );
     } else {
       if (!identifier.isKeywordOrIdentifier) {
@@ -974,7 +974,7 @@ class LibraryIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.codeExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArgumentsOld(identifier),
       );
     } else if (looksLikeStartOfNextTopLevelDeclaration(identifier) &&
         (identifier.next == null ||
@@ -982,7 +982,7 @@ class LibraryIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.codeExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArgumentsOld(identifier),
       );
     } else {
       if (!identifier.isKeywordOrIdentifier) {
@@ -1031,7 +1031,7 @@ class LocalVariableDeclarationIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.codeExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArgumentsOld(identifier),
       );
     } else {
       if (!identifier.isKeywordOrIdentifier) {
@@ -1089,7 +1089,7 @@ class MetadataReferenceIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.codeExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArgumentsOld(identifier),
       );
     } else {
       if (!identifier.isKeywordOrIdentifier) {
@@ -1173,7 +1173,7 @@ class MethodDeclarationIdentifierContext extends IdentifierContext {
       return parser.insertSyntheticIdentifier(
         identifier,
         this,
-        message: codes.codeExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArgumentsOld(identifier),
         messageOnToken: identifier,
       );
     } else {
@@ -1231,7 +1231,7 @@ class NamedArgumentReferenceIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.codeExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArgumentsOld(identifier),
       );
     } else {
       if (!identifier.isKeywordOrIdentifier) {
@@ -1276,7 +1276,7 @@ class NamedRecordFieldReferenceIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.codeExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArgumentsOld(identifier),
       );
     } else {
       if (!identifier.isKeywordOrIdentifier) {
@@ -1329,7 +1329,7 @@ class TopLevelDeclarationIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.codeExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArgumentsOld(identifier),
       );
     } else if (identifier.type.isBuiltIn) {
       parser.reportRecoverableErrorWithToken(
@@ -1430,7 +1430,7 @@ class TypedefDeclarationIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.codeExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArgumentsOld(identifier),
       );
     } else {
       if (!identifier.isKeywordOrIdentifier) {

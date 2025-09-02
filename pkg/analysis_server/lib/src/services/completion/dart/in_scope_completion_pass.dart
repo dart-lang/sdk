@@ -927,6 +927,22 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    var period = node.period;
+    if (offset >= period.end && offset <= node.constructorName.end) {
+      var contextType = _computeContextType(node);
+      if (contextType is! InterfaceType) return;
+      declarationHelper(
+        mustBeConstant: node.isConst,
+        suggestingDotShorthand: true,
+        suggestUnnamedAsNew: true,
+      ).addConstructorNamesForType(type: contextType);
+    }
+  }
+
+  @override
   void visitDotShorthandInvocation(DotShorthandInvocation node) {
     var period = node.period;
     if (offset >= period.end && offset <= node.memberName.end) {
@@ -937,6 +953,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       if (element == null) return;
 
       declarationHelper(
+        mustBeConstant: node.inConstantContext,
         suggestingDotShorthand: true,
         suggestUnnamedAsNew: true,
       ).addStaticMembersOfElement(element);
@@ -956,6 +973,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     // can be any of the three.
     declarationHelper(
       suggestingDotShorthand: true,
+      mustBeConstant: node.inConstantContext,
       preferNonInvocation:
           element is InterfaceElement &&
           state.request.shouldSuggestTearOff(element),

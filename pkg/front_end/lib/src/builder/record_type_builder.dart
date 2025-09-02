@@ -218,13 +218,13 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
           RecordTypeFieldBuilder? existingField = fieldsMap[fieldName];
           if (existingField != null) {
             library.addProblem(
-              codeDuplicatedRecordTypeFieldName.withArguments(fieldName),
+              codeDuplicatedRecordTypeFieldName.withArgumentsOld(fieldName),
               field.charOffset,
               fieldName.length,
               fileUri,
               context: [
                 codeDuplicatedRecordTypeFieldNameContext
-                    .withArguments(fieldName)
+                    .withArgumentsOld(fieldName)
                     .withLocation(
                       fileUri,
                       existingField.charOffset,
@@ -295,13 +295,13 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
         RecordTypeFieldBuilder? existingField = fieldsMap[name];
         if (existingField != null) {
           library.addProblem(
-            codeDuplicatedRecordTypeFieldName.withArguments(name),
+            codeDuplicatedRecordTypeFieldName.withArgumentsOld(name),
             field.charOffset,
             name.length,
             fileUri,
             context: [
               codeDuplicatedRecordTypeFieldNameContext
-                  .withArguments(name)
+                  .withArgumentsOld(name)
                   .withLocation(fileUri, existingField.charOffset, name.length),
             ],
           );

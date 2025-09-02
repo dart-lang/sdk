@@ -185,12 +185,12 @@ class SetConstantBuilder extends _ListOrSetConstantBuilder<SetLiteral> {
       if (evaluator.staticTypeContext.enablePrimitiveEquality) {
         return evaluator.createEvaluationErrorConstant(
           context,
-          codeConstEvalElementNotPrimitiveEquality.withArguments(constant),
+          codeConstEvalElementNotPrimitiveEquality.withArgumentsOld(constant),
         );
       } else {
         return evaluator.createEvaluationErrorConstant(
           context,
-          codeConstEvalElementImplementsEqual.withArguments(constant),
+          codeConstEvalElementImplementsEqual.withArgumentsOld(constant),
         );
       }
     }
@@ -198,7 +198,7 @@ class SetConstantBuilder extends _ListOrSetConstantBuilder<SetLiteral> {
     if (!unseen) {
       return evaluator.createEvaluationErrorConstant(
         context,
-        codeConstEvalDuplicateElement.withArguments(constant),
+        codeConstEvalDuplicateElement.withArgumentsOld(constant),
       );
     }
 
@@ -358,13 +358,13 @@ class MapConstantBuilder {
       if (evaluator.staticTypeContext.enablePrimitiveEquality) {
         return evaluator.createEvaluationErrorConstant(
           keyContext,
-          codeConstEvalKeyNotPrimitiveEquality.withArguments(key),
+          codeConstEvalKeyNotPrimitiveEquality.withArgumentsOld(key),
         );
       } else {
         // Coverage-ignore-block(suite): Not run.
         return evaluator.createEvaluationErrorConstant(
           keyContext,
-          codeConstEvalKeyImplementsEqual.withArguments(key),
+          codeConstEvalKeyImplementsEqual.withArgumentsOld(key),
         );
       }
     }
@@ -372,7 +372,7 @@ class MapConstantBuilder {
     if (!unseenKey) {
       return evaluator.createEvaluationErrorConstant(
         keyContext,
-        codeConstEvalDuplicateKey.withArguments(key),
+        codeConstEvalDuplicateKey.withArgumentsOld(key),
       );
     }
 

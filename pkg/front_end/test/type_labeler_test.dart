@@ -9,7 +9,7 @@ import 'package:kernel/ast.dart';
 void main() {
   void check(Map<Node, String> expectations, int bulletCount) {
     TypeLabeler labeler = new TypeLabeler();
-    Map<Node, List<Object>> conversions = {};
+    Map<Node, LabeledString> conversions = {};
     expectations.forEach((Node node, String expected) {
       if (node is DartType) {
         conversions[node] = labeler.labelType(node);
@@ -20,7 +20,7 @@ void main() {
       }
     });
     expectations.forEach((Node node, String expected) {
-      Expect.stringEquals(expected, conversions[node]!.join());
+      Expect.stringEquals(expected, conversions[node]!.toString());
     });
     int newlines = "\n".allMatches(labeler.originMessages).length;
     Expect.equals(bulletCount, newlines);

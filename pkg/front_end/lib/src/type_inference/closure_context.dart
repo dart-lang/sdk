@@ -250,7 +250,10 @@ class _SyncClosureContext implements ClosureContext {
         // nor dynamic, and S is void.
         statement.expression = inferrer.helper.wrapInProblem(
           statement.expression!,
-          codeInvalidReturn.withArguments(expressionType, _declaredReturnType),
+          codeInvalidReturn.withArgumentsOld(
+            expressionType,
+            _declaredReturnType,
+          ),
           statement.expression!.fileOffset,
           noLength,
         )..parent = statement;
@@ -394,7 +397,7 @@ class _SyncClosureContext implements ClosureContext {
       Statement returnStatement = new ReturnStatement(
         inferrer.helper.wrapInProblem(
           new NullLiteral()..fileOffset = fileOffset,
-          codeImplicitReturnNull.withArguments(returnType),
+          codeImplicitReturnNull.withArgumentsOld(returnType),
           fileOffset,
           noLength,
         ),
@@ -521,7 +524,7 @@ class _AsyncClosureContext implements ClosureContext {
         // flatten(S) is neither void, dynamic, Null.
         statement.expression = inferrer.helper.wrapInProblem(
           new NullLiteral()..fileOffset = statement.fileOffset,
-          codeInvalidReturnAsync.withArguments(expressionType, returnType),
+          codeInvalidReturnAsync.withArgumentsOld(expressionType, returnType),
           statement.expression!.fileOffset,
           noLength,
         )..parent = statement;
@@ -533,7 +536,7 @@ class _AsyncClosureContext implements ClosureContext {
         // nor dynamic, and flatten(S) is void.
         statement.expression = inferrer.helper.wrapInProblem(
           new NullLiteral()..fileOffset = statement.fileOffset,
-          codeInvalidReturnAsync.withArguments(expressionType, returnType),
+          codeInvalidReturnAsync.withArgumentsOld(expressionType, returnType),
           statement.expression!.fileOffset,
           noLength,
         )..parent = statement;
@@ -685,7 +688,7 @@ class _AsyncClosureContext implements ClosureContext {
       Statement returnStatement = new ReturnStatement(
         inferrer.helper.wrapInProblem(
           new NullLiteral()..fileOffset = fileOffset,
-          codeImplicitReturnNull.withArguments(returnType),
+          codeImplicitReturnNull.withArgumentsOld(returnType),
           fileOffset,
           noLength,
         ),

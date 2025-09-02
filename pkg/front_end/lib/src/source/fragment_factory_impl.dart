@@ -773,7 +773,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       // or to the initial quote if no position is given.
       // (Assumes the directive is using a single-line string.)
       _problemReporting.addProblem(
-        codeCouldNotParseUri.withArguments(uri, e.message),
+        codeCouldNotParseUri.withArgumentsOld(uri, e.message),
         uriOffset +
             1 +
             (e.offset ?? // Coverage-ignore(suite): Not run.
@@ -1805,7 +1805,7 @@ class FragmentFactoryImpl implements FragmentFactory {
         _compilationUnit.fileUri,
         context: [
           codeConstructorWithWrongNameContext
-              .withArguments(enclosingDeclaration.name)
+              .withArgumentsOld(enclosingDeclaration.name)
               .withLocation2(enclosingDeclaration.uriOffset),
         ],
       );
@@ -2288,7 +2288,7 @@ class FragmentFactoryImpl implements FragmentFactory {
           _compilationUnit.fileUri,
           context: [
             codeTypeParameterDuplicatedNameCause
-                .withArguments(tv.name)
+                .withArgumentsOld(tv.name)
                 .withLocation(
                   _compilationUnit.fileUri,
                   existing.fileOffset,

@@ -1485,7 +1485,7 @@ class KernelTarget {
               fileUri = cls.fileUri;
             }
             classBuilder.libraryBuilder.addProblem(
-              codeSuperclassHasNoDefaultConstructor.withArguments(
+              codeSuperclassHasNoDefaultConstructor.withArgumentsOld(
                 cls.superclass!.name,
               ),
               offset,
@@ -1637,7 +1637,9 @@ class KernelTarget {
               // fields. See https://github.com/dart-lang/sdk/issues/33762
             } else {
               libraryBuilder.addProblem(
-                codeFinalFieldNotInitialized.withArguments(fieldBuilder.name),
+                codeFinalFieldNotInitialized.withArgumentsOld(
+                  fieldBuilder.name,
+                ),
                 fieldBuilder.fileOffset,
                 fieldBuilder.name.length,
                 fieldBuilder.fileUri,
@@ -1646,7 +1648,7 @@ class KernelTarget {
           } else if (fieldBuilder.fieldType is! InvalidType &&
               fieldBuilder.fieldType.isPotentiallyNonNullable) {
             libraryBuilder.addProblem(
-              codeFieldNonNullableWithoutInitializerError.withArguments(
+              codeFieldNonNullableWithoutInitializerError.withArgumentsOld(
                 fieldBuilder.name,
                 fieldBuilder.fieldType,
               ),
@@ -1679,7 +1681,7 @@ class KernelTarget {
             // properly.
             if (!constructorBuilder.invokeTarget.isErroneous) {
               libraryBuilder.addProblem(
-                codeFinalFieldNotInitializedByConstructor.withArguments(
+                codeFinalFieldNotInitializedByConstructor.withArgumentsOld(
                   fieldBuilder.name,
                 ),
                 constructorBuilder.fileOffset,
@@ -1687,7 +1689,7 @@ class KernelTarget {
                 constructorBuilder.fileUri,
                 context: [
                   codeMissingImplementationCause
-                      .withArguments(fieldBuilder.name)
+                      .withArgumentsOld(fieldBuilder.name)
                       .withLocation(
                         fieldBuilder.fileUri,
                         fieldBuilder.fileOffset,
@@ -1702,13 +1704,13 @@ class KernelTarget {
               fieldBuilder.fieldType.isPotentiallyNonNullable) {
             libraryBuilder.addProblem(
               codeFieldNonNullableNotInitializedByConstructorError
-                  .withArguments(fieldBuilder.name, fieldBuilder.fieldType),
+                  .withArgumentsOld(fieldBuilder.name, fieldBuilder.fieldType),
               constructorBuilder.fileOffset,
               noLength,
               constructorBuilder.fileUri,
               context: [
                 codeMissingImplementationCause
-                    .withArguments(fieldBuilder.name)
+                    .withArgumentsOld(fieldBuilder.name)
                     .withLocation(
                       fieldBuilder.fileUri,
                       fieldBuilder.fileOffset,

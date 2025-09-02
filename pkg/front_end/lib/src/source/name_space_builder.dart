@@ -130,7 +130,7 @@ class DeclarationNameSpaceBuilder {
       );
       if (tv != null) {
         _problemReporting.addProblem(
-          codeConflictsWithTypeParameter.withArguments(name),
+          codeConflictsWithTypeParameter.withArgumentsOld(name),
           memberBuilder.fileOffset,
           name.length,
           fileUri,
@@ -261,7 +261,7 @@ class _DeclarationBuilderRegistry implements BuilderRegistry {
       // TODO(johnniwinther): Test adding a no-name constructor in the
       //  patch, either as an injected or duplicated constructor.
       problemReporting.addProblem2(
-        codePatchInjectionFailed.withArguments(
+        codePatchInjectionFailed.withArgumentsOld(
           name,
           enclosingLibraryBuilder.importUri,
         ),
@@ -388,7 +388,7 @@ class _LibraryBuilderRegistry implements BuilderRegistry {
         !name.startsWith('_') &&
         !_allowInjectedPublicMember(enclosingLibraryBuilder, declaration)) {
       problemReporting.addProblem2(
-        codePatchInjectionFailed.withArguments(
+        codePatchInjectionFailed.withArgumentsOld(
           name,
           enclosingLibraryBuilder.importUri,
         ),

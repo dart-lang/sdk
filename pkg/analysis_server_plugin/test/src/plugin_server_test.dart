@@ -163,7 +163,7 @@ bool b = false;
   }
 
   Future<void> test_lintCodesCanHaveCustomSeverity() async {
-    writeAnalysisOptionsWithPlugin({'no_doubles_warning': 'enable'});
+    writeAnalysisOptionsWithPlugin({'no_doubles_custom_severity': 'enable'});
     newFile(filePath, 'double x = 3.14;');
     await channel.sendRequest(
       protocol.AnalysisSetContextRootsParams([contextRoot]),
@@ -179,7 +179,7 @@ bool b = false;
   }
 
   Future<void> test_lintCodesCanHaveConfigurableSeverity() async {
-    writeAnalysisOptionsWithPlugin({'no_doubles_warning': 'error'});
+    writeAnalysisOptionsWithPlugin({'no_doubles_custom_severity': 'error'});
     newFile(filePath, 'double x = 3.14;');
     await channel.sendRequest(
       protocol.AnalysisSetContextRootsParams([contextRoot]),
@@ -215,6 +215,32 @@ bool b = false;
     var params = await paramsQueue.next;
     expect(params.errors, hasLength(1));
     _expectAnalysisError(params.errors.single, message: 'No doubles message');
+  }
+
+  Future<void> test_pluginDetails() async {
+    writeAnalysisOptionsWithPlugin();
+    newFile(filePath, 'bool b = false;');
+
+    var response = await channel.sendRequest(protocol.PluginDetailsParams());
+
+    var result = protocol.PluginDetailsResult.fromResponse(response);
+    expect(result.plugins, hasLength(1));
+    var details = result.plugins.single;
+    expect(details.name, 'No Literals Plugin');
+    expect(
+      details.lintRules,
+      unorderedEquals(['no_doubles', 'no_doubles_custom_severity']),
+    );
+    expect(details.warningRules, unorderedEquals(['no_bools']));
+    expect(details.fixes, hasLength(1));
+    var fix = details.fixes.single;
+    expect(fix.codes, ['no_bools']);
+    expect(fix.id, 'dart.fix.wrapInQuotes');
+    expect(fix.message, 'Wrap in quotes');
+    expect(details.assists, hasLength(1));
+    var assist = details.assists.single;
+    expect(assist.id, 'dart.fix.invertBoolean');
+    expect(assist.message, 'Invert Boolean value');
   }
 
   Future<void> test_unsupportedRequest() async {
@@ -449,7 +475,7 @@ plugins:
 
 class _InvertBoolean extends ResolvedCorrectionProducer {
   static const _invertBooleanKind = AssistKind(
-    'dart.fix.invertBooelan',
+    'dart.fix.invertBoolean',
     50,
     'Invert Boolean value',
   );
@@ -476,10 +502,13 @@ class _InvertBoolean extends ResolvedCorrectionProducer {
 
 class _NoLiteralsPlugin extends Plugin {
   @override
+  String get name => 'No Literals Plugin';
+
+  @override
   void register(PluginRegistry registry) {
     registry.registerWarningRule(NoBoolsRule());
     registry.registerLintRule(NoDoublesRule());
-    registry.registerLintRule(NoDoublesWarningRule());
+    registry.registerLintRule(NoDoublesCustomSeverityRule());
     registry.registerFixForRule(NoBoolsRule.code, _WrapInQuotes.new);
     registry.registerAssist(_InvertBoolean.new);
   }

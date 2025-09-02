@@ -132,7 +132,7 @@ mixin SourceDeclarationBuilderBaseMixin
       );
       return unhandled(
         codeTypeArgumentMismatch
-            .withArguments(typeParametersCount)
+            .withArgumentsOld(typeParametersCount)
             .problemMessage,
         "buildTypeArguments",
         -1,
@@ -191,7 +191,7 @@ mixin SourceDeclarationBuilderMixin
           libraryBuilder.addProblem(
             // TODO(johnniwinther): Use a different error message for
             //  extension type declarations.
-            codeExtensionMemberConflictsWithObjectMember.withArguments(name),
+            codeExtensionMemberConflictsWithObjectMember.withArgumentsOld(name),
             declaration.fileOffset,
             name.length,
             declaration.fileUri,

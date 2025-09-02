@@ -69,7 +69,7 @@ mixin DeclarationBuilderMixin implements IDeclarationBuilder {
     LookupResult? result = nameSpace.lookup(name);
     if (required && result == null) {
       internalProblem(
-        codeInternalProblemNotFoundIn.withArguments(name, fullNameForErrors),
+        codeInternalProblemNotFoundIn.withArgumentsOld(name, fullNameForErrors),
         -1,
         null,
       );

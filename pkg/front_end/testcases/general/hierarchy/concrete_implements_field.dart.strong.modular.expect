@@ -14,7 +14,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class Interface {
 //       ^^^^^^^^^
 // pkg/front_end/testcases/general/hierarchy/concrete_implements_field.dart:16:16: Context: 'Interface.declaredAbstractImplementsAbstractField' is defined here.
@@ -51,7 +50,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class ConcreteClass implements Interface {
 //       ^^^^^^^^^^^^^
 // pkg/front_end/testcases/general/hierarchy/concrete_implements_field.dart:22:16: Context: 'ConcreteClass.declaredAbstractField' is defined here.

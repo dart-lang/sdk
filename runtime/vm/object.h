@@ -828,18 +828,28 @@ class Object {
   // methods below or their counterparts in UntaggedObject, to ensure that the
   // write barrier is correctly applied.
 
-  template <typename type, std::memory_order order = std::memory_order_relaxed>
+  template <typename type>
+  type LoadPointer(type const* addr) const {
+    return ptr()->untag()->LoadPointer<type>(addr);
+  }
+  template <typename type, std::memory_order order>
   type LoadPointer(type const* addr) const {
     return ptr()->untag()->LoadPointer<type, order>(addr);
   }
 
-  template <typename type, std::memory_order order = std::memory_order_relaxed>
+  template <typename type>
+  void StorePointer(type const* addr, type value) const {
+    ptr()->untag()->StorePointer<type>(addr, value);
+  }
+  template <typename type, std::memory_order order>
   void StorePointer(type const* addr, type value) const {
     ptr()->untag()->StorePointer<type, order>(addr, value);
   }
-  template <typename type,
-            typename compressed_type,
-            std::memory_order order = std::memory_order_relaxed>
+  template <typename type, typename compressed_type>
+  void StoreCompressedPointer(compressed_type const* addr, type value) const {
+    ptr()->untag()->StoreCompressedPointer<type, compressed_type>(addr, value);
+  }
+  template <typename type, typename compressed_type, std::memory_order order>
   void StoreCompressedPointer(compressed_type const* addr, type value) const {
     ptr()->untag()->StoreCompressedPointer<type, compressed_type, order>(addr,
                                                                          value);
@@ -4386,7 +4396,9 @@ class ClosureData : public Object {
       UntaggedClosureData::kNoAwaiterLinkDepth;
 
  private:
-  ContextScopePtr context_scope() const { return untag()->context_scope(); }
+  ContextScopePtr context_scope() const {
+    return untag()->context_scope<std::memory_order_acquire>();
+  }
   void set_context_scope(const ContextScope& value) const;
 
   void set_packed_fields(uint32_t value) const {
@@ -5695,13 +5707,22 @@ class ObjectPool : public Object {
     StoreNonPointer(&untag()->entry_bits()[index], bits);
   }
 
-  template <std::memory_order order = std::memory_order_relaxed>
+  ObjectPtr ObjectAt(intptr_t index) const {
+    ASSERT(TypeAt(index) == EntryType::kTaggedObject);
+    return LoadPointer<ObjectPtr>(&(EntryAddr(index)->raw_obj_));
+  }
+  template <std::memory_order order>
   ObjectPtr ObjectAt(intptr_t index) const {
     ASSERT(TypeAt(index) == EntryType::kTaggedObject);
     return LoadPointer<ObjectPtr, order>(&(EntryAddr(index)->raw_obj_));
   }
 
-  template <std::memory_order order = std::memory_order_relaxed>
+  void SetObjectAt(intptr_t index, const Object& obj) const {
+    ASSERT((TypeAt(index) == EntryType::kTaggedObject) ||
+           (TypeAt(index) == EntryType::kImmediate && obj.IsSmi()));
+    StorePointer<ObjectPtr>(&EntryAddr(index)->raw_obj_, obj.ptr());
+  }
+  template <std::memory_order order>
   void SetObjectAt(intptr_t index, const Object& obj) const {
     ASSERT((TypeAt(index) == EntryType::kTaggedObject) ||
            (TypeAt(index) == EntryType::kImmediate && obj.IsSmi()));
@@ -5715,6 +5736,12 @@ class ObjectPool : public Object {
   void SetRawValueAt(intptr_t index, uword raw_value) const {
     ASSERT(TypeAt(index) != EntryType::kTaggedObject);
     StoreNonPointer(&EntryAddr(index)->raw_value_, raw_value);
+  }
+  template <std::memory_order order>
+  void SetRawValueAt(intptr_t index, uword raw_value) const {
+    ASSERT(TypeAt(index) != EntryType::kTaggedObject);
+    StoreNonPointer<uword, uword, order>(&EntryAddr(index)->raw_value_,
+                                         raw_value);
   }
 
   static intptr_t InstanceSize() {
@@ -9540,7 +9567,9 @@ class AbstractType : public Instance {
   uword type_test_stub_entry_point() const {
     return untag()->type_test_stub_entry_point_;
   }
-  CodePtr type_test_stub() const { return untag()->type_test_stub(); }
+  CodePtr type_test_stub() const {
+    return untag()->type_test_stub<std::memory_order_acquire>();
+  }
 
   // Sets the TTS to [stub].
   //
@@ -11079,22 +11108,35 @@ class Array : public Instance {
     return array->untag()->data();
   }
 
-  template <std::memory_order order = std::memory_order_relaxed>
+  static ObjectPtr ElementAt(ArrayPtr array, intptr_t index) {
+    ASSERT((0 <= index) && (index < LengthOf(array)));
+    return array->untag()->element(index);
+  }
+  template <std::memory_order order>
   static ObjectPtr ElementAt(ArrayPtr array, intptr_t index) {
     ASSERT((0 <= index) && (index < LengthOf(array)));
     return array->untag()->element<order>(index);
   }
 
-  template <std::memory_order order = std::memory_order_relaxed>
+  ObjectPtr At(intptr_t index) const { return ElementAt(ptr(), index); }
+  template <std::memory_order order>
   ObjectPtr At(intptr_t index) const {
     return ElementAt<order>(ptr(), index);
   }
-  template <std::memory_order order = std::memory_order_relaxed>
+  void SetAt(intptr_t index, const Object& value) const {
+    ASSERT((0 <= index) && (index < Length()));
+    untag()->set_element(index, value.ptr());
+  }
+  template <std::memory_order order>
   void SetAt(intptr_t index, const Object& value) const {
     ASSERT((0 <= index) && (index < Length()));
     untag()->set_element<order>(index, value.ptr());
   }
-  template <std::memory_order order = std::memory_order_relaxed>
+  void SetAt(intptr_t index, const Object& value, Thread* thread) const {
+    ASSERT((0 <= index) && (index < Length()));
+    untag()->set_element(index, value.ptr(), thread);
+  }
+  template <std::memory_order order>
   void SetAt(intptr_t index, const Object& value, Thread* thread) const {
     ASSERT((0 <= index) && (index < Length()));
     untag()->set_element<order>(index, value.ptr(), thread);
@@ -11232,9 +11274,11 @@ class Array : public Instance {
     untag()->set_length<std::memory_order_release>(Smi::New(value));
   }
 
-  template <typename type,
-            std::memory_order order = std::memory_order_relaxed,
-            typename value_type>
+  template <typename type, typename value_type>
+  void StoreArrayPointer(type const* addr, value_type value) const {
+    ptr()->untag()->StoreArrayPointer<type, value_type>(addr, value);
+  }
+  template <typename type, std::memory_order order, typename value_type>
   void StoreArrayPointer(type const* addr, value_type value) const {
     ptr()->untag()->StoreArrayPointer<type, order, value_type>(addr, value);
   }
