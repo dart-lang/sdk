@@ -178,7 +178,6 @@ Template compileTemplate(
   problemMessage = problemMessage.trimRight();
   var parameters = new Set<String>();
   var conversions = new Set<String>();
-  var conversions2 = new Set<String>();
   var arguments = new Set<String>();
   bool hasLabeler = false;
   bool canBeShared = true;
@@ -324,10 +323,7 @@ Template compileTemplate(
       case "type4":
         parameters.add("DartType _${name}");
         ensureLabeler();
-        conversions.add(
-          "List<Object> ${name}Parts = labeler.labelType(_${name});",
-        );
-        conversions2.add("String ${name} = ${name}Parts.join();");
+        conversions.add("LabeledString ${name} = labeler.labelType(_${name});");
         arguments.add("'${name}': _${name}");
         break;
 
@@ -373,9 +369,8 @@ Template compileTemplate(
         parameters.add("Constant _constant");
         ensureLabeler();
         conversions.add(
-          "List<Object> ${name}Parts = labeler.labelConstant(_${name});",
+          "LabeledString ${name} = labeler.labelConstant(_${name});",
         );
-        conversions2.add("String ${name} = ${name}Parts.join();");
         arguments.add("'$name': _constant");
         break;
 
@@ -401,8 +396,6 @@ Template compileTemplate(
         throw "Unhandled placeholder in template: '$name'";
     }
   }
-
-  conversions.addAll(conversions2);
 
   String interpolate(String text) {
     text = text
