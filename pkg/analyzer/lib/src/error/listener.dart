@@ -126,8 +126,10 @@ Expected types: $expectedTypes''');
     var typeMatches = switch (expectedTypes[i]) {
       ExpectedType.element => argument is Element,
       ExpectedType.int => argument is int,
+      ExpectedType.name => argument is String,
       ExpectedType.object => true,
       ExpectedType.string => argument is String,
+      ExpectedType.token => argument is Token,
       ExpectedType.type => argument is DartType,
       ExpectedType.uri => argument is Uri,
     };

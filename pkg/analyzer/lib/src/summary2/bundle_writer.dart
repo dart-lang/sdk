@@ -261,6 +261,7 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
+      element.writeModifiers(_sink);
 
       // TODO(scheglov): consider reading lazily
       _resolutionSink.withTypeParameters(element.typeParameters, () {
@@ -323,6 +324,7 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
+      element.writeModifiers(_sink);
 
       // TODO(scheglov): consider reading lazily
       _resolutionSink.withTypeParameters(element.typeParameters, () {
@@ -357,6 +359,7 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
+      element.writeModifiers(_sink);
 
       // TODO(fshcheglov): Put these separate flags into modifiers
       _sink.writeBool(element.hasRepresentationSelfReference);
@@ -407,6 +410,8 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
+      element.writeModifiers(_sink);
+
       _writeElementResolution(() {
         _resolutionSink.writeType(element.type);
       });
@@ -709,6 +714,7 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
+      element.writeModifiers(_sink);
 
       _writeElementResolution(() {
         _resolutionSink.withTypeParameters(element.typeParameters, () {
@@ -733,6 +739,7 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
+      element.writeModifiers(_sink);
       _writeElementResolution(() {
         _resolutionSink.writeType(element.type);
       });
@@ -750,6 +757,7 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
+      element.writeModifiers(_sink);
 
       _writeElementResolution(() {
         _resolutionSink.withTypeParameters(element.typeParameters, () {

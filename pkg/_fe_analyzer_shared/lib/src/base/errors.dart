@@ -619,7 +619,7 @@ base mixin DiagnosticWithoutArguments on DiagnosticCode
 }
 
 /// Expected type of a diagnostic code's parameter.
-enum ExpectedType { element, int, object, string, type, uri }
+enum ExpectedType { element, int, name, object, string, token, type, uri }
 
 /// Interface for a diagnostic that does not have any unfilled template
 /// parameters, and hence is ready to be associated with a location in the

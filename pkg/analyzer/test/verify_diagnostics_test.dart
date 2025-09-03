@@ -6,6 +6,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
+import 'package:analyzer_utilities/messages.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

@@ -476,6 +476,7 @@ class LibraryReader {
       var fragments = _readFragmentsById<EnumFragmentImpl>();
       var element = EnumElementImpl(reference, fragments.first);
       element.linkFragments(fragments);
+      element.readModifiers(_reader);
 
       // TODO(scheglov): consider reading lazily
       for (var fragment in element.fragments) {
@@ -562,6 +563,7 @@ class LibraryReader {
       var fragments = _readFragmentsById<ExtensionFragmentImpl>();
       var element = ExtensionElementImpl(reference, fragments.first);
       element.linkFragments(fragments);
+      element.readModifiers(_reader);
 
       for (var fragment in element.fragments) {
         fragment.ensureReadMembers();
@@ -617,6 +619,7 @@ class LibraryReader {
       var fragments = _readFragmentsById<ExtensionTypeFragmentImpl>();
       var element = ExtensionTypeElementImpl(reference, fragments.first);
       element.linkFragments(fragments);
+      element.readModifiers(_reader);
 
       element.hasRepresentationSelfReference = _reader.readBool();
       element.hasImplementsSelfReference = _reader.readBool();
@@ -688,6 +691,7 @@ class LibraryReader {
         firstFragment: fragments.first,
       );
       element.linkFragments(fragments);
+      element.readModifiers(_reader);
 
       element.deferReadResolution(
         _createDeferredReadResolutionCallback((reader) {
@@ -1172,6 +1176,7 @@ class LibraryReader {
       var fragments = _readFragmentsById<TopLevelFunctionFragmentImpl>();
       var element = TopLevelFunctionElementImpl(reference, fragments.first);
       element.linkFragments(fragments);
+      element.readModifiers(_reader);
 
       element.deferReadResolution(
         _createDeferredReadResolutionCallback((reader) {
@@ -1231,6 +1236,7 @@ class LibraryReader {
       var fragments = _readFragmentsById<TopLevelVariableFragmentImpl>();
       var element = TopLevelVariableElementImpl(reference, fragments.first);
       element.linkFragments(fragments);
+      element.readModifiers(_reader);
 
       element.deferReadResolution(
         _createDeferredReadResolutionCallback((reader) {
@@ -1267,6 +1273,7 @@ class LibraryReader {
       var reference = _readReference();
       var fragments = _readFragmentsById<TypeAliasFragmentImpl>();
       var element = TypeAliasElementImpl(reference, fragments.first);
+      element.readModifiers(_reader);
 
       element.deferReadResolution(
         _createDeferredReadResolutionCallback((reader) {

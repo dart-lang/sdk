@@ -98,10 +98,12 @@ class TopLevelInference {
   }
 
   void _performOverrideInference() {
+    var interfacesToInfer = linker.builders.values.expand((builder) {
+      return builder.element.children.whereType<InterfaceElementImpl>();
+    }).toList();
+
     var inferrer = InstanceMemberInferrer(linker.inheritance);
-    for (var builder in linker.builders.values) {
-      inferrer.inferLibrary(builder.element);
-    }
+    inferrer.perform(interfacesToInfer);
   }
 }
 

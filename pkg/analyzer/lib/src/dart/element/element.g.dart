@@ -243,20 +243,6 @@ mixin _FragmentImplMixin {
   void setModifier(Modifier modifier, bool value);
 }
 
-mixin _InterfaceFragmentImplMixin {
-  bool get isSimplyBounded {
-    return hasModifier(Modifier.SIMPLY_BOUNDED);
-  }
-
-  set isSimplyBounded(bool value) {
-    setModifier(Modifier.SIMPLY_BOUNDED, value);
-  }
-
-  bool hasModifier(Modifier modifier);
-
-  void setModifier(Modifier modifier, bool value);
-}
-
 mixin _MixinFragmentImplMixin {
   bool get isBase {
     return hasModifier(Modifier.BASE);
@@ -278,20 +264,6 @@ mixin _NonParameterVariableFragmentImplMixin {
 
   set hasInitializer(bool value) {
     setModifier(Modifier.HAS_INITIALIZER, value);
-  }
-
-  bool hasModifier(Modifier modifier);
-
-  void setModifier(Modifier modifier, bool value);
-}
-
-mixin _TypeAliasFragmentImplMixin {
-  bool get isSimplyBounded {
-    return hasModifier(Modifier.SIMPLY_BOUNDED);
-  }
-
-  set isSimplyBounded(bool value) {
-    setModifier(Modifier.SIMPLY_BOUNDED, value);
   }
 
   bool hasModifier(Modifier modifier);

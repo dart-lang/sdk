@@ -7,11 +7,11 @@ import 'dart:io' as io;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer_testing/package_root.dart' as package_root;
+import 'package:analyzer_utilities/messages.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../tool/messages/error_code_info.dart';
 import '../../generated/parser_test_base.dart';
 
 main() {
