@@ -43,6 +43,7 @@ import 'package:front_end/src/source/diet_parser.dart'
 import 'package:front_end/src/source/source_compilation_unit.dart';
 import 'package:front_end/src/source/source_library_builder.dart';
 import 'package:front_end/src/source/source_loader.dart';
+import 'package:kernel/ast.dart';
 import 'package:kernel/kernel.dart'
     as kernel
     show Combinator, Component, LibraryDependency, Location, Source;
@@ -1039,13 +1040,36 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
 
   Future<kernel.Component> compileDartDocTestLibrary(
     String dartDocTestCode,
-    Uri libraryUri,
+    Uri libraryOrPartUri,
   ) async {
     assert(dillTargetForTesting != null && kernelTargetForTesting != null);
 
     return await context.runInContext((_) async {
-      LibraryBuilder libraryBuilder = kernelTargetForTesting!.loader
-          .lookupLoadedLibraryBuilder(libraryUri)!;
+      LibraryBuilder? libraryBuilder = kernelTargetForTesting!.loader
+          .lookupLoadedLibraryBuilder(libraryOrPartUri);
+      if (libraryBuilder == null) {
+        // This might be a part file, in which case we need to find the main
+        // library.
+        String lastUriPart = libraryOrPartUri.pathSegments.last;
+        for (LibraryBuilder builder
+            in kernelTargetForTesting!.loader.loadedLibraryBuilders) {
+          List<LibraryPart> parts = builder.library.parts;
+          if (parts.isEmpty) continue;
+          for (LibraryPart part in parts) {
+            if (!part.partUri.endsWith(lastUriPart)) continue;
+            // The part string is either a relative file uri or an import uri,
+            // in both cases we'll end up with an import uri which is what we're
+            // after.
+            Uri partUri = builder.importUri.resolve(part.partUri);
+            if (partUri == libraryOrPartUri) {
+              libraryBuilder = kernelTargetForTesting!.loader
+                  .lookupLoadedLibraryBuilder(builder.importUri);
+              break;
+            }
+          }
+        }
+        if (libraryBuilder == null) throw "Couldn't find '$libraryOrPartUri'.";
+      }
 
       kernelTargetForTesting!.loader.resetSeenMessages();
 

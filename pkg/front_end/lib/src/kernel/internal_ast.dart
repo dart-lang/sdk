@@ -436,6 +436,7 @@ class ArgumentsImpl extends Arguments {
   /// super-positional, the field is null.
   Set<String>? namedSuperParameterNames;
 
+  // Coverage-ignore(suite): Not run.
   ArgumentsImpl.internal({
     required List<Expression> positional,
     required List<DartType>? types,
@@ -503,6 +504,7 @@ class ArgumentsImpl extends Arguments {
            ..addAll(_normalizeTypeArguments(typeParameterCount, typeArguments)),
        );
 
+  // Coverage-ignore(suite): Not run.
   static ArgumentsImpl clone(
     ArgumentsImpl node,
     List<Expression> positional,
