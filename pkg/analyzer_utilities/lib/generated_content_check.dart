@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:analyzer_utilities/tools.dart';
-import 'package:dart_style/dart_style.dart';
 import 'package:package_config/package_config.dart';
 import 'package:path/path.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -27,7 +26,7 @@ Future<String> _formatText(String text, {required String pkgPath}) async {
     throw StateError('Could not find a Dart language version for "$pkgPath"');
   }
   var version = Version(languageVersion.major, languageVersion.minor, 0);
-  return DartFormatter(languageVersion: version).format(text);
+  return DartFormat.formatString(text, languageVersion: version);
 }
 
 extension GeneratedContentExtension on GeneratedContent {
