@@ -4629,10 +4629,6 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   List<InterfaceTypeImpl>? Function(InterfaceElementImpl)?
   mixinInferenceCallback;
 
-  /// A flag indicating whether the types associated with the instance members
-  /// of this class have been inferred.
-  bool hasBeenInferred = false;
-
   /// Whether the class or its superclass declares a non-final instance field.
   bool hasNonFinalField = false;
 
