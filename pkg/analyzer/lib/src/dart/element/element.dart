@@ -4637,6 +4637,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   List<ConstructorElementImpl> _constructors = _Sentinel.constructorElement;
 
   /// This callback is set during mixins inference to handle reentrant calls.
+  @trackedInternal
   List<InterfaceTypeImpl>? Function(InterfaceElementImpl)?
   mixinInferenceCallback;
 

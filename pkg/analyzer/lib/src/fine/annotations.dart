@@ -65,6 +65,13 @@ const trackedIncludedInId = _TrackedIncludedInId();
 /// class.
 const trackedIndirectly = _TrackedIndirectly();
 
+/// Annotation for methods that used internally while building elements,
+/// but are not supposed to be used by any client.
+///
+/// Such methods of course are never API, and potential clients could only
+/// be other parts of the analyzer itself.
+const trackedInternal = _TrackedInternal();
+
 final class _ElementClass {
   const _ElementClass();
 }
@@ -87,6 +94,10 @@ final class _TrackedIncludedInId extends _TrackedKind {
 
 final class _TrackedIndirectly extends _TrackedKind {
   const _TrackedIndirectly();
+}
+
+final class _TrackedInternal extends _TrackedKind {
+  const _TrackedInternal();
 }
 
 /// Superclass for all specific kinds of tracking annotations.
