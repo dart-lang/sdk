@@ -4,7 +4,7 @@
 
 import "dart:io" show File, exitCode;
 
-import 'package:dart_style/dart_style.dart' show DartFormatter;
+import "package:analyzer_utilities/tools.dart" show DartFormat;
 
 import "../tool/generate_experimental_flags.dart" as generateExperimentalFlags;
 import "../tool/generate_messages.dart" as generateMessages;
@@ -133,18 +133,20 @@ void messages() {
 
   Uri generatedFile = generateMessages.computeSharedGeneratedFile(repoDir);
   check(
-    new DartFormatter(
+    DartFormat.formatString(
+      messages.sharedMessages,
       languageVersion: getPackageVersionFor('_fe_analyzer_shared'),
-    ).format(messages.sharedMessages),
+    ),
     generatedFile,
     "dart pkg/front_end/tool/generate_messages.dart",
   );
 
   Uri cfeGeneratedFile = generateMessages.computeCfeGeneratedFile(repoDir);
   check(
-    new DartFormatter(
+    DartFormat.formatString(
+      messages.cfeMessages,
       languageVersion: getPackageVersionFor('front_end'),
-    ).format(messages.cfeMessages),
+    ),
     cfeGeneratedFile,
     "dart pkg/front_end/tool/generate_messages.dart",
   );
