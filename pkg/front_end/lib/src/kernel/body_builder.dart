@@ -279,7 +279,7 @@ class BodyBuilder extends StackListenerImpl
 
   final LocalStack<LabelScope?> _switchScopes = new LocalStack([]);
 
-  late _BodyBuilderCloner _cloner = new _BodyBuilderCloner(this);
+  late CloneVisitorNotMembers _simpleCloner = new CloneVisitorNotMembers();
 
   @override
   ConstantContext constantContext = ConstantContext.none;
@@ -1381,7 +1381,7 @@ class BodyBuilder extends StackListenerImpl
             i,
           );
           if (tearOffParameter != null) {
-            Expression tearOffInitializer = _cloner.cloneInContext(
+            Expression tearOffInitializer = _simpleCloner.cloneInContext(
               initializer!,
             );
             tearOffParameter.initializer = tearOffInitializer
@@ -1785,7 +1785,9 @@ class BodyBuilder extends StackListenerImpl
         for (int i = 1; i < variables.length; i++) {
           VariableDeclaration variable = variables[i];
           for (int i = 0; i < annotations.length; i++) {
-            variable.addAnnotation(_cloner.cloneInContext(annotations[i]));
+            variable.addAnnotation(
+              _simpleCloner.cloneInContext(annotations[i]),
+            );
           }
         }
       }
