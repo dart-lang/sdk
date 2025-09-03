@@ -47,7 +47,8 @@ class SubscriptionManager {
   /// file for which notifications should be send and has values representing
   /// the list of services that were added for that file.
   Map<String, List<AnalysisService>> setSubscriptions(
-      Map<AnalysisService, List<String>> subscriptions) {
+    Map<AnalysisService, List<String>> subscriptions,
+  ) {
     var newSubscriptions = <String, List<AnalysisService>>{};
     var currentSubscriptions = _subscriptions;
     if (currentSubscriptions == null) {

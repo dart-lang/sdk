@@ -33,7 +33,7 @@ class AnalysisOptionLinkComputer {
           YamlMap(:var nodes) => nodes.keys.map((node) => node as YamlNode),
           YamlList rules => rules.nodes,
           _ => const <YamlNode>[],
-        }
+        },
     ];
 
     var links = <DocumentLink>[];
@@ -56,8 +56,9 @@ class AnalysisOptionLinkComputer {
     var name = rule.value;
     if (name is! String) return null;
 
-    var lint = Registry.ruleRegistry.rules
-        .firstWhereOrNull((rule) => rule.name == name);
+    var lint = Registry.ruleRegistry.rules.firstWhereOrNull(
+      (rule) => rule.name == name,
+    );
     if (lint == null) {
       return null;
     }
@@ -90,7 +91,7 @@ class DartDocumentLinkVisitor extends RecursiveAstVisitor<void> {
   }();
 
   DartDocumentLinkVisitor(this.resourceProvider, this.unit)
-      : filePath = unit.path;
+    : filePath = unit.path;
 
   List<DocumentLink> findLinks(AstNode node) {
     _documentLinks.clear();
@@ -207,8 +208,10 @@ class PubspecDocumentLinkComputer {
   Uri? _computeGit(String gitUrl, String packageName) {
     // Perform substitions for SSH URLs that we know can safely be converted to
     // HTTPS.
-    gitUrl =
-        gitUrl.replaceFirst(_gitHubSsshUrlPrefixRegExp, 'https://github.com/');
+    gitUrl = gitUrl.replaceFirst(
+      _gitHubSsshUrlPrefixRegExp,
+      'https://github.com/',
+    );
 
     var uri = Uri.tryParse(gitUrl);
     return uri != null && (uri.isScheme('https') || uri.isScheme('http'))
@@ -250,8 +253,8 @@ class PubspecDocumentLinkComputer {
       //     url: http://foo
       YamlMap(
         nodes: {
-          'hosted': YamlMap(nodes: {'url': YamlScalar(value: String base)})
-        }
+          'hosted': YamlMap(nodes: {'url': YamlScalar(value: String base)}),
+        },
       ) =>
         _computeHosted(base, name),
 
@@ -259,8 +262,10 @@ class PubspecDocumentLinkComputer {
       //
       // foo:
       //   git: git@github.com:dart-lang/sdk.git
-      YamlMap(nodes: {'git': YamlScalar(value: String url)}) =>
-        _computeGit(url, name),
+      YamlMap(nodes: {'git': YamlScalar(value: String url)}) => _computeGit(
+        url,
+        name,
+      ),
 
       // Git 2
       //
@@ -268,7 +273,7 @@ class PubspecDocumentLinkComputer {
       //   git:
       //     url: http://foo
       YamlMap(
-        nodes: {'git': YamlMap(nodes: {'url': YamlScalar(value: String url)})}
+        nodes: {'git': YamlMap(nodes: {'url': YamlScalar(value: String url)})},
       ) =>
         _computeGit(url, name),
 

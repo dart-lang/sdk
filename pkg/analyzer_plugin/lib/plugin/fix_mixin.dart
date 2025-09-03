@@ -25,7 +25,11 @@ mixin DartFixesMixin implements FixesMixin {
     var offset = parameters.offset;
     var result = await getResolvedUnitResult(path);
     return DartFixesRequestImpl(
-        resourceProvider, offset, _getDiagnostics(offset, result), result);
+      resourceProvider,
+      offset,
+      _getDiagnostics(offset, result),
+      result,
+    );
   }
 
   List<Diagnostic> _getDiagnostics(int offset, ResolvedUnitResult result) {
@@ -56,7 +60,8 @@ mixin FixesMixin implements ServerPlugin {
 
   @override
   Future<EditGetFixesResult> handleEditGetFixes(
-      EditGetFixesParams parameters) async {
+    EditGetFixesParams parameters,
+  ) async {
     var path = parameters.file;
     var request = await getFixesRequest(parameters);
     var generator = FixGenerator(getFixContributors(path));

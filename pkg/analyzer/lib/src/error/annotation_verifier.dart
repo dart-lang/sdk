@@ -136,6 +136,11 @@ class AnnotationVerifier {
       return;
     }
 
+    if (kind == 'mixin') {
+      _checkDeprecatedMixin(node, node.parent);
+      return;
+    }
+
     if (kind == 'subclass') {
       _checkDeprecatedSubclass(node, node.parent);
       return;
@@ -216,6 +221,15 @@ class AnnotationVerifier {
     _diagnosticReporter.atNode(
       node.name,
       WarningCode.invalidDeprecatedInstantiateAnnotation,
+    );
+  }
+
+  void _checkDeprecatedMixin(Annotation node, AstNode parent) {
+    if (parent is ClassDeclaration && parent.mixinKeyword != null) return;
+
+    _diagnosticReporter.atNode(
+      node.name,
+      WarningCode.invalidDeprecatedMixinAnnotation,
     );
   }
 

@@ -14,7 +14,12 @@ import 'generate.dart';
 Future<void> main() async {
   await allTargets.check(
     pkg_root.packageRoot,
-    join(pkg_root.packageRoot, 'analyzer_plugin', 'tool', 'api',
-        'generate.dart'),
+    join(
+      pkg_root.packageRoot,
+      'analyzer_plugin',
+      'tool',
+      'api',
+      'generate.dart',
+    ),
   );
 }

@@ -44,10 +44,12 @@ class FixesMixinTest extends AbstractPluginTest {
 
   Future<void> test_handleEditGetFixes() async {
     await plugin.handleAnalysisSetContextRoots(
-        AnalysisSetContextRootsParams([contextRoot1]));
+      AnalysisSetContextRootsParams([contextRoot1]),
+    );
 
-    var result =
-        await plugin.handleEditGetFixes(EditGetFixesParams(filePath1, 13));
+    var result = await plugin.handleEditGetFixes(
+      EditGetFixesParams(filePath1, 13),
+    );
     expect(result, isNotNull);
     var fixes = result.fixes;
     expect(fixes, hasLength(1));
@@ -62,7 +64,9 @@ class _TestFixContributor implements FixContributor {
 
   @override
   Future<void> computeFixes(
-      FixesRequest request, FixCollector collector) async {
+    FixesRequest request,
+    FixCollector collector,
+  ) async {
     for (var change in changes) {
       collector.addFix(request.errorsToFix[0], change);
     }
@@ -80,8 +84,10 @@ class _TestServerPlugin extends MockServerPlugin with FixesMixin {
   List<FixContributor> getFixContributors(String path) {
     return <FixContributor>[
       _TestFixContributor(<PrioritizedSourceChange>[createChange()]),
-      _TestFixContributor(
-          <PrioritizedSourceChange>[createChange(), createChange()])
+      _TestFixContributor(<PrioritizedSourceChange>[
+        createChange(),
+        createChange(),
+      ]),
     ];
   }
 
@@ -95,7 +101,9 @@ class _TestServerPlugin extends MockServerPlugin with FixesMixin {
       diagnosticCode: CompileTimeErrorCode.awaitInWrongContext,
     );
     var result = MockResolvedUnitResult(
-        lineInfo: LineInfo([0, 20]), errors: [diagnostic]);
+      lineInfo: LineInfo([0, 20]),
+      errors: [diagnostic],
+    );
     return DartFixesRequestImpl(resourceProvider, offset, [diagnostic], result);
   }
 }

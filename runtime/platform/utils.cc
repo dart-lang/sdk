@@ -306,10 +306,10 @@ void* Utils::LoadDynamicLibrary(const char* library_path,
   if (handle == nullptr) {
     // Fuchsia's search path is different.
     // https://fuchsia.dev/fuchsia-src/concepts/process/program_loading#zircons_standard_elf_dynamic_linker
-    fuchsia::io::Flags flags =
+    constexpr fuchsia::io::Flags kFlags =
         fuchsia::io::PERM_READABLE | fuchsia::io::PERM_EXECUTABLE;
     int fd = -1;
-    zx_status_t status = fdio_open3_fd(library_path, uint64_t{flags}, &fd);
+    zx_status_t status = fdio_open3_fd(library_path, uint64_t{kFlags}, &fd);
     if (status != ZX_OK) {
       *error = strdup(zx_status_get_string(status));
       return nullptr;

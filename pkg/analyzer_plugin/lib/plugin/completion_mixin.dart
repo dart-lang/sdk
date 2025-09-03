@@ -24,11 +24,13 @@ mixin CompletionMixin implements ServerPlugin {
   ///
   /// Throw a [RequestFailure] if the request could not be created.
   Future<CompletionRequest> getCompletionRequest(
-      CompletionGetSuggestionsParams parameters);
+    CompletionGetSuggestionsParams parameters,
+  );
 
   @override
   Future<CompletionGetSuggestionsResult> handleCompletionGetSuggestions(
-      CompletionGetSuggestionsParams parameters) async {
+    CompletionGetSuggestionsParams parameters,
+  ) async {
     var path = parameters.file;
     var request = await getCompletionRequest(parameters);
     var generator = CompletionGenerator(getCompletionContributors(path));
@@ -49,9 +51,13 @@ mixin CompletionMixin implements ServerPlugin {
 abstract class DartCompletionMixin implements CompletionMixin {
   @override
   Future<CompletionRequest> getCompletionRequest(
-      CompletionGetSuggestionsParams parameters) async {
+    CompletionGetSuggestionsParams parameters,
+  ) async {
     var result = await getResolvedUnitResult(parameters.file);
     return DartCompletionRequestImpl(
-        resourceProvider, parameters.offset, result);
+      resourceProvider,
+      parameters.offset,
+      result,
+    );
   }
 }

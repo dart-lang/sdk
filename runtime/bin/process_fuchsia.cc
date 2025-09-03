@@ -586,24 +586,18 @@ class ProcessStarter {
     NamespaceScope ns(namespc_, path_);
     int pathfd = -1;
     zx_status_t status;
+    constexpr fuchsia::io::Flags kFlags =
+        fuchsia::io::PERM_READABLE | fuchsia::io::PERM_EXECUTABLE;
     if (ns.fd() == AT_FDCWD) {
-      status = fdio_open_fd(
-          ns.path(),
-          static_cast<uint32_t>(fuchsia::io::OpenFlags::RIGHT_READABLE |
-                                fuchsia::io::OpenFlags::RIGHT_EXECUTABLE),
-          &pathfd);
+      status = fdio_open3_fd(ns.path(), uint64_t{kFlags}, &pathfd);
     } else {
-      status = fdio_open_fd_at(
-          ns.fd(), ns.path(),
-          static_cast<uint32_t>(fuchsia::io::OpenFlags::RIGHT_READABLE |
-                                fuchsia::io::OpenFlags::RIGHT_EXECUTABLE),
-          &pathfd);
+      status = fdio_open3_fd_at(ns.fd(), ns.path(), uint64_t{kFlags}, &pathfd);
     }
     if (status != ZX_OK) {
       close(exit_pipe_fds[0]);
       close(exit_pipe_fds[1]);
       ReportStartError(
-          "Failed to load executable for process start (fdio_open_fd_at %s).",
+          "Failed to load executable for process start (fdio_open3_fd_at %s).",
           zx_status_get_string(status));
       return status;
     }

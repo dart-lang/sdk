@@ -325,10 +325,12 @@ class Deprecated extends Object {
       : _kind = _DeprecationKind.subclass;
   const Deprecated.instantiate([this.message = "next release"])
       : _kind = _DeprecationKind.instantiate;
+  const Deprecated.mixin([this.message = "next release"])
+      : _kind = _DeprecationKind.mixin;
 }
 
 enum _DeprecationKind {
-  use, implement, extend, subclass, instantiate;
+  use, implement, extend, subclass, instantiate, mixin;
 }
 
 class pragma {

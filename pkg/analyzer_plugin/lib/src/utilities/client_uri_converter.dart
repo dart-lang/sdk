@@ -39,7 +39,7 @@ abstract class ClientUriConverter {
       _VirtualFileClientUriConverter(context);
 
   ClientUriConverter._(this._context, [this.supportedNonFileSchemes = const {}])
-      : supportedSchemes = {'file', ...supportedNonFileSchemes};
+    : supportedSchemes = {'file', ...supportedNonFileSchemes};
 
   /// Converts client FilePath (which may be a URI or a file path depending on
   /// client capbilities) into a file path/reference from the analyzer.
@@ -84,7 +84,7 @@ class _NoOpConverter extends ClientUriConverter {
 
 class _VirtualFileClientUriConverter extends ClientUriConverter {
   _VirtualFileClientUriConverter(path.Context context)
-      : super._(context, {macroClientUriScheme});
+    : super._(context, {macroClientUriScheme});
 
   @override
   String fromClientFilePath(String filePathOrUri) =>
@@ -96,7 +96,10 @@ class _VirtualFileClientUriConverter extends ClientUriConverter {
     // better message than "scheme '' is not supported".
     if (uri.scheme.isEmpty) {
       throw ArgumentError.value(
-          uri.toString(), 'uri', 'URI is not a valid file:// URI');
+        uri.toString(),
+        'uri',
+        'URI is not a valid file:// URI',
+      );
     }
 
     if (!supportedSchemes.contains(uri.scheme)) {
@@ -114,8 +117,10 @@ class _VirtualFileClientUriConverter extends ClientUriConverter {
     switch (uri.scheme) {
       // Map macro scheme back to 'file:///.../x.macro.dart'.
       case macroClientUriScheme:
-        var pathWithoutExtension =
-            uri.path.substring(0, uri.path.length - '.dart'.length);
+        var pathWithoutExtension = uri.path.substring(
+          0,
+          uri.path.length - '.dart'.length,
+        );
         var newPath = '$pathWithoutExtension$macroClientFileSuffix';
         return _context.fromUri(uri.replace(scheme: 'file', path: newPath));
 
@@ -132,8 +137,10 @@ class _VirtualFileClientUriConverter extends ClientUriConverter {
     // Map '/.../x.macro.dart' onto macro scheme.
     if (filePath.endsWith(macroClientFileSuffix) &&
         supportedSchemes.contains(macroClientUriScheme)) {
-      var pathWithoutSuffix =
-          filePath.substring(0, filePath.length - macroClientFileSuffix.length);
+      var pathWithoutSuffix = filePath.substring(
+        0,
+        filePath.length - macroClientFileSuffix.length,
+      );
       var newPath = '$pathWithoutSuffix.dart';
       return _context.toUri(newPath).replace(scheme: macroClientUriScheme);
     }

@@ -29,10 +29,12 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
   /// Asserts that the given [pluginError] matches the given
   /// [analyzerDiagnostic].
   void assertError(
-      plugin.AnalysisError pluginError, analyzer.Diagnostic analyzerDiagnostic,
-      {analyzer.DiagnosticSeverity? severity,
-      int startColumn = -1,
-      int startLine = -1}) {
+    plugin.AnalysisError pluginError,
+    analyzer.Diagnostic analyzerDiagnostic, {
+    analyzer.DiagnosticSeverity? severity,
+    int startColumn = -1,
+    int startLine = -1,
+  }) {
     var diagnosticCode = analyzerDiagnostic.diagnosticCode;
     expect(pluginError, isNotNull);
     var location = pluginError.location;
@@ -45,8 +47,10 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
     expect(location.startColumn, startColumn);
     expect(location.startLine, startLine);
     expect(pluginError.message, diagnosticCode.problemMessage);
-    expect(pluginError.severity,
-        converter.convertErrorSeverity(severity ?? diagnosticCode.severity));
+    expect(
+      pluginError.severity,
+      converter.convertErrorSeverity(severity ?? diagnosticCode.severity),
+    );
     expect(pluginError.type, converter.convertErrorType(diagnosticCode.type));
   }
 
@@ -84,10 +88,18 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
     var lineInfo = analyzer.LineInfo([0, 10, 20]);
     var severity = analyzer.DiagnosticSeverity.WARNING;
 
-    var pluginError = converter.convertAnalysisError(analyzerError,
-        lineInfo: lineInfo, severity: severity);
-    assertError(pluginError, analyzerError,
-        startColumn: 4, startLine: 2, severity: severity);
+    var pluginError = converter.convertAnalysisError(
+      analyzerError,
+      lineInfo: lineInfo,
+      severity: severity,
+    );
+    assertError(
+      pluginError,
+      analyzerError,
+      startColumn: 4,
+      startLine: 2,
+      severity: severity,
+    );
     expect(pluginError.contextMessages, hasLength(1));
     var message = pluginError.contextMessages![0];
     expect(message.message, 'here');
@@ -100,10 +112,11 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
     var lineInfo = analyzer.LineInfo([0, 10, 20]);
 
     assertError(
-        converter.convertAnalysisError(analyzerError, lineInfo: lineInfo),
-        analyzerError,
-        startColumn: 4,
-        startLine: 2);
+      converter.convertAnalysisError(analyzerError, lineInfo: lineInfo),
+      analyzerError,
+      startColumn: 4,
+      startLine: 2,
+    );
   }
 
   Future<void> test_convertAnalysisError_lineInfo_severity() async {
@@ -112,12 +125,16 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
     var severity = analyzer.DiagnosticSeverity.WARNING;
 
     assertError(
-        converter.convertAnalysisError(analyzerError,
-            lineInfo: lineInfo, severity: severity),
+      converter.convertAnalysisError(
         analyzerError,
-        startColumn: 4,
-        startLine: 2,
-        severity: severity);
+        lineInfo: lineInfo,
+        severity: severity,
+      ),
+      analyzerError,
+      startColumn: 4,
+      startLine: 2,
+      severity: severity,
+    );
   }
 
   Future<void> test_convertAnalysisError_noLineInfo_noSeverity() async {
@@ -131,16 +148,14 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
     var severity = analyzer.DiagnosticSeverity.WARNING;
 
     assertError(
-        converter.convertAnalysisError(analyzerError, severity: severity),
-        analyzerError,
-        severity: severity);
+      converter.convertAnalysisError(analyzerError, severity: severity),
+      analyzerError,
+      severity: severity,
+    );
   }
 
   Future<void> test_convertAnalysisErrors_lineInfo_noOptions() async {
-    var analyzerErrors = [
-      await createError(13),
-      await createError(25),
-    ];
+    var analyzerErrors = [await createError(13), await createError(25)];
     var lineInfo = analyzer.LineInfo([0, 10, 20]);
 
     var pluginErrors = converter.convertAnalysisErrors(
@@ -149,38 +164,58 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
       options: analyzer.AnalysisOptionsImpl(),
     );
     expect(pluginErrors, hasLength(analyzerErrors.length));
-    assertError(pluginErrors[0], analyzerErrors[0],
-        startColumn: 4, startLine: 2);
-    assertError(pluginErrors[1], analyzerErrors[1],
-        startColumn: 6, startLine: 3);
+    assertError(
+      pluginErrors[0],
+      analyzerErrors[0],
+      startColumn: 4,
+      startLine: 2,
+    );
+    assertError(
+      pluginErrors[1],
+      analyzerErrors[1],
+      startColumn: 6,
+      startLine: 3,
+    );
   }
 
   Future<void> test_convertAnalysisErrors_lineInfo_options() async {
-    var analyzerErrors = [
-      await createError(13),
-      await createError(25),
-    ];
+    var analyzerErrors = [await createError(13), await createError(25)];
     var lineInfo = analyzer.LineInfo([0, 10, 20]);
     var severity = analyzer.DiagnosticSeverity.WARNING;
-    var options = (analyzer.AnalysisOptionsBuilder()
-          ..errorProcessors.add(analyzer.ErrorProcessor(
-              analyzerErrors[0].diagnosticCode.name, severity)))
-        .build();
+    var options =
+        (analyzer.AnalysisOptionsBuilder()
+              ..errorProcessors.add(
+                analyzer.ErrorProcessor(
+                  analyzerErrors[0].diagnosticCode.name,
+                  severity,
+                ),
+              ))
+            .build();
 
-    var pluginErrors = converter.convertAnalysisErrors(analyzerErrors,
-        lineInfo: lineInfo, options: options);
+    var pluginErrors = converter.convertAnalysisErrors(
+      analyzerErrors,
+      lineInfo: lineInfo,
+      options: options,
+    );
     expect(pluginErrors, hasLength(analyzerErrors.length));
-    assertError(pluginErrors[0], analyzerErrors[0],
-        startColumn: 4, startLine: 2, severity: severity);
-    assertError(pluginErrors[1], analyzerErrors[1],
-        startColumn: 6, startLine: 3, severity: severity);
+    assertError(
+      pluginErrors[0],
+      analyzerErrors[0],
+      startColumn: 4,
+      startLine: 2,
+      severity: severity,
+    );
+    assertError(
+      pluginErrors[1],
+      analyzerErrors[1],
+      startColumn: 6,
+      startLine: 3,
+      severity: severity,
+    );
   }
 
   Future<void> test_convertAnalysisErrors_noLineInfo_noOptions() async {
-    var analyzerErrors = [
-      await createError(11),
-      await createError(25),
-    ];
+    var analyzerErrors = [await createError(11), await createError(25)];
 
     var pluginErrors = converter.convertAnalysisErrors(
       analyzerErrors,
@@ -192,18 +227,22 @@ class AnalyzerConverterTest extends AbstractSingleUnitTest {
   }
 
   Future<void> test_convertAnalysisErrors_noLineInfo_options() async {
-    var analyzerErrors = [
-      await createError(13),
-      await createError(25),
-    ];
+    var analyzerErrors = [await createError(13), await createError(25)];
     var severity = analyzer.DiagnosticSeverity.WARNING;
-    var options = (analyzer.AnalysisOptionsBuilder()
-          ..errorProcessors.add(analyzer.ErrorProcessor(
-              analyzerErrors[0].diagnosticCode.name, severity)))
-        .build();
+    var options =
+        (analyzer.AnalysisOptionsBuilder()
+              ..errorProcessors.add(
+                analyzer.ErrorProcessor(
+                  analyzerErrors[0].diagnosticCode.name,
+                  severity,
+                ),
+              ))
+            .build();
 
-    var pluginErrors =
-        converter.convertAnalysisErrors(analyzerErrors, options: options);
+    var pluginErrors = converter.convertAnalysisErrors(
+      analyzerErrors,
+      options: options,
+    );
     expect(pluginErrors, hasLength(analyzerErrors.length));
     assertError(pluginErrors[0], analyzerErrors[0], severity: severity);
     assertError(pluginErrors[1], analyzerErrors[1], severity: severity);
@@ -231,10 +270,11 @@ class B<K, V> {}''');
       }
       expect(element.parameters, isNull);
       expect(
-          element.flags,
-          plugin.Element.FLAG_ABSTRACT |
-              plugin.Element.FLAG_DEPRECATED |
-              plugin.Element.FLAG_PRIVATE);
+        element.flags,
+        plugin.Element.FLAG_ABSTRACT |
+            plugin.Element.FLAG_DEPRECATED |
+            plugin.Element.FLAG_PRIVATE,
+      );
     }
     {
       var engineElement = findElement2.class_('B');
@@ -306,11 +346,12 @@ enum E2 { three, four }''');
       }
       expect(element.parameters, isNull);
       expect(
-          element.flags,
-          (engineElement.metadata.hasDeprecated
-                  ? plugin.Element.FLAG_DEPRECATED
-                  : 0) |
-              plugin.Element.FLAG_PRIVATE);
+        element.flags,
+        (engineElement.metadata.hasDeprecated
+                ? plugin.Element.FLAG_DEPRECATED
+                : 0) |
+            plugin.Element.FLAG_PRIVATE,
+      );
     }
     {
       var engineElement = findElement2.enum_('E2');
@@ -348,9 +389,10 @@ enum E2 { three, four }''');
       //analyzer.ClassElement classElement = engineElement.enclosingElement3;
       //expect(classElement.isDeprecated, isTrue);
       expect(
-          element.flags,
-          // Element.FLAG_DEPRECATED |
-          plugin.Element.FLAG_CONST | plugin.Element.FLAG_STATIC);
+        element.flags,
+        // Element.FLAG_DEPRECATED |
+        plugin.Element.FLAG_CONST | plugin.Element.FLAG_STATIC,
+      );
     }
     {
       var engineElement = findElement2.field('three');
@@ -368,8 +410,10 @@ enum E2 { three, four }''');
       }
       expect(element.parameters, isNull);
       expect(element.returnType, 'E2');
-      expect(element.flags,
-          plugin.Element.FLAG_CONST | plugin.Element.FLAG_STATIC);
+      expect(
+        element.flags,
+        plugin.Element.FLAG_CONST | plugin.Element.FLAG_STATIC,
+      );
     }
     {
       var engineElement = findElement2.field('values', of: 'E2');
@@ -388,8 +432,10 @@ enum E2 { three, four }''');
       }
       expect(element.parameters, isNull);
       expect(element.returnType, 'List<E2>');
-      expect(element.flags,
-          plugin.Element.FLAG_CONST | plugin.Element.FLAG_STATIC);
+      expect(
+        element.flags,
+        plugin.Element.FLAG_CONST | plugin.Element.FLAG_STATIC,
+      );
     }
   }
 
@@ -414,7 +460,9 @@ class A {
     expect(element.parameters, isNull);
     expect(element.returnType, 'int');
     expect(
-        element.flags, plugin.Element.FLAG_CONST | plugin.Element.FLAG_STATIC);
+      element.flags,
+      plugin.Element.FLAG_CONST | plugin.Element.FLAG_STATIC,
+    );
   }
 
   Future<void> test_convertElement_functionTypeAlias() async {
@@ -585,47 +633,80 @@ typedef A<T> = Map<int, T>;
   }
 
   void test_convertElementKind() {
-    expect(converter.convertElementKind(analyzer.ElementKind.CLASS),
-        plugin.ElementKind.CLASS);
-    expect(converter.convertElementKind(analyzer.ElementKind.COMPILATION_UNIT),
-        plugin.ElementKind.COMPILATION_UNIT);
-    expect(converter.convertElementKind(analyzer.ElementKind.CONSTRUCTOR),
-        plugin.ElementKind.CONSTRUCTOR);
-    expect(converter.convertElementKind(analyzer.ElementKind.FIELD),
-        plugin.ElementKind.FIELD);
-    expect(converter.convertElementKind(analyzer.ElementKind.FUNCTION),
-        plugin.ElementKind.FUNCTION);
     expect(
-        converter.convertElementKind(analyzer.ElementKind.FUNCTION_TYPE_ALIAS),
-        plugin.ElementKind.FUNCTION_TYPE_ALIAS);
-    expect(converter.convertElementKind(analyzer.ElementKind.GETTER),
-        plugin.ElementKind.GETTER);
-    expect(converter.convertElementKind(analyzer.ElementKind.LABEL),
-        plugin.ElementKind.LABEL);
-    expect(converter.convertElementKind(analyzer.ElementKind.LIBRARY),
-        plugin.ElementKind.LIBRARY);
-    expect(converter.convertElementKind(analyzer.ElementKind.LOCAL_VARIABLE),
-        plugin.ElementKind.LOCAL_VARIABLE);
-    expect(converter.convertElementKind(analyzer.ElementKind.METHOD),
-        plugin.ElementKind.METHOD);
-    expect(converter.convertElementKind(analyzer.ElementKind.PARAMETER),
-        plugin.ElementKind.PARAMETER);
-    expect(converter.convertElementKind(analyzer.ElementKind.SETTER),
-        plugin.ElementKind.SETTER);
+      converter.convertElementKind(analyzer.ElementKind.CLASS),
+      plugin.ElementKind.CLASS,
+    );
     expect(
-        converter.convertElementKind(analyzer.ElementKind.TOP_LEVEL_VARIABLE),
-        plugin.ElementKind.TOP_LEVEL_VARIABLE);
-    expect(converter.convertElementKind(analyzer.ElementKind.TYPE_ALIAS),
-        plugin.ElementKind.TYPE_ALIAS);
-    expect(converter.convertElementKind(analyzer.ElementKind.TYPE_PARAMETER),
-        plugin.ElementKind.TYPE_PARAMETER);
+      converter.convertElementKind(analyzer.ElementKind.COMPILATION_UNIT),
+      plugin.ElementKind.COMPILATION_UNIT,
+    );
+    expect(
+      converter.convertElementKind(analyzer.ElementKind.CONSTRUCTOR),
+      plugin.ElementKind.CONSTRUCTOR,
+    );
+    expect(
+      converter.convertElementKind(analyzer.ElementKind.FIELD),
+      plugin.ElementKind.FIELD,
+    );
+    expect(
+      converter.convertElementKind(analyzer.ElementKind.FUNCTION),
+      plugin.ElementKind.FUNCTION,
+    );
+    expect(
+      converter.convertElementKind(analyzer.ElementKind.FUNCTION_TYPE_ALIAS),
+      plugin.ElementKind.FUNCTION_TYPE_ALIAS,
+    );
+    expect(
+      converter.convertElementKind(analyzer.ElementKind.GETTER),
+      plugin.ElementKind.GETTER,
+    );
+    expect(
+      converter.convertElementKind(analyzer.ElementKind.LABEL),
+      plugin.ElementKind.LABEL,
+    );
+    expect(
+      converter.convertElementKind(analyzer.ElementKind.LIBRARY),
+      plugin.ElementKind.LIBRARY,
+    );
+    expect(
+      converter.convertElementKind(analyzer.ElementKind.LOCAL_VARIABLE),
+      plugin.ElementKind.LOCAL_VARIABLE,
+    );
+    expect(
+      converter.convertElementKind(analyzer.ElementKind.METHOD),
+      plugin.ElementKind.METHOD,
+    );
+    expect(
+      converter.convertElementKind(analyzer.ElementKind.PARAMETER),
+      plugin.ElementKind.PARAMETER,
+    );
+    expect(
+      converter.convertElementKind(analyzer.ElementKind.SETTER),
+      plugin.ElementKind.SETTER,
+    );
+    expect(
+      converter.convertElementKind(analyzer.ElementKind.TOP_LEVEL_VARIABLE),
+      plugin.ElementKind.TOP_LEVEL_VARIABLE,
+    );
+    expect(
+      converter.convertElementKind(analyzer.ElementKind.TYPE_ALIAS),
+      plugin.ElementKind.TYPE_ALIAS,
+    );
+    expect(
+      converter.convertElementKind(analyzer.ElementKind.TYPE_PARAMETER),
+      plugin.ElementKind.TYPE_PARAMETER,
+    );
   }
 
   void test_convertErrorSeverity() {
     for (var severity in analyzer.DiagnosticSeverity.values) {
       if (severity != analyzer.DiagnosticSeverity.NONE) {
-        expect(converter.convertErrorSeverity(severity), isNotNull,
-            reason: severity.name);
+        expect(
+          converter.convertErrorSeverity(severity),
+          isNotNull,
+          reason: severity.name,
+        );
       }
     }
   }

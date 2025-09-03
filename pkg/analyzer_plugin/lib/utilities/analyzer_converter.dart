@@ -48,21 +48,29 @@ class AnalyzerConverter {
     List<plugin.DiagnosticMessage>? contextMessages;
     if (diagnostic.contextMessages.isNotEmpty) {
       contextMessages = diagnostic.contextMessages
-          .map((message) =>
-              convertDiagnosticMessage(message, lineInfo: lineInfo))
+          .map(
+            (message) => convertDiagnosticMessage(message, lineInfo: lineInfo),
+          )
           .toList();
     }
     return plugin.AnalysisError(
-        convertErrorSeverity(severity),
-        convertErrorType(diagnosticCode.type),
-        plugin.Location(diagnostic.source.fullName, offset, diagnostic.length,
-            startLine, startColumn,
-            endLine: endLine, endColumn: endColumn),
-        diagnostic.message,
-        diagnosticCode.name.toLowerCase(),
-        contextMessages: contextMessages,
-        correction: diagnostic.correctionMessage,
-        hasFix: true);
+      convertErrorSeverity(severity),
+      convertErrorType(diagnosticCode.type),
+      plugin.Location(
+        diagnostic.source.fullName,
+        offset,
+        diagnostic.length,
+        startLine,
+        startColumn,
+        endLine: endLine,
+        endColumn: endColumn,
+      ),
+      diagnostic.message,
+      diagnosticCode.name.toLowerCase(),
+      contextMessages: contextMessages,
+      correction: diagnostic.correctionMessage,
+      hasFix: true,
+    );
   }
 
   /// Converts the list of analysis [diagnostics] from the 'analyzer' package to
@@ -86,8 +94,13 @@ class AnalyzerConverter {
         // Errors with null severity are filtered out.
         if (severity != null) {
           // Specified severities override.
-          serverErrors.add(convertAnalysisError(diagnostic,
-              lineInfo: lineInfo, severity: severity));
+          serverErrors.add(
+            convertAnalysisError(
+              diagnostic,
+              lineInfo: lineInfo,
+              severity: severity,
+            ),
+          );
         }
       } else {
         serverErrors.add(convertAnalysisError(diagnostic, lineInfo: lineInfo));
@@ -100,8 +113,9 @@ class AnalyzerConverter {
   /// analysis error defined by the plugin API. If a [lineInfo] is provided then
   /// the error's location will have a start line and start column.
   plugin.DiagnosticMessage convertDiagnosticMessage(
-      analyzer.DiagnosticMessage message,
-      {analyzer.LineInfo? lineInfo}) {
+    analyzer.DiagnosticMessage message, {
+    analyzer.LineInfo? lineInfo,
+  }) {
     var file = message.filePath;
     var offset = message.offset;
     var length = message.length;
@@ -118,9 +132,17 @@ class AnalyzerConverter {
       endColumn = endLocation.columnNumber;
     }
     return plugin.DiagnosticMessage(
-        message.messageText(includeUrl: true),
-        plugin.Location(file, offset, length, startLine, startColumn,
-            endLine: endLine, endColumn: endColumn));
+      message.messageText(includeUrl: true),
+      plugin.Location(
+        file,
+        offset,
+        length,
+        startLine,
+        startColumn,
+        endLine: endLine,
+        endColumn: endColumn,
+      ),
+    );
   }
 
   Element convertElement(analyzer.Element element) {
@@ -175,8 +197,8 @@ class AnalyzerConverter {
   /// Convert the error [severity] from the 'analyzer' package to an analysis
   /// error severity defined by the plugin API.
   plugin.AnalysisErrorSeverity convertErrorSeverity(
-          analyzer.DiagnosticSeverity severity) =>
-      plugin.AnalysisErrorSeverity.values.byName(severity.name);
+    analyzer.DiagnosticSeverity severity,
+  ) => plugin.AnalysisErrorSeverity.values.byName(severity.name);
 
   /// Convert the error [type] from the 'analyzer' package to an analysis error
   /// type defined by the plugin API.
@@ -185,8 +207,9 @@ class AnalyzerConverter {
 
   String getElementDisplayName(analyzer.Element element) {
     if (element is analyzer.LibraryFragment) {
-      return path
-          .basename((element as analyzer.LibraryFragment).source.fullName);
+      return path.basename(
+        (element as analyzer.LibraryFragment).source.fullName,
+      );
     } else {
       return element.displayName;
     }
@@ -376,13 +399,13 @@ class AnalyzerConverter {
     var rank1 = (e1.isRequiredNamed || e1.metadata.hasRequired)
         ? 0
         : !e1.isNamed
-            ? -1
-            : 1;
+        ? -1
+        : 1;
     var rank2 = (e2.isRequiredNamed || e2.metadata.hasRequired)
         ? 0
         : !e2.isNamed
-            ? -1
-            : 1;
+        ? -1
+        : 1;
     return rank1 - rank2;
   }
 }

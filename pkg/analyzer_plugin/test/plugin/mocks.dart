@@ -56,10 +56,12 @@ class MockChannel implements PluginCommunicationChannel {
   }
 
   @override
-  void listen(void Function(Request request)? onRequest,
-      {void Function()? onDone,
-      Function? onError,
-      Function(Notification)? onNotification}) {
+  void listen(
+    void Function(Request request)? onRequest, {
+    void Function()? onDone,
+    Function? onError,
+    Function(Notification)? onNotification,
+  }) {
     _onDone = onDone;
     _onError = onError;
     _onNotification = onNotification;
@@ -121,11 +123,13 @@ class MockResolvedUnitResult implements ResolvedUnitResult {
   @override
   final String path;
 
-  MockResolvedUnitResult(
-      {List<Diagnostic>? errors, LineInfo? lineInfo, String? path})
-      : diagnostics = errors ?? [],
-        lineInfo = lineInfo ?? LineInfo([0]),
-        path = path ?? '';
+  MockResolvedUnitResult({
+    List<Diagnostic>? errors,
+    LineInfo? lineInfo,
+    String? path,
+  }) : diagnostics = errors ?? [],
+       lineInfo = lineInfo ?? LineInfo([0]),
+       path = path ?? '';
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -139,7 +143,7 @@ class MockResourceProvider implements ResourceProvider {
 /// A concrete implementation of a server plugin that is suitable for testing.
 class MockServerPlugin extends ServerPlugin {
   MockServerPlugin(ResourceProvider resourceProvider)
-      : super(resourceProvider: resourceProvider);
+    : super(resourceProvider: resourceProvider);
 
   @override
   List<String> get fileGlobsToAnalyze => <String>['*.dart'];

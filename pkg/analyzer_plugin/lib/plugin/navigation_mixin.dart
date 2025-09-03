@@ -20,7 +20,8 @@ import 'package:analyzer_plugin/utilities/navigation/navigation.dart';
 mixin DartNavigationMixin implements NavigationMixin {
   @override
   Future<NavigationRequest> getNavigationRequest(
-      AnalysisGetNavigationParams parameters) async {
+    AnalysisGetNavigationParams parameters,
+  ) async {
     var path = parameters.file;
     var result = await getResolvedUnitResult(path);
     var offset = parameters.offset;
@@ -48,11 +49,13 @@ mixin NavigationMixin implements ServerPlugin {
   ///
   /// Throw a [RequestFailure] if the request could not be created.
   Future<NavigationRequest> getNavigationRequest(
-      AnalysisGetNavigationParams parameters);
+    AnalysisGetNavigationParams parameters,
+  );
 
   @override
   Future<AnalysisGetNavigationResult> handleAnalysisGetNavigation(
-      AnalysisGetNavigationParams parameters) async {
+    AnalysisGetNavigationParams parameters,
+  ) async {
     var path = parameters.file;
     var request = await getNavigationRequest(parameters);
     var generator = NavigationGenerator(getNavigationContributors(path));
@@ -66,8 +69,9 @@ mixin NavigationMixin implements ServerPlugin {
   @override
   Future<void> sendNavigationNotification(String path) async {
     try {
-      var request =
-          await getNavigationRequest(AnalysisGetNavigationParams(path, -1, -1));
+      var request = await getNavigationRequest(
+        AnalysisGetNavigationParams(path, -1, -1),
+      );
       var generator = NavigationGenerator(getNavigationContributors(path));
       var generatorResult = generator.generateNavigationNotification(request);
       generatorResult.sendNotifications(channel);

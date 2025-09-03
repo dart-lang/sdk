@@ -51,9 +51,8 @@ abstract class ServerPlugin {
   /// Initialize a newly created analysis server plugin. If a resource [resourceProvider]
   /// is given, then it will be used to access the file system. Otherwise a
   /// resource provider that accesses the physical file system will be used.
-  ServerPlugin({
-    required ResourceProvider resourceProvider,
-  }) : resourceProvider = OverlayResourceProvider(resourceProvider);
+  ServerPlugin({required ResourceProvider resourceProvider})
+    : resourceProvider = OverlayResourceProvider(resourceProvider);
 
   /// Return the communication channel being used to communicate with the
   /// analysis server.
@@ -83,10 +82,7 @@ abstract class ServerPlugin {
   }) async {
     await _forAnalysisContexts(contextCollection, (analysisContext) async {
       var paths = analysisContext.contextRoot.analyzedFiles().toList();
-      await analyzeFiles(
-        analysisContext: analysisContext,
-        paths: paths,
-      );
+      await analyzeFiles(analysisContext: analysisContext, paths: paths);
     });
   }
 
@@ -108,19 +104,13 @@ abstract class ServerPlugin {
     // First analyze priority files.
     for (var path in priorityPaths) {
       if (pathSet.remove(path)) {
-        await analyzeFile(
-          analysisContext: analysisContext,
-          path: path,
-        );
+        await analyzeFile(analysisContext: analysisContext, path: path);
       }
     }
 
     // Then analyze the remaining files.
     for (var path in pathSet) {
-      await analyzeFile(
-        analysisContext: analysisContext,
-        path: path,
-      );
+      await analyzeFile(analysisContext: analysisContext, path: path);
     }
   }
 
@@ -151,10 +141,7 @@ abstract class ServerPlugin {
   /// all [AnalysisContextCollection] instances, and reused when new instances
   /// are created (and so can perform analysis faster).
   ByteStore createByteStore() {
-    return MemoryCachingByteStore(
-      NullByteStore(),
-      1024 * 1024 * 256,
-    );
+    return MemoryCachingByteStore(NullByteStore(), 1024 * 1024 * 256);
   }
 
   /// Plugin implementations can use this method to flush the state of
@@ -163,9 +150,7 @@ abstract class ServerPlugin {
   ///
   /// The next analysis operation will be slower, because it will restore
   /// the state from the byte store cache, or recompute.
-  Future<void> flushAnalysisState({
-    bool elementModels = true,
-  }) async {
+  Future<void> flushAnalysisState({bool elementModels = true}) async {
     var contextCollection = _contextCollection;
     if (contextCollection != null) {
       for (var analysisContext in contextCollection.contexts) {
@@ -209,26 +194,28 @@ abstract class ServerPlugin {
         .where(analysisContext.contextRoot.isAnalyzed)
         .toList(growable: false);
 
-    await analyzeFiles(
-      analysisContext: analysisContext,
-      paths: analyzedPaths,
-    );
+    await analyzeFiles(analysisContext: analysisContext, paths: analyzedPaths);
   }
 
   /// Handle an 'analysis.getNavigation' request.
   ///
   /// Throw a [RequestFailure] if the request could not be handled.
   Future<AnalysisGetNavigationResult> handleAnalysisGetNavigation(
-      AnalysisGetNavigationParams parameters) async {
+    AnalysisGetNavigationParams parameters,
+  ) async {
     return AnalysisGetNavigationResult(
-        <String>[], <NavigationTarget>[], <NavigationRegion>[]);
+      <String>[],
+      <NavigationTarget>[],
+      <NavigationRegion>[],
+    );
   }
 
   /// Handle an 'analysis.handleWatchEvents' request.
   ///
   /// Throw a [RequestFailure] if the request could not be handled.
   Future<AnalysisHandleWatchEventsResult> handleAnalysisHandleWatchEvents(
-      AnalysisHandleWatchEventsParams parameters) async {
+    AnalysisHandleWatchEventsParams parameters,
+  ) async {
     for (var event in parameters.events) {
       switch (event.type) {
         case WatchEventType.ADD:
@@ -249,7 +236,8 @@ abstract class ServerPlugin {
   ///
   /// Throw a [RequestFailure] if the request could not be handled.
   Future<AnalysisSetContextRootsResult> handleAnalysisSetContextRoots(
-      AnalysisSetContextRootsParams parameters) async {
+    AnalysisSetContextRootsParams parameters,
+  ) async {
     var currentContextCollection = _contextCollection;
     if (currentContextCollection != null) {
       _contextCollection = null;
@@ -268,9 +256,7 @@ abstract class ServerPlugin {
       fileContentCache: FileContentCache(resourceProvider),
     );
     _contextCollection = contextCollection;
-    await afterNewContextCollection(
-      contextCollection: contextCollection,
-    );
+    await afterNewContextCollection(contextCollection: contextCollection);
     return AnalysisSetContextRootsResult();
   }
 
@@ -278,7 +264,8 @@ abstract class ServerPlugin {
   ///
   /// Throw a [RequestFailure] if the request could not be handled.
   Future<AnalysisSetPriorityFilesResult> handleAnalysisSetPriorityFiles(
-      AnalysisSetPriorityFilesParams parameters) async {
+    AnalysisSetPriorityFilesParams parameters,
+  ) async {
     priorityPaths = parameters.files.toSet();
     return AnalysisSetPriorityFilesResult();
   }
@@ -289,7 +276,8 @@ abstract class ServerPlugin {
   ///
   /// Throw a [RequestFailure] if the request could not be handled.
   Future<AnalysisSetSubscriptionsResult> handleAnalysisSetSubscriptions(
-      AnalysisSetSubscriptionsParams parameters) async {
+    AnalysisSetSubscriptionsParams parameters,
+  ) async {
     var subscriptions = parameters.subscriptions;
     var newSubscriptions = subscriptionManager.setSubscriptions(subscriptions);
     sendNotificationsForSubscriptions(newSubscriptions);
@@ -302,7 +290,8 @@ abstract class ServerPlugin {
   ///
   /// Throw a [RequestFailure] if the request could not be handled.
   Future<AnalysisUpdateContentResult> handleAnalysisUpdateContent(
-      AnalysisUpdateContentParams parameters) async {
+    AnalysisUpdateContentParams parameters,
+  ) async {
     var changedPaths = <String>{};
     var paths = parameters.files;
     paths.forEach((String path, Object? overlay) {
@@ -324,13 +313,15 @@ abstract class ServerPlugin {
           // The server should only send a ChangeContentOverlay if there is
           // already an existing overlay for the source.
           throw RequestFailure(
-              RequestErrorFactory.invalidOverlayChangeNoContent());
+            RequestErrorFactory.invalidOverlayChangeNoContent(),
+          );
         }
         try {
           newContents = SourceEdit.applySequence(oldContents, overlay.edits);
         } on RangeError {
           throw RequestFailure(
-              RequestErrorFactory.invalidOverlayChangeInvalidEdit());
+            RequestErrorFactory.invalidOverlayChangeInvalidEdit(),
+          );
         }
       } else if (overlay is RemoveContentOverlay) {
         newContents = null;
@@ -356,16 +347,21 @@ abstract class ServerPlugin {
   ///
   /// Throw a [RequestFailure] if the request could not be handled.
   Future<CompletionGetSuggestionsResult> handleCompletionGetSuggestions(
-      CompletionGetSuggestionsParams parameters) async {
+    CompletionGetSuggestionsParams parameters,
+  ) async {
     return CompletionGetSuggestionsResult(
-        -1, -1, const <CompletionSuggestion>[]);
+      -1,
+      -1,
+      const <CompletionSuggestion>[],
+    );
   }
 
   /// Handle an 'edit.getAssists' request.
   ///
   /// Throw a [RequestFailure] if the request could not be handled.
   Future<EditGetAssistsResult> handleEditGetAssists(
-      EditGetAssistsParams parameters) async {
+    EditGetAssistsParams parameters,
+  ) async {
     return EditGetAssistsResult(const <PrioritizedSourceChange>[]);
   }
 
@@ -375,7 +371,8 @@ abstract class ServerPlugin {
   ///
   /// Throw a [RequestFailure] if the request could not be handled.
   Future<EditGetAvailableRefactoringsResult> handleEditGetAvailableRefactorings(
-      EditGetAvailableRefactoringsParams parameters) async {
+    EditGetAvailableRefactoringsParams parameters,
+  ) async {
     return EditGetAvailableRefactoringsResult(const <RefactoringKind>[]);
   }
 
@@ -383,7 +380,8 @@ abstract class ServerPlugin {
   ///
   /// Throw a [RequestFailure] if the request could not be handled.
   Future<EditGetFixesResult> handleEditGetFixes(
-      EditGetFixesParams parameters) async {
+    EditGetFixesParams parameters,
+  ) async {
     return EditGetFixesResult(const <AnalysisErrorFixes>[]);
   }
 
@@ -391,7 +389,8 @@ abstract class ServerPlugin {
   ///
   /// Throw a [RequestFailure] if the request could not be handled.
   Future<EditGetRefactoringResult?> handleEditGetRefactoring(
-      EditGetRefactoringParams parameters) async {
+    EditGetRefactoringParams parameters,
+  ) async {
     return null;
   }
 
@@ -401,7 +400,8 @@ abstract class ServerPlugin {
   ///
   /// Throw a [RequestFailure] if the request could not be handled.
   Future<PluginShutdownResult> handlePluginShutdown(
-      PluginShutdownParams parameters) async {
+    PluginShutdownParams parameters,
+  ) async {
     return PluginShutdownResult();
   }
 
@@ -409,13 +409,18 @@ abstract class ServerPlugin {
   ///
   /// Throw a [RequestFailure] if the request could not be handled.
   Future<PluginVersionCheckResult> handlePluginVersionCheck(
-      PluginVersionCheckParams parameters) async {
+    PluginVersionCheckParams parameters,
+  ) async {
     _sdkPath = parameters.sdkPath;
     var versionString = parameters.version;
     var serverVersion = Version.parse(versionString);
     return PluginVersionCheckResult(
-        isCompatibleWith(serverVersion), name, version, fileGlobsToAnalyze,
-        contactInfo: contactInfo);
+      isCompatibleWith(serverVersion),
+      name,
+      version,
+      fileGlobsToAnalyze,
+      contactInfo: contactInfo,
+    );
   }
 
   /// Return `true` if this plugin is compatible with an analysis server that is
@@ -471,7 +476,8 @@ abstract class ServerPlugin {
   /// changed and notifications need to be sent even when the specified files
   /// have already been analyzed.
   void sendNotificationsForSubscriptions(
-      Map<String, List<AnalysisService>> subscriptions) {
+    Map<String, List<AnalysisService>> subscriptions,
+  ) {
     subscriptions.forEach((String path, List<AnalysisService> services) {
       for (var service in services) {
         _sendNotificationForFile(path, service);
@@ -577,8 +583,11 @@ abstract class ServerPlugin {
         break;
     }
     if (result == null) {
-      return Response(request.id, requestTime,
-          error: RequestErrorFactory.unknownRequest(request.method));
+      return Response(
+        request.id,
+        requestTime,
+        error: RequestErrorFactory.unknownRequest(request.method),
+      );
     }
     return result.toResponse(request.id, requestTime);
   }
@@ -598,10 +607,15 @@ abstract class ServerPlugin {
     } on RequestFailure catch (exception) {
       response = Response(id, requestTime, error: exception.error);
     } catch (exception, stackTrace) {
-      response = Response(id, requestTime,
-          error: RequestError(
-              RequestErrorCode.PLUGIN_ERROR, exception.toString(),
-              stackTrace: stackTrace.toString()));
+      response = Response(
+        id,
+        requestTime,
+        error: RequestError(
+          RequestErrorCode.PLUGIN_ERROR,
+          exception.toString(),
+          stackTrace: stackTrace.toString(),
+        ),
+      );
     }
     if (response != null) {
       _channel.sendResponse(response);

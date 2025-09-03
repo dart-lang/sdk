@@ -25,7 +25,11 @@ class DartFixesRequestImpl implements DartFixesRequest {
 
   /// Initialize a newly create request with the given data.
   DartFixesRequestImpl(
-      this.resourceProvider, this.offset, this.errorsToFix, this.result);
+    this.resourceProvider,
+    this.offset,
+    this.errorsToFix,
+    this.result,
+  );
 }
 
 /// A concrete implementation of [FixCollector].
@@ -39,8 +43,12 @@ class FixCollectorImpl implements FixCollector {
     var fixes = <AnalysisErrorFixes>[];
     var converter = AnalyzerConverter();
     for (var error in fixMap.keys) {
-      fixes.add(AnalysisErrorFixes(converter.convertAnalysisError(error),
-          fixes: fixMap[error]));
+      fixes.add(
+        AnalysisErrorFixes(
+          converter.convertAnalysisError(error),
+          fixes: fixMap[error],
+        ),
+      );
     }
     return fixes;
   }

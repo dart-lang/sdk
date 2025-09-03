@@ -24,8 +24,12 @@ abstract class FixContributorMixin implements FixContributor {
   /// the message and priority, and use the change [builder] to get the edits
   /// that comprise the fix. If the message has parameters, then use the list of
   /// [args] to populate the message.
-  void addFix(Diagnostic diagnostic, FixKind kind, ChangeBuilder builder,
-      {List<Object>? args}) {
+  void addFix(
+    Diagnostic diagnostic,
+    FixKind kind,
+    ChangeBuilder builder, {
+    List<Object>? args,
+  }) {
     var change = builder.sourceChange;
     if (change.edits.isEmpty) {
       return;
@@ -33,12 +37,16 @@ abstract class FixContributorMixin implements FixContributor {
     change.id = kind.id;
     change.message = formatList(kind.message, args);
     collector?.addFix(
-        diagnostic, PrioritizedSourceChange(kind.priority, change));
+      diagnostic,
+      PrioritizedSourceChange(kind.priority, change),
+    );
   }
 
   @override
   Future<void> computeFixes(
-      DartFixesRequest request, FixCollector collector) async {
+    DartFixesRequest request,
+    FixCollector collector,
+  ) async {
     this.request = request;
     this.collector = collector;
     try {

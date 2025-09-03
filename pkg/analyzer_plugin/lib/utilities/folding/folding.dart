@@ -63,13 +63,18 @@ class FoldingGenerator {
       try {
         contributor.computeFolding(request, collector);
       } catch (exception, stackTrace) {
-        notifications.add(PluginErrorParams(
-                false, exception.toString(), stackTrace.toString())
-            .toNotification());
+        notifications.add(
+          PluginErrorParams(
+            false,
+            exception.toString(),
+            stackTrace.toString(),
+          ).toNotification(),
+        );
       }
     }
-    notifications.add(AnalysisFoldingParams(request.path, collector.regions)
-        .toNotification());
+    notifications.add(
+      AnalysisFoldingParams(request.path, collector.regions).toNotification(),
+    );
     return GeneratorResult(null, notifications);
   }
 }

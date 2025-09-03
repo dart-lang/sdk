@@ -167,17 +167,25 @@ void g(int a) {}
   /// invocation's argument list between [lower] and [upper]. Validate that the
   /// range for deletion matches [expectedForDeletion] and that the range not
   /// for deletion matches [expectedNoDeletion].
-  void _assertArgumentRange(int lower, int upper,
-      SourceRange expectedForDeletion, SourceRange expectedNoDeletion) {
+  void _assertArgumentRange(
+    int lower,
+    int upper,
+    SourceRange expectedForDeletion,
+    SourceRange expectedNoDeletion,
+  ) {
     var f = testUnit.declarations[0] as FunctionDeclaration;
     var body = f.functionExpression.body as BlockFunctionBody;
     var statement = body.block.statements[0] as ExpressionStatement;
     var invocation = statement.expression as MethodInvocation;
     var argumentList = invocation.argumentList;
-    expect(range.argumentRange(argumentList, lower, upper, true),
-        expectedForDeletion);
-    expect(range.argumentRange(argumentList, lower, upper, false),
-        expectedNoDeletion);
+    expect(
+      range.argumentRange(argumentList, lower, upper, true),
+      expectedForDeletion,
+    );
+    expect(
+      range.argumentRange(argumentList, lower, upper, false),
+      expectedNoDeletion,
+    );
   }
 }
 
@@ -337,44 +345,58 @@ class A {
 @reflectiveTest
 class RangeFactoryTest extends AbstractSingleUnitTest {
   Future<void> test_deletionRange_first() async {
-    await _deletionRange(declarationIndex: 0, '''
+    await _deletionRange(
+      declarationIndex: 0,
+      '''
 class A {}
 
 class B {}
-''', expected: '''
+''',
+      expected: '''
 class B {}
-''');
+''',
+    );
   }
 
   Future<void> test_deletionRange_first_comment() async {
-    await _deletionRange(declarationIndex: 0, '''
+    await _deletionRange(
+      declarationIndex: 0,
+      '''
 /// for a
 class A {}
 
 /// for b
 class B {}
-''', expected: '''
+''',
+      expected: '''
 /// for b
 class B {}
-''');
+''',
+    );
   }
 
   Future<void> test_deletionRange_first_directive() async {
-    await _deletionRange(declarationIndex: 0, '''
+    await _deletionRange(
+      declarationIndex: 0,
+      '''
 import 'dart:collection';
 
 class A {}
 
 class B {}
-''', expected: '''
+''',
+      expected: '''
 import 'dart:collection';
 
 class B {}
-''');
+''',
+    );
   }
 
   Future<void> test_deletionRange_first_directive_comment() async {
-    await _deletionRange(declarationIndex: 0, '''
+    await _deletionRange(
+      declarationIndex: 0,
+      '''
 import 'dart:collection';
 
 /// for a
@@ -382,44 +404,56 @@ class A {}
 
 /// for b
 class B {}
-''', expected: '''
+''',
+      expected: '''
 import 'dart:collection';
 
 /// for b
 class B {}
-''');
+''',
+    );
   }
 
   Future<void> test_deletionRange_last() async {
-    await _deletionRange(declarationIndex: 1, '''
+    await _deletionRange(
+      declarationIndex: 1,
+      '''
 /// for a
 class A {}
 
 class B {}
-''', expected: '''
+''',
+      expected: '''
 /// for a
 class A {}
-''');
+''',
+    );
   }
 
   Future<void> test_deletionRange_last_before_comment() async {
-    await _deletionRange(declarationIndex: 1, '''
+    await _deletionRange(
+      declarationIndex: 1,
+      '''
 /// for a
 class A {}
 
 class B {}
 
 // another
-''', expected: '''
+''',
+      expected: '''
 /// for a
 class A {}
 
 // another
-''');
+''',
+    );
   }
 
   Future<void> test_deletionRange_last_multiLineComment() async {
-    await _deletionRange(declarationIndex: 1, '''
+    await _deletionRange(
+      declarationIndex: 1,
+      '''
 /// for a
 class A {}
 
@@ -427,41 +461,53 @@ class A {}
  * for b
  */
 class B {}
-''', expected: '''
+''',
+      expected: '''
 /// for a
 class A {}
-''');
+''',
+    );
   }
 
   Future<void> test_deletionRange_last_singeLineComment() async {
-    await _deletionRange(declarationIndex: 1, '''
+    await _deletionRange(
+      declarationIndex: 1,
+      '''
 /// for a
 class A {}
 
 /// for b
 class B {}
-''', expected: '''
+''',
+      expected: '''
 /// for a
 class A {}
-''');
+''',
+    );
   }
 
   Future<void> test_deletionRange_middle() async {
-    await _deletionRange(declarationIndex: 1, '''
+    await _deletionRange(
+      declarationIndex: 1,
+      '''
 class A {}
 
 class B {}
 
 class C {}
-''', expected: '''
+''',
+      expected: '''
 class A {}
 
 class C {}
-''');
+''',
+    );
   }
 
   Future<void> test_deletionRange_middle_comment() async {
-    await _deletionRange(declarationIndex: 1, '''
+    await _deletionRange(
+      declarationIndex: 1,
+      '''
 /// for a
 class A {}
 
@@ -470,42 +516,56 @@ class B {}
 
 /// for c
 class C {}
-''', expected: '''
+''',
+      expected: '''
 /// for a
 class A {}
 
 /// for c
 class C {}
-''');
+''',
+    );
   }
 
   Future<void> test_deletionRange_only() async {
-    await _deletionRange(declarationIndex: 0, '''
+    await _deletionRange(
+      declarationIndex: 0,
+      '''
 class A {}
-''', expected: '''
+''',
+      expected: '''
 
-''');
+''',
+    );
   }
 
   Future<void> test_deletionRange_variableDeclaration() async {
-    await _deletionRange(declarationIndex: 0, '''
+    await _deletionRange(
+      declarationIndex: 0,
+      '''
 var x = 1;
 
 class B {}
-''', expected: '''
+''',
+      expected: '''
 class B {}
-''');
+''',
+    );
   }
 
   Future<void> test_deletionRange_variableDeclaration_comment() async {
-    await _deletionRange(declarationIndex: 0, '''
+    await _deletionRange(
+      declarationIndex: 0,
+      '''
 // something
 var x = 1;
 
 class B {}
-''', expected: '''
+''',
+      expected: '''
 class B {}
-''');
+''',
+    );
   }
 
   Future<void> test_endEnd() async {
@@ -598,12 +658,16 @@ const class B {}
     expect(range.token(mainName), SourceRange(1, 4));
   }
 
-  Future<void> _deletionRange(String code,
-      {required String expected, required int declarationIndex}) async {
+  Future<void> _deletionRange(
+    String code, {
+    required String expected,
+    required int declarationIndex,
+  }) async {
     await resolveTestCode(code);
     var member = testUnit.declarations[declarationIndex];
     var deletionRange = range.deletionRange(member);
-    var codeAfterDeletion = code.substring(0, deletionRange.offset) +
+    var codeAfterDeletion =
+        code.substring(0, deletionRange.offset) +
         code.substring(deletionRange.end);
     expect(codeAfterDeletion, expected);
   }

@@ -20,15 +20,20 @@ const Matcher isBool = TypeMatcher<bool>();
 const Matcher isInt = TypeMatcher<int>();
 
 const Matcher isNotification = MatchesJsonObject(
-    'notification', {'event': isString},
-    optionalFields: {'params': isMap});
+  'notification',
+  {'event': isString},
+  optionalFields: {'params': isMap},
+);
 
 const Matcher isObject = isMap;
 
 const Matcher isString = TypeMatcher<String>();
 
-final Matcher isResponse = MatchesJsonObject('response', {'id': isString},
-    optionalFields: {'result': anything, 'error': isRequestError});
+final Matcher isResponse = MatchesJsonObject(
+  'response',
+  {'id': isString},
+  optionalFields: {'result': anything, 'error': isRequestError},
+);
 
 Matcher isListOf(Matcher elementMatcher) => _ListOf(elementMatcher);
 
@@ -38,8 +43,13 @@ Matcher isMapOf(Matcher keyMatcher, Matcher valueMatcher) =>
 Matcher isOneOf(List<Matcher> choiceMatchers) => _OneOf(choiceMatchers);
 
 /// Assert that [actual] matches [matcher].
-void outOfTestExpect(dynamic actual, Matcher matcher,
-    {String? reason, skip, bool verbose = false}) {
+void outOfTestExpect(
+  dynamic actual,
+  Matcher matcher, {
+  String? reason,
+  skip,
+  bool verbose = false,
+}) {
   var matchState = {};
   try {
     if (matcher.matches(actual, matchState)) return;
@@ -49,8 +59,13 @@ void outOfTestExpect(dynamic actual, Matcher matcher,
   fail(_defaultFailFormatter(actual, matcher, reason, matchState, verbose));
 }
 
-String _defaultFailFormatter(dynamic actual, Matcher matcher, String? reason,
-    Map matchState, bool verbose) {
+String _defaultFailFormatter(
+  dynamic actual,
+  Matcher matcher,
+  String? reason,
+  Map matchState,
+  bool verbose,
+) {
   var description = StringDescription();
   description.add('Expected: ').addDescriptionOf(matcher).add('\n');
   description.add('  Actual: ').addDescriptionOf(actual).add('\n');
@@ -69,8 +84,8 @@ String _defaultFailFormatter(dynamic actual, Matcher matcher, String? reason,
 typedef MatcherCreator = Matcher Function();
 
 /// Type of closures used by MatchesJsonObject to record field mismatches.
-typedef MismatchDescriber = Description Function(
-    Description mismatchDescription);
+typedef MismatchDescriber =
+    Description Function(Description mismatchDescription);
 
 /// Type of callbacks used to process notifications.
 typedef NotificationProcessor = void Function(String event, Map params);
@@ -102,29 +117,29 @@ abstract class AbstractAnalysisServerIntegrationTest
     initializeInttestMixin();
   }
 
-//  /**
-//   * Return a future which will complete when a 'server.status' notification is
-//   * received from the server with 'analyzing' set to false.
-//   *
-//   * The future will only be completed by 'server.status' notifications that are
-//   * received after this function call. So it is safe to use this getter
-//   * multiple times in one test; each time it is used it will wait afresh for
-//   * analysis to finish.
-//   */
-//  Future get analysisFinished {
-//    Completer completer = new Completer();
-//    StreamSubscription subscription;
-//    // This will only work if the caller has already subscribed to
-//    // SERVER_STATUS (e.g. using sendServerSetSubscriptions(['STATUS']))
-//    outOfTestExpect(_subscribedToServerStatus, isTrue);
-//    subscription = onServerStatus.listen((PluginStatusParams params) {
-//      if (params.analysis != null && !params.analysis.isAnalyzing) {
-//        completer.complete(params);
-//        subscription.cancel();
-//      }
-//    });
-//    return completer.future;
-//  }
+  //  /**
+  //   * Return a future which will complete when a 'server.status' notification is
+  //   * received from the server with 'analyzing' set to false.
+  //   *
+  //   * The future will only be completed by 'server.status' notifications that are
+  //   * received after this function call. So it is safe to use this getter
+  //   * multiple times in one test; each time it is used it will wait afresh for
+  //   * analysis to finish.
+  //   */
+  //  Future get analysisFinished {
+  //    Completer completer = new Completer();
+  //    StreamSubscription subscription;
+  //    // This will only work if the caller has already subscribed to
+  //    // SERVER_STATUS (e.g. using sendServerSetSubscriptions(['STATUS']))
+  //    outOfTestExpect(_subscribedToServerStatus, isTrue);
+  //    subscription = onServerStatus.listen((PluginStatusParams params) {
+  //      if (params.analysis != null && !params.analysis.isAnalyzing) {
+  //        completer.complete(params);
+  //        subscription.cancel();
+  //      }
+  //    });
+  //    return completer.future;
+  //  }
 
   /// Print out any messages exchanged with the server. If some messages have
   /// already been exchanged with the server, they are printed out immediately.
@@ -142,10 +157,10 @@ abstract class AbstractAnalysisServerIntegrationTest
     });
     var serverConnected = Completer();
     // TODO(brianwilkerson): Implement this.
-//    onServerConnected.listen((_) {
-//      outOfTestExpect(serverConnected.isCompleted, isFalse);
-//      serverConnected.complete();
-//    });
+    //    onServerConnected.listen((_) {
+    //      outOfTestExpect(serverConnected.isCompleted, isFalse);
+    //      serverConnected.complete();
+    //    });
     onPluginError.listen((PluginErrorParams params) {
       // A plugin error should never happen during an integration test.
       fail('${params.message}\n${params.stackTrace}');
@@ -167,9 +182,12 @@ abstract class AbstractAnalysisServerIntegrationTest
     // Give the server a short time to comply with the shutdown request; if it
     // doesn't exit, then forcibly terminate it.
     sendPluginShutdown();
-    return server.exitCode.timeout(SHUTDOWN_TIMEOUT, onTimeout: () {
-      return server.kill('server failed to exit');
-    });
+    return server.exitCode.timeout(
+      SHUTDOWN_TIMEOUT,
+      onTimeout: () {
+        return server.kill('server failed to exit');
+      },
+    );
   }
 
   /// Convert the given [relativePath] to an absolute path, by interpreting it
@@ -186,20 +204,23 @@ abstract class AbstractAnalysisServerIntegrationTest
   Future standardAnalysisSetup({bool subscribeStatus = true}) {
     var futures = <Future>[];
     // TODO(brianwilkerson): Implement this.
-//    if (subscribeStatus) {
-//      futures.add(sendServerSetSubscriptions([ServerService.STATUS]));
-//    }
-//    futures.add(sendAnalysisSetAnalysisRoots([sourceDirectory.path], []));
+    //    if (subscribeStatus) {
+    //      futures.add(sendServerSetSubscriptions([ServerService.STATUS]));
+    //    }
+    //    futures.add(sendAnalysisSetAnalysisRoots([sourceDirectory.path], []));
     return Future.wait(futures);
   }
 
   /// Start [server].
-  Future startServer(
-          {bool checked = true, int? diagnosticPort, int? servicePort}) =>
-      server.start(
-          checked: checked,
-          diagnosticPort: diagnosticPort,
-          servicePort: servicePort);
+  Future startServer({
+    bool checked = true,
+    int? diagnosticPort,
+    int? servicePort,
+  }) => server.start(
+    checked: checked,
+    diagnosticPort: diagnosticPort,
+    servicePort: servicePort,
+  );
 
   /// After every test, the server is stopped and [sourceDirectory] is deleted.
   Future tearDown() {
@@ -246,10 +267,18 @@ class LazyMatcher implements Matcher {
 
   @override
   Description describeMismatch(
-      item, Description mismatchDescription, Map matchState, bool verbose) {
+    item,
+    Description mismatchDescription,
+    Map matchState,
+    bool verbose,
+  ) {
     _createMatcher();
-    return _wrappedMatcher!
-        .describeMismatch(item, mismatchDescription, matchState, verbose);
+    return _wrappedMatcher!.describeMismatch(
+      item,
+      mismatchDescription,
+      matchState,
+      verbose,
+    );
   }
 
   @override
@@ -298,8 +327,11 @@ class MatchesJsonObject extends _RecursiveMatcher {
   /// their expected types.
   final Map<String, Matcher>? optionalFields;
 
-  const MatchesJsonObject(this.description, this.requiredFields,
-      {this.optionalFields});
+  const MatchesJsonObject(
+    this.description,
+    this.requiredFields, {
+    this.optionalFields,
+  });
 
   @override
   Description describe(Description description) =>
@@ -315,13 +347,14 @@ class MatchesJsonObject extends _RecursiveMatcher {
     if (requiredFields != null) {
       requiredFields.forEach((String key, Matcher valueMatcher) {
         if (!item.containsKey(key)) {
-          mismatches.add((Description mismatchDescription) =>
-              mismatchDescription
-                  .add('is missing field ')
-                  .addDescriptionOf(key)
-                  .add(' (')
-                  .addDescriptionOf(valueMatcher)
-                  .add(')'));
+          mismatches.add(
+            (Description mismatchDescription) => mismatchDescription
+                .add('is missing field ')
+                .addDescriptionOf(key)
+                .add(' (')
+                .addDescriptionOf(valueMatcher)
+                .add(')'),
+          );
         } else {
           _checkField(key, item[key], valueMatcher, mismatches);
         }
@@ -334,9 +367,11 @@ class MatchesJsonObject extends _RecursiveMatcher {
       } else if (optionalFields != null && optionalFields.containsKey(key)) {
         _checkField(key as String, value, optionalFields[key]!, mismatches);
       } else {
-        mismatches.add((Description mismatchDescription) => mismatchDescription
-            .add('has unexpected field ')
-            .addDescriptionOf(key));
+        mismatches.add(
+          (Description mismatchDescription) => mismatchDescription
+              .add('has unexpected field ')
+              .addDescriptionOf(key),
+        );
       }
     });
   }
@@ -344,14 +379,19 @@ class MatchesJsonObject extends _RecursiveMatcher {
   /// Check the type of a field called [key], having value [value], using
   /// [valueMatcher]. If it doesn't match, record a closure in [mismatches]
   /// which can describe the mismatch.
-  void _checkField(String key, Object? value, Matcher valueMatcher,
-      List<MismatchDescriber> mismatches) {
+  void _checkField(
+    String key,
+    Object? value,
+    Matcher valueMatcher,
+    List<MismatchDescriber> mismatches,
+  ) {
     checkSubstructure(
-        value,
-        valueMatcher,
-        mismatches,
-        (Description description) =>
-            description.add('field ').addDescriptionOf(key));
+      value,
+      valueMatcher,
+      mismatches,
+      (Description description) =>
+          description.add('field ').addDescriptionOf(key),
+    );
   }
 }
 
@@ -441,61 +481,63 @@ class Server {
         .transform(Utf8Codec().decoder)
         .transform(LineSplitter())
         .listen((String line) {
-      lastCommunicationTime = currentElapseTime;
-      var trimmedLine = line.trim();
-      if (trimmedLine.startsWith('The Dart VM service is listening on ')) {
-        return;
-      }
-      _recordStdio('RECV: $trimmedLine');
-      // ignore: prefer_typing_uninitialized_variables
-      var message;
-      try {
-        message = json.decoder.convert(trimmedLine);
-      } catch (exception) {
-        _badDataFromServer('JSON decode failure: $exception');
-        return;
-      }
-      outOfTestExpect(message, isMap);
-      var messageAsMap = message as Map;
-      if (messageAsMap.containsKey('id')) {
-        outOfTestExpect(messageAsMap['id'], isString);
-        var id = message['id'] as String;
-        var completer = _pendingCommands[id];
-        if (completer == null) {
-          fail('Unexpected response from server: id=$id');
-        } else {
-          _pendingCommands.remove(id);
-        }
-        if (messageAsMap.containsKey('error')) {
-          completer.completeError(ServerErrorMessage(messageAsMap));
-        } else {
-          completer.complete(messageAsMap['result']);
-        }
-        // Check that the message is well-formed. We do this after calling
-        // completer.complete() or completer.completeError() so that we don't
-        // stall the test in the event of an error.
-        outOfTestExpect(message, isResponse);
-      } else {
-        // Message is a notification. It should have an event and possibly
-        // params.
-        outOfTestExpect(messageAsMap, contains('event'));
-        outOfTestExpect(messageAsMap['event'], isString);
-        notificationProcessor(
-            messageAsMap['event'] as String, messageAsMap['params'] as Map);
-        // Check that the message is well-formed. We do this after calling
-        // notificationController.add() so that we don't stall the test in the
-        // event of an error.
-        outOfTestExpect(message, isNotification);
-      }
-    });
+          lastCommunicationTime = currentElapseTime;
+          var trimmedLine = line.trim();
+          if (trimmedLine.startsWith('The Dart VM service is listening on ')) {
+            return;
+          }
+          _recordStdio('RECV: $trimmedLine');
+          // ignore: prefer_typing_uninitialized_variables
+          var message;
+          try {
+            message = json.decoder.convert(trimmedLine);
+          } catch (exception) {
+            _badDataFromServer('JSON decode failure: $exception');
+            return;
+          }
+          outOfTestExpect(message, isMap);
+          var messageAsMap = message as Map;
+          if (messageAsMap.containsKey('id')) {
+            outOfTestExpect(messageAsMap['id'], isString);
+            var id = message['id'] as String;
+            var completer = _pendingCommands[id];
+            if (completer == null) {
+              fail('Unexpected response from server: id=$id');
+            } else {
+              _pendingCommands.remove(id);
+            }
+            if (messageAsMap.containsKey('error')) {
+              completer.completeError(ServerErrorMessage(messageAsMap));
+            } else {
+              completer.complete(messageAsMap['result']);
+            }
+            // Check that the message is well-formed. We do this after calling
+            // completer.complete() or completer.completeError() so that we don't
+            // stall the test in the event of an error.
+            outOfTestExpect(message, isResponse);
+          } else {
+            // Message is a notification. It should have an event and possibly
+            // params.
+            outOfTestExpect(messageAsMap, contains('event'));
+            outOfTestExpect(messageAsMap['event'], isString);
+            notificationProcessor(
+              messageAsMap['event'] as String,
+              messageAsMap['params'] as Map,
+            );
+            // Check that the message is well-formed. We do this after calling
+            // notificationController.add() so that we don't stall the test in the
+            // event of an error.
+            outOfTestExpect(message, isNotification);
+          }
+        });
     _process!.stderr
         .transform(Utf8Codec().decoder)
         .transform(LineSplitter())
         .listen((String line) {
-      var trimmedLine = line.trim();
-      _recordStdio('ERR:  $trimmedLine');
-      _badDataFromServer('Message received on stderr', silent: true);
-    });
+          var trimmedLine = line.trim();
+          _recordStdio('ERR:  $trimmedLine');
+          _badDataFromServer('Message received on stderr', silent: true);
+        });
   }
 
   /// Send a command to the server. An 'id' will be automatically assigned.
@@ -522,21 +564,23 @@ class Server {
   /// with "--debug", allowing a debugger to be attached. If [profileServer] is
   /// `true`, the server will be started with "--observe" and
   /// "--pause-isolates-on-exit", allowing the observatory to be used.
-  Future start(
-      {bool checked = true,
-      bool debugServer = false,
-      int? diagnosticPort,
-      bool profileServer = false,
-      String? sdkPath,
-      int? servicePort,
-      bool useAnalysisHighlight2 = false}) {
+  Future start({
+    bool checked = true,
+    bool debugServer = false,
+    int? diagnosticPort,
+    bool profileServer = false,
+    String? sdkPath,
+    int? servicePort,
+    bool useAnalysisHighlight2 = false,
+  }) {
     if (_process != null) {
       throw Exception('Process already started');
     }
     _time.start();
     var dartBinary = Platform.executable;
-    var rootDir =
-        findRoot(Platform.script.toFilePath(windows: Platform.isWindows));
+    var rootDir = findRoot(
+      Platform.script.toFilePath(windows: Platform.isWindows),
+    );
     var serverPath = normalize(join(rootDir, 'bin', 'server.dart'));
     var arguments = <String>[];
     //
@@ -578,8 +622,8 @@ class Server {
     if (useAnalysisHighlight2) {
       arguments.add('--useAnalysisHighlight2');
     }
-//    print('Launching $serverPath');
-//    print('$dartBinary ${arguments.join(' ')}');
+    //    print('Launching $serverPath');
+    //    print('$dartBinary ${arguments.join(' ')}');
     return Process.start(dartBinary, arguments).then((Process process) {
       _process = process;
       process.exitCode.then((int code) {
@@ -606,9 +650,12 @@ class Server {
     // and is outputting a stacktrace, because it ensures that we see the
     // entire stacktrace. Use expectAsync() to prevent the test from
     // ending during this 1 second.
-    Future.delayed(Duration(seconds: 1), expectAsync0(() {
-      fail('Bad data received from server: $details');
-    }));
+    Future.delayed(
+      Duration(seconds: 1),
+      expectAsync0(() {
+        fail('Bad data received from server: $details');
+      }),
+    );
   }
 
   /// Record a message that was exchanged with the server, and print it out if
@@ -649,13 +696,25 @@ class _ListOf extends Matcher {
 
   @override
   Description describeMismatch(
-      item, Description mismatchDescription, Map matchState, bool verbose) {
+    item,
+    Description mismatchDescription,
+    Map matchState,
+    bool verbose,
+  ) {
     if (item is! List) {
-      return super
-          .describeMismatch(item, mismatchDescription, matchState, verbose);
+      return super.describeMismatch(
+        item,
+        mismatchDescription,
+        matchState,
+        verbose,
+      );
     } else {
       return iterableMatcher.describeMismatch(
-          item, mismatchDescription, matchState, verbose);
+        item,
+        mismatchDescription,
+        matchState,
+        verbose,
+      );
     }
   }
 
@@ -694,17 +753,19 @@ class _MapOf extends _RecursiveMatcher {
     }
     item.forEach((key, value) {
       checkSubstructure(
-          key,
-          keyMatcher,
-          mismatches,
-          (Description description) =>
-              description.add('key ').addDescriptionOf(key));
+        key,
+        keyMatcher,
+        mismatches,
+        (Description description) =>
+            description.add('key ').addDescriptionOf(key),
+      );
       checkSubstructure(
-          value,
-          valueMatcher,
-          mismatches,
-          (Description description) =>
-              description.add('field ').addDescriptionOf(key));
+        value,
+        valueMatcher,
+        mismatches,
+        (Description description) =>
+            description.add('field ').addDescriptionOf(key),
+      );
     });
   }
 }
@@ -757,23 +818,26 @@ abstract class _RecursiveMatcher extends Matcher {
   /// the mismatch. [describeSubstructure] is used to describe which
   /// substructure did not match.
   void checkSubstructure(
-      Object? item,
-      Matcher matcher,
-      List<MismatchDescriber> mismatches,
-      Description Function(Description description) describeSubstructure) {
+    Object? item,
+    Matcher matcher,
+    List<MismatchDescriber> mismatches,
+    Description Function(Description description) describeSubstructure,
+  ) {
     var subState = {};
     if (!matcher.matches(item, subState)) {
       mismatches.add((Description mismatchDescription) {
         mismatchDescription = mismatchDescription.add('contains malformed ');
         mismatchDescription = describeSubstructure(mismatchDescription);
-        mismatchDescription =
-            mismatchDescription.add(' (should be ').addDescriptionOf(matcher);
+        mismatchDescription = mismatchDescription
+            .add(' (should be ')
+            .addDescriptionOf(matcher);
         var subDescription = matcher
             .describeMismatch(item, StringDescription(), subState, false)
             .toString();
         if (subDescription.isNotEmpty) {
-          mismatchDescription =
-              mismatchDescription.add('; ').add(subDescription);
+          mismatchDescription = mismatchDescription
+              .add('; ')
+              .add(subDescription);
         }
         return mismatchDescription.add(')');
       });
@@ -782,7 +846,11 @@ abstract class _RecursiveMatcher extends Matcher {
 
   @override
   Description describeMismatch(
-      item, Description mismatchDescription, Map matchState, bool verbose) {
+    item,
+    Description mismatchDescription,
+    Map matchState,
+    bool verbose,
+  ) {
     var mismatches = matchState['mismatches'] as List<MismatchDescriber>?;
     if (mismatches != null) {
       for (var i = 0; i < mismatches.length; i++) {
@@ -800,8 +868,12 @@ abstract class _RecursiveMatcher extends Matcher {
       }
       return mismatchDescription;
     } else {
-      return super
-          .describeMismatch(item, mismatchDescription, matchState, verbose);
+      return super.describeMismatch(
+        item,
+        mismatchDescription,
+        matchState,
+        verbose,
+      );
     }
   }
 
