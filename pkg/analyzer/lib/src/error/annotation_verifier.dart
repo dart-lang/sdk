@@ -119,36 +119,17 @@ class AnnotationVerifier {
     var element = node.elementAnnotation;
     if (element == null) return;
     assert(element.isDeprecated);
-    var kind = element.deprecationKind;
-    if (kind == null) return;
-
-    // The vast majority of deprecated annotations use the default constructor.
-    // Check this case first.
-    if (kind == 'use') return;
-
-    if (kind == 'extend') {
-      _checkDeprecatedExtend(node, node.parent);
-      return;
-    }
-
-    if (kind == 'implement') {
-      _checkDeprecatedImplement(node, node.parent);
-      return;
-    }
-
-    if (kind == 'mixin') {
-      _checkDeprecatedMixin(node, node.parent);
-      return;
-    }
-
-    if (kind == 'subclass') {
-      _checkDeprecatedSubclass(node, node.parent);
-      return;
-    }
-
-    if (kind == 'instantiate') {
-      _checkDeprecatedInstantiate(node, node.parent);
-      return;
+    switch (element.deprecationKind) {
+      case 'extend':
+        _checkDeprecatedExtend(node, node.parent);
+      case 'implement':
+        _checkDeprecatedImplement(node, node.parent);
+      case 'instantiate':
+        _checkDeprecatedInstantiate(node, node.parent);
+      case 'mixin':
+        _checkDeprecatedMixin(node, node.parent);
+      case 'subclass':
+        _checkDeprecatedSubclass(node, node.parent);
     }
   }
 
