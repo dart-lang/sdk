@@ -656,13 +656,13 @@ abstract class ErrorCodeInfo {
   ErrorCodeInfo.fromYaml(Map<Object?, Object?> yaml)
     : this(
         comment: yaml['comment'] as String?,
-        correctionMessage: yaml['correctionMessage'] as String?,
+        correctionMessage: _decodeMessage(yaml['correctionMessage']),
         deprecatedMessage: yaml['deprecatedMessage'] as String?,
         documentation: yaml['documentation'] as String?,
         hasPublishedDocs: yaml['hasPublishedDocs'] as bool?,
         isUnresolvedIdentifier:
             yaml['isUnresolvedIdentifier'] as bool? ?? false,
-        problemMessage: yaml['problemMessage'] as String? ?? '',
+        problemMessage: _decodeMessage(yaml['problemMessage']) ?? '',
         sharedName: yaml['sharedName'] as String?,
         removedIn: yaml['removedIn'] as String?,
         previousName: yaml['previousName'] as String?,
@@ -884,6 +884,20 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
     out.write(toAnalyzerComments(indent: '  '));
     if (deprecatedMessage != null) {
       out.writeln('  @Deprecated("$deprecatedMessage")');
+    }
+  }
+
+  static String? _decodeMessage(Object? rawMessage) {
+    switch (rawMessage) {
+      case null:
+        return null;
+      case String():
+        // Remove trailing whitespace. This is necessary for templates defined
+        // with `|` (verbatim) as they always contain a trailing newline that we
+        // don't want.
+        return rawMessage.trimRight();
+      default:
+        throw 'Bad message type: ${rawMessage.runtimeType}';
     }
   }
 
