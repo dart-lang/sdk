@@ -828,7 +828,7 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
         if (commentLines.isNotEmpty) commentLines.add('');
         commentLines.add('Parameters:');
         for (var p in parameters) {
-          var prefix = '${p.type.analyzerName} ${p.name}: ';
+          var prefix = '${p.type.messagesYamlName} ${p.name}: ';
           var extraIndent = ' ' * prefix.length;
           var firstLineWidth = 80 - 4 - indent.length;
           var lines = _splitText(
