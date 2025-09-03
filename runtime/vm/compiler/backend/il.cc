@@ -5649,8 +5649,10 @@ Definition* PolymorphicInstanceCallInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 bool PolymorphicInstanceCallInstr::IsSureToCallSingleRecognizedTarget() const {
-  if (CompilerState::Current().is_aot() && !complete()) return false;
-  return targets_.HasSingleRecognizedTarget();
+  if (complete() || FLAG_polymorphic_with_deopt) {
+    return targets_.HasSingleRecognizedTarget();
+  }
+  return false;
 }
 
 bool StaticCallInstr::InitResultType(Zone* zone) {
