@@ -22851,95 +22851,68 @@ library
           nextFragment: #F2
           fields
             #F3 hasInitializer foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
-              element: <testLibrary>::@class::A::@field::foo::@def::0
+              element: <testLibrary>::@class::A::@field::foo
+              nextFragment: #F4
           constructors
-            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
-              element: <testLibrary>::@class::A::@getter::foo::@def::0
-              nextFragment: #F6
+            #F6 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+              element: <testLibrary>::@class::A::@getter::foo
+              nextFragment: #F7
           setters
-            #F7 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
-              element: <testLibrary>::@class::A::@setter::foo::@def::0
+            #F8 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+              element: <testLibrary>::@class::A::@setter::foo
               formalParameters
-                #F8 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
-                  element: <testLibrary>::@class::A::@setter::foo::@def::0::@formalParameter::value
+                #F9 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
         #F2 class A (nameOffset:42) (firstTokenOffset:28) (offset:42)
           element: <testLibrary>::@class::A
           previousFragment: #F1
-          nextFragment: #F9
+          nextFragment: #F10
           getters
-            #F6 augment foo (nameOffset:64) (firstTokenOffset:48) (offset:64)
-              element: <testLibrary>::@class::A::@getter::foo::@def::0
-              previousFragment: #F5
-        #F9 class A (nameOffset:91) (firstTokenOffset:77) (offset:91)
+            #F7 augment foo (nameOffset:64) (firstTokenOffset:48) (offset:64)
+              element: <testLibrary>::@class::A::@getter::foo
+              previousFragment: #F6
+        #F10 class A (nameOffset:91) (firstTokenOffset:77) (offset:91)
           element: <testLibrary>::@class::A
           previousFragment: #F2
           fields
-            #F10 augment hasInitializer foo (nameOffset:109) (firstTokenOffset:109) (offset:109)
-              element: <testLibrary>::@class::A::@field::foo::@def::1
-          getters
-            #F11 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
-              element: <testLibrary>::@class::A::@getter::foo::@def::1
-          setters
-            #F12 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
-              element: <testLibrary>::@class::A::@setter::foo::@def::1
-              formalParameters
-                #F13 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
-                  element: <testLibrary>::@class::A::@setter::foo::@def::1::@formalParameter::value
+            #F4 augment hasInitializer foo (nameOffset:109) (firstTokenOffset:109) (offset:109)
+              element: <testLibrary>::@class::A::@field::foo
+              previousFragment: #F3
   classes
     hasNonFinalField class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
         hasInitializer foo
-          reference: <testLibrary>::@class::A::@field::foo::@def::0
+          reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: int
-          getter: <testLibrary>::@class::A::@getter::foo::@def::0
-          setter: <testLibrary>::@class::A::@setter::foo::@def::0
-        hasInitializer foo
-          reference: <testLibrary>::@class::A::@field::foo::@def::1
-          firstFragment: #F10
-          type: int
-          getter: <testLibrary>::@class::A::@getter::foo::@def::1
-          setter: <testLibrary>::@class::A::@setter::foo::@def::1
+          getter: <testLibrary>::@class::A::@getter::foo
+          setter: <testLibrary>::@class::A::@setter::foo
       constructors
         synthetic new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F5
       getters
         synthetic foo
-          reference: <testLibrary>::@class::A::@getter::foo::@def::0
-          firstFragment: #F5
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F6
           returnType: int
-          variable: <testLibrary>::@class::A::@field::foo::@def::0
-        synthetic foo
-          reference: <testLibrary>::@class::A::@getter::foo::@def::1
-          firstFragment: #F11
-          returnType: int
-          variable: <testLibrary>::@class::A::@field::foo::@def::1
+          variable: <testLibrary>::@class::A::@field::foo
       setters
         synthetic foo
-          reference: <testLibrary>::@class::A::@setter::foo::@def::0
-          firstFragment: #F7
+          reference: <testLibrary>::@class::A::@setter::foo
+          firstFragment: #F8
           formalParameters
             #E0 requiredPositional value
-              firstFragment: #F8
+              firstFragment: #F9
               type: int
           returnType: void
-          variable: <testLibrary>::@class::A::@field::foo::@def::0
-        synthetic foo
-          reference: <testLibrary>::@class::A::@setter::foo::@def::1
-          firstFragment: #F12
-          formalParameters
-            #E1 requiredPositional value
-              firstFragment: #F13
-              type: int
-          returnType: void
-          variable: <testLibrary>::@class::A::@field::foo::@def::1
+          variable: <testLibrary>::@class::A::@field::foo
 ''');
   }
 
@@ -22970,98 +22943,71 @@ library
           nextFragment: #F2
           fields
             #F3 hasInitializer foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
-              element: <testLibrary>::@class::A::@field::foo::@def::0
+              element: <testLibrary>::@class::A::@field::foo
+              nextFragment: #F4
           constructors
-            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
-              element: <testLibrary>::@class::A::@getter::foo::@def::0
-          setters
             #F6 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
-              element: <testLibrary>::@class::A::@setter::foo::@def::0
+              element: <testLibrary>::@class::A::@getter::foo
+          setters
+            #F7 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+              element: <testLibrary>::@class::A::@setter::foo
               formalParameters
-                #F7 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
-                  element: <testLibrary>::@class::A::@setter::foo::@def::0::@formalParameter::value
-              nextFragment: #F8
+                #F8 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+              nextFragment: #F9
         #F2 class A (nameOffset:42) (firstTokenOffset:28) (offset:42)
           element: <testLibrary>::@class::A
           previousFragment: #F1
-          nextFragment: #F9
+          nextFragment: #F10
           setters
-            #F8 augment foo (nameOffset:60) (firstTokenOffset:48) (offset:60)
-              element: <testLibrary>::@class::A::@setter::foo::@def::0
+            #F9 augment foo (nameOffset:60) (firstTokenOffset:48) (offset:60)
+              element: <testLibrary>::@class::A::@setter::foo
               formalParameters
-                #F10 _ (nameOffset:68) (firstTokenOffset:64) (offset:68)
-                  element: <testLibrary>::@class::A::@setter::foo::@def::0::@formalParameter::_
-              previousFragment: #F6
-        #F9 class A (nameOffset:91) (firstTokenOffset:77) (offset:91)
+                #F11 _ (nameOffset:68) (firstTokenOffset:64) (offset:68)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
+              previousFragment: #F7
+        #F10 class A (nameOffset:91) (firstTokenOffset:77) (offset:91)
           element: <testLibrary>::@class::A
           previousFragment: #F2
           fields
-            #F11 augment hasInitializer foo (nameOffset:109) (firstTokenOffset:109) (offset:109)
-              element: <testLibrary>::@class::A::@field::foo::@def::1
-          getters
-            #F12 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
-              element: <testLibrary>::@class::A::@getter::foo::@def::1
-          setters
-            #F13 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
-              element: <testLibrary>::@class::A::@setter::foo::@def::1
-              formalParameters
-                #F14 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
-                  element: <testLibrary>::@class::A::@setter::foo::@def::1::@formalParameter::value
+            #F4 augment hasInitializer foo (nameOffset:109) (firstTokenOffset:109) (offset:109)
+              element: <testLibrary>::@class::A::@field::foo
+              previousFragment: #F3
   classes
     hasNonFinalField class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
         hasInitializer foo
-          reference: <testLibrary>::@class::A::@field::foo::@def::0
+          reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: int
-          getter: <testLibrary>::@class::A::@getter::foo::@def::0
-          setter: <testLibrary>::@class::A::@setter::foo::@def::0
-        hasInitializer foo
-          reference: <testLibrary>::@class::A::@field::foo::@def::1
-          firstFragment: #F11
-          type: int
-          getter: <testLibrary>::@class::A::@getter::foo::@def::1
-          setter: <testLibrary>::@class::A::@setter::foo::@def::1
+          getter: <testLibrary>::@class::A::@getter::foo
+          setter: <testLibrary>::@class::A::@setter::foo
       constructors
         synthetic new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F5
       getters
         synthetic foo
-          reference: <testLibrary>::@class::A::@getter::foo::@def::0
-          firstFragment: #F5
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F6
           returnType: int
-          variable: <testLibrary>::@class::A::@field::foo::@def::0
-        synthetic foo
-          reference: <testLibrary>::@class::A::@getter::foo::@def::1
-          firstFragment: #F12
-          returnType: int
-          variable: <testLibrary>::@class::A::@field::foo::@def::1
+          variable: <testLibrary>::@class::A::@field::foo
       setters
         synthetic foo
-          reference: <testLibrary>::@class::A::@setter::foo::@def::0
-          firstFragment: #F6
+          reference: <testLibrary>::@class::A::@setter::foo
+          firstFragment: #F7
           formalParameters
             #E0 requiredPositional value
-              firstFragment: #F7
+              firstFragment: #F8
               type: int
           returnType: void
-          variable: <testLibrary>::@class::A::@field::foo::@def::0
-        synthetic foo
-          reference: <testLibrary>::@class::A::@setter::foo::@def::1
-          firstFragment: #F13
-          formalParameters
-            #E1 requiredPositional value
-              firstFragment: #F14
-              type: int
-          returnType: void
-          variable: <testLibrary>::@class::A::@field::foo::@def::1
+          variable: <testLibrary>::@class::A::@field::foo
 ''');
   }
 
@@ -23334,70 +23280,42 @@ library
           nextFragment: #F2
           fields
             #F3 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
-              element: <testLibrary>::@class::A::@field::foo::@def::0
+              element: <testLibrary>::@class::A::@field::foo
+              nextFragment: #F4
           constructors
-            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F5 foo (nameOffset:20) (firstTokenOffset:12) (offset:20)
-              element: <testLibrary>::@class::A::@getter::foo::@def::0
+            #F6 foo (nameOffset:20) (firstTokenOffset:12) (offset:20)
+              element: <testLibrary>::@class::A::@getter::foo
         #F2 class A (nameOffset:47) (firstTokenOffset:33) (offset:47)
           element: <testLibrary>::@class::A
           previousFragment: #F1
           fields
-            #F6 augment hasInitializer foo (nameOffset:65) (firstTokenOffset:65) (offset:65)
-              element: <testLibrary>::@class::A::@field::foo::@def::1
-          getters
-            #F7 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
-              element: <testLibrary>::@class::A::@getter::foo::@def::1
-          setters
-            #F8 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
-              element: <testLibrary>::@class::A::@setter::foo
-              formalParameters
-                #F9 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
-                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+            #F4 augment hasInitializer foo (nameOffset:65) (firstTokenOffset:65) (offset:65)
+              element: <testLibrary>::@class::A::@field::foo
+              previousFragment: #F3
   classes
-    hasNonFinalField class A
+    class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        synthetic foo
-          reference: <testLibrary>::@class::A::@field::foo::@def::0
+        synthetic hasInitializer foo
+          reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: int
-          getter: <testLibrary>::@class::A::@getter::foo::@def::0
-        hasInitializer foo
-          reference: <testLibrary>::@class::A::@field::foo::@def::1
-          firstFragment: #F6
-          type: int
-          getter: <testLibrary>::@class::A::@getter::foo::@def::1
-          setter: <testLibrary>::@class::A::@setter::foo
+          getter: <testLibrary>::@class::A::@getter::foo
       constructors
         synthetic new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F5
       getters
         foo
-          reference: <testLibrary>::@class::A::@getter::foo::@def::0
-          firstFragment: #F5
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F6
           returnType: int
-          variable: <testLibrary>::@class::A::@field::foo::@def::0
-        synthetic foo
-          reference: <testLibrary>::@class::A::@getter::foo::@def::1
-          firstFragment: #F7
-          returnType: int
-          variable: <testLibrary>::@class::A::@field::foo::@def::1
-      setters
-        synthetic foo
-          reference: <testLibrary>::@class::A::@setter::foo
-          firstFragment: #F8
-          formalParameters
-            #E0 requiredPositional value
-              firstFragment: #F9
-              type: int
-          returnType: void
-          variable: <testLibrary>::@class::A::@field::foo::@def::1
+          variable: <testLibrary>::@class::A::@field::foo
 ''');
   }
 
@@ -23508,77 +23426,49 @@ library
           nextFragment: #F2
           fields
             #F3 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
-              element: <testLibrary>::@class::A::@field::foo::@def::0
+              element: <testLibrary>::@class::A::@field::foo
+              nextFragment: #F4
           constructors
-            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           setters
-            #F5 foo (nameOffset:16) (firstTokenOffset:12) (offset:16)
-              element: <testLibrary>::@class::A::@setter::foo::@def::0
+            #F6 foo (nameOffset:16) (firstTokenOffset:12) (offset:16)
+              element: <testLibrary>::@class::A::@setter::foo
               formalParameters
-                #F6 _ (nameOffset:24) (firstTokenOffset:20) (offset:24)
-                  element: <testLibrary>::@class::A::@setter::foo::@def::0::@formalParameter::_
+                #F7 _ (nameOffset:24) (firstTokenOffset:20) (offset:24)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
         #F2 class A (nameOffset:47) (firstTokenOffset:33) (offset:47)
           element: <testLibrary>::@class::A
           previousFragment: #F1
           fields
-            #F7 augment hasInitializer foo (nameOffset:65) (firstTokenOffset:65) (offset:65)
-              element: <testLibrary>::@class::A::@field::foo::@def::1
-          getters
-            #F8 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
-              element: <testLibrary>::@class::A::@getter::foo
-          setters
-            #F9 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
-              element: <testLibrary>::@class::A::@setter::foo::@def::1
-              formalParameters
-                #F10 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
-                  element: <testLibrary>::@class::A::@setter::foo::@def::1::@formalParameter::value
+            #F4 augment hasInitializer foo (nameOffset:65) (firstTokenOffset:65) (offset:65)
+              element: <testLibrary>::@class::A::@field::foo
+              previousFragment: #F3
   classes
-    hasNonFinalField class A
+    class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        synthetic foo
-          reference: <testLibrary>::@class::A::@field::foo::@def::0
+        synthetic hasInitializer foo
+          reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: int
-          setter: <testLibrary>::@class::A::@setter::foo::@def::0
-        hasInitializer foo
-          reference: <testLibrary>::@class::A::@field::foo::@def::1
-          firstFragment: #F7
-          type: int
-          getter: <testLibrary>::@class::A::@getter::foo
-          setter: <testLibrary>::@class::A::@setter::foo::@def::1
+          setter: <testLibrary>::@class::A::@setter::foo
       constructors
         synthetic new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
-      getters
-        synthetic foo
-          reference: <testLibrary>::@class::A::@getter::foo
-          firstFragment: #F8
-          returnType: int
-          variable: <testLibrary>::@class::A::@field::foo::@def::1
+          firstFragment: #F5
       setters
         foo
-          reference: <testLibrary>::@class::A::@setter::foo::@def::0
-          firstFragment: #F5
+          reference: <testLibrary>::@class::A::@setter::foo
+          firstFragment: #F6
           formalParameters
             #E0 requiredPositional _
-              firstFragment: #F6
+              firstFragment: #F7
               type: int
           returnType: void
-          variable: <testLibrary>::@class::A::@field::foo::@def::0
-        synthetic foo
-          reference: <testLibrary>::@class::A::@setter::foo::@def::1
-          firstFragment: #F9
-          formalParameters
-            #E1 requiredPositional value
-              firstFragment: #F10
-              type: int
-          returnType: void
-          variable: <testLibrary>::@class::A::@field::foo::@def::1
+          variable: <testLibrary>::@class::A::@field::foo
 ''');
   }
 
