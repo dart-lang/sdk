@@ -217,12 +217,14 @@ class VmTarget extends Target {
       // VM pragma attached to valid targets in the native transformer. Hence,
       // it can only run after `@Native` targets have been transformed.
       transformFfiUseSites.transformLibraries(
+        this,
         component,
         coreTypes,
         hierarchy,
         transitiveImportingDartFfi,
         diagnosticReporter,
         referenceFromIndex,
+        environmentDefines,
       );
       logger?.call("Transformed ffi use sites");
     }

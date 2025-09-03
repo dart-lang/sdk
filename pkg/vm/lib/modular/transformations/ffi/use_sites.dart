@@ -4,8 +4,11 @@
 
 // This imports 'codes/cfe_codes.dart' instead of 'api_prototype/codes.dart' to
 // avoid cyclic dependency between `package:vm/modular` and `package:front_end`.
+import 'package:front_end/src/api_prototype/constant_evaluator.dart'
+    show ConstantEvaluator, SimpleErrorReporter;
 import 'package:front_end/src/codes/cfe_codes.dart'
     show
+        LocatedMessage,
         codeFfiAddressOfMustBeNative,
         codeFfiAddressPosition,
         codeFfiAddressReceiver,
@@ -28,7 +31,7 @@ import 'package:kernel/kernel.dart';
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/names.dart';
 import 'package:kernel/reference_from_index.dart';
-import 'package:kernel/target/targets.dart' show DiagnosticReporter;
+import 'package:kernel/target/targets.dart' show DiagnosticReporter, Target;
 import 'package:kernel/type_algebra.dart'
     show FunctionTypeInstantiator, Substitution;
 import 'package:kernel/type_environment.dart';
@@ -40,18 +43,27 @@ import 'finalizable.dart';
 import 'native.dart' as native;
 import 'native_type_cfe.dart';
 
+class _SilentErrorReporter extends SimpleErrorReporter {
+  const _SilentErrorReporter();
+
+  @override
+  void report(LocatedMessage message, [List<LocatedMessage>? context]) {}
+}
+
 /// Checks and replaces calls to dart:ffi compound fields and methods.
 ///
 /// To reliably lower calls to methods like `sizeOf` and `Native.addressOf`,
 /// this requires that the [definitions] and the [native] transformer already
 /// ran on the libraries to transform.
 void transformLibraries(
+  Target target,
   Component component,
   CoreTypes coreTypes,
   ClassHierarchy hierarchy,
   List<Library> libraries,
   DiagnosticReporter diagnosticReporter,
   ReferenceFromIndex? referenceFromIndex,
+  Map<String, String>? environmentDefines,
 ) {
   final index = LibraryIndex(component, [
     "dart:ffi",
@@ -76,6 +88,15 @@ void transformLibraries(
     hierarchy,
     diagnosticReporter,
     referenceFromIndex,
+    ConstantEvaluator(
+      target.dartLibrarySupport,
+      target.constantsBackend,
+      component,
+      environmentDefines,
+      TypeEnvironment(coreTypes, hierarchy),
+      const _SilentErrorReporter(),
+      errorOnUnevaluatedConstant: true,
+    ),
   );
   libraries.forEach(transformer.visitLibrary);
 }
@@ -88,12 +109,14 @@ void transformLibraries(
 /// respectively. This means one cannot do `visitX() { super.visitX() as X }`.
 class _FfiUseSiteTransformer2 extends FfiTransformer
     with _FfiUseSiteTransformer, FinalizableTransformer {
+  final ConstantEvaluator _constantEvaluator;
   _FfiUseSiteTransformer2(
     LibraryIndex index,
     CoreTypes coreTypes,
     ClassHierarchy hierarchy,
     DiagnosticReporter diagnosticReporter,
     ReferenceFromIndex? referenceFromIndex,
+    this._constantEvaluator,
   ) : super(
         index,
         coreTypes,
@@ -115,6 +138,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
   StaticTypeContext? get staticTypeContext;
 
   bool _inFfiTearoff = false;
+  ConstantEvaluator get _constantEvaluator;
 
   bool get isFfiLibrary => currentLibrary == ffiLibrary;
 
@@ -1210,9 +1234,11 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
       // The exceptional return value must be a constant so that it can be
       // referenced by precompiled trampoline's object pool.
-      if (exceptionalReturn is! BasicLiteral &&
-          !(exceptionalReturn is ConstantExpression &&
-              exceptionalReturn.constant is PrimitiveConstant)) {
+      final exceptionalReturnValue = _constantEvaluator.evaluate(
+        staticTypeContext!,
+        exceptionalReturn,
+      );
+      if (exceptionalReturnValue is UnevaluatedConstant) {
         diagnosticReporter.report(
           codeFfiExpectedConstant,
           node.fileOffset,
@@ -1223,9 +1249,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       }
 
       // Moreover it may not be null.
-      if (exceptionalReturn is NullLiteral ||
-          (exceptionalReturn is ConstantExpression &&
-              exceptionalReturn.constant is NullConstant)) {
+      if (exceptionalReturnValue is NullConstant) {
         diagnosticReporter.report(
           codeFfiExceptionalReturnNull,
           node.fileOffset,
@@ -1251,6 +1275,11 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         );
         return node;
       }
+
+      exceptionalReturn = ConstantExpression(
+        exceptionalReturnValue,
+        returnType,
+      );
     }
 
     final compoundClasses =

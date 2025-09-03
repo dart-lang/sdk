@@ -486,6 +486,8 @@ class LibraryAnalyzer {
       FfiVerifier(
         _typeSystem,
         diagnosticReporter,
+        _libraryElement,
+        _declaredVariables,
         strictCasts: _analysisOptions.strictCasts,
       ),
     );

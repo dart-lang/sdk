@@ -340,24 +340,34 @@ class WasmTarget extends Target {
       logger?.call("Skipped ffi transformation");
     } else {
       wasmFfiNativeAddressTrans.transformLibraries(
-          component,
-          coreTypes,
-          hierarchy,
-          transitiveImportingDartFfi,
-          diagnosticReporter,
-          referenceFromIndex);
+        component,
+        coreTypes,
+        hierarchy,
+        transitiveImportingDartFfi,
+        diagnosticReporter,
+        referenceFromIndex,
+      );
       wasmFfiNativeTrans.transformLibraries(component, coreTypes, hierarchy,
           transitiveImportingDartFfi, diagnosticReporter, referenceFromIndex);
       transformFfiDefinitions.transformLibraries(
-          component,
-          coreTypes,
-          hierarchy,
-          transitiveImportingDartFfi,
-          diagnosticReporter,
-          referenceFromIndex,
-          changedStructureNotifier);
-      transformFfiUseSites.transformLibraries(component, coreTypes, hierarchy,
-          transitiveImportingDartFfi, diagnosticReporter, referenceFromIndex);
+        component,
+        coreTypes,
+        hierarchy,
+        transitiveImportingDartFfi,
+        diagnosticReporter,
+        referenceFromIndex,
+        changedStructureNotifier,
+      );
+      transformFfiUseSites.transformLibraries(
+        this,
+        component,
+        coreTypes,
+        hierarchy,
+        transitiveImportingDartFfi,
+        diagnosticReporter,
+        referenceFromIndex,
+        environmentDefines,
+      );
       logger?.call("Transformed ffi annotations");
     }
 
