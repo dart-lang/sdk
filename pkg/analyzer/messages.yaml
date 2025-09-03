@@ -23929,8 +23929,8 @@ WarningCode:
       author or contact them directly to find out how to update your code.
   DEPRECATED_EXTEND:
     parameters:
-      Object p0: the name of the member
-    problemMessage: "Extending '#p0' is deprecated."
+      Object typeName: the name of the type
+    problemMessage: "Extending '#typeName' is deprecated."
     correctionMessage: Try removing the 'extends' clause.
     hasPublishedDocs: true
     documentation: |-
@@ -24004,9 +24004,9 @@ WarningCode:
       ```
   DEPRECATED_IMPLEMENT:
     parameters:
-      Object p0: the name of the member
-    problemMessage: "Implementing '#p0' is deprecated."
-    correctionMessage: Try removing '#p0' from the 'implements' clause.
+      Object typeName: the name of the type
+    problemMessage: "Implementing '#typeName' is deprecated."
+    correctionMessage: Try removing '#typeName' from the 'implements' clause.
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -24053,8 +24053,8 @@ WarningCode:
     hasPublishedDocs: true
   DEPRECATED_INSTANTIATE:
     parameters:
-      Object p0: the name of the member
-    problemMessage: "Instantiating '#p0' is deprecated."
+      Object typeName: the name of the type
+    problemMessage: "Instantiating '#typeName' is deprecated."
     correctionMessage: Try instantiating a non-abstract class.
     hasPublishedDocs: true
     documentation: |-
@@ -24192,9 +24192,9 @@ WarningCode:
       ```
   DEPRECATED_SUBCLASS:
     parameters:
-      Object p0: the name of the member
-    problemMessage: "Subclassing '#p0' is deprecated."
-    correctionMessage: Try removing the 'extends' clause, or removing '#p0' from the 'implements' clause.
+      Object typeName: the name of the type
+    problemMessage: "Subclassing '#typeName' is deprecated."
+    correctionMessage: Try removing the 'extends' clause, or removing '#typeName' from the 'implements' clause.
     hasPublishedDocs: true
     documentation: |-
       #### Description
