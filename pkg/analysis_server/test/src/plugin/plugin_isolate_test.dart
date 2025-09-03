@@ -173,8 +173,10 @@ class PluginSessionTest with ResourceProviderMixin {
   }
 
   void test_handleNotification() {
-    var notification =
-        AnalysisErrorsParams('/test.dart', <AnalysisError>[]).toNotification();
+    var notification = AnalysisErrorsParams(
+      '/test.dart',
+      <AnalysisError>[],
+    ).toNotification();
     expect(notificationManager.notifications, hasLength(0));
     session.handleNotification(notification);
     expect(notificationManager.notifications, hasLength(1));

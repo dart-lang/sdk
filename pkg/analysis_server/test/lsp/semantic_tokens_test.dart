@@ -3022,10 +3022,9 @@ class _Token {
   /// args for easy copy/pasting into tests to update expectations.
   @override
   String toString() {
-    var modifiersString =
-        modifiers.isEmpty
-            ? ''
-            : ', [${modifiers.map((m) => 'SemanticTokenModifiers.$m').join(', ')}]';
+    var modifiersString = modifiers.isEmpty
+        ? ''
+        : ', [${modifiers.map((m) => 'SemanticTokenModifiers.$m').join(', ')}]';
     return "('$content', SemanticTokenTypes.$type$modifiersString)";
   }
 }

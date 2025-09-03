@@ -223,9 +223,8 @@ class B {
 ''');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
     );
 
     var content = '''
@@ -249,9 +248,8 @@ class Foo {
 ''');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
     );
 
     var content = '''
@@ -275,9 +273,8 @@ class Foo {
 ''');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
     );
 
     var content = '''
@@ -299,9 +296,8 @@ String foo() => '';
 ''');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
     );
 
     var content = '''
@@ -323,9 +319,8 @@ String foo = '';
 ''');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
     );
 
     var content = '''
@@ -347,9 +342,8 @@ String foo = '';
 ''');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
     );
 
     var content = '''
@@ -373,9 +367,8 @@ class Foo {
 ''');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
     );
 
     var content = '''
@@ -400,9 +393,8 @@ class Foo {
 ''');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
     );
 
     var content = '''

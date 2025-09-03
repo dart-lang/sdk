@@ -136,9 +136,8 @@ class C {
   }
 }
 ''',
-      errorFilter:
-          (error) =>
-              error.diagnosticCode == CompileTimeErrorCode.assignmentToFinal,
+      errorFilter: (error) =>
+          error.diagnosticCode == CompileTimeErrorCode.assignmentToFinal,
     );
   }
 
@@ -175,9 +174,8 @@ void f(C c) {
   c.s = '';
 }
 ''',
-      errorFilter:
-          (error) =>
-              error.diagnosticCode == CompileTimeErrorCode.assignmentToFinal,
+      errorFilter: (error) =>
+          error.diagnosticCode == CompileTimeErrorCode.assignmentToFinal,
     );
   }
 
@@ -199,9 +197,8 @@ class C {
   }
 }
 ''',
-      errorFilter:
-          (error) =>
-              error.diagnosticCode == CompileTimeErrorCode.assignmentToFinal,
+      errorFilter: (error) =>
+          error.diagnosticCode == CompileTimeErrorCode.assignmentToFinal,
     );
   }
 

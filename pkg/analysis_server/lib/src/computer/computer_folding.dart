@@ -127,13 +127,12 @@ class DartUnitFoldingComputer {
               _hasBlankLineBetween(end, _unit.beginToken.offset));
     }
 
-    var kind =
-        isFileHeader
-            ? FoldingKind.FILE_HEADER
-            : (commentToken.lexeme.startsWith('///') ||
-                commentToken.lexeme.startsWith('/**'))
-            ? FoldingKind.DOCUMENTATION_COMMENT
-            : FoldingKind.COMMENT;
+    var kind = isFileHeader
+        ? FoldingKind.FILE_HEADER
+        : (commentToken.lexeme.startsWith('///') ||
+              commentToken.lexeme.startsWith('/**'))
+        ? FoldingKind.DOCUMENTATION_COMMENT
+        : FoldingKind.COMMENT;
 
     _addRegion(offset, end, kind);
 

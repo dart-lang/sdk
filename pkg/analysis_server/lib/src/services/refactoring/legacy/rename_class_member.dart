@@ -145,10 +145,9 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
       if (constructor != null) {
         var previous = constructor.separator ?? constructor.parameters;
         var replacement = '$newName = ${parameter.name.lexeme}';
-        replacement =
-            constructor.initializers.isEmpty
-                ? ' : $replacement'
-                : ' $replacement,';
+        replacement = constructor.initializers.isEmpty
+            ? ' : $replacement'
+            : ' $replacement,';
         var edit = SourceEdit(previous.end, 0, replacement);
         doSourceChange_addSourceEdit(change, reference.unitSource, edit);
       }
@@ -240,8 +239,9 @@ class _BaseClassMemberValidator {
     required bool isRename,
     required Set<InterfaceElement> subClasses,
   }) async {
-    var superClasses =
-        interfaceElement.allSupertypes.map((e) => e.element).toSet();
+    var superClasses = interfaceElement.allSupertypes
+        .map((e) => e.element)
+        .toSet();
     // check shadowing in the hierarchy
     var declarations = await searchEngine.searchMemberDeclarations(name);
     for (var declaration in declarations) {
@@ -531,13 +531,12 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
       var interfaceElement = element.enclosingElement;
       if (interfaceElement is InterfaceElement &&
           interfaceElement is! ExtensionTypeElement) {
-        var formalParameters =
-            interfaceElement.constructors
-                .expand((constructor) => constructor.formalParameters)
-                .whereType<FieldFormalParameterElement>()
-                .where((formalParameter) => formalParameter.field == element)
-                .cast<FormalParameterElement>()
-                .toList();
+        var formalParameters = interfaceElement.constructors
+            .expand((constructor) => constructor.formalParameters)
+            .whereType<FieldFormalParameterElement>()
+            .where((formalParameter) => formalParameter.field == element)
+            .cast<FormalParameterElement>()
+            .toList();
 
         // The language doesn't allow private named formal parameters.
         if (name.startsWith('_')) {

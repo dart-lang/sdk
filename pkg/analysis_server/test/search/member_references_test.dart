@@ -27,11 +27,10 @@ class MemberReferencesTest extends AbstractSearchDomainTest {
       name,
     ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleSuccessfulRequest(request);
-    searchId =
-        SearchFindMemberReferencesResult.fromResponse(
-          response,
-          clientUriConverter: server.uriConverter,
-        ).id;
+    searchId = SearchFindMemberReferencesResult.fromResponse(
+      response,
+      clientUriConverter: server.uriConverter,
+    ).id;
     return waitForSearchResults();
   }
 

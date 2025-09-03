@@ -88,9 +88,8 @@ class UpdateContentTest extends PubPackageAnalysisServerTest {
   Future<void> test_multiple_contexts() async {
     writePackageConfig(
       workspaceRootPath,
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa'),
     );
 
     var aaa = newFile('$workspaceRootPath/aaa/lib/aaa.dart', r'''

@@ -59,20 +59,20 @@ abstract class DartSnippetProducerTest extends AbstractSingleUnitTest {
     expect(selection.offset, expectedCode.position.offset);
 
     // Verify all linked edits/placeholders.
-    var expectedLinkedGroups =
-        expectedCode.ranges
-            .map(
-              (range) => {
-                'positions': [
-                  {'file': testFile.path, 'offset': range.sourceRange.offset},
-                ],
-                'length': range.sourceRange.length,
-                'suggestions': [],
-              },
-            )
-            .toSet();
-    var actualLinkedGroups =
-        snippet.change.linkedEditGroups.map((group) => group.toJson()).toSet();
+    var expectedLinkedGroups = expectedCode.ranges
+        .map(
+          (range) => {
+            'positions': [
+              {'file': testFile.path, 'offset': range.sourceRange.offset},
+            ],
+            'length': range.sourceRange.length,
+            'suggestions': [],
+          },
+        )
+        .toSet();
+    var actualLinkedGroups = snippet.change.linkedEditGroups
+        .map((group) => group.toJson())
+        .toSet();
     expect(actualLinkedGroups, equals(expectedLinkedGroups));
 
     return snippet;

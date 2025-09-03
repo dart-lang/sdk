@@ -139,18 +139,17 @@ class CmdLineSeveralProjectsBenchmark extends AbstractCmdLineBenchmark {
   String get workingDir => packageRoot;
 
   @override
-  List<String> analyzeWhat(bool quick) =>
-      quick
-          ? ['meta']
-          : [
-            'analysis_server',
-            'analysis_server_client',
-            'analyzer',
-            'analyzer_cli',
-            'analyzer_plugin',
-            'analyzer_utilities',
-            '_fe_analyzer_shared',
-          ];
+  List<String> analyzeWhat(bool quick) => quick
+      ? ['meta']
+      : [
+          'analysis_server',
+          'analysis_server_client',
+          'analyzer',
+          'analyzer_cli',
+          'analyzer_plugin',
+          'analyzer_utilities',
+          '_fe_analyzer_shared',
+        ];
 }
 
 class CmdLineSmallFileBenchmark extends AbstractCmdLineBenchmark {

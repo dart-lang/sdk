@@ -651,10 +651,9 @@ class NoProducerOverlapsTest {
     var bulkFixForLintCodes = registeredFixGenerators.lintProducers.entries
         .where(
           (e) => e.value.any(
-            (generator) =>
-                generator(
-                  context: StubCorrectionProducerContext.instance,
-                ).canBeAppliedAcrossFiles,
+            (generator) => generator(
+              context: StubCorrectionProducerContext.instance,
+            ).canBeAppliedAcrossFiles,
           ),
         )
         .map((e) => e.key);
@@ -663,10 +662,9 @@ class NoProducerOverlapsTest {
         .entries
         .where(
           (e) => e.value.any(
-            (generator) =>
-                generator(
-                  context: StubCorrectionProducerContext.instance,
-                ).canBeAppliedAcrossFiles,
+            (generator) => generator(
+              context: StubCorrectionProducerContext.instance,
+            ).canBeAppliedAcrossFiles,
           ),
         )
         .map((e) => e.key.uniqueName);
@@ -2341,9 +2339,8 @@ class _DataDrivenTest extends BulkFixProcessorTest {
   void setPackageContent(String content) {
     newFile('$workspaceRootPath/p/lib/lib.dart', content);
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'p', rootPath: '$workspaceRootPath/p'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'p', rootPath: '$workspaceRootPath/p'),
     );
   }
 

@@ -26,8 +26,9 @@ class ReplaceWithConditionalAssignment extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
-    var ifStatement =
-        node is IfStatement ? node : node.thisOrAncestorOfType<IfStatement>();
+    var ifStatement = node is IfStatement
+        ? node
+        : node.thisOrAncestorOfType<IfStatement>();
     if (ifStatement == null) {
       return;
     }

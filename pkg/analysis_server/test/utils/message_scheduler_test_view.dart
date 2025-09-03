@@ -16,10 +16,9 @@ class MessageSchedulerTestView implements MessageSchedulerListener {
 
   @override
   void addPendingMessage(ScheduledMessage message) {
-    var messageType =
-        message is LspMessage
-            ? message.message.runtimeType
-            : message.runtimeType;
+    var messageType = message is LspMessage
+        ? message.message.runtimeType
+        : message.runtimeType;
     messageLog.add('Incoming $messageType: ${message.toString()}');
   }
 

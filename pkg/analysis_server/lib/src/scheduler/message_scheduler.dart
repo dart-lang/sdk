@@ -94,11 +94,10 @@ final class MessageScheduler {
       var request = message.request;
       var method = request.method;
       if (method == legacy.SERVER_REQUEST_CANCEL_REQUEST) {
-        var id =
-            legacy.ServerCancelRequestParams.fromRequest(
-              request,
-              clientUriConverter: server.uriConverter,
-            ).id;
+        var id = legacy.ServerCancelRequestParams.fromRequest(
+          request,
+          clientUriConverter: server.uriConverter,
+        ).id;
         listener?.addActiveMessage(message);
         (server as LegacyAnalysisServer).cancelRequest(id);
         // The message needs to be added to the queue of pending messages, but
@@ -154,10 +153,9 @@ final class MessageScheduler {
         // Cancel in progress completion and refactoring requests.
         var incomingMsgMethod = msg.method;
         if (_isCancelableRequest(msg)) {
-          var reason =
-              incomingMsgMethod == lsp.Method.workspace_executeCommand
-                  ? 'Another workspace/executeCommand request for a refactor was started'
-                  : 'Another textDocument/completion request was started';
+          var reason = incomingMsgMethod == lsp.Method.workspace_executeCommand
+              ? 'Another workspace/executeCommand request for a refactor was started'
+              : 'Another textDocument/completion request was started';
           for (var activeMessage in _activeMessages) {
             if (activeMessage is LspMessage && activeMessage.isRequest) {
               var message = activeMessage.message as lsp.RequestMessage;

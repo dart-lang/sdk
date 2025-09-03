@@ -149,20 +149,20 @@ class ServerCapabilitiesComputer {
 
   ServerCapabilitiesComputer(this._server);
 
-  List<TextDocumentFilterScheme> get pluginTypes =>
-      _server.pluginManager.pluginIsolates
-          .expand(
-            (isolate) =>
-                isolate.currentSession?.interestingFiles ?? const <String>[],
-          )
-          // All published plugins use something like `*.extension` as
-          // interestingFiles. Prefix a `**/` so that the glob matches nested
-          // folders as well.
-          .map(
-            (glob) =>
-                TextDocumentFilterScheme(scheme: 'file', pattern: '**/$glob'),
-          )
-          .toList();
+  List<TextDocumentFilterScheme> get pluginTypes => _server
+      .pluginManager
+      .pluginIsolates
+      .expand(
+        (isolate) =>
+            isolate.currentSession?.interestingFiles ?? const <String>[],
+      )
+      // All published plugins use something like `*.extension` as
+      // interestingFiles. Prefix a `**/` so that the glob matches nested
+      // folders as well.
+      .map(
+        (glob) => TextDocumentFilterScheme(scheme: 'file', pattern: '**/$glob'),
+      )
+      .toList();
 
   ServerCapabilities computeServerCapabilities(
     LspClientCapabilities clientCapabilities,
@@ -204,12 +204,11 @@ class ServerCapabilitiesComputer {
           supported: true,
           changeNotifications: features.changeNotifications.staticRegistration,
         ),
-        fileOperations:
-            !context.clientDynamic.fileOperations
-                ? FileOperationOptions(
-                  willRename: features.willRename.staticRegistration,
-                )
-                : null,
+        fileOperations: !context.clientDynamic.fileOperations
+            ? FileOperationOptions(
+                willRename: features.willRename.staticRegistration,
+              )
+            : null,
       ),
       experimental: {
         // 'experimental' is a field we can put any arbitrary data that is not
@@ -287,17 +286,15 @@ class ServerCapabilitiesComputer {
     );
     var currentRegistrationJsons = currentRegistrationsMap.values.toSet();
 
-    var registrationsToAdd =
-        newRegistrationsMap.entries
-            .where((entry) => !currentRegistrationJsons.contains(entry.value))
-            .map((entry) => entry.key)
-            .toList();
+    var registrationsToAdd = newRegistrationsMap.entries
+        .where((entry) => !currentRegistrationJsons.contains(entry.value))
+        .map((entry) => entry.key)
+        .toList();
 
-    var registrationsToRemove =
-        currentRegistrationsMap.entries
-            .where((entry) => !newRegistrationsJsons.contains(entry.value))
-            .map((entry) => entry.key)
-            .toList();
+    var registrationsToRemove = currentRegistrationsMap.entries
+        .where((entry) => !newRegistrationsJsons.contains(entry.value))
+        .map((entry) => entry.key)
+        .toList();
 
     // Update the current list before we start sending requests since we
     // go async.
@@ -307,10 +304,9 @@ class ServerCapabilitiesComputer {
 
     Future<void>? unregistrationRequest;
     if (registrationsToRemove.isNotEmpty) {
-      var unregistrations =
-          registrationsToRemove
-              .map((r) => Unregistration(id: r.id, method: r.method))
-              .toList();
+      var unregistrations = registrationsToRemove
+          .map((r) => Unregistration(id: r.id, method: r.method))
+          .toList();
       // It's important not to await this request here, as we must ensure
       // we cannot re-enter this method until we have sent both the unregister
       // and register requests to the client atomically.

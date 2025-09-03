@@ -35,10 +35,9 @@ extension E on int {
   int get a => null;
 }
 ''',
-      errorFilter:
-          (error) =>
-              error.diagnosticCode ==
-              CompileTimeErrorCode.extensionDeclaresInstanceField,
+      errorFilter: (error) =>
+          error.diagnosticCode ==
+          CompileTimeErrorCode.extensionDeclaresInstanceField,
     );
   }
 

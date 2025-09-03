@@ -269,10 +269,8 @@ void f() {
 void f() {
 }
 ''',
-      errorFilter:
-          (e) =>
-              e.diagnosticCode !=
-              CompileTimeErrorCode.referencedBeforeDeclaration,
+      errorFilter: (e) =>
+          e.diagnosticCode != CompileTimeErrorCode.referencedBeforeDeclaration,
     );
   }
 }

@@ -78,8 +78,9 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
 
     var contextRoot = session.analysisContext.contextRoot;
     var package = contextRoot.workspace.findPackageFor(optionsFile.path);
-    var sdkVersionConstraint =
-        (package is PubPackage) ? package.sdkVersionConstraint : null;
+    var sdkVersionConstraint = (package is PubPackage)
+        ? package.sdkVersionConstraint
+        : null;
 
     var errors = analyzeAnalysisOptions(
       FileSource(optionsFile),

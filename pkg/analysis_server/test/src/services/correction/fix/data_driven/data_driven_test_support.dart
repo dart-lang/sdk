@@ -67,9 +67,8 @@ mixin DataDrivenFixProcessorTestMixin on AbstractSingleUnitTest {
   void setPackageContent(String content) {
     newFile('$workspaceRootPath/p/lib/lib.dart', content);
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'p', rootPath: '$workspaceRootPath/p'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'p', rootPath: '$workspaceRootPath/p'),
     );
   }
 

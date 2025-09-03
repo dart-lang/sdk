@@ -604,11 +604,9 @@ class Server {
   ]) {
     // Provide a default implementation of the reverse request processor that
     // just throws because there are many tests that don't use reverse-requests.
-    reverseRequestProcessor ??=
-        (_) =>
-            throw UnimplementedError(
-              "A reverse request was received but the test did not provide 'reverseRequestProcessor'",
-            );
+    reverseRequestProcessor ??= (_) => throw UnimplementedError(
+      "A reverse request was received but the test did not provide 'reverseRequestProcessor'",
+    );
 
     _process.stdout.transform(utf8.decoder).transform(LineSplitter()).listen((
       String line,
@@ -620,18 +618,16 @@ class Server {
       //   {"event":"server.connected","params":{...}}The Dart VM service is listening on ...
       const dartVMServiceMessage = 'The Dart VM service is listening on ';
       if (trimmedLine.contains(dartVMServiceMessage)) {
-        trimmedLine =
-            trimmedLine
-                .substring(0, trimmedLine.indexOf(dartVMServiceMessage))
-                .trim();
+        trimmedLine = trimmedLine
+            .substring(0, trimmedLine.indexOf(dartVMServiceMessage))
+            .trim();
       }
       const devtoolsMessage =
           'The Dart DevTools debugger and profiler is available at:';
       if (trimmedLine.contains(devtoolsMessage)) {
-        trimmedLine =
-            trimmedLine
-                .substring(0, trimmedLine.indexOf(devtoolsMessage))
-                .trim();
+        trimmedLine = trimmedLine
+            .substring(0, trimmedLine.indexOf(devtoolsMessage))
+            .trim();
       }
       if (trimmedLine.isEmpty) {
         return;
@@ -998,10 +994,9 @@ abstract class _RecursiveMatcher extends Matcher {
         mismatchDescription = mismatchDescription
             .add(' (should be ')
             .addDescriptionOf(matcher);
-        var subDescription =
-            matcher
-                .describeMismatch(item, StringDescription(), subState, false)
-                .toString();
+        var subDescription = matcher
+            .describeMismatch(item, StringDescription(), subState, false)
+            .toString();
         if (subDescription.isNotEmpty) {
           mismatchDescription = mismatchDescription
               .add('; ')
@@ -1062,10 +1057,9 @@ abstract class _RecursiveMatcher extends Matcher {
   void populateMismatches(Object? item, List<MismatchDescriber> mismatches);
 
   /// Create a [MismatchDescriber] describing a mismatch with a simple string.
-  MismatchDescriber simpleDescription(String description) => (
-    Description mismatchDescription,
-  ) {
-    mismatchDescription.add(description);
-    return mismatchDescription;
-  };
+  MismatchDescriber simpleDescription(String description) =>
+      (Description mismatchDescription) {
+        mismatchDescription.add(description);
+        return mismatchDescription;
+      };
 }

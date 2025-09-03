@@ -239,23 +239,23 @@ String? a;
     );
     var command = codeAction.command!;
 
-    var commandResponse = handleExpectedRequest<
-      Object?,
-      ApplyWorkspaceEditParams,
-      ApplyWorkspaceEditResult
-    >(
-      Method.workspace_applyEdit,
-      ApplyWorkspaceEditParams.fromJson,
-      () => executeCommand(command),
-      // Claim that we failed tpo apply the edits. This is what the client
-      // would do if the edits provided were for an old version of the
-      // document.
-      handler:
-          (edit) => ApplyWorkspaceEditResult(
+    var commandResponse =
+        handleExpectedRequest<
+          Object?,
+          ApplyWorkspaceEditParams,
+          ApplyWorkspaceEditResult
+        >(
+          Method.workspace_applyEdit,
+          ApplyWorkspaceEditParams.fromJson,
+          () => executeCommand(command),
+          // Claim that we failed tpo apply the edits. This is what the client
+          // would do if the edits provided were for an old version of the
+          // document.
+          handler: (edit) => ApplyWorkspaceEditResult(
             applied: false,
             failureReason: 'Document changed',
           ),
-    );
+        );
 
     // Ensure the request returned an error (error responses are thrown by
     // the test helper to make consuming success results simpler).

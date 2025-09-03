@@ -193,9 +193,8 @@ print(1)
   Future<void> test_suggestImportFromDifferentAnalysisRoot() async {
     writePackageConfig(
       convertPath('$workspaceRootPath/aaa'),
-      config:
-          (PackageConfigFileBuilder()
-            ..add(name: 'bbb', rootPath: '$workspaceRootPath/bbb')),
+      config: (PackageConfigFileBuilder()
+        ..add(name: 'bbb', rootPath: '$workspaceRootPath/bbb')),
     );
     newPubspecYamlFile('$workspaceRootPath/aaa', r'''
 dependencies:
@@ -221,11 +220,10 @@ dependencies:
 
     await waitForTasksFinished();
 
-    var fixes =
-        (await _getFixesAt(
-          file,
-          'Foo()',
-        )).single.fixes.map((f) => f.message).toList();
+    var fixes = (await _getFixesAt(
+      file,
+      'Foo()',
+    )).single.fixes.map((f) => f.message).toList();
     expect(fixes, contains("Import library 'package:bbb/target.dart'"));
     expect(
       fixes,

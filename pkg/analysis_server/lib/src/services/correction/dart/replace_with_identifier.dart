@@ -24,8 +24,8 @@ class ReplaceWithIdentifier extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var functionTyped =
-        node.thisOrAncestorOfType<FunctionTypedFormalParameter>();
+    var functionTyped = node
+        .thisOrAncestorOfType<FunctionTypedFormalParameter>();
     if (functionTyped != null) {
       await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleReplacement(

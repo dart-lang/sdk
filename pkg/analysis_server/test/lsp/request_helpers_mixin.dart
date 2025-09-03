@@ -348,10 +348,9 @@ mixin LspRequestHelpersMixin {
     CodeActionTriggerKind? triggerKind,
     ProgressToken? workDoneToken,
   }) async {
-    range ??=
-        position != null
-            ? Range(start: position, end: position)
-            : throw 'Supply either a Range or Position for CodeActions requests';
+    range ??= position != null
+        ? Range(start: position, end: position)
+        : throw 'Supply either a Range or Position for CodeActions requests';
     var request = makeRequest(
       Method.textDocument_codeAction,
       CodeActionParams(
@@ -386,10 +385,9 @@ mixin LspRequestHelpersMixin {
     if (kinds != null && kinds.isNotEmpty) {
       // Kinds must either by an exact match, or start with the
       // requested value followed by a dot (a sub-kind).
-      var allowedKinds =
-          kinds
-              .expand((kind) => [equals('$kind'), startsWith('$kind.')])
-              .toList();
+      var allowedKinds = kinds
+          .expand((kind) => [equals('$kind'), startsWith('$kind.')])
+          .toList();
 
       // Only CodeActionLiterals can be checked because bare commands do not
       // have CodeActionKinds (once they've left the server).
@@ -885,10 +883,9 @@ mixin LspRequestHelpersMixin {
       method: method,
       params: params is ToJsonable ? params.toJson() : params,
       jsonrpc: jsonRpcVersion,
-      clientRequestTime:
-          includeClientRequestTime
-              ? DateTime.now().millisecondsSinceEpoch
-              : null,
+      clientRequestTime: includeClientRequestTime
+          ? DateTime.now().millisecondsSinceEpoch
+          : null,
     );
   }
 
@@ -1150,7 +1147,8 @@ mixin LspRequestHelpersMixin {
 
   List<T> Function(List<Object?>) _fromJsonList<T>(
     T Function(Map<String, Object?>) fromJson,
-  ) => (input) => input.cast<Map<String, Object?>>().map(fromJson).toList();
+  ) =>
+      (input) => input.cast<Map<String, Object?>>().map(fromJson).toList();
 
   /// Creates a `canParse()` function for an `Either2<T1, T2>` using
   /// the `canParse` function for each type.
@@ -1208,12 +1206,10 @@ mixin LspReverseRequestHelpersMixin {
 
     var requestFromServer = await firstRequest.timeout(
       timeout,
-      onTimeout:
-          () =>
-              throw TimeoutException(
-                'Did not receive the expected $method request from the server in the timeout period',
-                timeout,
-              ),
+      onTimeout: () => throw TimeoutException(
+        'Did not receive the expected $method request from the server in the timeout period',
+        timeout,
+      ),
     );
 
     expect(requestFromServer, isNotNull);
@@ -1250,29 +1246,30 @@ mixin LspReverseRequestHelpersMixin {
     Object? outboundRequestError;
 
     // Run [f] and wait for the incoming request from the server.
-    var incomingRequest = await expectRequest(method, () {
-      // Don't return/await the response yet, as this may not complete until
-      // after we have handled the request that comes from the server.
-      outboundRequest = f();
+    var incomingRequest =
+        await expectRequest(method, () {
+          // Don't return/await the response yet, as this may not complete until
+          // after we have handled the request that comes from the server.
+          outboundRequest = f();
 
-      // Because we don't await this future until "later", if it throws the
-      // error is treated as unhandled and will fail the test even if expected.
-      // Instead, capture the error and suppress it. But if we time out (in
-      // which case we will never return outboundRequest), then we'll raise this
-      // error.
-      outboundRequest.then(
-        (_) {},
-        onError: (e) {
-          outboundRequestError = e;
-          return null;
-        },
-      );
-    }, timeout: timeout).catchError((Object timeoutException) {
-      // We timed out waiting for the request from the server. Probably this is
-      // because our outbound request for some reason, so if we have an error
-      // for that, then throw it. Otherwise, propogate the timeout.
-      throw outboundRequestError ?? timeoutException;
-    }, test: (e) => e is TimeoutException);
+          // Because we don't await this future until "later", if it throws the
+          // error is treated as unhandled and will fail the test even if expected.
+          // Instead, capture the error and suppress it. But if we time out (in
+          // which case we will never return outboundRequest), then we'll raise this
+          // error.
+          outboundRequest.then(
+            (_) {},
+            onError: (e) {
+              outboundRequestError = e;
+              return null;
+            },
+          );
+        }, timeout: timeout).catchError((Object timeoutException) {
+          // We timed out waiting for the request from the server. Probably this is
+          // because our outbound request for some reason, so if we have an error
+          // for that, then throw it. Otherwise, propogate the timeout.
+          throw outboundRequestError ?? timeoutException;
+        }, test: (e) => e is TimeoutException);
 
     // Handle the request from the server and send the response back.
     var clientsResponse = await handler(
@@ -1352,21 +1349,22 @@ mixin LspVerifyEditHelpersMixin
   }) async {
     ApplyWorkspaceEditParams? editParams;
 
-    var commandResponse = await handleExpectedRequest<
-      Object?,
-      ApplyWorkspaceEditParams,
-      ApplyWorkspaceEditResult
-    >(
-      Method.workspace_applyEdit,
-      ApplyWorkspaceEditParams.fromJson,
-      function,
-      handler: (edit) {
-        // When the server sends the edit back, just keep a copy and say we
-        // applied successfully (it'll be verified by the caller).
-        editParams = edit;
-        return applyEditResult ?? ApplyWorkspaceEditResult(applied: true);
-      },
-    );
+    var commandResponse =
+        await handleExpectedRequest<
+          Object?,
+          ApplyWorkspaceEditParams,
+          ApplyWorkspaceEditResult
+        >(
+          Method.workspace_applyEdit,
+          ApplyWorkspaceEditParams.fromJson,
+          function,
+          handler: (edit) {
+            // When the server sends the edit back, just keep a copy and say we
+            // applied successfully (it'll be verified by the caller).
+            editParams = edit;
+            return applyEditResult ?? ApplyWorkspaceEditResult(applied: true);
+          },
+        );
     // Successful edits return an empty success() response.
     expect(commandResponse, isNull);
 

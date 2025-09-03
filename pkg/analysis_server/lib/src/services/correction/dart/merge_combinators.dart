@@ -122,14 +122,13 @@ class _MergeCombinators extends ResolvedCorrectionProducer {
 
     var explicitlyHiddenNames = directive.hideCombinators.hiddenNames;
 
-    var hiddenNames =
-        {
-          ...explicitlyHiddenNames,
-          ...originalNamespace.hiddenNames({
-            ...explicitlyHiddenNames,
-            ...namespace.keys,
-          }),
-        }.toList();
+    var hiddenNames = {
+      ...explicitlyHiddenNames,
+      ...originalNamespace.hiddenNames({
+        ...explicitlyHiddenNames,
+        ...namespace.keys,
+      }),
+    }.toList();
     await _buildNewCombinator(builder, Keyword.HIDE, hiddenNames);
   }
 

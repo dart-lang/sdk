@@ -2458,10 +2458,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       collector.completionLocation = 'PatternField_pattern';
       keywordHelper.addKeyword(Keyword.DYNAMIC);
       _forExpression(node);
-      var targetField =
-          node.fields.skipWhile((field) {
-            return field.end < offset;
-          }).firstOrNull;
+      var targetField = node.fields.skipWhile((field) {
+        return field.end < offset;
+      }).firstOrNull;
       if (targetField != null) {
         var nameNode = targetField.name;
         if (nameNode != null && offset <= nameNode.colon.offset) {
@@ -3459,11 +3458,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (existingNames.contains(coveringNode)) {
       excludedName = coveringNode;
     }
-    var excludedNames =
-        existingNames
-            .where((element) => element != excludedName)
-            .map((element) => element.name)
-            .toSet();
+    var excludedNames = existingNames
+        .where((element) => element != excludedName)
+        .map((element) => element.name)
+        .toSet();
     declarationHelper(
       preferNonInvocation: true,
     ).addFromLibrary(library, excludedNames);
@@ -4109,11 +4107,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
     var includedNames = const <String>{};
     if (recordLiteral != null) {
-      includedNames =
-          recordLiteral.fields
-              .whereType<NamedExpression>()
-              .map((e) => e.name.label.name)
-              .toSet();
+      includedNames = recordLiteral.fields
+          .whereType<NamedExpression>()
+          .map((e) => e.name.label.name)
+          .toSet();
     }
 
     for (var field in recordType.namedFields) {
@@ -4295,8 +4292,8 @@ extension on AstNode {
       MethodDeclaration(:var metadata) => metadata.contains(child),
       MixinDeclaration(:var members, :var metadata) =>
         members.contains(child) || metadata.contains(child),
-      MixinOnClause(:var superclassConstraints) => superclassConstraints
-          .contains(child),
+      MixinOnClause(:var superclassConstraints) =>
+        superclassConstraints.contains(child),
       ObjectPattern(:var fields) => fields.contains(child),
       PartDirective(:var metadata) => metadata.contains(child),
       PartOfDirective(:var metadata) => metadata.contains(child),

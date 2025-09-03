@@ -55,10 +55,9 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
       return CreateMethodOrFunction._(
         context: context,
         targetElement: targetElement,
-        fixKind:
-            targetElement is InterfaceElement
-                ? DartFixKind.CREATE_METHOD_TEAROFF
-                : DartFixKind.CREATE_FUNCTION_TEAROFF,
+        fixKind: targetElement is InterfaceElement
+            ? DartFixKind.CREATE_METHOD_TEAROFF
+            : DartFixKind.CREATE_FUNCTION_TEAROFF,
       );
     }
 

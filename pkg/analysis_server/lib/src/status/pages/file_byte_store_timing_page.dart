@@ -22,13 +22,11 @@ class FileByteStoreTimingPage extends DiagnosticPageWithNav
   Future<void> generateContent(Map<String, String> params) async {
     h3('FileByteStore Timings');
 
-    var byteStoreTimings =
-        server.byteStoreTimings
-            ?.where(
-              (timing) =>
-                  timing.readCount != 0 || timing.readTime != Duration.zero,
-            )
-            .toList();
+    var byteStoreTimings = server.byteStoreTimings
+        ?.where(
+          (timing) => timing.readCount != 0 || timing.readTime != Duration.zero,
+        )
+        .toList();
     if (byteStoreTimings == null || byteStoreTimings.isEmpty) {
       p(
         'There are currently no timings. '
@@ -47,8 +45,9 @@ class FileByteStoreTimingPage extends DiagnosticPageWithNav
         continue;
       }
 
-      var nextTiming =
-          i + 1 < byteStoreTimings.length ? byteStoreTimings[i + 1] : null;
+      var nextTiming = i + 1 < byteStoreTimings.length
+          ? byteStoreTimings[i + 1]
+          : null;
       var duration = (nextTiming?.time ?? DateTime.now()).difference(
         timing.time,
       );

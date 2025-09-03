@@ -87,7 +87,8 @@ void main() {
         ],
       );
       var output = json.encode(codeAction.toJson());
-      var expected = '''{
+      var expected =
+          '''{
         "code":"test_err",
         "message":"err!!",
         "range":{
@@ -108,7 +109,8 @@ void main() {
         ],
         "severity":1,
         "source":"/tmp/source.dart"
-      }'''.replaceAll(RegExp('[ \n]'), '');
+      }'''
+              .replaceAll(RegExp('[ \n]'), '');
       expect(output, equals(expected));
     });
 
@@ -134,13 +136,15 @@ void main() {
         kind: FoldingRangeKind.Comment,
       );
       var output = json.encode(foldingRange.toJson());
-      var expected = '''{
+      var expected =
+          '''{
         "endCharacter":4,
         "endLine":3,
         "kind":"comment",
         "startCharacter":2,
         "startLine":1
-      }'''.replaceAll(RegExp('[ \n]'), '');
+      }'''
+              .replaceAll(RegExp('[ \n]'), '');
       expect(output, equals(expected));
     });
 

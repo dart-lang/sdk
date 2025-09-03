@@ -264,8 +264,9 @@ dev_dependencies:
     var links = await getDocumentLinks(fileUri);
 
     // Convert the results into the same format as expectedLinksWithRanges.
-    var linkData =
-        links!.map((link) => (link.range, link.target?.toString())).toList();
+    var linkData = links!
+        .map((link) => (link.range, link.target?.toString()))
+        .toList();
 
     expect(linkData, equals(expectedLinksWithRanges));
   }

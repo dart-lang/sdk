@@ -54,10 +54,9 @@ class A {
   }
 }
 ''',
-      errorFilter:
-          (e) =>
-              e.diagnosticCode.name ==
-              LintNames.avoid_single_cascade_in_expression_statements,
+      errorFilter: (e) =>
+          e.diagnosticCode.name ==
+          LintNames.avoid_single_cascade_in_expression_statements,
     );
   }
 
@@ -98,10 +97,9 @@ f() {
   E(3).g;
 }
 ''',
-      errorFilter:
-          (e) =>
-              e.diagnosticCode.name ==
-              LintNames.avoid_single_cascade_in_expression_statements,
+      errorFilter: (e) =>
+          e.diagnosticCode.name ==
+          LintNames.avoid_single_cascade_in_expression_statements,
     );
   }
 

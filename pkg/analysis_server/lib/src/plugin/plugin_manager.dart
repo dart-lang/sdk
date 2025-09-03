@@ -646,11 +646,10 @@ class PluginManager {
               var uri = Uri.parse('package:$packageName/$packageName.dart');
               var packageSource = packageUriResolver.resolveAbsolute(uri);
               if (packageSource != null) {
-                var packageRoot =
-                    _resourceProvider
-                        .getFile(packageSource.fullName)
-                        .parent
-                        .parent;
+                var packageRoot = _resourceProvider
+                    .getFile(packageSource.fullName)
+                    .parent
+                    .parent;
                 packages.add(_Package(packageName, packageRoot));
                 pubspecFiles.add(
                   packageRoot.getChildAssumingFile(file_paths.pubspecYaml),

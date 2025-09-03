@@ -145,10 +145,9 @@ class DeclarationHelper {
   });
 
   /// Return the suggestion kind that should be used for executable elements.
-  CompletionSuggestionKind get _executableSuggestionKind =>
-      preferNonInvocation
-          ? CompletionSuggestionKind.IDENTIFIER
-          : CompletionSuggestionKind.INVOCATION;
+  CompletionSuggestionKind get _executableSuggestionKind => preferNonInvocation
+      ? CompletionSuggestionKind.IDENTIFIER
+      : CompletionSuggestionKind.INVOCATION;
 
   /// Add any constructors that are visible within the current library.
   void addConstructorInvocations() {
@@ -412,8 +411,9 @@ class DeclarationHelper {
   /// local variables, local functions, parameters, members of the enclosing
   /// declaration, and top-level declarations in the enclosing library.
   void addLexicalDeclarations(AstNode node) {
-    var containingMember =
-        mustBeType ? _addLocalTypes(node) : _addLocalDeclarations(node);
+    var containingMember = mustBeType
+        ? _addLocalTypes(node)
+        : _addLocalDeclarations(node);
     if (containingMember == null) {
       return;
     }
@@ -460,8 +460,9 @@ class DeclarationHelper {
     required bool includeSetters,
   }) {
     var extendedType = extension.extendedType;
-    var referencingInterface =
-        (extendedType is InterfaceType) ? extendedType.element : null;
+    var referencingInterface = (extendedType is InterfaceType)
+        ? extendedType.element
+        : null;
     if (includeMethods) {
       for (var method in extension.methods) {
         if (method.isStatic ||
@@ -594,10 +595,9 @@ class DeclarationHelper {
     }
 
     if (node.isNamed) {
-      var superConstructorInvocation =
-          constructor.initializers
-              .whereType<SuperConstructorInvocation>()
-              .singleOrNull;
+      var superConstructorInvocation = constructor.initializers
+          .whereType<SuperConstructorInvocation>()
+          .singleOrNull;
       var specified = <String>{
         ...constructorElement.formalParameters.map((e) => e.name).nonNulls,
         ...?superConstructorInvocation?.argumentList.arguments
@@ -612,10 +612,9 @@ class DeclarationHelper {
       }
     } else if (node.isPositional) {
       var indexOfThis = element.indexIn(constructorElement);
-      var superPositionalList =
-          superConstructor.formalParameters
-              .where((parameter) => parameter.isPositional)
-              .toList();
+      var superPositionalList = superConstructor.formalParameters
+          .where((parameter) => parameter.isPositional)
+          .toList();
       if (indexOfThis >= 0 && indexOfThis < superPositionalList.length) {
         var superPositional = superPositionalList[indexOfThis];
         _suggestSuperParameter(superPositional);
@@ -1120,10 +1119,9 @@ class DeclarationHelper {
     bool onlySuper = false,
   }) {
     var substitution = Substitution.fromInterfaceType(type);
-    var map =
-        onlySuper
-            ? type.element.inheritedConcreteMembers
-            : type.element.interfaceMembers;
+    var map = onlySuper
+        ? type.element.inheritedConcreteMembers
+        : type.element.interfaceMembers;
 
     var membersByName = <String, List<ExecutableElement>>{};
     for (var rawMember in map.values) {
@@ -1833,10 +1831,9 @@ class DeclarationHelper {
     // Use the constructor element's name without the interface type to
     // calculate the matcher score for dot shorthands.
     var elementName = element.name;
-    var matcherName =
-        suggestingDotShorthand && elementName != null
-            ? elementName
-            : element.displayName;
+    var matcherName = suggestingDotShorthand && elementName != null
+        ? elementName
+        : element.displayName;
     // TODO(keertip): Compute the completion string.
     var matcherScore = state.matcher.score(matcherName);
     if (matcherScore != -1) {
@@ -1918,10 +1915,9 @@ class DeclarationHelper {
           importData: importData,
           element: element,
           matcherScore: matcherScore,
-          kind:
-              preferNonInvocation
-                  ? CompletionSuggestionKind.IDENTIFIER
-                  : CompletionSuggestionKind.INVOCATION,
+          kind: preferNonInvocation
+              ? CompletionSuggestionKind.IDENTIFIER
+              : CompletionSuggestionKind.INVOCATION,
         );
         collector.addSuggestion(suggestion);
       }

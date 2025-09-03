@@ -110,8 +110,9 @@ class CallHierarchyItem {
     var enclosingElement =
         element.enclosingElement ??
         element.firstFragment.enclosingFragment?.element;
-    var container =
-        enclosingElement != null ? _getContainer(enclosingElement) : null;
+    var container = enclosingElement != null
+        ? _getContainer(enclosingElement)
+        : null;
     containerName = container != null ? _getDisplayName(container) : null;
   }
 

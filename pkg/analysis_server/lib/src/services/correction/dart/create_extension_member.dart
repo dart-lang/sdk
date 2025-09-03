@@ -242,11 +242,10 @@ class CreateExtensionMethod extends _CreateExtensionMember {
 
       builder.writeTypeParameters(
         ([
-                isInvocation ? returnType : functionType?.returnType,
-                ...?functionType?.formalParameters.map((e) => e.type),
-                ...?invocation?.argumentList.arguments.map((e) => e.staticType),
-              ].typeParameters
-              ..addAll([...?functionType?.typeParameters]))
+              isInvocation ? returnType : functionType?.returnType,
+              ...?functionType?.formalParameters.map((e) => e.type),
+              ...?invocation?.argumentList.arguments.map((e) => e.staticType),
+            ].typeParameters..addAll([...?functionType?.typeParameters]))
             .whereNot([targetType].typeParameters.contains)
             .toList(),
       );
@@ -669,15 +668,14 @@ extension on List<DartType?> {
   /// it uses and get any type parameters they use by using this same getter.
   ///
   /// These types are added internally to a set so that we don't add duplicates.
-  List<TypeParameterElement> get typeParameters =>
-      {
-        for (var type in whereType<TypeParameterType>()) ...[
-          type.element,
-          ...[type.bound].typeParameters,
-        ],
-        for (var type in whereType<InterfaceType>())
-          ...type.typeArguments.typeParameters,
-      }.toList();
+  List<TypeParameterElement> get typeParameters => {
+    for (var type in whereType<TypeParameterType>()) ...[
+      type.element,
+      ...[type.bound].typeParameters,
+    ],
+    for (var type in whereType<InterfaceType>())
+      ...type.typeArguments.typeParameters,
+  }.toList();
 }
 
 extension on Element? {

@@ -135,15 +135,14 @@ class SelectionCoverageTest {
         for (var member in declaration.members) {
           if (member is MethodDeclaration &&
               member.name.lexeme.startsWith('visit')) {
-            var visitedClass =
-                member
-                    .parameters
-                    ?.parameters
-                    .first
-                    .declaredFragment
-                    ?.element
-                    .type
-                    .element;
+            var visitedClass = member
+                .parameters
+                ?.parameters
+                .first
+                .declaredFragment
+                ?.element
+                .type
+                .element;
             if (visitedClass is ClassElement) {
               var visitor = VisitMethodVisitor();
               member.body.accept(visitor);

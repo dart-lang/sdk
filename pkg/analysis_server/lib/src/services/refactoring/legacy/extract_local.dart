@@ -65,10 +65,9 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   ) : selectionRange = SourceRange(selectionOffset, selectionLength),
       utils = CorrectionUtils(resolveResult);
 
-  CodeStyleOptions get codeStyleOptions =>
-      resolveResult.session.analysisContext
-          .getAnalysisOptionsForFile(resolveResult.file)
-          .codeStyleOptions;
+  CodeStyleOptions get codeStyleOptions => resolveResult.session.analysisContext
+      .getAnalysisOptionsForFile(resolveResult.file)
+      .codeStyleOptions;
 
   String get file => resolveResult.path;
 
@@ -97,12 +96,11 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
 
     String? typeString;
     if (codeStyleOptions.specifyTypes || dotShorthandRequiresType) {
-      typeString =
-          expression != null
-              ? expression.staticType?.getDisplayString()
-              : stringLiteralPart != null
-              ? 'String'
-              : null;
+      typeString = expression != null
+          ? expression.staticType?.getDisplayString()
+          : stringLiteralPart != null
+          ? 'String'
+          : null;
     }
 
     var useFinal = codeStyleOptions.makeLocalsFinal;

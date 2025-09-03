@@ -88,8 +88,8 @@ lsp.Either2<lsp.MarkupContent, String> asMarkupContentOrString(
 ) {
   return preferredFormats != null
       ? lsp.Either2<lsp.MarkupContent, String>.t1(
-        _asMarkup(preferredFormats, content),
-      )
+          _asMarkup(preferredFormats, content),
+        )
       : lsp.Either2<lsp.MarkupContent, String>.t2(content);
 }
 
@@ -126,15 +126,15 @@ lsp.Either2<lsp.MarkupContent, String> asMarkupContentOrString(
           requiredArgumentListTextRanges?.isNotEmpty ?? false;
       var functionCallSuffix =
           hasRequiredParameters && requiredArgumentListString != null
-              ? buildSnippetStringWithTabStops(
-                requiredArgumentListString,
-                requiredArgumentListTextRanges,
-              )
-              // Optional params still gets a final tab stop in the parens.
-              : hasOptionalParameters
-              ? SnippetBuilder.finalTabStop
-              // And no parameters at all we skip the tabstop in the parens.
-              : '';
+          ? buildSnippetStringWithTabStops(
+              requiredArgumentListString,
+              requiredArgumentListTextRanges,
+            )
+          // Optional params still gets a final tab stop in the parens.
+          : hasOptionalParameters
+          ? SnippetBuilder.finalTabStop
+          // And no parameters at all we skip the tabstop in the parens.
+          : '';
       insertText =
           '${SnippetBuilder.escapeSnippetPlainText(insertText)}($functionCallSuffix)';
     } else if (selectionOffset != 0 &&
@@ -288,25 +288,26 @@ lsp.WorkspaceEdit createWorkspaceEdit(
   // Compile the edits into a TextDocumentEdit for this file.
   var textDocumentEdit = lsp.TextDocumentEdit(
     textDocument: analysisServer.getVersionedDocumentIdentifier(fileEdit.file),
-    edits:
-        snippetEdits
-            .map(
-              (e) => Either3<
+    edits: snippetEdits
+        .map(
+          (e) =>
+              Either3<
                 lsp.AnnotatedTextEdit,
                 lsp.SnippetTextEdit,
                 lsp.TextEdit
               >.t2(e),
-            )
-            .toList(),
+        )
+        .toList(),
   );
 
   // Convert to the union that documentChanges require.
-  var textDocumentEditsAsUnion = Either4<
-    lsp.CreateFile,
-    lsp.DeleteFile,
-    lsp.RenameFile,
-    lsp.TextDocumentEdit
-  >.t4(textDocumentEdit);
+  var textDocumentEditsAsUnion =
+      Either4<
+        lsp.CreateFile,
+        lsp.DeleteFile,
+        lsp.RenameFile,
+        lsp.TextDocumentEdit
+      >.t4(textDocumentEdit);
 
   /// Add the textDocumentEdit to a WorkspaceEdit.
   return lsp.WorkspaceEdit(documentChanges: [textDocumentEditsAsUnion]);
@@ -606,10 +607,9 @@ CompletionDetail getCompletionDetail(
   }
 
   var libraryUri = suggestion.libraryUri;
-  var autoImportUri =
-      (suggestion.isNotImported ?? false) && libraryUri != null
-          ? Uri.parse(libraryUri)
-          : null;
+  var autoImportUri = (suggestion.isNotImported ?? false) && libraryUri != null
+      ? Uri.parse(libraryUri)
+      : null;
 
   return (
     detail: detail,
@@ -638,13 +638,13 @@ String? getCompletionDisplayUriString({
       // Compute the relative path and then put into a URI so the display
       // always uses forward slashes (as a URI) regardless of platform.
       ? uriConverter
-          .toClientUri(
-            pathContext.relative(
-              uriConverter.fromClientUri(elementLibraryUri),
-              from: pathContext.dirname(completionFilePath),
-            ),
-          )
-          .toString()
+            .toClientUri(
+              pathContext.relative(
+                uriConverter.fromClientUri(elementLibraryUri),
+                from: pathContext.dirname(completionFilePath),
+              ),
+            )
+            .toString()
       : elementLibraryUri.toString();
 }
 
@@ -656,10 +656,9 @@ List<lsp.DiagnosticTag>? getDiagnosticTags(
     return null;
   }
 
-  var tags =
-      diagnosticTagsForErrorCode[error.code]
-          ?.where(supportedTags.contains)
-          .toList();
+  var tags = diagnosticTagsForErrorCode[error.code]
+      ?.where(supportedTags.contains)
+      .toList();
 
   return tags != null && tags.isNotEmpty ? tags : null;
 }
@@ -737,10 +736,9 @@ lsp.LocationLink? navigationTargetToLocationLink(
   var nameRange = toRange(targetLineInfo, target.offset, target.length);
   var codeOffset = target.codeOffset;
   var codeLength = target.codeLength;
-  var codeRange =
-      codeOffset != null && codeLength != null
-          ? toRange(targetLineInfo, codeOffset, codeLength)
-          : nameRange;
+  var codeRange = codeOffset != null && codeLength != null
+      ? toRange(targetLineInfo, codeOffset, codeLength)
+      : nameRange;
 
   return lsp.LocationLink(
     originSelectionRange: toRange(regionLineInfo, region.offset, region.length),
@@ -760,17 +758,16 @@ lsp.Diagnostic pluginToDiagnostic(
   List<lsp.DiagnosticRelatedInformation>? relatedInformation;
   var contextMessages = error.contextMessages;
   if (contextMessages != null && contextMessages.isNotEmpty) {
-    relatedInformation =
-        contextMessages
-            .map(
-              (message) => pluginToDiagnosticRelatedInformation(
-                uriConverter,
-                getLineInfo,
-                message,
-              ),
-            )
-            .nonNulls
-            .toList();
+    relatedInformation = contextMessages
+        .map(
+          (message) => pluginToDiagnosticRelatedInformation(
+            uriConverter,
+            getLineInfo,
+            message,
+          ),
+        )
+        .nonNulls
+        .toList();
   }
 
   var message = error.message;
@@ -800,10 +797,9 @@ lsp.Diagnostic pluginToDiagnostic(
     relatedInformation: relatedInformation,
     // Only include codeDescription if the client explicitly supports it
     // (a minor optimization to avoid unnecessary payload/(de)serialization).
-    codeDescription:
-        clientSupportsCodeDescription && documentationUrl != null
-            ? CodeDescription(href: Uri.parse(documentationUrl))
-            : null,
+    codeDescription: clientSupportsCodeDescription && documentationUrl != null
+        ? CodeDescription(href: Uri.parse(documentationUrl))
+        : null,
   );
 }
 
@@ -991,10 +987,12 @@ lsp.CompletionItem snippetToCompletionItem(
     thisFilesChange,
     changes.linkedEditGroups,
     lineInfo,
-    selectionOffset:
-        changes.selection?.file == file ? changes.selection?.offset : null,
-    selectionLength:
-        changes.selection?.file == file ? changes.selectionLength : null,
+    selectionOffset: changes.selection?.file == file
+        ? changes.selection?.offset
+        : null,
+    selectionLength: changes.selection?.file == file
+        ? changes.selectionLength
+        : null,
   );
 
   // For LSP, we need to provide the main edit and other edits separately. The
@@ -1021,10 +1019,9 @@ lsp.CompletionItem snippetToCompletionItem(
     filterText: snippet.prefix.orNullIfSameAs(snippet.label),
     kind: lsp.CompletionItemKind.Snippet,
     command: command,
-    documentation:
-        documentation != null
-            ? asMarkupContentOrString(formats, documentation)
-            : null,
+    documentation: documentation != null
+        ? asMarkupContentOrString(formats, documentation)
+        : null,
     // Force snippets to be sorted at the bottom of the list.
     // TODO(dantup): Consider if we can rank these better. Client-side
     //   snippets have always been forced to the bottom partly because they
@@ -1034,14 +1031,12 @@ lsp.CompletionItem snippetToCompletionItem(
     insertTextMode: supportsAsIsInsertMode ? InsertTextMode.asIs : null,
     // Set textEdit or textEditText depending on whether we need to specify
     // a range or not.
-    textEdit:
-        hasDefaultEditRange
-            ? null
-            : Either2<InsertReplaceEdit, TextEdit>.t2(mainEdit),
-    textEditText:
-        hasDefaultEditRange
-            ? mainEdit.newText.orNullIfSameAs(snippet.label)
-            : null,
+    textEdit: hasDefaultEditRange
+        ? null
+        : Either2<InsertReplaceEdit, TextEdit>.t2(mainEdit),
+    textEditText: hasDefaultEditRange
+        ? mainEdit.newText.orNullIfSameAs(snippet.label)
+        : null,
     additionalTextEdits: nonMainEdits.nullIfEmpty,
   );
 }
@@ -1075,13 +1070,13 @@ lsp.CompletionItemKind? suggestionKindToCompletionItemKind(
         if (!label.startsWith('dart:')) {
           return label.endsWith('.dart')
               ? const [
-                lsp.CompletionItemKind.File,
-                lsp.CompletionItemKind.Module,
-              ]
+                  lsp.CompletionItemKind.File,
+                  lsp.CompletionItemKind.Module,
+                ]
               : const [
-                lsp.CompletionItemKind.Folder,
-                lsp.CompletionItemKind.Module,
-              ];
+                  lsp.CompletionItemKind.Folder,
+                  lsp.CompletionItemKind.Module,
+                ];
         }
         return const [lsp.CompletionItemKind.Module];
       case server.CompletionSuggestionKind.IDENTIFIER:
@@ -1207,10 +1202,9 @@ lsp.CompletionItem toCompletionItem(
 
   // TODO(dantup): Consider including more of these raw fields in the original
   //  suggestion to avoid needing to manipulate them in this way here.
-  var filterText =
-      !label.startsWith(completionFilterTextSplitPattern)
-          ? label.split(completionFilterTextSplitPattern).first.trim()
-          : label;
+  var filterText = !label.startsWith(completionFilterTextSplitPattern)
+      ? label.split(completionFilterTextSplitPattern).first.trim()
+      : label;
 
   // If we're using label details, we also don't want the label to include any
   // additional symbols as noted above, because they will appear in the extra
@@ -1227,22 +1221,21 @@ lsp.CompletionItem toCompletionItem(
   var element = suggestion.element;
   var colorPreviewHex =
       capabilities.completionItemKinds.contains(CompletionItemKind.Color) &&
-              suggestion is DartCompletionSuggestion
-          ? suggestion.colorHex
-          : null;
-  var completionKind =
-      colorPreviewHex != null
-          ? CompletionItemKind.Color
-          : element != null
-          ? elementKindToCompletionItemKind(
-            capabilities.completionItemKinds,
-            element.kind,
-          )
-          : suggestionKindToCompletionItemKind(
-            capabilities.completionItemKinds,
-            suggestion.kind,
-            label,
-          );
+          suggestion is DartCompletionSuggestion
+      ? suggestion.colorHex
+      : null;
+  var completionKind = colorPreviewHex != null
+      ? CompletionItemKind.Color
+      : element != null
+      ? elementKindToCompletionItemKind(
+          capabilities.completionItemKinds,
+          element.kind,
+        )
+      : suggestionKindToCompletionItemKind(
+          capabilities.completionItemKinds,
+          suggestion.kind,
+          label,
+        );
 
   var labelDetails = getCompletionDetail(
     suggestion,
@@ -1272,21 +1265,19 @@ lsp.CompletionItem toCompletionItem(
   var insertTextFormat = insertTextInfo.format;
   var isMultilineCompletion = insertText.contains('\n');
 
-  var rawDoc =
-      includeDocumentation == DocumentationPreference.full
-          ? suggestion.docComplete
-          : includeDocumentation == DocumentationPreference.summary
-          ? suggestion.docSummary
-          : null;
+  var rawDoc = includeDocumentation == DocumentationPreference.full
+      ? suggestion.docComplete
+      : includeDocumentation == DocumentationPreference.summary
+      ? suggestion.docSummary
+      : null;
   var cleanedDoc = cleanDartdoc(rawDoc);
 
   // To improve the display of some items (like pubspec version numbers),
   // short labels in the format `_foo_` in docComplete are "upgraded" to the
   // detail field.
-  var labelMatch =
-      cleanedDoc != null
-          ? upgradableDocCompletePattern.firstMatch(cleanedDoc)
-          : null;
+  var labelMatch = cleanedDoc != null
+      ? upgradableDocCompletePattern.firstMatch(cleanedDoc)
+      : null;
   if (labelMatch != null) {
     cleanedDoc = null;
     labelDetails = (
@@ -1316,53 +1307,48 @@ lsp.CompletionItem toCompletionItem(
     ]),
     data: resolutionData,
     detail: labelDetails.detail.nullIfEmpty,
-    labelDetails:
-        useLabelDetails
-            ? CompletionItemLabelDetails(
-              detail: labelDetails.truncatedSignature.nullIfEmpty,
-              description: getCompletionDisplayUriString(
-                uriConverter: uriConverter,
-                pathContext: pathContext,
-                elementLibraryUri: labelDetails.autoImportUri,
-                completionFilePath: completionFilePath,
-              ),
-            ).nullIfEmpty
-            : null,
-    documentation:
-        cleanedDoc != null
-            ? asMarkupContentOrString(formats, cleanedDoc)
-            : null,
-    deprecated:
-        supportsCompletionDeprecatedFlag && suggestion.isDeprecated
-            ? true
-            : null,
+    labelDetails: useLabelDetails
+        ? CompletionItemLabelDetails(
+            detail: labelDetails.truncatedSignature.nullIfEmpty,
+            description: getCompletionDisplayUriString(
+              uriConverter: uriConverter,
+              pathContext: pathContext,
+              elementLibraryUri: labelDetails.autoImportUri,
+              completionFilePath: completionFilePath,
+            ),
+          ).nullIfEmpty
+        : null,
+    documentation: cleanedDoc != null
+        ? asMarkupContentOrString(formats, cleanedDoc)
+        : null,
+    deprecated: supportsCompletionDeprecatedFlag && suggestion.isDeprecated
+        ? true
+        : null,
     sortText: relevanceToSortText(suggestion.relevance),
     filterText: filterText.orNullIfSameAs(
       label,
     ), // filterText uses label if not set
-    insertTextFormat:
-        insertTextFormat != lsp.InsertTextFormat.PlainText
-            ? insertTextFormat
-            : null, // Defaults to PlainText if not supplied
+    insertTextFormat: insertTextFormat != lsp.InsertTextFormat.PlainText
+        ? insertTextFormat
+        : null, // Defaults to PlainText if not supplied
     insertTextMode:
         !hasDefaultTextMode && supportsAsIsInsertMode && isMultilineCompletion
-            ? InsertTextMode.asIs
-            : null,
+        ? InsertTextMode.asIs
+        : null,
     // When using defaults for edit range, don't use textEdit.
-    textEdit:
-        hasDefaultEditRange
-            ? null
-            : supportsInsertReplace && insertionRange != replacementRange
-            ? Either2<InsertReplaceEdit, TextEdit>.t1(
-              InsertReplaceEdit(
-                insert: insertionRange,
-                replace: replacementRange,
-                newText: insertText,
-              ),
-            )
-            : Either2<InsertReplaceEdit, TextEdit>.t2(
-              TextEdit(range: replacementRange, newText: insertText),
+    textEdit: hasDefaultEditRange
+        ? null
+        : supportsInsertReplace && insertionRange != replacementRange
+        ? Either2<InsertReplaceEdit, TextEdit>.t1(
+            InsertReplaceEdit(
+              insert: insertionRange,
+              replace: replacementRange,
+              newText: insertText,
             ),
+          )
+        : Either2<InsertReplaceEdit, TextEdit>.t2(
+            TextEdit(range: replacementRange, newText: insertText),
+          ),
     // When using defaults for edit range, use textEditText.
     textEditText: hasDefaultEditRange ? insertText.orNullIfSameAs(label) : null,
   );
@@ -1387,10 +1373,9 @@ lsp.Diagnostic toDiagnostic(
 lsp.Element toElement(server.LineInfo lineInfo, server.Element element) {
   var location = element.location;
   return lsp.Element(
-    range:
-        location != null
-            ? toRange(lineInfo, location.offset, location.length)
-            : null,
+    range: location != null
+        ? toRange(lineInfo, location.offset, location.length)
+        : null,
     name: toElementName(element),
     kind: element.kind.name,
     parameters: element.parameters,
@@ -1403,8 +1388,8 @@ String toElementName(server.Element element) {
   return element.name.isNotEmpty
       ? element.name
       : (element.kind == server.ElementKind.EXTENSION
-          ? '<unnamed extension>'
-          : '<unnamed>');
+            ? '<unnamed extension>'
+            : '<unnamed>');
 }
 
 lsp.FlutterOutline toFlutterOutline(
@@ -1420,10 +1405,9 @@ lsp.FlutterOutline toFlutterOutline(
     label: outline.label,
     className: outline.className,
     variableName: outline.variableName,
-    attributes:
-        attributes
-            ?.map((attribute) => toFlutterOutlineAttribute(lineInfo, attribute))
-            .toList(),
+    attributes: attributes
+        ?.map((attribute) => toFlutterOutlineAttribute(lineInfo, attribute))
+        .toList(),
     dartElement: dartElement != null ? toElement(lineInfo, dartElement) : null,
     range: toRange(lineInfo, outline.offset, outline.length),
     codeRange: toRange(lineInfo, outline.codeOffset, outline.codeLength),
@@ -1439,10 +1423,9 @@ lsp.FlutterOutlineAttribute toFlutterOutlineAttribute(
   return lsp.FlutterOutlineAttribute(
     name: attribute.name,
     label: attribute.label,
-    valueRange:
-        valueLocation != null
-            ? toRange(lineInfo, valueLocation.offset, valueLocation.length)
-            : null,
+    valueRange: valueLocation != null
+        ? toRange(lineInfo, valueLocation.offset, valueLocation.length)
+        : null,
   );
 }
 
@@ -1480,10 +1463,9 @@ ErrorOr<int> toOffset(
   if (pos.line >= lineInfo.lineCount) {
     return ErrorOr<int>.error(
       lsp.ResponseError(
-        code:
-            failureIsCritical
-                ? lsp.ServerErrorCodes.ClientServerInconsistentState
-                : lsp.ServerErrorCodes.InvalidFileLineCol,
+        code: failureIsCritical
+            ? lsp.ServerErrorCodes.ClientServerInconsistentState
+            : lsp.ServerErrorCodes.InvalidFileLineCol,
         message: 'Invalid line number',
         data: pos.line.toString(),
       ),
@@ -1535,8 +1517,9 @@ lsp.SignatureHelp toSignatureHelp(
   /// Gets the label for an individual parameter in the form
   ///     String s = 'foo'
   String getParamLabel(FormalParameterElement p) {
-    var defaultCodeSuffix =
-        p.defaultValueCode != null ? ' = ${p.defaultValueCode}' : '';
+    var defaultCodeSuffix = p.defaultValueCode != null
+        ? ' = ${p.defaultValueCode}'
+        : '';
     var requiredPrefix = p.isRequiredNamed ? 'required ' : '';
     return '$requiredPrefix${p.type} ${p.displayName}$defaultCodeSuffix';
   }
@@ -1544,10 +1527,12 @@ lsp.SignatureHelp toSignatureHelp(
   /// Gets the full signature label in the form
   ///     foo(String s, int i, bool a = true)
   String getSignatureLabel(server.SignatureInformation resp) {
-    var positionalRequired =
-        signature.parameters.where((p) => p.isRequiredPositional).toList();
-    var positionalOptional =
-        signature.parameters.where((p) => p.isOptionalPositional).toList();
+    var positionalRequired = signature.parameters
+        .where((p) => p.isRequiredPositional)
+        .toList();
+    var positionalOptional = signature.parameters
+        .where((p) => p.isOptionalPositional)
+        .toList();
     var named = signature.parameters.where((p) => p.isNamed).toList();
     var params = [
       if (positionalRequired.isNotEmpty)
@@ -1573,10 +1558,9 @@ lsp.SignatureHelp toSignatureHelp(
     signatures: [
       lsp.SignatureInformation(
         label: getSignatureLabel(signature),
-        documentation:
-            cleanedDoc != null
-                ? asMarkupContentOrString(preferredFormats, cleanedDoc)
-                : null,
+        documentation: cleanedDoc != null
+            ? asMarkupContentOrString(preferredFormats, cleanedDoc)
+            : null,
         parameters: signature.parameters.map(toParameterInfo).toList(),
       ),
     ],
@@ -1665,23 +1649,22 @@ lsp.TextDocumentEdit toTextDocumentEdit(
   );
   return lsp.TextDocumentEdit(
     textDocument: fileEdit.doc,
-    edits:
-        sortSourceEditsForLsp(fileEdit.edits).map((edit) {
-          var annotation = recordEditAnnotation(
-            fileEdit.doc.uri,
-            edit,
-            annotateChanges: annotateChanges,
-            changeAnnotations: changeAnnotations,
-          );
-          return toTextDocumentEditEdit(
-            capabilities,
-            fileEdit.lineInfo,
-            edit,
-            selectionOffsetRelative: fileEdit.selectionOffsetRelative,
-            selectionLength: fileEdit.selectionLength,
-            annotationIdentifier: annotation?.label,
-          );
-        }).toList(),
+    edits: sortSourceEditsForLsp(fileEdit.edits).map((edit) {
+      var annotation = recordEditAnnotation(
+        fileEdit.doc.uri,
+        edit,
+        annotateChanges: annotateChanges,
+        changeAnnotations: changeAnnotations,
+      );
+      return toTextDocumentEditEdit(
+        capabilities,
+        fileEdit.lineInfo,
+        edit,
+        selectionOffsetRelative: fileEdit.selectionOffsetRelative,
+        selectionLength: fileEdit.selectionLength,
+        annotationIdentifier: annotation?.label,
+      );
+    }).toList(),
   );
 }
 
@@ -1726,14 +1709,14 @@ lsp.TextEdit toTextEdit(
 }) {
   return annotation != null
       ? lsp.AnnotatedTextEdit(
-        range: toRange(lineInfo, edit.offset, edit.length),
-        newText: edit.replacement,
-        annotationId: annotation.label,
-      )
+          range: toRange(lineInfo, edit.offset, edit.length),
+          newText: edit.replacement,
+          annotationId: annotation.label,
+        )
       : lsp.TextEdit(
-        range: toRange(lineInfo, edit.offset, edit.length),
-        newText: edit.replacement,
-      );
+          range: toRange(lineInfo, edit.offset, edit.length),
+          newText: edit.replacement,
+        );
 }
 
 /// Creates an [lsp.WorkspaceEdit] for [edits].
@@ -1751,10 +1734,9 @@ lsp.WorkspaceEdit toWorkspaceEdit(
   ChangeAnnotations annotateChanges = ChangeAnnotations.none,
 }) {
   var supportsDocumentChanges = clientCapabilities.documentChanges;
-  var changeAnnotations =
-      annotateChanges != ChangeAnnotations.none
-          ? <lsp.ChangeAnnotationIdentifier, ChangeAnnotation>{}
-          : null;
+  var changeAnnotations = annotateChanges != ChangeAnnotations.none
+      ? <lsp.ChangeAnnotationIdentifier, ChangeAnnotation>{}
+      : null;
 
   if (supportsDocumentChanges) {
     var supportsCreate = clientCapabilities.createResourceOperations;
@@ -1774,12 +1756,13 @@ lsp.WorkspaceEdit toWorkspaceEdit(
     for (var fileEdit in edits) {
       if (supportsCreate && fileEdit.newFile) {
         var create = lsp.CreateFile(uri: fileEdit.doc.uri);
-        var createUnion = Either4<
-          lsp.CreateFile,
-          lsp.DeleteFile,
-          lsp.RenameFile,
-          lsp.TextDocumentEdit
-        >.t1(create);
+        var createUnion =
+            Either4<
+              lsp.CreateFile,
+              lsp.DeleteFile,
+              lsp.RenameFile,
+              lsp.TextDocumentEdit
+            >.t1(create);
         changes.add(createUnion);
       }
 
@@ -1789,12 +1772,13 @@ lsp.WorkspaceEdit toWorkspaceEdit(
         annotateChanges: annotateChanges,
         changeAnnotations: changeAnnotations,
       );
-      var textDocEditUnion = Either4<
-        lsp.CreateFile,
-        lsp.DeleteFile,
-        lsp.RenameFile,
-        lsp.TextDocumentEdit
-      >.t4(textDocEdit);
+      var textDocEditUnion =
+          Either4<
+            lsp.CreateFile,
+            lsp.DeleteFile,
+            lsp.RenameFile,
+            lsp.TextDocumentEdit
+          >.t4(textDocEdit);
       changes.add(textDocEditUnion);
     }
 
@@ -1820,16 +1804,15 @@ Map<Uri, List<lsp.TextEdit>> toWorkspaceEditChanges(
   Map<ChangeAnnotationIdentifier, ChangeAnnotation>? changeAnnotations,
 }) {
   MapEntry<Uri, List<lsp.TextEdit>> createEdit(FileEditInformation file) {
-    var edits =
-        sortSourceEditsForLsp(file.edits).map((edit) {
-          var annotation = recordEditAnnotation(
-            file.doc.uri,
-            edit,
-            annotateChanges: annotateChanges,
-            changeAnnotations: changeAnnotations,
-          );
-          return toTextEdit(file.lineInfo, edit, annotation: annotation);
-        }).toList();
+    var edits = sortSourceEditsForLsp(file.edits).map((edit) {
+      var annotation = recordEditAnnotation(
+        file.doc.uri,
+        edit,
+        annotateChanges: annotateChanges,
+        changeAnnotations: changeAnnotations,
+      );
+      return toTextEdit(file.lineInfo, edit, annotation: annotation);
+    }).toList();
     return MapEntry(file.doc.uri, edits);
   }
 
@@ -1848,10 +1831,9 @@ lsp.MarkupContent _asMarkup(
   var supportsPlain = preferredFormats.contains(lsp.MarkupKind.PlainText);
   // Since our PlainText version is actually just Markdown, only advertise it
   // as PlainText if the client explicitly supports PlainText and not Markdown.
-  var format =
-      supportsPlain && !supportsMarkdown
-          ? lsp.MarkupKind.PlainText
-          : lsp.MarkupKind.Markdown;
+  var format = supportsPlain && !supportsMarkdown
+      ? lsp.MarkupKind.PlainText
+      : lsp.MarkupKind.Markdown;
 
   return lsp.MarkupContent(kind: format, value: content);
 }
@@ -1860,32 +1842,31 @@ String _diagnosticCode(server.DiagnosticCode code) => code.name.toLowerCase();
 
 /// Additional details about a completion that may be formatted differently
 /// depending on the client capabilities.
-typedef CompletionDetail =
-    ({
-      /// Additional details to go in the details popup.
-      ///
-      /// This is usually a full signature (with full parameters) and may also
-      /// include whether the item is deprecated if the client did not support the
-      /// native deprecated tag.
-      String detail,
+typedef CompletionDetail = ({
+  /// Additional details to go in the details popup.
+  ///
+  /// This is usually a full signature (with full parameters) and may also
+  /// include whether the item is deprecated if the client did not support the
+  /// native deprecated tag.
+  String detail,
 
-      /// Truncated parameters. Similar to [truncatedSignature] but does not
-      /// include return types. Used in clients that cannot format signatures
-      /// differently and is appended immediately after the completion label. The
-      /// return type is omitted to reduce noise because this text is not subtle.
-      String truncatedParams,
+  /// Truncated parameters. Similar to [truncatedSignature] but does not
+  /// include return types. Used in clients that cannot format signatures
+  /// differently and is appended immediately after the completion label. The
+  /// return type is omitted to reduce noise because this text is not subtle.
+  String truncatedParams,
 
-      /// A signature with truncated params. Used for showing immediately after
-      /// the completion label when it can be formatted differently.
-      ///
-      /// () → String
-      String truncatedSignature,
+  /// A signature with truncated params. Used for showing immediately after
+  /// the completion label when it can be formatted differently.
+  ///
+  /// () → String
+  String truncatedSignature,
 
-      /// The URI that will be auto-imported if this item is selected in a
-      /// user-friendly string format (for example a relative path if for a `file:/`
-      /// URI).
-      Uri? autoImportUri,
-    });
+  /// The URI that will be auto-imported if this item is selected in a
+  /// user-friendly string format (for example a relative path if for a `file:/`
+  /// URI).
+  Uri? autoImportUri,
+});
 
 extension CompletionLabelExtension on CompletionItemLabelDetails {
   /// Returns `null` if no fields are set, otherwise `this`.

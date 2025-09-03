@@ -50,12 +50,11 @@ Future<void> scheduleImplementedNotification(
 
 void sendAnalysisNotificationAnalyzedFiles(LegacyAnalysisServer server) {
   _sendNotification(server, () {
-    var analyzedFiles =
-        server.driverMap.values
-            .map((driver) => driver.knownFiles)
-            .flattenedToList
-            .map((file) => file.path)
-            .toSet();
+    var analyzedFiles = server.driverMap.values
+        .map((driver) => driver.knownFiles)
+        .flattenedToList
+        .map((file) => file.path)
+        .toSet();
 
     // Exclude *.yaml files because IDEA Dart plugin attempts to index
     // all the files in folders which contain analyzed files.
@@ -138,8 +137,10 @@ void sendAnalysisNotificationOutline(
     var libraryName = _computeLibraryName(unit);
 
     // compute Outline
-    var outline =
-        DartUnitOutlineComputer(resolvedUnit, withBasicFlutter: true).compute();
+    var outline = DartUnitOutlineComputer(
+      resolvedUnit,
+      withBasicFlutter: true,
+    ).compute();
 
     // send notification
     var params = protocol.AnalysisOutlineParams(

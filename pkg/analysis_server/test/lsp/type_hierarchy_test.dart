@@ -435,10 +435,9 @@ class ^E extends D {}
     while (item != null) {
       names.add(item.name);
       var supertypes = await typeHierarchySupertypes(item);
-      item =
-          (supertypes != null && supertypes.isNotEmpty)
-              ? supertypes.single
-              : null;
+      item = (supertypes != null && supertypes.isNotEmpty)
+          ? supertypes.single
+          : null;
     }
 
     // Check for substituted type args.

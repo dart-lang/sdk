@@ -73,8 +73,8 @@ class PubCommand {
       return [];
     }
 
-    var packages =
-        (result['packages'] as List<Object?>?)?.cast<Map<String, Object?>>();
+    var packages = (result['packages'] as List<Object?>?)
+        ?.cast<Map<String, Object?>>();
     if (packages == null) {
       return [];
     }
@@ -162,8 +162,9 @@ class PubCommand {
 
   String? _version(Map<String, Object?> json, String type) {
     var versionType = json[type] as Map<String, Object?>?;
-    var version =
-        versionType != null ? versionType['version'] as String? : null;
+    var version = versionType != null
+        ? versionType['version'] as String?
+        : null;
     return version;
   }
 }

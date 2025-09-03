@@ -536,10 +536,9 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
           } else {
             // Left indent once; returnExpressionSource was indented for method
             // shorthands.
-            returnExpressionSource =
-                _utils
-                    .indentSourceLeftRight('${returnExpressionSource.trim()};')
-                    .trim();
+            returnExpressionSource = _utils
+                .indentSourceLeftRight('${returnExpressionSource.trim()};')
+                .trim();
 
             // add return type
             if (returnType.isNotEmpty) {
@@ -864,8 +863,8 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
     // change indentation
     var selectionFunctionExpression = _selectionFunctionExpression;
     if (selectionFunctionExpression != null) {
-      var baseNode =
-          selectionFunctionExpression.thisOrAncestorOfType<Statement>();
+      var baseNode = selectionFunctionExpression
+          .thisOrAncestorOfType<Statement>();
       if (baseNode != null) {
         var baseIndent = _utils.getNodePrefix(baseNode);
         var targetIndent = _utils.getNodePrefix(_parentMember!);
@@ -1649,8 +1648,9 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor<void> {
           if (parameterTypeCode == null) {
             return;
           }
-          var parametersCode =
-              parametersBuffer.isNotEmpty ? parametersBuffer.toString() : null;
+          var parametersCode = parametersBuffer.isNotEmpty
+              ? parametersBuffer.toString()
+              : null;
           parameter = RefactoringMethodParameter(
             RefactoringMethodParameterKind.REQUIRED,
             parameterTypeCode,

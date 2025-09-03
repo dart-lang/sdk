@@ -18,33 +18,32 @@ import 'package:test_descriptor/test_descriptor.dart' as d;
 void main(List<String> args) async {
   // TODO(srawlins): Support multiple packages which depend on each other, in a
   // DAG similar to the import graph.
-  var argParser =
-      ArgParser()
-        ..addOption(
-          'library-count',
-          defaultsTo: '1',
-          help: 'the number of libraries',
-        )
-        ..addOption(
-          'class-count',
-          defaultsTo: '1',
-          help: 'the number of classes per library',
-        )
-        ..addOption(
-          'method-count',
-          defaultsTo: '1',
-          help: 'the number of methods per class',
-        )
-        ..addOption(
-          'parameter-count',
-          defaultsTo: '1',
-          help: 'the number of parameters per method',
-        )
-        ..addFlag('use-barrel-file', help: 'Whether to add a barrel import')
-        ..addFlag(
-          'use-json-serializable',
-          help: 'Whether to declare @JsonSerializable classes',
-        );
+  var argParser = ArgParser()
+    ..addOption(
+      'library-count',
+      defaultsTo: '1',
+      help: 'the number of libraries',
+    )
+    ..addOption(
+      'class-count',
+      defaultsTo: '1',
+      help: 'the number of classes per library',
+    )
+    ..addOption(
+      'method-count',
+      defaultsTo: '1',
+      help: 'the number of methods per class',
+    )
+    ..addOption(
+      'parameter-count',
+      defaultsTo: '1',
+      help: 'the number of parameters per method',
+    )
+    ..addFlag('use-barrel-file', help: 'Whether to add a barrel import')
+    ..addFlag(
+      'use-json-serializable',
+      help: 'Whether to declare @JsonSerializable classes',
+    );
   var argResults = argParser.parse(args);
   var libraryCount = int.parse(argResults['library-count'] as String);
   var classCount = int.parse(argResults['class-count'] as String);
@@ -82,8 +81,9 @@ void main(List<String> args) async {
     // TODO(srawlins): Make the "connectedness" of the import graph
     // configurable.
     var importGraphTier = (log(lIndex) / ln2).ceil();
-    var importIndexStep =
-        importGraphTier == 0 ? -1 : (lIndex - 1) ~/ importGraphTier;
+    var importIndexStep = importGraphTier == 0
+        ? -1
+        : (lIndex - 1) ~/ importGraphTier;
     var content = StringBuffer();
     if (useJsonSerializable) {
       content.writeln("import 'package:json_annotation/json_annotation.dart';");
@@ -182,21 +182,19 @@ String import(String uri) => "import '$uri';";
 /// With [useJsonSerializable], several packages are added to the dependencies
 /// in order to test using build_runner.
 String pubspec({required bool useJsonSerializable}) {
-  var dependencies =
-      useJsonSerializable
-          ? '''
+  var dependencies = useJsonSerializable
+      ? '''
 dependencies:
   json_annotation: any
   json_serializable: any
 '''
-          : '';
-  var devDependencies =
-      useJsonSerializable
-          ? '''
+      : '';
+  var devDependencies = useJsonSerializable
+      ? '''
 dev_dependencies:
   build_runner: any
 '''
-          : '';
+      : '';
   return '''
 name: test_package
 version: 0.0.1

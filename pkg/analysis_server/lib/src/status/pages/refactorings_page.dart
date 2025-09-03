@@ -34,8 +34,9 @@ class RefactoringsPage extends DiagnosticPageWithNav
       return;
     }
 
-    var fastCount =
-        requests.where((c) => c.elapsedInMilliseconds <= 100).length;
+    var fastCount = requests
+        .where((c) => c.elapsedInMilliseconds <= 100)
+        .length;
     p(
       '${requests.length} results; ${printPercentage(fastCount / requests.length)} within 100ms.',
     );

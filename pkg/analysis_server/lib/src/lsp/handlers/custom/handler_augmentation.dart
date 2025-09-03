@@ -40,10 +40,9 @@ class AugmentationHandler
 
     return (unit, offset).mapResultsSync((unit, offset) {
       // Find the nearest node that could have fragments.
-      var node =
-          unit.unit
-              .nodeCovering(offset: offset)
-              ?.thisOrAncestorOfType<ast.Declaration>();
+      var node = unit.unit
+          .nodeCovering(offset: offset)
+          ?.thisOrAncestorOfType<ast.Declaration>();
 
       var location = fragmentToLocation(
         uriConverter,

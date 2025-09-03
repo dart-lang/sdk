@@ -75,13 +75,12 @@ class AnalysisAnalyzedFilesParams implements HasToJson {
     required ClientUriConverter? clientUriConverter,
   }) {
     var result = <String, Object>{};
-    result['directories'] =
-        directories
-            .map(
-              (String value) =>
-                  clientUriConverter?.toClientFilePath(value) ?? value,
-            )
-            .toList();
+    result['directories'] = directories
+        .map(
+          (String value) =>
+              clientUriConverter?.toClientFilePath(value) ?? value,
+        )
+        .toList();
     return result;
   }
 
@@ -197,13 +196,12 @@ class AnalysisClosingLabelsParams implements HasToJson {
   }) {
     var result = <String, Object>{};
     result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
-    result['labels'] =
-        labels
-            .map(
-              (ClosingLabel value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
+    result['labels'] = labels
+        .map(
+          (ClosingLabel value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
     return result;
   }
 
@@ -300,13 +298,12 @@ class AnalysisErrorFixes implements HasToJson {
   }) {
     var result = <String, Object>{};
     result['error'] = error.toJson(clientUriConverter: clientUriConverter);
-    result['fixes'] =
-        fixes
-            .map(
-              (SourceChange value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
+    result['fixes'] = fixes
+        .map(
+          (SourceChange value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
     return result;
   }
 
@@ -404,13 +401,12 @@ class AnalysisErrorsParams implements HasToJson {
   }) {
     var result = <String, Object>{};
     result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
-    result['errors'] =
-        errors
-            .map(
-              (AnalysisError value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
+    result['errors'] = errors
+        .map(
+          (AnalysisError value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
     return result;
   }
 
@@ -505,13 +501,12 @@ class AnalysisFlushResultsParams implements HasToJson {
     required ClientUriConverter? clientUriConverter,
   }) {
     var result = <String, Object>{};
-    result['files'] =
-        files
-            .map(
-              (String value) =>
-                  clientUriConverter?.toClientFilePath(value) ?? value,
-            )
-            .toList();
+    result['files'] = files
+        .map(
+          (String value) =>
+              clientUriConverter?.toClientFilePath(value) ?? value,
+        )
+        .toList();
     return result;
   }
 
@@ -613,13 +608,12 @@ class AnalysisFoldingParams implements HasToJson {
   }) {
     var result = <String, Object>{};
     result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
-    result['regions'] =
-        regions
-            .map(
-              (FoldingRegion value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
+    result['regions'] = regions
+        .map(
+          (FoldingRegion value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
     return result;
   }
 
@@ -796,13 +790,12 @@ class AnalysisGetErrorsResult implements ResponseResult {
     required ClientUriConverter? clientUriConverter,
   }) {
     var result = <String, Object>{};
-    result['errors'] =
-        errors
-            .map(
-              (AnalysisError value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
+    result['errors'] = errors
+        .map(
+          (AnalysisError value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
     return result;
   }
 
@@ -992,13 +985,12 @@ class AnalysisGetHoverResult implements ResponseResult {
     required ClientUriConverter? clientUriConverter,
   }) {
     var result = <String, Object>{};
-    result['hovers'] =
-        hovers
-            .map(
-              (HoverInformation value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
+    result['hovers'] = hovers
+        .map(
+          (HoverInformation value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
     return result;
   }
 
@@ -1206,13 +1198,12 @@ class AnalysisGetImportedElementsResult implements ResponseResult {
     required ClientUriConverter? clientUriConverter,
   }) {
     var result = <String, Object>{};
-    result['elements'] =
-        elements
-            .map(
-              (ImportedElements value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
+    result['elements'] = elements
+        .map(
+          (ImportedElements value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
     return result;
   }
 
@@ -1315,12 +1306,12 @@ class AnalysisGetLibraryDependenciesResult implements ResponseResult {
         packageMap = jsonDecoder.decodeMap(
           '$jsonPath.packageMap',
           json['packageMap'],
-          valueDecoder:
-              (String jsonPath, Object? json) => jsonDecoder.decodeMap(
+          valueDecoder: (String jsonPath, Object? json) =>
+              jsonDecoder.decodeMap(
                 jsonPath,
                 json,
-                valueDecoder:
-                    (String jsonPath, Object? json) => jsonDecoder.decodeList(
+                valueDecoder: (String jsonPath, Object? json) =>
+                    jsonDecoder.decodeList(
                       jsonPath,
                       json,
                       (String jsonPath, Object? json) =>
@@ -1361,28 +1352,23 @@ class AnalysisGetLibraryDependenciesResult implements ResponseResult {
     required ClientUriConverter? clientUriConverter,
   }) {
     var result = <String, Object>{};
-    result['libraries'] =
-        libraries
+    result['libraries'] = libraries
+        .map(
+          (String value) =>
+              clientUriConverter?.toClientFilePath(value) ?? value,
+        )
+        .toList();
+    result['packageMap'] = mapMap(
+      packageMap,
+      valueCallback: (Map<String, List<String>> value) => mapMap(
+        value,
+        valueCallback: (List<String> value) => value
             .map(
               (String value) =>
                   clientUriConverter?.toClientFilePath(value) ?? value,
             )
-            .toList();
-    result['packageMap'] = mapMap(
-      packageMap,
-      valueCallback:
-          (Map<String, List<String>> value) => mapMap(
-            value,
-            valueCallback:
-                (List<String> value) =>
-                    value
-                        .map(
-                          (String value) =>
-                              clientUriConverter?.toClientFilePath(value) ??
-                              value,
-                        )
-                        .toList(),
-          ),
+            .toList(),
+      ),
     );
     return result;
   }
@@ -1645,27 +1631,24 @@ class AnalysisGetNavigationResult implements ResponseResult {
     required ClientUriConverter? clientUriConverter,
   }) {
     var result = <String, Object>{};
-    result['files'] =
-        files
-            .map(
-              (String value) =>
-                  clientUriConverter?.toClientFilePath(value) ?? value,
-            )
-            .toList();
-    result['targets'] =
-        targets
-            .map(
-              (NavigationTarget value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
-    result['regions'] =
-        regions
-            .map(
-              (NavigationRegion value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
+    result['files'] = files
+        .map(
+          (String value) =>
+              clientUriConverter?.toClientFilePath(value) ?? value,
+        )
+        .toList();
+    result['targets'] = targets
+        .map(
+          (NavigationTarget value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
+    result['regions'] = regions
+        .map(
+          (NavigationRegion value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
     return result;
   }
 
@@ -1827,12 +1810,8 @@ class AnalysisGetReachableSourcesResult implements ResponseResult {
         sources = jsonDecoder.decodeMap(
           '$jsonPath.sources',
           json['sources'],
-          valueDecoder:
-              (String jsonPath, Object? json) => jsonDecoder.decodeList(
-                jsonPath,
-                json,
-                jsonDecoder.decodeString,
-              ),
+          valueDecoder: (String jsonPath, Object? json) =>
+              jsonDecoder.decodeList(jsonPath, json, jsonDecoder.decodeString),
         );
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'sources', json);
@@ -2086,13 +2065,12 @@ class AnalysisGetSignatureResult implements ResponseResult {
   }) {
     var result = <String, Object>{};
     result['name'] = name;
-    result['parameters'] =
-        parameters
-            .map(
-              (ParameterInfo value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
+    result['parameters'] = parameters
+        .map(
+          (ParameterInfo value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
     var dartdoc = this.dartdoc;
     if (dartdoc != null) {
       result['dartdoc'] = dartdoc;
@@ -2207,13 +2185,12 @@ class AnalysisHighlightsParams implements HasToJson {
   }) {
     var result = <String, Object>{};
     result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
-    result['regions'] =
-        regions
-            .map(
-              (HighlightRegion value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
+    result['regions'] = regions
+        .map(
+          (HighlightRegion value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
     return result;
   }
 
@@ -2339,20 +2316,18 @@ class AnalysisImplementedParams implements HasToJson {
   }) {
     var result = <String, Object>{};
     result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
-    result['classes'] =
-        classes
-            .map(
-              (ImplementedClass value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
-    result['members'] =
-        members
-            .map(
-              (ImplementedMember value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
+    result['classes'] = classes
+        .map(
+          (ImplementedClass value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
+    result['members'] = members
+        .map(
+          (ImplementedMember value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
     return result;
   }
 
@@ -2630,27 +2605,24 @@ class AnalysisNavigationParams implements HasToJson {
   }) {
     var result = <String, Object>{};
     result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
-    result['regions'] =
-        regions
-            .map(
-              (NavigationRegion value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
-    result['targets'] =
-        targets
-            .map(
-              (NavigationTarget value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
-    result['files'] =
-        files
-            .map(
-              (String value) =>
-                  clientUriConverter?.toClientFilePath(value) ?? value,
-            )
-            .toList();
+    result['regions'] = regions
+        .map(
+          (NavigationRegion value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
+    result['targets'] = targets
+        .map(
+          (NavigationTarget value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
+    result['files'] = files
+        .map(
+          (String value) =>
+              clientUriConverter?.toClientFilePath(value) ?? value,
+        )
+        .toList();
     return result;
   }
 
@@ -2768,13 +2740,12 @@ class AnalysisOccurrencesParams implements HasToJson {
   }) {
     var result = <String, Object>{};
     result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
-    result['occurrences'] =
-        occurrences
-            .map(
-              (Occurrences value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
+    result['occurrences'] = occurrences
+        .map(
+          (Occurrences value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
     return result;
   }
 
@@ -3217,13 +3188,12 @@ class AnalysisOverridesParams implements HasToJson {
   }) {
     var result = <String, Object>{};
     result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
-    result['overrides'] =
-        overrides
-            .map(
-              (Override value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
+    result['overrides'] = overrides
+        .map(
+          (Override value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
     return result;
   }
 
@@ -3440,18 +3410,16 @@ class AnalysisSetAnalysisRootsParams implements RequestParams {
         packageRoots = jsonDecoder.decodeMap(
           '$jsonPath.packageRoots',
           json['packageRoots'],
-          keyDecoder:
-              (String jsonPath, Object? json) =>
-                  clientUriConverter?.fromClientFilePath(
-                    jsonDecoder.decodeString(jsonPath, json),
-                  ) ??
-                  jsonDecoder.decodeString(jsonPath, json),
-          valueDecoder:
-              (String jsonPath, Object? json) =>
-                  clientUriConverter?.fromClientFilePath(
-                    jsonDecoder.decodeString(jsonPath, json),
-                  ) ??
-                  jsonDecoder.decodeString(jsonPath, json),
+          keyDecoder: (String jsonPath, Object? json) =>
+              clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString(jsonPath, json),
+              ) ??
+              jsonDecoder.decodeString(jsonPath, json),
+          valueDecoder: (String jsonPath, Object? json) =>
+              clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString(jsonPath, json),
+              ) ??
+              jsonDecoder.decodeString(jsonPath, json),
         );
       }
       return AnalysisSetAnalysisRootsParams(
@@ -3485,30 +3453,26 @@ class AnalysisSetAnalysisRootsParams implements RequestParams {
     required ClientUriConverter? clientUriConverter,
   }) {
     var result = <String, Object>{};
-    result['included'] =
-        included
-            .map(
-              (String value) =>
-                  clientUriConverter?.toClientFilePath(value) ?? value,
-            )
-            .toList();
-    result['excluded'] =
-        excluded
-            .map(
-              (String value) =>
-                  clientUriConverter?.toClientFilePath(value) ?? value,
-            )
-            .toList();
+    result['included'] = included
+        .map(
+          (String value) =>
+              clientUriConverter?.toClientFilePath(value) ?? value,
+        )
+        .toList();
+    result['excluded'] = excluded
+        .map(
+          (String value) =>
+              clientUriConverter?.toClientFilePath(value) ?? value,
+        )
+        .toList();
     var packageRoots = this.packageRoots;
     if (packageRoots != null) {
       result['packageRoots'] = mapMap(
         packageRoots,
-        keyCallback:
-            (String value) =>
-                clientUriConverter?.toClientFilePath(value) ?? value,
-        valueCallback:
-            (String value) =>
-                clientUriConverter?.toClientFilePath(value) ?? value,
+        keyCallback: (String value) =>
+            clientUriConverter?.toClientFilePath(value) ?? value,
+        valueCallback: (String value) =>
+            clientUriConverter?.toClientFilePath(value) ?? value,
       );
     }
     return result;
@@ -3642,13 +3606,12 @@ class AnalysisSetGeneralSubscriptionsParams implements RequestParams {
     required ClientUriConverter? clientUriConverter,
   }) {
     var result = <String, Object>{};
-    result['subscriptions'] =
-        subscriptions
-            .map(
-              (GeneralAnalysisService value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
+    result['subscriptions'] = subscriptions
+        .map(
+          (GeneralAnalysisService value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
     return result;
   }
 
@@ -3770,13 +3733,12 @@ class AnalysisSetPriorityFilesParams implements RequestParams {
     required ClientUriConverter? clientUriConverter,
   }) {
     var result = <String, Object>{};
-    result['files'] =
-        files
-            .map(
-              (String value) =>
-                  clientUriConverter?.toClientFilePath(value) ?? value,
-            )
-            .toList();
+    result['files'] = files
+        .map(
+          (String value) =>
+              clientUriConverter?.toClientFilePath(value) ?? value,
+        )
+        .toList();
     return result;
   }
 
@@ -3858,15 +3820,15 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
         subscriptions = jsonDecoder.decodeMap(
           '$jsonPath.subscriptions',
           json['subscriptions'],
-          keyDecoder:
-              (String jsonPath, Object? json) => AnalysisService.fromJson(
+          keyDecoder: (String jsonPath, Object? json) =>
+              AnalysisService.fromJson(
                 jsonDecoder,
                 jsonPath,
                 json,
                 clientUriConverter: clientUriConverter,
               ),
-          valueDecoder:
-              (String jsonPath, Object? json) => jsonDecoder.decodeList(
+          valueDecoder: (String jsonPath, Object? json) =>
+              jsonDecoder.decodeList(
                 jsonPath,
                 json,
                 (String jsonPath, Object? json) =>
@@ -3908,17 +3870,14 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
     var result = <String, Object>{};
     result['subscriptions'] = mapMap(
       subscriptions,
-      keyCallback:
-          (AnalysisService value) =>
-              value.toJson(clientUriConverter: clientUriConverter),
-      valueCallback:
-          (List<String> value) =>
-              value
-                  .map(
-                    (String value) =>
-                        clientUriConverter?.toClientFilePath(value) ?? value,
-                  )
-                  .toList(),
+      keyCallback: (AnalysisService value) =>
+          value.toJson(clientUriConverter: clientUriConverter),
+      valueCallback: (List<String> value) => value
+          .map(
+            (String value) =>
+                clientUriConverter?.toClientFilePath(value) ?? value,
+          )
+          .toList(),
     );
     return result;
   }
@@ -4084,40 +4043,35 @@ class AnalysisUpdateContentParams implements RequestParams {
         files = jsonDecoder.decodeMap(
           '$jsonPath.files',
           json['files'],
-          keyDecoder:
-              (String jsonPath, Object? json) =>
-                  clientUriConverter?.fromClientFilePath(
-                    jsonDecoder.decodeString(jsonPath, json),
-                  ) ??
-                  jsonDecoder.decodeString(jsonPath, json),
-          valueDecoder:
-              (String jsonPath, Object? json) =>
-                  jsonDecoder.decodeUnion(jsonPath, json, 'type', {
-                    'add':
-                        (String jsonPath, Object? json) =>
-                            AddContentOverlay.fromJson(
-                              jsonDecoder,
-                              jsonPath,
-                              json,
-                              clientUriConverter: clientUriConverter,
-                            ),
-                    'change':
-                        (String jsonPath, Object? json) =>
-                            ChangeContentOverlay.fromJson(
-                              jsonDecoder,
-                              jsonPath,
-                              json,
-                              clientUriConverter: clientUriConverter,
-                            ),
-                    'remove':
-                        (String jsonPath, Object? json) =>
-                            RemoveContentOverlay.fromJson(
-                              jsonDecoder,
-                              jsonPath,
-                              json,
-                              clientUriConverter: clientUriConverter,
-                            ),
-                  }),
+          keyDecoder: (String jsonPath, Object? json) =>
+              clientUriConverter?.fromClientFilePath(
+                jsonDecoder.decodeString(jsonPath, json),
+              ) ??
+              jsonDecoder.decodeString(jsonPath, json),
+          valueDecoder: (String jsonPath, Object? json) =>
+              jsonDecoder.decodeUnion(jsonPath, json, 'type', {
+                'add': (String jsonPath, Object? json) =>
+                    AddContentOverlay.fromJson(
+                      jsonDecoder,
+                      jsonPath,
+                      json,
+                      clientUriConverter: clientUriConverter,
+                    ),
+                'change': (String jsonPath, Object? json) =>
+                    ChangeContentOverlay.fromJson(
+                      jsonDecoder,
+                      jsonPath,
+                      json,
+                      clientUriConverter: clientUriConverter,
+                    ),
+                'remove': (String jsonPath, Object? json) =>
+                    RemoveContentOverlay.fromJson(
+                      jsonDecoder,
+                      jsonPath,
+                      json,
+                      clientUriConverter: clientUriConverter,
+                    ),
+              }),
         );
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'files', json);
@@ -4151,9 +4105,8 @@ class AnalysisUpdateContentParams implements RequestParams {
     var result = <String, Object>{};
     result['files'] = mapMap(
       files,
-      keyCallback:
-          (String value) =>
-              clientUriConverter?.toClientFilePath(value) ?? value,
+      keyCallback: (String value) =>
+          clientUriConverter?.toClientFilePath(value) ?? value,
       valueCallback: (Object value) => (value as dynamic).toJson(),
     );
     return result;
@@ -4859,13 +4812,12 @@ class BulkFix implements HasToJson {
   }) {
     var result = <String, Object>{};
     result['path'] = clientUriConverter?.toClientFilePath(path) ?? path;
-    result['fixes'] =
-        fixes
-            .map(
-              (BulkFixDetail value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
+    result['fixes'] = fixes
+        .map(
+          (BulkFixDetail value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
     return result;
   }
 
@@ -5781,13 +5733,12 @@ class CompletionGetSuggestions2Result implements ResponseResult {
     var result = <String, Object>{};
     result['replacementOffset'] = replacementOffset;
     result['replacementLength'] = replacementLength;
-    result['suggestions'] =
-        suggestions
-            .map(
-              (CompletionSuggestion value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
+    result['suggestions'] = suggestions
+        .map(
+          (CompletionSuggestion value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
     result['isIncomplete'] = isIncomplete;
     return result;
   }
@@ -5931,13 +5882,12 @@ class CompletionRegisterLibraryPathsParams implements RequestParams {
     required ClientUriConverter? clientUriConverter,
   }) {
     var result = <String, Object>{};
-    result['paths'] =
-        paths
-            .map(
-              (LibraryPathSet value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
+    result['paths'] = paths
+        .map(
+          (LibraryPathSet value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
     return result;
   }
 
@@ -6272,13 +6222,12 @@ class DiagnosticGetDiagnosticsResult implements ResponseResult {
     required ClientUriConverter? clientUriConverter,
   }) {
     var result = <String, Object>{};
-    result['contexts'] =
-        contexts
-            .map(
-              (ContextData value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
+    result['contexts'] = contexts
+        .map(
+          (ContextData value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
     return result;
   }
 
@@ -6534,13 +6483,12 @@ class EditBulkFixesParams implements RequestParams {
     required ClientUriConverter? clientUriConverter,
   }) {
     var result = <String, Object>{};
-    result['included'] =
-        included
-            .map(
-              (String value) =>
-                  clientUriConverter?.toClientFilePath(value) ?? value,
-            )
-            .toList();
+    result['included'] = included
+        .map(
+          (String value) =>
+              clientUriConverter?.toClientFilePath(value) ?? value,
+        )
+        .toList();
     var inTestMode = this.inTestMode;
     if (inTestMode != null) {
       result['inTestMode'] = inTestMode;
@@ -6687,20 +6635,18 @@ class EditBulkFixesResult implements ResponseResult {
   }) {
     var result = <String, Object>{};
     result['message'] = message;
-    result['edits'] =
-        edits
-            .map(
-              (SourceFileEdit value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
-    result['details'] =
-        details
-            .map(
-              (BulkFix value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
+    result['edits'] = edits
+        .map(
+          (SourceFileEdit value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
+    result['details'] = details
+        .map(
+          (BulkFix value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
     return result;
   }
 
@@ -6792,13 +6738,12 @@ class EditFormatIfEnabledParams implements RequestParams {
     required ClientUriConverter? clientUriConverter,
   }) {
     var result = <String, Object>{};
-    result['directories'] =
-        directories
-            .map(
-              (String value) =>
-                  clientUriConverter?.toClientFilePath(value) ?? value,
-            )
-            .toList();
+    result['directories'] = directories
+        .map(
+          (String value) =>
+              clientUriConverter?.toClientFilePath(value) ?? value,
+        )
+        .toList();
     return result;
   }
 
@@ -6894,13 +6839,12 @@ class EditFormatIfEnabledResult implements ResponseResult {
     required ClientUriConverter? clientUriConverter,
   }) {
     var result = <String, Object>{};
-    result['edits'] =
-        edits
-            .map(
-              (SourceFileEdit value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
+    result['edits'] = edits
+        .map(
+          (SourceFileEdit value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
     return result;
   }
 
@@ -7161,13 +7105,12 @@ class EditFormatResult implements ResponseResult {
     required ClientUriConverter? clientUriConverter,
   }) {
     var result = <String, Object>{};
-    result['edits'] =
-        edits
-            .map(
-              (SourceEdit value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
+    result['edits'] = edits
+        .map(
+          (SourceEdit value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
     result['selectionOffset'] = selectionOffset;
     result['selectionLength'] = selectionLength;
     return result;
@@ -7371,13 +7314,12 @@ class EditGetAssistsResult implements ResponseResult {
     required ClientUriConverter? clientUriConverter,
   }) {
     var result = <String, Object>{};
-    result['assists'] =
-        assists
-            .map(
-              (SourceChange value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
+    result['assists'] = assists
+        .map(
+          (SourceChange value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
     return result;
   }
 
@@ -7584,13 +7526,12 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
     required ClientUriConverter? clientUriConverter,
   }) {
     var result = <String, Object>{};
-    result['kinds'] =
-        kinds
-            .map(
-              (RefactoringKind value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
+    result['kinds'] = kinds
+        .map(
+          (RefactoringKind value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
     return result;
   }
 
@@ -7776,13 +7717,12 @@ class EditGetFixesResult implements ResponseResult {
     required ClientUriConverter? clientUriConverter,
   }) {
     var result = <String, Object>{};
-    result['fixes'] =
-        fixes
-            .map(
-              (AnalysisErrorFixes value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
+    result['fixes'] = fixes
+        .map(
+          (AnalysisErrorFixes value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
     return result;
   }
 
@@ -8363,27 +8303,24 @@ class EditGetRefactoringResult implements ResponseResult {
     required ClientUriConverter? clientUriConverter,
   }) {
     var result = <String, Object>{};
-    result['initialProblems'] =
-        initialProblems
-            .map(
-              (RefactoringProblem value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
-    result['optionsProblems'] =
-        optionsProblems
-            .map(
-              (RefactoringProblem value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
-    result['finalProblems'] =
-        finalProblems
-            .map(
-              (RefactoringProblem value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
+    result['initialProblems'] = initialProblems
+        .map(
+          (RefactoringProblem value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
+    result['optionsProblems'] = optionsProblems
+        .map(
+          (RefactoringProblem value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
+    result['finalProblems'] = finalProblems
+        .map(
+          (RefactoringProblem value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
     var feedback = this.feedback;
     if (feedback != null) {
       result['feedback'] = feedback.toJson(
@@ -8738,13 +8675,12 @@ class EditImportElementsParams implements RequestParams {
   }) {
     var result = <String, Object>{};
     result['file'] = clientUriConverter?.toClientFilePath(file) ?? file;
-    result['elements'] =
-        elements
-            .map(
-              (ImportedElements value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
+    result['elements'] = elements
+        .map(
+          (ImportedElements value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
     var offset = this.offset;
     if (offset != null) {
       result['offset'] = offset;
@@ -9154,13 +9090,12 @@ class EditListPostfixCompletionTemplatesResult implements ResponseResult {
     required ClientUriConverter? clientUriConverter,
   }) {
     var result = <String, Object>{};
-    result['templates'] =
-        templates
-            .map(
-              (PostfixTemplateDescriptor value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
+    result['templates'] = templates
+        .map(
+          (PostfixTemplateDescriptor value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
     return result;
   }
 
@@ -10352,22 +10287,20 @@ class ExecutionGetSuggestionsParams implements RequestParams {
     result['contextFile'] =
         clientUriConverter?.toClientFilePath(contextFile) ?? contextFile;
     result['contextOffset'] = contextOffset;
-    result['variables'] =
-        variables
-            .map(
-              (RuntimeCompletionVariable value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
+    result['variables'] = variables
+        .map(
+          (RuntimeCompletionVariable value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
     var expressions = this.expressions;
     if (expressions != null) {
-      result['expressions'] =
-          expressions
-              .map(
-                (RuntimeCompletionExpression value) =>
-                    value.toJson(clientUriConverter: clientUriConverter),
-              )
-              .toList();
+      result['expressions'] = expressions
+          .map(
+            (RuntimeCompletionExpression value) =>
+                value.toJson(clientUriConverter: clientUriConverter),
+          )
+          .toList();
     }
     return result;
   }
@@ -10515,23 +10448,21 @@ class ExecutionGetSuggestionsResult implements ResponseResult {
     var result = <String, Object>{};
     var suggestions = this.suggestions;
     if (suggestions != null) {
-      result['suggestions'] =
-          suggestions
-              .map(
-                (CompletionSuggestion value) =>
-                    value.toJson(clientUriConverter: clientUriConverter),
-              )
-              .toList();
+      result['suggestions'] = suggestions
+          .map(
+            (CompletionSuggestion value) =>
+                value.toJson(clientUriConverter: clientUriConverter),
+          )
+          .toList();
     }
     var expressions = this.expressions;
     if (expressions != null) {
-      result['expressions'] =
-          expressions
-              .map(
-                (RuntimeCompletionExpression value) =>
-                    value.toJson(clientUriConverter: clientUriConverter),
-              )
-              .toList();
+      result['expressions'] = expressions
+          .map(
+            (RuntimeCompletionExpression value) =>
+                value.toJson(clientUriConverter: clientUriConverter),
+          )
+          .toList();
     }
     return result;
   }
@@ -10669,13 +10600,12 @@ class ExecutionLaunchDataParams implements HasToJson {
     }
     var referencedFiles = this.referencedFiles;
     if (referencedFiles != null) {
-      result['referencedFiles'] =
-          referencedFiles
-              .map(
-                (String value) =>
-                    clientUriConverter?.toClientFilePath(value) ?? value,
-              )
-              .toList();
+      result['referencedFiles'] = referencedFiles
+          .map(
+            (String value) =>
+                clientUriConverter?.toClientFilePath(value) ?? value,
+          )
+          .toList();
     }
     return result;
   }
@@ -11011,13 +10941,12 @@ class ExecutionSetSubscriptionsParams implements RequestParams {
     required ClientUriConverter? clientUriConverter,
   }) {
     var result = <String, Object>{};
-    result['subscriptions'] =
-        subscriptions
-            .map(
-              (ExecutionService value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
+    result['subscriptions'] = subscriptions
+        .map(
+          (ExecutionService value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
     return result;
   }
 
@@ -11216,13 +11145,12 @@ class ExistingImports implements HasToJson {
     result['elements'] = elements.toJson(
       clientUriConverter: clientUriConverter,
     );
-    result['imports'] =
-        imports
-            .map(
-              (ExistingImport value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
+    result['imports'] = imports
+        .map(
+          (ExistingImport value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
     return result;
   }
 
@@ -11666,13 +11594,12 @@ class ExtractMethodFeedback extends RefactoringFeedback {
     result['returnType'] = returnType;
     result['names'] = names;
     result['canCreateGetter'] = canCreateGetter;
-    result['parameters'] =
-        parameters
-            .map(
-              (RefactoringMethodParameter value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
+    result['parameters'] = parameters
+        .map(
+          (RefactoringMethodParameter value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
     result['offsets'] = offsets;
     result['lengths'] = lengths;
     return result;
@@ -11851,13 +11778,12 @@ class ExtractMethodOptions extends RefactoringOptions {
     result['returnType'] = returnType;
     result['createGetter'] = createGetter;
     result['name'] = name;
-    result['parameters'] =
-        parameters
-            .map(
-              (RefactoringMethodParameter value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
+    result['parameters'] = parameters
+        .map(
+          (RefactoringMethodParameter value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
     result['extractAll'] = extractAll;
     return result;
   }
@@ -12209,13 +12135,12 @@ class FlutterGetWidgetDescriptionResult implements ResponseResult {
     required ClientUriConverter? clientUriConverter,
   }) {
     var result = <String, Object>{};
-    result['properties'] =
-        properties
-            .map(
-              (FlutterWidgetProperty value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
+    result['properties'] = properties
+        .map(
+          (FlutterWidgetProperty value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
     return result;
   }
 
@@ -12477,13 +12402,12 @@ class FlutterOutline implements HasToJson {
     }
     var attributes = this.attributes;
     if (attributes != null) {
-      result['attributes'] =
-          attributes
-              .map(
-                (FlutterOutlineAttribute value) =>
-                    value.toJson(clientUriConverter: clientUriConverter),
-              )
-              .toList();
+      result['attributes'] = attributes
+          .map(
+            (FlutterOutlineAttribute value) =>
+                value.toJson(clientUriConverter: clientUriConverter),
+          )
+          .toList();
     }
     var className = this.className;
     if (className != null) {
@@ -12499,13 +12423,12 @@ class FlutterOutline implements HasToJson {
     }
     var children = this.children;
     if (children != null) {
-      result['children'] =
-          children
-              .map(
-                (FlutterOutline value) =>
-                    value.toJson(clientUriConverter: clientUriConverter),
-              )
-              .toList();
+      result['children'] = children
+          .map(
+            (FlutterOutline value) =>
+                value.toJson(clientUriConverter: clientUriConverter),
+          )
+          .toList();
     }
     return result;
   }
@@ -12958,15 +12881,15 @@ class FlutterSetSubscriptionsParams implements RequestParams {
         subscriptions = jsonDecoder.decodeMap(
           '$jsonPath.subscriptions',
           json['subscriptions'],
-          keyDecoder:
-              (String jsonPath, Object? json) => FlutterService.fromJson(
+          keyDecoder: (String jsonPath, Object? json) =>
+              FlutterService.fromJson(
                 jsonDecoder,
                 jsonPath,
                 json,
                 clientUriConverter: clientUriConverter,
               ),
-          valueDecoder:
-              (String jsonPath, Object? json) => jsonDecoder.decodeList(
+          valueDecoder: (String jsonPath, Object? json) =>
+              jsonDecoder.decodeList(
                 jsonPath,
                 json,
                 (String jsonPath, Object? json) =>
@@ -13008,17 +12931,14 @@ class FlutterSetSubscriptionsParams implements RequestParams {
     var result = <String, Object>{};
     result['subscriptions'] = mapMap(
       subscriptions,
-      keyCallback:
-          (FlutterService value) =>
-              value.toJson(clientUriConverter: clientUriConverter),
-      valueCallback:
-          (List<String> value) =>
-              value
-                  .map(
-                    (String value) =>
-                        clientUriConverter?.toClientFilePath(value) ?? value,
-                  )
-                  .toList(),
+      keyCallback: (FlutterService value) =>
+          value.toJson(clientUriConverter: clientUriConverter),
+      valueCallback: (List<String> value) => value
+          .map(
+            (String value) =>
+                clientUriConverter?.toClientFilePath(value) ?? value,
+          )
+          .toList(),
     );
     return result;
   }
@@ -13468,13 +13388,12 @@ class FlutterWidgetProperty implements HasToJson {
     result['name'] = name;
     var children = this.children;
     if (children != null) {
-      result['children'] =
-          children
-              .map(
-                (FlutterWidgetProperty value) =>
-                    value.toJson(clientUriConverter: clientUriConverter),
-              )
-              .toList();
+      result['children'] = children
+          .map(
+            (FlutterWidgetProperty value) =>
+                value.toJson(clientUriConverter: clientUriConverter),
+          )
+          .toList();
     }
     var editor = this.editor;
     if (editor != null) {
@@ -13586,13 +13505,12 @@ class FlutterWidgetPropertyEditor implements HasToJson {
     result['kind'] = kind.toJson(clientUriConverter: clientUriConverter);
     var enumItems = this.enumItems;
     if (enumItems != null) {
-      result['enumItems'] =
-          enumItems
-              .map(
-                (FlutterWidgetPropertyValueEnumItem value) =>
-                    value.toJson(clientUriConverter: clientUriConverter),
-              )
-              .toList();
+      result['enumItems'] = enumItems
+          .map(
+            (FlutterWidgetPropertyValueEnumItem value) =>
+                value.toJson(clientUriConverter: clientUriConverter),
+          )
+          .toList();
     }
     return result;
   }
@@ -14948,13 +14866,12 @@ class LibraryPathSet implements HasToJson {
   }) {
     var result = <String, Object>{};
     result['scope'] = clientUriConverter?.toClientFilePath(scope) ?? scope;
-    result['libraryPaths'] =
-        libraryPaths
-            .map(
-              (String value) =>
-                  clientUriConverter?.toClientFilePath(value) ?? value,
-            )
-            .toList();
+    result['libraryPaths'] = libraryPaths
+        .map(
+          (String value) =>
+              clientUriConverter?.toClientFilePath(value) ?? value,
+        )
+        .toList();
     return result;
   }
 
@@ -15581,13 +15498,12 @@ class Override implements HasToJson {
     }
     var interfaceMembers = this.interfaceMembers;
     if (interfaceMembers != null) {
-      result['interfaceMembers'] =
-          interfaceMembers
-              .map(
-                (OverriddenMember value) =>
-                    value.toJson(clientUriConverter: clientUriConverter),
-              )
-              .toList();
+      result['interfaceMembers'] = interfaceMembers
+          .map(
+            (OverriddenMember value) =>
+                value.toJson(clientUriConverter: clientUriConverter),
+          )
+          .toList();
     }
     return result;
   }
@@ -16582,13 +16498,12 @@ class RuntimeCompletionExpressionType implements HasToJson {
     }
     var typeArguments = this.typeArguments;
     if (typeArguments != null) {
-      result['typeArguments'] =
-          typeArguments
-              .map(
-                (RuntimeCompletionExpressionType value) =>
-                    value.toJson(clientUriConverter: clientUriConverter),
-              )
-              .toList();
+      result['typeArguments'] = typeArguments
+          .map(
+            (RuntimeCompletionExpressionType value) =>
+                value.toJson(clientUriConverter: clientUriConverter),
+          )
+          .toList();
     }
     var returnType = this.returnType;
     if (returnType != null) {
@@ -16598,13 +16513,12 @@ class RuntimeCompletionExpressionType implements HasToJson {
     }
     var parameterTypes = this.parameterTypes;
     if (parameterTypes != null) {
-      result['parameterTypes'] =
-          parameterTypes
-              .map(
-                (RuntimeCompletionExpressionType value) =>
-                    value.toJson(clientUriConverter: clientUriConverter),
-              )
-              .toList();
+      result['parameterTypes'] = parameterTypes
+          .map(
+            (RuntimeCompletionExpressionType value) =>
+                value.toJson(clientUriConverter: clientUriConverter),
+          )
+          .toList();
     }
     var parameterNames = this.parameterNames;
     if (parameterNames != null) {
@@ -17722,20 +17636,18 @@ class SearchGetElementDeclarationsResult implements ResponseResult {
     required ClientUriConverter? clientUriConverter,
   }) {
     var result = <String, Object>{};
-    result['declarations'] =
-        declarations
-            .map(
-              (ElementDeclaration value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
-    result['files'] =
-        files
-            .map(
-              (String value) =>
-                  clientUriConverter?.toClientFilePath(value) ?? value,
-            )
-            .toList();
+    result['declarations'] = declarations
+        .map(
+          (ElementDeclaration value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
+    result['files'] = files
+        .map(
+          (String value) =>
+              clientUriConverter?.toClientFilePath(value) ?? value,
+        )
+        .toList();
     return result;
   }
 
@@ -17958,13 +17870,12 @@ class SearchGetTypeHierarchyResult implements ResponseResult {
     var result = <String, Object>{};
     var hierarchyItems = this.hierarchyItems;
     if (hierarchyItems != null) {
-      result['hierarchyItems'] =
-          hierarchyItems
-              .map(
-                (TypeHierarchyItem value) =>
-                    value.toJson(clientUriConverter: clientUriConverter),
-              )
-              .toList();
+      result['hierarchyItems'] = hierarchyItems
+          .map(
+            (TypeHierarchyItem value) =>
+                value.toJson(clientUriConverter: clientUriConverter),
+          )
+          .toList();
     }
     return result;
   }
@@ -18096,13 +18007,12 @@ class SearchResult implements HasToJson {
     );
     result['kind'] = kind.toJson(clientUriConverter: clientUriConverter);
     result['isPotential'] = isPotential;
-    result['path'] =
-        path
-            .map(
-              (Element value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
+    result['path'] = path
+        .map(
+          (Element value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
     return result;
   }
 
@@ -18264,13 +18174,12 @@ class SearchResultsParams implements HasToJson {
   }) {
     var result = <String, Object>{};
     result['id'] = id;
-    result['results'] =
-        results
-            .map(
-              (SearchResult value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
+    result['results'] = results
+        .map(
+          (SearchResult value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
     result['isLast'] = isLast;
     return result;
   }
@@ -19420,13 +19329,12 @@ class ServerSetSubscriptionsParams implements RequestParams {
     required ClientUriConverter? clientUriConverter,
   }) {
     var result = <String, Object>{};
-    result['subscriptions'] =
-        subscriptions
-            .map(
-              (ServerService value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
+    result['subscriptions'] = subscriptions
+        .map(
+          (ServerService value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
     return result;
   }
 
@@ -19578,13 +19486,12 @@ class ServerShowMessageRequestParams implements RequestParams {
     var result = <String, Object>{};
     result['type'] = type.toJson(clientUriConverter: clientUriConverter);
     result['message'] = message;
-    result['actions'] =
-        actions
-            .map(
-              (MessageAction value) =>
-                  value.toJson(clientUriConverter: clientUriConverter),
-            )
-            .toList();
+    result['actions'] = actions
+        .map(
+          (MessageAction value) =>
+              value.toJson(clientUriConverter: clientUriConverter),
+        )
+        .toList();
     return result;
   }
 

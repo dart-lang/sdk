@@ -41,10 +41,9 @@ class ConvertIntoForIndex extends ResolvedCorrectionProducer {
       return;
     }
     // loop should declare variable
-    var loopVariable =
-        forEachParts is ForEachPartsWithDeclaration
-            ? forEachParts.loopVariable
-            : null;
+    var loopVariable = forEachParts is ForEachPartsWithDeclaration
+        ? forEachParts.loopVariable
+        : null;
     if (loopVariable == null) {
       return;
     }

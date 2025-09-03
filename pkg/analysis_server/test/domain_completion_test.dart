@@ -106,8 +106,8 @@ class Test {}
 ''');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()..add(name: 'aaa', rootPath: aaaRoot.path),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: aaaRoot.path),
     );
 
     await _configureWithWorkspaceRoot();
@@ -774,10 +774,9 @@ class A02 {}
 ''');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'aaa', rootPath: aaaRoot.path)
-            ..add(name: 'bbb', rootPath: bbbRoot.path),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: aaaRoot.path)
+        ..add(name: 'bbb', rootPath: bbbRoot.path),
     );
 
     await _configureWithWorkspaceRoot();
@@ -829,10 +828,9 @@ class A04 {}
 ''');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'aaa', rootPath: aaaRoot.path)
-            ..add(name: 'bbb', rootPath: bbbRoot.path),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: aaaRoot.path)
+        ..add(name: 'bbb', rootPath: bbbRoot.path),
     );
 
     await _configureWithWorkspaceRoot();
@@ -880,10 +878,9 @@ class A04 {}
 ''');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'aaa', rootPath: aaaRoot.path)
-            ..add(name: 'bbb', rootPath: bbbRoot.path),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: aaaRoot.path)
+        ..add(name: 'bbb', rootPath: bbbRoot.path),
     );
 
     await _configureWithWorkspaceRoot();
@@ -933,10 +930,9 @@ class A02 {}
 ''');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'aaa', rootPath: aaaRoot.path)
-            ..add(name: 'bbb', rootPath: bbbRoot.path),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: aaaRoot.path)
+        ..add(name: 'bbb', rootPath: bbbRoot.path),
     );
 
     await _configureWithWorkspaceRoot();

@@ -1413,10 +1413,9 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    var keywords =
-        node.parent?.parent is FieldDeclaration
-            ? [Keyword.COVARIANT, ...expressionKeywords]
-            : expressionKeywords;
+    var keywords = node.parent?.parent is FieldDeclaration
+        ? [Keyword.COVARIANT, ...expressionKeywords]
+        : expressionKeywords;
     _recordDataForNode(
       'VariableDeclaration_initializer',
       node.initializer,
@@ -1729,9 +1728,8 @@ const defaultElementKindRelevance = {
 ''');
 
     var byKind = data._byKind;
-    var entries =
-        byKind.entries.toList()
-          ..sort((first, second) => first.key.compareTo(second.key));
+    var entries = byKind.entries.toList()
+      ..sort((first, second) => first.key.compareTo(second.key));
     for (var entry in entries) {
       var completionLocation = entry.key;
       var counts = entry.value;
@@ -1739,9 +1737,8 @@ const defaultElementKindRelevance = {
         var totalCount = _totalCount(counts);
         // TODO(brianwilkerson): If two element kinds have the same count they
         //  ought to have the same probability. This doesn't correctly do that.
-        var entries =
-            counts.entries.toList()
-              ..sort((first, second) => first.value.compareTo(second.value));
+        var entries = counts.entries.toList()
+          ..sort((first, second) => first.value.compareTo(second.value));
 
         sink.write("  '");
         sink.write(completionLocation);
@@ -1807,9 +1804,8 @@ const defaultKeywordRelevance = {
 ''');
 
     var byKind = data._byKind;
-    var entries =
-        byKind.entries.toList()
-          ..sort((first, second) => first.key.compareTo(second.key));
+    var entries = byKind.entries.toList()
+      ..sort((first, second) => first.key.compareTo(second.key));
     for (var entry in entries) {
       var completionLocation = entry.key;
       var counts = entry.value;
@@ -1817,9 +1813,8 @@ const defaultKeywordRelevance = {
         var totalCount = _totalCount(counts);
         // TODO(brianwilkerson): If two keywords have the same count they ought to
         //  have the same probability. This doesn't correctly do that.
-        var entries =
-            counts.entries.toList()
-              ..sort((first, second) => first.value.compareTo(second.value));
+        var entries = counts.entries.toList()
+          ..sort((first, second) => first.value.compareTo(second.value));
 
         sink.write("  '");
         sink.write(completionLocation);

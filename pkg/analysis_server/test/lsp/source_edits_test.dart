@@ -321,8 +321,7 @@ Delete 1:24-1:26
   /// https://github.com/Dart-Code/Dart-Code/issues/5200
   Future<void> test_minimalEdits_comment_multiLine_trailingWhitespace() async {
     // The initial content has a trailing space on the end of the comment.
-    var startContent =
-        TestCode.parse(r'''
+    var startContent = TestCode.parse(r'''
 /**
  * line with trailing whitespace /**/
  * line with trailing whitespace /**/
@@ -626,8 +625,10 @@ void g() {
     end = normalizeSource(end);
 
     await parseTestCode(start);
-    var edits =
-        generateEditsForFormatting(testParsedResult, range: range).result!;
+    var edits = generateEditsForFormatting(
+      testParsedResult,
+      range: range,
+    ).result!;
     expect(edits.toText().trim(), expected.trim());
     expect(applyTextEdits(start, edits), expectedFormatResult ?? end);
   }

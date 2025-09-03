@@ -98,14 +98,13 @@ class ExecuteCommandHandler
     var workDoneToken = params.workDoneToken;
     ProgressReporter progress = ProgressReporter.noop;
     if (server case LspAnalysisServer server) {
-      progress =
-          workDoneToken != null
-              ? ProgressReporter.clientProvided(server, workDoneToken)
-              // Use editor client capabilities, as that's who gets progress
-              // notifications, not the caller.
-              : server.editorClientCapabilities?.workDoneProgress ?? false
-              ? ProgressReporter.serverCreated(server)
-              : ProgressReporter.noop;
+      progress = workDoneToken != null
+          ? ProgressReporter.clientProvided(server, workDoneToken)
+          // Use editor client capabilities, as that's who gets progress
+          // notifications, not the caller.
+          : server.editorClientCapabilities?.workDoneProgress ?? false
+          ? ProgressReporter.serverCreated(server)
+          : ProgressReporter.noop;
     }
 
     // To make passing arguments easier in commands, instead of a

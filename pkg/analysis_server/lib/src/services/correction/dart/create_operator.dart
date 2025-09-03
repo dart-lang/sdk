@@ -134,8 +134,9 @@ class CreateOperator extends ResolvedCorrectionProducer {
     var targetSource = targetFragment.libraryFragment!.source;
     var targetFile = targetSource.fullName;
 
-    var writeReturnType =
-        getCodeStyleOptions(unitResult.file).specifyReturnTypes;
+    var writeReturnType = getCodeStyleOptions(
+      unitResult.file,
+    ).specifyReturnTypes;
 
     if (returnType is TypeParameterType) {
       returnType = returnType.bound;

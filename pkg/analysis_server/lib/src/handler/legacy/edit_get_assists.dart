@@ -134,7 +134,8 @@ class EditGetAssistsHandler extends LegacyHandler
       } on InconsistentAnalysisException {
         // ignore
       } catch (exception, stackTrace) {
-        var parametersFile = '''
+        var parametersFile =
+            '''
 offset: $offset
 length: $length
       ''';

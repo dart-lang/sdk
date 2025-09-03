@@ -49,10 +49,9 @@ void f(String str) {
 }
 ''',
       matchFixMessage: "Add an extension override for 'StringExt1'",
-      errorFilter:
-          (error) =>
-              error.diagnosticCode ==
-              CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
+      errorFilter: (error) =>
+          error.diagnosticCode ==
+          CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
     );
 
     await assertHasFixesWithoutApplying(
@@ -61,10 +60,9 @@ void f(String str) {
         "Add an extension override for 'StringExt1'",
         "Add an extension override for 'StringExt2'",
       ],
-      errorFilter:
-          (error) =>
-              error.diagnosticCode ==
-              CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
+      errorFilter: (error) =>
+          error.diagnosticCode ==
+          CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
     );
   }
 
@@ -203,10 +201,9 @@ extension E2 on A {
 }
 ''',
       matchFixMessage: "Add an extension override for 'E2'",
-      errorFilter:
-          (error) =>
-              error.diagnosticCode ==
-              CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
+      errorFilter: (error) =>
+          error.diagnosticCode ==
+          CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
     );
   }
 
@@ -239,10 +236,9 @@ extension E2 on A {
 }
 ''',
       matchFixMessage: "Add an extension override for 'E2'",
-      errorFilter:
-          (error) =>
-              error.diagnosticCode ==
-              CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
+      errorFilter: (error) =>
+          error.diagnosticCode ==
+          CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
     );
   }
 
@@ -279,10 +275,9 @@ extension E2 on A {
 }
 ''',
       matchFixMessage: "Add an extension override for 'E2'",
-      errorFilter:
-          (error) =>
-              error.diagnosticCode ==
-              CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
+      errorFilter: (error) =>
+          error.diagnosticCode ==
+          CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
     );
   }
 
@@ -388,10 +383,9 @@ void f(String str) {
 }
 ''',
       matchFixMessage: "Add an extension override for 'StringExt1'",
-      errorFilter:
-          (error) =>
-              error.diagnosticCode ==
-              CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
+      errorFilter: (error) =>
+          error.diagnosticCode ==
+          CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
     );
 
     await assertHasFixesWithoutApplying(
@@ -400,10 +394,9 @@ void f(String str) {
         "Add an extension override for 'StringExt1'",
         "Add an extension override for 'StringExt2'",
       ],
-      errorFilter:
-          (error) =>
-              error.diagnosticCode ==
-              CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
+      errorFilter: (error) =>
+          error.diagnosticCode ==
+          CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
     );
   }
 }

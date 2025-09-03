@@ -262,8 +262,9 @@ class ExtractLocalVariableTest extends _AbstractGetRefactoring_Test {
     bool extractAll,
   ) {
     var kind = RefactoringKind.EXTRACT_LOCAL_VARIABLE;
-    var options =
-        name != null ? ExtractLocalVariableOptions(name, extractAll) : null;
+    var options = name != null
+        ? ExtractLocalVariableOptions(name, extractAll)
+        : null;
     return sendRequest(kind, offset, length, options);
   }
 

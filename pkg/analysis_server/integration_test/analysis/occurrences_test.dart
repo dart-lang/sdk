@@ -52,10 +52,9 @@ void f() {
     }
 
     void check(String elementName, Iterable<String> expectedOccurrences) {
-      var expectedOffsets =
-          expectedOccurrences
-              .map((String substring) => text.indexOf(substring))
-              .toSet();
+      var expectedOffsets = expectedOccurrences
+          .map((String substring) => text.indexOf(substring))
+          .toSet();
       var foundOffsets = findOffsets(elementName);
       expect(foundOffsets, equals(expectedOffsets));
     }
@@ -102,10 +101,9 @@ void f() {
     }
 
     void check(String elementName, Iterable<String> expectedOccurrences) {
-      var expectedOffsets =
-          expectedOccurrences
-              .map((String substring) => text.indexOf(substring))
-              .toSet();
+      var expectedOffsets = expectedOccurrences
+          .map((String substring) => text.indexOf(substring))
+          .toSet();
       var foundOffsets = findOffsets(elementName);
       expect(foundOffsets, equals(expectedOffsets));
     }
@@ -156,10 +154,9 @@ void f() {
     }
 
     void check(String elementName, Iterable<String> expectedOccurrences) {
-      var expectedOffsets =
-          expectedOccurrences
-              .map((String substring) => text.indexOf(substring))
-              .toSet();
+      var expectedOffsets = expectedOccurrences
+          .map((String substring) => text.indexOf(substring))
+          .toSet();
       var foundOffsets = findOffsets(elementName);
       expect(foundOffsets, equals(expectedOffsets));
     }
@@ -212,10 +209,9 @@ void f() {
     }
 
     void check(String elementName, Iterable<String> expectedOccurrences) {
-      var expectedOffsets =
-          expectedOccurrences
-              .map((String substring) => text.indexOf(substring))
-              .toSet();
+      var expectedOffsets = expectedOccurrences
+          .map((String substring) => text.indexOf(substring))
+          .toSet();
       var foundOffsets = findOffsets(elementName);
       expect(foundOffsets, equals(expectedOffsets));
     }

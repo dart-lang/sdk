@@ -389,8 +389,9 @@ class ContextManagerImpl implements ContextManager {
       var analysisOptions = driver.getAnalysisOptionsForFile(file);
       var content = file.readAsStringSync();
       var lineInfo = LineInfo.fromContent(content);
-      var sdkVersionConstraint =
-          (package is PubPackage) ? package.sdkVersionConstraint : null;
+      var sdkVersionConstraint = (package is PubPackage)
+          ? package.sdkVersionConstraint
+          : null;
       var errors = analyzeAnalysisOptions(
         FileSource(file),
         content,
@@ -582,22 +583,21 @@ class ContextManagerImpl implements ContextManager {
         _fileContentCache.invalidateAll();
 
         var watchers = <ResourceWatcher>[];
-        var collection =
-            _collection = AnalysisContextCollectionImpl(
-              includedPaths: includedPaths,
-              excludedPaths: excludedPaths,
-              byteStore: _byteStore,
-              drainStreams: false,
-              enableIndex: true,
-              performanceLog: _performanceLog,
-              resourceProvider: resourceProvider,
-              scheduler: _scheduler,
-              sdkPath: sdkManager.defaultSdkDirectory,
-              packagesFile: packagesFile,
-              fileContentCache: _fileContentCache,
-              unlinkedUnitStore: _unlinkedUnitStore,
-              enabledExperiments: _enabledExperiments,
-            );
+        var collection = _collection = AnalysisContextCollectionImpl(
+          includedPaths: includedPaths,
+          excludedPaths: excludedPaths,
+          byteStore: _byteStore,
+          drainStreams: false,
+          enableIndex: true,
+          performanceLog: _performanceLog,
+          resourceProvider: resourceProvider,
+          scheduler: _scheduler,
+          sdkPath: sdkManager.defaultSdkDirectory,
+          packagesFile: packagesFile,
+          fileContentCache: _fileContentCache,
+          unlinkedUnitStore: _unlinkedUnitStore,
+          enabledExperiments: _enabledExperiments,
+        );
 
         for (var analysisContext in collection.contexts) {
           var driver = analysisContext.driver;
@@ -671,37 +671,35 @@ class ContextManagerImpl implements ContextManager {
       // Create temporary watchers before we start the context build so we can
       // tell if any files were modified while waiting for the "real" watchers to
       // become ready and start the process again.
-      var temporaryWatchers =
-          includedPaths
-              .map((path) => resourceProvider.getResource(path))
-              .map((resource) => resource.watch())
-              .toList();
+      var temporaryWatchers = includedPaths
+          .map((path) => resourceProvider.getResource(path))
+          .map((resource) => resource.watch())
+          .toList();
 
       // If any watcher picks up an important change while we're running the
       // rest of this method, we will need to start again.
       var needsBuild = true;
-      var temporaryWatcherSubscriptions =
-          temporaryWatchers
-              .map(
-                (watcher) => watcher.changes.listen(
-                  (event) {
-                    if (shouldRestartBuild(event.path)) {
-                      needsBuild = true;
-                    }
-                  },
-                  onError: (error, stackTrace) {
-                    // Errors in the watcher such as "Directory watcher closed
-                    // unexpectedly" on Windows when the buffer overflows also
-                    // require that we restarted to be consistent.
-                    needsBuild = true;
-                    _instrumentationService.logError(
-                      'Temporary watcher error; restarting context build.\n'
-                      '$error\n$stackTrace',
-                    );
-                  },
-                ),
-              )
-              .toList();
+      var temporaryWatcherSubscriptions = temporaryWatchers
+          .map(
+            (watcher) => watcher.changes.listen(
+              (event) {
+                if (shouldRestartBuild(event.path)) {
+                  needsBuild = true;
+                }
+              },
+              onError: (error, stackTrace) {
+                // Errors in the watcher such as "Directory watcher closed
+                // unexpectedly" on Windows when the buffer overflows also
+                // require that we restarted to be consistent.
+                needsBuild = true;
+                _instrumentationService.logError(
+                  'Temporary watcher error; restarting context build.\n'
+                  '$error\n$stackTrace',
+                );
+              },
+            ),
+          )
+          .toList();
 
       try {
         // Ensure all watchers are ready before we begin any rebuild.
@@ -949,10 +947,9 @@ class ContextManagerImpl implements ContextManager {
 
 class NoopContextManagerCallbacks implements ContextManagerCallbacks {
   @override
-  AnalysisServer get analysisServer =>
-      throw StateError(
-        'The callback object should have been set by the server.',
-      );
+  AnalysisServer get analysisServer => throw StateError(
+    'The callback object should have been set by the server.',
+  );
 
   @override
   void afterContextsCreated() {}

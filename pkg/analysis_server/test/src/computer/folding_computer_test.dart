@@ -44,18 +44,14 @@ class FoldingComputerTest extends AbstractContextTest {
     Map<int, FoldingKind> expected, {
     Set<FoldingKind>? onlyVerify,
   }) {
-    var expectedRegions =
-        expected.entries.map((entry) {
-          var range = code.ranges[entry.key].sourceRange;
-          return FoldingRegion(entry.value, range.offset, range.length);
-        }).toSet();
+    var expectedRegions = expected.entries.map((entry) {
+      var range = code.ranges[entry.key].sourceRange;
+      return FoldingRegion(entry.value, range.offset, range.length);
+    }).toSet();
 
-    var actualRegions =
-        onlyVerify == null
-            ? regions.toSet()
-            : regions
-                .where((region) => onlyVerify.contains(region.kind))
-                .toSet();
+    var actualRegions = onlyVerify == null
+        ? regions.toSet()
+        : regions.where((region) => onlyVerify.contains(region.kind)).toSet();
 
     expect(actualRegions, expectedRegions);
   }

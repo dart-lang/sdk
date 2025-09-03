@@ -41,10 +41,9 @@ Future<CompletionSuggestion?> candidateToCompletionSuggestion(
     case TypedSuggestion():
       var data = await createTypedSuggestionData(candidate, request);
       requiredImports = data?.imports.toList() ?? requiredImports;
-      var kind =
-          request.target.isFunctionalArgument()
-              ? CompletionSuggestionKind.IDENTIFIER
-              : null;
+      var kind = request.target.isFunctionalArgument()
+          ? CompletionSuggestionKind.IDENTIFIER
+          : null;
       candidate.data = data;
 
       return switch (candidate) {
@@ -84,20 +83,20 @@ Future<CompletionSuggestion?> candidateToCompletionSuggestion(
         ),
 
         MethodSuggestion(kind: var suggestionKind) =>
-        // TODO(brianwilkerson): Correctly set the kind of suggestion in cases
-        //  where `isFunctionalArgument` would return `true` so we can stop
-        //  using the `request.target`.
-        _getDartCompletionSuggestion(
-          candidate.element,
-          candidate.completion,
-          candidate.relevanceScore,
-          kind ?? suggestionKind,
-          request,
-          isNotImportedLibrary,
-          libraryUriStr,
-          requiredImports,
-          displayString: data?.displayText,
-        ),
+          // TODO(brianwilkerson): Correctly set the kind of suggestion in cases
+          //  where `isFunctionalArgument` would return `true` so we can stop
+          //  using the `request.target`.
+          _getDartCompletionSuggestion(
+            candidate.element,
+            candidate.completion,
+            candidate.relevanceScore,
+            kind ?? suggestionKind,
+            request,
+            isNotImportedLibrary,
+            libraryUriStr,
+            requiredImports,
+            displayString: data?.displayText,
+          ),
         RecordFieldSuggestion() => DartCompletionSuggestion(
           CompletionSuggestionKind.IDENTIFIER,
           candidate.relevanceScore,
@@ -455,14 +454,14 @@ _ParameterData _createParameterData(e.Element element) {
   bool? hasNamedParameters;
   CompletionDefaultArgumentList? defaultArgumentList;
   if (element is e.ExecutableElement && element is! e.PropertyAccessorElement) {
-    parameterNames =
-        element.formalParameters.map((parameter) {
-          return parameter.displayName;
-        }).toList();
-    parameterTypes =
-        element.formalParameters.map((e.FormalParameterElement parameter) {
-          return parameter.type.getDisplayString();
-        }).toList();
+    parameterNames = element.formalParameters.map((parameter) {
+      return parameter.displayName;
+    }).toList();
+    parameterTypes = element.formalParameters.map((
+      e.FormalParameterElement parameter,
+    ) {
+      return parameter.type.getDisplayString();
+    }).toList();
 
     var requiredParameters = element.formalParameters.where(
       (e.FormalParameterElement param) => param.isRequiredPositional,

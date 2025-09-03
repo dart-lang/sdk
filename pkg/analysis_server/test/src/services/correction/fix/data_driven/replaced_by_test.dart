@@ -1133,13 +1133,13 @@ void g() {
 
     var import = "import '$importUri'$prefixDeclaration;";
     // TODO(asashour): inserting imports should remove initial blank lines
-    var oldImport =
-        isOldRemoved
-            ? ''
-            : '''
+    var oldImport = isOldRemoved
+        ? ''
+        : '''
 $import
 ''';
-    var newImport = '''
+    var newImport =
+        '''
 $import${isOldRemoved ? '\n' : ''}
 ''';
 

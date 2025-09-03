@@ -63,20 +63,19 @@ class ConvertSelectedFormalParametersToNamed extends RefactoringProducer {
       reordered = formalParameters.stablePartition((e) => !e.isSelected);
     }
 
-    var formalParameterUpdates =
-        reordered.map((formalParameter) {
-          if (formalParameter.isSelected) {
-            return FormalParameterUpdate(
-              id: formalParameter.id,
-              kind: FormalParameterKind.requiredNamed,
-            );
-          } else {
-            return FormalParameterUpdate(
-              id: formalParameter.id,
-              kind: formalParameter.kind,
-            );
-          }
-        }).toList();
+    var formalParameterUpdates = reordered.map((formalParameter) {
+      if (formalParameter.isSelected) {
+        return FormalParameterUpdate(
+          id: formalParameter.id,
+          kind: FormalParameterKind.requiredNamed,
+        );
+      } else {
+        return FormalParameterUpdate(
+          id: formalParameter.id,
+          kind: formalParameter.kind,
+        );
+      }
+    }).toList();
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: formalParameterUpdates,

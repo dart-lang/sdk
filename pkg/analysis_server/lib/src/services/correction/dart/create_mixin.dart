@@ -100,10 +100,9 @@ class _CreateMixin extends ResolvedCorrectionProducer {
     this.prefixElement, {
     required bool withKeyword,
     required super.context,
-  }) : fixKind =
-           withKeyword
-               ? DartFixKind.CREATE_MIXIN_LOWERCASE_WITH
-               : DartFixKind.CREATE_MIXIN_LOWERCASE;
+  }) : fixKind = withKeyword
+           ? DartFixKind.CREATE_MIXIN_LOWERCASE_WITH
+           : DartFixKind.CREATE_MIXIN_LOWERCASE;
 
   _CreateMixin.uppercase(
     this._mixinName,
@@ -111,10 +110,9 @@ class _CreateMixin extends ResolvedCorrectionProducer {
     this.prefixElement, {
     required bool withKeyword,
     required super.context,
-  }) : fixKind =
-           withKeyword
-               ? DartFixKind.CREATE_MIXIN_UPPERCASE_WITH
-               : DartFixKind.CREATE_MIXIN_UPPERCASE;
+  }) : fixKind = withKeyword
+           ? DartFixKind.CREATE_MIXIN_UPPERCASE_WITH
+           : DartFixKind.CREATE_MIXIN_UPPERCASE;
 
   @override
   CorrectionApplicability get applicability =>

@@ -72,9 +72,8 @@ bar
       ),
     ]);
     configureTestPlugin(
-      handler:
-          (request) =>
-              request is plugin.EditGetFixesParams ? pluginResult : null,
+      handler: (request) =>
+          request is plugin.EditGetFixesParams ? pluginResult : null,
     );
 
     await verifyCodeActionLiteralEdits(
@@ -122,9 +121,8 @@ bar
       ),
     ]);
     configureTestPlugin(
-      handler:
-          (request) =>
-              request is plugin.EditGetFixesParams ? pluginResult : null,
+      handler: (request) =>
+          request is plugin.EditGetFixesParams ? pluginResult : null,
     );
 
     newFile(testFilePath, code.code);

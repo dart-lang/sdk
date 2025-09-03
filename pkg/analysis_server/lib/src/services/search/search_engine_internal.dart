@@ -188,8 +188,7 @@ class SearchEngineImpl implements SearchEngine {
     var allElements = HashSet<Element>(
       hashCode: (e) => e.name.hashCode,
       equals: (a, b) {
-        return a.lookupName == b.lookupName &&
-            a.library?.uri == b.library?.uri;
+        return a.lookupName == b.lookupName && a.library?.uri == b.library?.uri;
       },
     );
     var regExp = RegExp(pattern);
@@ -220,8 +219,8 @@ class SearchEngineImpl implements SearchEngine {
 
     // Fill out cache if needed.
     var drivers = searchEngineCache.drivers ??= _drivers.toList();
-    var searchedFiles =
-        searchEngineCache.searchedFiles ??= _createSearchedFiles(drivers);
+    var searchedFiles = searchEngineCache.searchedFiles ??=
+        _createSearchedFiles(drivers);
     var assignedFiles = searchEngineCache.assignedFiles;
     if (assignedFiles == null) {
       assignedFiles = searchEngineCache.assignedFiles = {};

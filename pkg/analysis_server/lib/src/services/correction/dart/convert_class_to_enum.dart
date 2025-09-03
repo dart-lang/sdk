@@ -699,8 +699,9 @@ class _EnumVisitor extends _BaseVisitor {
   /// Initialize a newly created visitor to visit the class declaration
   /// corresponding to the given [classElement].
   _EnumVisitor(super.classElement, List<_ConstantField> fieldsToConvert)
-    : fieldsToConvert =
-          fieldsToConvert.map((field) => field.declaration).toList();
+    : fieldsToConvert = fieldsToConvert
+          .map((field) => field.declaration)
+          .toList();
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {

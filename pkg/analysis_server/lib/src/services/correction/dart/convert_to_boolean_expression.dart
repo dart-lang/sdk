@@ -65,12 +65,11 @@ class ConvertToBooleanExpression extends ResolvedCorrectionProducer {
       await (switch ((thenExpression, elseExpression)) {
         (BooleanLiteral then, BooleanLiteral elseExp) => () async {
           var equalValues = then.value == elseExp.value;
-          var rangeStart =
-              equalValues
-                  // keep `then`
-                  ? range.startStart(condition, then)
-                  // keep `condition`
-                  : range.endEnd(condition, then);
+          var rangeStart = equalValues
+              // keep `then`
+              ? range.startStart(condition, then)
+              // keep `condition`
+              : range.endEnd(condition, then);
           // remove ` : elseExp`
           var rangeEnd = range.endEnd(then, elseExp);
           await _addEdit(
@@ -95,8 +94,9 @@ class ConvertToBooleanExpression extends ResolvedCorrectionProducer {
               then.value ? operator : null,
             ),
             bangBeforeParens: true,
-            parensRange2:
-                elseExp.needsParens(operator) ? range.node(elseExp) : null,
+            parensRange2: elseExp.needsParens(operator)
+                ? range.node(elseExp)
+                : null,
           );
         }(),
         (Expression then, BooleanLiteral elseExp) => () async {

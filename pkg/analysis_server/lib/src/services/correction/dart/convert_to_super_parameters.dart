@@ -133,8 +133,9 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
 
     var allParameters = <_ParameterData>[...?positional, ...named];
 
-    var argumentsToDelete =
-        allParameters.map((data) => data.argumentIndex).toList();
+    var argumentsToDelete = allParameters
+        .map((data) => data.argumentIndex)
+        .toList();
     argumentsToDelete.sort();
 
     await builder.addDartFileEdit(file, (builder) {
@@ -445,10 +446,9 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
     } else if (parameter is FunctionTypedFormalParameter) {
       var returnType = parameter.returnType;
       return _TypeData(
-        primaryRange:
-            returnType != null
-                ? range.startStart(returnType, parameter.name)
-                : null,
+        primaryRange: returnType != null
+            ? range.startStart(returnType, parameter.name)
+            : null,
         parameterRange: range.node(parameter.parameters),
       );
     }

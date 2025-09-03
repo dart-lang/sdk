@@ -52,10 +52,9 @@ class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
         // If any of the resolved units have the lint enabled, we should avoid
         // renaming method parameters separately from the other implementations.
         if (element.isPositional && !_renameAllPositionalOccurrences) {
-          _renameAllPositionalOccurrences |=
-              getCodeStyleOptions(
-                resolvedUnit.file,
-              ).avoidRenamingMethodParameters;
+          _renameAllPositionalOccurrences |= getCodeStyleOptions(
+            resolvedUnit.file,
+          ).avoidRenamingMethodParameters;
         }
 
         var unit = resolvedUnit.unit;

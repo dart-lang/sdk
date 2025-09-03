@@ -1177,8 +1177,9 @@ abstract class AbstractScanner {
       appendPrecedenceToken(TokenType.PERIOD);
       return next;
     }
-    TokenType tokenType =
-        hasSeparators ? TokenType.DOUBLE_WITH_SEPARATORS : TokenType.DOUBLE;
+    TokenType tokenType = hasSeparators
+        ? TokenType.DOUBLE_WITH_SEPARATORS
+        : TokenType.DOUBLE;
     appendSubstringToken(tokenType, start, /* asciiOnly = */ true);
     return next;
   }
@@ -1247,10 +1248,9 @@ abstract class AbstractScanner {
         if (previousWasSeparator) {
           throw "removed";
         }
-        TokenType tokenType =
-            hasSeparators
-                ? TokenType.HEXADECIMAL_WITH_SEPARATORS
-                : TokenType.HEXADECIMAL;
+        TokenType tokenType = hasSeparators
+            ? TokenType.HEXADECIMAL_WITH_SEPARATORS
+            : TokenType.HEXADECIMAL;
         appendSubstringToken(tokenType, start, /* asciiOnly = */ true);
         return next;
       }
@@ -1712,8 +1712,9 @@ abstract class AbstractScanner {
             advance();
             return tokenizeFractionPart(nextnext, start, hasSeparators);
           } else {
-            TokenType tokenType =
-                hasSeparators ? TokenType.INT_WITH_SEPARATORS : TokenType.INT;
+            TokenType tokenType = hasSeparators
+                ? TokenType.INT_WITH_SEPARATORS
+                : TokenType.INT;
             appendSubstringToken(tokenType, start, /* asciiOnly = */ true);
             return next;
           }
@@ -1721,8 +1722,9 @@ abstract class AbstractScanner {
         if (previousWasSeparator) {
           throw "removed";
         }
-        TokenType tokenType =
-            hasSeparators ? TokenType.INT_WITH_SEPARATORS : TokenType.INT;
+        TokenType tokenType = hasSeparators
+            ? TokenType.INT_WITH_SEPARATORS
+            : TokenType.INT;
         appendSubstringToken(tokenType, start, /* asciiOnly = */ true);
         return next;
       }

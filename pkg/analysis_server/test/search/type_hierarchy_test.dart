@@ -230,9 +230,8 @@ class B extends A {}
     writePackageConfig(convertPath('$packagesRootPath/pkgA'));
     // reference the package from a project
     writeTestPackageConfig(
-      config:
-          (PackageConfigFileBuilder()
-            ..add(name: 'pkgA', rootPath: '$packagesRootPath/pkgA')),
+      config: (PackageConfigFileBuilder()
+        ..add(name: 'pkgA', rootPath: '$packagesRootPath/pkgA')),
     );
     addTestFile('''
 import 'package:pkgA/libA.dart';
@@ -1158,11 +1157,10 @@ class D extends C {}
       superOnly: true,
     ).toRequest(requestId, clientUriConverter: server.uriConverter);
     var response = await serverChannel.simulateRequestFromClient(request);
-    var items =
-        SearchGetTypeHierarchyResult.fromResponse(
-          response,
-          clientUriConverter: server.uriConverter,
-        ).hierarchyItems;
+    var items = SearchGetTypeHierarchyResult.fromResponse(
+      response,
+      clientUriConverter: server.uriConverter,
+    ).hierarchyItems;
     expect(items, isNull);
   }
 

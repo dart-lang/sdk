@@ -149,13 +149,12 @@ getHierarchyMembersAndParameters(
   if (enclosingElement is InterfaceElement) {
     var name = member2.displayName;
 
-    var superElementsToSearch =
-        enclosingElement.allSupertypes
-            .map((superType) => superType.element)
-            .where((interface) {
-              return member2.isPublic || interface.library == member2.library;
-            })
-            .toList();
+    var superElementsToSearch = enclosingElement.allSupertypes
+        .map((superType) => superType.element)
+        .where((interface) {
+          return member2.isPublic || interface.library == member2.library;
+        })
+        .toList();
     var searchClasses = [...superElementsToSearch, enclosingElement];
     var subClasses = <InterfaceElement>{};
     for (var superClass in searchClasses) {

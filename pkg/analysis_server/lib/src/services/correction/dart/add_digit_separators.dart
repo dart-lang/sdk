@@ -122,10 +122,9 @@ abstract class _AddDigitSeparators extends ResolvedCorrectionProducer {
       var decimalIndex = source.indexOf('.');
       if (decimalIndex > -1) {
         wholePart = source.substring(0, decimalIndex);
-        fractionalPart =
-            eIndex > -1
-                ? source.substring(decimalIndex + 1, eIndex)
-                : source.substring(decimalIndex + 1);
+        fractionalPart = eIndex > -1
+            ? source.substring(decimalIndex + 1, eIndex)
+            : source.substring(decimalIndex + 1);
       } else {
         assert(
           eIndex > -1,

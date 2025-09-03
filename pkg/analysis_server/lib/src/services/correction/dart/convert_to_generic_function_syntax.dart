@@ -104,12 +104,14 @@ class ConvertToGenericFunctionSyntax extends ParsedCorrectionProducer {
     var required = node.requiredKeyword != null ? 'required ' : '';
     var covariant = node.covariantKeyword != null ? 'covariant ' : '';
     var returnTypeNode = node.returnType;
-    var returnType =
-        returnTypeNode != null ? '${utils.getNodeText(returnTypeNode)} ' : '';
+    var returnType = returnTypeNode != null
+        ? '${utils.getNodeText(returnTypeNode)} '
+        : '';
     var functionName = node.name.lexeme;
     var typeParametersNode = node.typeParameters;
-    var typeParameters =
-        typeParametersNode != null ? utils.getNodeText(typeParametersNode) : '';
+    var typeParameters = typeParametersNode != null
+        ? utils.getNodeText(typeParametersNode)
+        : '';
 
     var parameters = utils.getNodeText(node.parameters);
     var question = node.question != null ? '?' : '';

@@ -121,10 +121,9 @@ $content
           isTrue,
         )
         .having(
-          (arg) =>
-              arg.type == 'enum'
-                  ? (arg.options?.isNotEmpty ?? false)
-                  : arg.options == null,
+          (arg) => arg.type == 'enum'
+              ? (arg.options?.isNotEmpty ?? false)
+              : arg.options == null,
           'enum types must have options / non-enums must not have options',
           isTrue,
         );

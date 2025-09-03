@@ -56,12 +56,11 @@ class BlazeChangesTest extends AbstractAnalysisServerIntegrationTest {
     await super.setUp();
     oldSourceDirectory = sourceDirectory;
 
-    tmpPath =
-        Directory(
-          Directory.systemTemp
-              .createTempSync('analysisServer_test_integration_blazeProject')
-              .resolveSymbolicLinksSync(),
-        ).path;
+    tmpPath = Directory(
+      Directory.systemTemp
+          .createTempSync('analysisServer_test_integration_blazeProject')
+          .resolveSymbolicLinksSync(),
+    ).path;
     _temporaryFolders.add(tmpPath);
     workspacePath = inTmpDir('workspace_root');
     writeFile(inWorkspace(file_paths.blazeWorkspaceMarker), '');

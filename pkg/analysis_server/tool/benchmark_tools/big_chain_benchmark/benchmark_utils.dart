@@ -84,7 +84,8 @@ String foo(int i) {
   return nextFile.foo(i-1);
 }''';
     }
-    var content = '''
+    var content =
+        '''
 $import
 $export
 
@@ -103,7 +104,8 @@ String get$i() {
   }
 
   var mainFileUri = copyToDir.resolve('main.dart');
-  var mainFileContent = """
+  var mainFileContent =
+      """
 import '${getFilenameFor(1)}';
 
 void main(List<String> arguments) {
@@ -112,7 +114,8 @@ void main(List<String> arguments) {
 """;
   File.fromUri(mainFileUri).writeAsStringSync(mainFileContent);
   var typing = '  ge';
-  var mainFileTypingContent = """
+  var mainFileTypingContent =
+      """
 import '${getFilenameFor(1)}';
 
 void main(List<String> arguments) {
@@ -122,7 +125,8 @@ $typing
   var typingAtOffset = mainFileTypingContent.indexOf(typing) + typing.length;
 
   var typingError = 'getFooBarBaz';
-  var mainFileTypingErrorContent = """
+  var mainFileTypingErrorContent =
+      """
 import '${getFilenameFor(1)}';
 
 void main(List<String> arguments) {

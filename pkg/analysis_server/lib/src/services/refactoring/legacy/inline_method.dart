@@ -1185,10 +1185,9 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
       }
 
       // Here we found a variable with that name in the block scope
-      var nodeRange =
-          node is VariableDeclaration
-              ? range.token(node.name)
-              : range.node(node);
+      var nodeRange = node is VariableDeclaration
+          ? range.token(node.name)
+          : range.node(node);
       result.addVariable(element, nodeRange);
     }
   }

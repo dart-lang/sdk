@@ -41,10 +41,9 @@ class MainFunction extends DartSnippetProducer {
         builder.writeFunctionDeclaration(
           'main',
           returnType: VoidTypeImpl.instance,
-          parameterWriter:
-              _insertArgsParameter
-                  ? () => builder.writeParameter('args', type: listString)
-                  : null,
+          parameterWriter: _insertArgsParameter
+              ? () => builder.writeParameter('args', type: listString)
+              : null,
           bodyWriter: () {
             builder.writeln('{');
             builder.write('  ');

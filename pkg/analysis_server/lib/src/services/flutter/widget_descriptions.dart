@@ -68,20 +68,18 @@ class WidgetDescriptions {
     var property = _properties[id];
     if (property == null) {
       return SetPropertyValueResult._(
-        errorCode:
-            protocol
-                .RequestErrorCode
-                .FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID,
+        errorCode: protocol
+            .RequestErrorCode
+            .FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID,
       );
     }
 
     if (value == null) {
       if (property.protocolProperty.isRequired) {
         return SetPropertyValueResult._(
-          errorCode:
-              protocol
-                  .RequestErrorCode
-                  .FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED,
+          errorCode: protocol
+              .RequestErrorCode
+              .FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED,
         );
       }
       var change = await property.removeValue();
@@ -92,10 +90,9 @@ class WidgetDescriptions {
         return SetPropertyValueResult._(change: change);
       } on FormatterException {
         return SetPropertyValueResult._(
-          errorCode:
-              protocol
-                  .RequestErrorCode
-                  .FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION,
+          errorCode: protocol
+              .RequestErrorCode
+              .FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_EXPRESSION,
         );
       }
     }

@@ -79,13 +79,12 @@ class FlutterRemoveWidget extends ResolvedCorrectionProducer {
   ) async {
     var builderExpression = builderArgument.expression;
     if (builderExpression is! FunctionExpression) return;
-    var parameterElement =
-        builderExpression
-            .parameters
-            ?.parameters
-            .firstOrNull
-            ?.declaredFragment
-            ?.element;
+    var parameterElement = builderExpression
+        .parameters
+        ?.parameters
+        .firstOrNull
+        ?.declaredFragment
+        ?.element;
     if (parameterElement == null) return;
 
     var visitor = _UsageFinder(parameterElement);

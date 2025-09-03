@@ -54,7 +54,8 @@ class MainFunctionTest extends DartSnippetProducerTest {
   }) async {
     testFilePath = file;
     var expectedParams = expectArgsParameter ? 'List<String> args' : '';
-    var expectedCode = '''
+    var expectedCode =
+        '''
 void main($expectedParams) {
   ^
 }''';

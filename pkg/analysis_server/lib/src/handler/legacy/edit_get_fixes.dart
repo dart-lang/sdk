@@ -125,8 +125,9 @@ class EditGetFixesHandler extends LegacyHandler
     var package = analysisContext.contextRoot.workspace.findPackageFor(
       optionsFile.path,
     );
-    var sdkVersionConstraint =
-        (package is PubPackage) ? package.sdkVersionConstraint : null;
+    var sdkVersionConstraint = (package is PubPackage)
+        ? package.sdkVersionConstraint
+        : null;
     var diagnostics = analyzeAnalysisOptions(
       FileSource(optionsFile),
       content,
@@ -222,7 +223,8 @@ class EditGetFixesHandler extends LegacyHandler
           } on InconsistentAnalysisException {
             fixes = [];
           } catch (exception, stackTrace) {
-            var parametersFile = '''
+            var parametersFile =
+                '''
 offset: $offset
 error: $diagnostic
 error.errorCode: ${diagnostic.diagnosticCode}

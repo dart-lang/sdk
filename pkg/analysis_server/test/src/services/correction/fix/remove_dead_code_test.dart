@@ -1162,10 +1162,9 @@ void f(int i, int j) => i;
 
   /// Error filter ignoring warnings that frequently occur in conjunction with
   /// code that is dead due to sound flow analysis.
-  bool _ignoreNullSafetyWarnings(Diagnostic diagnostic) =>
-      !const {
-        'DEAD_NULL_AWARE_EXPRESSION',
-        'INVALID_NULL_AWARE_OPERATOR',
-        'UNNECESSARY_NULL_COMPARISON',
-      }.contains(diagnostic.diagnosticCode.name);
+  bool _ignoreNullSafetyWarnings(Diagnostic diagnostic) => !const {
+    'DEAD_NULL_AWARE_EXPRESSION',
+    'INVALID_NULL_AWARE_OPERATOR',
+    'UNNECESSARY_NULL_COMPARISON',
+  }.contains(diagnostic.diagnosticCode.name);
 }

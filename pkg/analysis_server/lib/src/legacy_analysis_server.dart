@@ -777,14 +777,14 @@ class LegacyAnalysisServer extends AnalysisServer {
     return lspResponse is Map<String, Object?>
         ? lsp.ResponseMessage.fromJson(lspResponse)
         : lsp.ResponseMessage(
-          jsonrpc: lsp.jsonRpcVersion,
-          error: lsp.ResponseError(
-            code: lsp.ServerErrorCodes.UnhandledError,
-            message:
-                "The client responded to a '$method' LSP request but"
-                ' did not include a valid response in the lspResponse field',
-          ),
-        );
+            jsonrpc: lsp.jsonRpcVersion,
+            error: lsp.ResponseError(
+              code: lsp.ServerErrorCodes.UnhandledError,
+              message:
+                  "The client responded to a '$method' LSP request but"
+                  ' did not include a valid response in the lspResponse field',
+            ),
+          );
   }
 
   /// Send the given [notification] to the client.

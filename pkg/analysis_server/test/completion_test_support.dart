@@ -13,10 +13,9 @@ import 'domain_completion_util.dart';
 class CompletionTestCase extends AbstractCompletionDomainTest {
   static const String CURSOR_MARKER = '!';
 
-  List<String> get suggestedCompletions =>
-      suggestions
-          .map((CompletionSuggestion suggestion) => suggestion.completion)
-          .toList();
+  List<String> get suggestedCompletions => suggestions
+      .map((CompletionSuggestion suggestion) => suggestion.completion)
+      .toList();
 
   void assertHasCompletion(
     String completion, {
@@ -83,16 +82,15 @@ class CompletionTestCase extends AbstractCompletionDomainTest {
   /// Discard any results that do not start with the characters the user has
   /// "already typed".
   void filterResults(String content) {
-    var charsAlreadyTyped =
-        content.substring(replacementOffset!, completionOffset).toLowerCase();
-    suggestions =
-        suggestions
-            .where(
-              (CompletionSuggestion suggestion) => suggestion.completion
-                  .toLowerCase()
-                  .startsWith(charsAlreadyTyped),
-            )
-            .toList();
+    var charsAlreadyTyped = content
+        .substring(replacementOffset!, completionOffset)
+        .toLowerCase();
+    suggestions = suggestions
+        .where(
+          (CompletionSuggestion suggestion) =>
+              suggestion.completion.toLowerCase().startsWith(charsAlreadyTyped),
+        )
+        .toList();
   }
 
   Future<void> runTest(

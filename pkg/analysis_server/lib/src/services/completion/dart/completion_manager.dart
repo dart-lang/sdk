@@ -116,8 +116,9 @@ class DartCompletionManager {
       }
       var tokenData = TokenData.fromSelection(selection);
       var targetPrefix = tokenData?.prefix ?? '';
-      var matcher =
-          targetPrefix.isEmpty ? NoPrefixMatcher() : FuzzyMatcher(targetPrefix);
+      var matcher = targetPrefix.isEmpty
+          ? NoPrefixMatcher()
+          : FuzzyMatcher(targetPrefix);
       var state = CompletionState(request, selection, budget, matcher);
       var operations = performance.run('InScopeCompletionPass', (performance) {
         var pass = InScopeCompletionPass(

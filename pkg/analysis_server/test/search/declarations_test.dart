@@ -240,8 +240,7 @@ void f(bool a, String b) {}
   /// parent library.
   Future<void> test_parts() async {
     var a = newFile('$testPackageLibPath/a.dart', "part 'b.dart';").path;
-    var b =
-        newFile('$testPackageLibPath/b.dart', '''
+    var b = newFile('$testPackageLibPath/b.dart', '''
 part of 'a.dart';
 class A {}
 ''').path;
