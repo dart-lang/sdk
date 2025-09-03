@@ -43,6 +43,19 @@ final class C {}
     );
   }
 
+  test_class_private() async {
+    await assertErrorsInCode(
+      r'''
+@Deprecated.implement()
+class _C {}
+''',
+      [
+        error(WarningCode.invalidDeprecatedImplementAnnotation, 1, 20),
+        error(WarningCode.unusedElement, 30, 2),
+      ],
+    );
+  }
+
   test_class_sealed() async {
     await assertErrorsInCode(
       r'''
@@ -85,6 +98,19 @@ mixin M {}
 base mixin M {}
 ''',
       [error(WarningCode.invalidDeprecatedImplementAnnotation, 1, 20)],
+    );
+  }
+
+  test_mixin_private() async {
+    await assertErrorsInCode(
+      r'''
+@Deprecated.implement()
+mixin _M {}
+''',
+      [
+        error(WarningCode.invalidDeprecatedImplementAnnotation, 1, 20),
+        error(WarningCode.unusedElement, 30, 2),
+      ],
     );
   }
 
