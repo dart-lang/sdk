@@ -7,6 +7,7 @@
 library;
 
 import 'package:analyzer_testing/package_root.dart' as pkg_root;
+import 'package:analyzer_utilities/messages.dart';
 import 'package:analyzer_utilities/tools.dart';
 
 import '../../analyzer/tool/messages/error_code_info.dart';

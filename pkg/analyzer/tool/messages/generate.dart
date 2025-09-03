@@ -21,6 +21,7 @@ import 'dart:io';
 
 import 'package:analyzer_testing/package_root.dart' as pkg_root;
 import 'package:analyzer_utilities/extensions/string.dart';
+import 'package:analyzer_utilities/messages.dart';
 import 'package:analyzer_utilities/tools.dart';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart';
