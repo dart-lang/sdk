@@ -2403,9 +2403,6 @@ class ExtensionFragmentImpl extends InstanceFragmentImpl
   }
 
   @override
-  bool get isSimplyBounded => true;
-
-  @override
   MetadataImpl get metadata {
     _ensureReadResolution();
     return super.metadata;
@@ -4019,7 +4016,11 @@ abstract class InstanceElementImpl extends ElementImpl
   @override
   @trackedIncludedInId
   bool get isSimplyBounded {
-    return _firstFragment.isSimplyBounded;
+    return hasModifier(Modifier.SIMPLY_BOUNDED);
+  }
+
+  set isSimplyBounded(bool value) {
+    setModifier(Modifier.SIMPLY_BOUNDED, value);
   }
 
   @override
@@ -4493,13 +4494,6 @@ abstract class InstanceFragmentImpl extends FragmentImpl
     _getters = getters;
   }
 
-  /// If the element defines a type, indicates whether the type may safely
-  /// appear without explicit type parameters as the bounds of a type parameter
-  /// declaration.
-  ///
-  /// If the element does not define a type, returns `true`.
-  bool get isSimplyBounded;
-
   @override
   LibraryFragmentImpl get libraryFragment => enclosingUnit;
 
@@ -4731,12 +4725,6 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   /// dart:core library.
   bool get isDartCoreEnumImpl {
     return name == '_Enum' && library.isDartCore;
-  }
-
-  set isSimplyBounded(bool value) {
-    for (var fragment in fragments) {
-      fragment.isSimplyBounded = value;
-    }
   }
 
   @override
@@ -5023,9 +5011,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   void _buildMixinAppConstructors() {}
 }
 
-@GenerateFragmentImpl(modifiers: _InterfaceFragmentImplModifiers.values)
 abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
-    with _InterfaceFragmentImplMixin
     implements InterfaceFragment {
   List<ConstructorFragmentImpl> _constructors = _Sentinel.constructorFragment;
 
@@ -9615,12 +9601,13 @@ class TypeAliasElementImpl extends ElementImpl
   }
 
   @override
-  bool get isSimplyBounded => _firstFragment.isSimplyBounded;
+  @trackedIncludedInId
+  bool get isSimplyBounded {
+    return hasModifier(Modifier.SIMPLY_BOUNDED);
+  }
 
   set isSimplyBounded(bool value) {
-    for (var fragment in fragments) {
-      fragment.isSimplyBounded = value;
-    }
+    setModifier(Modifier.SIMPLY_BOUNDED, value);
   }
 
   @override
@@ -9782,9 +9769,8 @@ class TypeAliasElementImpl extends ElementImpl
 /// An element that represents [GenericTypeAlias].
 ///
 /// Clients may not extend, implement or mix-in this class.
-@GenerateFragmentImpl(modifiers: _TypeAliasFragmentImplModifiers.values)
 class TypeAliasFragmentImpl extends FragmentImpl
-    with DeferredResolutionReadingMixin, _TypeAliasFragmentImplMixin
+    with DeferredResolutionReadingMixin
     implements TypeAliasFragment {
   @override
   final String? name;
@@ -10327,8 +10313,6 @@ enum _FragmentImplModifiers {
   isSynthetic,
 }
 
-enum _InterfaceFragmentImplModifiers { isSimplyBounded }
-
 enum _MixinFragmentImplModifiers { isBase }
 
 enum _NonParameterVariableFragmentImplModifiers { hasInitializer }
@@ -10362,8 +10346,6 @@ class _Sentinel {
   static final List<LibraryExportImpl> libraryExport = List.unmodifiable([]);
   static final List<LibraryImportImpl> libraryImport = List.unmodifiable([]);
 }
-
-enum _TypeAliasFragmentImplModifiers { isSimplyBounded }
 
 enum _VariableFragmentImplModifiers {
   /// Whether the variable element did not have an explicit type specified
