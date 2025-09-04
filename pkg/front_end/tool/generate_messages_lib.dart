@@ -5,6 +5,7 @@
 /// @docImport 'package:front_end/src/codes/type_labeler.dart';
 library;
 
+import 'dart:convert';
 import 'dart:io' show exitCode;
 
 import 'package:analyzer_utilities/messages.dart';
@@ -157,12 +158,19 @@ class _TemplateCompiler {
   final String? correctionMessage;
   final List<String> analyzerCodes;
   final String? severity;
+  final Map<String, ErrorCodeParameter> parameters;
 
-  late final Set<ParsedPlaceholder> parsedPlaceholders = placeholderPattern
-      .allMatches("$problemMessage\n${correctionMessage ?? ''}")
-      .map(ParsedPlaceholder.fromMatch)
-      .toSet();
+  late final Set<String> usedNames = {
+    'conversions',
+    'labeler',
+    ...parameters.keys,
+  };
+  late final List<String> arguments = parameters.keys
+      .map((name) => "'$name': $name")
+      .toList();
+  final Map<ParsedPlaceholder, String> interpolators = {};
   final List<String> withArgumentsStatements = [];
+  bool hasLabeler = false;
 
   _TemplateCompiler({
     required this.name,
@@ -171,14 +179,10 @@ class _TemplateCompiler {
   }) : problemMessage = errorCodeInfo.problemMessage,
        correctionMessage = errorCodeInfo.correctionMessage,
        analyzerCodes = errorCodeInfo.analyzerCode,
-       severity = errorCodeInfo.cfeSeverity;
+       severity = errorCodeInfo.cfeSeverity,
+       parameters = errorCodeInfo.parameters;
 
   Template compile() {
-    bool hasLabeler = parsedPlaceholders.any(
-      (p) => p.conversion is LabelerConversion,
-    );
-    bool canBeShared = !hasLabeler;
-
     var codeArguments = <String>[
       if (index != null)
         'index: $index'
@@ -189,7 +193,7 @@ class _TemplateCompiler {
       if (severity != null) 'severity: CfeSeverity.$severity',
     ];
 
-    if (parsedPlaceholders.isEmpty) {
+    if (parameters.isEmpty) {
       codeArguments.add('problemMessage: r"""$problemMessage"""');
       if (correctionMessage != null) {
         codeArguments.add('correctionMessage: r"""$correctionMessage"""');
@@ -199,39 +203,7 @@ class _TemplateCompiler {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode code$name =
     const MessageCode(\"$name\", ${codeArguments.join(', ')},);
-""", isShared: canBeShared);
-    }
-
-    var usedNames = {
-      'conversions',
-      'labeler',
-      ...parsedPlaceholders.map((p) => p.name),
-    };
-    if (hasLabeler) {
-      withArgumentsStatements.add("TypeLabeler labeler = new TypeLabeler();");
-    }
-    var interpolators = <ParsedPlaceholder, String>{};
-    for (var p in parsedPlaceholders) {
-      if (p.conversion?.toCode(name: p.name, type: p.templateParameterType)
-          case var conversion?) {
-        var interpolator = interpolators[p] = _newName(
-          usedNames: usedNames,
-          nameHint: p.name,
-        );
-        withArgumentsStatements.add("var $interpolator = $conversion;");
-      } else {
-        interpolators[p] = p.name;
-      }
-    }
-
-    String interpolate(String text) {
-      text = text
-          .replaceAll(r"$", r"\$")
-          .replaceAllMapped(
-            placeholderPattern,
-            (Match m) => "\${${interpolators[ParsedPlaceholder.fromMatch(m)]}}",
-          );
-      return "\"\"\"$text\"\"\"";
+""", isShared: true);
     }
 
     List<String> templateArguments = <String>[];
@@ -247,34 +219,27 @@ const MessageCode code$name =
     templateArguments.add("withArguments: _withArguments$name");
     templateArguments.addAll(codeArguments);
 
-    String message = interpolate(problemMessage);
+    String interpolatedProblemMessage = interpolate(problemMessage)!;
+    String? interpolatedCorrectionMessage = interpolate(correctionMessage);
     if (hasLabeler) {
-      message += " + labeler.originMessages";
+      interpolatedProblemMessage += " + labeler.originMessages";
     }
-    var arguments = parsedPlaceholders
-        .map((p) => "'${p.name}': ${p.name}")
-        .toList();
 
     List<String> messageArguments = <String>[
-      "problemMessage: ${message}",
-      if (correctionMessage case var correctionMessage?)
-        "correctionMessage: ${interpolate(correctionMessage)}",
+      "problemMessage: $interpolatedProblemMessage",
+      if (interpolatedCorrectionMessage case var m?) "correctionMessage: $m",
       "arguments: { ${arguments.join(', ')}, }",
     ];
+    List<String> positionalParameters = parameters.entries
+        .map((entry) => '${entry.value.type.cfeName!} ${entry.key}')
+        .toList();
+    List<String> namedParameters = parameters.entries
+        .map((entry) => 'required ${entry.value.type.cfeName!} ${entry.key}')
+        .toList();
+    List<String> oldToNewArguments = parameters.keys
+        .map((name) => '$name: $name')
+        .toList();
 
-    if (codeArguments.isNotEmpty) {
-      codeArguments.add("");
-    }
-
-    var positionalParameters = parsedPlaceholders
-        .map((p) => '${p.templateParameterType.cfeName!} ${p.name}')
-        .toList();
-    var namedParameters = parsedPlaceholders
-        .map((p) => 'required ${p.templateParameterType.cfeName!} ${p.name}')
-        .toList();
-    var oldToNewArguments = parsedPlaceholders
-        .map((p) => '${p.name}: ${p.name}')
-        .toList();
     return new Template("""
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -293,6 +258,51 @@ Message _withArguments$name({${namedParameters.join(', ')}}) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOld$name(${positionalParameters.join(', ')}) =>
     _withArguments$name(${oldToNewArguments.join(', ')});
-""", isShared: canBeShared);
+""", isShared: !hasLabeler);
+  }
+
+  String computeInterpolator(ParsedPlaceholder placeholder) {
+    var name = placeholder.name;
+    var parameter = parameters[name];
+    if (parameter == null) {
+      throw StateError(
+        'Placeholder ${json.encode(name)} not declared as a parameter',
+      );
+    }
+    var conversion =
+        placeholder.conversionOverride ?? parameter.type.cfeConversion;
+    if (conversion is LabelerConversion && !hasLabeler) {
+      withArgumentsStatements.add("TypeLabeler labeler = new TypeLabeler();");
+      hasLabeler = true;
+    }
+
+    if (conversion?.toCode(
+          name: placeholder.name,
+          type: parameters[placeholder.name]!.type,
+        )
+        case var conversion?) {
+      var interpolator = _newName(
+        usedNames: usedNames,
+        nameHint: placeholder.name,
+      );
+      withArgumentsStatements.add("var $interpolator = $conversion;");
+      return interpolator;
+    } else {
+      return placeholder.name;
+    }
+  }
+
+  String? interpolate(String? text) {
+    if (text == null) return null;
+    text = text.replaceAll(r"$", r"\$").replaceAllMapped(placeholderPattern, (
+      Match m,
+    ) {
+      var placeholder = ParsedPlaceholder.fromMatch(m);
+      var interpolator = interpolators[placeholder] ??= computeInterpolator(
+        placeholder,
+      );
+      return "\${$interpolator}";
+    });
+    return "\"\"\"$text\"\"\"";
   }
 }

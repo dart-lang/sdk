@@ -20,43 +20,6 @@ const Map<String, String> severityEnumNames = <String, String>{
   'INFO': 'info',
 };
 
-/// Map assigning each possible template parameter a [ErrorCodeParameterType].
-///
-// TODO(paulberry): Change the format of `messages.yaml` so that the template
-// parameters, and their types, are stated explicitly, as they are in the
-// analyzer's `messages.yaml` file. Then this constant will not be needed.
-const _templateParameterNameToType = {
-  'character': ErrorCodeParameterType.character,
-  'unicode': ErrorCodeParameterType.unicode,
-  'name': ErrorCodeParameterType.name,
-  'name2': ErrorCodeParameterType.name,
-  'name3': ErrorCodeParameterType.name,
-  'name4': ErrorCodeParameterType.name,
-  'nameOKEmpty': ErrorCodeParameterType.nameOKEmpty,
-  'names': ErrorCodeParameterType.names,
-  'lexeme': ErrorCodeParameterType.token,
-  'lexeme2': ErrorCodeParameterType.token,
-  'string': ErrorCodeParameterType.string,
-  'string2': ErrorCodeParameterType.string,
-  'string3': ErrorCodeParameterType.string,
-  'stringOKEmpty': ErrorCodeParameterType.stringOKEmpty,
-  'type': ErrorCodeParameterType.type,
-  'type2': ErrorCodeParameterType.type,
-  'type3': ErrorCodeParameterType.type,
-  'type4': ErrorCodeParameterType.type,
-  'uri': ErrorCodeParameterType.uri,
-  'uri2': ErrorCodeParameterType.uri,
-  'uri3': ErrorCodeParameterType.uri,
-  'count': ErrorCodeParameterType.int,
-  'count2': ErrorCodeParameterType.int,
-  'count3': ErrorCodeParameterType.int,
-  'count4': ErrorCodeParameterType.int,
-  'constant': ErrorCodeParameterType.constant,
-  'num1': ErrorCodeParameterType.num,
-  'num2': ErrorCodeParameterType.num,
-  'num3': ErrorCodeParameterType.num,
-};
-
 /// Decoded messages from the front end's `messages.yaml` file.
 final Map<String, FrontEndErrorCodeInfo> frontEndMessages =
     _loadFrontEndMessages();
@@ -928,45 +891,32 @@ class ParsedPlaceholder {
   /// This is the identifier that immediately follows the `#`.
   final String name;
 
-  /// The type of the corresponding template parameter.
-  final ErrorCodeParameterType templateParameterType;
-
-  /// The conversion that should be applied to the template parameter.
-  final Conversion? conversion;
+  /// The conversion specified in the placeholder, if any.
+  ///
+  /// If `null`, the default conversion for the parameter's type will be used.
+  final Conversion? conversionOverride;
 
   /// Builds a [ParsedPlaceholder] from the given [match] of
   /// [placeholderPattern].
   factory ParsedPlaceholder.fromMatch(Match match) {
     String name = match[1]!;
 
-    var templateParameterType = _templateParameterNameToType[name];
-    if (templateParameterType == null) {
-      throw "Unhandled placeholder in template: '$name'";
-    }
-
     return ParsedPlaceholder._(
       name: name,
-      templateParameterType: templateParameterType,
-      conversion:
-          NumericConversion.from(match) ?? templateParameterType.cfeConversion,
+      conversionOverride: NumericConversion.from(match),
     );
   }
 
-  ParsedPlaceholder._({
-    required this.name,
-    required this.templateParameterType,
-    required this.conversion,
-  });
+  ParsedPlaceholder._({required this.name, required this.conversionOverride});
 
   @override
-  int get hashCode => Object.hash(name, templateParameterType, conversion);
+  int get hashCode => Object.hash(name, conversionOverride);
 
   @override
   bool operator ==(Object other) =>
       other is ParsedPlaceholder &&
       other.name == name &&
-      other.templateParameterType == templateParameterType &&
-      other.conversion == conversion;
+      other.conversionOverride == conversionOverride;
 }
 
 /// A [Conversion] that invokes a top level function via the `conversions`

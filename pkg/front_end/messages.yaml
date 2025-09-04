@@ -92,54 +92,57 @@
 # ## Parameter Substitution in problemMessage and correctionMessage
 #
 # The fields `problemMessage` and `correctionMessage` are subject to parameter
-# substitution. When the compiler reports a problem, it may also specify a map
-# with the following keys to be substituted into the message:
+# substitution. When the compiler reports a problem, it must also specify
+# parameters to be substituted into the message.
 #
-# `#character` a Unicode character.
-#
-# `#unicode` a Unicode short identifier (U+xxxx). We use this to represent code
-#  units or code points.
-#
-# `#name`, `#name2`, `#name3`, `#name4`: names (as strings). Note that asserts
-#    check if these are empty. If they can be empty use an available `OKEmpty`
-#    version (or add the missing needed one(s)) to avoid triggering an assert.
-#
-# `#nameOKEmpty`: name (as string). Will use an "(unnamed)" default message if
-#    the string is null or empty. Otherwise see the description above.
-#
-# `#names`: A list of names (strings).
-#
-# `#lexeme` a token. The token's `lexeme` property is used.
-#
-# `#string`, `#string2`, `#string3`: strings (that aren't names).
-#    Note: as a rule of thumb, avoid using the `#string` keys. In particular,
-#    do not use them for composing error messages, see [diagnostics.md](
-#    lib/src/base/diagnostics.md#avoid-composing-messages-programmatically).
-#    Note that asserts check if these are empty. If they can be empty use an
-#    available `OKEmpty` version (or add the missing needed one(s)) to avoid
-#    triggering an assert.
-#
-# `#stringOKEmpty`: string (that isn't a name). Will use an "(empty)" default
-#    message if the string is null or empty.
-#    Otherwise see the description above.
-#
-# `#type`, #type2`, `#type3`: Kernel types.
-#
-# `#uri`, `#uri2`, `#uri3`: URIs.
-#
-# `#count`, `#count2`: counts (as integers)
-#
-# `#constant` a Kernel constant.
-#
-# `#num1%N.M`, `#num2%N.M`, `#num3%N.M`: numbers (doubles) formatted to minimum
-# width N and with M fraction digits.
-#
-# If a diagnostic takes parameters, its declaration must include a map
-# called `parameters`; each map key is of the form `TYPE NAME`, and
-# each map value is a comment describing the parameter.
+# Parameters are declared using a map called `parameters`; each map key is of
+# the form `TYPE NAME`, and each map value is a comment describing the
+# parameter. Placeholders in the `problemMessage` and `correctionMessage`
+# strings take the form `#NAME`.
 #
 # If a diagnostic takes no parameters, it must have an entry of the
 # form `parameters: none`.
+#
+# The following TYPEs are supported:
+#
+# - `Character`: a Unicode character.
+#
+# - `Constant`: a Kernel constant.
+#
+# - `int`: an integer (typically a count).
+#
+# - `Name` a name string. Note that asserts check to make sure the
+#   parameter is not empty. If the diagnostic needs to support an
+#   empty name, use `NameOKEmpty` instead.
+#
+# - `NameOKEmpty`: a name string. Will use an "(unnamed)" default message if
+#   the string is empty.
+#
+# - `Names`: A list of names (strings).
+#
+# - `Num`: a number (int or double). Formatting can be controlled
+#   using a `%` in the placeholder: `#NAME%N.M` formats the number to
+#   minimum width N with M fraction digits.
+#
+# - `String`: a string that isn't a name.  Note: as a rule of thumb,
+#    avoid using this type. In particular, do not it for composing
+#    error messages, see [diagnostics.md](
+#    lib/src/base/diagnostics.md#avoid-composing-messages-programmatically).
+#    Note that asserts check to make sure the parameter is not
+#    empty. If the diagnostic needs to support an empty name, use
+#    `StringOKEmpty` instead.
+#
+# - `StringOKEmpty`: a string (that isn't a name). Will use an
+#    "(empty)" default message if the string is empty.
+#
+# - `Token`: a token. The token's `lexeme` property is used.
+#
+# - `Type`: a kernel type.
+#
+# - `Unicode`: a Unicode short identifier (U+xxxx). We use this to
+#   represent code units or code points.
+#
+# - `Uri`: a URI.
 
 AsciiControlCharacter:
   parameters:

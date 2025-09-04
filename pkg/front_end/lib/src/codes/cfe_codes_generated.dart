@@ -31,8 +31,8 @@ Message _withArgumentsAmbiguousExtensionMethod({
   required String name,
   required DartType type,
 }) {
-  TypeLabeler labeler = new TypeLabeler();
   var name_0 = conversions.validateAndDemangleName(name);
+  TypeLabeler labeler = new TypeLabeler();
   var type_0 = labeler.labelType(type);
   return new Message(
     codeAmbiguousExtensionMethod,
@@ -69,8 +69,8 @@ Message _withArgumentsAmbiguousExtensionOperator({
   required String name,
   required DartType type,
 }) {
-  TypeLabeler labeler = new TypeLabeler();
   var name_0 = conversions.validateAndDemangleName(name);
+  TypeLabeler labeler = new TypeLabeler();
   var type_0 = labeler.labelType(type);
   return new Message(
     codeAmbiguousExtensionOperator,
@@ -109,8 +109,8 @@ Message _withArgumentsAmbiguousExtensionProperty({
   required String name,
   required DartType type,
 }) {
-  TypeLabeler labeler = new TypeLabeler();
   var name_0 = conversions.validateAndDemangleName(name);
+  TypeLabeler labeler = new TypeLabeler();
   var type_0 = labeler.labelType(type);
   return new Message(
     codeAmbiguousExtensionProperty,
@@ -153,8 +153,8 @@ Message _withArgumentsAmbiguousSupertypes({
   required DartType type,
   required DartType type2,
 }) {
-  TypeLabeler labeler = new TypeLabeler();
   var name_0 = conversions.validateAndDemangleName(name);
+  TypeLabeler labeler = new TypeLabeler();
   var type_0 = labeler.labelType(type);
   var type2_0 = labeler.labelType(type2);
   return new Message(
@@ -439,8 +439,8 @@ Message _withArgumentsConstEvalInvalidBinaryOperandType({
   required DartType type,
   required DartType type2,
 }) {
-  TypeLabeler labeler = new TypeLabeler();
   var stringOKEmpty_0 = conversions.stringOrEmpty(stringOKEmpty);
+  TypeLabeler labeler = new TypeLabeler();
   var constant_0 = labeler.labelConstant(constant);
   var type_0 = labeler.labelType(type);
   var type2_0 = labeler.labelType(type2);
@@ -529,8 +529,8 @@ Message _withArgumentsConstEvalInvalidMethodInvocation({
   required String stringOKEmpty,
   required Constant constant,
 }) {
-  TypeLabeler labeler = new TypeLabeler();
   var stringOKEmpty_0 = conversions.stringOrEmpty(stringOKEmpty);
+  TypeLabeler labeler = new TypeLabeler();
   var constant_0 = labeler.labelConstant(constant);
   return new Message(
     codeConstEvalInvalidMethodInvocation,
@@ -569,8 +569,8 @@ Message _withArgumentsConstEvalInvalidPropertyGet({
   required String stringOKEmpty,
   required Constant constant,
 }) {
-  TypeLabeler labeler = new TypeLabeler();
   var stringOKEmpty_0 = conversions.stringOrEmpty(stringOKEmpty);
+  TypeLabeler labeler = new TypeLabeler();
   var constant_0 = labeler.labelConstant(constant);
   return new Message(
     codeConstEvalInvalidPropertyGet,
@@ -609,8 +609,8 @@ Message _withArgumentsConstEvalInvalidRecordIndexGet({
   required String stringOKEmpty,
   required Constant constant,
 }) {
-  TypeLabeler labeler = new TypeLabeler();
   var stringOKEmpty_0 = conversions.stringOrEmpty(stringOKEmpty);
+  TypeLabeler labeler = new TypeLabeler();
   var constant_0 = labeler.labelConstant(constant);
   return new Message(
     codeConstEvalInvalidRecordIndexGet,
@@ -649,8 +649,8 @@ Message _withArgumentsConstEvalInvalidRecordNameGet({
   required String stringOKEmpty,
   required Constant constant,
 }) {
-  TypeLabeler labeler = new TypeLabeler();
   var stringOKEmpty_0 = conversions.stringOrEmpty(stringOKEmpty);
+  TypeLabeler labeler = new TypeLabeler();
   var constant_0 = labeler.labelConstant(constant);
   return new Message(
     codeConstEvalInvalidRecordNameGet,
@@ -940,8 +940,8 @@ Message _withArgumentsDotShorthandsUndefinedGetter({
   required String name,
   required DartType type,
 }) {
-  TypeLabeler labeler = new TypeLabeler();
   var name_0 = conversions.validateAndDemangleName(name);
+  TypeLabeler labeler = new TypeLabeler();
   var type_0 = labeler.labelType(type);
   return new Message(
     codeDotShorthandsUndefinedGetter,
@@ -980,8 +980,8 @@ Message _withArgumentsDotShorthandsUndefinedInvocation({
   required String name,
   required DartType type,
 }) {
-  TypeLabeler labeler = new TypeLabeler();
   var name_0 = conversions.validateAndDemangleName(name);
+  TypeLabeler labeler = new TypeLabeler();
   var type_0 = labeler.labelType(type);
   return new Message(
     codeDotShorthandsUndefinedInvocation,
@@ -1217,8 +1217,8 @@ Message _withArgumentsFieldNonNullableNotInitializedByConstructorError({
   required String name,
   required DartType type,
 }) {
-  TypeLabeler labeler = new TypeLabeler();
   var name_0 = conversions.validateAndDemangleName(name);
+  TypeLabeler labeler = new TypeLabeler();
   var type_0 = labeler.labelType(type);
   return new Message(
     codeFieldNonNullableNotInitializedByConstructorError,
@@ -1256,8 +1256,8 @@ Message _withArgumentsFieldNonNullableWithoutInitializerError({
   required String name,
   required DartType type,
 }) {
-  TypeLabeler labeler = new TypeLabeler();
   var name_0 = conversions.validateAndDemangleName(name);
+  TypeLabeler labeler = new TypeLabeler();
   var type_0 = labeler.labelType(type);
   return new Message(
     codeFieldNonNullableWithoutInitializerError,
@@ -1986,8 +1986,8 @@ Message _withArgumentsInitializingFormalTypeMismatch({
   required DartType type,
   required DartType type2,
 }) {
-  TypeLabeler labeler = new TypeLabeler();
   var name_0 = conversions.validateAndDemangleName(name);
+  TypeLabeler labeler = new TypeLabeler();
   var type_0 = labeler.labelType(type);
   var type2_0 = labeler.labelType(type2);
   return new Message(
@@ -2105,8 +2105,8 @@ Message _withArgumentsInternalProblemUnsupportedNullability({
   required String string,
   required DartType type,
 }) {
-  TypeLabeler labeler = new TypeLabeler();
   var string_0 = conversions.validateString(string);
+  TypeLabeler labeler = new TypeLabeler();
   var type_0 = labeler.labelType(type);
   return new Message(
     codeInternalProblemUnsupportedNullability,
@@ -3119,8 +3119,8 @@ Message _withArgumentsJsInteropExtensionTypeNotInterop({
   required String name,
   required DartType type,
 }) {
-  TypeLabeler labeler = new TypeLabeler();
   var name_0 = conversions.validateAndDemangleName(name);
+  TypeLabeler labeler = new TypeLabeler();
   var type_0 = labeler.labelType(type);
   return new Message(
     codeJsInteropExtensionTypeNotInterop,
@@ -3550,9 +3550,9 @@ Message _withArgumentsMixinInferenceNoMatchingClass({
   required String name2,
   required DartType type,
 }) {
-  TypeLabeler labeler = new TypeLabeler();
   var name_0 = conversions.validateAndDemangleName(name);
   var name2_0 = conversions.validateAndDemangleName(name2);
+  TypeLabeler labeler = new TypeLabeler();
   var type_0 = labeler.labelType(type);
   return new Message(
     codeMixinInferenceNoMatchingClass,
@@ -3592,8 +3592,8 @@ Message _withArgumentsNameNotFoundInRecordNameGet({
   required String string,
   required DartType type,
 }) {
-  TypeLabeler labeler = new TypeLabeler();
   var string_0 = conversions.validateString(string);
+  TypeLabeler labeler = new TypeLabeler();
   var type_0 = labeler.labelType(type);
   return new Message(
     codeNameNotFoundInRecordNameGet,
@@ -3794,8 +3794,8 @@ Message _withArgumentsNullableMethodCallError({
   required String name,
   required DartType type,
 }) {
-  TypeLabeler labeler = new TypeLabeler();
   var name_0 = conversions.validateAndDemangleName(name);
+  TypeLabeler labeler = new TypeLabeler();
   var type_0 = labeler.labelType(type);
   return new Message(
     codeNullableMethodCallError,
@@ -3829,8 +3829,8 @@ Message _withArgumentsNullableOperatorCallError({
   required String name,
   required DartType type,
 }) {
-  TypeLabeler labeler = new TypeLabeler();
   var name_0 = conversions.validateAndDemangleName(name);
+  TypeLabeler labeler = new TypeLabeler();
   var type_0 = labeler.labelType(type);
   return new Message(
     codeNullableOperatorCallError,
@@ -3866,8 +3866,8 @@ Message _withArgumentsNullablePropertyAccessError({
   required String name,
   required DartType type,
 }) {
-  TypeLabeler labeler = new TypeLabeler();
   var name_0 = conversions.validateAndDemangleName(name);
+  TypeLabeler labeler = new TypeLabeler();
   var type_0 = labeler.labelType(type);
   return new Message(
     codeNullablePropertyAccessError,
@@ -3906,8 +3906,8 @@ Message _withArgumentsOptionalNonNullableWithoutInitializerError({
   required String name,
   required DartType type,
 }) {
-  TypeLabeler labeler = new TypeLabeler();
   var name_0 = conversions.validateAndDemangleName(name);
+  TypeLabeler labeler = new TypeLabeler();
   var type_0 = labeler.labelType(type);
   return new Message(
     codeOptionalNonNullableWithoutInitializerError,
@@ -4004,9 +4004,9 @@ Message _withArgumentsOverrideTypeMismatchParameter({
   required DartType type2,
   required String name3,
 }) {
-  TypeLabeler labeler = new TypeLabeler();
   var name_0 = conversions.validateAndDemangleName(name);
   var name2_0 = conversions.validateAndDemangleName(name2);
+  TypeLabeler labeler = new TypeLabeler();
   var type_0 = labeler.labelType(type);
   var type2_0 = labeler.labelType(type2);
   var name3_0 = conversions.validateAndDemangleName(name3);
@@ -4069,8 +4069,8 @@ Message _withArgumentsOverrideTypeMismatchReturnType({
   required DartType type2,
   required String name2,
 }) {
-  TypeLabeler labeler = new TypeLabeler();
   var name_0 = conversions.validateAndDemangleName(name);
+  TypeLabeler labeler = new TypeLabeler();
   var type_0 = labeler.labelType(type);
   var type2_0 = labeler.labelType(type2);
   var name2_0 = conversions.validateAndDemangleName(name2);
@@ -4123,8 +4123,8 @@ Message _withArgumentsOverrideTypeMismatchSetter({
   required DartType type2,
   required String name2,
 }) {
-  TypeLabeler labeler = new TypeLabeler();
   var name_0 = conversions.validateAndDemangleName(name);
+  TypeLabeler labeler = new TypeLabeler();
   var type_0 = labeler.labelType(type);
   var type2_0 = labeler.labelType(type2);
   var name2_0 = conversions.validateAndDemangleName(name2);
@@ -4534,8 +4534,8 @@ Message _withArgumentsSuperExtensionTypeIsIllegalAliased({
   required String name,
   required DartType type,
 }) {
-  TypeLabeler labeler = new TypeLabeler();
   var name_0 = conversions.validateAndDemangleName(name);
+  TypeLabeler labeler = new TypeLabeler();
   var type_0 = labeler.labelType(type);
   return new Message(
     codeSuperExtensionTypeIsIllegalAliased,
@@ -4570,8 +4570,8 @@ Message _withArgumentsSuperExtensionTypeIsNullableAliased({
   required String name,
   required DartType type,
 }) {
-  TypeLabeler labeler = new TypeLabeler();
   var name_0 = conversions.validateAndDemangleName(name);
+  TypeLabeler labeler = new TypeLabeler();
   var type_0 = labeler.labelType(type);
   return new Message(
     codeSuperExtensionTypeIsNullableAliased,
@@ -4607,8 +4607,8 @@ Message _withArgumentsSupertypeIsIllegalAliased({
   required String name,
   required DartType type,
 }) {
-  TypeLabeler labeler = new TypeLabeler();
   var name_0 = conversions.validateAndDemangleName(name);
+  TypeLabeler labeler = new TypeLabeler();
   var type_0 = labeler.labelType(type);
   return new Message(
     codeSupertypeIsIllegalAliased,
@@ -4644,8 +4644,8 @@ Message _withArgumentsSupertypeIsNullableAliased({
   required String name,
   required DartType type,
 }) {
-  TypeLabeler labeler = new TypeLabeler();
   var name_0 = conversions.validateAndDemangleName(name);
+  TypeLabeler labeler = new TypeLabeler();
   var type_0 = labeler.labelType(type);
   return new Message(
     codeSupertypeIsNullableAliased,
@@ -4751,8 +4751,8 @@ Message _withArgumentsUndefinedGetter({
   required String name,
   required DartType type,
 }) {
-  TypeLabeler labeler = new TypeLabeler();
   var name_0 = conversions.validateAndDemangleName(name);
+  TypeLabeler labeler = new TypeLabeler();
   var type_0 = labeler.labelType(type);
   return new Message(
     codeUndefinedGetter,
@@ -4790,8 +4790,8 @@ Message _withArgumentsUndefinedMethod({
   required String name,
   required DartType type,
 }) {
-  TypeLabeler labeler = new TypeLabeler();
   var name_0 = conversions.validateAndDemangleName(name);
+  TypeLabeler labeler = new TypeLabeler();
   var type_0 = labeler.labelType(type);
   return new Message(
     codeUndefinedMethod,
@@ -4829,8 +4829,8 @@ Message _withArgumentsUndefinedOperator({
   required String name,
   required DartType type,
 }) {
-  TypeLabeler labeler = new TypeLabeler();
   var name_0 = conversions.validateAndDemangleName(name);
+  TypeLabeler labeler = new TypeLabeler();
   var type_0 = labeler.labelType(type);
   return new Message(
     codeUndefinedOperator,
@@ -4868,8 +4868,8 @@ Message _withArgumentsUndefinedSetter({
   required String name,
   required DartType type,
 }) {
-  TypeLabeler labeler = new TypeLabeler();
   var name_0 = conversions.validateAndDemangleName(name);
+  TypeLabeler labeler = new TypeLabeler();
   var type_0 = labeler.labelType(type);
   return new Message(
     codeUndefinedSetter,
@@ -4905,8 +4905,8 @@ Message _withArgumentsWrongTypeParameterVarianceInSuperinterface({
   required String name,
   required DartType type,
 }) {
-  TypeLabeler labeler = new TypeLabeler();
   var name_0 = conversions.validateAndDemangleName(name);
+  TypeLabeler labeler = new TypeLabeler();
   var type_0 = labeler.labelType(type);
   return new Message(
     codeWrongTypeParameterVarianceInSuperinterface,
