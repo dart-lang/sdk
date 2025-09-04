@@ -146,8 +146,8 @@
 
 AsciiControlCharacter:
   parameters:
-    Unicode unicode: undocumented
-  problemMessage: "The control character #unicode can only be used in strings and comments."
+    Unicode character: the unexpected control character.
+  problemMessage: "The control character #character can only be used in strings and comments."
   analyzerCode: ILLEGAL_CHARACTER
   expression: "\x1b 1"
 
