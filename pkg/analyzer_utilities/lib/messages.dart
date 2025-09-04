@@ -297,9 +297,11 @@ abstract class ErrorCodeInfo {
   /// [previousName] to its current name (or [sharedName]).
   final String? previousName;
 
-  /// A list of [ErrorCodeParameter] objects describing the parameters for this
-  /// error code, obtained from the `parameters` entry in the yaml file.
-  final List<ErrorCodeParameter> parameters;
+  /// Map describing the parameters for this error code, obtained from the
+  /// `parameters` entry in the yaml file.
+  ///
+  /// Map keys are parameter names. Map values are [ErrorCodeParameter] objects.
+  final Map<String, ErrorCodeParameter> parameters;
 
   /// The raw YAML node that this `ErrorCodeInfo` was parsed from, or `null` if
   /// this `ErrorCodeInfo` was created without reference to a raw YAML node.
@@ -363,10 +365,7 @@ abstract class ErrorCodeInfo {
   Map<String, int> computePlaceholderToIndexMap() {
     // Parameters are always explicitly specified, so the mapping is determined
     // by the order in which they were specified.
-    return {
-      for (var (index, parameter) in parameters.indexed)
-        '#${parameter.name}': index,
-    };
+    return {for (var (index, name) in parameters.keys.indexed) '#$name': index};
   }
 
   void outputConstantHeader(StringSink out) {
@@ -401,17 +400,17 @@ abstract class ErrorCodeInfo {
         'Error code declares parameters using a `parameters` entry, but '
         "doesn't use them",
       );
-    } else if (parameters.any((p) => !p.type.isSupportedByAnalyzer)) {
+    } else if (parameters.values.any((p) => !p.type.isSupportedByAnalyzer)) {
       // Do not generate literate API yet.
       className = errorClassInfo.name;
     } else if (parameters.isNotEmpty) {
       // Parameters are present so generate a diagnostic template (with
       // `.withArguments` support).
       className = errorClassInfo.templateName;
-      var withArgumentsParams = parameters
-          .map((p) => 'required ${p.type.analyzerName} ${p.name}')
+      var withArgumentsParams = parameters.entries
+          .map((p) => 'required ${p.value.type.analyzerName} ${p.key}')
           .join(', ');
-      var argumentNames = parameters.map((p) => p.name).join(', ');
+      var argumentNames = parameters.keys.join(', ');
       var pascalCaseName = diagnosticCode.toPascalCase();
       withArgumentsName = '_withArguments$pascalCaseName';
       templateParameters =
@@ -492,14 +491,14 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
 
     // Add a `Parameters:` section to the bottom of the comment if appropriate.
     switch (parameters) {
-      case []:
+      case Map(isEmpty: true):
         if (commentLines.isNotEmpty) commentLines.add('');
         commentLines.add('No parameters.');
       default:
         if (commentLines.isNotEmpty) commentLines.add('');
         commentLines.add('Parameters:');
-        for (var p in parameters) {
-          var prefix = '${p.type.messagesYamlName} ${p.name}: ';
+        for (var MapEntry(key: name, value: p) in parameters.entries) {
+          var prefix = '${p.type.messagesYamlName} $name: ';
           var extraIndent = ' ' * prefix.length;
           var firstLineWidth = 80 - 4 - indent.length;
           var lines = _splitText(
@@ -535,7 +534,8 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
 
   String _computeExpectedTypes() {
     var expectedTypes = [
-      for (var parameter in parameters) 'ExpectedType.${parameter.type.name}',
+      for (var parameter in parameters.values)
+        'ExpectedType.${parameter.type.name}',
     ];
     return '[${expectedTypes.join(', ')}]';
   }
@@ -561,22 +561,22 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
     }
   }
 
-  static List<ErrorCodeParameter> _decodeParameters(Object? yaml) {
+  static Map<String, ErrorCodeParameter> _decodeParameters(Object? yaml) {
     if (yaml == null) {
       throw StateError('Missing parameters section');
     }
-    if (yaml == 'none') return const [];
+    if (yaml == 'none') return const {};
     yaml as Map<Object?, Object?>;
-    var result = <ErrorCodeParameter>[];
+    var result = <String, ErrorCodeParameter>{};
     for (var MapEntry(:key, :value) in yaml.entries) {
       switch ((key as String).split(' ')) {
         case [var type, var name]:
-          result.add(
-            ErrorCodeParameter(
-              type: ErrorCodeParameterType.fromMessagesYamlName(type),
-              name: name,
-              comment: value as String,
-            ),
+          if (result.containsKey(name)) {
+            throw StateError('Duplicate parameter name: $name');
+          }
+          result[name] = ErrorCodeParameter(
+            type: ErrorCodeParameterType.fromMessagesYamlName(type),
+            comment: value as String,
           );
         default:
           throw StateError(
@@ -591,16 +591,14 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
 
 /// In-memory representation of a single key/value pair from the `parameters`
 /// map for an error code.
+///
+/// The name of the parameter is not included, since parameters are stored in a
+/// map from name to [ErrorCodeParameter].
 class ErrorCodeParameter {
   final ErrorCodeParameterType type;
-  final String name;
   final String comment;
 
-  ErrorCodeParameter({
-    required this.type,
-    required this.name,
-    required this.comment,
-  });
+  ErrorCodeParameter({required this.type, required this.comment});
 }
 
 /// In-memory representation of the type of a single diagnostic code's
