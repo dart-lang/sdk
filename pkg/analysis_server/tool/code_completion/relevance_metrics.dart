@@ -1533,10 +1533,9 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    var keywords =
-        node.parent?.parent is FieldDeclaration
-            ? [Keyword.COVARIANT, ...expressionKeywords]
-            : expressionKeywords;
+    var keywords = node.parent?.parent is FieldDeclaration
+        ? [Keyword.COVARIANT, ...expressionKeywords]
+        : expressionKeywords;
     _recordDataForNode(
       'VariableDeclaration (initializer)',
       node.initializer,
@@ -2270,10 +2269,10 @@ class RelevanceMetricsComputer {
     if (map == null) {
       return columns;
     }
-    var entries =
-        map.entries.toList()..sort((first, second) {
-          return second.value.compareTo(first.value);
-        });
+    var entries = map.entries.toList()
+      ..sort((first, second) {
+        return second.value.compareTo(first.value);
+      });
     var total = 0;
     for (var entry in entries) {
       total += entry.value;
@@ -2326,9 +2325,8 @@ class RelevanceMetricsComputer {
     StringSink sink,
     Map<String, Map<String, int>> contextMap,
   ) {
-    var entries =
-        contextMap.entries.toList()
-          ..sort((first, second) => first.key.compareTo(second.key));
+    var entries = contextMap.entries.toList()
+      ..sort((first, second) => first.key.compareTo(second.key));
     for (var i = 0; i < entries.length; i++) {
       if (i > 0) {
         sink.writeln();
@@ -2403,9 +2401,8 @@ class RelevanceMetricsComputer {
     StringSink sink,
     Map<String, _PercentageData> percentageMap,
   ) {
-    var entries =
-        percentageMap.entries.toList()
-          ..sort((first, second) => first.key.compareTo(second.key));
+    var entries = percentageMap.entries.toList()
+      ..sort((first, second) => first.key.compareTo(second.key));
     for (var entry in entries) {
       var name = entry.key;
       var data = entry.value;

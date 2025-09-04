@@ -150,13 +150,9 @@ class RemoveDeadCode extends ResolvedCorrectionProducer {
         var isComma =
             !isFirstNode && rightParenthesis.previous?.type == TokenType.COMMA;
         var previous = node.beginToken.previous!;
-        var deletionRange =
-            isComma
-                ? range.endStart(previous, rightParenthesis)
-                : range.startStart(
-                  isFirstNode ? node : previous,
-                  rightParenthesis,
-                );
+        var deletionRange = isComma
+            ? range.endStart(previous, rightParenthesis)
+            : range.startStart(isFirstNode ? node : previous, rightParenthesis);
         await _addEdit((builder) {
           builder.addDeletion(deletionRange);
         });
@@ -176,8 +172,9 @@ class RemoveDeadCode extends ResolvedCorrectionProducer {
         // effects (or so we presume--see `_looksSideEffectFree` for details).
         // So the conditional expression can be replaced with the `live`
         // subexpression.
-        var nodeToKeep =
-            node == thenExpression ? elseExpression : thenExpression;
+        var nodeToKeep = node == thenExpression
+            ? elseExpression
+            : thenExpression;
         if (nodeToKeep is ThrowExpression &&
             grandParent is CascadeExpression &&
             grandParent.target == parent) {

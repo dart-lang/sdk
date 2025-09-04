@@ -215,8 +215,8 @@ class ContextsPage extends DiagnosticPageWithNav {
         cycles.add(kind.libraryCycle);
       }
     }
-    var sortedCycles =
-        cycles.toList()..sort((first, second) => second.size - first.size);
+    var sortedCycles = cycles.toList()
+      ..sort((first, second) => second.size - first.size);
     var cyclesToDisplay = math.min(sortedCycles.length, 10);
     var initialPathLength = contextRoot.root.path.length + 1;
     buf.write('<p>There are ${sortedCycles.length} library cycles. ');

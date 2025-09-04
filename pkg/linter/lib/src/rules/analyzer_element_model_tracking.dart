@@ -105,7 +105,8 @@ class _Visitor extends SimpleAstVisitor<void> {
                         annotation.element.isTrackedDirectlyExpensive ||
                         annotation.element.isTrackedDirectlyOpaque ||
                         annotation.element.isTrackedIncludedInId ||
-                        annotation.element.isTrackedIndirectly) {
+                        annotation.element.isTrackedIndirectly ||
+                        annotation.element.isTrackedInternal) {
                       if (hasRequired) {
                         _reportMoreThanOne(annotation);
                       }
@@ -133,7 +134,8 @@ class _Visitor extends SimpleAstVisitor<void> {
                         annotation.element.isTrackedDirectlyExpensive ||
                         annotation.element.isTrackedDirectlyOpaque ||
                         annotation.element.isTrackedIncludedInId ||
-                        annotation.element.isTrackedIndirectly) {
+                        annotation.element.isTrackedIndirectly ||
+                        annotation.element.isTrackedInternal) {
                       if (hasRequired) {
                         _reportMoreThanOne(annotation);
                       }
@@ -193,7 +195,8 @@ extension on ElementAnnotation {
       isTrackedDirectlyExpensive ||
       isTrackedDirectlyOpaque ||
       isTrackedIncludedInId ||
-      isTrackedIndirectly;
+      isTrackedIndirectly ||
+      isTrackedInternal;
 
   bool get isElementClass => _isAnnotation('elementClass');
 
@@ -207,6 +210,8 @@ extension on ElementAnnotation {
   bool get isTrackedIncludedInId => _isAnnotation('trackedIncludedInId');
 
   bool get isTrackedIndirectly => _isAnnotation('trackedIndirectly');
+
+  bool get isTrackedInternal => _isAnnotation('trackedInternal');
 
   bool _isAnnotation(String name) {
     if (element case GetterElement element) {

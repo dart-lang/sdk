@@ -74,14 +74,13 @@ class LegacyManyHoverRequestsBenchmark extends DartLanguageServerBenchmark {
     );
 
     // Ask for completion
-    Future<Map<String, dynamic>> completionFuture =
-        (await send(
-          LegacyMessages.getSuggestions2(
-            largestIdSeen + 1,
-            runDetails.mainFile.uri,
-            runDetails.typingAtOffset,
-          ),
-        ))!.completer.future;
+    Future<Map<String, dynamic>> completionFuture = (await send(
+      LegacyMessages.getSuggestions2(
+        largestIdSeen + 1,
+        runDetails.mainFile.uri,
+        runDetails.typingAtOffset,
+      ),
+    ))!.completer.future;
 
     Stopwatch stopwatch = Stopwatch()..start();
     var completionResponse = await completionFuture;

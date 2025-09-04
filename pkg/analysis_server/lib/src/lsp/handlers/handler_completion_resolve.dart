@@ -87,12 +87,9 @@ class CompletionResolveHandler
           return cancelled(token);
         }
 
-        var element =
-            elementReference != null
-                ? await ElementLocation.decode(
-                  elementReference,
-                ).locateIn(session)
-                : null;
+        var element = elementReference != null
+            ? await ElementLocation.decode(elementReference).locateIn(session)
+            : null;
 
         var showName = element?.name;
         if (element?.enclosingElement case InstanceElement(:var name)) {
@@ -111,10 +108,12 @@ class CompletionResolveHandler
         }
 
         var changes = builder.sourceChange;
-        var thisFilesChanges =
-            changes.edits.where((e) => e.file == file).toList();
-        var otherFilesChanges =
-            changes.edits.where((e) => e.file != file).toList();
+        var thisFilesChanges = changes.edits
+            .where((e) => e.file == file)
+            .toList();
+        var otherFilesChanges = changes.edits
+            .where((e) => e.file != file)
+            .toList();
 
         // If this completion involves editing other files, we'll need to build
         // a command that the client will call to apply those edits later.
@@ -145,10 +144,9 @@ class CompletionResolveHandler
             server.lspClientConfiguration.global.preferredDocumentation,
           );
           // `dartDoc` can be both null or empty.
-          documentation =
-              dartDoc != null && dartDoc.isNotEmpty
-                  ? asMarkupContentOrString(formats, dartDoc)
-                  : null;
+          documentation = dartDoc != null && dartDoc.isNotEmpty
+              ? asMarkupContentOrString(formats, dartDoc)
+              : null;
         }
 
         String? detail = item.detail;
@@ -185,14 +183,13 @@ class CompletionResolveHandler
             insertTextFormat: item.insertTextFormat,
             insertTextMode: item.insertTextMode,
             textEdit: item.textEdit,
-            additionalTextEdits:
-                thisFilesChanges
-                    .expand(
-                      (change) => sortSourceEditsForLsp(
-                        change.edits,
-                      ).map((edit) => toTextEdit(result.lineInfo, edit)),
-                    )
-                    .toList(),
+            additionalTextEdits: thisFilesChanges
+                .expand(
+                  (change) => sortSourceEditsForLsp(
+                    change.edits,
+                  ).map((edit) => toTextEdit(result.lineInfo, edit)),
+                )
+                .toList(),
             commitCharacters: item.commitCharacters,
             command: command ?? item.command,
             data: item.data,
@@ -233,10 +230,9 @@ class CompletionResolveHandler
         kind: item.kind,
         tags: item.tags,
         detail: item.detail,
-        documentation:
-            description != null
-                ? Either2<MarkupContent, String>.t2(description)
-                : null,
+        documentation: description != null
+            ? Either2<MarkupContent, String>.t2(description)
+            : null,
         deprecated: item.deprecated,
         preselect: item.preselect,
         sortText: item.sortText,

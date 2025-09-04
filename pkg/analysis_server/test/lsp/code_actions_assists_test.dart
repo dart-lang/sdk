@@ -58,9 +58,8 @@ bar
       ),
     ]);
     configureTestPlugin(
-      handler:
-          (request) =>
-              request is plugin.EditGetAssistsParams ? pluginResult : null,
+      handler: (request) =>
+          request is plugin.EditGetAssistsParams ? pluginResult : null,
     );
 
     await verifyCodeActionLiteralEdits(
@@ -88,9 +87,8 @@ bar
       plugin.PrioritizedSourceChange(100, plugin.SourceChange('High')),
     ]);
     configureTestPlugin(
-      handler:
-          (request) =>
-              request is plugin.EditGetAssistsParams ? pluginResult : null,
+      handler: (request) =>
+          request is plugin.EditGetAssistsParams ? pluginResult : null,
     );
 
     createFile(testFilePath, code.code);

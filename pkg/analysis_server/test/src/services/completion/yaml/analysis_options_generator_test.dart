@@ -94,11 +94,10 @@ analyzer:
   errors:
     ^
 ''');
-    var duplicateCompletions =
-        groupBy(
-          results.map((result) => result.completion),
-          (result) => result,
-        ).entries.where((entry) => entry.value.length > 1).keys;
+    var duplicateCompletions = groupBy(
+      results.map((result) => result.completion),
+      (result) => result,
+    ).entries.where((entry) => entry.value.length > 1).keys;
     expect(duplicateCompletions, isEmpty);
   }
 

@@ -49,16 +49,14 @@ const argDownload = 'download';
 
 const argHelp = 'help';
 
-final argParser =
-    ArgParser()
-      ..addFlag(argHelp, hide: true)
-      ..addFlag(
-        argDownload,
-        negatable: false,
-        abbr: 'd',
-        help:
-            'Download the latest version of the LSP spec before generating types',
-      );
+final argParser = ArgParser()
+  ..addFlag(argHelp, hide: true)
+  ..addFlag(
+    argDownload,
+    negatable: false,
+    abbr: 'd',
+    help: 'Download the latest version of the LSP spec before generating types',
+  );
 
 final String languageServerProtocolPackagePath = path.join(
   sdkRootPath,
@@ -67,9 +65,8 @@ final String languageServerProtocolPackagePath = path.join(
   'language_server_protocol',
 );
 
-final String licenseComment = LineSplitter.split(
-      File(localLicensePath).readAsStringSync(),
-    )
+final String
+licenseComment = LineSplitter.split(File(localLicensePath).readAsStringSync())
     .skipWhile(
       (line) =>
           line !=
@@ -83,8 +80,9 @@ final String localLicensePath = '$languageServerProtocolPackagePath/LICENSE';
 final String localSpecPath =
     '$languageServerProtocolPackagePath/lsp_meta_model.json';
 
-final String sdkRootPath =
-    File(Platform.script.toFilePath()).parent.parent.parent.parent.parent.path;
+final String sdkRootPath = File(
+  Platform.script.toFilePath(),
+).parent.parent.parent.parent.parent.path;
 
 final Uri specLicenseUri = Uri.parse(
   'https://microsoft.github.io/language-server-protocol/License-code.txt',
@@ -117,7 +115,8 @@ ${licenseResp.body}
 ''');
 }
 
-String generatedFileHeader(int year, {bool importCustom = false}) => '''
+String generatedFileHeader(int year, {bool importCustom = false}) =>
+    '''
 $licenseComment
 
 // This file has been automatically generated. Please do not edit it manually.
@@ -165,12 +164,11 @@ List<LspEntity> getCustomClasses() {
     bool canBeNull = false,
     bool canBeUndefined = false,
   }) {
-    var fieldType =
-        array
-            ? ArrayType(TypeReference(type))
-            : literal
-            ? LiteralType(TypeReference.string, type)
-            : TypeReference(type);
+    var fieldType = array
+        ? ArrayType(TypeReference(type))
+        : literal
+        ? LiteralType(TypeReference.string, type)
+        : TypeReference(type);
 
     return Field(
       name: name,

@@ -55,17 +55,16 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     Map<int, FoldingRangeKind?> expected, {
     bool requireAll = true,
   }) {
-    var expectedRanges =
-        expected.entries.map((entry) {
-          var range = code.ranges[entry.key].range;
-          return FoldingRange(
-            startLine: range.start.line,
-            startCharacter: lineFoldingOnly ? null : range.start.character,
-            endLine: range.end.line,
-            endCharacter: lineFoldingOnly ? null : range.end.character,
-            kind: entry.value,
-          );
-        }).toSet();
+    var expectedRanges = expected.entries.map((entry) {
+      var range = code.ranges[entry.key].range;
+      return FoldingRange(
+        startLine: range.start.line,
+        startCharacter: lineFoldingOnly ? null : range.start.character,
+        endLine: range.end.line,
+        endCharacter: lineFoldingOnly ? null : range.end.character,
+        kind: entry.value,
+      );
+    }).toSet();
 
     if (requireAll) {
       expect(ranges, expectedRanges);
@@ -172,9 +171,8 @@ class AnnotatedDartClass/*[1*/ {
     await computeRanges(
       content,
       uri: pluginAnalyzedUri,
-      initializePlugin:
-          () =>
-              configureTestPlugin(notification: pluginResult.toNotification()),
+      initializePlugin: () =>
+          configureTestPlugin(notification: pluginResult.toNotification()),
     );
     expectRanges({
       0: FoldingRangeKind.Imports, // From plugin
@@ -199,9 +197,8 @@ CREATE TABLE foo(
     await computeRanges(
       content,
       uri: pluginAnalyzedUri,
-      initializePlugin:
-          () =>
-              configureTestPlugin(notification: pluginResult.toNotification()),
+      initializePlugin: () =>
+          configureTestPlugin(notification: pluginResult.toNotification()),
     );
     expectRanges({
       0: noFoldingKind, // From plugin

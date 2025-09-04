@@ -71,10 +71,9 @@ class TypeHierarchyComputer {
       var subMemberElementDeclared = subMemberElement?.nonSynthetic;
       subItem = TypeHierarchyItem(
         convertElement(subElement),
-        memberElement:
-            subMemberElementDeclared != null
-                ? convertElement(subMemberElementDeclared)
-                : null,
+        memberElement: subMemberElementDeclared != null
+            ? convertElement(subMemberElementDeclared)
+            : null,
         superclass: itemId,
       );
       var subItemId = _items.length;
@@ -124,10 +123,9 @@ class TypeHierarchyComputer {
       item = TypeHierarchyItem(
         convertElement(classElement),
         displayName: displayName,
-        memberElement:
-            memberElementDeclared != null
-                ? convertElement(memberElementDeclared)
-                : null,
+        memberElement: memberElementDeclared != null
+            ? convertElement(memberElementDeclared)
+            : null,
       );
       _elementItemMap[classElement] = item;
       itemId = _items.length;

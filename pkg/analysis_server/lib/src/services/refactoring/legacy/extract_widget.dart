@@ -411,8 +411,9 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
       builder.writeln();
       builder.writeln();
       var useSuperParameters = _featureSet.isEnabled(Feature.super_parameters);
-      var paramsToInitialize =
-          _parameters.where((p) => p.constructorName != p.name).toList();
+      var paramsToInitialize = _parameters
+          .where((p) => p.constructorName != p.name)
+          .toList();
       builder.writeClassDeclaration(
         name,
         superclass: classStatelessWidget!.instantiate(
@@ -459,26 +460,25 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
               builder.write('  }');
             },
-            initializerWriter:
-                useSuperParameters && paramsToInitialize.isEmpty
-                    ? null
-                    : () {
-                      for (var i = 0; i < paramsToInitialize.length; ++i) {
-                        var parameter = paramsToInitialize[i];
-                        if (i > 0) {
-                          builder.write(', ');
-                        }
-                        builder.write(parameter.name);
-                        builder.write(' = ');
-                        builder.write(parameter.constructorName);
+            initializerWriter: useSuperParameters && paramsToInitialize.isEmpty
+                ? null
+                : () {
+                    for (var i = 0; i < paramsToInitialize.length; ++i) {
+                      var parameter = paramsToInitialize[i];
+                      if (i > 0) {
+                        builder.write(', ');
                       }
-                      if (!useSuperParameters) {
-                        if (paramsToInitialize.isNotEmpty) {
-                          builder.write(', ');
-                        }
-                        builder.write('super(key: key)');
+                      builder.write(parameter.name);
+                      builder.write(' = ');
+                      builder.write(parameter.constructorName);
+                    }
+                    if (!useSuperParameters) {
+                      if (paramsToInitialize.isNotEmpty) {
+                        builder.write(', ');
                       }
-                    },
+                      builder.write('super(key: key)');
+                    }
+                  },
           );
           builder.writeln();
           builder.writeln();
@@ -664,11 +664,10 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
   bool _isMemberOfEnclosingClass(Element element) {
     var enclosingClass = this.enclosingClass;
     if (enclosingClass != null) {
-      var enclosingClasses =
-          this.enclosingClasses ??= <InterfaceElement>[
-            enclosingClass,
-            ...enclosingClass.allSupertypes.map((t) => t.element),
-          ];
+      var enclosingClasses = this.enclosingClasses ??= <InterfaceElement>[
+        enclosingClass,
+        ...enclosingClass.allSupertypes.map((t) => t.element),
+      ];
       return enclosingClasses.contains(element.enclosingElement);
     }
     return false;

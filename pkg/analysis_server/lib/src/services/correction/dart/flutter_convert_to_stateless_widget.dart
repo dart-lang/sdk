@@ -416,8 +416,8 @@ class _StateUsageVisitor extends RecursiveAstVisitor<void> {
       return;
     }
     var methodDeclaration = node.thisOrAncestorOfType<MethodDeclaration>();
-    var classDeclaration =
-        methodDeclaration?.thisOrAncestorOfType<ClassDeclaration>();
+    var classDeclaration = methodDeclaration
+        ?.thisOrAncestorOfType<ClassDeclaration>();
 
     if (methodDeclaration?.name.lexeme != 'createState' ||
         classDeclaration?.declaredFragment!.element != widgetClassElement) {

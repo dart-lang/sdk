@@ -103,8 +103,8 @@ class _AddInvocation extends ResolvedCorrectionProducer {
         _constructor.formalParameters.any((p) => p.name == null)) {
       return;
     }
-    var currentConstructor =
-        node.thisOrAncestorOfType<ConstructorDeclaration>();
+    var currentConstructor = node
+        .thisOrAncestorOfType<ConstructorDeclaration>();
     var positionalParameters = 0;
     var namedParameters = <String>{};
     if (currentConstructor case ConstructorDeclaration(:var parameters)) {

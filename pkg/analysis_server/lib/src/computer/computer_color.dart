@@ -106,12 +106,11 @@ class ColorComputer {
       double? alpha, red, green, blue;
       for (var arg in args.whereType<NamedExpression>()) {
         var expression = arg.expression;
-        var value =
-            expression is DoubleLiteral
-                ? expression.value
-                : expression is IntegerLiteral
-                ? expression.value?.toDouble()
-                : null;
+        var value = expression is DoubleLiteral
+            ? expression.value
+            : expression is IntegerLiteral
+            ? expression.value?.toDouble()
+            : null;
         switch (arg.name.label.name) {
           case 'alpha':
             alpha = value;
@@ -154,12 +153,11 @@ class ColorComputer {
       var red = arg0 is IntegerLiteral ? arg0.value : null;
       var green = arg1 is IntegerLiteral ? arg1.value : null;
       var blue = arg2 is IntegerLiteral ? arg2.value : null;
-      var opacity =
-          arg3 is IntegerLiteral
-              ? arg3.value
-              : arg3 is DoubleLiteral
-              ? arg3.value
-              : null;
+      var opacity = arg3 is IntegerLiteral
+          ? arg3.value
+          : arg3 is DoubleLiteral
+          ? arg3.value
+          : null;
       var alpha = opacity != null ? (opacity * 255).toInt() : null;
 
       return alpha != null && red != null && green != null && blue != null
@@ -175,9 +173,9 @@ class ColorComputer {
     String? name,
     List<Expression> args,
   ) =>
-  // MaterialAccentColor is a subclass of SwatchColor and has the same
-  // constructor.
-  _getFlutterSwatchColor(name, args);
+      // MaterialAccentColor is a subclass of SwatchColor and has the same
+      // constructor.
+      _getFlutterSwatchColor(name, args);
 
   /// Extracts the color information from Flutter ColorSwatch constructor args.
   ColorInformation? _getFlutterSwatchColor(
@@ -270,11 +268,11 @@ class ColorComputer {
   }) {
     return alpha != null && red != null && green != null && blue != null
         ? ColorInformation(
-          (alpha * 255.0).round() & 0xff,
-          (red * 255.0).round() & 0xff,
-          (green * 255.0).round() & 0xff,
-          (blue * 255.0).round() & 0xff,
-        )
+            (alpha * 255.0).round() & 0xff,
+            (red * 255.0).round() & 0xff,
+            (green * 255.0).round() & 0xff,
+            (blue * 255.0).round() & 0xff,
+          )
         : null;
   }
 
@@ -283,11 +281,11 @@ class ColorComputer {
   static ColorInformation? getColorForInt(int? value) {
     return value != null
         ? ColorInformation(
-          (value >> 24) & 0xff,
-          (value >> 16) & 0xff,
-          (value >> 8) & 0xff,
-          value & 0xff,
-        )
+            (value >> 24) & 0xff,
+            (value >> 16) & 0xff,
+            (value >> 8) & 0xff,
+            value & 0xff,
+          )
         : null;
   }
 

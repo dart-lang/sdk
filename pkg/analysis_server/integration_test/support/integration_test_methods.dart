@@ -285,8 +285,8 @@ abstract class IntegrationTest {
   ///
   ///   The stack trace associated with the generation of the error, used for
   ///   debugging the server.
-  late final Stream<ServerErrorParams> onServerError =
-      _onServerError.stream.asBroadcastStream();
+  late final Stream<ServerErrorParams> onServerError = _onServerError.stream
+      .asBroadcastStream();
 
   /// Stream controller for [onServerError].
   final _onServerError = StreamController<ServerErrorParams>(sync: true);
@@ -314,8 +314,8 @@ abstract class IntegrationTest {
   /// Parameters
   ///
   /// entry: ServerLogEntry
-  late final Stream<ServerLogParams> onServerLog =
-      _onServerLog.stream.asBroadcastStream();
+  late final Stream<ServerLogParams> onServerLog = _onServerLog.stream
+      .asBroadcastStream();
 
   /// Stream controller for [onServerLog].
   final _onServerLog = StreamController<ServerLogParams>(sync: true);
@@ -341,8 +341,8 @@ abstract class IntegrationTest {
   ///
   ///   Note: this status type is deprecated, and is no longer sent by the
   ///   server.
-  late final Stream<ServerStatusParams> onServerStatus =
-      _onServerStatus.stream.asBroadcastStream();
+  late final Stream<ServerStatusParams> onServerStatus = _onServerStatus.stream
+      .asBroadcastStream();
 
   /// Stream controller for [onServerStatus].
   final _onServerStatus = StreamController<ServerStatusParams>(sync: true);
@@ -973,8 +973,9 @@ abstract class IntegrationTest {
   /// errors: List<AnalysisError>
   ///
   ///   The errors contained in the file.
-  late final Stream<AnalysisErrorsParams> onAnalysisErrors =
-      _onAnalysisErrors.stream.asBroadcastStream();
+  late final Stream<AnalysisErrorsParams> onAnalysisErrors = _onAnalysisErrors
+      .stream
+      .asBroadcastStream();
 
   /// Stream controller for [onAnalysisErrors].
   final _onAnalysisErrors = StreamController<AnalysisErrorsParams>(sync: true);
@@ -1436,8 +1437,8 @@ abstract class IntegrationTest {
   ///
   ///   The existing imports in the library.
   late final Stream<CompletionExistingImportsParams>
-  onCompletionExistingImports =
-      _onCompletionExistingImports.stream.asBroadcastStream();
+  onCompletionExistingImports = _onCompletionExistingImports.stream
+      .asBroadcastStream();
 
   /// Stream controller for [onCompletionExistingImports].
   final _onCompletionExistingImports =
@@ -1723,8 +1724,9 @@ abstract class IntegrationTest {
   ///
   ///   True if this is that last set of results that will be returned for the
   ///   indicated search.
-  late final Stream<SearchResultsParams> onSearchResults =
-      _onSearchResults.stream.asBroadcastStream();
+  late final Stream<SearchResultsParams> onSearchResults = _onSearchResults
+      .stream
+      .asBroadcastStream();
 
   /// Stream controller for [onSearchResults].
   final _onSearchResults = StreamController<SearchResultsParams>(sync: true);
@@ -3014,8 +3016,9 @@ abstract class IntegrationTest {
   /// outline: FlutterOutline
   ///
   ///   The outline associated with the file.
-  late final Stream<FlutterOutlineParams> onFlutterOutline =
-      _onFlutterOutline.stream.asBroadcastStream();
+  late final Stream<FlutterOutlineParams> onFlutterOutline = _onFlutterOutline
+      .stream
+      .asBroadcastStream();
 
   /// Stream controller for [onFlutterOutline].
   final _onFlutterOutline = StreamController<FlutterOutlineParams>(sync: true);

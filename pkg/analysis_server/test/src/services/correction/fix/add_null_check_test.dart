@@ -389,10 +389,8 @@ void g() {
 }
 ''');
     await assertNoFix(
-      errorFilter:
-          (diagnostic) =>
-              diagnostic.diagnosticCode ==
-              CompileTimeErrorCode.invalidAssignment,
+      errorFilter: (diagnostic) =>
+          diagnostic.diagnosticCode == CompileTimeErrorCode.invalidAssignment,
     );
   }
 
@@ -568,10 +566,9 @@ void f (List<int>? args) {
 }
 ''');
     await assertNoFix(
-      errorFilter:
-          (diagnostic) =>
-              diagnostic.diagnosticCode !=
-              CompileTimeErrorCode.listElementTypeNotAssignable,
+      errorFilter: (diagnostic) =>
+          diagnostic.diagnosticCode !=
+          CompileTimeErrorCode.listElementTypeNotAssignable,
     );
   }
 
@@ -619,10 +616,9 @@ f(List<String>? args) {
   });
 }
 ''',
-      errorFilter:
-          (diagnostic) =>
-              diagnostic.diagnosticCode !=
-              CompileTimeErrorCode.yieldEachOfInvalidType,
+      errorFilter: (diagnostic) =>
+          diagnostic.diagnosticCode !=
+          CompileTimeErrorCode.yieldEachOfInvalidType,
     );
   }
 
@@ -642,10 +638,9 @@ g() {
   }
 }
 ''',
-      errorFilter:
-          (diagnostic) =>
-              diagnostic.diagnosticCode ==
-              CompileTimeErrorCode.uncheckedUseOfNullableValueInYieldEach,
+      errorFilter: (diagnostic) =>
+          diagnostic.diagnosticCode ==
+          CompileTimeErrorCode.uncheckedUseOfNullableValueInYieldEach,
     );
   }
 
@@ -665,10 +660,9 @@ class C {
   }
 }
 ''',
-      errorFilter:
-          (diagnostic) =>
-              diagnostic.diagnosticCode !=
-              CompileTimeErrorCode.yieldEachOfInvalidType,
+      errorFilter: (diagnostic) =>
+          diagnostic.diagnosticCode !=
+          CompileTimeErrorCode.yieldEachOfInvalidType,
     );
   }
 
@@ -684,10 +678,9 @@ Iterable<String> f(List<String>? args) sync* {
   yield* args!;
 }
 ''',
-      errorFilter:
-          (diagnostic) =>
-              diagnostic.diagnosticCode !=
-              CompileTimeErrorCode.yieldEachOfInvalidType,
+      errorFilter: (diagnostic) =>
+          diagnostic.diagnosticCode !=
+          CompileTimeErrorCode.yieldEachOfInvalidType,
     );
   }
 }

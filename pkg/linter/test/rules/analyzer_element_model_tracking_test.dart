@@ -262,6 +262,18 @@ class A {
 ''');
   }
 
+  test_public_instancePublic_getter_trackedInternal() async {
+    await assertNoDiagnostics(r'''
+import 'package:analyzer/src/fine/annotations.dart';
+
+@elementClass
+class A {
+  @trackedInternal
+  int get foo => 0;
+}
+''');
+  }
+
   test_public_instancePublic_method_noAnnotation() async {
     await assertDiagnostics(
       r'''
@@ -369,6 +381,18 @@ import 'package:analyzer/src/fine/annotations.dart';
 @elementClass
 class A {
   @trackedIndirectly
+  int foo() => 0;
+}
+''');
+  }
+
+  test_public_instancePublic_method_trackedInternal() async {
+    await assertNoDiagnostics(r'''
+import 'package:analyzer/src/fine/annotations.dart';
+
+@elementClass
+class A {
+  @trackedInternal
   int foo() => 0;
 }
 ''');

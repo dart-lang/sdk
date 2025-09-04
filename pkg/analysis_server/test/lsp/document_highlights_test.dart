@@ -480,7 +480,8 @@ typedef /*[0*/TD/*0]*/ = String;
     String loopStart,
     String loopEnd,
   ) async {
-    var content = '''
+    var content =
+        '''
 void f() {
     outer:
     $loopKeyword $loopStart {
@@ -535,12 +536,9 @@ void f() {
     await initialize();
     await openFile(mainFileUri, code.code);
 
-    var positions =
-        code.positions.isNotEmpty
-            ? code.positions.map((position) => position.position)
-            : code.ranges.expand(
-              (range) => [range.range.start, range.range.end],
-            );
+    var positions = code.positions.isNotEmpty
+        ? code.positions.map((position) => position.position)
+        : code.ranges.expand((range) => [range.range.start, range.range.end]);
 
     for (var position in positions) {
       var highlights = await getDocumentHighlights(mainFileUri, position);

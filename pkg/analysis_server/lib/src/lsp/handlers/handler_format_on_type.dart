@@ -88,13 +88,12 @@ class FormatOnTypeRegistrations extends FeatureRegistration
   Method get registrationMethod => Method.textDocument_onTypeFormatting;
 
   @override
-  StaticOptions get staticOptions =>
-      enableFormatter
-          ? DocumentOnTypeFormattingOptions(
-            firstTriggerCharacter: dartTypeFormattingCharacters.first,
-            moreTriggerCharacter: dartTypeFormattingCharacters.skip(1).toList(),
-          )
-          : null;
+  StaticOptions get staticOptions => enableFormatter
+      ? DocumentOnTypeFormattingOptions(
+          firstTriggerCharacter: dartTypeFormattingCharacters.first,
+          moreTriggerCharacter: dartTypeFormattingCharacters.skip(1).toList(),
+        )
+      : null;
 
   @override
   bool get supportsDynamic => enableFormatter && clientDynamic.typeFormatting;

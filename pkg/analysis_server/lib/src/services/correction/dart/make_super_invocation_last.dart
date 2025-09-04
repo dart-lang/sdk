@@ -39,15 +39,14 @@ class MakeSuperInvocationLast extends ResolvedCorrectionProducer {
 
     var nodeRange = range.nodeWithComments(lineInfo, node);
     var text = utils.getRangeText(nodeRange);
-    var insertionOffset =
-        range
-            .trailingComment(
-              lineInfo,
-              initializers.last.endToken,
-              returnComma: false,
-            )
-            .token
-            .end;
+    var insertionOffset = range
+        .trailingComment(
+          lineInfo,
+          initializers.last.endToken,
+          returnComma: false,
+        )
+        .token
+        .end;
     await builder.addDartFileEdit(file, (builder) {
       builder.addDeletion(deletionRange);
       builder.addSimpleInsertion(insertionOffset, ', $text');

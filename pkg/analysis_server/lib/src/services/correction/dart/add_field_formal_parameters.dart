@@ -83,8 +83,9 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
     }
 
     var fieldsRecords = fields.map(_parameterForField).toList();
-    var requiredFirst =
-        getCodeStyleOptions(unitResult.file).requiredNamedParametersFirst;
+    var requiredFirst = getCodeStyleOptions(
+      unitResult.file,
+    ).requiredNamedParametersFirst;
     if (requiredFirst) {
       fieldsRecords.sort((a, b) {
         if (a.isRequired && !b.isRequired) {

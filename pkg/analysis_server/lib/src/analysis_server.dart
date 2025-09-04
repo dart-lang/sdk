@@ -319,14 +319,13 @@ abstract class AnalysisServer {
     }
     var disablePubCommandVariable =
         Platform.environment[PubCommand.disablePubCommandEnvironmentKey];
-    var pubCommand =
-        processRunner != null && disablePubCommandVariable == null
-            ? PubCommand(
-              instrumentationService,
-              resourceProvider.pathContext,
-              processRunner,
-            )
-            : null;
+    var pubCommand = processRunner != null && disablePubCommandVariable == null
+        ? PubCommand(
+            instrumentationService,
+            resourceProvider.pathContext,
+            processRunner,
+          )
+        : null;
 
     pubPackageService = PubPackageService(
       instrumentationService,
@@ -336,14 +335,13 @@ abstract class AnalysisServer {
     );
     performance = performanceDuringStartup;
 
-    this.pluginManager =
-        pluginManager ??= PluginManager(
-          resourceProvider,
-          resourceProvider.byteStorePath,
-          sdkManager.defaultSdkDirectory,
-          notificationManager,
-          instrumentationService,
-        );
+    this.pluginManager = pluginManager ??= PluginManager(
+      resourceProvider,
+      resourceProvider.byteStorePath,
+      sdkManager.defaultSdkDirectory,
+      notificationManager,
+      instrumentationService,
+    );
     var pluginWatcher = PluginWatcher(resourceProvider, pluginManager);
 
     var logName = options.newAnalysisDriverLog;
@@ -601,10 +599,9 @@ abstract class AnalysisServer {
     if (resourceProvider is PhysicalResourceProvider) {
       var stateLocation = resourceProvider.getStateLocation('.analysis-driver');
       if (stateLocation != null) {
-        var timingByteStore =
-            _timingByteStore = TimingByteStore(
-              EvictingFileByteStore(stateLocation.path, G),
-            );
+        var timingByteStore = _timingByteStore = TimingByteStore(
+          EvictingFileByteStore(stateLocation.path, G),
+        );
         return MemoryCachingByteStore(timingByteStore, memoryCacheSize);
       }
     }
@@ -840,10 +837,9 @@ abstract class AnalysisServer {
     // This is FutureOr<> because for the legacy server it's never a future, so
     // we can skip the await.
     var initializedLspHandler = lspInitialized;
-    var handler =
-        initializedLspHandler is lsp.InitializedStateMessageHandler
-            ? initializedLspHandler
-            : await initializedLspHandler;
+    var handler = initializedLspHandler is lsp.InitializedStateMessageHandler
+        ? initializedLspHandler
+        : await initializedLspHandler;
 
     return handler.handleMessage(
       message,

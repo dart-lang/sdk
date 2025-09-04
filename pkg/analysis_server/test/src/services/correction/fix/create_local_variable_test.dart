@@ -238,9 +238,8 @@ class C {
 ''');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
     );
 
     await resolveTestCode('''

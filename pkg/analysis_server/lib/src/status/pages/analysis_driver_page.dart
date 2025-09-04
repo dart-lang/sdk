@@ -43,9 +43,8 @@ class AnalysisDriverPage extends DiagnosticPageWithNav implements PostablePage {
   @override
   Future<String> handlePost(Map<String, String> params) async {
     if (params[_resetFormId]?.isNotEmpty ?? false) {
-      server
-          .analysisDriverScheduler
-          .accumulatedPerformance = OperationPerformanceImpl('<scheduler>');
+      server.analysisDriverScheduler.accumulatedPerformance =
+          OperationPerformanceImpl('<scheduler>');
     }
 
     return path;

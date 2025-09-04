@@ -49,22 +49,20 @@ class ExpectedCompletion {
     var lineNumber = map['lineNumber'] as int;
     var columnNumber = map['columnNumber'] as int;
     var completionString = map['completionString'] as String;
-    var kind =
-        map['kind'] != null
-            ? protocol.CompletionSuggestionKind.fromJson(
-              jsonDecoder,
-              '',
-              map['kind'] as String,
-            )
-            : null;
-    var elementKind =
-        map['elementKind'] != null
-            ? protocol.ElementKind.fromJson(
-              jsonDecoder,
-              '',
-              map['elementKind'] as String,
-            )
-            : null;
+    var kind = map['kind'] != null
+        ? protocol.CompletionSuggestionKind.fromJson(
+            jsonDecoder,
+            '',
+            map['kind'] as String,
+          )
+        : null;
+    var elementKind = map['elementKind'] != null
+        ? protocol.ElementKind.fromJson(
+            jsonDecoder,
+            '',
+            map['elementKind'] as String,
+          )
+        : null;
     return ExpectedCompletion.specialCompletionString(
       filePath,
       _SyntacticEntity(offset),

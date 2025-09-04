@@ -377,10 +377,9 @@ class Driver implements ServerStarter {
     ErrorNotifier errorNotifier,
     SendPort? sendPort,
   ) {
-    var capture =
-        results.flag(DISABLE_SERVER_EXCEPTION_HANDLING)
-            ? (_, Function f, {void Function(String)? print}) => f()
-            : _captureExceptions;
+    var capture = results.flag(DISABLE_SERVER_EXCEPTION_HANDLING)
+        ? (_, Function f, {void Function(String)? print}) => f()
+        : _captureExceptions;
     var trainDirectory = results.option(TRAIN_USING);
     if (trainDirectory != null) {
       if (!FileSystemEntity.isDirectorySync(trainDirectory)) {
@@ -479,10 +478,9 @@ class Driver implements ServerStarter {
             if (sendPort == null) exit(0);
           });
         },
-        print:
-            results.flag(INTERNAL_PRINT_TO_CONSOLE)
-                ? null
-                : diagnosticServer.httpServer.recordPrint,
+        print: results.flag(INTERNAL_PRINT_TO_CONSOLE)
+            ? null
+            : diagnosticServer.httpServer.recordPrint,
       );
     }
   }
@@ -496,10 +494,9 @@ class Driver implements ServerStarter {
     int? diagnosticServerPort,
     ErrorNotifier errorNotifier,
   ) {
-    var capture =
-        args.flag(DISABLE_SERVER_EXCEPTION_HANDLING)
-            ? (_, Function f, {void Function(String)? print}) => f()
-            : _captureExceptions;
+    var capture = args.flag(DISABLE_SERVER_EXCEPTION_HANDLING)
+        ? (_, Function f, {void Function(String)? print}) => f()
+        : _captureExceptions;
 
     linter.registerLintRules();
     registerBuiltInAssistGenerators();
@@ -555,14 +552,13 @@ class Driver implements ServerStarter {
       throw exception;
     }
 
-    var printFunction =
-        print == null
-            ? null
-            : (Zone self, ZoneDelegate parent, Zone zone, String line) {
-              // Note: we don't pass the line on to stdout, because that is
-              // reserved for communication to the client.
-              print(line);
-            };
+    var printFunction = print == null
+        ? null
+        : (Zone self, ZoneDelegate parent, Zone zone, String line) {
+            // Note: we don't pass the line on to stdout, because that is
+            // reserved for communication to the client.
+            print(line);
+          };
     var zoneSpecification = ZoneSpecification(
       handleUncaughtError: errorFunction,
       print: printFunction,

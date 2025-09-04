@@ -25,19 +25,18 @@ class LspNotificationManager extends AbstractNotificationManager {
     // Currently these diagnostics are always sent to the editor client, so
     // use those client capabilities.
     var clientCapabilities = server.editorClientCapabilities;
-    var diagnostics =
-        errors
-            .map(
-              (error) => pluginToDiagnostic(
-                server.uriConverter,
-                (path) => server.getLineInfo(path),
-                error,
-                supportedTags: clientCapabilities?.diagnosticTags,
-                clientSupportsCodeDescription:
-                    clientCapabilities?.diagnosticCodeDescription ?? false,
-              ),
-            )
-            .toList();
+    var diagnostics = errors
+        .map(
+          (error) => pluginToDiagnostic(
+            server.uriConverter,
+            (path) => server.getLineInfo(path),
+            error,
+            supportedTags: clientCapabilities?.diagnosticTags,
+            clientSupportsCodeDescription:
+                clientCapabilities?.diagnosticCodeDescription ?? false,
+          ),
+        )
+        .toList();
 
     server.publishDiagnostics(filePath, diagnostics);
   }

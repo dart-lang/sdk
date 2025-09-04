@@ -167,18 +167,14 @@ class ErrorOrRecord4ExtensionTest {
   }
 
   test_mapResults_result() async {
-    var result = await (
-      success(1),
-      success(2),
-      success(3),
-      success(4),
-    ).mapResults((a, b, c, d) async {
-      expect(a, 1);
-      expect(b, 2);
-      expect(c, 3);
-      expect(d, 4);
-      return success(100);
-    });
+    var result = await (success(1), success(2), success(3), success(4))
+        .mapResults((a, b, c, d) async {
+          expect(a, 1);
+          expect(b, 2);
+          expect(c, 3);
+          expect(d, 4);
+          return success(100);
+        });
     expect(result.result, 100);
   }
 
@@ -195,18 +191,14 @@ class ErrorOrRecord4ExtensionTest {
   }
 
   test_mapResultsSync_result() async {
-    var result = (
-      success(1),
-      success(2),
-      success(3),
-      success(4),
-    ).mapResultsSync((a, b, c, d) {
-      expect(a, 1);
-      expect(b, 2);
-      expect(c, 3);
-      expect(d, 4);
-      return success(100);
-    });
+    var result = (success(1), success(2), success(3), success(4))
+        .mapResultsSync((a, b, c, d) {
+          expect(a, 1);
+          expect(b, 2);
+          expect(c, 3);
+          expect(d, 4);
+          return success(100);
+        });
     expect(result.result, 100);
   }
 }

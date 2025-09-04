@@ -24,8 +24,8 @@ class RemoveOnClause extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var extensionDeclaration =
-        node.thisOrAncestorOfType<ExtensionDeclaration>();
+    var extensionDeclaration = node
+        .thisOrAncestorOfType<ExtensionDeclaration>();
     if (extensionDeclaration == null) return;
 
     await builder.addDartFileEdit(file, (builder) {

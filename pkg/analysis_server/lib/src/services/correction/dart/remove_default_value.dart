@@ -22,8 +22,8 @@ class RemoveDefaultValue extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var defaultFormalParameter =
-        node.thisOrAncestorOfType<DefaultFormalParameter>();
+    var defaultFormalParameter = node
+        .thisOrAncestorOfType<DefaultFormalParameter>();
     if (defaultFormalParameter is! DefaultFormalParameter) return;
     var separator = defaultFormalParameter.separator;
     if (separator == null) return;

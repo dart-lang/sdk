@@ -342,8 +342,8 @@ void f() {
 }
 ''',
       allowFixAllFixes: true,
-      errorFilter:
-          (error) => error.offset == testCode.indexOf('Container( // 1'),
+      errorFilter: (error) =>
+          error.offset == testCode.indexOf('Container( // 1'),
     );
 
     await assertHasFix(
@@ -364,8 +364,8 @@ void f() {
 }
 ''',
       allowFixAllFixes: true,
-      errorFilter:
-          (error) => error.offset == testCode.indexOf('Container( // 2'),
+      errorFilter: (error) =>
+          error.offset == testCode.indexOf('Container( // 2'),
     );
 
     await assertHasFix(
@@ -386,8 +386,8 @@ void f() {
 }
 ''',
       allowFixAllFixes: true,
-      errorFilter:
-          (error) => error.offset == testCode.indexOf('Container( // 3'),
+      errorFilter: (error) =>
+          error.offset == testCode.indexOf('Container( // 3'),
     );
   }
 

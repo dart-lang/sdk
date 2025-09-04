@@ -75,14 +75,13 @@ class LegacyWithPluginThatTimesOutBencmark extends DartLanguageServerBenchmark {
 
       // ...and ask for completion.
       var firstCompletionStopwatch = Stopwatch()..start();
-      var completionResult =
-          await (await send(
-            LegacyMessages.getSuggestions2(
-              largestIdSeen + 1,
-              runDetails.mainFile.uri,
-              runDetails.typingAtOffset,
-            ),
-          ))!.completer.future;
+      var completionResult = await (await send(
+        LegacyMessages.getSuggestions2(
+          largestIdSeen + 1,
+          runDetails.mainFile.uri,
+          runDetails.typingAtOffset,
+        ),
+      ))!.completer.future;
       firstCompletionStopwatch.stop();
       List<dynamic> completionItems =
           completionResult['result']['suggestions'] as List;

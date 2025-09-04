@@ -230,8 +230,9 @@ function selectEntryGroup(pageStart) {
   void _writeLeftColumn(StringSink sink) {
     var length = entries.length;
     var pageLength = this.pageLength;
-    var pageEnd =
-        pageLength == null ? length : math.min(pageStart + pageLength, length);
+    var pageEnd = pageLength == null
+        ? length
+        : math.min(pageStart + pageLength, length);
     //
     // Write the header of the column.
     //

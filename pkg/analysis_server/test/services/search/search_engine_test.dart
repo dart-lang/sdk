@@ -412,13 +412,11 @@ T b;
   Future<void> test_searchReferences_discover_owned() async {
     var aaaRootPath = _configureForPackage_aaa();
 
-    var a =
-        newFile('$aaaRootPath/lib/a.dart', '''
+    var a = newFile('$aaaRootPath/lib/a.dart', '''
 int a;
 ''').path;
 
-    var t =
-        newFile('$testPackageLibPath/lib/t.dart', '''
+    var t = newFile('$testPackageLibPath/lib/t.dart', '''
 import 'package:aaa/a.dart';
 int t;
 ''').path;
@@ -426,8 +424,9 @@ int t;
     var coreLibResult =
         await driverFor(testFile).getLibraryByUri('dart:core')
             as LibraryElementResult;
-    var intElement =
-        coreLibResult.element.classes.firstWhereOrNull((e) => e.name == 'int')!;
+    var intElement = coreLibResult.element.classes.firstWhereOrNull(
+      (e) => e.name == 'int',
+    )!;
 
     var matches = await searchEngine.searchReferences(intElement);
 
@@ -740,8 +739,8 @@ class B extends A {}
     writePackageConfig(aaaRootPath, config: PackageConfigFileBuilder());
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()..add(name: 'aaa', rootPath: aaaRootPath),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: aaaRootPath),
     );
 
     return aaaRootPath;

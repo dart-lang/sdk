@@ -43,11 +43,10 @@ class TopLevelDeclarationsTest extends AbstractSearchDomainTest {
     if (response.error != null) {
       return response.error;
     }
-    searchId =
-        SearchFindTopLevelDeclarationsResult.fromResponse(
-          response,
-          clientUriConverter: server.uriConverter,
-        ).id;
+    searchId = SearchFindTopLevelDeclarationsResult.fromResponse(
+      response,
+      clientUriConverter: server.uriConverter,
+    ).id;
     return waitForSearchResults();
   }
 

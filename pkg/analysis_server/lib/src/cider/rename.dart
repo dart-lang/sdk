@@ -316,23 +316,22 @@ class CheckNameResponse {
     } catch (_) {
       match.add(CiderSearchMatch(sourcePath, [searchInfo]));
     }
-    var replacements =
-        match
-            .map(
-              (m) => CiderReplaceMatch(
-                m.path,
-                m.references
-                    .map(
-                      (p) => ReplaceInfo(
-                        stateName,
-                        p.startPosition,
-                        stateClass.name!.length,
-                      ),
-                    )
-                    .toList(),
-              ),
-            )
-            .toList();
+    var replacements = match
+        .map(
+          (m) => CiderReplaceMatch(
+            m.path,
+            m.references
+                .map(
+                  (p) => ReplaceInfo(
+                    stateName,
+                    p.startPosition,
+                    stateClass.name!.length,
+                  ),
+                )
+                .toList(),
+          ),
+        )
+        .toList();
     return FlutterWidgetRename(stateName, match, replacements);
   }
 

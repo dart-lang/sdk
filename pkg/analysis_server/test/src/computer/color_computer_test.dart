@@ -138,8 +138,9 @@ class ColorComputerTest extends AbstractContextTest {
     String? otherCode,
   }) async {
     dartCode = _withCommonImportsNormalized(dartCode);
-    otherCode =
-        otherCode != null ? _withCommonImportsNormalized(otherCode) : null;
+    otherCode = otherCode != null
+        ? _withCommonImportsNormalized(otherCode)
+        : null;
 
     newFile(testPath, dartCode);
     if (otherCode != null) {

@@ -900,7 +900,8 @@ const myConst = E.one;
     String? additionalCode,
   }) async {
     additionalCode ??= '';
-    var content = '''
+    var content =
+        '''
 import 'package:flutter/widgets.dart';
 
 $additionalCode
@@ -933,7 +934,8 @@ class MyWidget extends StatelessWidget {
     String? additionalCode = '',
     String? fileComment = '',
   }) async {
-    var content = '''
+    var content =
+        '''
 $fileComment
 import 'package:flutter/widgets.dart';
 
@@ -946,7 +948,8 @@ class MyWidget extends StatelessWidget {
   Widget build(BuildContext context) => MyW^idget$originalArgs;
 }
 ''';
-    var expectedContent = '''
+    var expectedContent =
+        '''
 >>>>>>>>>> lib/test.dart
 $fileComment
 import 'package:flutter/widgets.dart';

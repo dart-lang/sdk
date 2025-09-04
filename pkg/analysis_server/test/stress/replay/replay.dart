@@ -223,14 +223,15 @@ class Driver {
   List<int> _getBreakOffsets(String text) {
     var breakOffsets = <int>[];
     var featureSet = FeatureSet.latestLanguageVersion();
-    var scanner = Scanner(
-      _TestSource(),
-      CharSequenceReader(text),
-      error.DiagnosticListener.nullListener,
-    )..configureFeatures(
-      featureSetForOverriding: featureSet,
-      featureSet: featureSet,
-    );
+    var scanner =
+        Scanner(
+          _TestSource(),
+          CharSequenceReader(text),
+          error.DiagnosticListener.nullListener,
+        )..configureFeatures(
+          featureSetForOverriding: featureSet,
+          featureSet: featureSet,
+        );
     var token = scanner.tokenize();
     // TODO(brianwilkerson): Randomize. Sometimes add zero (0) as a break point.
     while (!token.isEof) {
@@ -293,11 +294,10 @@ class Driver {
     repositoryPath = path.normalize(arguments[0]);
     repository = GitRepository(repositoryPath, logger: logger);
 
-    analysisRoots =
-        arguments
-            .sublist(1)
-            .map((String analysisRoot) => path.normalize(analysisRoot))
-            .toList();
+    analysisRoots = arguments
+        .sublist(1)
+        .map((String analysisRoot) => path.normalize(analysisRoot))
+        .toList();
     for (var analysisRoot in analysisRoots) {
       if (repositoryPath != analysisRoot &&
           !path.isWithin(repositoryPath, analysisRoot)) {

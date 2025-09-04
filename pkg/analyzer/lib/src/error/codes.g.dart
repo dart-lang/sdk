@@ -10806,9 +10806,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// Object p0: the name of the member
+  /// Object typeName: the name of the type
   static const WarningTemplate<
-    LocatableDiagnostic Function({required Object p0})
+    LocatableDiagnostic Function({required Object typeName})
   >
   deprecatedExtend = WarningTemplate(
     'DEPRECATED_EXTEND',
@@ -10831,9 +10831,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// Parameters:
-  /// Object p0: the name of the member
+  /// Object typeName: the name of the type
   static const WarningTemplate<
-    LocatableDiagnostic Function({required Object p0})
+    LocatableDiagnostic Function({required Object typeName})
   >
   deprecatedImplement = WarningTemplate(
     'DEPRECATED_IMPLEMENT',
@@ -10857,9 +10857,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// Parameters:
-  /// Object p0: the name of the member
+  /// Object typeName: the name of the type
   static const WarningTemplate<
-    LocatableDiagnostic Function({required Object p0})
+    LocatableDiagnostic Function({required Object typeName})
   >
   deprecatedInstantiate = WarningTemplate(
     'DEPRECATED_INSTANTIATE',
@@ -10905,9 +10905,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// Parameters:
-  /// Object p0: the name of the member
+  /// Object typeName: the name of the type
   static const WarningTemplate<
-    LocatableDiagnostic Function({required Object p0})
+    LocatableDiagnostic Function({required Object typeName})
   >
   deprecatedSubclass = WarningTemplate(
     'DEPRECATED_SUBCLASS',
@@ -12964,21 +12964,21 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   }
 
   static LocatableDiagnostic _withArgumentsDeprecatedExtend({
-    required Object p0,
+    required Object typeName,
   }) {
-    return LocatableDiagnosticImpl(deprecatedExtend, [p0]);
+    return LocatableDiagnosticImpl(deprecatedExtend, [typeName]);
   }
 
   static LocatableDiagnostic _withArgumentsDeprecatedImplement({
-    required Object p0,
+    required Object typeName,
   }) {
-    return LocatableDiagnosticImpl(deprecatedImplement, [p0]);
+    return LocatableDiagnosticImpl(deprecatedImplement, [typeName]);
   }
 
   static LocatableDiagnostic _withArgumentsDeprecatedInstantiate({
-    required Object p0,
+    required Object typeName,
   }) {
-    return LocatableDiagnosticImpl(deprecatedInstantiate, [p0]);
+    return LocatableDiagnosticImpl(deprecatedInstantiate, [typeName]);
   }
 
   static LocatableDiagnostic _withArgumentsDeprecatedMixin({
@@ -12988,9 +12988,9 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   }
 
   static LocatableDiagnostic _withArgumentsDeprecatedSubclass({
-    required Object p0,
+    required Object typeName,
   }) {
-    return LocatableDiagnosticImpl(deprecatedSubclass, [p0]);
+    return LocatableDiagnosticImpl(deprecatedSubclass, [typeName]);
   }
 
   static LocatableDiagnostic _withArgumentsDocDirectiveArgumentWrongFormat({

@@ -35,10 +35,9 @@ class ChangeToNearestPreciseValue extends ResolvedCorrectionProducer {
 
     var lexeme = integer.literal.lexeme;
     var precise = BigInt.from(IntegerLiteralImpl.nearestValidDouble(lexeme));
-    _correction =
-        lexeme.toLowerCase().contains('x')
-            ? '0x${precise.toRadixString(16).toUpperCase()}'
-            : precise.toString();
+    _correction = lexeme.toLowerCase().contains('x')
+        ? '0x${precise.toRadixString(16).toUpperCase()}'
+        : precise.toString();
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(range.node(integer), _correction);
     });

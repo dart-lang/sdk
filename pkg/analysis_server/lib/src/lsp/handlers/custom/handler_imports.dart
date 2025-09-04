@@ -49,9 +49,9 @@ class ImportsHandler
       return unit != null
           ? success(unit)
           : error(
-            ErrorCodes.InternalError,
-            'The library containing a path did not contain the path.',
-          );
+              ErrorCodes.InternalError,
+              'The library containing a path did not contain the path.',
+            );
     });
     var offset = unit.mapResultSync(
       (unit) => toOffset(unit.unit.lineInfo, pos),
@@ -143,15 +143,13 @@ class ImportsHandler
       var importPrefix = directive.prefix?.name;
       if (importPrefix != prefix) continue;
 
-      var importedElement =
-          prefix == null
-              ? import.namespace.get2(elementName)
-              : import.namespace.getPrefixed2(prefix, elementName);
+      var importedElement = prefix == null
+          ? import.namespace.get2(elementName)
+          : import.namespace.getPrefixed2(prefix, elementName);
 
-      var isMatch =
-          element is MultiplyDefinedElement
-              ? element.conflictingElements.contains(importedElement)
-              : element == importedElement;
+      var isMatch = element is MultiplyDefinedElement
+          ? element.conflictingElements.contains(importedElement)
+          : element == importedElement;
 
       if (isMatch) {
         var uri = uriConverter.toClientUri(

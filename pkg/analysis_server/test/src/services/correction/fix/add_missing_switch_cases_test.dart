@@ -249,10 +249,9 @@ int f(E x) {
   };
 }
 ''',
-      errorFilter:
-          (e) =>
-              e.diagnosticCode ==
-              CompileTimeErrorCode.nonExhaustiveSwitchExpression,
+      errorFilter: (e) =>
+          e.diagnosticCode ==
+          CompileTimeErrorCode.nonExhaustiveSwitchExpression,
     );
   }
 
@@ -519,10 +518,8 @@ void f(E e) {
   }
 }
 ''',
-      errorFilter:
-          (e) =>
-              e.diagnosticCode ==
-              CompileTimeErrorCode.nonExhaustiveSwitchStatement,
+      errorFilter: (e) =>
+          e.diagnosticCode == CompileTimeErrorCode.nonExhaustiveSwitchStatement,
     );
   }
 

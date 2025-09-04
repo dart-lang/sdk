@@ -23,35 +23,29 @@ void main() {
   var lines = coverageFile.readAsLinesSync();
 
   // ## server domain
-  var coveredDomains =
-      lines
-          .where((line) => line.startsWith('## ') && line.endsWith(' domain'))
-          .map(
-            (line) =>
-                line
-                    .substring('##'.length, line.length - 'domain'.length)
-                    .trim(),
-          )
-          .toSet();
+  var coveredDomains = lines
+      .where((line) => line.startsWith('## ') && line.endsWith(' domain'))
+      .map(
+        (line) =>
+            line.substring('##'.length, line.length - 'domain'.length).trim(),
+      )
+      .toSet();
 
   // Remove any ' (test failed)' suffixes.
-  lines =
-      lines.map((String line) {
-        var index = line.indexOf('(');
-        return index != -1 ? line.substring(0, index).trim() : line;
-      }).toList();
+  lines = lines.map((String line) {
+    var index = line.indexOf('(');
+    return index != -1 ? line.substring(0, index).trim() : line;
+  }).toList();
 
   // - [ ] server.getVersion
-  var allMembers =
-      lines
-          .where((line) => line.startsWith('- '))
-          .map((line) => line.substring('- [ ]'.length).trim())
-          .toSet();
-  var coveredMembers =
-      lines
-          .where((line) => line.startsWith('- [x]'))
-          .map((line) => line.substring('- [x]'.length).trim())
-          .toSet();
+  var allMembers = lines
+      .where((line) => line.startsWith('- '))
+      .map((line) => line.substring('- [ ]'.length).trim())
+      .toSet();
+  var coveredMembers = lines
+      .where((line) => line.startsWith('- [x]'))
+      .map((line) => line.substring('- [x]'.length).trim())
+      .toSet();
 
   // generate domain tests
   for (var domain in api.domains) {
@@ -85,10 +79,9 @@ void main() {
             expect(
               fileExists,
               isMarkedAsCovered,
-              reason:
-                  isMarkedAsCovered
-                      ? '$testName marked as covered but has no test at $testPath'
-                      : '$testName marked as not covered has test at $testPath',
+              reason: isMarkedAsCovered
+                  ? '$testName marked as covered but has no test at $testPath'
+                  : '$testName marked as not covered has test at $testPath',
             );
           });
         }

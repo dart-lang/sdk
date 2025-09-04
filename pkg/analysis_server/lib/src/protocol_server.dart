@@ -186,10 +186,9 @@ AnalysisError newAnalysisError_fromEngine(
   var code = diagnosticCode.name.toLowerCase();
   List<DiagnosticMessage>? contextMessages;
   if (diagnostic.contextMessages.isNotEmpty) {
-    contextMessages =
-        diagnostic.contextMessages
-            .map((message) => newDiagnosticMessage(result, message))
-            .toList();
+    contextMessages = diagnostic.contextMessages
+        .map((message) => newDiagnosticMessage(result, message))
+        .toList();
   }
   var correction = diagnostic.correctionMessage;
   var url = diagnosticCode.url;

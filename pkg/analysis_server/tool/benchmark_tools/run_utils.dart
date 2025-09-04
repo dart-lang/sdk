@@ -48,8 +48,11 @@ Future<void> runHelper<E, F, G>(
   bool jsonOutput = false;
   for (String arg in args) {
     if (arg.startsWith('--sizes=')) {
-      sizeOptions =
-          arg.substring('--sizes='.length).split(',').map(int.parse).toList();
+      sizeOptions = arg
+          .substring('--sizes='.length)
+          .split(',')
+          .map(int.parse)
+          .toList();
     } else if (arg.startsWith('--verbosity=')) {
       verbosity = int.parse(arg.substring('--verbosity='.length));
     } else if (arg == '--json') {

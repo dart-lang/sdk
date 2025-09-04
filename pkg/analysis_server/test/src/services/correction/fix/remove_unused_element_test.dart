@@ -179,9 +179,8 @@ enum _MyEnum {A, B, C}
     await assertHasFix(
       r'''
 ''',
-      errorFilter:
-          (diagnostic) =>
-              diagnostic.diagnosticCode == WarningCode.unusedElement,
+      errorFilter: (diagnostic) =>
+          diagnostic.diagnosticCode == WarningCode.unusedElement,
     );
   }
 

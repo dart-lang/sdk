@@ -386,10 +386,9 @@ class _MatcherBuilder {
         kinds: const [ElementKind.constructorKind, ElementKind.methodKind],
       );
       // We can invoke methods of supertypes of the target type.
-      var superElements =
-          targetType.allSupertypes
-              .map((superType) => superType.element)
-              .toList();
+      var superElements = targetType.allSupertypes
+          .map((superType) => superType.element)
+          .toList();
       for (var element in superElements) {
         _addMatcher(
           components: [methodName.name, element.name!],

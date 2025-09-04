@@ -191,10 +191,9 @@ lsp.CompletionItem? toLspCompletionItem(
   //
   // In the case of show combinators, the parens will still be shown to indicate
   // functions but they should not be included in the completions.
-  var element =
-      suggestion is ElementBasedSuggestion
-          ? (suggestion as ElementBasedSuggestion).element
-          : null;
+  var element = suggestion is ElementBasedSuggestion
+      ? (suggestion as ElementBasedSuggestion).element
+      : null;
   var isCallable =
       element != null &&
       (element is ConstructorElement ||
@@ -238,10 +237,9 @@ lsp.CompletionItem? toLspCompletionItem(
 
   // TODO(dantup): Consider including more of these raw fields in the original
   //  suggestion to avoid needing to manipulate them in this way here.
-  var filterText =
-      !label.startsWith(completionFilterTextSplitPattern)
-          ? label.split(completionFilterTextSplitPattern).first.trim()
-          : label;
+  var filterText = !label.startsWith(completionFilterTextSplitPattern)
+      ? label.split(completionFilterTextSplitPattern).first.trim()
+      : label;
 
   // If we're using label details, we also don't want the label to include any
   // additional symbols as noted above, because they will appear in the extra
@@ -266,18 +264,17 @@ lsp.CompletionItem? toLspCompletionItem(
 
   var colorPreviewHex =
       capabilities.completionItemKinds.contains(lsp.CompletionItemKind.Color) &&
-              suggestion is ElementBasedSuggestion
-          ? server.getColorHexString(element)
-          : null;
+          suggestion is ElementBasedSuggestion
+      ? server.getColorHexString(element)
+      : null;
 
-  var completionKind =
-      colorPreviewHex != null
-          ? lsp.CompletionItemKind.Color
-          : _candidateToCompletionItemKind(
-            capabilities.completionItemKinds,
-            suggestion,
-            label,
-          );
+  var completionKind = colorPreviewHex != null
+      ? lsp.CompletionItemKind.Color
+      : _candidateToCompletionItemKind(
+          capabilities.completionItemKinds,
+          suggestion,
+          label,
+        );
 
   var labelDetails = _getCompletionDetail(
     suggestion,
@@ -305,10 +302,9 @@ lsp.CompletionItem? toLspCompletionItem(
     var element = (suggestion as ElementBasedSuggestion).element;
 
     if (element is ExecutableElement && element is! PropertyAccessorElement) {
-      parameterNames =
-          element.formalParameters.map((parameter) {
-            return parameter.displayName;
-          }).toList();
+      parameterNames = element.formalParameters.map((parameter) {
+        return parameter.displayName;
+      }).toList();
 
       var requiredParameters = element.formalParameters.where(
         (FormalParameterElement param) => param.isRequiredPositional,
@@ -328,10 +324,9 @@ lsp.CompletionItem? toLspCompletionItem(
   }
 
   var completion = suggestion.completion;
-  var selectionOffset =
-      (suggestion is KeywordSuggestion)
-          ? suggestion.selectionOffset
-          : completion.length;
+  var selectionOffset = (suggestion is KeywordSuggestion)
+      ? suggestion.selectionOffset
+      : completion.length;
   var selectionLength = 0;
 
   if (suggestion is SuggestionData) {
@@ -361,10 +356,9 @@ lsp.CompletionItem? toLspCompletionItem(
   // To improve the display of some items (like pubspec version numbers),
   // short labels in the format `_foo_` in docComplete are "upgraded" to the
   // detail field.
-  var labelMatch =
-      cleanedDoc != null
-          ? upgradableDocCompletePattern.firstMatch(cleanedDoc)
-          : null;
+  var labelMatch = cleanedDoc != null
+      ? upgradableDocCompletePattern.firstMatch(cleanedDoc)
+      : null;
   if (labelMatch != null) {
     cleanedDoc = null;
     labelDetails = (
@@ -398,50 +392,46 @@ lsp.CompletionItem? toLspCompletionItem(
     ]),
     data: resolutionData,
     detail: labelDetails.detail.nullIfEmpty,
-    labelDetails:
-        useLabelDetails
-            ? lsp.CompletionItemLabelDetails(
-              detail: labelDetails.truncatedSignature.nullIfEmpty,
-              description: getCompletionDisplayUriString(
-                uriConverter: uriConverter,
-                pathContext: pathContext,
-                elementLibraryUri: labelDetails.autoImportUri,
-                completionFilePath: completionFilePath,
-              ),
-            ).nullIfEmpty
-            : null,
-    documentation:
-        cleanedDoc != null
-            ? asMarkupContentOrString(formats, cleanedDoc)
-            : null,
+    labelDetails: useLabelDetails
+        ? lsp.CompletionItemLabelDetails(
+            detail: labelDetails.truncatedSignature.nullIfEmpty,
+            description: getCompletionDisplayUriString(
+              uriConverter: uriConverter,
+              pathContext: pathContext,
+              elementLibraryUri: labelDetails.autoImportUri,
+              completionFilePath: completionFilePath,
+            ),
+          ).nullIfEmpty
+        : null,
+    documentation: cleanedDoc != null
+        ? asMarkupContentOrString(formats, cleanedDoc)
+        : null,
     deprecated: supportsCompletionDeprecatedFlag && isDeprecated ? true : null,
     sortText: relevanceToSortText(suggestion.relevanceScore),
     filterText: filterText.orNullIfSameAs(
       label,
     ), // filterText uses label if not set
-    insertTextFormat:
-        insertTextFormat != lsp.InsertTextFormat.PlainText
-            ? insertTextFormat
-            : null, // Defaults to PlainText if not supplied
+    insertTextFormat: insertTextFormat != lsp.InsertTextFormat.PlainText
+        ? insertTextFormat
+        : null, // Defaults to PlainText if not supplied
     insertTextMode:
         !hasDefaultTextMode && supportsAsIsInsertMode && isMultilineCompletion
-            ? lsp.InsertTextMode.asIs
-            : null,
+        ? lsp.InsertTextMode.asIs
+        : null,
     // When using defaults for edit range, don't use textEdit.
-    textEdit:
-        hasDefaultEditRange
-            ? null
-            : supportsInsertReplace && insertionRange != replacementRange
-            ? lsp.Either2<lsp.InsertReplaceEdit, lsp.TextEdit>.t1(
-              lsp.InsertReplaceEdit(
-                insert: insertionRange,
-                replace: replacementRange,
-                newText: insertText,
-              ),
-            )
-            : lsp.Either2<lsp.InsertReplaceEdit, lsp.TextEdit>.t2(
-              lsp.TextEdit(range: replacementRange, newText: insertText),
+    textEdit: hasDefaultEditRange
+        ? null
+        : supportsInsertReplace && insertionRange != replacementRange
+        ? lsp.Either2<lsp.InsertReplaceEdit, lsp.TextEdit>.t1(
+            lsp.InsertReplaceEdit(
+              insert: insertionRange,
+              replace: replacementRange,
+              newText: insertText,
             ),
+          )
+        : lsp.Either2<lsp.InsertReplaceEdit, lsp.TextEdit>.t2(
+            lsp.TextEdit(range: replacementRange, newText: insertText),
+          ),
     // When using defaults for edit range, use textEditText.
     textEditText: hasDefaultEditRange ? insertText.orNullIfSameAs(label) : null,
   );
@@ -490,13 +480,13 @@ lsp.CompletionItemKind? _candidateToCompletionItemKind(
         if (!label.startsWith('dart:')) {
           return label.endsWith('.dart')
               ? const [
-                lsp.CompletionItemKind.File,
-                lsp.CompletionItemKind.Module,
-              ]
+                  lsp.CompletionItemKind.File,
+                  lsp.CompletionItemKind.Module,
+                ]
               : const [
-                lsp.CompletionItemKind.Folder,
-                lsp.CompletionItemKind.Module,
-              ];
+                  lsp.CompletionItemKind.Folder,
+                  lsp.CompletionItemKind.Module,
+                ];
         }
         return const [lsp.CompletionItemKind.Module];
       default:
@@ -603,10 +593,9 @@ CompletionDetail _getCompletionDetail(
   } else if (suggestion is RecordFieldSuggestion) {
     returnType = suggestion.field.type.getDisplayString();
   }
-  var element =
-      suggestion is ElementBasedSuggestion
-          ? (suggestion as ElementBasedSuggestion).element
-          : null;
+  var element = suggestion is ElementBasedSuggestion
+      ? (suggestion as ElementBasedSuggestion).element
+      : null;
 
   // Usually getter/setters look the same in completion because they insert the
   // same text. This is not the case for overrides because they will insert
@@ -702,8 +691,9 @@ CompletionDetail _getCompletionDetail(
       isNotImported = importData.isNotImported;
     }
   }
-  var autoImportUri =
-      isNotImported && libraryUri.isNotEmpty ? Uri.parse(libraryUri) : null;
+  var autoImportUri = isNotImported && libraryUri.isNotEmpty
+      ? Uri.parse(libraryUri)
+      : null;
 
   return (
     detail: detail,
@@ -757,43 +747,41 @@ String? _getDocumentation(
   var docs = _getDocsFromComputer(element, request);
 
   var doc = removeDartDocDelimiters(docs?.full);
-  var rawDoc =
-      includeDocumentation == DocumentationPreference.full
-          ? doc
-          : includeDocumentation == DocumentationPreference.summary
-          ? getDartDocSummary(docs?.summary)
-          : null;
+  var rawDoc = includeDocumentation == DocumentationPreference.full
+      ? doc
+      : includeDocumentation == DocumentationPreference.summary
+      ? getDartDocSummary(docs?.summary)
+      : null;
   return cleanDartdoc(rawDoc);
 }
 
 /// Additional details about a completion that may be formatted differently
 /// depending on the client capabilities.
-typedef CompletionDetail =
-    ({
-      /// Additional details to go in the details popup.
-      ///
-      /// This is usually a full signature (with full parameters) and may also
-      /// include whether the item is deprecated if the client did not support the
-      /// native deprecated tag.
-      String detail,
+typedef CompletionDetail = ({
+  /// Additional details to go in the details popup.
+  ///
+  /// This is usually a full signature (with full parameters) and may also
+  /// include whether the item is deprecated if the client did not support the
+  /// native deprecated tag.
+  String detail,
 
-      /// Truncated parameters. Similar to [truncatedSignature] but does not
-      /// include return types. Used in clients that cannot format signatures
-      /// differently and is appended immediately after the completion label. The
-      /// return type is omitted to reduce noise because this text is not subtle.
-      String truncatedParams,
+  /// Truncated parameters. Similar to [truncatedSignature] but does not
+  /// include return types. Used in clients that cannot format signatures
+  /// differently and is appended immediately after the completion label. The
+  /// return type is omitted to reduce noise because this text is not subtle.
+  String truncatedParams,
 
-      /// A signature with truncated params. Used for showing immediately after
-      /// the completion label when it can be formatted differently.
-      ///
-      /// () → String
-      String truncatedSignature,
+  /// A signature with truncated params. Used for showing immediately after
+  /// the completion label when it can be formatted differently.
+  ///
+  /// () → String
+  String truncatedSignature,
 
-      /// The URI that will be auto-imported if this item is selected in a
-      /// user-friendly string format (for example a relative path if for a `file:/`
-      /// URI).
-      Uri? autoImportUri,
-    });
+  /// The URI that will be auto-imported if this item is selected in a
+  /// user-friendly string format (for example a relative path if for a `file:/`
+  /// URI).
+  Uri? autoImportUri,
+});
 
 class _ElementDocumentation {
   final String full;

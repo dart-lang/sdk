@@ -2680,6 +2680,17 @@ class FieldElementImpl extends PropertyInducingElementImpl
   @override
   ElementKind get kind => ElementKind.FIELD;
 
+  FieldFragmentImpl get lastFragment {
+    var result = _firstFragment;
+    while (true) {
+      if (result.nextFragment case var nextFragment?) {
+        result = nextFragment;
+      } else {
+        return result;
+      }
+    }
+  }
+
   @Deprecated('Use library instead')
   @override
   LibraryElementImpl get library2 => library;
@@ -4626,6 +4637,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   List<ConstructorElementImpl> _constructors = _Sentinel.constructorElement;
 
   /// This callback is set during mixins inference to handle reentrant calls.
+  @trackedInternal
   List<InterfaceTypeImpl>? Function(InterfaceElementImpl)?
   mixinInferenceCallback;
 

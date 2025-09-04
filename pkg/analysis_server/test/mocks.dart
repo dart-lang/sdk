@@ -99,8 +99,8 @@ class MockProcessRunner implements ProcessRunner {
     String? dir,
     Map<String, String>? env,
   })
-  startHandler =
-      (executable, arguments, {dir, env}) => throw UnimplementedError();
+  startHandler = (executable, arguments, {dir, env}) =>
+      throw UnimplementedError();
 
   @override
   dynamic noSuchMethod(Invocation invocation) {

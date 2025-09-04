@@ -155,10 +155,9 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
         (TypeObjectField field) => !field.optional,
       );
       outputObjectFields(requiredFields);
-      var optionalFields =
-          typeObject.fields
-              .where((TypeObjectField field) => field.optional)
-              .toList();
+      var optionalFields = typeObject.fields
+          .where((TypeObjectField field) => field.optional)
+          .toList();
       if (optionalFields.isNotEmpty) {
         write(', optionalFields: ');
         outputObjectFields(optionalFields);

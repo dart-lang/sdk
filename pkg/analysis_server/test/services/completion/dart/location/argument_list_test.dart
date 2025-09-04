@@ -906,10 +906,9 @@ suggestions
     required String arguments,
     required void Function(String) check,
   }) async {
-    var languageVersionLine =
-        languageVersion != null
-            ? '// @dart = $languageVersion'
-            : '// no language version override';
+    var languageVersionLine = languageVersion != null
+        ? '// @dart = $languageVersion'
+        : '// no language version override';
 
     Future<void> computeAndCheck(String code, String where) async {
       await computeSuggestions(code);

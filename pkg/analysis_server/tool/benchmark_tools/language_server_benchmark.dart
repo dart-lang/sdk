@@ -368,8 +368,9 @@ abstract class DartLanguageServerBenchmark {
             _printedVmServiceStuff = true;
           }
           if (header.startsWith('Content-Length:')) {
-            String contentLength =
-                header.substring('Content-Length:'.length).trim();
+            String contentLength = header
+                .substring('Content-Length:'.length)
+                .trim();
             _headerContentLength = int.parse(contentLength);
             break;
           }
@@ -400,10 +401,9 @@ abstract class DartLanguageServerBenchmark {
             (!_lsp && message['event'] == 'server.status')) {
           dynamic params = message['params'];
           if (params is Map) {
-            dynamic isAnalyzing =
-                _lsp
-                    ? params['isAnalyzing']
-                    : params['analysis']?['isAnalyzing'];
+            dynamic isAnalyzing = _lsp
+                ? params['isAnalyzing']
+                : params['analysis']?['isAnalyzing'];
             if (isAnalyzing is bool) {
               _analyzingCompleter.complete(isAnalyzing);
               _analyzingCompleter = Completer<bool>();

@@ -145,10 +145,9 @@ class _AddMissingRequiredPositionalParameter extends _AddMissingParameter {
     } else {
       var parameterList = await _executableParameters.getParameterList();
       var offset = parameterList?.leftParenthesis.end;
-      var suffix =
-          _executableParameters.executable.formalParameters.isNotEmpty
-              ? ', '
-              : '';
+      var suffix = _executableParameters.executable.formalParameters.isNotEmpty
+          ? ', '
+          : '';
       await _addParameter(builder, offset, '', suffix);
     }
   }

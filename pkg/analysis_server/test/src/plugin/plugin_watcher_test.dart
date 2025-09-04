@@ -51,9 +51,8 @@ analyzer:
 ''');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'foo', rootPath: convertPath('/foo')),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: convertPath('/foo')),
     );
 
     var driver = driverFor(testFile);

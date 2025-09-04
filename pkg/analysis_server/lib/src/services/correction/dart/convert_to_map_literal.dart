@@ -54,8 +54,8 @@ class ConvertToMapLiteral extends ResolvedCorrectionProducer {
     var constructorTypeArguments = creation.constructorName.type.typeArguments;
     List<DartType>? staticTypeArguments;
     if (constructorTypeArguments == null) {
-      var variableDeclarationList =
-          creation.thisOrAncestorOfType<VariableDeclarationList>();
+      var variableDeclarationList = creation
+          .thisOrAncestorOfType<VariableDeclarationList>();
       if (variableDeclarationList?.type == null) {
         staticTypeArguments = type.typeArguments;
         if (staticTypeArguments.first is DynamicType &&

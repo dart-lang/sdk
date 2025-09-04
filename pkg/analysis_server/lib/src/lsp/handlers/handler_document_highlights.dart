@@ -71,14 +71,13 @@ class DocumentHighlightsHandler
 
       // No matches will return an empty list (not null) because that prevents
       // the editor falling back to a text search.
-      var highlights =
-          matchingSet
-              .map(
-                (token) => DocumentHighlight(
-                  range: toRange(unit.lineInfo, token.offset, token.length),
-                ),
-              )
-              .toList();
+      var highlights = matchingSet
+          .map(
+            (token) => DocumentHighlight(
+              range: toRange(unit.lineInfo, token.offset, token.length),
+            ),
+          )
+          .toList();
 
       return success(highlights);
     });

@@ -48,19 +48,17 @@ class DartUnitOverridesComputer {
       var superElements = overridesResult.superElements;
       var interfaceElements = overridesResult.interfaceElements;
       if (superElements.isNotEmpty || interfaceElements.isNotEmpty) {
-        var superMember =
-            superElements.isNotEmpty
-                ? proto.newOverriddenMember_fromEngine(
-                  superElements.first.nonSynthetic,
-                )
-                : null;
-        var interfaceMembers =
-            interfaceElements
-                .map(
-                  (member) =>
-                      proto.newOverriddenMember_fromEngine(member.nonSynthetic),
-                )
-                .toList();
+        var superMember = superElements.isNotEmpty
+            ? proto.newOverriddenMember_fromEngine(
+                superElements.first.nonSynthetic,
+              )
+            : null;
+        var interfaceMembers = interfaceElements
+            .map(
+              (member) =>
+                  proto.newOverriddenMember_fromEngine(member.nonSynthetic),
+            )
+            .toList();
         _overrides.add(
           proto.Override(
             token.offset,

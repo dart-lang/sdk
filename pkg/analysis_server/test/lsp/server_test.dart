@@ -60,10 +60,9 @@ class ServerDartFixPromptTest extends AbstractLspAnalysisServerTest {
 
 @reflectiveTest
 class ServerTest extends AbstractLspAnalysisServerTest {
-  List<String> get currentContextPaths =>
-      server.contextManager.analysisContexts
-          .map((context) => context.contextRoot.root.path)
-          .toList();
+  List<String> get currentContextPaths => server.contextManager.analysisContexts
+      .map((context) => context.contextRoot.root.path)
+      .toList();
 
   @override
   MemoryResourceProvider get resourceProvider =>

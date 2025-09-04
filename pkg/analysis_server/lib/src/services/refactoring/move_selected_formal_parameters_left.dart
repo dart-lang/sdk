@@ -74,13 +74,12 @@ class MoveSelectedFormalParametersLeft extends RefactoringProducer {
       ...afterPrevious.whereNot(selected.contains),
     ];
 
-    var formalParameterUpdates =
-        reordered.map((formalParameter) {
-          return FormalParameterUpdate(
-            id: formalParameter.id,
-            kind: formalParameter.kind,
-          );
-        }).toList();
+    var formalParameterUpdates = reordered.map((formalParameter) {
+      return FormalParameterUpdate(
+        id: formalParameter.id,
+        kind: formalParameter.kind,
+      );
+    }).toList();
 
     var signatureUpdate = MethodSignatureUpdate(
       formalParameters: formalParameterUpdates,

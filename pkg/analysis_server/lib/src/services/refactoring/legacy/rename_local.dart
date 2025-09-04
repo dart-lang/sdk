@@ -175,12 +175,11 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
     if (element is PatternVariableElement) {
       var rootVariable =
           (element.firstFragment as PatternVariableFragmentImpl).rootVariable;
-      var declaredFragments =
-          rootVariable is JoinPatternVariableFragmentImpl
-              ? rootVariable.transitiveVariables
-                  .whereType<BindPatternVariableFragmentImpl>()
-                  .toList()
-              : [element.firstFragment];
+      var declaredFragments = rootVariable is JoinPatternVariableFragmentImpl
+          ? rootVariable.transitiveVariables
+                .whereType<BindPatternVariableFragmentImpl>()
+                .toList()
+          : [element.firstFragment];
       for (var declaredFragment in declaredFragments) {
         processor.addDeclarationEdit(declaredFragment.element);
         if (declaredFragment is BindPatternVariableFragmentImpl) {

@@ -365,8 +365,8 @@ dependencies:
       ]
     }
     ''';
-    processRunner.startHandler =
-        (executable, args, {dir, env}) => MockProcess(1, 0, json, '');
+    processRunner.startHandler = (executable, args, {dir, env}) =>
+        MockProcess(1, 0, json, '');
 
     pubPackageService.beginCachePreloads([convertPath('/home/test/$fileName')]);
     await pumpEventQueue(times: 500);

@@ -56,8 +56,10 @@ import 'package:linter/src/rules/directives_ordering.dart';
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
-typedef PubspecFixRequestResult =
-    ({List<SourceFileEdit> edits, List<BulkFix> details});
+typedef PubspecFixRequestResult = ({
+  List<SourceFileEdit> edits,
+  List<BulkFix> details,
+});
 
 /// A fix producer that produces changes that will fix multiple diagnostics in
 /// one or more files.
@@ -146,11 +148,13 @@ class BulkFixProcessor {
   /// Cached results of [_canBulkFix].
   static final Map<DiagnosticCode, bool> _bulkFixableCodes = {};
 
-  static final Set<String> _diagnosticCodes =
-      diagnosticCodeValues.map((code) => code.name.toLowerCase()).toSet();
+  static final Set<String> _diagnosticCodes = diagnosticCodeValues
+      .map((code) => code.name.toLowerCase())
+      .toSet();
 
-  static final Set<String> _lintCodes =
-      Registry.ruleRegistry.rules.map((rule) => rule.name).toSet();
+  static final Set<String> _lintCodes = Registry.ruleRegistry.rules
+      .map((rule) => rule.name)
+      .toSet();
 
   /// The service used to report errors when building fixes.
   final InstrumentationService _instrumentationService;
@@ -356,10 +360,9 @@ class BulkFixProcessor {
         !parsedOnly || producer is ParsedCorrectionProducer,
         '$producer must be a ParsedCorrectionProducer',
       );
-      var shouldFix =
-          (context.dartFixContext?.autoTriggered ?? false)
-              ? producer.canBeAppliedAutomatically
-              : producer.canBeAppliedAcrossFiles;
+      var shouldFix = (context.dartFixContext?.autoTriggered ?? false)
+          ? producer.canBeAppliedAutomatically
+          : producer.canBeAppliedAcrossFiles;
       if (shouldFix) {
         await _generateFix(context, producer, codeName);
         if (isCancelled) {
@@ -409,8 +412,9 @@ class BulkFixProcessor {
         for (var unitResult in libraryResult.units) {
           var directives = unitResult.unit.directives;
           for (var directive in directives) {
-            var uri =
-                (directive is ImportDirective) ? directive.uri.stringValue : '';
+            var uri = (directive is ImportDirective)
+                ? directive.uri.stringValue
+                : '';
             if (uri!.startsWith('package:')) {
               var name = Uri.parse(uri).pathSegments.first;
               if (libPath.contains(path) || binPath.contains(path)) {
@@ -527,10 +531,9 @@ class BulkFixProcessor {
     // TODO(srawlins): We are passing `currentUnit` in as `definingUnit`. Seems
     // wrong.
     var context = RuleContextWithParsedResults(allUnits, currentUnit);
-    var lintRules =
-        _syntacticLintCodes
-            .map((name) => Registry.ruleRegistry.getRule(name))
-            .nonNulls;
+    var lintRules = _syntacticLintCodes
+        .map((name) => Registry.ruleRegistry.getRule(name))
+        .nonNulls;
     for (var lintRule in lintRules) {
       lintRule.reporter = currentUnit.diagnosticReporter;
       lintRule.registerNodeProcessors(nodeRegistry, context);
@@ -983,10 +986,9 @@ class BulkFixProcessor {
     bool hasBulkFixProducers(List<ProducerGenerator>? generators) {
       return generators != null &&
           generators.any(
-            (generator) =>
-                generator(
-                  context: StubCorrectionProducerContext.instance,
-                ).canBeAppliedAcrossFiles,
+            (generator) => generator(
+              context: StubCorrectionProducerContext.instance,
+            ).canBeAppliedAcrossFiles,
           );
     }
 

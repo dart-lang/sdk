@@ -374,10 +374,8 @@ class LspAnalysisServer extends AnalysisServer {
   ) {
     _clientCapabilities = LspClientCapabilities(capabilities);
     _clientInfo = clientInfo;
-    var initializationOptions =
-        _initializationOptions = LspInitializationOptions(
-          rawInitializationOptions,
-        );
+    var initializationOptions = _initializationOptions =
+        LspInitializationOptions(rawInitializationOptions);
 
     /// Enable virtual file support.
     var supportsVirtualFiles =
@@ -533,14 +531,13 @@ class LspAnalysisServer extends AnalysisServer {
         );
         completer?.setComplete();
       } catch (error, stackTrace) {
-        var errorMessage =
-            message is ResponseMessage
-                ? 'An error occurred while handling the response to request ${message.id}'
-                : message is RequestMessage
-                ? 'An error occurred while handling ${message.method} request'
-                : message is NotificationMessage
-                ? 'An error occurred while handling ${message.method} notification'
-                : 'Unknown message type';
+        var errorMessage = message is ResponseMessage
+            ? 'An error occurred while handling the response to request ${message.id}'
+            : message is RequestMessage
+            ? 'An error occurred while handling ${message.method} request'
+            : message is NotificationMessage
+            ? 'An error occurred while handling ${message.method} notification'
+            : 'Unknown message type';
         sendErrorResponse(
           message,
           ResponseError(
@@ -579,8 +576,9 @@ class LspAnalysisServer extends AnalysisServer {
       fullMessage = '$fullMessage: $exception';
     }
 
-    var fullError =
-        stackTrace == null ? fullMessage : '$fullMessage\n$stackTrace';
+    var fullError = stackTrace == null
+        ? fullMessage
+        : '$fullMessage\n$stackTrace';
     stackTrace ??= StackTrace.current;
 
     // Log the full message since showMessage above may be truncated or
@@ -1027,12 +1025,11 @@ class LspAnalysisServer extends AnalysisServer {
     var packages = <String>{};
     var additionalFiles = <String>[];
     for (var file in openFiles) {
-      var package =
-          roots
-              .where((root) => root.isAnalyzed(file))
-              .map((root) => root.workspace.findPackageFor(file)?.root)
-              .nonNulls
-              .firstOrNull;
+      var package = roots
+          .where((root) => root.isAnalyzed(file))
+          .map((root) => root.workspace.findPackageFor(file)?.root)
+          .nonNulls
+          .firstOrNull;
       if (package != null && !package.isRoot) {
         packages.add(package.path);
       } else {
@@ -1101,30 +1098,25 @@ class LspAnalysisServer extends AnalysisServer {
     // When there are open folders, they are always the roots. If there are no
     // open workspace folders, then we use the open (priority) files to compute
     // roots.
-    var includedPaths =
-        _workspaceFolders.isNotEmpty
-            ? _workspaceFolders.toSet()
-            : _getRootsForOpenFiles();
+    var includedPaths = _workspaceFolders.isNotEmpty
+        ? _workspaceFolders.toSet()
+        : _getRootsForOpenFiles();
 
-    var excludedPaths =
-        lspClientConfiguration.global.analysisExcludedFolders
-            .expand(
-              (excludePath) =>
-                  resourceProvider.pathContext.isAbsolute(excludePath)
-                      ? [excludePath]
-                      // Apply the relative path to each open workspace folder.
-                      // TODO(dantup): Consider supporting per-workspace config by
-                      // calling workspace/configuration whenever workspace folders change
-                      // and caching the config for each one.
-                      : _workspaceFolders.map(
-                        (root) => resourceProvider.pathContext.join(
-                          root,
-                          excludePath,
-                        ),
-                      ),
-            )
-            .map(pathContext.normalize)
-            .toSet();
+    var excludedPaths = lspClientConfiguration.global.analysisExcludedFolders
+        .expand(
+          (excludePath) => resourceProvider.pathContext.isAbsolute(excludePath)
+              ? [excludePath]
+              // Apply the relative path to each open workspace folder.
+              // TODO(dantup): Consider supporting per-workspace config by
+              // calling workspace/configuration whenever workspace folders change
+              // and caching the config for each one.
+              : _workspaceFolders.map(
+                  (root) =>
+                      resourceProvider.pathContext.join(root, excludePath),
+                ),
+        )
+        .map(pathContext.normalize)
+        .toSet();
 
     var completer = analysisContextRebuildCompleter = Completer();
     try {
@@ -1252,17 +1244,18 @@ class LspServerContextManagerCallbacks
 
     var unit = result.unit;
     if (analysisServer.shouldSendClosingLabelsFor(path)) {
-      var labels =
-          DartUnitClosingLabelsComputer(
-            result.lineInfo,
-            unit,
-          ).compute().map((l) => toClosingLabel(result.lineInfo, l)).toList();
+      var labels = DartUnitClosingLabelsComputer(
+        result.lineInfo,
+        unit,
+      ).compute().map((l) => toClosingLabel(result.lineInfo, l)).toList();
 
       analysisServer.publishClosingLabels(path, labels);
     }
     if (analysisServer.shouldSendOutlineFor(path)) {
-      var outline =
-          DartUnitOutlineComputer(result, withBasicFlutter: true).compute();
+      var outline = DartUnitOutlineComputer(
+        result,
+        withBasicFlutter: true,
+      ).compute();
       var lspOutline = toOutline(result.lineInfo, outline);
       analysisServer.publishOutline(path, lspOutline);
     }

@@ -243,8 +243,9 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
 
             var pluginIsolates = manager.pluginsForContextRoot(contextRoot);
             expect(pluginIsolates, hasLength(2));
-            var paths =
-                pluginIsolates.map((isolate) => isolate.pluginId).toList();
+            var paths = pluginIsolates
+                .map((isolate) => isolate.pluginId)
+                .toList();
             expect(paths, unorderedEquals([plugin1Path, plugin2Path]));
 
             await manager.stopAll();
@@ -429,8 +430,9 @@ class PluginManagerTest with ResourceProviderMixin, _ContextRoot {
     newFolder('/workspaceRoot/blaze-genfiles');
 
     String newPackage(String packageName, [List<String>? dependencies]) {
-      var packageRoot =
-          newFolder('/workspaceRoot/third_party/dart/$packageName').path;
+      var packageRoot = newFolder(
+        '/workspaceRoot/third_party/dart/$packageName',
+      ).path;
       newFile('$packageRoot/lib/$packageName.dart', '');
       var buffer = StringBuffer();
       if (dependencies != null) {

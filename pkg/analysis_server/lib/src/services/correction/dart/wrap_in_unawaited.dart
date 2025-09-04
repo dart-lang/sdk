@@ -72,8 +72,9 @@ class WrapInUnawaited extends ResolvedCorrectionProducer {
     var value = utils.getNodeText(expression);
 
     await builder.addDartFileEdit(file, (builder) {
-      var libraryPrefix =
-          builder.importLibraryElement(Uri.parse('dart:async')).prefix;
+      var libraryPrefix = builder
+          .importLibraryElement(Uri.parse('dart:async'))
+          .prefix;
       var prefix = libraryPrefix != null ? '$libraryPrefix.' : '';
       builder.addSimpleReplacement(
         range.node(expression!),

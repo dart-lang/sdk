@@ -87,11 +87,10 @@ class ConvertToIfCaseStatementChain extends ResolvedCorrectionProducer {
       }
 
       // We expect only `SwitchPatternCase`s.
-      var guardedPatterns =
-          members
-              .whereType<SwitchPatternCase>()
-              .map((e) => e.guardedPattern)
-              .toList();
+      var guardedPatterns = members
+          .whereType<SwitchPatternCase>()
+          .map((e) => e.guardedPattern)
+          .toList();
       if (guardedPatterns.length != members.length) {
         return null;
       }

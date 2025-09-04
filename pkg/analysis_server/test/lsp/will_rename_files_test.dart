@@ -240,10 +240,9 @@ final a = A();
     // Build a mapping of old -> new paths.
     var pathMappings = {
       for (final relativeTestPath in relativeTestPaths)
-        relativeTestPath:
-            relativeTestPath.contains('not_moving')
-                ? relativeTestPath
-                : convertPath('dest/${pathContext.basename(relativeTestPath)}'),
+        relativeTestPath: relativeTestPath.contains('not_moving')
+            ? relativeTestPath
+            : convertPath('dest/${pathContext.basename(relativeTestPath)}'),
     };
 
     var initialContent = buildFiles(pathMappings.keys.toList());
@@ -269,15 +268,14 @@ final a = A();
 
     // Build expected edits in the format the change verifier uses (to avoid
     // hard-coding ~100 lines of files/imports here).
-    var expectedEdits =
-        expectedContent.entries
-            .expand(
-              (entry) => [
-                '>>>>>>>>>> lib/${_asUriString(entry.key)}\n',
-                entry.value,
-              ],
-            )
-            .join();
+    var expectedEdits = expectedContent.entries
+        .expand(
+          (entry) => [
+            '>>>>>>>>>> lib/${_asUriString(entry.key)}\n',
+            entry.value,
+          ],
+        )
+        .join();
 
     // Verify they match what the content would be using the destination paths.
     verifyEdit(edit, expectedEdits);

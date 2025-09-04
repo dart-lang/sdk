@@ -183,10 +183,9 @@ final class ConstructorSuggestion extends ExecutableSuggestion
     required super.matcherScore,
   }) : assert((isTearOff ? 1 : 0) | (isRedirect ? 1 : 0) < 2),
        super(
-         kind:
-             isTearOff || isRedirect
-                 ? CompletionSuggestionKind.IDENTIFIER
-                 : CompletionSuggestionKind.INVOCATION,
+         kind: isTearOff || isRedirect
+             ? CompletionSuggestionKind.IDENTIFIER
+             : CompletionSuggestionKind.INVOCATION,
        );
 
   @override
@@ -1406,26 +1405,25 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
         if (suggestion case MemberSuggestion(:var inheritanceDistance)) {
           distance = inheritanceDistance(request.featureComputer);
         }
-        var kind =
-            request.target.isFunctionalArgument()
-                ? CompletionSuggestionKind.IDENTIFIER
-                : null;
+        var kind = request.target.isFunctionalArgument()
+            ? CompletionSuggestionKind.IDENTIFIER
+            : null;
         suggestion.data = data;
         (switch (suggestion) {
           FieldSuggestion(:var element) =>
             element.isEnumConstant
                 ? suggestEnumConstant(
-                  element,
-                  suggestion.completion,
-                  relevance: relevance,
-                )
+                    element,
+                    suggestion.completion,
+                    relevance: relevance,
+                  )
                 : suggestField(
-                  element,
-                  inheritanceDistance: distance!,
-                  relevance: relevance,
-                  completion: suggestion.completion,
-                  displayString: data?.displayText,
-                ),
+                    element,
+                    inheritanceDistance: distance!,
+                    relevance: relevance,
+                    completion: suggestion.completion,
+                    displayString: data?.displayText,
+                  ),
           GetterSuggestion() => suggestGetter(
             suggestion.element,
             displayString: data?.displayText,
@@ -1443,17 +1441,17 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
             relevance: relevance,
           ),
           MethodSuggestion(kind: var suggestionKind) =>
-          // TODO(brianwilkerson): Correctly set the kind of suggestion in cases
-          //  where `isFunctionalArgument` would return `true` so we can stop
-          //  using the `request.target`.
-          suggestMethod(
-            suggestion.element,
-            completion: suggestion.completion,
-            displayString: data?.displayText,
-            kind: kind ?? suggestionKind,
-            inheritanceDistance: distance!,
-            relevance: relevance,
-          ),
+            // TODO(brianwilkerson): Correctly set the kind of suggestion in cases
+            //  where `isFunctionalArgument` would return `true` so we can stop
+            //  using the `request.target`.
+            suggestMethod(
+              suggestion.element,
+              completion: suggestion.completion,
+              displayString: data?.displayText,
+              kind: kind ?? suggestionKind,
+              inheritanceDistance: distance!,
+              relevance: relevance,
+            ),
           RecordFieldSuggestion() => suggestRecordField(
             field: suggestion.field,
             completion: suggestion.completion,

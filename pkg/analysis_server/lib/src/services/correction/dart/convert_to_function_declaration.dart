@@ -89,10 +89,9 @@ class ConvertToFunctionDeclaration extends ResolvedCorrectionProducer {
         parameterList = aliasedType.formalParameters;
       } else if (type is GenericFunctionType) {
         returnType = type.returnType?.type;
-        parameterList =
-            type.parameters.parameters
-                .map((node) => node.declaredFragment!.element)
-                .toList();
+        parameterList = type.parameters.parameters
+            .map((node) => node.declaredFragment!.element)
+            .toList();
       } else if (initializer case FunctionExpression(
         declaredFragment: ExecutableFragment(:var element),
         :var body,

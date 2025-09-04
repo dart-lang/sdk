@@ -64,7 +64,8 @@ mixin BlockTestCases on AbstractCompletionDriverTest {
   Future<void> test_flutter_setState_indent6_hasPrefix() async {
     await _check_flutter_setState(
       line: '${spaces_6}setSt^',
-      expected: '''
+      expected:
+          '''
 replacement
   left: 5
 suggestions
@@ -80,7 +81,8 @@ $spaces_6});
   Future<void> test_flutter_setState_indent_hasPrefix() async {
     await _check_flutter_setState(
       line: '${spaces_4}setSt^',
-      expected: '''
+      expected:
+          '''
 replacement
   left: 5
 suggestions
@@ -96,7 +98,8 @@ $spaces_4});
   Future<void> test_flutter_setState_indent_noPrefix() async {
     await _check_flutter_setState(
       line: '$spaces_4^',
-      expected: '''
+      expected:
+          '''
 suggestions
   setState(() {
 $spaces_6

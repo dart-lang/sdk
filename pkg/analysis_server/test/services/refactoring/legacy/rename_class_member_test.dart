@@ -1103,9 +1103,8 @@ processObj(p) {
 ''');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'aaa', rootPath: '$packagesRootPath/aaa'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: '$packagesRootPath/aaa'),
     );
 
     await indexTestUnit('''
@@ -1187,9 +1186,8 @@ void foo(A a) {
 ''');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa'),
     );
 
     await indexTestUnit('''

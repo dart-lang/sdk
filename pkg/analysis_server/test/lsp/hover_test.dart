@@ -617,7 +617,8 @@ With some [refs] and some
 ```dart
 print();
 ```
-    '''.trim();
+    '''
+            .trim();
 
     await assertMarkdownContents(content, equals(expectedHoverContent));
   }
@@ -711,7 +712,8 @@ String? abc
 Type: `String?`
 
 Declared in _package:test/main.dart_.
-    '''.trim();
+    '''
+            .trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
   }
@@ -873,7 +875,8 @@ void f(aaa) {
 dynamic aaa
 ```
 Type: `String`
-    '''.trim();
+    '''
+            .trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
   }
@@ -962,7 +965,8 @@ String? get myField
 Type: `String?`
 
 Declared in `A` in _package:test/main.dart_.
-'''.trim();
+'''
+            .trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
   }
@@ -984,7 +988,8 @@ String get myGetter
 Type: `String`
 
 Declared in `A` in _package:test/main.dart_.
-'''.trim();
+'''
+            .trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
   }
@@ -1007,7 +1012,8 @@ String? get myGetter
 Type: `String?`
 
 Declared in `A` in _package:test/main.dart_.
-'''.trim();
+'''
+            .trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
   }
@@ -1031,7 +1037,8 @@ set mySetter(String value)
 Type: `String`
 
 Declared in `A` in _package:test/main.dart_.
-'''.trim();
+'''
+            .trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
   }
@@ -1055,7 +1062,8 @@ set mySetter(String value)
 Type: `String`
 
 Declared in `A` in _package:test/main.dart_.
-'''.trim();
+'''
+            .trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
   }
@@ -1073,7 +1081,8 @@ String? abc
 Type: `String?`
 
 Declared in _package:test/main.dart_.
-    '''.trim();
+    '''
+            .trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
   }

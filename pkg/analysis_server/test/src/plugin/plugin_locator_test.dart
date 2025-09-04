@@ -63,10 +63,9 @@ class PluginLocatorTest with ResourceProviderMixin {
   }
 
   void _createDefaultDir() {
-    defaultDirPath =
-        newFolder(
-          '/package/${PluginLocator.toolsFolderName}/${PluginLocator.defaultPluginFolderName}',
-        ).path;
+    defaultDirPath = newFolder(
+      '/package/${PluginLocator.toolsFolderName}/${PluginLocator.defaultPluginFolderName}',
+    ).path;
   }
 
   void _createPubspec(String content) {

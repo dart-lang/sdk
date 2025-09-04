@@ -89,11 +89,10 @@ class DocumentColorPresentationHandler
     // We can only apply changes to the same file, so filter any change from the
     // builder to only include this file, otherwise we may corrupt the users
     // source (although hopefully we don't produce edits for other files).
-    var editsForThisFile =
-        builder.sourceChange.edits
-            .where((edit) => edit.file == unit.path)
-            .expand((edit) => edit.edits)
-            .toList();
+    var editsForThisFile = builder.sourceChange.edits
+        .where((edit) => edit.file == unit.path)
+        .expand((edit) => edit.edits)
+        .toList();
 
     // LSP requires that we separate the main edit (changing the color code)
     // from anything else (imports).
@@ -107,12 +106,9 @@ class DocumentColorPresentationHandler
     return ColorPresentation(
       label: '$typeName$invocationString',
       textEdit: toTextEdit(unit.lineInfo, mainEdit),
-      additionalTextEdits:
-          otherEdits.isNotEmpty
-              ? otherEdits
-                  .map((edit) => toTextEdit(unit.lineInfo, edit))
-                  .toList()
-              : null,
+      additionalTextEdits: otherEdits.isNotEmpty
+          ? otherEdits.map((edit) => toTextEdit(unit.lineInfo, edit)).toList()
+          : null,
     );
   }
 
@@ -245,8 +241,9 @@ class DocumentColorPresentationHandler
       return node.isConst;
     } else if (node is SimpleIdentifier) {
       var parent = node.parent;
-      var element =
-          parent is PrefixedIdentifier ? parent.element : node.element;
+      var element = parent is PrefixedIdentifier
+          ? parent.element
+          : node.element;
 
       return switch (element) {
         PropertyAccessorElement(:var variable) => variable.isConst,

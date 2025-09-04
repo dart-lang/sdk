@@ -465,9 +465,8 @@ class _PropertyInfo {
 }
 
 extension on ClassDeclaration {
-  MethodDeclaration? get debugFillPropertiesDeclaration =>
-      members
-          .whereType<MethodDeclaration>()
-          .where((e) => e.name.lexeme == 'debugFillProperties')
-          .singleOrNull;
+  MethodDeclaration? get debugFillPropertiesDeclaration => members
+      .whereType<MethodDeclaration>()
+      .where((e) => e.name.lexeme == 'debugFillProperties')
+      .singleOrNull;
 }

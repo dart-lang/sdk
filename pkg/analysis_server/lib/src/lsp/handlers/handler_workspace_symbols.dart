@@ -49,11 +49,10 @@ class WorkspaceSymbolHandler
     }
 
     var supportedSymbolKinds = clientCapabilities.workspaceSymbolKinds;
-    var searchOnlyAnalyzed =
-        !server
-            .lspClientConfiguration
-            .global
-            .includeDependenciesInWorkspaceSymbols;
+    var searchOnlyAnalyzed = !server
+        .lspClientConfiguration
+        .global
+        .includeDependenciesInWorkspaceSymbols;
 
     // Cap the number of results we'll return because short queries may match
     // huge numbers on large projects.

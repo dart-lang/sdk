@@ -45,21 +45,20 @@ void main() {
   });
 }
 
-typedef ExpectedLabel =
-    ({
-      // Main label of the completion (eg 'myFunc')
-      String? label,
-      // The detail part of the label (shown after label, usually truncated signature)
-      String? labelDetail,
-      // Additional label description (usually the auto-import URI)
-      String? labelDescription,
-      // Filter text (usually same as label, never with `()` or other suffixes)
-      String? filterText,
-      // Main detail (shown in popout, usually full signature)
-      String? detail,
-      // Sometimes resolved detail has a prefix added (eg. "Auto-import from").
-      String? resolvedDetailPrefix,
-    });
+typedef ExpectedLabel = ({
+  // Main label of the completion (eg 'myFunc')
+  String? label,
+  // The detail part of the label (shown after label, usually truncated signature)
+  String? labelDetail,
+  // Additional label description (usually the auto-import URI)
+  String? labelDescription,
+  // Filter text (usually same as label, never with `()` or other suffixes)
+  String? filterText,
+  // Main detail (shown in popout, usually full signature)
+  String? detail,
+  // Sometimes resolved detail has a prefix added (eg. "Auto-import from").
+  String? resolvedDetailPrefix,
+});
 
 abstract class AbstractCompletionTest extends AbstractLspAnalysisServerTest
     with CompletionTestMixin {
@@ -1261,9 +1260,8 @@ void f() {
     var res = await getCompletion(mainFileUri, code.position.position);
     var item = res.singleWhere(
       (c) => c.label == completion,
-      orElse:
-          () =>
-              throw 'Did not find $completion in ${res.map((r) => r.label).toList()}',
+      orElse: () =>
+          throw 'Did not find $completion in ${res.map((r) => r.label).toList()}',
     );
 
     expect(item.insertTextFormat, equals(insertTextFormat));
@@ -2957,19 +2955,22 @@ final a = Flex(children: []);
       required String expectedReplace,
       required String expectedInsert,
     }) async {
-      content = '''
+      content =
+          '''
 class A { const A({int argOne, int argTwo, String argThree}); }
 final varOne = '';
 $code
 void f() { }
 ''';
-      var expectedReplaced = '''
+      var expectedReplaced =
+          '''
 class A { const A({int argOne, int argTwo, String argThree}); }
 final varOne = '';
 $expectedReplace
 void f() { }
 ''';
-      var expectedInserted = '''
+      var expectedInserted =
+          '''
 class A { const A({int argOne, int argTwo, String argThree}); }
 final varOne = '';
 $expectedInsert
@@ -3396,11 +3397,10 @@ void f() {
 
     await openFile(mainFileUri, code.code);
     var res = await getCompletion(mainFileUri, code.position.position);
-    var setters =
-        res
-            .where((c) => c.label.endsWith('Setter'))
-            .map((c) => c.detail != null ? '${c.label} (${c.detail})' : c.label)
-            .toList();
+    var setters = res
+        .where((c) => c.label.endsWith('Setter'))
+        .map((c) => c.detail != null ? '${c.label} (${c.detail})' : c.label)
+        .toList();
     expect(setters, [
       'stringSetter (String)',
       'noArgSetter (dynamic)',
@@ -3692,8 +3692,9 @@ void f() {
     await initialAnalysis;
     var res = await getCompletion(mainFileUri, code.position.position);
 
-    var enumCompletions =
-        res.where((c) => c.label.startsWith('MyExportedEnum')).toList();
+    var enumCompletions = res
+        .where((c) => c.label.startsWith('MyExportedEnum'))
+        .toList();
     expect(
       enumCompletions.map((c) => c.label),
       unorderedEquals([
@@ -3772,8 +3773,9 @@ void f() {
     await initialAnalysis;
     var res = await getCompletion(mainFileUri, code.position.position);
 
-    var completions =
-        res.where((c) => c.label == 'MyExportedEnum.One').toList();
+    var completions = res
+        .where((c) => c.label == 'MyExportedEnum.One')
+        .toList();
     expect(completions, hasLength(1));
     var resolved = await resolveCompletion(completions.first);
     // It should not include auto-import text since it's already imported.

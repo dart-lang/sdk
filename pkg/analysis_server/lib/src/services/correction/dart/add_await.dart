@@ -101,11 +101,10 @@ class AddAwait extends ResolvedCorrectionProducer {
               typeSystem.isAssignableTo(type, typeProvider.streamDynamicType);
           if (isStream ||
               _isValidFutureType(
-                isValid:
-                    (type) => typeSystem.isAssignableTo(
-                      type,
-                      typeProvider.iterableDynamicType,
-                    ),
+                isValid: (type) => typeSystem.isAssignableTo(
+                  type,
+                  typeProvider.iterableDynamicType,
+                ),
               )) {
             await _addAwait(
               builder,

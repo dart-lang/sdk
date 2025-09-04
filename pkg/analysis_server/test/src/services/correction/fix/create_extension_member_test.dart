@@ -923,9 +923,8 @@ extension E on int {
   int foo() {}
 }
 ''',
-      errorFilter:
-          (diagnostic) =>
-              diagnostic.diagnosticCode == CompileTimeErrorCode.undefinedMethod,
+      errorFilter: (diagnostic) =>
+          diagnostic.diagnosticCode == CompileTimeErrorCode.undefinedMethod,
     );
   }
 
@@ -942,15 +941,12 @@ extension E on A {
 }
 ''');
     await assertNoFix(
-      errorFilter:
-          (diagnostic) =>
-              diagnostic.diagnosticCode == CompileTimeErrorCode.undefinedMethod,
+      errorFilter: (diagnostic) =>
+          diagnostic.diagnosticCode == CompileTimeErrorCode.undefinedMethod,
     );
     await assertNoFix(
-      errorFilter:
-          (diagnostic) =>
-              diagnostic.diagnosticCode ==
-              CompileTimeErrorCode.invalidAssignment,
+      errorFilter: (diagnostic) =>
+          diagnostic.diagnosticCode == CompileTimeErrorCode.invalidAssignment,
     );
   }
 
@@ -1009,9 +1005,8 @@ extension E on int {
   int foo() {}
 }
 ''',
-      errorFilter:
-          (diagnostic) =>
-              diagnostic.diagnosticCode == CompileTimeErrorCode.undefinedMethod,
+      errorFilter: (diagnostic) =>
+          diagnostic.diagnosticCode == CompileTimeErrorCode.undefinedMethod,
     );
   }
 
@@ -1024,9 +1019,8 @@ extension E on int {
 }
 ''');
     await assertNoFix(
-      errorFilter:
-          (diagnostic) =>
-              diagnostic.diagnosticCode == CompileTimeErrorCode.undefinedMethod,
+      errorFilter: (diagnostic) =>
+          diagnostic.diagnosticCode == CompileTimeErrorCode.undefinedMethod,
     );
   }
 
@@ -1048,9 +1042,8 @@ extension E on int {
   int foo() {}
 }
 ''',
-      errorFilter:
-          (diagnostic) =>
-              diagnostic.diagnosticCode == CompileTimeErrorCode.undefinedMethod,
+      errorFilter: (diagnostic) =>
+          diagnostic.diagnosticCode == CompileTimeErrorCode.undefinedMethod,
     );
   }
 
@@ -1069,9 +1062,8 @@ extension E on B {
 }
 ''');
     await assertNoFix(
-      errorFilter:
-          (diagnostic) =>
-              diagnostic.diagnosticCode == CompileTimeErrorCode.undefinedMethod,
+      errorFilter: (diagnostic) =>
+          diagnostic.diagnosticCode == CompileTimeErrorCode.undefinedMethod,
     );
   }
 

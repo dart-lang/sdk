@@ -33,9 +33,8 @@ class TransformSetManagerTest extends AbstractContextTest {
     _addDataFile('p1-1.0');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'p1', rootPath: '$workspaceRootPath/p1-1.0'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'p1', rootPath: '$workspaceRootPath/p1-1.0'),
     );
 
     newFile('/home/test/pubspec.yaml', '');
@@ -63,9 +62,8 @@ class TransformSetManagerTest extends AbstractContextTest {
     _addDataFileIn('$folder/deep/dive/two.yaml', 'p1');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'p1', rootPath: '$workspaceRootPath/p1'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'p1', rootPath: '$workspaceRootPath/p1'),
     );
 
     newFile('/home/test/pubspec.yaml', '');
@@ -108,10 +106,9 @@ class TransformSetManagerTest extends AbstractContextTest {
     _addDataFile('p2');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'p1', rootPath: '$workspaceRootPath/p1')
-            ..add(name: 'p2', rootPath: '$workspaceRootPath/p2'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'p1', rootPath: '$workspaceRootPath/p1')
+        ..add(name: 'p2', rootPath: '$workspaceRootPath/p2'),
     );
 
     newFile('/home/test/pubspec.yaml', '');

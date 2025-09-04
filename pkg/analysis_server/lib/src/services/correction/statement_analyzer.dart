@@ -23,14 +23,15 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 List<Token> _getTokens(String text, FeatureSet featureSet) {
   try {
     var tokens = <Token>[];
-    var scanner = Scanner(
-      _SourceMock.instance,
-      CharSequenceReader(text),
-      DiagnosticListener.nullListener,
-    )..configureFeatures(
-      featureSetForOverriding: featureSet,
-      featureSet: featureSet,
-    );
+    var scanner =
+        Scanner(
+          _SourceMock.instance,
+          CharSequenceReader(text),
+          DiagnosticListener.nullListener,
+        )..configureFeatures(
+          featureSetForOverriding: featureSet,
+          featureSet: featureSet,
+        );
     var token = scanner.tokenize();
     while (!token.isEof) {
       tokens.add(token);

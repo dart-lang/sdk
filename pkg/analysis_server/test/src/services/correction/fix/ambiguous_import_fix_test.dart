@@ -564,9 +564,8 @@ void f() {
 }
 ''',
       matchFixMessage: "Hide others to use 'N' from 'lib2.dart'",
-      errorFilter:
-          (error) =>
-              error.diagnosticCode == CompileTimeErrorCode.ambiguousImport,
+      errorFilter: (error) =>
+          error.diagnosticCode == CompileTimeErrorCode.ambiguousImport,
     );
   }
 
@@ -593,9 +592,8 @@ void f() {
 }
 ''',
       matchFixMessage: "Hide others to use 'N' from 'lib2.dart' as l",
-      errorFilter:
-          (error) =>
-              error.diagnosticCode == CompileTimeErrorCode.ambiguousImport,
+      errorFilter: (error) =>
+          error.diagnosticCode == CompileTimeErrorCode.ambiguousImport,
     );
   }
 
@@ -863,9 +861,8 @@ void f(N? n, O? o) {
   print(n);
 }
 ''',
-      errorFilter:
-          (error) =>
-              error.diagnosticCode == CompileTimeErrorCode.ambiguousImport,
+      errorFilter: (error) =>
+          error.diagnosticCode == CompileTimeErrorCode.ambiguousImport,
       matchFixMessage: "Remove show to use 'N' from 'lib2.dart'",
     );
   }

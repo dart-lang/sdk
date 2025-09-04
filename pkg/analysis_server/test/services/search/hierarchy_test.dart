@@ -135,8 +135,9 @@ class C extends B {
 
     await resolveTestCode(sb.toString());
     var classLast = findElement2.class_('X$last');
-    var member =
-        classLast.methods.where((element) => element.name == 'foo').single;
+    var member = classLast.methods
+        .where((element) => element.name == 'foo')
+        .single;
     OperationPerformanceImpl performance = OperationPerformanceImpl('<root>');
     var result = await performance.runAsync(
       'getHierarchyMembers',

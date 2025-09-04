@@ -74,22 +74,21 @@ class SearchGetElementDeclarationsHandler extends LegacyHandler {
     ).compute();
 
     var declarations = workspaceSymbols.declarations;
-    var elementDeclarations =
-        declarations.map((declaration) {
-          return protocol.ElementDeclaration(
-            declaration.name,
-            getElementKind(declaration.kind),
-            declaration.fileIndex,
-            declaration.offset,
-            declaration.line,
-            declaration.column,
-            declaration.codeOffset,
-            declaration.codeLength,
-            className: declaration.className,
-            mixinName: declaration.mixinName,
-            parameters: declaration.parameters,
-          );
-        }).toList();
+    var elementDeclarations = declarations.map((declaration) {
+      return protocol.ElementDeclaration(
+        declaration.name,
+        getElementKind(declaration.kind),
+        declaration.fileIndex,
+        declaration.offset,
+        declaration.line,
+        declaration.column,
+        declaration.codeOffset,
+        declaration.codeLength,
+        className: declaration.className,
+        mixinName: declaration.mixinName,
+        parameters: declaration.parameters,
+      );
+    }).toList();
 
     server.sendResponse(
       protocol.SearchGetElementDeclarationsResult(

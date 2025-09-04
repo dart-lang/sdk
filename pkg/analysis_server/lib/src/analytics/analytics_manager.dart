@@ -516,10 +516,10 @@ class AnalyticsManager {
           transitiveFileUniqueCount: contextStructure.transitiveFileUniqueCount,
           transitiveFileUniqueLineCount:
               contextStructure.transitiveFileUniqueLineCount,
-          libraryCycleLibraryCounts:
-              contextStructure.libraryCycleLibraryCounts.toAnalyticsString(),
-          libraryCycleLineCounts:
-              contextStructure.libraryCycleLineCounts.toAnalyticsString(),
+          libraryCycleLibraryCounts: contextStructure.libraryCycleLibraryCounts
+              .toAnalyticsString(),
+          libraryCycleLineCounts: contextStructure.libraryCycleLineCounts
+              .toAnalyticsString(),
         ),
       );
     }
@@ -598,16 +598,16 @@ class AnalyticsManager {
             method: data.method,
             duration: data.responseTimes.toAnalyticsString(),
             added: data.additionalPercentiles[addedKey]?.toAnalyticsString(),
-            excluded:
-                data.additionalPercentiles[excludedKey]?.toAnalyticsString(),
+            excluded: data.additionalPercentiles[excludedKey]
+                ?.toAnalyticsString(),
             files: data.additionalPercentiles[filesKey]?.toAnalyticsString(),
-            included:
-                data.additionalPercentiles[includedKey]?.toAnalyticsString(),
-            openWorkspacePaths:
-                data.additionalPercentiles[openWorkspacePathsKey]
-                    ?.toAnalyticsString(),
-            removed:
-                data.additionalPercentiles[removedKey]?.toAnalyticsString(),
+            included: data.additionalPercentiles[includedKey]
+                ?.toAnalyticsString(),
+            openWorkspacePaths: data
+                .additionalPercentiles[openWorkspacePathsKey]
+                ?.toAnalyticsString(),
+            removed: data.additionalPercentiles[removedKey]
+                ?.toAnalyticsString(),
           ),
         );
         var commandMap = data.additionalEnumCounts[commandEnumKey];

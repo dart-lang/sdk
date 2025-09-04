@@ -383,8 +383,8 @@ class PercentileComputer {
     _counts = Uint32List.fromList((map['counts'] as List<dynamic>).cast<int>());
     valueCount = map['valueCount'] as int;
     aboveValueMaxCount = map['aboveValueMaxCount'] as int;
-    aboveValueMaxSamples =
-        (map['aboveValueMaxSamples'] as List<dynamic>).cast<int>();
+    aboveValueMaxSamples = (map['aboveValueMaxSamples'] as List<dynamic>)
+        .cast<int>();
     maxValue = map['maxValue'] as int;
   }
 

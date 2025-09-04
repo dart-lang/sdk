@@ -157,14 +157,13 @@ class LspClientConfiguration {
 
   /// Gets the path for the WorkspaceFolder closest to [resourcePath].
   String? _getWorkspaceFolderPath(String resourcePath) {
-    var candidates =
-        _resourceSettings.keys
-            .where(
-              (wfPath) =>
-                  wfPath == _normaliseFolderPath(resourcePath) ||
-                  pathContext.isWithin(wfPath, resourcePath),
-            )
-            .toList();
+    var candidates = _resourceSettings.keys
+        .where(
+          (wfPath) =>
+              wfPath == _normaliseFolderPath(resourcePath) ||
+              pathContext.isWithin(wfPath, resourcePath),
+        )
+        .toList();
     candidates.sort((a, b) => -a.length.compareTo(b.length));
     return candidates.firstOrNull;
   }
@@ -341,13 +340,12 @@ class LspGlobalClientConfiguration extends LspResourceClientConfiguration {
   ///
   /// [showAllTodos] should be checked first, as this will return an empty
   /// set if `showTodos` is a boolean.
-  Set<String> get showTodoTypes =>
-      _settings['showTodos'] is List
-          ? (_settings['showTodos'] as List)
-              .cast<String>()
-              .map((kind) => kind.toUpperCase())
-              .toSet()
-          : const {};
+  Set<String> get showTodoTypes => _settings['showTodos'] is List
+      ? (_settings['showTodos'] as List)
+            .cast<String>()
+            .map((kind) => kind.toUpperCase())
+            .toSet()
+      : const {};
 }
 
 /// Wraps the client (editor) configuration for a specific resource.

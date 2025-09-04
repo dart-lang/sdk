@@ -53,8 +53,11 @@ class CodeFragmentParser {
   ///   <accessor> ('.' <accessor>)*
   List<Accessor>? parseAccessors(String content, int delta) {
     this.delta = delta;
-    var scannedTokens =
-        _CodeFragmentScanner(content, delta, diagnosticReporter).scan();
+    var scannedTokens = _CodeFragmentScanner(
+      content,
+      delta,
+      diagnosticReporter,
+    ).scan();
     if (scannedTokens == null) {
       // The error has already been reported.
       return null;
@@ -99,8 +102,11 @@ class CodeFragmentParser {
   ///   <logicalExpression>
   Expression? parseCondition(String content, int delta) {
     this.delta = delta;
-    var scannedTokens =
-        _CodeFragmentScanner(content, delta, diagnosticReporter).scan();
+    var scannedTokens = _CodeFragmentScanner(
+      content,
+      delta,
+      diagnosticReporter,
+    ).scan();
     if (scannedTokens == null) {
       // The error has already been reported.
       return null;
@@ -257,8 +263,9 @@ class CodeFragmentParser {
     var kind = _currentToken?.kind;
     if (kind == _TokenKind.equal || kind == _TokenKind.notEqual) {
       advance();
-      var operator =
-          kind == _TokenKind.equal ? Operator.equal : Operator.notEqual;
+      var operator = kind == _TokenKind.equal
+          ? Operator.equal
+          : Operator.notEqual;
       var rightOperand = _parsePrimaryExpression();
       if (rightOperand == null) {
         return null;

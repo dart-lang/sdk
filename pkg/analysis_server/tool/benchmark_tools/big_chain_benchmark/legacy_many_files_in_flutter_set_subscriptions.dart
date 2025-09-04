@@ -75,14 +75,13 @@ class LegacyManyFilesInFlutterSetSubscriptionsBenchmark
 
     // ...and ask for completion.
     var firstCompletionStopwatch = Stopwatch()..start();
-    var completion1Result =
-        await (await send(
-          LegacyMessages.getSuggestions2(
-            largestIdSeen + 1,
-            runDetails.mainFile.uri,
-            runDetails.typingAtOffset,
-          ),
-        ))!.completer.future;
+    var completion1Result = await (await send(
+      LegacyMessages.getSuggestions2(
+        largestIdSeen + 1,
+        runDetails.mainFile.uri,
+        runDetails.typingAtOffset,
+      ),
+    ))!.completer.future;
     firstCompletionStopwatch.stop();
     List<dynamic> completion1Items =
         completion1Result['result']['suggestions'] as List;
@@ -128,14 +127,13 @@ class LegacyManyFilesInFlutterSetSubscriptionsBenchmark
     ))!.completer.future.then((_) => getAssistsStopwatch.stop());
 
     // The user tabs back into the main file and ask for completion again.
-    Future<Map<String, dynamic>> completionFuture =
-        (await send(
-          LegacyMessages.getSuggestions2(
-            largestIdSeen + 1,
-            runDetails.mainFile.uri,
-            runDetails.typingAtOffset,
-          ),
-        ))!.completer.future;
+    Future<Map<String, dynamic>> completionFuture = (await send(
+      LegacyMessages.getSuggestions2(
+        largestIdSeen + 1,
+        runDetails.mainFile.uri,
+        runDetails.typingAtOffset,
+      ),
+    ))!.completer.future;
 
     Stopwatch stopwatch = Stopwatch()..start();
     var completionResponse = await completionFuture;

@@ -394,15 +394,14 @@ class TestServer implements LspAnalysisServer {
       (executeCommandHandler as TestExecuteCommandHandler).lastParams!;
 
   @override
-  UserPromptSender? get userPromptSender =>
-      supportsShowMessageRequest
-          ? (_, promptText, promptActions) async {
-            lastPromptText = promptText;
-            lastPromptActions = promptActions;
-            assert(promptActions.contains(respondToPromptWithAction));
-            return respondToPromptWithAction;
-          }
-          : null;
+  UserPromptSender? get userPromptSender => supportsShowMessageRequest
+      ? (_, promptText, promptActions) async {
+          lastPromptText = promptText;
+          lastPromptActions = promptActions;
+          assert(promptActions.contains(respondToPromptWithAction));
+          return respondToPromptWithAction;
+        }
+      : null;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

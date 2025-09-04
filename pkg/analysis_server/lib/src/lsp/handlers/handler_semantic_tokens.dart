@@ -73,10 +73,9 @@ abstract class AbstractSemanticTokensHandler<T>
       }
 
       return toSourceRangeNullable(lineInfo, range).mapResult((range) async {
-        var serverTokens =
-            resolvedUnit != null
-                ? await getServerResult(resolvedUnit.unit, range)
-                : <SemanticTokenInfo>[];
+        var serverTokens = resolvedUnit != null
+            ? await getServerResult(resolvedUnit.unit, range)
+            : <SemanticTokenInfo>[];
         var pluginHighlightRegions = getPluginResults(path).flattenedToList;
 
         if (token.isCancellationRequested) {
@@ -102,8 +101,8 @@ abstract class AbstractSemanticTokensHandler<T>
         // Some of the translation operations and the final encoding require
         // the tokens to be sorted. Do it once here to avoid each method needing
         // to do it itself (resulting in multiple sorts).
-        tokens =
-            tokens.toList()..sort(SemanticTokenInfo.offsetLengthPrioritySort);
+        tokens = tokens.toList()
+          ..sort(SemanticTokenInfo.offsetLengthPrioritySort);
 
         if (!allowOverlappingTokens) {
           tokens = encoder.splitOverlappingTokens(tokens);

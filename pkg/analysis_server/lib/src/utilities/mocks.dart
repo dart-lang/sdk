@@ -134,8 +134,9 @@ class MockServerChannel implements ServerCommunicationChannel {
 
     // Round-trip via JSON to ensure all types are fully serialized as they
     // would be in a real setup.
-    response =
-        Response.fromJson(jsonDecode(jsonString) as Map<String, Object?>)!;
+    response = Response.fromJson(
+      jsonDecode(jsonString) as Map<String, Object?>,
+    )!;
 
     responsesReceived.add(response);
     responseController.add(response);
@@ -165,10 +166,9 @@ class MockServerChannel implements ServerCommunicationChannel {
 
     // Round-trip via JSON to ensure all types are fully serialized as they
     // would be in a real setup.
-    response =
-        Response.fromJson(
-          jsonDecode(jsonEncode(response)) as Map<String, Object?>,
-        )!;
+    response = Response.fromJson(
+      jsonDecode(jsonEncode(response)) as Map<String, Object?>,
+    )!;
 
     return response;
   }
@@ -188,8 +188,9 @@ class MockServerChannel implements ServerCommunicationChannel {
 
     // Round-trip via JSON to ensure all types are fully serialized as they
     // would be in a real setup.
-    response =
-        Response.fromJson(jsonDecode(jsonString) as Map<String, Object?>)!;
+    response = Response.fromJson(
+      jsonDecode(jsonString) as Map<String, Object?>,
+    )!;
 
     requestController.add(response);
   }

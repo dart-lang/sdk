@@ -76,25 +76,22 @@ class ConvertAddAllToSpread extends ResolvedCorrectionProducer {
   List<String> get assistArguments => _args;
 
   @override
-  AssistKind get assistKind =>
-      _isInlineInvocation
-          ? DartAssistKind.inlineInvocation
-          : DartAssistKind.convertToSpread;
+  AssistKind get assistKind => _isInlineInvocation
+      ? DartAssistKind.inlineInvocation
+      : DartAssistKind.convertToSpread;
 
   @override
   List<String> get fixArguments => _args;
 
   @override
-  FixKind get fixKind =>
-      _isInlineInvocation
-          ? DartFixKind.INLINE_INVOCATION
-          : DartFixKind.CONVERT_TO_SPREAD;
+  FixKind get fixKind => _isInlineInvocation
+      ? DartFixKind.INLINE_INVOCATION
+      : DartFixKind.CONVERT_TO_SPREAD;
 
   @override
-  FixKind get multiFixKind =>
-      _isInlineInvocation
-          ? DartFixKind.INLINE_INVOCATION_MULTI
-          : DartFixKind.CONVERT_TO_SPREAD_MULTI;
+  FixKind get multiFixKind => _isInlineInvocation
+      ? DartFixKind.INLINE_INVOCATION_MULTI
+      : DartFixKind.CONVERT_TO_SPREAD_MULTI;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

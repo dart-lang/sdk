@@ -115,10 +115,9 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
     if (reference != null) {
       return _referenceToString(reference);
     } else if (element is FormalParameterElement) {
-      var enclosingStr =
-          enclosingElement != null
-              ? _elementToReferenceString(enclosingElement)
-              : 'root';
+      var enclosingStr = enclosingElement != null
+          ? _elementToReferenceString(enclosingElement)
+          : 'root';
       return '$enclosingStr::@parameter::${element.name}';
     } else {
       return '${element.name}';
@@ -612,9 +611,8 @@ void test(int a, int b) {}
 ''');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'foo', rootPath: '$packagesRootPath/foo'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: '$packagesRootPath/foo'),
     );
 
     var availability = await _analyzeAvailability(r'''

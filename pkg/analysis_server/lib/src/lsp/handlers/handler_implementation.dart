@@ -87,44 +87,37 @@ class ImplementationHandler
 
     var locations = performance.run(
       'filter and get location',
-      (_) =>
-          allSubtypes
-              .map((element) {
-                return needsMember
-                    // Filter based on type, so when searching for members we don't
-                    // include any intermediate classes that don't have
-                    // implementations for the method.
-                    ? helper.findMemberElement(element)?.nonSynthetic
-                    : element;
-              })
-              .nonNulls
-              .toSet()
-              .map((element) {
-                var firstFragment = element.firstFragment;
-                var libraryFragment = firstFragment.libraryFragment;
-                if (libraryFragment == null) {
-                  return null;
-                }
+      (_) => allSubtypes
+          .map((element) {
+            return needsMember
+                // Filter based on type, so when searching for members we don't
+                // include any intermediate classes that don't have
+                // implementations for the method.
+                ? helper.findMemberElement(element)?.nonSynthetic
+                : element;
+          })
+          .nonNulls
+          .toSet()
+          .map((element) {
+            var firstFragment = element.firstFragment;
+            var libraryFragment = firstFragment.libraryFragment;
+            if (libraryFragment == null) {
+              return null;
+            }
 
-                var nameOffset = firstFragment.nameOffset;
-                var name = firstFragment.name;
-                if (nameOffset == null || name == null) {
-                  return null;
-                }
+            var nameOffset = firstFragment.nameOffset;
+            var name = firstFragment.name;
+            if (nameOffset == null || name == null) {
+              return null;
+            }
 
-                return Location(
-                  uri: uriConverter.toClientUri(
-                    libraryFragment.source.fullName,
-                  ),
-                  range: toRange(
-                    libraryFragment.lineInfo,
-                    nameOffset,
-                    name.length,
-                  ),
-                );
-              })
-              .nonNulls
-              .toList(),
+            return Location(
+              uri: uriConverter.toClientUri(libraryFragment.source.fullName),
+              range: toRange(libraryFragment.lineInfo, nameOffset, name.length),
+            );
+          })
+          .nonNulls
+          .toList(),
     );
 
     return success(locations);

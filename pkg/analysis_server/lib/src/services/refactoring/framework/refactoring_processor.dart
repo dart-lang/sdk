@@ -94,8 +94,9 @@ class RefactoringProcessor {
                 'filePath': context.resolvedUnitResult.path,
                 'selectionOffset': context.selectionOffset,
                 'selectionLength': context.selectionLength,
-                'arguments':
-                    parameters.map((param) => param.defaultValue).toList(),
+                'arguments': parameters
+                    .map((param) => param.defaultValue)
+                    .toList(),
               },
             ],
           ),

@@ -186,10 +186,9 @@ class EncapsulateField extends ResolvedCorrectionProducer {
             );
 
             var previous = constructor.separator ?? constructor.parameters;
-            var replacement =
-                constructor.initializers.isEmpty
-                    ? ' : _$name = $name'
-                    : ' _$name = $name,';
+            var replacement = constructor.initializers.isEmpty
+                ? ' : _$name = $name'
+                : ' _$name = $name,';
             builder.addSimpleInsertion(previous.end, replacement);
             break;
           }

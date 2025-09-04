@@ -92,9 +92,8 @@ import 'package:test/foo';
       '''
 import 'foo';
 ''',
-      errorFilter:
-          (error) =>
-              error.diagnosticCode != CompileTimeErrorCode.uriDoesNotExist,
+      errorFilter: (error) =>
+          error.diagnosticCode != CompileTimeErrorCode.uriDoesNotExist,
     );
   }
 

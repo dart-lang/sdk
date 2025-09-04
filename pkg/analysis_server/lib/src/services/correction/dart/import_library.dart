@@ -294,44 +294,36 @@ class ImportLibrary extends MultiCorrectionProducer {
       FixKind fixKind;
       FixKind fixKindShow;
       if (libraryElement.isInSdk) {
-        fixKind =
-            prefix.isEmptyOrNull
-                ? DartFixKind.IMPORT_LIBRARY_SDK
-                : DartFixKind.IMPORT_LIBRARY_SDK_PREFIXED;
-        fixKindShow =
-            prefix.isEmptyOrNull
-                ? DartFixKind.IMPORT_LIBRARY_SDK_SHOW
-                : DartFixKind.IMPORT_LIBRARY_SDK_PREFIXED_SHOW;
+        fixKind = prefix.isEmptyOrNull
+            ? DartFixKind.IMPORT_LIBRARY_SDK
+            : DartFixKind.IMPORT_LIBRARY_SDK_PREFIXED;
+        fixKindShow = prefix.isEmptyOrNull
+            ? DartFixKind.IMPORT_LIBRARY_SDK_SHOW
+            : DartFixKind.IMPORT_LIBRARY_SDK_PREFIXED_SHOW;
       } else if (_isLibSrcPath(librarySource.fullName)) {
         // Bad: non-API.
-        fixKind =
-            prefix.isEmptyOrNull
-                ? DartFixKind.IMPORT_LIBRARY_PROJECT3
-                : DartFixKind.IMPORT_LIBRARY_PROJECT3_PREFIXED;
-        fixKindShow =
-            prefix.isEmptyOrNull
-                ? DartFixKind.IMPORT_LIBRARY_PROJECT3_SHOW
-                : DartFixKind.IMPORT_LIBRARY_PROJECT3_PREFIXED_SHOW;
+        fixKind = prefix.isEmptyOrNull
+            ? DartFixKind.IMPORT_LIBRARY_PROJECT3
+            : DartFixKind.IMPORT_LIBRARY_PROJECT3_PREFIXED;
+        fixKindShow = prefix.isEmptyOrNull
+            ? DartFixKind.IMPORT_LIBRARY_PROJECT3_SHOW
+            : DartFixKind.IMPORT_LIBRARY_PROJECT3_PREFIXED_SHOW;
       } else if (declaration.library != libraryElement) {
         // Ugly: exports.
-        fixKind =
-            prefix.isEmptyOrNull
-                ? DartFixKind.IMPORT_LIBRARY_PROJECT2
-                : DartFixKind.IMPORT_LIBRARY_PROJECT2_PREFIXED;
-        fixKindShow =
-            prefix.isEmptyOrNull
-                ? DartFixKind.IMPORT_LIBRARY_PROJECT2_SHOW
-                : DartFixKind.IMPORT_LIBRARY_PROJECT2_PREFIXED_SHOW;
+        fixKind = prefix.isEmptyOrNull
+            ? DartFixKind.IMPORT_LIBRARY_PROJECT2
+            : DartFixKind.IMPORT_LIBRARY_PROJECT2_PREFIXED;
+        fixKindShow = prefix.isEmptyOrNull
+            ? DartFixKind.IMPORT_LIBRARY_PROJECT2_SHOW
+            : DartFixKind.IMPORT_LIBRARY_PROJECT2_PREFIXED_SHOW;
       } else {
         // Good: direct declaration.
-        fixKind =
-            prefix.isEmptyOrNull
-                ? DartFixKind.IMPORT_LIBRARY_PROJECT1
-                : DartFixKind.IMPORT_LIBRARY_PROJECT1_PREFIXED;
-        fixKindShow =
-            prefix.isEmptyOrNull
-                ? DartFixKind.IMPORT_LIBRARY_PROJECT1_SHOW
-                : DartFixKind.IMPORT_LIBRARY_PROJECT1_PREFIXED_SHOW;
+        fixKind = prefix.isEmptyOrNull
+            ? DartFixKind.IMPORT_LIBRARY_PROJECT1
+            : DartFixKind.IMPORT_LIBRARY_PROJECT1_PREFIXED;
+        fixKindShow = prefix.isEmptyOrNull
+            ? DartFixKind.IMPORT_LIBRARY_PROJECT1_SHOW
+            : DartFixKind.IMPORT_LIBRARY_PROJECT1_PREFIXED_SHOW;
       }
       // If both files are in the same package's 'lib' folder, also include a
       // relative import.
@@ -685,15 +677,15 @@ class ImportLibrary extends MultiCorrectionProducer {
   /// names where this fix can be applied besides the current diagnostic.
   Future<Set<String>> _otherUnresolvedNames(String? prefix, String name) async {
     var errorsForThisFix = _codesWhereThisIsValid;
-    var diagnostics =
-        <Diagnostic, List<MultiProducerGenerator>>{}..addEntries(
-          unitResult.diagnostics.map((d) {
-            if (d == diagnostic) return null;
-            var generators = errorsForThisFix[d.diagnosticCode];
-            if (generators == null) return null;
-            return MapEntry(d, generators);
-          }).nonNulls,
-        );
+    var diagnostics = <Diagnostic, List<MultiProducerGenerator>>{}
+      ..addEntries(
+        unitResult.diagnostics.map((d) {
+          if (d == diagnostic) return null;
+          var generators = errorsForThisFix[d.diagnosticCode];
+          if (generators == null) return null;
+          return MapEntry(d, generators);
+        }).nonNulls,
+      );
     var otherNames = <String>{};
     if (diagnostics.isNotEmpty) {
       for (var MapEntry(:key, :value) in diagnostics.entries) {
@@ -871,10 +863,9 @@ class _ImportLibraryCombinatorMultiple extends ResolvedCorrectionProducer {
           keyword = Keyword.HIDE;
       }
 
-      var names =
-          codeStyleOptions.sortCombinators
-              ? combinatorNames.sorted()
-              : combinatorNames;
+      var names = codeStyleOptions.sortCombinators
+          ? combinatorNames.sorted()
+          : combinatorNames;
 
       var newCombinatorCode = '';
       if (names.isNotEmpty) {

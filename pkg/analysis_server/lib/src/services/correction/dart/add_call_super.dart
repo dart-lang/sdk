@@ -31,10 +31,9 @@ class AddCallSuper extends ResolvedCorrectionProducer {
     var methodDeclaration = node;
     if (methodDeclaration is! MethodDeclaration) return;
 
-    var classFragment =
-        methodDeclaration
-            .thisOrAncestorOfType<ClassDeclaration>()
-            ?.declaredFragment;
+    var classFragment = methodDeclaration
+        .thisOrAncestorOfType<ClassDeclaration>()
+        ?.declaredFragment;
     if (classFragment == null) return;
     var classElement = classFragment.element;
 

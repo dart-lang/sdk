@@ -540,7 +540,8 @@ extension on DirectiveUri {
     DirectiveUriWithLibrary(:var source) => source.uri.toString(),
     DirectiveUriWithRelativeUriString(:var relativeUriString) =>
       relativeUriString,
-    DirectiveUri() =>
-      throw UnimplementedError('Unhandled instance of type $runtimeType'),
+    DirectiveUri() => throw UnimplementedError(
+      'Unhandled instance of type $runtimeType',
+    ),
   };
 }
