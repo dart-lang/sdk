@@ -4,28 +4,75 @@ library static_interop;
 import 'dart:js_interop';
 
 @JS()
-@staticInterop
-class A {}
-
-@JS()
-extension type B._(A a) {
-  external A field;
-  external A method();
-  external B(A a);
+extension type B._(JSObject a) implements JSObject {
+  external B(JSObject a);
   external B.named(int i);
   external B get getter;
   external B get property;
+  @JS('renamedG')
+  external B get renamedGetter;
+  @JS('renamedG1.G2')
+  external B get renamedGetter2;
+  @JS('renamedG1.G2.G3')
+  external B get renamedGetter3;
   external B methodWithOptionalArgument([B? b]);
+  external JSObject field;
+  external JSObject method();
+  @JS('renamedF')
+  external JSObject renamedField;
+  @JS('renamedF1.F2')
+  external JSObject renamedField2;
+  @JS('renamedF1.F2.F3')
+  external JSObject renamedField3;
+  @JS('renamedM')
+  external JSObject renamedMethod();
+  @JS('renamedM1.M2')
+  external JSObject renamedMethod2();
+  @JS('renamedM1.M2.M3')
+  external JSObject renamedMethod3();
   external T genericMethod<T extends B>(T t);
-  external static A staticField;
-  external static A staticMethod();
+  external factory B.factory(JSObject a);
+  external factory B.namedParams({JSObject a});
+  external final JSObject finalField;
+  @JS('renamedSG')
+  external static B get renamedStaticGetter;
+  @JS('renamedSG1.SG2')
+  external static B get renamedStaticGetter2;
+  @JS('renamedSG1.SG2.SG3')
+  external static B get renamedStaticGetter3;
   external static B get staticGetter;
   external static B get staticProperty;
+  @JS('renamedSF')
+  external static JSObject renamedStaticField;
+  @JS('renamedSF1.SF2')
+  external static JSObject renamedStaticField2;
+  @JS('renamedSF1.SF2.SF3')
+  external static JSObject renamedStaticField3;
+  @JS('renamedSM')
+  external static JSObject renamedStaticMethod();
+  @JS('renamedSM1.SM2')
+  external static JSObject renamedStaticMethod2();
+  @JS('renamedSM1.SM2.SM3')
+  external static JSObject renamedStaticMethod3();
+  external static JSObject staticField;
+  external static JSObject staticMethod();
   external static T staticGenericMethod<T extends B>(T t);
+  @JS('renamedSS')
+  external static void set renamedStaticSetter(B b);
+  @JS('renamedSS1.SS2')
+  external static void set renamedStaticSetter2(B b);
+  @JS('renamedSS1.SS2.SS3')
+  external static void set renamedStaticSetter3(B b);
   external static void set staticProperty(B b);
   external static void set staticSetter(B b);
   external void set property(B b);
+  @JS('renamedS')
+  external void set renamedSetter(B b);
+  @JS('renamedS1.S2')
+  external void set renamedSetter2(B b);
+  @JS('renamedS1.S2.S3')
+  external void set renamedSetter3(B b);
   external void set setter(B b);
 }
 
-void method(A a) {}
+void method(JSObject a) {}

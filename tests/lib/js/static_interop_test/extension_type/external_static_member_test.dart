@@ -25,6 +25,8 @@ extension type ExternalStatic._(JSObject obj) implements JSObject {
   external static String field;
   @JS('field')
   external static String renamedField;
+  @JS('nestedField.foo.field')
+  external static String nestedField;
   external static final String finalField;
 
   external static String get getSet;
@@ -33,10 +35,16 @@ extension type ExternalStatic._(JSObject obj) implements JSObject {
   external static String get renamedGetSet;
   @JS('getSet')
   external static set renamedGetSet(String val);
+  @JS('nestedGetSet.bar.getSet')
+  external static String get nestedGetSet;
+  @JS('nestedGetSet.bar.getSet')
+  external static set nestedGetSet(String val);
 
   external static String method();
   @JS('method')
   external static String renamedMethod();
+  @JS('nestedMethod.method')
+  external static String nestedMethod();
 }
 
 void testStaticMembers() {
@@ -58,6 +66,9 @@ void testStaticMembers() {
   Expect.equals('modified', ExternalStatic.renamedField);
   ExternalStatic.renamedField = 'renamedField';
   Expect.equals('renamedField', ExternalStatic.renamedField);
+  Expect.equals('nestedField', ExternalStatic.nestedField);
+  ExternalStatic.nestedField = 'modified';
+  Expect.equals('modified', ExternalStatic.nestedField);
   Expect.equals('finalField', ExternalStatic.finalField);
 
   // Getters and setters.
@@ -67,10 +78,14 @@ void testStaticMembers() {
   Expect.equals('modified', ExternalStatic.renamedGetSet);
   ExternalStatic.renamedGetSet = 'renamedGetSet';
   Expect.equals('renamedGetSet', ExternalStatic.renamedGetSet);
+  Expect.equals('nestedGetSet', ExternalStatic.nestedGetSet);
+  ExternalStatic.nestedGetSet = 'modified';
+  Expect.equals('modified', ExternalStatic.nestedGetSet);
 
   // Methods.
   Expect.equals('method', ExternalStatic.method());
   Expect.equals('method', ExternalStatic.renamedMethod());
+  Expect.equals('nestedMethod', ExternalStatic.nestedMethod());
 }
 
 void testNamespacedStaticMembers() {
@@ -92,6 +107,9 @@ void testNamespacedStaticMembers() {
   Expect.equals('modified', namespace.ExternalStatic.renamedField);
   namespace.ExternalStatic.renamedField = 'renamedField';
   Expect.equals('renamedField', namespace.ExternalStatic.renamedField);
+  Expect.equals('nestedField', namespace.ExternalStatic.nestedField);
+  namespace.ExternalStatic.nestedField = 'modified';
+  Expect.equals('modified', namespace.ExternalStatic.nestedField);
   Expect.equals('finalField', namespace.ExternalStatic.finalField);
 
   // Getters and setters.
@@ -101,10 +119,14 @@ void testNamespacedStaticMembers() {
   Expect.equals('modified', namespace.ExternalStatic.renamedGetSet);
   namespace.ExternalStatic.renamedGetSet = 'renamedGetSet';
   Expect.equals('renamedGetSet', namespace.ExternalStatic.renamedGetSet);
+  Expect.equals('nestedGetSet', namespace.ExternalStatic.nestedGetSet);
+  namespace.ExternalStatic.nestedGetSet = 'modified';
+  Expect.equals('modified', namespace.ExternalStatic.nestedGetSet);
 
   // Methods.
   Expect.equals('method', namespace.ExternalStatic.method());
   Expect.equals('method', namespace.ExternalStatic.renamedMethod());
+  Expect.equals('nestedMethod', namespace.ExternalStatic.nestedMethod());
 }
 
 void main() {
@@ -117,8 +139,23 @@ void main() {
     globalThis.ExternalStatic.method = function() {
       return 'method';
     }
+    globalThis.ExternalStatic.nestedMethod = {
+      method: function() {
+        return 'nestedMethod';
+      }
+    };
     globalThis.ExternalStatic.field = 'field';
+    globalThis.ExternalStatic.nestedField = {
+      foo: {
+        field: 'nestedField'
+      }
+    };
     globalThis.ExternalStatic.finalField = 'finalField';
+    globalThis.ExternalStatic.nestedGetSet = {
+      bar: {
+        getSet: 'nestedGetSet'
+      }
+    };
     globalThis.ExternalStatic.getSet = 'getSet';
   ''');
   testStaticMembers();
@@ -130,8 +167,10 @@ void main() {
 
     library3.ExternalStatic = globalThis.ExternalStatic;
     library3.ExternalStatic.field = 'field';
+    library3.ExternalStatic.nestedField.foo.field = 'nestedField';
     library3.ExternalStatic.finalField = 'finalField';
     library3.ExternalStatic.getSet = 'getSet';
+    library3.ExternalStatic.nestedGetSet.bar.getSet = 'nestedGetSet';
     delete globalThis.ExternalStatic;
   ''');
   testNamespacedStaticMembers();

@@ -20,6 +20,8 @@ extension type ExternalStatic._(JSObject obj) implements JSObject {
   external static String field;
   @JS('field')
   external static String renamedField;
+  @JS('nestedField.foo.field')
+  external static String nestedField;
   external static final String finalField;
 
   external static String get getSet;
@@ -28,8 +30,14 @@ extension type ExternalStatic._(JSObject obj) implements JSObject {
   external static String get renamedGetSet;
   @JS('getSet')
   external static set renamedGetSet(String val);
+  @JS('nestedGetSet.bar.getSet')
+  external static String get nestedGetSet;
+  @JS('nestedGetSet.bar.getSet')
+  external static set nestedGetSet(String val);
 
   external static String method();
   @JS('method')
   external static String renamedMethod();
+  @JS('nestedMethod.method')
+  external static String nestedMethod();
 }

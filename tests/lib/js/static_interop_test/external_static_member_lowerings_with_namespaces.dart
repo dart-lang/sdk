@@ -22,6 +22,8 @@ class ExternalStatic {
   external static String field;
   @JS('field')
   external static String renamedField;
+  @JS('nestedField.foo.field')
+  external static String nestedField;
   external static final String finalField;
 
   external static String get getSet;
@@ -30,10 +32,16 @@ class ExternalStatic {
   external static String get renamedGetSet;
   @JS('getSet')
   external static set renamedGetSet(String val);
+  @JS('nestedGetSet.bar.getSet')
+  external static String get nestedGetSet;
+  @JS('nestedGetSet.bar.getSet')
+  external static set nestedGetSet(String val);
 
   external static String method();
   @JS('method')
   external static String renamedMethod();
+  @JS('nestedMethod.method')
+  external static String nestedMethod();
 }
 
 extension ExternalStaticExtension on ExternalStatic {
@@ -45,6 +53,8 @@ extension ExternalStaticExtension on ExternalStatic {
 external String field;
 @JS('library3.field')
 external String renamedField;
+@JS('library3.nestedField.foo.field')
+external String nestedField;
 @JS('library3.finalField')
 external final String finalField;
 
@@ -57,9 +67,15 @@ external set getSet(String val);
 external String get renamedGetSet;
 @JS('library3.getSet')
 external set renamedGetSet(String val);
+@JS('library3.nestedGetSet.bar.getSet')
+external String get nestedGetSet;
+@JS('library3.nestedGetSet.bar.getSet')
+external set nestedGetSet(String val);
 
 // Top-level methods.
 @JS('library3.method')
 external String method();
 @JS('library3.method')
 external String renamedMethod();
+@JS('library3.nestedMethod.method')
+external String nestedMethod();

@@ -22,6 +22,8 @@ class ExternalStatic {
   external static String field;
   @JS('field')
   external static String renamedField;
+  @JS('nestedField.foo.field')
+  external static String nestedField;
   external static final String finalField;
 
   external static String get getSet;
@@ -30,10 +32,16 @@ class ExternalStatic {
   external static String get renamedGetSet;
   @JS('getSet')
   external static set renamedGetSet(String val);
+  @JS('nestedGetSet.bar.getSet')
+  external static String get nestedGetSet;
+  @JS('nestedGetSet.bar.getSet')
+  external static set nestedGetSet(String val);
 
   external static String method();
   @JS('method')
   external static String renamedMethod();
+  @JS('nestedMethod.method')
+  external static String nestedMethod();
 }
 
 extension on ExternalStatic {
@@ -45,6 +53,8 @@ extension on ExternalStatic {
 external String field;
 @JS('field')
 external String renamedField;
+@JS('nestedField.foo.field')
+external String nestedField;
 @JS()
 external final String finalField;
 
@@ -57,12 +67,18 @@ external set getSet(String val);
 external String get renamedGetSet;
 @JS('getSet')
 external set renamedGetSet(String val);
+@JS('nestedGetSet.bar.getSet')
+external String get nestedGetSet;
+@JS('nestedGetSet.bar.getSet')
+external set nestedGetSet(String val);
 
 // Top-level methods.
 @JS()
 external String method();
 @JS('method')
 external String renamedMethod();
+@JS('nestedMethod.method')
+external String nestedMethod();
 
 void testClassStaticMembers() {
   // Fields.
@@ -72,6 +88,9 @@ void testClassStaticMembers() {
   Expect.equals('modified', ExternalStatic.renamedField);
   ExternalStatic.renamedField = 'renamedField';
   Expect.equals('renamedField', ExternalStatic.renamedField);
+  Expect.equals('nestedField', ExternalStatic.nestedField);
+  ExternalStatic.nestedField = 'modified';
+  Expect.equals('modified', ExternalStatic.nestedField);
   Expect.equals('finalField', ExternalStatic.finalField);
 
   // Getters and setters.
@@ -81,10 +100,14 @@ void testClassStaticMembers() {
   Expect.equals('modified', ExternalStatic.renamedGetSet);
   ExternalStatic.renamedGetSet = 'renamedGetSet';
   Expect.equals('renamedGetSet', ExternalStatic.renamedGetSet);
+  Expect.equals('nestedGetSet', ExternalStatic.nestedGetSet);
+  ExternalStatic.nestedGetSet = 'modified';
+  Expect.equals('modified', ExternalStatic.nestedGetSet);
 
   // Methods.
   Expect.equals('method', ExternalStatic.method());
   Expect.equals('method', ExternalStatic.renamedMethod());
+  Expect.equals('nestedMethod', ExternalStatic.nestedMethod());
 }
 
 void testTopLevelMembers() {
@@ -95,6 +118,9 @@ void testTopLevelMembers() {
   Expect.equals('modified', renamedField);
   renamedField = 'renamedField';
   Expect.equals('renamedField', renamedField);
+  Expect.equals('nestedField', nestedField);
+  nestedField = 'modified';
+  Expect.equals('modified', nestedField);
   Expect.equals('finalField', finalField);
 
   // Getters and setters.
@@ -104,10 +130,14 @@ void testTopLevelMembers() {
   Expect.equals('modified', renamedGetSet);
   renamedGetSet = 'renamedGetSet';
   Expect.equals('renamedGetSet', renamedGetSet);
+  Expect.equals('nestedGetSet', nestedGetSet);
+  nestedGetSet = 'modified';
+  Expect.equals('modified', nestedGetSet);
 
   // Methods.
   Expect.equals('method', method());
   Expect.equals('method', renamedMethod());
+  Expect.equals('nestedMethod', nestedMethod());
 }
 
 void testFactories() {
@@ -128,6 +158,9 @@ void testNamespacedClassStaticMembers() {
   Expect.equals('modified', namespace.ExternalStatic.renamedField);
   namespace.ExternalStatic.renamedField = 'renamedField';
   Expect.equals('renamedField', namespace.ExternalStatic.renamedField);
+  Expect.equals('nestedField', namespace.ExternalStatic.nestedField);
+  namespace.ExternalStatic.nestedField = 'modified';
+  Expect.equals('modified', namespace.ExternalStatic.nestedField);
   Expect.equals('finalField', namespace.ExternalStatic.finalField);
 
   // Getters and setters.
@@ -137,10 +170,14 @@ void testNamespacedClassStaticMembers() {
   Expect.equals('modified', namespace.ExternalStatic.renamedGetSet);
   namespace.ExternalStatic.renamedGetSet = 'renamedGetSet';
   Expect.equals('renamedGetSet', namespace.ExternalStatic.renamedGetSet);
+  Expect.equals('nestedGetSet', namespace.ExternalStatic.nestedGetSet);
+  namespace.ExternalStatic.nestedGetSet = 'modified';
+  Expect.equals('modified', namespace.ExternalStatic.nestedGetSet);
 
   // Methods.
   Expect.equals('method', namespace.ExternalStatic.method());
   Expect.equals('method', namespace.ExternalStatic.renamedMethod());
+  Expect.equals('nestedMethod', namespace.ExternalStatic.nestedMethod());
 }
 
 void testNamespacedTopLevelMembers() {
@@ -151,6 +188,9 @@ void testNamespacedTopLevelMembers() {
   Expect.equals('modified', namespace.renamedField);
   namespace.renamedField = 'renamedField';
   Expect.equals('renamedField', namespace.renamedField);
+  Expect.equals('nestedField', namespace.nestedField);
+  namespace.nestedField = 'modified';
+  Expect.equals('modified', namespace.nestedField);
   Expect.equals('finalField', namespace.finalField);
 
   // Getters and setters.
@@ -160,10 +200,14 @@ void testNamespacedTopLevelMembers() {
   Expect.equals('modified', namespace.renamedGetSet);
   namespace.renamedGetSet = 'renamedGetSet';
   Expect.equals('renamedGetSet', namespace.renamedGetSet);
+  Expect.equals('nestedGetSet', namespace.nestedGetSet);
+  namespace.nestedGetSet = 'modified';
+  Expect.equals('modified', namespace.nestedGetSet);
 
   // Methods.
   Expect.equals('method', namespace.method());
   Expect.equals('method', namespace.renamedMethod());
+  Expect.equals('nestedMethod', namespace.nestedMethod());
 }
 
 void testNamespacedFactories() {
@@ -182,18 +226,48 @@ void main() {
       this.initialValue = initialValue;
     }
     globalThis.ExternalStatic.field = 'field';
+    globalThis.ExternalStatic.nestedField = {
+      foo: {
+        field: 'nestedField'
+      }
+    };
     globalThis.ExternalStatic.finalField = 'finalField';
     globalThis.ExternalStatic.getSet = 'getSet';
+    globalThis.ExternalStatic.nestedGetSet = {
+      bar: {
+        getSet: 'nestedGetSet'
+      }
+    };
     globalThis.ExternalStatic.method = function() {
       return 'method';
     }
+    globalThis.ExternalStatic.nestedMethod = {
+      method: function() {
+        return 'nestedMethod';
+      }
+    };
 
     globalThis.field = 'field';
+    globalThis.nestedField = {
+      foo: {
+        field: 'nestedField'
+      }
+    };
     globalThis.finalField = 'finalField';
     globalThis.getSet = 'getSet';
+    globalThis.nestedGetSet = {
+      bar: {
+        getSet: 'nestedGetSet'
+      }
+    };
     globalThis.method = function() {
       return 'method';
     }
+    globalThis.nestedMethod = {
+      method: function() {
+        return 'nestedMethod';
+      }
+    };
   ''');
   testClassStaticMembers();
   testTopLevelMembers();
@@ -209,13 +283,26 @@ void main() {
 
     library3.ExternalStatic = globalThis.ExternalStatic;
     library3.ExternalStatic.field = 'field';
+    library3.ExternalStatic.nestedField.foo.field = 'nestedField';
     library3.ExternalStatic.finalField = 'finalField';
     library3.ExternalStatic.getSet = 'getSet';
+    library3.ExternalStatic.nestedGetSet.bar.getSet = 'nestedGetSet';
     delete globalThis.ExternalStatic;
     library3.field = 'field';
+    library3.nestedField = {
+      foo: {
+        field: 'nestedField'
+      }
+    };
     library3.finalField = 'finalField';
     library3.getSet = 'getSet';
+    library3.nestedGetSet = {
+      bar: {
+        getSet: 'nestedGetSet'
+      }
+    };
     library3.method = globalThis.method;
+    library3.nestedMethod = globalThis.nestedMethod;
     delete globalThis.field;
     delete globalThis.finalField;
     delete globalThis.getSet;

@@ -18,6 +18,8 @@ extension type External<T extends JSAny?, U extends Nested>._(JSObject _) {
   external String field;
   @JS('field')
   external String renamedField;
+  @JS('nestedField.foo.field')
+  external String nestedField;
   external final String finalField;
 
   external String get getSet;
@@ -26,11 +28,17 @@ extension type External<T extends JSAny?, U extends Nested>._(JSObject _) {
   external String get renamedGetSet;
   @JS('getSet')
   external set renamedGetSet(String val);
+  @JS('nestedGetSet.bar.getSet')
+  external String get nestedGetSet;
+  @JS('nestedGetSet.bar.getSet')
+  external set nestedGetSet(String val);
 
   external String method();
   external String addMethod(String a, [String b]);
   @JS('method')
   external String renamedMethod();
+  @JS('nestedMethod.method')
+  external String nestedMethod();
 
   @JS('field')
   external T fieldT;
@@ -64,8 +72,18 @@ void main() {
   eval('''
     globalThis.External = function External() {
       this.field = 'field';
+      this.nestedField = {
+        foo: {
+          field: 'nestedField'
+        }
+      };
       this.finalField = 'finalField';
       this.getSet = 'getSet';
+      this.nestedGetSet = {
+        bar: {
+          getSet: 'nestedGetSet'
+        }
+      };
       this.method = function() {
         return 'method';
       }
@@ -75,6 +93,11 @@ void main() {
         }
         return a + b;
       }
+      this.nestedMethod = {
+        method: function() {
+          return 'nestedMethod';
+        }
+      };
       this.combineNested = function(a, b) {
         return new Nested(a.value + b.value);
       }
@@ -92,6 +115,9 @@ void main() {
   Expect.equals('modified', external.renamedField);
   external.renamedField = 'renamedField';
   Expect.equals('renamedField', external.renamedField);
+  Expect.equals('nestedField', external.nestedField);
+  external.nestedField = 'modified';
+  Expect.equals('modified', external.nestedField);
   Expect.equals('finalField', external.finalField);
 
   // Getters and setters.
@@ -101,12 +127,16 @@ void main() {
   Expect.equals('modified', external.renamedGetSet);
   external.renamedGetSet = 'renamedGetSet';
   Expect.equals('renamedGetSet', external.renamedGetSet);
+  Expect.equals('nestedGetSet', external.nestedGetSet);
+  external.nestedGetSet = 'modified';
+  Expect.equals('modified', external.nestedGetSet);
 
   // Methods.
   Expect.equals('method', external.method());
   Expect.equals('methodundefined', external.addMethod('method'));
   Expect.equals('methodmethod', external.addMethod('method', 'method'));
   Expect.equals('method', external.renamedMethod());
+  Expect.equals('nestedMethod', external.nestedMethod());
 
   // Check that type parameters operate as expected on external interfaces.
   final value = 'value';
