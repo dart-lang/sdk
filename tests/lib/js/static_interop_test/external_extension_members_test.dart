@@ -26,7 +26,7 @@ extension FooExt<T extends JSAny?, U extends Nested> on Foo<T, U> {
   external final finalField;
   @JS('fieldAnnotation')
   external var annotatedField;
-  @JS('nestedField.foo.field')
+  @JS('nested-field.foo.field')
   external var nestedField;
 
   external get getter;
@@ -37,9 +37,9 @@ extension FooExt<T extends JSAny?, U extends Nested> on Foo<T, U> {
   @JS('setterAnnotation')
   external set annotatedSetter(_);
 
-  @JS('nestedGetSet.bar.getSet')
+  @JS('nestedGetSet.1.getSet')
   external get nestedGetSet;
-  @JS('nestedGetSet.bar.getSet')
+  @JS('nestedGetSet.1.getSet')
   external set nestedGetSet(_);
 
   external num getField();
@@ -50,7 +50,7 @@ extension FooExt<T extends JSAny?, U extends Nested> on Foo<T, U> {
   external num sumFn(a, b);
   @JS('sumFn')
   external num otherSumFn(a, b);
-  @JS('nestedMethod.method')
+  @JS('nested^method.method')
   external String nestedMethod();
 
   @JS('field')
@@ -98,7 +98,7 @@ void main() {
       this.field = a;
       this.fieldAnnotation = a;
       this.finalField = a;
-      this.nestedField = {
+      this['nested-field'] = {
         foo: {
           field: a
         }
@@ -107,7 +107,7 @@ void main() {
       this.getter = a;
       this.getterAnnotation = a;
       this.nestedGetSet = {
-        bar: {
+        '1': {
           getSet: a
         }
       };
@@ -133,7 +133,7 @@ void main() {
       return a + b;
     }
 
-    Foo.prototype.nestedMethod = {
+    Foo.prototype['nested^method'] = {
       method: function() {
         return 'nestedMethod';
       }

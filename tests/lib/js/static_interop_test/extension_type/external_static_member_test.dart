@@ -25,7 +25,7 @@ extension type ExternalStatic._(JSObject obj) implements JSObject {
   external static String field;
   @JS('field')
   external static String renamedField;
-  @JS('nestedField.foo.field')
+  @JS('nested-field.foo.field')
   external static String nestedField;
   external static final String finalField;
 
@@ -35,16 +35,21 @@ extension type ExternalStatic._(JSObject obj) implements JSObject {
   external static String get renamedGetSet;
   @JS('getSet')
   external static set renamedGetSet(String val);
-  @JS('nestedGetSet.bar.getSet')
+  @JS('nestedGetSet.1.getSet')
   external static String get nestedGetSet;
-  @JS('nestedGetSet.bar.getSet')
+  @JS('nestedGetSet.1.getSet')
   external static set nestedGetSet(String val);
 
   external static String method();
   @JS('method')
   external static String renamedMethod();
-  @JS('nestedMethod.method')
+  @JS('nested^method.method')
   external static String nestedMethod();
+}
+
+@JS('External-Static')
+extension type ExternalStaticRenamed._(JSObject obj) implements ExternalStatic {
+  external ExternalStaticRenamed();
 }
 
 void testStaticMembers() {
@@ -58,6 +63,7 @@ void testStaticMembers() {
   testExternalConstructorCall(ExternalStatic.factory());
   testExternalConstructorCall(ExternalStatic.multipleArgs(0, ''));
   testExternalConstructorCall(ExternalStatic.nonExternal());
+  testExternalConstructorCall(ExternalStaticRenamed());
 
   // Fields.
   Expect.equals('field', ExternalStatic.field);
@@ -99,6 +105,7 @@ void testNamespacedStaticMembers() {
   testExternalConstructorCall(namespace.ExternalStatic.factory());
   testExternalConstructorCall(namespace.ExternalStatic.multipleArgs(0, ''));
   testExternalConstructorCall(namespace.ExternalStatic.nonExternal());
+  testExternalConstructorCall(namespace.ExternalStaticRenamed());
 
   // Fields.
   Expect.equals('field', namespace.ExternalStatic.field);
@@ -139,38 +146,40 @@ void main() {
     globalThis.ExternalStatic.method = function() {
       return 'method';
     }
-    globalThis.ExternalStatic.nestedMethod = {
+    globalThis.ExternalStatic['nested^method'] = {
       method: function() {
         return 'nestedMethod';
       }
     };
     globalThis.ExternalStatic.field = 'field';
-    globalThis.ExternalStatic.nestedField = {
+    globalThis.ExternalStatic['nested-field'] = {
       foo: {
         field: 'nestedField'
       }
     };
     globalThis.ExternalStatic.finalField = 'finalField';
     globalThis.ExternalStatic.nestedGetSet = {
-      bar: {
+      '1': {
         getSet: 'nestedGetSet'
       }
     };
     globalThis.ExternalStatic.getSet = 'getSet';
+    globalThis['External-Static'] = globalThis.ExternalStatic;
   ''');
   testStaticMembers();
   eval('''
     var library3 = {};
-    var library2 = {library3: library3};
+    var library2 = {'library*3': library3};
     var library1 = {library2: library2};
-    globalThis.library1 = library1;
+    globalThis['library-1'] = library1;
 
     library3.ExternalStatic = globalThis.ExternalStatic;
     library3.ExternalStatic.field = 'field';
-    library3.ExternalStatic.nestedField.foo.field = 'nestedField';
+    library3.ExternalStatic['nested-field'].foo.field = 'nestedField';
     library3.ExternalStatic.finalField = 'finalField';
     library3.ExternalStatic.getSet = 'getSet';
-    library3.ExternalStatic.nestedGetSet.bar.getSet = 'nestedGetSet';
+    library3.ExternalStatic.nestedGetSet['1'].getSet = 'nestedGetSet';
+    library2['External-Static'] = globalThis.ExternalStatic;
     delete globalThis.ExternalStatic;
   ''');
   testNamespacedStaticMembers();

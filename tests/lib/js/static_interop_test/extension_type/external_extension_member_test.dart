@@ -16,7 +16,7 @@ extension E on ExtensionType {
   external String field;
   @JS('field')
   external String renamedField;
-  @JS('nestedField.foo.field')
+  @JS('nested-field.foo.field')
   external String nestedField;
   external final String finalField;
 
@@ -26,16 +26,16 @@ extension E on ExtensionType {
   external String get renamedGetSet;
   @JS('getSet')
   external set renamedGetSet(String val);
-  @JS('nestedGetSet.bar.getSet')
+  @JS('nestedGetSet.1.getSet')
   external String get nestedGetSet;
-  @JS('nestedGetSet.bar.getSet')
+  @JS('nestedGetSet.1.getSet')
   external set nestedGetSet(String val);
 
   external String method();
   external String differentArgsMethod(String a, [String b = '']);
   @JS('method')
   external String renamedMethod();
-  @JS('nestedMethod.method')
+  @JS('nested^method.method')
   external String nestedMethod();
 }
 
@@ -43,7 +43,7 @@ void main() {
   eval('''
     globalThis.ExtensionType = function ExtensionType() {
       this.field = 'field';
-      this.nestedField = {
+      this['nested-field'] = {
         foo: {
           field: 'nestedField'
         }
@@ -51,7 +51,7 @@ void main() {
       this.finalField = 'finalField';
       this.getSet = 'getSet';
       this.nestedGetSet = {
-        bar: {
+        '1': {
           getSet: 'nestedGetSet'
         }
       };
@@ -61,7 +61,7 @@ void main() {
       this.differentArgsMethod = function(a, b) {
         return a + b;
       }
-      this.nestedMethod = {
+      this['nested^method'] = {
         method: function() {
           return 'nestedMethod';
         }

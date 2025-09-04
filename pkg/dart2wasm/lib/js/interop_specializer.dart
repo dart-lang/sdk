@@ -25,7 +25,7 @@ abstract class _Specializer {
   final InteropSpecializerFactory factory;
   final Procedure interopMethod;
   final String jsString;
-  late final bool firstParameterIsObject =
+  late final bool isInstanceMember =
       factory._extensionIndex.isInstanceInteropMember(interopMethod);
 
   _Specializer(this.factory, this.interopMethod, this.jsString);
@@ -53,25 +53,31 @@ abstract class _Specializer {
 
   /// Returns the string that will be the body of the JS trampoline.
   ///
-  /// [object] is the callee if there is one for this config. [callArguments] is
-  /// the remaining arguments of the `interopMethod`.
-  String bodyString(String object, List<String> callArguments);
+  /// [receiver] is the callee if there is one for this config. If empty, it's
+  /// assumed to be `globalThis`, which the implementation may elide.
+  /// [callArguments] is the remaining arguments of the `interopMethod`.
+  String bodyString(String receiver, List<String> callArguments);
 
   /// Compute and return the JS trampoline string needed for this method
   /// lowering.
+  // TODO(srujzs): We check whether this specializer is a constructor, setter,
+  // and an instance member, as well as assert that we don't pass the wrong
+  // receivers into `bodyString` calls. This feel like a code smell and likely
+  // means we should push this method further down into the implementations,
+  // possibly with more intermediate types to reduce code duplication.
   String generateJS(List<String> parameterNames) {
-    final object = isConstructor
+    final receiver = isConstructor
         ? ''
-        : firstParameterIsObject
+        : isInstanceMember
             ? parameterNames[0]
             : 'globalThis';
     final callArguments =
-        firstParameterIsObject ? parameterNames.sublist(1) : parameterNames;
+        isInstanceMember ? parameterNames.sublist(1) : parameterNames;
     final callArgumentsString = callArguments.join(',');
-    String functionParameters = firstParameterIsObject
-        ? '$object${callArguments.isEmpty ? '' : ',$callArgumentsString'}'
+    String functionParameters = isInstanceMember
+        ? '$receiver${callArguments.isEmpty ? '' : ',$callArgumentsString'}'
         : callArgumentsString;
-    final body = bodyString(object, callArguments);
+    final body = bodyString(receiver, callArguments);
 
     if (parametersNeedParens(parameterNames)) {
       functionParameters = '($functionParameters)';
@@ -135,6 +141,46 @@ abstract class _Specializer {
         interopMethod, () => {})[parameters.length] = dartProcedure;
     return dartProcedure;
   }
+
+  // Determines if a selector in an `@JS` rename can be used in dot notation as
+  // an identifier. Note that this is conservative, and it's possible to have
+  // other valid identifiers (such as Unicode characters) that don't match this
+  // regex. Enumerating all such characters in `ID_Start` and `ID_Continue`
+  // would make this a long regex. Almost any "real" rename will be ASCII, so
+  // being conservative here is okay.
+  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#identifiers
+  static final RegExp _dotNotationable = RegExp(r'^[A-Za-z_$][\w$]*$');
+
+  /// Given a [fullDottedString] that represents a target for a JS interop call,
+  /// splits it and recombines the string into a valid JS property access,
+  /// including the provider [receiver] at the beginning.
+  ///
+  /// If [receiver] is empty, potentially adds a `globalThis` at the beginning
+  /// if needed for bracket notation.
+  String _splitSelectorsAndRecombine(
+      {required String fullDottedString, required String receiver}) {
+    final selectors = jsString.split('.');
+    final validPropertyStr = StringBuffer('');
+    validPropertyStr.write(receiver);
+    for (var i = 0; i < selectors.length; i++) {
+      final selector = selectors[i];
+      if (_dotNotationable.hasMatch(selector)) {
+        // Prefer dot notation when possible as it's fewer characters.
+        if (validPropertyStr.isEmpty) {
+          validPropertyStr.write(selector);
+        } else {
+          validPropertyStr.write(".$selector");
+        }
+      } else {
+        if (validPropertyStr.isEmpty) {
+          // Bracket notation needs a receiver.
+          validPropertyStr.write('globalThis');
+        }
+        validPropertyStr.write("['$selector']");
+      }
+    }
+    return validPropertyStr.toString();
+  }
 }
 
 /// Config class for interop members that get lowered on the procedure side.
@@ -176,8 +222,12 @@ class _ConstructorSpecializer extends _ProcedureSpecializer {
   bool get isSetter => false;
 
   @override
-  String bodyString(String object, List<String> callArguments) =>
-      "new $jsString(${callArguments.join(',')})";
+  String bodyString(String receiver, List<String> callArguments) {
+    assert(receiver.isEmpty);
+    final constructorStr = _splitSelectorsAndRecombine(
+        fullDottedString: jsString, receiver: receiver);
+    return "new $constructorStr(${callArguments.join(',')})";
+  }
 }
 
 class _GetterSpecializer extends _ProcedureSpecializer {
@@ -190,8 +240,11 @@ class _GetterSpecializer extends _ProcedureSpecializer {
   bool get isSetter => false;
 
   @override
-  String bodyString(String object, List<String> callArguments) =>
-      '$object.$jsString';
+  String bodyString(String receiver, List<String> callArguments) {
+    assert(receiver.isNotEmpty);
+    return _splitSelectorsAndRecombine(
+        fullDottedString: jsString, receiver: receiver);
+  }
 }
 
 class _SetterSpecializer extends _ProcedureSpecializer {
@@ -204,8 +257,12 @@ class _SetterSpecializer extends _ProcedureSpecializer {
   bool get isSetter => true;
 
   @override
-  String bodyString(String object, List<String> callArguments) =>
-      '$object.$jsString = ${callArguments[0]}';
+  String bodyString(String receiver, List<String> callArguments) {
+    assert(receiver.isNotEmpty);
+    final setterStr = _splitSelectorsAndRecombine(
+        fullDottedString: jsString, receiver: receiver);
+    return '$setterStr = ${callArguments[0]}';
+  }
 }
 
 class _MethodSpecializer extends _ProcedureSpecializer {
@@ -218,8 +275,12 @@ class _MethodSpecializer extends _ProcedureSpecializer {
   bool get isSetter => false;
 
   @override
-  String bodyString(String object, List<String> callArguments) =>
-      "$object.$jsString(${callArguments.join(',')})";
+  String bodyString(String receiver, List<String> callArguments) {
+    assert(receiver.isNotEmpty);
+    final methodStr = _splitSelectorsAndRecombine(
+        fullDottedString: jsString, receiver: receiver);
+    return '$methodStr(${callArguments.join(',')})';
+  }
 }
 
 class _OperatorSpecializer extends _ProcedureSpecializer {
@@ -238,10 +299,11 @@ class _OperatorSpecializer extends _ProcedureSpecializer {
       };
 
   @override
-  String bodyString(String object, List<String> callArguments) {
+  String bodyString(String receiver, List<String> callArguments) {
+    assert(receiver.isNotEmpty);
     return isSetter
-        ? '$object[${callArguments[0]}] = ${callArguments[1]}'
-        : '$object[${callArguments[0]}]';
+        ? '$receiver[${callArguments[0]}] = ${callArguments[1]}'
+        : '$receiver[${callArguments[0]}]';
   }
 }
 
@@ -302,8 +364,12 @@ class _ConstructorInvocationSpecializer
   bool get isSetter => false;
 
   @override
-  String bodyString(String object, List<String> callArguments) =>
-      "new $jsString(${callArguments.join(',')})";
+  String bodyString(String receiver, List<String> callArguments) {
+    assert(receiver.isEmpty);
+    final constructorStr = _splitSelectorsAndRecombine(
+        fullDottedString: jsString, receiver: receiver);
+    return "new $constructorStr(${callArguments.join(',')})";
+  }
 }
 
 class _MethodInvocationSpecializer extends _PositionalInvocationSpecializer {
@@ -317,8 +383,12 @@ class _MethodInvocationSpecializer extends _PositionalInvocationSpecializer {
   bool get isSetter => false;
 
   @override
-  String bodyString(String object, List<String> callArguments) =>
-      "$object.$jsString(${callArguments.join(',')})";
+  String bodyString(String receiver, List<String> callArguments) {
+    assert(receiver.isNotEmpty);
+    final methodStr = _splitSelectorsAndRecombine(
+        fullDottedString: jsString, receiver: receiver);
+    return '$methodStr(${callArguments.join(',')})';
+  }
 }
 
 /// Config class for object literals, which only use named arguments and are
@@ -361,7 +431,8 @@ class _ObjectLiteralSpecializer extends _InvocationSpecializer {
   }
 
   @override
-  String bodyString(String object, List<String> callArguments) {
+  String bodyString(String receiver, List<String> callArguments) {
+    assert(receiver.isEmpty);
     final keys = parameters.map(_jsKey).toList();
     final keyValuePairs = <String>[];
     for (int i = 0; i < callArguments.length; i++) {
