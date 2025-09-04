@@ -22,6 +22,19 @@ mixin class C {}
 ''');
   }
 
+  test_class_mixin_private() async {
+    await assertErrorsInCode(
+      r'''
+@Deprecated.mixin()
+mixin class _C {}
+''',
+      [
+        error(WarningCode.invalidDeprecatedMixinAnnotation, 1, 16),
+        error(WarningCode.unusedElement, 32, 2),
+      ],
+    );
+  }
+
   test_class_noMixin() async {
     await assertErrorsInCode(
       r'''

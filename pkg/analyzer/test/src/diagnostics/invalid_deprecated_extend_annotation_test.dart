@@ -54,6 +54,19 @@ class C {
     );
   }
 
+  test_class_private() async {
+    await assertErrorsInCode(
+      r'''
+@Deprecated.extend()
+class _C {}
+''',
+      [
+        error(WarningCode.invalidDeprecatedExtendAnnotation, 1, 17),
+        error(WarningCode.unusedElement, 27, 2),
+      ],
+    );
+  }
+
   test_class_sealed() async {
     await assertErrorsInCode(
       r'''

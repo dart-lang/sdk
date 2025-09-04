@@ -144,7 +144,8 @@ class AnnotationVerifier {
     }
 
     if (declaredElement is ClassElement) {
-      if (declaredElement.isExtendableOutside &&
+      if (declaredElement.isPublic &&
+          declaredElement.isExtendableOutside &&
           declaredElement.hasGenerativeConstructor) {
         return;
       }
@@ -169,9 +170,11 @@ class AnnotationVerifier {
     }
 
     if (declaredElement is ClassElement &&
+        declaredElement.isPublic &&
         declaredElement.isImplementableOutside) {
       return;
     } else if (declaredElement is MixinElement &&
+        declaredElement.isPublic &&
         declaredElement.isImplementableOutside) {
       return;
     }
@@ -192,11 +195,11 @@ class AnnotationVerifier {
       declaredElement = parent.type.type?.element;
     }
 
-    if (declaredElement is ClassElement) {
-      if (!declaredElement.isAbstract &&
-          declaredElement.hasGenerativeConstructor) {
-        return;
-      }
+    if (declaredElement is ClassElement &&
+        declaredElement.isPublic &&
+        !declaredElement.isAbstract &&
+        declaredElement.hasGenerativeConstructor) {
+      return;
     }
 
     _diagnosticReporter.atNode(
@@ -206,7 +209,11 @@ class AnnotationVerifier {
   }
 
   void _checkDeprecatedMixin(Annotation node, AstNode parent) {
-    if (parent is ClassDeclaration && parent.mixinKeyword != null) return;
+    if (parent is ClassDeclaration &&
+        parent.declaredFragment!.element.isPublic &&
+        parent.mixinKeyword != null) {
+      return;
+    }
 
     _diagnosticReporter.atNode(
       node.name,
@@ -227,10 +234,12 @@ class AnnotationVerifier {
     }
 
     if (declaredElement is ClassElement &&
+        declaredElement.isPublic &&
         (declaredElement.isImplementableOutside ||
             declaredElement.isExtendableOutside)) {
       return;
     } else if (declaredElement is MixinElement &&
+        declaredElement.isPublic &&
         declaredElement.isImplementableOutside) {
       return;
     }

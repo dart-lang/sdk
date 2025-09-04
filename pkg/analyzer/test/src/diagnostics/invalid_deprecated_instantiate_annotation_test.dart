@@ -33,6 +33,19 @@ abstract class C {}
     );
   }
 
+  test_class_private() async {
+    await assertErrorsInCode(
+      r'''
+@Deprecated.instantiate()
+class _C {}
+''',
+      [
+        error(WarningCode.invalidDeprecatedInstantiateAnnotation, 1, 22),
+        error(WarningCode.unusedElement, 32, 2),
+      ],
+    );
+  }
+
   test_class_privateConstructor() async {
     await assertErrorsInCode(
       r'''
