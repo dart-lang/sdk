@@ -22272,12 +22272,14 @@ library
           typeParameters
             #F3 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
+              nextFragment: #F4
         #F2 class A (nameOffset:29) (firstTokenOffset:15) (offset:29)
           element: <testLibrary>::@class::A
           previousFragment: #F1
           typeParameters
             #F4 T (nameOffset:31) (firstTokenOffset:31) (offset:31)
-              element: #E1 T
+              element: #E0 T
+              previousFragment: #F3
           constructors
             #F5 named (nameOffset:40) (firstTokenOffset:38) (offset:40)
               element: <testLibrary>::@class::A::@constructor::named
@@ -22299,7 +22301,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::named
           firstFragment: #F5
           formalParameters
-            #E2 requiredPositional a
+            #E1 requiredPositional a
               firstFragment: #F6
               type: T
 ''');
@@ -26105,39 +26107,43 @@ library
           typeParameters
             #F6 T (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: #E1 T
+              nextFragment: #F7
           constructors
-            #F7 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+            #F8 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         #F5 class A (nameOffset:89) (firstTokenOffset:75) (offset:89)
           element: <testLibrary>::@class::A
           previousFragment: #F4
-          nextFragment: #F8
+          nextFragment: #F9
           typeParameters
-            #F9 T (nameOffset:91) (firstTokenOffset:91) (offset:91)
-              element: #E2 T
-        #F8 class A (nameOffset:146) (firstTokenOffset:132) (offset:146)
+            #F7 T (nameOffset:91) (firstTokenOffset:91) (offset:91)
+              element: #E1 T
+              previousFragment: #F6
+              nextFragment: #F10
+        #F9 class A (nameOffset:146) (firstTokenOffset:132) (offset:146)
           element: <testLibrary>::@class::A
           previousFragment: #F5
           typeParameters
             #F10 T (nameOffset:148) (firstTokenOffset:148) (offset:148)
-              element: #E3 T
+              element: #E1 T
+              previousFragment: #F7
       mixins
         #F11 mixin M1 (nameOffset:55) (firstTokenOffset:49) (offset:55)
           element: <testLibrary>::@mixin::M1
           typeParameters
             #F12 U1 (nameOffset:58) (firstTokenOffset:58) (offset:58)
-              element: #E4 U1
+              element: #E2 U1
         #F13 mixin M2 (nameOffset:111) (firstTokenOffset:105) (offset:111)
           element: <testLibrary>::@mixin::M2
           typeParameters
             #F14 U2 (nameOffset:114) (firstTokenOffset:114) (offset:114)
-              element: #E5 U2
+              element: #E3 U2
         #F15 mixin M3 (nameOffset:168) (firstTokenOffset:162) (offset:168)
           element: <testLibrary>::@mixin::M3
           typeParameters
             #F16 U3 (nameOffset:171) (firstTokenOffset:171) (offset:171)
-              element: #E6 U3
+              element: #E4 U3
   classes
     class B
       reference: <testLibrary>::@class::B
@@ -26163,7 +26169,7 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F7
+          firstFragment: #F8
           superConstructor: ConstructorMember
             baseElement: <testLibrary>::@class::B::@constructor::new
             substitution: {S: T}
@@ -26172,7 +26178,7 @@ library
       reference: <testLibrary>::@mixin::M1
       firstFragment: #F11
       typeParameters
-        #E4 U1
+        #E2 U1
           firstFragment: #F12
       superclassConstraints
         B<U1>
@@ -26180,7 +26186,7 @@ library
       reference: <testLibrary>::@mixin::M2
       firstFragment: #F13
       typeParameters
-        #E5 U2
+        #E3 U2
           firstFragment: #F14
       superclassConstraints
         M1<U2>
@@ -26188,7 +26194,7 @@ library
       reference: <testLibrary>::@mixin::M3
       firstFragment: #F15
       typeParameters
-        #E6 U3
+        #E4 U3
           firstFragment: #F16
       superclassConstraints
         M2<U3>
@@ -27340,61 +27346,6 @@ library
 ''');
   }
 
-  test_methods_typeParameterCountMismatch() async {
-    var library = await buildLibrary(r'''
-class A {
-  void foo() {}
-  void bar() {}
-}
-
-augment class A<T> {
-  augment void foo() {}
-}
-''');
-
-    configuration.withConstructors = false;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      classes
-        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
-          element: <testLibrary>::@class::A
-          nextFragment: #F2
-          methods
-            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
-              element: <testLibrary>::@class::A::@method::foo
-              nextFragment: #F4
-            #F5 bar (nameOffset:33) (firstTokenOffset:28) (offset:33)
-              element: <testLibrary>::@class::A::@method::bar
-        #F2 class A (nameOffset:59) (firstTokenOffset:45) (offset:59)
-          element: <testLibrary>::@class::A
-          previousFragment: #F1
-          typeParameters
-            #F6 T (nameOffset:61) (firstTokenOffset:61) (offset:61)
-              element: #E0 T
-          methods
-            #F4 augment foo (nameOffset:81) (firstTokenOffset:68) (offset:81)
-              element: <testLibrary>::@class::A::@method::foo
-              previousFragment: #F3
-  classes
-    class A
-      reference: <testLibrary>::@class::A
-      firstFragment: #F1
-      methods
-        foo
-          reference: <testLibrary>::@class::A::@method::foo
-          firstFragment: #F3
-          returnType: void
-        bar
-          reference: <testLibrary>::@class::A::@method::bar
-          firstFragment: #F5
-          returnType: void
-''');
-  }
-
   test_modifiers_abstract() async {
     var library = await buildLibrary(r'''
 abstract class A {}
@@ -27711,16 +27662,18 @@ library
           typeParameters
             #F3 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
+              nextFragment: #F4
           constructors
-            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         #F2 class A (nameOffset:39) (firstTokenOffset:25) (offset:39)
           element: <testLibrary>::@class::A
           previousFragment: #F1
           typeParameters
-            #F5 T (nameOffset:41) (firstTokenOffset:41) (offset:41)
-              element: #E1 T
+            #F4 T (nameOffset:41) (firstTokenOffset:41) (offset:41)
+              element: #E0 T
+              previousFragment: #F3
   classes
     notSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -27732,7 +27685,7 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F5
 ''');
   }
 
@@ -27939,6 +27892,54 @@ library
 ''');
   }
 
+  test_typeParameters() async {
+    var library = await buildLibrary(r'''
+class A<T> {}
+augment class A<T> {}
+augment class A<T> {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          typeParameters
+            #F3 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
+              element: #E0 T
+              nextFragment: #F4
+        #F2 class A (nameOffset:28) (firstTokenOffset:14) (offset:28)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          nextFragment: #F5
+          typeParameters
+            #F4 T (nameOffset:30) (firstTokenOffset:30) (offset:30)
+              element: #E0 T
+              previousFragment: #F3
+              nextFragment: #F6
+        #F5 class A (nameOffset:50) (firstTokenOffset:36) (offset:50)
+          element: <testLibrary>::@class::A
+          previousFragment: #F2
+          typeParameters
+            #F6 T (nameOffset:52) (firstTokenOffset:52) (offset:52)
+              element: #E0 T
+              previousFragment: #F4
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F3
+''');
+  }
+
   test_typeParameters_defaultType() async {
     var library = await buildLibrary(r'''
 class A<T extends B> {}
@@ -27960,22 +27961,24 @@ library
           typeParameters
             #F3 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
+              nextFragment: #F4
           constructors
-            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F5 class B (nameOffset:30) (firstTokenOffset:24) (offset:30)
+        #F6 class B (nameOffset:30) (firstTokenOffset:24) (offset:30)
           element: <testLibrary>::@class::B
           constructors
-            #F6 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+            #F7 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
         #F2 class A (nameOffset:50) (firstTokenOffset:36) (offset:50)
           element: <testLibrary>::@class::A
           previousFragment: #F1
           typeParameters
-            #F7 T (nameOffset:52) (firstTokenOffset:52) (offset:52)
-              element: #E1 T
+            #F4 T (nameOffset:52) (firstTokenOffset:52) (offset:52)
+              element: #E0 T
+              previousFragment: #F3
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -27987,14 +27990,14 @@ library
       constructors
         synthetic new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F4
+          firstFragment: #F5
     class B
       reference: <testLibrary>::@class::B
-      firstFragment: #F5
+      firstFragment: #F6
       constructors
         synthetic new
           reference: <testLibrary>::@class::B::@constructor::new
-          firstFragment: #F6
+          firstFragment: #F7
 ''');
   }
 }

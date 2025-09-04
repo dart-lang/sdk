@@ -265,6 +265,19 @@ class LibraryReader {
       var fragments = _readFragmentsById<ClassFragmentImpl>();
       var element = ClassElementImpl(reference, fragments.first);
       element.linkFragments(fragments);
+
+      element.withoutLoadingResolution(() {
+        var typeParameterFragments = fragments.first.typeParameters;
+        for (var i = 0; i < typeParameterFragments.length; i++) {
+          // Side effect: set element for the fragment.
+          TypeParameterElementImpl(firstFragment: typeParameterFragments[i]);
+          fragments.reduce((previous, current) {
+            previous.typeParameters[i].addFragment(current.typeParameters[i]);
+            return current;
+          });
+        }
+      });
+
       element.readModifiers(_reader);
       element.hasNonFinalField = _reader.readBool();
 
