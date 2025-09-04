@@ -166,6 +166,7 @@ import 'constant_pattern_with_non_constant_expression_test.dart'
 import 'continue_label_invalid_test.dart' as continue_label_invalid;
 import 'could_not_infer_test.dart' as could_not_infer;
 import 'creation_of_struct_or_union_test.dart' as creation_of_struct_or_union;
+import 'creation_with_non_type_test.dart' as creation_with_non_type;
 import 'dead_code_test.dart' as dead_code;
 import 'dead_null_aware_expression_test.dart' as dead_null_aware_expression;
 import 'default_value_in_function_type_test.dart'
@@ -1063,6 +1064,7 @@ main() {
     continue_label_invalid.main();
     could_not_infer.main();
     creation_of_struct_or_union.main();
+    creation_with_non_type.main();
     dead_code.main();
     dead_null_aware_expression.main();
     default_value_in_function_type.main();
