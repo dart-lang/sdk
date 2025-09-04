@@ -60,8 +60,6 @@ abstract class OptimizationPhase {
 class SsaOptimizerTask extends CompilerTask {
   final CompilerOptions _options;
 
-  Map<HInstruction, Range> ranges = {};
-
   final Map<MemberEntity, OptimizationTestLog> loggersForTesting = {};
 
   SsaOptimizerTask(super.measurer, this._options);
@@ -78,90 +76,112 @@ class SsaOptimizerTask extends CompilerTask {
     CodegenRegistry registry,
     SsaMetrics metrics,
   ) {
-    void runPhase(OptimizationPhase phase) {
-      measureSubtask(phase.name, () => phase.visitGraph(graph));
-      codegen.tracer.traceGraph(phase.name, graph);
-      assert(graph.isValid(), 'Graph not valid after ${phase.name}');
-      assert(
-        phase.validPostcondition(graph),
-        'Graph does not satisfy phase postcondition after ${phase.name}',
-      );
-    }
+    final workItem = SsaOptimizerWorkItem(
+      this,
+      member,
+      graph,
+      codegen,
+      closedWorld,
+      globalInferenceResults,
+      registry,
+      metrics,
+    );
+    workItem.optimize();
+  }
+}
 
+class SsaOptimizerWorkItem {
+  final SsaOptimizerTask task;
+
+  final MemberEntity member;
+  final HGraph graph;
+  final CodegenInputs codegen;
+  final JClosedWorld closedWorld;
+  final GlobalTypeInferenceResults globalInferenceResults;
+  final CodegenRegistry registry;
+  final SsaMetrics metrics;
+
+  late final OptimizationTestLog? log = retainDataForTesting
+      ? task.loggersForTesting[member] = OptimizationTestLog(
+          closedWorld.dartTypes,
+        )
+      : null;
+
+  late final TypeRecipeDomain typeRecipeDomain = TypeRecipeDomainImpl(
+    closedWorld.dartTypes,
+  );
+
+  Map<HInstruction, Range> ranges = {};
+
+  SsaOptimizerWorkItem(
+    this.task,
+    this.member,
+    this.graph,
+    this.codegen,
+    this.closedWorld,
+    this.globalInferenceResults,
+    this.registry,
+    this.metrics,
+  );
+
+  void runPhase(OptimizationPhase phase) {
+    task.measureSubtask(phase.name, () => phase.visitGraph(graph));
+    codegen.tracer.traceGraph(phase.name, graph);
+    assert(graph.isValid(), 'Graph not valid after ${phase.name}');
+    assert(
+      phase.validPostcondition(graph),
+      'Graph does not satisfy phase postcondition after ${phase.name}',
+    );
+  }
+
+  SsaInstructionSimplifier simplifierPhase({
+    bool beforeTypePropagation = false,
+  }) {
+    return SsaInstructionSimplifier(
+      globalInferenceResults,
+      task._options,
+      closedWorld,
+      typeRecipeDomain,
+      registry,
+      log,
+      metrics,
+      beforeTypePropagation: beforeTypePropagation,
+    );
+  }
+
+  SsaTypePropagator typePropagatorPhase() {
+    return SsaTypePropagator(
+      globalInferenceResults,
+      closedWorld.commonElements,
+      closedWorld,
+      log,
+    );
+  }
+
+  void optimize() {
     SsaCodeMotion codeMotion;
     SsaLoadElimination loadElimination;
 
-    TypeRecipeDomain typeRecipeDomain = TypeRecipeDomainImpl(
-      closedWorld.dartTypes,
-    );
-
-    OptimizationTestLog? log;
-    if (retainDataForTesting) {
-      log = loggersForTesting[member] = OptimizationTestLog(
-        closedWorld.dartTypes,
-      );
-    }
-
-    measure(() {
+    task.measure(() {
       List<OptimizationPhase> phases = [
         // Run trivial instruction simplification first to optimize some
         // patterns useful for type conversion.
-        SsaInstructionSimplifier(
-          globalInferenceResults,
-          _options,
-          closedWorld,
-          typeRecipeDomain,
-          registry,
-          log,
-          metrics,
-          beforeTypePropagation: true,
-        ),
+        simplifierPhase(beforeTypePropagation: true),
         SsaTypeConversionInserter(closedWorld),
         SsaRedundantPhiEliminator(),
         SsaDeadPhiEliminator(),
-        SsaTypePropagator(
-          globalInferenceResults,
-          closedWorld.commonElements,
-          closedWorld,
-          log,
-        ),
+        typePropagatorPhase(),
         // After type propagation, more instructions can be simplified.
-        SsaInstructionSimplifier(
-          globalInferenceResults,
-          _options,
-          closedWorld,
-          typeRecipeDomain,
-          registry,
-          log,
-          metrics,
-        ),
-        SsaInstructionSimplifier(
-          globalInferenceResults,
-          _options,
-          closedWorld,
-          typeRecipeDomain,
-          registry,
-          log,
-          metrics,
-        ),
-        SsaTypePropagator(
-          globalInferenceResults,
-          closedWorld.commonElements,
-          closedWorld,
-          log,
-        ),
+        simplifierPhase(),
+        simplifierPhase(),
+        typePropagatorPhase(),
         // Run a dead code eliminator before LICM because dead
         // interceptors are often in the way of LICM'able instructions.
         SsaDeadCodeEliminator(closedWorld, this),
         SsaGlobalValueNumberer(closedWorld.abstractValueDomain),
         // After GVN, some instructions might need their type to be
         // updated because they now have different inputs.
-        SsaTypePropagator(
-          globalInferenceResults,
-          closedWorld.commonElements,
-          closedWorld,
-          log,
-        ),
+        typePropagatorPhase(),
         codeMotion = SsaCodeMotion(closedWorld.abstractValueDomain),
         loadElimination = SsaLoadElimination(closedWorld),
         SsaRedundantPhiEliminator(),
@@ -171,29 +191,16 @@ class SsaOptimizerTask extends CompilerTask {
         // controlled by a test on the value, so redo 'conversion insertion' to
         // learn from the refined type.
         SsaTypeConversionInserter(closedWorld),
-        SsaTypePropagator(
-          globalInferenceResults,
-          closedWorld.commonElements,
-          closedWorld,
-          log,
-        ),
+        typePropagatorPhase(),
         SsaValueRangeAnalyzer(closedWorld, this, codegen.tracer),
         // Previous optimizations may have generated new
         // opportunities for instruction simplification.
-        SsaInstructionSimplifier(
-          globalInferenceResults,
-          _options,
-          closedWorld,
-          typeRecipeDomain,
-          registry,
-          log,
-          metrics,
-        ),
+        simplifierPhase(),
       ];
       phases.forEach(runPhase);
 
-      // Simplifying interceptors is just an optimization, it is required for
-      // implementation correctness because the code generator assumes it is
+      // Simplifying interceptors is not just an optimization, it is required
+      // for implementation correctness because the code generator assumes it is
       // always performed to compute the intercepted classes sets.
       runPhase(SsaSimplifyInterceptors(closedWorld, member.enclosingClass));
 
@@ -204,46 +211,20 @@ class SsaOptimizerTask extends CompilerTask {
           dce.newGvnCandidates ||
           loadElimination.newGvnCandidates) {
         phases = [
-          SsaTypePropagator(
-            globalInferenceResults,
-            closedWorld.commonElements,
-            closedWorld,
-            log,
-          ),
+          typePropagatorPhase(),
           SsaGlobalValueNumberer(closedWorld.abstractValueDomain),
           SsaCodeMotion(closedWorld.abstractValueDomain),
           SsaValueRangeAnalyzer(closedWorld, this, codegen.tracer),
-          SsaInstructionSimplifier(
-            globalInferenceResults,
-            _options,
-            closedWorld,
-            typeRecipeDomain,
-            registry,
-            log,
-            metrics,
-          ),
+          simplifierPhase(),
           SsaSimplifyInterceptors(closedWorld, member.enclosingClass),
           SsaDeadCodeEliminator(closedWorld, this),
         ];
       } else {
         phases = [
-          SsaTypePropagator(
-            globalInferenceResults,
-            closedWorld.commonElements,
-            closedWorld,
-            log,
-          ),
+          typePropagatorPhase(),
           // Run the simplifier to remove unneeded type checks inserted by
           // type propagation.
-          SsaInstructionSimplifier(
-            globalInferenceResults,
-            _options,
-            closedWorld,
-            typeRecipeDomain,
-            registry,
-            log,
-            metrics,
-          ),
+          simplifierPhase(),
         ];
       }
       phases.forEach(runPhase);
@@ -1028,6 +1009,8 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
       resultMask,
       const <DartType>[],
     );
+    _updateInvocationAttributes(tagInstruction, commonElements.setArrayType);
+
     // 'Linear typing' trick: [tagInstruction] is the only use of the
     // [splitInstruction], so it becomes the sole alias.
     // TODO(sra): Build this knowledge into alias analysis.
@@ -1073,15 +1056,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
         node.element = method;
       }
 
-      node.sideEffects.restrictTo(
-        _globalInferenceResults.inferredData.getSideEffectsOfElement(element),
-      );
-      if (_closedWorld.annotationsData.allowCSE(element)) {
-        node.allowCSE = true;
-      }
-      if (_closedWorld.annotationsData.allowDCE(element)) {
-        node.allowDCE = true;
-      }
+      _updateInvocationAttributes(node, method);
 
       return node;
     }
@@ -2091,15 +2066,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
         if (_nativeData.isNativeMember(member)) {
           return tryInlineNativeGetter(node, member) ?? node;
         }
-        node.sideEffects.restrictTo(
-          _globalInferenceResults.inferredData.getSideEffectsOfElement(member),
-        );
-        if (_closedWorld.annotationsData.allowCSE(member)) {
-          node.allowCSE = true;
-        }
-        if (_closedWorld.annotationsData.allowDCE(member)) {
-          node.allowDCE = true;
-        }
+        _updateInvocationAttributes(node, member);
       }
     }
 
@@ -2111,6 +2078,18 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
       node.setUseGvn(); // We don't care about identity of tear-offs.
     }
     return node;
+  }
+
+  void _updateInvocationAttributes(HInvoke node, FunctionEntity member) {
+    node.sideEffects.restrictTo(
+      _globalInferenceResults.inferredData.getSideEffectsOfElement(member),
+    );
+    if (_closedWorld.annotationsData.allowCSE(member)) {
+      node.allowCSE = true;
+    }
+    if (_closedWorld.annotationsData.allowDCE(member)) {
+      node.allowDCE = true;
+    }
   }
 
   HFieldGet _directFieldGet(
@@ -3197,13 +3176,13 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   final String name = "SsaDeadCodeEliminator";
 
   final JClosedWorld closedWorld;
-  final SsaOptimizerTask optimizer;
+  final SsaOptimizerWorkItem workItem;
   late final HGraph _graph;
   Map<HInstruction, bool> trivialDeadStoreReceivers = Maplet();
   bool eliminatedSideEffects = false;
   bool newGvnCandidates = false;
 
-  SsaDeadCodeEliminator(this.closedWorld, this.optimizer);
+  SsaDeadCodeEliminator(this.closedWorld, this.workItem);
 
   AbstractValueDomain get _abstractValueDomain =>
       closedWorld.abstractValueDomain;
@@ -3261,7 +3240,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   }
 
   void _computeLiveness() {
-    var analyzer = SsaLiveBlockAnalyzer(_graph, closedWorld, optimizer);
+    var analyzer = SsaLiveBlockAnalyzer(_graph, closedWorld, workItem);
     analyzer.analyze();
     for (HBasicBlock block in _graph.blocks) {
       block.isLive = analyzer.isLiveBlock(block);
@@ -3511,15 +3490,15 @@ class SsaLiveBlockAnalyzer extends HBaseVisitor<void> {
   final HGraph graph;
   final Set<HBasicBlock> live = {};
   final List<HBasicBlock> worklist = [];
-  final SsaOptimizerTask optimizer;
+  final SsaOptimizerWorkItem workItem;
   final JClosedWorld closedWorld;
 
-  SsaLiveBlockAnalyzer(this.graph, this.closedWorld, this.optimizer);
+  SsaLiveBlockAnalyzer(this.graph, this.closedWorld, this.workItem);
 
   AbstractValueDomain get _abstractValueDomain =>
       closedWorld.abstractValueDomain;
 
-  Map<HInstruction, Range> get ranges => optimizer.ranges;
+  Map<HInstruction, Range> get ranges => workItem.ranges;
 
   bool isLiveBlock(HBasicBlock block) => live.contains(block);
 
