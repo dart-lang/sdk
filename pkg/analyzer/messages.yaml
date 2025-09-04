@@ -44,16 +44,21 @@
 # parameter. Placeholders in the `problemMessage` and `correctionMessage`
 # strings take the form `#NAME`.
 #
-# If a diagnostic takes no parameters, it should have an entry of the
+# If a diagnostic takes no parameters, it must have an entry of the
 # form `parameters: none`.
 #
-# At the time the analyzer reports the error, it supplies
-# substitutions to take the place of the `#NAME` placeholders in the
-# form of a list whose order matches the order of the key/value pairs
-# in the `parameters` map. In the future, a new mechanism will be
-# introduced to allow the substitutions to be supplied using named
-# arguments, and statically type checked using the specified
-# TYPEs. For now, the TYPEs are unused.
+# Errors can be reported in two ways:
+#
+# - The old way (deprecated): at the time the analyzer reports the
+#   error, it supplies substitutions to take the place of the `#NAME`
+#   placeholders in the form of a list whose order matches the order
+#   of the key/value pairs in the `parameters` map. The number and
+#   types of the supplied values are checked at runtime.
+#
+# - The new way: at the time the analyzer reports the error, it calls
+#   the error code's `withArguments` method, supplying the
+#   substitutions in the form of named parameters. The number and
+#   types of the supplied values are checked at compile time.
 
 AnalysisOptionsErrorCode:
   INCLUDED_FILE_PARSE_ERROR:

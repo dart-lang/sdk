@@ -211,32 +211,32 @@ const MessageCode codeAnonymousContinueTargetOutsideFunction =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(int unicode),
-  Message Function({required int unicode})
+  Message Function(int character),
+  Message Function({required int character})
 >
 codeAsciiControlCharacter = const Template(
   "AsciiControlCharacter",
   problemMessageTemplate:
-      r"""The control character #unicode can only be used in strings and comments.""",
+      r"""The control character #character can only be used in strings and comments.""",
   withArgumentsOld: _withArgumentsOldAsciiControlCharacter,
   withArguments: _withArgumentsAsciiControlCharacter,
   analyzerCodes: <String>["ILLEGAL_CHARACTER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsAsciiControlCharacter({required int unicode}) {
-  var unicode_0 = conversions.codePointToUnicode(unicode);
+Message _withArgumentsAsciiControlCharacter({required int character}) {
+  var character_0 = conversions.codePointToUnicode(character);
   return new Message(
     codeAsciiControlCharacter,
     problemMessage:
-        """The control character ${unicode_0} can only be used in strings and comments.""",
-    arguments: {'unicode': unicode},
+        """The control character ${character_0} can only be used in strings and comments.""",
+    arguments: {'character': character},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldAsciiControlCharacter(int unicode) =>
-    _withArgumentsAsciiControlCharacter(unicode: unicode);
+Message _withArgumentsOldAsciiControlCharacter(int character) =>
+    _withArgumentsAsciiControlCharacter(character: character);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeAssertAsExpression = const MessageCode(

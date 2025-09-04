@@ -957,7 +957,7 @@ mixin DeferredMembersReadingMixin {
 /// invoke [_ensureReadResolution].
 mixin DeferredResolutionReadingMixin {
   // TODO(scheglov): review whether we need this
-  int _lockResolutionLoading = 0;
+  static int _lockResolutionLoading = 0;
   void Function()? _readResolutionCallback;
   void Function()? _applyResolutionConstantOffsets;
 
@@ -10067,6 +10067,12 @@ class TypeParameterFragmentImpl extends FragmentImpl
   @override
   int? nameOffset;
 
+  @override
+  TypeParameterFragmentImpl? previousFragment;
+
+  @override
+  TypeParameterFragmentImpl? nextFragment;
+
   /// The element corresponding to this fragment.
   TypeParameterElementImpl? _element;
 
@@ -10121,15 +10127,13 @@ class TypeParameterFragmentImpl extends FragmentImpl
   MetadataImpl get metadata2 => metadata;
 
   @override
-  // TODO(augmentations): Support chaining between the fragments.
-  TypeParameterFragmentImpl? get nextFragment => null;
-
-  @override
   int get offset => nameOffset ?? firstTokenOffset!;
 
-  @override
-  // TODO(augmentations): Support chaining between the fragments.
-  TypeParameterFragmentImpl? get previousFragment => null;
+  void addFragment(TypeParameterFragmentImpl fragment) {
+    fragment.element = element;
+    fragment.previousFragment = this;
+    nextFragment = fragment;
+  }
 }
 
 abstract class VariableElementImpl extends ElementImpl

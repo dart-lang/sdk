@@ -160,7 +160,7 @@ class AsciiControlCharacterToken extends ErrorToken {
 
   @override
   Message get assertionMessage =>
-      codeAsciiControlCharacter.withArgumentsOld(character);
+      codeAsciiControlCharacter.withArguments(character: character);
 }
 
 /// Denotes an operator that is not supported in the Dart language.

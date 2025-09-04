@@ -193,6 +193,11 @@ class ElementBuilder {
 
     if (fragment.isAugmentation && lastFragment is ClassFragmentImpl) {
       lastFragment.addFragment(fragment);
+
+      var lastTypeParameterFragments = lastFragment.typeParameters;
+      for (var i = 0; i < lastTypeParameterFragments.length; i++) {
+        lastTypeParameterFragments[i].addFragment(fragment.typeParameters[i]);
+      }
       return;
     }
 
@@ -200,6 +205,11 @@ class ElementBuilder {
       _addTopReference('@class', fragment.name),
       fragment,
     );
+
+    for (var typeParameterFragment in fragment.typeParameters) {
+      TypeParameterElementImpl(firstFragment: typeParameterFragment);
+    }
+
     libraryElement.addClass(element);
     libraryBuilder.declare(element, element.reference);
   }

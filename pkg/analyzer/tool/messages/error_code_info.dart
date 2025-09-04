@@ -9,7 +9,7 @@ import 'package:analyzer_testing/package_root.dart' as pkg_root;
 import 'package:analyzer_utilities/messages.dart';
 import 'package:analyzer_utilities/tools.dart';
 import 'package:path/path.dart';
-import 'package:yaml/yaml.dart' show loadYaml;
+import 'package:yaml/yaml.dart' show loadYaml, YamlMap;
 
 const codesFile = GeneratedErrorCodeFile(
   path: 'analyzer/lib/src/error/codes.g.dart',
@@ -212,7 +212,7 @@ Map<String, Map<String, AnalyzerErrorCodeInfo>> decodeAnalyzerMessagesYaml(
         );
       }
       var errorValue = errorEntry.value;
-      if (errorValue is! Map<Object?, Object?>) {
+      if (errorValue is! YamlMap) {
         problem(
           'value associated with error $className.$errorName is not a '
           'map',
@@ -296,7 +296,7 @@ class AliasErrorCodeInfo extends AnalyzerErrorCodeInfo {
 /// In-memory representation of error code information obtained from the
 /// analyzer's `messages.yaml` file.
 class AnalyzerErrorCodeInfo extends ErrorCodeInfo {
-  factory AnalyzerErrorCodeInfo.fromYaml(Map<Object?, Object?> yaml) {
+  factory AnalyzerErrorCodeInfo.fromYaml(YamlMap yaml) {
     if (yaml['aliasFor'] case var aliasFor?) {
       return AliasErrorCodeInfo._fromYaml(yaml, aliasFor: aliasFor as String);
     } else {
@@ -304,13 +304,7 @@ class AnalyzerErrorCodeInfo extends ErrorCodeInfo {
     }
   }
 
-  AnalyzerErrorCodeInfo._fromYaml(super.yaml) : super.fromYaml() {
-    _check();
-  }
-
-  void _check() {
-    if (parameters == null) throw StateError('Missing `parameters` entry.');
-  }
+  AnalyzerErrorCodeInfo._fromYaml(super.yaml) : super.fromYaml();
 }
 
 /// Data tables mapping between CFE errors and their corresponding automatically

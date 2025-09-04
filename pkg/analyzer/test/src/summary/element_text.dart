@@ -1879,7 +1879,8 @@ class _Element2Writer extends _AbstractElementWriter {
 
     _sink.withIndent(() {
       _writeElementReference('element', f.element);
-      // _writeCodeRange(e);
+      _writeFragmentReference('previousFragment', f.previousFragment);
+      _writeFragmentReference('nextFragment', f.nextFragment);
 
       // var bound = e.bound;
       // if (bound != null) {

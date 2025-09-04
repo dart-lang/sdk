@@ -9,7 +9,16 @@ import 'package:analyzer_testing/package_root.dart' as pkg_root;
 import 'package:analyzer_utilities/extensions/string.dart';
 import 'package:analyzer_utilities/tools.dart';
 import 'package:path/path.dart';
-import 'package:yaml/yaml.dart' show loadYaml;
+import 'package:yaml/yaml.dart' show loadYaml, YamlMap;
+
+const Map<String, String> severityEnumNames = <String, String>{
+  'CONTEXT': 'context',
+  'ERROR': 'error',
+  'IGNORED': 'ignored',
+  'INTERNAL_PROBLEM': 'internalProblem',
+  'WARNING': 'warning',
+  'INFO': 'info',
+};
 
 /// Decoded messages from the front end's `messages.yaml` file.
 final Map<String, FrontEndErrorCodeInfo> frontEndMessages =
@@ -28,8 +37,6 @@ final String frontEndPkgPath = normalize(
 final RegExp oldPlaceholderPattern = RegExp(r'\{\d+\}');
 
 /// Pattern for placeholders in error message strings.
-// TODO(paulberry): share this regexp (and the code for interpreting
-// it) between the CFE and analyzer.
 final RegExp placeholderPattern = RegExp(
   '#([-a-zA-Z0-9_]+)(?:%([0-9]*).([0-9]+))?',
 );
@@ -61,7 +68,7 @@ Map<String, FrontEndErrorCodeInfo> decodeCfeMessagesYaml(Object? yaml) {
       problem('non-string error key ${json.encode(errorName)}');
     }
     var errorValue = entry.value;
-    if (errorValue is! Map<Object?, Object?>) {
+    if (errorValue is! YamlMap) {
       problem('value associated with error $errorName is not a map');
     }
     try {
@@ -75,8 +82,10 @@ Map<String, FrontEndErrorCodeInfo> decodeCfeMessagesYaml(Object? yaml) {
 
 /// Loads front end messages from the front end's `messages.yaml` file.
 Map<String, FrontEndErrorCodeInfo> _loadFrontEndMessages() {
+  var path = join(frontEndPkgPath, 'messages.yaml');
   Object? messagesYaml = loadYaml(
-    File(join(frontEndPkgPath, 'messages.yaml')).readAsStringSync(),
+    File(path).readAsStringSync(),
+    sourceUrl: Uri.file(path),
   );
   return decodeCfeMessagesYaml(messagesYaml);
 }
@@ -119,6 +128,19 @@ List<String> _splitText(
     lineMaxEndIndex = lineStartIndex + maxWidth;
   }
   return lines;
+}
+
+/// Information about how to convert the CFE's internal representation of a
+/// template parameter to a string.
+///
+/// Instances of this class should implement [==] and [hashCode] so that they
+/// can be used as keys in a [Map].
+sealed class Conversion {
+  /// Returns Dart code that applies the conversion to a template parameter
+  /// having the given [name] and [type].
+  ///
+  /// If no conversion is needed, returns `null`.
+  String? toCode({required String name, required ErrorCodeParameterType type});
 }
 
 /// Information about a code generated class derived from `ErrorCode`.
@@ -238,12 +260,18 @@ abstract class ErrorCodeInfo {
   /// [previousName] to its current name (or [sharedName]).
   final String? previousName;
 
-  /// A list of [ErrorCodeParameter] objects describing the parameters for this
-  /// error code, obtained from the `parameters` entry in the yaml file.
+  /// Map describing the parameters for this error code, obtained from the
+  /// `parameters` entry in the yaml file.
   ///
-  /// If `null`, then there is no `parameters` entry, meaning the error code
-  /// hasn't been translated from the old placeholder format yet.
-  final List<ErrorCodeParameter>? parameters;
+  /// Map keys are parameter names. Map values are [ErrorCodeParameter] objects.
+  final Map<String, ErrorCodeParameter> parameters;
+
+  /// The raw YAML node that this `ErrorCodeInfo` was parsed from, or `null` if
+  /// this `ErrorCodeInfo` was created without reference to a raw YAML node.
+  ///
+  /// This exists to make it easier for automated scripts to edit the YAML
+  /// source.
+  final YamlMap? yamlNode;
 
   ErrorCodeInfo({
     this.comment,
@@ -256,7 +284,8 @@ abstract class ErrorCodeInfo {
     this.deprecatedMessage,
     this.previousName,
     this.removedIn,
-    this.parameters,
+    required this.parameters,
+    this.yamlNode,
   }) {
     for (var MapEntry(:key, :value) in {
       'problemMessage': problemMessage,
@@ -273,7 +302,7 @@ abstract class ErrorCodeInfo {
   }
 
   /// Decodes an [ErrorCodeInfo] object from its YAML representation.
-  ErrorCodeInfo.fromYaml(Map<Object?, Object?> yaml)
+  ErrorCodeInfo.fromYaml(YamlMap yaml)
     : this(
         comment: yaml['comment'] as String?,
         correctionMessage: _decodeMessage(yaml['correctionMessage']),
@@ -287,6 +316,7 @@ abstract class ErrorCodeInfo {
         removedIn: yaml['removedIn'] as String?,
         previousName: yaml['previousName'] as String?,
         parameters: _decodeParameters(yaml['parameters']),
+        yamlNode: yaml,
       );
 
   /// If this error is no longer reported and
@@ -296,33 +326,9 @@ abstract class ErrorCodeInfo {
   /// Given a messages.yaml entry, come up with a mapping from placeholder
   /// patterns in its message strings to their corresponding indices.
   Map<String, int> computePlaceholderToIndexMap() {
-    if (parameters case var parameters?) {
-      // Parameters were explicitly specified, so the mapping is determined by
-      // the order in which they were specified.
-      return {
-        for (var (index, parameter) in parameters.indexed)
-          '#${parameter.name}': index,
-      };
-    } else {
-      // Parameters are not explicitly specified, so it's necessary to invent a
-      // mapping by searching the problemMessage and correctionMessage for
-      // placeholders.
-      var mapping = <String, int>{};
-      for (var value in [problemMessage, correctionMessage]) {
-        if (value is! String) continue;
-        for (Match match in placeholderPattern.allMatches(value)) {
-          // CFE supports a bunch of formatting options that analyzer doesn't;
-          // make sure none of those are used.
-          if (match.group(0) != '#${match.group(1)}') {
-            throw 'Template string ${json.encode(value)} contains unsupported '
-                'placeholder pattern ${json.encode(match.group(0))}';
-          }
-
-          mapping[match.group(0)!] ??= mapping.length;
-        }
-      }
-      return mapping;
-    }
+    // Parameters are always explicitly specified, so the mapping is determined
+    // by the order in which they were specified.
+    return {for (var (index, name) in parameters.keys.indexed) '#$name': index};
   }
 
   void outputConstantHeader(StringSink out) {
@@ -352,22 +358,22 @@ abstract class ErrorCodeInfo {
     String className;
     String templateParameters = '';
     String? withArgumentsName;
-    if (parameters != null && parameters.isNotEmpty && !usesParameters) {
+    if (parameters.isNotEmpty && !usesParameters) {
       throw StateError(
         'Error code declares parameters using a `parameters` entry, but '
         "doesn't use them",
       );
-    } else if (parameters == null) {
+    } else if (parameters.values.any((p) => !p.type.isSupportedByAnalyzer)) {
       // Do not generate literate API yet.
       className = errorClassInfo.name;
     } else if (parameters.isNotEmpty) {
       // Parameters are present so generate a diagnostic template (with
       // `.withArguments` support).
       className = errorClassInfo.templateName;
-      var withArgumentsParams = parameters
-          .map((p) => 'required ${p.type.analyzerName} ${p.name}')
+      var withArgumentsParams = parameters.entries
+          .map((p) => 'required ${p.value.type.analyzerName} ${p.key}')
           .join(', ');
-      var argumentNames = parameters.map((p) => p.name).join(', ');
+      var argumentNames = parameters.keys.join(', ');
       var pascalCaseName = diagnosticCode.toPascalCase();
       withArgumentsName = '_withArguments$pascalCaseName';
       templateParameters =
@@ -448,14 +454,14 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
 
     // Add a `Parameters:` section to the bottom of the comment if appropriate.
     switch (parameters) {
-      case []:
+      case Map(isEmpty: true):
         if (commentLines.isNotEmpty) commentLines.add('');
         commentLines.add('No parameters.');
-      case var parameters?:
+      default:
         if (commentLines.isNotEmpty) commentLines.add('');
         commentLines.add('Parameters:');
-        for (var p in parameters) {
-          var prefix = '${p.type.messagesYamlName} ${p.name}: ';
+        for (var MapEntry(key: name, value: p) in parameters.entries) {
+          var prefix = '${p.type.messagesYamlName} $name: ';
           var extraIndent = ' ' * prefix.length;
           var firstLineWidth = 80 - 4 - indent.length;
           var lines = _splitText(
@@ -490,14 +496,11 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
   };
 
   String _computeExpectedTypes() {
-    if (parameters case var parameters?) {
-      var expectedTypes = [
-        for (var parameter in parameters) 'ExpectedType.${parameter.type.name}',
-      ];
-      return '[${expectedTypes.join(', ')}]';
-    } else {
-      return 'null';
-    }
+    var expectedTypes = [
+      for (var parameter in parameters.values)
+        'ExpectedType.${parameter.type.name}',
+    ];
+    return '[${expectedTypes.join(', ')}]';
   }
 
   String _encodeString(String s) {
@@ -521,20 +524,22 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
     }
   }
 
-  static List<ErrorCodeParameter>? _decodeParameters(Object? yaml) {
-    if (yaml == null) return null;
-    if (yaml == 'none') return const [];
+  static Map<String, ErrorCodeParameter> _decodeParameters(Object? yaml) {
+    if (yaml == null) {
+      throw StateError('Missing parameters section');
+    }
+    if (yaml == 'none') return const {};
     yaml as Map<Object?, Object?>;
-    var result = <ErrorCodeParameter>[];
+    var result = <String, ErrorCodeParameter>{};
     for (var MapEntry(:key, :value) in yaml.entries) {
       switch ((key as String).split(' ')) {
         case [var type, var name]:
-          result.add(
-            ErrorCodeParameter(
-              type: ErrorCodeParameterType.fromMessagesYamlName(type),
-              name: name,
-              comment: value as String,
-            ),
+          if (result.containsKey(name)) {
+            throw StateError('Duplicate parameter name: $name');
+          }
+          result[name] = ErrorCodeParameter(
+            type: ErrorCodeParameterType.fromMessagesYamlName(type),
+            comment: value as String,
           );
         default:
           throw StateError(
@@ -549,27 +554,86 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
 
 /// In-memory representation of a single key/value pair from the `parameters`
 /// map for an error code.
+///
+/// The name of the parameter is not included, since parameters are stored in a
+/// map from name to [ErrorCodeParameter].
 class ErrorCodeParameter {
   final ErrorCodeParameterType type;
-  final String name;
   final String comment;
 
-  ErrorCodeParameter({
-    required this.type,
-    required this.name,
-    required this.comment,
-  });
+  ErrorCodeParameter({required this.type, required this.comment});
 }
 
 /// In-memory representation of the type of a single diagnostic code's
 /// parameter.
 enum ErrorCodeParameterType {
+  character(
+    messagesYamlName: 'Character',
+    cfeName: 'String',
+    cfeConversion: SimpleConversion('validateCharacter'),
+  ),
+  constant(
+    messagesYamlName: 'Constant',
+    cfeName: 'Constant',
+    cfeConversion: LabelerConversion('labelConstant'),
+  ),
   element(messagesYamlName: 'Element', analyzerName: 'Element'),
-  int(messagesYamlName: 'int', analyzerName: 'int'),
+  int(messagesYamlName: 'int', analyzerName: 'int', cfeName: 'int'),
+  name(
+    messagesYamlName: 'Name',
+    cfeName: 'String',
+    cfeConversion: SimpleConversion('validateAndDemangleName'),
+  ),
+  nameOKEmpty(
+    messagesYamlName: 'NameOKEmpty',
+    cfeName: 'String',
+    cfeConversion: SimpleConversion('nameOrUnnamed'),
+  ),
+  names(
+    messagesYamlName: 'Names',
+    cfeName: 'List<String>',
+    cfeConversion: SimpleConversion('validateAndItemizeNames'),
+  ),
+  num(
+    messagesYamlName: 'num',
+    cfeName: 'num',
+    cfeConversion: SimpleConversion('formatNumber'),
+  ),
   object(messagesYamlName: 'Object', analyzerName: 'Object'),
-  string(messagesYamlName: 'String', analyzerName: 'String'),
-  type(messagesYamlName: 'Type', analyzerName: 'DartType'),
-  uri(messagesYamlName: 'Uri', analyzerName: 'Uri');
+  string(
+    messagesYamlName: 'String',
+    analyzerName: 'String',
+    cfeName: 'String',
+    cfeConversion: SimpleConversion('validateString'),
+  ),
+  stringOKEmpty(
+    messagesYamlName: 'StringOKEmpty',
+    analyzerName: 'String',
+    cfeName: 'String',
+    cfeConversion: SimpleConversion('stringOrEmpty'),
+  ),
+  token(
+    messagesYamlName: 'Token',
+    cfeName: 'Token',
+    cfeConversion: SimpleConversion('tokenToLexeme'),
+  ),
+  type(
+    messagesYamlName: 'Type',
+    analyzerName: 'DartType',
+    cfeName: 'DartType',
+    cfeConversion: LabelerConversion('labelType'),
+  ),
+  unicode(
+    messagesYamlName: 'Unicode',
+    cfeName: 'int',
+    cfeConversion: SimpleConversion('codePointToUnicode'),
+  ),
+  uri(
+    messagesYamlName: 'Uri',
+    analyzerName: 'Uri',
+    cfeName: 'Uri',
+    cfeConversion: SimpleConversion('relativizeUri'),
+  );
 
   /// Map from [messagesYamlName] to the enum constant.
   ///
@@ -581,18 +645,47 @@ enum ErrorCodeParameterType {
   /// Name of this type as it appears in `messages.yaml`.
   final String messagesYamlName;
 
-  /// Name of this type as it appears in Dart source code.
-  final String analyzerName;
+  /// Name of this type as it appears in analyzer source code.
+  ///
+  /// If `null`, diagnostic messages using parameters of this type are not yet
+  /// supported by the analyzer (see [isSupportedByAnalyzer])
+  final String? _analyzerName;
+
+  /// Name of this type as it appears in CFE source code.
+  ///
+  /// If `null`, diagnostic messages using parameters of this type are not
+  /// supported by the CFE.
+  final String? cfeName;
+
+  /// How to convert the CFE's internal representation of a template parameter
+  /// to a string.
+  ///
+  /// This field will be `null` if either:
+  /// - Diagnostic messages using parameters of this type are not supported by
+  ///   the CFE (and hence no CFE conversion is needed), or
+  /// - No CFE conversion is needed because the type's `toString` method is
+  ///   sufficient.
+  final Conversion? cfeConversion;
 
   const ErrorCodeParameterType({
     required this.messagesYamlName,
-    required this.analyzerName,
-  });
+    String? analyzerName,
+    this.cfeName,
+    this.cfeConversion,
+  }) : _analyzerName = analyzerName;
 
   /// Decodes a type name from `messages.yaml` into an [ErrorCodeParameterName].
   factory ErrorCodeParameterType.fromMessagesYamlName(String name) =>
       _messagesYamlNameToValue[name] ??
       (throw StateError('Unknown type name: $name'));
+
+  String get analyzerName =>
+      _analyzerName ??
+      (throw 'No analyzer support for type ${json.encode(messagesYamlName)}');
+
+  /// Whether giatnostic messages using parameters of this type are supported by
+  /// the analyzer.
+  bool get isSupportedByAnalyzer => _analyzerName != null;
 }
 
 /// In-memory representation of error code information obtained from the front
@@ -605,10 +698,19 @@ class FrontEndErrorCodeInfo extends ErrorCodeInfo {
   /// The index of the error in the analyzer's `fastaAnalyzerErrorCodes` table.
   final int? index;
 
-  FrontEndErrorCodeInfo.fromYaml(super.yaml)
+  /// The name of the [CfeSeverity] constant describing this error code's CFE
+  /// severity.
+  final String? cfeSeverity;
+
+  FrontEndErrorCodeInfo.fromYaml(YamlMap yaml)
     : analyzerCode = _decodeAnalyzerCode(yaml['analyzerCode']),
-      index = yaml['index'] as int?,
-      super.fromYaml();
+      index = _decodeIndex(yaml['index']),
+      cfeSeverity = _decodeSeverity(yaml['severity']),
+      super.fromYaml(yaml) {
+    if (yaml['problemMessage'] == null) {
+      throw 'Missing problemMessage';
+    }
+  }
 
   @override
   Map<Object?, Object?> toYaml() => {
@@ -627,6 +729,30 @@ class FrontEndErrorCodeInfo extends ErrorCodeInfo {
       return [for (var s in value) s as String];
     } else {
       throw 'Unrecognized analyzer code: $value';
+    }
+  }
+
+  static int? _decodeIndex(Object? value) {
+    switch (value) {
+      case null:
+        return null;
+      case int():
+        if (value >= 1) {
+          return value;
+        }
+    }
+    throw 'Expected positive int for "index:", but found $value';
+  }
+
+  static String? _decodeSeverity(Object? yamlEntry) {
+    switch (yamlEntry) {
+      case null:
+        return null;
+      case String():
+        return severityEnumNames[yamlEntry] ??
+            (throw "Unknown severity '$yamlEntry'");
+      default:
+        throw 'Bad severity type: ${yamlEntry.runtimeType}';
     }
   }
 
@@ -660,4 +786,155 @@ class GeneratedErrorCodeFile {
     this.shouldUseExplicitNewOrConst = false,
     this.shouldIgnorePreferSingleQuotes = false,
   });
+}
+
+/// A [Conversion] that makes use of the [TypeLabeler] class.
+class LabelerConversion implements Conversion {
+  /// The name of the [TypeLabeler] method to call.
+  final String methodName;
+
+  const LabelerConversion(this.methodName);
+
+  @override
+  int get hashCode => Object.hash(runtimeType, methodName.hashCode);
+
+  @override
+  bool operator ==(Object other) =>
+      other is LabelerConversion && other.methodName == methodName;
+
+  @override
+  String toCode({required String name, required ErrorCodeParameterType type}) =>
+      'labeler.$methodName($name)';
+}
+
+/// A [Conversion] that acts on [num], applying formatting parameters specified
+/// in the template.
+class NumericConversion implements Conversion {
+  /// If non-null, the number of digits to show after the decimal point.
+  final int? fractionDigits;
+
+  /// The minimum number of characters of output to be generated.
+  ///
+  /// If the number does not require this many characters to display, extra
+  /// padding characters are inserted to the left.
+  final int padWidth;
+
+  /// If `true`, '0' is used for padding (see [padWidth]); otherwise ' ' is
+  /// used.
+  final bool padWithZeros;
+
+  NumericConversion({
+    required this.fractionDigits,
+    required this.padWidth,
+    required this.padWithZeros,
+  });
+
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    fractionDigits.hashCode,
+    padWidth.hashCode,
+    padWithZeros.hashCode,
+  );
+
+  @override
+  bool operator ==(Object other) =>
+      other is NumericConversion &&
+      other.fractionDigits == fractionDigits &&
+      other.padWidth == padWidth &&
+      other.padWithZeros == padWithZeros;
+
+  @override
+  String? toCode({required String name, required ErrorCodeParameterType type}) {
+    if (type != ErrorCodeParameterType.num) {
+      throw 'format suffix may only be applied to parameters of type num';
+    }
+    return 'conversions.formatNumber($name, fractionDigits: $fractionDigits, '
+        'padWidth: $padWidth, padWithZeros: $padWithZeros)';
+  }
+
+  /// Creates a [NumericConversion] from the given regular expression [match].
+  ///
+  /// [match] should be the result of matching [placeholderPattern] to the
+  /// template string.
+  ///
+  /// Returns `null` if no special numeric conversion is needed.
+  static NumericConversion? from(Match match) {
+    String? padding = match[2];
+    String? fractionDigitsStr = match[3];
+
+    int? fractionDigits = fractionDigitsStr == null
+        ? null
+        : int.parse(fractionDigitsStr);
+    if (padding != null && padding.isNotEmpty) {
+      return NumericConversion(
+        fractionDigits: fractionDigits,
+        padWidth: int.parse(padding),
+        padWithZeros: padding.startsWith('0'),
+      );
+    } else if (fractionDigits != null) {
+      return NumericConversion(
+        fractionDigits: fractionDigits,
+        padWidth: 0,
+        padWithZeros: false,
+      );
+    } else {
+      return null;
+    }
+  }
+}
+
+/// The result of parsing a [placeholderPattern] match in a template string.
+class ParsedPlaceholder {
+  /// The name of the template parameter.
+  ///
+  /// This is the identifier that immediately follows the `#`.
+  final String name;
+
+  /// The conversion specified in the placeholder, if any.
+  ///
+  /// If `null`, the default conversion for the parameter's type will be used.
+  final Conversion? conversionOverride;
+
+  /// Builds a [ParsedPlaceholder] from the given [match] of
+  /// [placeholderPattern].
+  factory ParsedPlaceholder.fromMatch(Match match) {
+    String name = match[1]!;
+
+    return ParsedPlaceholder._(
+      name: name,
+      conversionOverride: NumericConversion.from(match),
+    );
+  }
+
+  ParsedPlaceholder._({required this.name, required this.conversionOverride});
+
+  @override
+  int get hashCode => Object.hash(name, conversionOverride);
+
+  @override
+  bool operator ==(Object other) =>
+      other is ParsedPlaceholder &&
+      other.name == name &&
+      other.conversionOverride == conversionOverride;
+}
+
+/// A [Conversion] that invokes a top level function via the `conversions`
+/// import prefix.
+class SimpleConversion implements Conversion {
+  /// The name of the function to be invoked.
+  final String functionName;
+
+  const SimpleConversion(this.functionName);
+
+  @override
+  int get hashCode => Object.hash(runtimeType, functionName.hashCode);
+
+  @override
+  bool operator ==(Object other) =>
+      other is SimpleConversion && other.functionName == functionName;
+
+  @override
+  String toCode({required String name, required ErrorCodeParameterType type}) =>
+      'conversions.$functionName($name)';
 }

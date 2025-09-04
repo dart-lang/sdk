@@ -446,6 +446,25 @@ class MessageTestSuite extends ChainContext {
             }
             break;
 
+          case 'parameters':
+            switch (value) {
+              case 'none':
+                break;
+              case YamlMap():
+                for (var parameterDoc in value.values) {
+                  if (parameterDoc is! String) {
+                    throw new ArgumentError(
+                      'parameter documentation should be a string: '
+                      '$parameterDoc',
+                    );
+                  }
+                }
+              default:
+                throw new ArgumentError(
+                  'parameters should be a map or `none`: $value.',
+                );
+            }
+
           default:
             unknownKeys.add(key);
         }
