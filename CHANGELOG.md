@@ -1,3 +1,10 @@
+## 3.9.3
+
+### Tools
+
+#### Dart Development Compiler (dartdevc)
+- Fixes a pattern that could lead to exponentially slow compile times when static calls are deeply nested within a closure. When present this led to builds timing out or taking several minutes rather than several seconds.
+
 ## 3.9.2
 
 **Released on:** 2025-08-27

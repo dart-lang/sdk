@@ -246,6 +246,29 @@ class LibraryBundleCompiler implements old.Compiler {
   }
 }
 
+/// Tracks the state of which branch the compiler is on for hot reload checks.
+///
+/// This allows hot reload generation checks to be batched into a single
+/// branch statement.
+///
+/// This batched branching allows us to avoid exponential behavior when
+/// recursing on deeply nested checked calls. Otherwise each branch makes 2
+/// copies of all the sub-branches leading to 2^n checks.
+enum HotReloadBranchState {
+  /// The compiler is not along any hot reload check branch yet.
+  none,
+
+  /// The compiler is along the branch with no extra checks. The check rewrite
+  /// logic will be skipped and the normal call will be generated. The root of
+  /// this branch will include a hot reload generation check.
+  uncheckedBranch,
+
+  /// The compiler is along the branch with extra checks. The check rewrite
+  /// logic will be applied for every call that needs it. The root of this
+  /// branch will include a hot reload generation check.
+  checkedBranch,
+}
+
 class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     with OnceConstantVisitorDefaultMixin<js_ast.Expression>
     implements
@@ -253,6 +276,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         ExpressionVisitor<js_ast.Expression> {
   final Options _options;
   final SymbolData _symbolData;
+
+  HotReloadBranchState hotReloadCheckedBranch = HotReloadBranchState.none;
 
   /// Maps each `Class` node compiled in the module to the `Identifier`s used to
   /// name the class in JavaScript.
@@ -5205,7 +5230,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // the sub-expressions will have the correct mapping applied.
       return jsExpression.toStatement()..sourceInformation = continueSourceMap;
     }
-    return _visitExpression(expr).toStatement();
+    return jsExpression.toStatement();
   }
 
   @override
@@ -6175,10 +6200,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // Since there are no arguments (unlike methods) the dynamic get path can
       // be reused for the hot reload checks on a getter.
       var checkedGet = _emitCast(
-        _emitDynamicGet(
-          _visitExpression(receiver),
-          _emitMemberName(memberName),
-        ),
+        _emitDynamicGet(jsReceiver, _emitMemberName(memberName)),
         node.resultType,
       )..sourceInformation = _nodeStart(node);
       return _emitHotReloadSafeInvocation(instanceGet, checkedGet);
@@ -7633,21 +7655,41 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       }
     }
 
-    var fn = _emitStaticTarget(target);
-    var args = _emitArgumentList(node.arguments, target: target);
-    var staticCall = js_ast.Call(fn, args)
-      ..sourceInformation = _nodeStart(node);
-    if (_shouldRewriteInvocationWithHotReloadChecks(target)) {
-      var checkedCall = _rewriteInvocationWithHotReloadChecks(
+    js_ast.Call generateCall(js_ast.PropertyAccess fn) {
+      var args = _emitArgumentList(node.arguments, target: target);
+      return js_ast.Call(fn, args)..sourceInformation = _nodeStart(node);
+    }
+
+    // Only consider checks if we're not in the unchecked branch.
+    if (_shouldRewriteInvocationWithHotReloadChecks(target) &&
+        hotReloadCheckedBranch != HotReloadBranchState.uncheckedBranch) {
+      final fn = _emitStaticTarget(target);
+
+      var checkedInvocation = _rewriteInvocationWithHotReloadChecks(
         target,
         node.arguments,
         node.getStaticType(_staticTypeContext),
         _nodeStart(node),
       );
+
+      // If we're within the checked branch (i.e. not at the root) then return
+      // the checked call as-is.
+      if (hotReloadCheckedBranch == HotReloadBranchState.checkedBranch) {
+        return checkedInvocation;
+      }
+
+      // We're at the root of the branch so we need to generate the unchecked
+      // branch as well.
+      hotReloadCheckedBranch = HotReloadBranchState.uncheckedBranch;
+      final invocation = generateCall(fn);
+      hotReloadCheckedBranch = HotReloadBranchState.none;
+
       // As an optimization, avoid extra checks when the invocation code was
       // compiled in the same generation that it is running.
-      return _emitHotReloadSafeInvocation(staticCall, checkedCall);
+      return _emitHotReloadSafeInvocation(invocation, checkedInvocation);
     }
+
+    final staticCall = generateCall(_emitStaticTarget(target));
     return _isNullCheckableJsInterop(target)
         ? _wrapWithJsInteropNullCheck(staticCall)
         : staticCall;
@@ -7697,6 +7739,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     DartType expectedReturnType,
     SourceLocation? originalCallSiteSourceLocation,
   ) {
+    final savedCheckedBranch = hotReloadCheckedBranch;
+    hotReloadCheckedBranch = HotReloadBranchState.checkedBranch;
     var hoistedPositionalVariables = <js_ast.Expression>[];
     var hoistedNamedVariables = <String, js_ast.Expression>{};
     js_ast.Expression? letAssignments;
@@ -7780,7 +7824,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     ])..sourceInformation = originalCallSiteSourceLocation;
     // Cast the result of the checked call or the value returned from a
     // `NoSuchMethod` invocation.
-    return js_ast.Binary(
+    final result = js_ast.Binary(
       ',',
       letAssignments,
       js.call('# == # ? # : #', [
@@ -7790,6 +7834,9 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         _emitCast(checkResult, expectedReturnType),
       ]),
     );
+
+    hotReloadCheckedBranch = savedCheckedBranch;
+    return result;
   }
 
   js_ast.Expression _emitJSObjectGetPrototypeOf(
