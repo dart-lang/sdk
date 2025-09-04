@@ -134,7 +134,7 @@ vars = {
   "ai_rev": "1547a834d8a3bb021f2e6c49c41d5aaad11a5b7f",
   "core_rev": "5c3e2c38df268be2347f3aad30ced0147dd012bb",
   "dartdoc_rev": "d683b47abc407a3093c269f67ed4c66b98138d56",
-  "ecosystem_rev": "d6370fba3826f217890073b03ea0c6eafe5c35d1",
+  "ecosystem_rev": "36e514d52c5d056227e4cea98b784ade50b5b4f1",
   "flute_rev": "d5adc4d6439572db5da71a9261b9bf0c7c96daa4",
   "http_rev": "ef05b3744424885d93f88a6a50664fb5b7d5cbdb",
   "i18n_rev": "a62bed2cf32482e531fbc5c719dfb30680f31c0d",
@@ -149,8 +149,8 @@ vars = {
   "test_rev": "5aef9719ad9b598260c062b2a90a50d2f50a78f3", # https://dart-review.googlesource.com/c/sdk/+/444360
   "tools_rev": "24707e094cd761178eb76e725ce17f51e22fd442",
   "vector_math_rev": "3939545edc38ed657381381d33acde02c49ff827",
-  "web_rev": "bdab4622612101fdcd6529a99cf6ebef6342fb0e",
-  "webdev_rev": "bf7b1e59d75381189bc593f4658a9bc1ff4d142e",
+  "web_rev": "a15205456e2dd9f6d5b3a28d600a77d792ccf24d",
+  "webdev_rev": "52ad019105fa0123e0b35be3eb601551cc3b0bb7",
   "webdriver_rev": "09104f459ed834d48b132f6b7734923b1fbcf2e9",
   "webkit_inspection_protocol_rev": "effa75205516757795683d527c3dea9546eb0c32",
 
