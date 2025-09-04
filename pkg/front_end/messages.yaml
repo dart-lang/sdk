@@ -134,14 +134,12 @@
 # `#num1%N.M`, `#num2%N.M`, `#num3%N.M`: numbers (doubles) formatted to minimum
 # width N and with M fraction digits.
 #
-# A message declaration may optionally include a map called
-# `parameters`; each map key is of the form `TYPE NAME`, and each map
-# value is a comment describing the parameter.
+# If a diagnostic takes parameters, its declaration must include a map
+# called `parameters`; each map key is of the form `TYPE NAME`, and
+# each map value is a comment describing the parameter.
 #
-# If a diagnostic takes no parameters, it should have an entry of the
+# If a diagnostic takes no parameters, it must have an entry of the
 # form `parameters: none`.
-#
-# In the future, the `parameters` entry will be required.
 
 AsciiControlCharacter:
   parameters:

@@ -304,13 +304,7 @@ class AnalyzerErrorCodeInfo extends ErrorCodeInfo {
     }
   }
 
-  AnalyzerErrorCodeInfo._fromYaml(super.yaml) : super.fromYaml() {
-    _check();
-  }
-
-  void _check() {
-    if (parameters == null) throw StateError('Missing `parameters` entry.');
-  }
+  AnalyzerErrorCodeInfo._fromYaml(super.yaml) : super.fromYaml();
 }
 
 /// Data tables mapping between CFE errors and their corresponding automatically

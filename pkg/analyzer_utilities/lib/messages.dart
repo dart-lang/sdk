@@ -299,10 +299,7 @@ abstract class ErrorCodeInfo {
 
   /// A list of [ErrorCodeParameter] objects describing the parameters for this
   /// error code, obtained from the `parameters` entry in the yaml file.
-  ///
-  /// If `null`, then there is no `parameters` entry, meaning the error code
-  /// hasn't been translated from the old placeholder format yet.
-  final List<ErrorCodeParameter>? parameters;
+  final List<ErrorCodeParameter> parameters;
 
   /// The raw YAML node that this `ErrorCodeInfo` was parsed from, or `null` if
   /// this `ErrorCodeInfo` was created without reference to a raw YAML node.
@@ -322,7 +319,7 @@ abstract class ErrorCodeInfo {
     this.deprecatedMessage,
     this.previousName,
     this.removedIn,
-    this.parameters,
+    required this.parameters,
     this.yamlNode,
   }) {
     for (var MapEntry(:key, :value) in {
@@ -364,33 +361,12 @@ abstract class ErrorCodeInfo {
   /// Given a messages.yaml entry, come up with a mapping from placeholder
   /// patterns in its message strings to their corresponding indices.
   Map<String, int> computePlaceholderToIndexMap() {
-    if (parameters case var parameters?) {
-      // Parameters were explicitly specified, so the mapping is determined by
-      // the order in which they were specified.
-      return {
-        for (var (index, parameter) in parameters.indexed)
-          '#${parameter.name}': index,
-      };
-    } else {
-      // Parameters are not explicitly specified, so it's necessary to invent a
-      // mapping by searching the problemMessage and correctionMessage for
-      // placeholders.
-      var mapping = <String, int>{};
-      for (var value in [problemMessage, correctionMessage]) {
-        if (value is! String) continue;
-        for (Match match in placeholderPattern.allMatches(value)) {
-          // CFE supports a bunch of formatting options that analyzer doesn't;
-          // make sure none of those are used.
-          if (match.group(0) != '#${match.group(1)}') {
-            throw 'Template string ${json.encode(value)} contains unsupported '
-                'placeholder pattern ${json.encode(match.group(0))}';
-          }
-
-          mapping[match.group(0)!] ??= mapping.length;
-        }
-      }
-      return mapping;
-    }
+    // Parameters are always explicitly specified, so the mapping is determined
+    // by the order in which they were specified.
+    return {
+      for (var (index, parameter) in parameters.indexed)
+        '#${parameter.name}': index,
+    };
   }
 
   void outputConstantHeader(StringSink out) {
@@ -420,13 +396,12 @@ abstract class ErrorCodeInfo {
     String className;
     String templateParameters = '';
     String? withArgumentsName;
-    if (parameters != null && parameters.isNotEmpty && !usesParameters) {
+    if (parameters.isNotEmpty && !usesParameters) {
       throw StateError(
         'Error code declares parameters using a `parameters` entry, but '
         "doesn't use them",
       );
-    } else if (parameters == null ||
-        parameters.any((p) => !p.type.isSupportedByAnalyzer)) {
+    } else if (parameters.any((p) => !p.type.isSupportedByAnalyzer)) {
       // Do not generate literate API yet.
       className = errorClassInfo.name;
     } else if (parameters.isNotEmpty) {
@@ -520,7 +495,7 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
       case []:
         if (commentLines.isNotEmpty) commentLines.add('');
         commentLines.add('No parameters.');
-      case var parameters?:
+      default:
         if (commentLines.isNotEmpty) commentLines.add('');
         commentLines.add('Parameters:');
         for (var p in parameters) {
@@ -559,14 +534,10 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
   };
 
   String _computeExpectedTypes() {
-    if (parameters case var parameters?) {
-      var expectedTypes = [
-        for (var parameter in parameters) 'ExpectedType.${parameter.type.name}',
-      ];
-      return '[${expectedTypes.join(', ')}]';
-    } else {
-      return 'null';
-    }
+    var expectedTypes = [
+      for (var parameter in parameters) 'ExpectedType.${parameter.type.name}',
+    ];
+    return '[${expectedTypes.join(', ')}]';
   }
 
   String _encodeString(String s) {
@@ -590,8 +561,10 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
     }
   }
 
-  static List<ErrorCodeParameter>? _decodeParameters(Object? yaml) {
-    if (yaml == null) return null;
+  static List<ErrorCodeParameter> _decodeParameters(Object? yaml) {
+    if (yaml == null) {
+      throw StateError('Missing parameters section');
+    }
     if (yaml == 'none') return const [];
     yaml as Map<Object?, Object?>;
     var result = <ErrorCodeParameter>[];
