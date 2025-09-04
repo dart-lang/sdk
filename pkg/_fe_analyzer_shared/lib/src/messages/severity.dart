@@ -6,15 +6,6 @@ library _fe_analyzer_shared.messages.severity;
 
 enum CfeSeverity { context, error, ignored, internalProblem, warning, info }
 
-const Map<String, String> severityEnumNames = const <String, String>{
-  'CONTEXT': 'context',
-  'ERROR': 'error',
-  'IGNORED': 'ignored',
-  'INTERNAL_PROBLEM': 'internalProblem',
-  'WARNING': 'warning',
-  'INFO': 'info',
-};
-
 const Map<String, CfeSeverity> severityEnumValues = const <String, CfeSeverity>{
   'CONTEXT': CfeSeverity.context,
   'ERROR': CfeSeverity.error,
