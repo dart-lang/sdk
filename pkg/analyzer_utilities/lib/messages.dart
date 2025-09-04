@@ -9,7 +9,7 @@ import 'package:analyzer_testing/package_root.dart' as pkg_root;
 import 'package:analyzer_utilities/extensions/string.dart';
 import 'package:analyzer_utilities/tools.dart';
 import 'package:path/path.dart';
-import 'package:yaml/yaml.dart' show loadYaml;
+import 'package:yaml/yaml.dart' show loadYaml, YamlMap;
 
 const Map<String, String> severityEnumNames = <String, String>{
   'CONTEXT': 'context',
@@ -105,7 +105,7 @@ Map<String, FrontEndErrorCodeInfo> decodeCfeMessagesYaml(Object? yaml) {
       problem('non-string error key ${json.encode(errorName)}');
     }
     var errorValue = entry.value;
-    if (errorValue is! Map<Object?, Object?>) {
+    if (errorValue is! YamlMap) {
       problem('value associated with error $errorName is not a map');
     }
     try {
@@ -119,8 +119,10 @@ Map<String, FrontEndErrorCodeInfo> decodeCfeMessagesYaml(Object? yaml) {
 
 /// Loads front end messages from the front end's `messages.yaml` file.
 Map<String, FrontEndErrorCodeInfo> _loadFrontEndMessages() {
+  var path = join(frontEndPkgPath, 'messages.yaml');
   Object? messagesYaml = loadYaml(
-    File(join(frontEndPkgPath, 'messages.yaml')).readAsStringSync(),
+    File(path).readAsStringSync(),
+    sourceUrl: Uri.file(path),
   );
   return decodeCfeMessagesYaml(messagesYaml);
 }
@@ -302,6 +304,13 @@ abstract class ErrorCodeInfo {
   /// hasn't been translated from the old placeholder format yet.
   final List<ErrorCodeParameter>? parameters;
 
+  /// The raw YAML node that this `ErrorCodeInfo` was parsed from, or `null` if
+  /// this `ErrorCodeInfo` was created without reference to a raw YAML node.
+  ///
+  /// This exists to make it easier for automated scripts to edit the YAML
+  /// source.
+  final YamlMap? yamlNode;
+
   ErrorCodeInfo({
     this.comment,
     this.documentation,
@@ -314,6 +323,7 @@ abstract class ErrorCodeInfo {
     this.previousName,
     this.removedIn,
     this.parameters,
+    this.yamlNode,
   }) {
     for (var MapEntry(:key, :value) in {
       'problemMessage': problemMessage,
@@ -330,7 +340,7 @@ abstract class ErrorCodeInfo {
   }
 
   /// Decodes an [ErrorCodeInfo] object from its YAML representation.
-  ErrorCodeInfo.fromYaml(Map<Object?, Object?> yaml)
+  ErrorCodeInfo.fromYaml(YamlMap yaml)
     : this(
         comment: yaml['comment'] as String?,
         correctionMessage: _decodeMessage(yaml['correctionMessage']),
@@ -344,6 +354,7 @@ abstract class ErrorCodeInfo {
         removedIn: yaml['removedIn'] as String?,
         previousName: yaml['previousName'] as String?,
         parameters: _decodeParameters(yaml['parameters']),
+        yamlNode: yaml,
       );
 
   /// If this error is no longer reported and
@@ -757,7 +768,7 @@ class FrontEndErrorCodeInfo extends ErrorCodeInfo {
   /// severity.
   final String? cfeSeverity;
 
-  FrontEndErrorCodeInfo.fromYaml(Map<Object?, Object?> yaml)
+  FrontEndErrorCodeInfo.fromYaml(YamlMap yaml)
     : analyzerCode = _decodeAnalyzerCode(yaml['analyzerCode']),
       index = _decodeIndex(yaml['index']),
       cfeSeverity = _decodeSeverity(yaml['severity']),
