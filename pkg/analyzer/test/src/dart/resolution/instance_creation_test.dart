@@ -2540,7 +2540,7 @@ void f() {
 }
 
 ''',
-      [error(CompileTimeErrorCode.newWithNonType, 17, 16)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 17, 16)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -2577,7 +2577,7 @@ void f() {
 }
 
 ''',
-      [error(CompileTimeErrorCode.newWithNonType, 17, 14)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 17, 14)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
