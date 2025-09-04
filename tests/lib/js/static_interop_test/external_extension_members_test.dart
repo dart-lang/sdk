@@ -26,6 +26,8 @@ extension FooExt<T extends JSAny?, U extends Nested> on Foo<T, U> {
   external final finalField;
   @JS('fieldAnnotation')
   external var annotatedField;
+  @JS('nested-field.foo.field')
+  external var nestedField;
 
   external get getter;
   @JS('getterAnnotation')
@@ -35,6 +37,11 @@ extension FooExt<T extends JSAny?, U extends Nested> on Foo<T, U> {
   @JS('setterAnnotation')
   external set annotatedSetter(_);
 
+  @JS('nestedGetSet.1.getSet')
+  external get nestedGetSet;
+  @JS('nestedGetSet.1.getSet')
+  external set nestedGetSet(_);
+
   external num getField();
   external void setField10([optionalArgument]);
   @JS('toString')
@@ -43,6 +50,8 @@ extension FooExt<T extends JSAny?, U extends Nested> on Foo<T, U> {
   external num sumFn(a, b);
   @JS('sumFn')
   external num otherSumFn(a, b);
+  @JS('nested^method.method')
+  external String nestedMethod();
 
   @JS('field')
   external T fieldT;
@@ -89,9 +98,19 @@ void main() {
       this.field = a;
       this.fieldAnnotation = a;
       this.finalField = a;
+      this['nested-field'] = {
+        foo: {
+          field: a
+        }
+      };
 
       this.getter = a;
       this.getterAnnotation = a;
+      this.nestedGetSet = {
+        '1': {
+          getSet: a
+        }
+      };
     }
 
     Foo.prototype.toString = function() {
@@ -114,6 +133,12 @@ void main() {
       return a + b;
     }
 
+    Foo.prototype['nested^method'] = {
+      method: function() {
+        return 'nestedMethod';
+      }
+    }
+
     Foo.prototype.combineNested = function(a, b) {
       return new Nested(a.value + b.value);
     }
@@ -133,15 +158,17 @@ void main() {
     Expect.equals(42, foo.field);
     Expect.equals(42, foo.finalField);
     Expect.equals(42, foo.annotatedField);
+    Expect.equals(42, foo.nestedField);
 
     // field setters
     foo.field = 'squid';
     Expect.equals('squid', foo.field);
-
     foo.annotatedField = 'octopus';
     Expect.equals('octopus', foo.annotatedField);
     js_util.setProperty(foo, 'fieldAnnotation', 'clownfish');
     Expect.equals('clownfish', foo.annotatedField);
+    foo.nestedField = 'shark';
+    Expect.equals('shark', foo.nestedField);
   }
 
   {
@@ -150,6 +177,7 @@ void main() {
     var foo = Foo(42);
     Expect.equals(42, foo.getter);
     Expect.equals(42, foo.annotatedGetter);
+    Expect.equals(42, foo.nestedGetSet);
 
     js_util.setProperty(foo, 'getterAnnotation', 'eel');
     Expect.equals('eel', foo.annotatedGetter);
@@ -164,6 +192,9 @@ void main() {
 
     foo.annotatedSetter = 'whale';
     Expect.equals('whale', js_util.getProperty(foo, 'setterAnnotation'));
+
+    foo.nestedGetSet = 'dolphin';
+    Expect.equals('dolphin', foo.nestedGetSet);
   }
 
   {
@@ -176,6 +207,7 @@ void main() {
     Expect.equals(1, foo.getFirstEl([1, 2, 3]));
     Expect.equals(5, foo.sumFn(2, 3));
     Expect.equals(15, foo.otherSumFn(10, 5));
+    Expect.equals('nestedMethod', foo.nestedMethod());
   }
 
   {

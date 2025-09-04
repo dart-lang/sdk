@@ -436,10 +436,11 @@ class JsInteropChecks extends RecursiveVisitor {
         _checkNoNamedParameters(node.function);
       }
 
-      // JS static methods cannot use a JS name with dots.
+      // `package:js` JS static methods cannot use a JS name with dots.
       if (node.isStatic &&
           node.enclosingClass != null &&
-          getJSName(node).contains('.')) {
+          getJSName(node).contains('.') &&
+          !hasDartJSInteropAnnotation(node.enclosingClass!)) {
         report(codeJsInteropInvalidStaticClassMemberName);
       }
 

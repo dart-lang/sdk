@@ -766,6 +766,8 @@ series
 services
 setups
 severe
+sf
+sg
 sharp
 sheets
 shipped
@@ -783,6 +785,7 @@ slashes
 sleep
 slight
 sliver
+sm
 smoke
 snull
 somehow

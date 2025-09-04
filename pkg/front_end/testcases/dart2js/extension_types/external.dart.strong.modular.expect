@@ -2,110 +2,291 @@
 library static_interop;
 import self as self;
 import "dart:js_interop" as js_;
-import "dart:_js_annotations" as _js;
 import "dart:core" as core;
 
 import "dart:js_interop";
 
 @#C2
-@#C3
-class A extends core::Object {
-  synthetic constructor •() → self::A
-    : super core::Object::•()
-    ;
-  static synthetic method _#new#tearOff() → self::A
-    return new self::A::•();
-}
-@#C2
-extension type B(self::A a) {
-  abstract extension-type-member representation-field get a() → self::A;
+extension type B(js_::JSObject /* erasure=_interceptors::JSObject */ a) implements js_::JSObject /* erasure=_interceptors::JSObject */ {
+  abstract extension-type-member representation-field get a() → js_::JSObject /* erasure=_interceptors::JSObject */;
   get field = self::B|get#field;
   set field = self::B|set#field;
+  get finalField = self::B|get#finalField;
+  get renamedField = self::B|get#renamedField;
+  set renamedField = self::B|set#renamedField;
+  get renamedField2 = self::B|get#renamedField2;
+  set renamedField2 = self::B|set#renamedField2;
+  get renamedField3 = self::B|get#renamedField3;
+  set renamedField3 = self::B|set#renamedField3;
   method method = self::B|method;
   method tearoff method = self::B|get#method;
+  method renamedMethod = self::B|renamedMethod;
+  method tearoff renamedMethod = self::B|get#renamedMethod;
+  method renamedMethod2 = self::B|renamedMethod2;
+  method tearoff renamedMethod2 = self::B|get#renamedMethod2;
+  method renamedMethod3 = self::B|renamedMethod3;
+  method tearoff renamedMethod3 = self::B|get#renamedMethod3;
   method genericMethod = self::B|genericMethod;
   method tearoff genericMethod = self::B|get#genericMethod;
+  method methodWithOptionalArgument = self::B|methodWithOptionalArgument;
+  method tearoff methodWithOptionalArgument = self::B|get#methodWithOptionalArgument;
   get getter = self::B|get#getter;
   set setter = self::B|set#setter;
   get property = self::B|get#property;
   set property = self::B|set#property;
+  get renamedGetter = self::B|get#renamedGetter;
+  get renamedGetter2 = self::B|get#renamedGetter2;
+  get renamedGetter3 = self::B|get#renamedGetter3;
+  set renamedSetter = self::B|set#renamedSetter;
+  set renamedSetter2 = self::B|set#renamedSetter2;
+  set renamedSetter3 = self::B|set#renamedSetter3;
   static get staticField = get self::B|staticField;
   static set staticField = set self::B|staticField;
+  static get renamedStaticField = get self::B|renamedStaticField;
+  static set renamedStaticField = set self::B|renamedStaticField;
+  static get renamedStaticField2 = get self::B|renamedStaticField2;
+  static set renamedStaticField2 = set self::B|renamedStaticField2;
+  static get renamedStaticField3 = get self::B|renamedStaticField3;
+  static set renamedStaticField3 = set self::B|renamedStaticField3;
   static method staticMethod = self::B|staticMethod;
+  static method renamedStaticMethod = self::B|renamedStaticMethod;
+  static method renamedStaticMethod2 = self::B|renamedStaticMethod2;
+  static method renamedStaticMethod3 = self::B|renamedStaticMethod3;
   static method staticGenericMethod = self::B|staticGenericMethod;
   static get staticGetter = get self::B|staticGetter;
   static set staticSetter = set self::B|staticSetter;
   static get staticProperty = get self::B|staticProperty;
   static set staticProperty = set self::B|staticProperty;
-  method methodWithOptionalArgument = self::B|methodWithOptionalArgument;
-  method tearoff methodWithOptionalArgument = self::B|get#methodWithOptionalArgument;
+  static get renamedStaticGetter = get self::B|renamedStaticGetter;
+  static get renamedStaticGetter2 = get self::B|renamedStaticGetter2;
+  static get renamedStaticGetter3 = get self::B|renamedStaticGetter3;
+  static set renamedStaticSetter = set self::B|renamedStaticSetter;
+  static set renamedStaticSetter2 = set self::B|renamedStaticSetter2;
+  static set renamedStaticSetter3 = set self::B|renamedStaticSetter3;
   constructor _ = self::B|constructor#_;
   constructor tearoff _ = self::B|constructor#_#_#tearOff;
   constructor • = self::B|constructor#;
   constructor tearoff • = self::B|constructor#_#new#tearOff;
   constructor named = self::B|constructor#named;
   constructor tearoff named = self::B|constructor#_#named#tearOff;
+  static factory factory = self::B|constructor#factory;
+  static factory tearoff factory = self::B|constructor#_#factory#tearOff;
+  static factory namedParams = self::B|constructor#namedParams;
+  static factory tearoff namedParams = self::B|constructor#_#namedParams#tearOff;
 }
-static extension-type-member method B|constructor#_(self::A a) → self::B% /* erasure=self::A, declared=! */ {
-  lowered final self::B% /* erasure=self::A, declared=! */ #this = a;
+static extension-type-member synthetic method B|constructor#_#_#tearOff(js_::JSObject /* erasure=_interceptors::JSObject */ a) → self::B /* erasure=_interceptors::JSObject */
+  return self::B|constructor#_(a);
+static extension-type-member method B|constructor#_(js_::JSObject /* erasure=_interceptors::JSObject */ a) → self::B /* erasure=_interceptors::JSObject */ {
+  lowered final self::B /* erasure=_interceptors::JSObject */ #this = a;
   return #this;
 }
-static extension-type-member synthetic method B|constructor#_#_#tearOff(self::A a) → self::B% /* erasure=self::A, declared=! */
-  return self::B|constructor#_(a);
-external static extension-type-member method B|constructor#(self::A a) → self::B% /* erasure=self::A, declared=! */;
-static extension-type-member synthetic method B|constructor#_#new#tearOff(self::A a) → self::B% /* erasure=self::A, declared=! */
+static extension-type-member synthetic method B|constructor#_#new#tearOff(js_::JSObject /* erasure=_interceptors::JSObject */ a) → self::B /* erasure=_interceptors::JSObject */
   return self::B|constructor#(a);
-external static extension-type-member method B|constructor#named(core::int i) → self::B% /* erasure=self::A, declared=! */;
-static extension-type-member synthetic method B|constructor#_#named#tearOff(core::int i) → self::B% /* erasure=self::A, declared=! */
+external static extension-type-member method B|constructor#(js_::JSObject /* erasure=_interceptors::JSObject */ a) → self::B /* erasure=_interceptors::JSObject */;
+static extension-type-member synthetic method B|constructor#_#named#tearOff(core::int i) → self::B /* erasure=_interceptors::JSObject */
   return self::B|constructor#named(i);
-external static extension-type-member method B|get#field(lowered self::A #this) → self::A;
-external static extension-type-member method B|set#field(lowered self::A #this, synthesized self::A #externalFieldValue) → void;
-external static extension-type-member method B|method(lowered final self::B% /* erasure=self::A, declared=! */ #this) → self::A;
-static extension-type-member method B|get#method(lowered final self::B% /* erasure=self::A, declared=! */ #this) → () → self::A
-  return () → self::A => self::B|method(#this);
-external static extension-type-member method B|genericMethod<T extends self::B% /* erasure=self::A, declared=! */>(lowered final self::B% /* erasure=self::A, declared=! */ #this, self::B|genericMethod::T% t) → self::B|genericMethod::T%;
-static extension-type-member method B|get#genericMethod(lowered final self::B% /* erasure=self::A, declared=! */ #this) → <T extends self::B% /* erasure=self::A, declared=! */>(T%) → T%
-  return <T extends self::B% /* erasure=self::A, declared=! */>(T% t) → T% => self::B|genericMethod<T%>(#this, t);
-external static extension-type-member method B|get#getter(lowered final self::B% /* erasure=self::A, declared=! */ #this) → self::B% /* erasure=self::A, declared=! */;
-external static extension-type-member method B|set#setter(lowered final self::B% /* erasure=self::A, declared=! */ #this, self::B% /* erasure=self::A, declared=! */ b) → void;
-external static extension-type-member method B|get#property(lowered final self::B% /* erasure=self::A, declared=! */ #this) → self::B% /* erasure=self::A, declared=! */;
-external static extension-type-member method B|set#property(lowered final self::B% /* erasure=self::A, declared=! */ #this, self::B% /* erasure=self::A, declared=! */ b) → void;
-external static extension-type-member get B|staticField() → self::A;
-external static extension-type-member set B|staticField(synthesized self::A #externalFieldValue) → void;
-external static extension-type-member method B|staticMethod() → self::A;
-external static extension-type-member method B|staticGenericMethod<T extends self::B% /* erasure=self::A, declared=! */>(self::B|staticGenericMethod::T% t) → self::B|staticGenericMethod::T%;
-external static extension-type-member get B|staticGetter() → self::B% /* erasure=self::A, declared=! */;
-external static extension-type-member set B|staticSetter(self::B% /* erasure=self::A, declared=! */ b) → void;
-external static extension-type-member get B|staticProperty() → self::B% /* erasure=self::A, declared=! */;
-external static extension-type-member set B|staticProperty(self::B% /* erasure=self::A, declared=! */ b) → void;
-external static extension-type-member method B|methodWithOptionalArgument(lowered final self::B% /* erasure=self::A, declared=! */ #this, [self::B? /* erasure=self::A? */ b = #C1]) → self::B% /* erasure=self::A, declared=! */;
-static extension-type-member method B|get#methodWithOptionalArgument(lowered final self::B% /* erasure=self::A, declared=! */ #this) → ([self::B? /* erasure=self::A? */]) → self::B% /* erasure=self::A, declared=! */
-  return ([self::B? /* erasure=self::A? */ b = #C1]) → self::B% /* erasure=self::A, declared=! */ => self::B|methodWithOptionalArgument(#this, b);
-static method method(self::A a) → void {
-  self::B% /* erasure=self::A, declared=! */ b1 = self::B|constructor#(a);
-  self::B% /* erasure=self::A, declared=! */ b2 = self::B|constructor#named(0);
+external static extension-type-member method B|constructor#named(core::int i) → self::B /* erasure=_interceptors::JSObject */;
+static extension-type-member synthetic method B|constructor#_#factory#tearOff(js_::JSObject /* erasure=_interceptors::JSObject */ a) → self::B /* erasure=_interceptors::JSObject */
+  return self::B|constructor#factory(a);
+external static extension-type-member method B|constructor#factory(js_::JSObject /* erasure=_interceptors::JSObject */ a) → self::B /* erasure=_interceptors::JSObject */;
+static extension-type-member synthetic method B|constructor#_#namedParams#tearOff({js_::JSObject /* erasure=_interceptors::JSObject */ a = #C1}) → self::B /* erasure=_interceptors::JSObject */
+  return self::B|constructor#namedParams(a: a);
+external static extension-type-member method B|constructor#namedParams({js_::JSObject /* erasure=_interceptors::JSObject */ a = #C1}) → self::B /* erasure=_interceptors::JSObject */;
+external static extension-type-member method B|set#field(lowered js_::JSObject /* erasure=_interceptors::JSObject */ #this, synthesized js_::JSObject /* erasure=_interceptors::JSObject */ #externalFieldValue) → void;
+external static extension-type-member method B|get#field(lowered js_::JSObject /* erasure=_interceptors::JSObject */ #this) → js_::JSObject /* erasure=_interceptors::JSObject */;
+external static extension-type-member method B|get#finalField(lowered js_::JSObject /* erasure=_interceptors::JSObject */ #this) → js_::JSObject /* erasure=_interceptors::JSObject */;
+@#C4
+external static extension-type-member method B|get#renamedField(lowered js_::JSObject /* erasure=_interceptors::JSObject */ #this) → js_::JSObject /* erasure=_interceptors::JSObject */;
+@#C4
+external static extension-type-member method B|set#renamedField(lowered js_::JSObject /* erasure=_interceptors::JSObject */ #this, synthesized js_::JSObject /* erasure=_interceptors::JSObject */ #externalFieldValue) → void;
+@#C6
+external static extension-type-member method B|get#renamedField2(lowered js_::JSObject /* erasure=_interceptors::JSObject */ #this) → js_::JSObject /* erasure=_interceptors::JSObject */;
+@#C6
+external static extension-type-member method B|set#renamedField2(lowered js_::JSObject /* erasure=_interceptors::JSObject */ #this, synthesized js_::JSObject /* erasure=_interceptors::JSObject */ #externalFieldValue) → void;
+@#C8
+external static extension-type-member method B|get#renamedField3(lowered js_::JSObject /* erasure=_interceptors::JSObject */ #this) → js_::JSObject /* erasure=_interceptors::JSObject */;
+@#C8
+external static extension-type-member method B|set#renamedField3(lowered js_::JSObject /* erasure=_interceptors::JSObject */ #this, synthesized js_::JSObject /* erasure=_interceptors::JSObject */ #externalFieldValue) → void;
+static extension-type-member method B|get#method(lowered final self::B /* erasure=_interceptors::JSObject */ #this) → () → js_::JSObject /* erasure=_interceptors::JSObject */
+  return () → js_::JSObject /* erasure=_interceptors::JSObject */ => self::B|method(#this);
+external static extension-type-member method B|method(lowered final self::B /* erasure=_interceptors::JSObject */ #this) → js_::JSObject /* erasure=_interceptors::JSObject */;
+@#C10
+external static extension-type-member method B|renamedMethod(lowered final self::B /* erasure=_interceptors::JSObject */ #this) → js_::JSObject /* erasure=_interceptors::JSObject */;
+static extension-type-member method B|get#renamedMethod(lowered final self::B /* erasure=_interceptors::JSObject */ #this) → () → js_::JSObject /* erasure=_interceptors::JSObject */
+  return () → js_::JSObject /* erasure=_interceptors::JSObject */ => self::B|renamedMethod(#this);
+@#C12
+external static extension-type-member method B|renamedMethod2(lowered final self::B /* erasure=_interceptors::JSObject */ #this) → js_::JSObject /* erasure=_interceptors::JSObject */;
+static extension-type-member method B|get#renamedMethod2(lowered final self::B /* erasure=_interceptors::JSObject */ #this) → () → js_::JSObject /* erasure=_interceptors::JSObject */
+  return () → js_::JSObject /* erasure=_interceptors::JSObject */ => self::B|renamedMethod2(#this);
+@#C14
+external static extension-type-member method B|renamedMethod3(lowered final self::B /* erasure=_interceptors::JSObject */ #this) → js_::JSObject /* erasure=_interceptors::JSObject */;
+static extension-type-member method B|get#renamedMethod3(lowered final self::B /* erasure=_interceptors::JSObject */ #this) → () → js_::JSObject /* erasure=_interceptors::JSObject */
+  return () → js_::JSObject /* erasure=_interceptors::JSObject */ => self::B|renamedMethod3(#this);
+external static extension-type-member method B|genericMethod<T extends self::B /* erasure=_interceptors::JSObject */>(lowered final self::B /* erasure=_interceptors::JSObject */ #this, self::B|genericMethod::T t) → self::B|genericMethod::T;
+static extension-type-member method B|get#genericMethod(lowered final self::B /* erasure=_interceptors::JSObject */ #this) → <T extends self::B /* erasure=_interceptors::JSObject */>(T) → T
+  return <T extends self::B /* erasure=_interceptors::JSObject */>(T t) → T => self::B|genericMethod<T>(#this, t);
+static extension-type-member method B|get#methodWithOptionalArgument(lowered final self::B /* erasure=_interceptors::JSObject */ #this) → ([self::B? /* erasure=_interceptors::JSObject? */]) → self::B /* erasure=_interceptors::JSObject */
+  return ([self::B? /* erasure=_interceptors::JSObject? */ b = #C1]) → self::B /* erasure=_interceptors::JSObject */ => self::B|methodWithOptionalArgument(#this, b);
+external static extension-type-member method B|methodWithOptionalArgument(lowered final self::B /* erasure=_interceptors::JSObject */ #this, [self::B? /* erasure=_interceptors::JSObject? */ b = #C1]) → self::B /* erasure=_interceptors::JSObject */;
+external static extension-type-member method B|get#getter(lowered final self::B /* erasure=_interceptors::JSObject */ #this) → self::B /* erasure=_interceptors::JSObject */;
+external static extension-type-member method B|set#setter(lowered final self::B /* erasure=_interceptors::JSObject */ #this, self::B /* erasure=_interceptors::JSObject */ b) → void;
+external static extension-type-member method B|get#property(lowered final self::B /* erasure=_interceptors::JSObject */ #this) → self::B /* erasure=_interceptors::JSObject */;
+external static extension-type-member method B|set#property(lowered final self::B /* erasure=_interceptors::JSObject */ #this, self::B /* erasure=_interceptors::JSObject */ b) → void;
+@#C16
+external static extension-type-member method B|get#renamedGetter(lowered final self::B /* erasure=_interceptors::JSObject */ #this) → self::B /* erasure=_interceptors::JSObject */;
+@#C18
+external static extension-type-member method B|get#renamedGetter2(lowered final self::B /* erasure=_interceptors::JSObject */ #this) → self::B /* erasure=_interceptors::JSObject */;
+@#C20
+external static extension-type-member method B|get#renamedGetter3(lowered final self::B /* erasure=_interceptors::JSObject */ #this) → self::B /* erasure=_interceptors::JSObject */;
+@#C22
+external static extension-type-member method B|set#renamedSetter(lowered final self::B /* erasure=_interceptors::JSObject */ #this, self::B /* erasure=_interceptors::JSObject */ b) → void;
+@#C24
+external static extension-type-member method B|set#renamedSetter2(lowered final self::B /* erasure=_interceptors::JSObject */ #this, self::B /* erasure=_interceptors::JSObject */ b) → void;
+@#C26
+external static extension-type-member method B|set#renamedSetter3(lowered final self::B /* erasure=_interceptors::JSObject */ #this, self::B /* erasure=_interceptors::JSObject */ b) → void;
+external static extension-type-member get B|staticField() → js_::JSObject /* erasure=_interceptors::JSObject */;
+external static extension-type-member set B|staticField(synthesized js_::JSObject /* erasure=_interceptors::JSObject */ #externalFieldValue) → void;
+@#C28
+external static extension-type-member set B|renamedStaticField(synthesized js_::JSObject /* erasure=_interceptors::JSObject */ #externalFieldValue) → void;
+@#C28
+external static extension-type-member get B|renamedStaticField() → js_::JSObject /* erasure=_interceptors::JSObject */;
+@#C30
+external static extension-type-member set B|renamedStaticField2(synthesized js_::JSObject /* erasure=_interceptors::JSObject */ #externalFieldValue) → void;
+@#C30
+external static extension-type-member get B|renamedStaticField2() → js_::JSObject /* erasure=_interceptors::JSObject */;
+@#C32
+external static extension-type-member set B|renamedStaticField3(synthesized js_::JSObject /* erasure=_interceptors::JSObject */ #externalFieldValue) → void;
+@#C32
+external static extension-type-member get B|renamedStaticField3() → js_::JSObject /* erasure=_interceptors::JSObject */;
+external static extension-type-member method B|staticMethod() → js_::JSObject /* erasure=_interceptors::JSObject */;
+@#C34
+external static extension-type-member method B|renamedStaticMethod() → js_::JSObject /* erasure=_interceptors::JSObject */;
+@#C36
+external static extension-type-member method B|renamedStaticMethod2() → js_::JSObject /* erasure=_interceptors::JSObject */;
+@#C38
+external static extension-type-member method B|renamedStaticMethod3() → js_::JSObject /* erasure=_interceptors::JSObject */;
+external static extension-type-member method B|staticGenericMethod<T extends self::B /* erasure=_interceptors::JSObject */>(self::B|staticGenericMethod::T t) → self::B|staticGenericMethod::T;
+external static extension-type-member get B|staticGetter() → self::B /* erasure=_interceptors::JSObject */;
+external static extension-type-member set B|staticSetter(self::B /* erasure=_interceptors::JSObject */ b) → void;
+external static extension-type-member get B|staticProperty() → self::B /* erasure=_interceptors::JSObject */;
+external static extension-type-member set B|staticProperty(self::B /* erasure=_interceptors::JSObject */ b) → void;
+@#C40
+external static extension-type-member get B|renamedStaticGetter() → self::B /* erasure=_interceptors::JSObject */;
+@#C42
+external static extension-type-member get B|renamedStaticGetter2() → self::B /* erasure=_interceptors::JSObject */;
+@#C44
+external static extension-type-member get B|renamedStaticGetter3() → self::B /* erasure=_interceptors::JSObject */;
+@#C46
+external static extension-type-member set B|renamedStaticSetter(self::B /* erasure=_interceptors::JSObject */ b) → void;
+@#C48
+external static extension-type-member set B|renamedStaticSetter2(self::B /* erasure=_interceptors::JSObject */ b) → void;
+@#C50
+external static extension-type-member set B|renamedStaticSetter3(self::B /* erasure=_interceptors::JSObject */ b) → void;
+static method method(js_::JSObject /* erasure=_interceptors::JSObject */ a) → void {
+  self::B /* erasure=_interceptors::JSObject */ b1 = self::B|constructor#(a);
+  self::B /* erasure=_interceptors::JSObject */ b2 = self::B|constructor#named(0);
+  self::B /* erasure=_interceptors::JSObject */ b3 = self::B|constructor#factory(b2);
+  self::B /* erasure=_interceptors::JSObject */ b4 = self::B|constructor#namedParams(a: a);
   a = self::B|get#field(b1);
   self::B|set#field(b1, a);
+  a = self::B|get#finalField(b1);
+  a = self::B|get#renamedField(b1);
+  a = self::B|get#renamedField2(b1);
+  a = self::B|get#renamedField3(b1);
+  self::B|set#renamedField(b1, a);
+  self::B|set#renamedField2(b1, a);
+  self::B|set#renamedField3(b1, a);
   a = self::B|method(b1);
-  b2 = self::B|genericMethod<self::B% /* erasure=self::A, declared=! */>(b2, b2);
+  a = self::B|renamedMethod(b1);
+  a = self::B|renamedMethod2(b1);
+  a = self::B|renamedMethod3(b1);
+  b2 = self::B|genericMethod<self::B /* erasure=_interceptors::JSObject */>(b2, b2);
+  b2 = self::B|methodWithOptionalArgument(b1, b2);
+  b1 = self::B|methodWithOptionalArgument(b2);
   b1 = self::B|get#getter(b2);
   self::B|set#setter(b1, b2);
   self::B|set#property(b1, self::B|get#property(b2));
+  b1 = self::B|get#renamedGetter(b2);
+  b1 = self::B|get#renamedGetter2(b2);
+  b1 = self::B|get#renamedGetter3(b2);
+  self::B|set#renamedSetter(b1, b2);
+  self::B|set#renamedSetter2(b1, b2);
+  self::B|set#renamedSetter3(b1, b2);
   a = self::B|staticField;
   self::B|staticField = a;
+  a = self::B|renamedStaticField;
+  a = self::B|renamedStaticField2;
+  a = self::B|renamedStaticField3;
+  self::B|renamedStaticField = a;
+  self::B|renamedStaticField2 = a;
+  self::B|renamedStaticField3 = a;
   a = self::B|staticMethod();
-  b2 = self::B|staticGenericMethod<self::B% /* erasure=self::A, declared=! */>(b2);
+  self::B|renamedStaticMethod();
+  self::B|renamedStaticMethod2();
+  self::B|renamedStaticMethod3();
+  b2 = self::B|staticGenericMethod<self::B /* erasure=_interceptors::JSObject */>(b2);
   b1 = self::B|staticGetter;
   self::B|staticSetter = b2;
   self::B|staticProperty = self::B|staticProperty;
-  b2 = self::B|methodWithOptionalArgument(b1, b2);
-  b1 = self::B|methodWithOptionalArgument(b2);
+  b1 = self::B|renamedStaticGetter;
+  b1 = self::B|renamedStaticGetter2;
+  b1 = self::B|renamedStaticGetter3;
+  self::B|renamedStaticSetter = b2;
+  self::B|renamedStaticSetter2 = b2;
+  self::B|renamedStaticSetter3 = b2;
 }
 
 constants  {
   #C1 = null
   #C2 = js_::JS {name:#C1}
-  #C3 = _js::_StaticInterop {}
+  #C3 = "renamedF"
+  #C4 = js_::JS {name:#C3}
+  #C5 = "renamedF1.F2"
+  #C6 = js_::JS {name:#C5}
+  #C7 = "renamedF1.F2.F3"
+  #C8 = js_::JS {name:#C7}
+  #C9 = "renamedM"
+  #C10 = js_::JS {name:#C9}
+  #C11 = "renamedM1.M2"
+  #C12 = js_::JS {name:#C11}
+  #C13 = "renamedM1.M2.M3"
+  #C14 = js_::JS {name:#C13}
+  #C15 = "renamedG"
+  #C16 = js_::JS {name:#C15}
+  #C17 = "renamedG1.G2"
+  #C18 = js_::JS {name:#C17}
+  #C19 = "renamedG1.G2.G3"
+  #C20 = js_::JS {name:#C19}
+  #C21 = "renamedS"
+  #C22 = js_::JS {name:#C21}
+  #C23 = "renamedS1.S2"
+  #C24 = js_::JS {name:#C23}
+  #C25 = "renamedS1.S2.S3"
+  #C26 = js_::JS {name:#C25}
+  #C27 = "renamedSF"
+  #C28 = js_::JS {name:#C27}
+  #C29 = "renamedSF1.SF2"
+  #C30 = js_::JS {name:#C29}
+  #C31 = "renamedSF1.SF2.SF3"
+  #C32 = js_::JS {name:#C31}
+  #C33 = "renamedSM"
+  #C34 = js_::JS {name:#C33}
+  #C35 = "renamedSM1.SM2"
+  #C36 = js_::JS {name:#C35}
+  #C37 = "renamedSM1.SM2.SM3"
+  #C38 = js_::JS {name:#C37}
+  #C39 = "renamedSG"
+  #C40 = js_::JS {name:#C39}
+  #C41 = "renamedSG1.SG2"
+  #C42 = js_::JS {name:#C41}
+  #C43 = "renamedSG1.SG2.SG3"
+  #C44 = js_::JS {name:#C43}
+  #C45 = "renamedSS"
+  #C46 = js_::JS {name:#C45}
+  #C47 = "renamedSS1.SS2"
+  #C48 = js_::JS {name:#C47}
+  #C49 = "renamedSS1.SS2.SS3"
+  #C50 = js_::JS {name:#C49}
 }
 
 

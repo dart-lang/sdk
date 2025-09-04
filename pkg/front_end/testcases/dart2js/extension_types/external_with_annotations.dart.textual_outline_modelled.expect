@@ -3,48 +3,122 @@ library static_interop;
 
 import 'dart:js_interop';
 
-@JS()
-@staticInterop
-class A {}
-
 const annotation = pragma('a pragma');
 
 @JS()
-extension type B._(A a) {
+extension type B._(JSObject a) implements JSObject {
   @annotation
-  external A field;
-  @annotation
-  external A method();
-  @annotation
-  external B(A a);
+  external B(JSObject a);
   @annotation
   external B.named(int i);
   @annotation
   external B get getter;
   @annotation
   external B get property;
+  @JS('renamedG')
+  @annotation
+  external B get renamedGetter;
+  @JS('renamedG1.G2')
+  @annotation
+  external B get renamedGetter2;
+  @JS('renamedG1.G2.G3')
+  @annotation
+  external B get renamedGetter3;
   @annotation
   external B methodWithOptionalArgument([B? b]);
   @annotation
+  external JSObject field;
+  @annotation
+  external JSObject method();
+  @JS('renamedF')
+  @annotation
+  external JSObject renamedField;
+  @JS('renamedF1.F2')
+  @annotation
+  external JSObject renamedField2;
+  @JS('renamedF1.F2.F3')
+  @annotation
+  external JSObject renamedField3;
+  @JS('renamedM')
+  @annotation
+  external JSObject renamedMethod();
+  @JS('renamedM1.M2')
+  @annotation
+  external JSObject renamedMethod2();
+  @JS('renamedM1.M2.M3')
+  @annotation
+  external JSObject renamedMethod3();
+  @annotation
   external T genericMethod<T extends B>(T t);
   @annotation
-  external static A staticField;
+  external factory B.factory(JSObject a);
   @annotation
-  external static A staticMethod();
+  external factory B.namedParams({JSObject a});
+  @annotation
+  external final JSObject finalField;
+  @JS('renamedSG')
+  @annotation
+  external static B get renamedStaticGetter;
+  @JS('renamedSG1.SG2')
+  @annotation
+  external static B get renamedStaticGetter2;
+  @JS('renamedSG1.SG2.SG3')
+  @annotation
+  external static B get renamedStaticGetter3;
   @annotation
   external static B get staticGetter;
   @annotation
   external static B get staticProperty;
+  @JS('renamedSF')
+  @annotation
+  external static JSObject renamedStaticField;
+  @JS('renamedSF1.SF2')
+  @annotation
+  external static JSObject renamedStaticField2;
+  @JS('renamedSF1.SF2.SF3')
+  @annotation
+  external static JSObject renamedStaticField3;
+  @JS('renamedSM')
+  @annotation
+  external static JSObject renamedStaticMethod();
+  @JS('renamedSM1.SM2')
+  @annotation
+  external static JSObject renamedStaticMethod2();
+  @JS('renamedSM1.SM2.SM3')
+  @annotation
+  external static JSObject renamedStaticMethod3();
+  @annotation
+  external static JSObject staticField;
+  @annotation
+  external static JSObject staticMethod();
   @annotation
   external static T staticGenericMethod<T extends B>(T t);
+  @JS('renamedSS')
+  @annotation
+  external static void set renamedStaticSetter(B b);
+  @JS('renamedSS1.SS2')
+  @annotation
+  external static void set renamedStaticSetter2(B b);
+  @JS('renamedSS1.SS2.SS3')
+  @annotation
+  external static void set renamedStaticSetter3(B b);
   @annotation
   external static void set staticProperty(B b);
   @annotation
   external static void set staticSetter(B b);
   @annotation
   external void set property(B b);
+  @JS('renamedS')
+  @annotation
+  external void set renamedSetter(B b);
+  @JS('renamedS1.S2')
+  @annotation
+  external void set renamedSetter2(B b);
+  @JS('renamedS1.S2.S3')
+  @annotation
+  external void set renamedSetter3(B b);
   @annotation
   external void set setter(B b);
 }
 
-void method(A a) {}
+void method(JSObject a) {}
