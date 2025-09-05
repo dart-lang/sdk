@@ -672,17 +672,20 @@ abstract class ExpressionJudgment extends AuxiliaryExpression {
   );
 }
 
-/// Shadow object for [StaticInvocation] when the procedure being invoked is a
-/// factory constructor.
-class FactoryConstructorInvocation extends StaticInvocation
-    implements ExpressionJudgment {
+/// Internal expression for an invocation of a factory constructor.
+class FactoryConstructorInvocation extends InternalExpression {
   bool hasBeenInferred = false;
+  final Procedure target;
+  Arguments arguments;
+  final bool isConst;
 
   FactoryConstructorInvocation(
-    Procedure target,
-    Arguments arguments, {
-    bool isConst = false,
-  }) : super(target, arguments, isConst: isConst);
+    this.target,
+    this.arguments, {
+    this.isConst = false,
+  }) {
+    arguments.parent = this;
+  }
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -715,19 +718,22 @@ class FactoryConstructorInvocation extends StaticInvocation
   }
 }
 
-/// Shadow object for [ConstructorInvocation] when the procedure being invoked
-/// is a type aliased constructor.
-class TypeAliasedConstructorInvocation extends ConstructorInvocation
-    implements ExpressionJudgment {
+/// Internal expression for an invocation of a type aliased constructor.
+class TypeAliasedConstructorInvocation extends InternalExpression {
   bool hasBeenInferred = false;
   final TypeAliasBuilder typeAliasBuilder;
+  final Constructor target;
+  Arguments arguments;
+  final bool isConst;
 
   TypeAliasedConstructorInvocation(
     this.typeAliasBuilder,
-    Constructor target,
-    Arguments arguments, {
-    bool isConst = false,
-  }) : super(target, arguments, isConst: isConst);
+    this.target,
+    this.arguments, {
+    this.isConst = false,
+  }) {
+    arguments.parent = this;
+  }
 
   @override
   ExpressionInferenceResult acceptInference(
@@ -760,19 +766,22 @@ class TypeAliasedConstructorInvocation extends ConstructorInvocation
   }
 }
 
-/// Shadow object for [StaticInvocation] when the procedure being invoked is a
-/// type aliased factory constructor.
-class TypeAliasedFactoryInvocation extends StaticInvocation
-    implements ExpressionJudgment {
+/// Internal expression for an invocation of a type aliased factory constructor.
+class TypeAliasedFactoryInvocation extends InternalExpression {
   bool hasBeenInferred = false;
   final TypeAliasBuilder typeAliasBuilder;
+  final Procedure target;
+  Arguments arguments;
+  final bool isConst;
 
   TypeAliasedFactoryInvocation(
     this.typeAliasBuilder,
-    Procedure target,
-    Arguments arguments, {
-    bool isConst = false,
-  }) : super(target, arguments, isConst: isConst);
+    this.target,
+    this.arguments, {
+    this.isConst = false,
+  }) {
+    arguments.parent = this;
+  }
 
   @override
   ExpressionInferenceResult acceptInference(

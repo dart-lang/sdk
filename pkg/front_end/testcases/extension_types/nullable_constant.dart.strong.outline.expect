@@ -19,7 +19,7 @@ static extension-type-member synthetic method ET|constructor#_#new#tearOff(core:
 
 
 Extra constant evaluation status:
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///nullable_constant.dart:7:19 -> NullConstant(null)
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///nullable_constant.dart:8:19 -> IntConstant(0)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///nullable_constant.dart:7:19 -> NullConstant(null)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///nullable_constant.dart:8:19 -> IntConstant(0)
 Evaluated: ListLiteral @ org-dartlang-testcase:///nullable_constant.dart:9:22 -> ListConstant(const <int?>[null, 0])
 Extra constant evaluation: evaluated: 7, effectively constant: 3

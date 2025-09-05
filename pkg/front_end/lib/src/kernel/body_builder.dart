@@ -43,7 +43,6 @@ import 'package:kernel/clone.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/names.dart' show minusName, plusName;
 import 'package:kernel/src/bounds_checks.dart' hide calculateBounds;
-import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../api_prototype/experimental_flags.dart';
@@ -116,7 +115,6 @@ import '../type_inference/inference_visitor.dart'
     show ExpressionEvaluationHelper;
 import '../type_inference/type_inferrer.dart'
     show TypeInferrer, InferredFunctionBody;
-import '../type_inference/type_schema.dart' show UnknownType;
 import '../util/helpers.dart';
 import '../util/local_stack.dart';
 import 'benchmarker.dart' show Benchmarker;
@@ -894,9 +892,17 @@ class BodyBuilder extends StackListenerImpl
     return new JumpTarget(kind, functionNestingLevel, uri, charOffset);
   }
 
-  void inferAnnotations(TreeNode? parent, List<Expression>? annotations) {
+  /// Infers the [annotations].
+  ///
+  /// If [indices] is provided, only the annotations at the given indices are
+  /// inferred. Otherwise all annotations are inferred.
+  void inferAnnotations(
+    TreeNode? parent,
+    List<Expression>? annotations, {
+    List<int>? indices,
+  }) {
     if (annotations != null) {
-      typeInferrer.inferMetadata(this, parent, annotations);
+      typeInferrer.inferMetadata(this, parent, annotations, indices);
     }
   }
 
@@ -1563,6 +1569,7 @@ class BodyBuilder extends StackListenerImpl
   ///    transformation needed has been performed); and
   /// b) The library is correctly marked as being used to allow for proper
   ///    'dependency pruning'.
+  @override
   void ensureLoaded(Member? member) {
     if (member == null) return;
     Library ensureLibraryLoaded = member.enclosingLibrary;
@@ -1579,186 +1586,31 @@ class BodyBuilder extends StackListenerImpl
     }
   }
 
-  RedirectionTarget _getRedirectionTarget(Procedure factory) {
-    List<DartType> typeArguments = new List<DartType>.generate(
-      factory.function.typeParameters.length,
-      (int i) {
-        return new TypeParameterType.withDefaultNullability(
-          factory.function.typeParameters[i],
-        );
-      },
-      growable: true,
-    );
-
-    // Cyclic factories are detected earlier, so we're guaranteed to
-    // reach either a non-redirecting factory or an error eventually.
-    Member target = factory;
-    for (;;) {
-      RedirectingFactoryTarget? redirectingFactoryTarget =
-          target.function?.redirectingFactoryTarget;
-      if (redirectingFactoryTarget == null ||
-          redirectingFactoryTarget.isError) {
-        return new RedirectionTarget(target, typeArguments);
-      }
-      Member nextMember = redirectingFactoryTarget.target!;
-      ensureLoaded(nextMember);
-      List<DartType>? nextTypeArguments =
-          redirectingFactoryTarget.typeArguments;
-      if (nextTypeArguments != null) {
-        Substitution sub = Substitution.fromPairs(
-          target.function!.typeParameters,
-          typeArguments,
-        );
-        typeArguments = new List<DartType>.generate(nextTypeArguments.length, (
-          int i,
-        ) {
-          return sub.substituteType(nextTypeArguments[i]);
-        }, growable: true);
-      } else {
-        // Coverage-ignore-block(suite): Not run.
-        typeArguments = <DartType>[];
-      }
-      target = nextMember;
-    }
-  }
-
-  /// Return an [Expression] resolving the argument invocation.
-  ///
-  /// The arguments specify the [StaticInvocation] whose `.target` is
-  /// [target], `.arguments` is [arguments], `.fileOffset` is [fileOffset],
-  /// and `.isConst` is [isConst].
-  /// Returns null if the invocation can't be resolved.
   @override
-  Expression? resolveRedirectingFactoryTarget(
-    Procedure target,
-    Arguments arguments,
-    int fileOffset,
-    bool isConst,
-  ) {
-    Procedure initialTarget = target;
-    Expression replacementNode;
-
-    RedirectionTarget redirectionTarget = _getRedirectionTarget(initialTarget);
-    Member resolvedTarget = redirectionTarget.target;
-    if (redirectionTarget.typeArguments.any((type) => type is UnknownType)) {
-      return null;
+  Expression? checkStaticArguments({
+    required Member target,
+    required Arguments arguments,
+    required int fileOffset,
+  }) {
+    List<TypeParameter> typeParameters = target.function!.typeParameters;
+    if (target is Constructor) {
+      assert(!target.enclosingClass.isAbstract);
+      typeParameters = target.enclosingClass.typeParameters;
     }
-
-    RedirectingFactoryTarget? redirectingFactoryTarget =
-        resolvedTarget.function?.redirectingFactoryTarget;
-    if (redirectingFactoryTarget != null) {
-      // If the redirection target is itself a redirecting factory, it means
-      // that it is unresolved.
-      assert(redirectingFactoryTarget.isError);
-      String errorMessage = redirectingFactoryTarget.errorMessage!;
-      replacementNode = new InvalidExpression(errorMessage)
-        ..fileOffset = fileOffset;
-    } else {
-      Substitution substitution = Substitution.fromPairs(
-        initialTarget.function.typeParameters,
-        arguments.types,
-      );
-      for (int i = 0; i < redirectionTarget.typeArguments.length; i++) {
-        DartType typeArgument = substitution.substituteType(
-          redirectionTarget.typeArguments[i],
-        );
-        if (i < arguments.types.length) {
-          arguments.types[i] = typeArgument;
-        } else {
-          arguments.types.add(typeArgument);
-        }
-      }
-      arguments.types.length = redirectionTarget.typeArguments.length;
-
-      replacementNode = buildStaticInvocation(
-        resolvedTarget,
-        forest.createArguments(
-          noLocation,
-          arguments.positional,
-          types: arguments.types,
-          named: arguments.named,
-          hasExplicitTypeArguments: hasExplicitTypeArguments(arguments),
-        ),
-        constness: isConst ? Constness.explicitConst : Constness.explicitNew,
-        charOffset: fileOffset,
-        isConstructorInvocation: true,
+    LocatedMessage? argMessage = checkArgumentsForFunction(
+      target.function!,
+      arguments,
+      fileOffset,
+      typeParameters,
+    );
+    if (argMessage != null) {
+      return buildProblemWithContextFromMember(
+        name: target.name.text,
+        member: target,
+        message: argMessage,
       );
     }
-    return replacementNode;
-  }
-
-  @override
-  Expression unaliasSingleTypeAliasedConstructorInvocation(
-    TypeAliasedConstructorInvocation invocation,
-  ) {
-    bool inferred = !hasExplicitTypeArguments(invocation.arguments);
-    DartType aliasedType = new TypedefType(
-      invocation.typeAliasBuilder.typedef,
-      Nullability.nonNullable,
-      invocation.arguments.types,
-    );
-    libraryBuilder.checkBoundsInType(
-      aliasedType,
-      typeEnvironment,
-      uri,
-      invocation.fileOffset,
-      allowSuperBounded: false,
-      inferred: inferred,
-    );
-    DartType unaliasedType = aliasedType.unalias;
-    List<DartType>? invocationTypeArguments = null;
-    if (unaliasedType is InterfaceType) {
-      invocationTypeArguments = unaliasedType.typeArguments;
-    }
-    Arguments invocationArguments = forest.createArguments(
-      noLocation,
-      invocation.arguments.positional,
-      types: invocationTypeArguments,
-      named: invocation.arguments.named,
-    );
-    return new ConstructorInvocation(
-      invocation.target,
-      invocationArguments,
-      isConst: invocation.isConst,
-    );
-  }
-
-  @override
-  Expression? unaliasSingleTypeAliasedFactoryInvocation(
-    TypeAliasedFactoryInvocation invocation,
-  ) {
-    bool inferred = !hasExplicitTypeArguments(invocation.arguments);
-    DartType aliasedType = new TypedefType(
-      invocation.typeAliasBuilder.typedef,
-      Nullability.nonNullable,
-      invocation.arguments.types,
-    );
-    libraryBuilder.checkBoundsInType(
-      aliasedType,
-      typeEnvironment,
-      uri,
-      invocation.fileOffset,
-      allowSuperBounded: false,
-      inferred: inferred,
-    );
-    DartType unaliasedType = aliasedType.unalias;
-    List<DartType>? invocationTypeArguments = null;
-    if (unaliasedType is TypeDeclarationType) {
-      invocationTypeArguments = unaliasedType.typeArguments;
-    }
-    Arguments invocationArguments = forest.createArguments(
-      noLocation,
-      invocation.arguments.positional,
-      types: invocationTypeArguments,
-      named: invocation.arguments.named,
-      hasExplicitTypeArguments: hasExplicitTypeArguments(invocation.arguments),
-    );
-    return resolveRedirectingFactoryTarget(
-      invocation.target,
-      invocationArguments,
-      invocation.fileOffset,
-      invocation.isConst,
-    );
+    return null;
   }
 
   void _finishVariableMetadata() {
@@ -3509,13 +3361,8 @@ class BodyBuilder extends StackListenerImpl
   Expression buildUnresolvedError(
     String name,
     int charOffset, {
-    Member? candidate,
     bool isSuper = false,
     required UnresolvedKind kind,
-    bool isStatic = false,
-    Arguments? arguments,
-    Expression? rhs,
-    LocatedMessage? message,
     int? length,
     bool errorHasBeenReported = false,
   }) {
@@ -3529,24 +3376,86 @@ class BodyBuilder extends StackListenerImpl
       }
     }
     Name kernelName = new Name(name, libraryBuilder.nameOrigin);
+    LocatedMessage? message;
+    switch (kind) {
+      case UnresolvedKind.Unknown:
+        assert(!isSuper);
+        message = cfe.codeNameNotFound
+            .withArgumentsOld(name)
+            .withLocation(uri, charOffset, length);
+        break;
+      case UnresolvedKind.Member:
+        message = warnUnresolvedMember(
+          kernelName,
+          charOffset,
+          isSuper: isSuper,
+          reportWarning: false,
+        ).withLocation(uri, charOffset, length);
+        break;
+      case UnresolvedKind.Getter:
+        message = warnUnresolvedGet(
+          kernelName,
+          charOffset,
+          isSuper: isSuper,
+          reportWarning: false,
+        ).withLocation(uri, charOffset, length);
+        break;
+      case UnresolvedKind.Setter:
+        message = warnUnresolvedSet(
+          kernelName,
+          charOffset,
+          isSuper: isSuper,
+          reportWarning: false,
+        ).withLocation(uri, charOffset, length);
+        break;
+      case UnresolvedKind.Method:
+        message = warnUnresolvedMethod(
+          kernelName,
+          charOffset,
+          isSuper: isSuper,
+          reportWarning: false,
+        ).withLocation(uri, charOffset, length);
+        break;
+      case UnresolvedKind.Constructor:
+        message = warnUnresolvedConstructor(
+          kernelName,
+          isSuper: isSuper,
+        ).withLocation(uri, charOffset, length);
+        break;
+    }
+    return buildProblem(
+      message.messageObject,
+      message.charOffset,
+      message.length,
+      errorHasBeenReported: errorHasBeenReported,
+    );
+  }
+
+  @override
+  Expression buildProblemWithContextFromMember({
+    required String name,
+    required Member member,
+    required LocatedMessage message,
+  }) {
     List<LocatedMessage>? context;
-    if (candidate != null && candidate.location != null) {
-      Uri uri = candidate.location!.file;
-      int offset = candidate.fileOffset;
+    Location? location = member.location;
+    if (location != null) {
+      Uri uri = location.file;
+      int offset = member.fileOffset;
       Message contextMessage;
       int length = noLength;
-      if (candidate is Constructor && candidate.isSynthetic) {
-        offset = candidate.enclosingClass.fileOffset;
+      if (member is Constructor && member.isSynthetic) {
+        offset = member.enclosingClass.fileOffset;
         contextMessage = cfe.codeCandidateFoundIsDefaultConstructor
-            .withArgumentsOld(candidate.enclosingClass.name);
+            .withArgumentsOld(member.enclosingClass.name);
       } else {
-        if (candidate is Constructor) {
-          if (candidate.name.text == '') {
-            length = candidate.enclosingClass.name.length;
+        if (member is Constructor) {
+          if (member.name.text == '') {
+            length = member.enclosingClass.name.length;
           } else {
             // Assume no spaces around the dot. Not perfect, but probably the
             // best we can do with the information available.
-            length = candidate.enclosingClass.name.length + 1 + name.length;
+            length = member.enclosingClass.name.length + 1 + name.length;
           }
         } else {
           length = name.length;
@@ -3555,64 +3464,20 @@ class BodyBuilder extends StackListenerImpl
       }
       context = [contextMessage.withLocation(uri, offset, length)];
     }
-    if (message == null) {
-      switch (kind) {
-        case UnresolvedKind.Unknown:
-          assert(!isSuper);
-          message = cfe.codeNameNotFound
-              .withArgumentsOld(name)
-              .withLocation(uri, charOffset, length);
-          break;
-        case UnresolvedKind.Member:
-          message = warnUnresolvedMember(
-            kernelName,
-            charOffset,
-            isSuper: isSuper,
-            reportWarning: false,
-            context: context,
-          ).withLocation(uri, charOffset, length);
-          break;
-        case UnresolvedKind.Getter:
-          message = warnUnresolvedGet(
-            kernelName,
-            charOffset,
-            isSuper: isSuper,
-            reportWarning: false,
-            context: context,
-          ).withLocation(uri, charOffset, length);
-          break;
-        case UnresolvedKind.Setter:
-          message = warnUnresolvedSet(
-            kernelName,
-            charOffset,
-            isSuper: isSuper,
-            reportWarning: false,
-            context: context,
-          ).withLocation(uri, charOffset, length);
-          break;
-        case UnresolvedKind.Method:
-          message = warnUnresolvedMethod(
-            kernelName,
-            charOffset,
-            isSuper: isSuper,
-            reportWarning: false,
-            context: context,
-          ).withLocation(uri, charOffset, length);
-          break;
-        case UnresolvedKind.Constructor:
-          message = warnUnresolvedConstructor(
-            kernelName,
-            isSuper: isSuper,
-          ).withLocation(uri, charOffset, length);
-          break;
-      }
-    }
     return buildProblem(
       message.messageObject,
       message.charOffset,
       message.length,
       context: context,
-      errorHasBeenReported: errorHasBeenReported,
+    );
+  }
+
+  @override
+  Expression buildProblemFromLocatedMessage(LocatedMessage message) {
+    return buildProblem(
+      message.messageObject,
+      message.charOffset,
+      message.length,
     );
   }
 
@@ -7359,38 +7224,21 @@ class BodyBuilder extends StackListenerImpl
     );
   }
 
-  @override
-  Expression buildStaticInvocation(
+  Expression buildConstructorInvocation(
     Member target,
     Arguments arguments, {
     Constness constness = Constness.implicit,
     TypeAliasBuilder? typeAliasBuilder,
-    int charOffset = -1,
+    int fileOffset = -1,
     int charLength = noLength,
-    required bool isConstructorInvocation,
   }) {
-    // The argument checks for the initial target of redirecting factories
-    // invocations are skipped in Dart 1.
-    List<TypeParameter> typeParameters = target.function!.typeParameters;
-    if (target is Constructor) {
-      assert(!target.enclosingClass.isAbstract);
-      typeParameters = target.enclosingClass.typeParameters;
-    }
-    LocatedMessage? argMessage = checkArgumentsForFunction(
-      target.function!,
-      arguments,
-      charOffset,
-      typeParameters,
+    Expression? result = checkStaticArguments(
+      target: target,
+      arguments: arguments,
+      fileOffset: fileOffset,
     );
-    if (argMessage != null) {
-      return buildUnresolvedError(
-        target.name.text,
-        charOffset,
-        arguments: arguments,
-        candidate: target,
-        message: argMessage,
-        kind: UnresolvedKind.Method,
-      );
+    if (result != null) {
+      return result;
     }
 
     bool isConst =
@@ -7399,23 +7247,25 @@ class BodyBuilder extends StackListenerImpl
     if (target is Constructor) {
       if (constantContext == ConstantContext.required &&
           constness == Constness.implicit) {
-        addProblem(cfe.codeMissingExplicitConst, charOffset, charLength);
+        addProblem(cfe.codeMissingExplicitConst, fileOffset, charLength);
       }
       if (isConst && !target.isConst) {
         return buildProblem(
           cfe.codeNonConstConstructor,
-          charOffset,
+          fileOffset,
           charLength,
         );
       }
-      ConstructorInvocation node;
+      Expression node;
       if (typeAliasBuilder == null) {
         node = new ConstructorInvocation(target, arguments, isConst: isConst)
-          ..fileOffset = charOffset;
+          ..fileOffset = fileOffset;
         libraryBuilder.checkBoundsInConstructorInvocation(
-          node,
-          typeEnvironment,
-          uri,
+          constructor: target,
+          typeArguments: arguments.types,
+          typeEnvironment: typeEnvironment,
+          fileUri: uri,
+          fileOffset: fileOffset,
         );
       } else {
         node = new TypeAliasedConstructorInvocation(
@@ -7423,71 +7273,83 @@ class BodyBuilder extends StackListenerImpl
           target,
           arguments,
           isConst: isConst,
-        )..fileOffset = charOffset;
+        )..fileOffset = fileOffset;
         // No type arguments were passed, so we need not check bounds.
         assert(arguments.types.isEmpty);
       }
       return node;
     } else {
       Procedure procedure = target as Procedure;
-      if (isConstructorInvocation) {
-        if (constantContext == ConstantContext.required &&
-            constness == Constness.implicit) {
-          // Coverage-ignore-block(suite): Not run.
-          addProblem(cfe.codeMissingExplicitConst, charOffset, charLength);
-        }
-        if (isConst && !procedure.isConst) {
-          if (procedure.isExtensionTypeMember) {
-            // Both generative constructors and factory constructors from
-            // extension type declarations are encoded as procedures so we use
-            // the message for non-const constructors here.
-            return buildProblem(
-              cfe.codeNonConstConstructor,
-              charOffset,
-              charLength,
-            );
-          } else {
-            return buildProblem(
-              cfe.codeNonConstFactory,
-              charOffset,
-              charLength,
-            );
-          }
-        }
-        StaticInvocation node;
-        if (typeAliasBuilder == null) {
-          FactoryConstructorInvocation factoryConstructorInvocation =
-              new FactoryConstructorInvocation(
-                target,
-                arguments,
-                isConst: isConst,
-              )..fileOffset = charOffset;
-          libraryBuilder.checkBoundsInFactoryInvocation(
-            factoryConstructorInvocation,
-            typeEnvironment,
-            uri,
-            inferred: !hasExplicitTypeArguments(arguments),
-          );
-          node = factoryConstructorInvocation;
-        } else {
-          TypeAliasedFactoryInvocation typeAliasedFactoryInvocation =
-              new TypeAliasedFactoryInvocation(
-                typeAliasBuilder,
-                target,
-                arguments,
-                isConst: isConst,
-              )..fileOffset = charOffset;
-          // No type arguments were passed, so we need not check bounds.
-          assert(arguments.types.isEmpty);
-          node = typeAliasedFactoryInvocation;
-        }
-        return node;
-      } else {
-        assert(constness == Constness.implicit);
-        return new StaticInvocation(target, arguments, isConst: false)
-          ..fileOffset = charOffset;
+      if (constantContext == ConstantContext.required &&
+          // Coverage-ignore(suite): Not run.
+          constness == Constness.implicit) {
+        // Coverage-ignore-block(suite): Not run.
+        addProblem(cfe.codeMissingExplicitConst, fileOffset, charLength);
       }
+      if (isConst && !procedure.isConst) {
+        if (procedure.isExtensionTypeMember) {
+          // Both generative constructors and factory constructors from
+          // extension type declarations are encoded as procedures so we use
+          // the message for non-const constructors here.
+          return buildProblem(
+            cfe.codeNonConstConstructor,
+            fileOffset,
+            charLength,
+          );
+        } else {
+          return buildProblem(cfe.codeNonConstFactory, fileOffset, charLength);
+        }
+      }
+      Expression node;
+      if (typeAliasBuilder == null) {
+        FactoryConstructorInvocation factoryConstructorInvocation =
+            new FactoryConstructorInvocation(
+              target,
+              arguments,
+              isConst: isConst,
+            )..fileOffset = fileOffset;
+        libraryBuilder.checkBoundsInFactoryInvocation(
+          factory: target,
+          typeArguments: arguments.types,
+          typeEnvironment: typeEnvironment,
+          fileUri: uri,
+          fileOffset: fileOffset,
+          inferred: !hasExplicitTypeArguments(arguments),
+        );
+        node = factoryConstructorInvocation;
+      } else {
+        TypeAliasedFactoryInvocation typeAliasedFactoryInvocation =
+            new TypeAliasedFactoryInvocation(
+              typeAliasBuilder,
+              target,
+              arguments,
+              isConst: isConst,
+            )..fileOffset = fileOffset;
+        // No type arguments were passed, so we need not check bounds.
+        assert(arguments.types.isEmpty);
+        node = typeAliasedFactoryInvocation;
+      }
+      return node;
     }
+  }
+
+  @override
+  Expression buildStaticInvocation({
+    required Procedure target,
+    required Arguments arguments,
+    required int fileOffset,
+  }) {
+    Expression? result = checkStaticArguments(
+      target: target,
+      arguments: arguments,
+      fileOffset: fileOffset,
+    );
+    if (result != null) {
+      return result;
+    }
+
+    return new StaticInvocation(target, arguments, isConst: false)
+      ..fileOffset = fileOffset;
   }
 
   @override
@@ -7767,7 +7629,6 @@ class BodyBuilder extends StackListenerImpl
         buildUnresolvedError(
           debugName(typeName!, name),
           nameLastToken.charOffset,
-          arguments: arguments,
           kind: UnresolvedKind.Constructor,
         ),
       );
@@ -7838,7 +7699,6 @@ class BodyBuilder extends StackListenerImpl
       return buildUnresolvedError(
         constructorNameForDiagnostics(constructorName, className: className),
         invocationOffset,
-        arguments: arguments,
         kind: UnresolvedKind.Constructor,
       );
     }
@@ -7857,7 +7717,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  Expression buildConstructorInvocation(
+  Expression resolveAndBuildConstructorInvocation(
     TypeDeclarationBuilder? typeDeclarationBuilder,
     Token nameToken,
     Token nameLastToken,
@@ -7956,23 +7816,24 @@ class BodyBuilder extends StackListenerImpl
               if (target is Constructor ||
                   (target is Procedure &&
                       target.kind == ProcedureKind.Factory)) {
-                return buildStaticInvocation(
+                return buildConstructorInvocation(
                   target!,
                   arguments,
                   constness: constness,
                   typeAliasBuilder: aliasBuilder,
-                  charOffset: nameToken.charOffset,
+                  fileOffset: nameToken.charOffset,
                   charLength: nameToken.length,
-                  isConstructorInvocation: true,
                 );
               } else {
-                return buildUnresolvedError(
-                  errorName,
-                  nameLastToken.charOffset,
-                  arguments: arguments,
-                  message: message,
-                  kind: UnresolvedKind.Constructor,
-                );
+                if (message != null) {
+                  return buildProblemFromLocatedMessage(message);
+                } else {
+                  return buildUnresolvedError(
+                    errorName,
+                    nameLastToken.charOffset,
+                    kind: UnresolvedKind.Constructor,
+                  );
+                }
               }
             case ExtensionTypeDeclarationBuilder():
               // TODO(johnniwinther): Add shared interface between
@@ -7996,23 +7857,25 @@ class BodyBuilder extends StackListenerImpl
                   // Coverage-ignore(suite): Not run.
                   constructorBuilder is FactoryBuilder) {
                 Member target = constructorBuilder.invokeTarget!;
-                return buildStaticInvocation(
+                return buildConstructorInvocation(
                   target,
                   arguments,
                   constness: constness,
                   typeAliasBuilder: aliasBuilder,
-                  charOffset: nameToken.charOffset,
+                  fileOffset: nameToken.charOffset,
                   charLength: nameToken.length,
-                  isConstructorInvocation: true,
                 );
               }
-              return buildUnresolvedError(
-                errorName,
-                nameLastToken.charOffset,
-                arguments: arguments,
-                message: message,
-                kind: UnresolvedKind.Constructor,
-              );
+              if (message != null) {
+                // Coverage-ignore-block(suite): Not run.
+                return buildProblemFromLocatedMessage(message);
+              } else {
+                return buildUnresolvedError(
+                  errorName,
+                  nameLastToken.charOffset,
+                  kind: UnresolvedKind.Constructor,
+                );
+              }
             case InvalidBuilder():
               // Coverage-ignore(suite): Not run.
               LocatedMessage message = typeDeclarationBuilder.message;
@@ -8038,8 +7901,6 @@ class BodyBuilder extends StackListenerImpl
               return buildUnresolvedError(
                 errorName,
                 nameLastToken.charOffset,
-                arguments: arguments,
-                message: message,
                 kind: UnresolvedKind.Constructor,
               );
           }
@@ -8271,14 +8132,13 @@ class BodyBuilder extends StackListenerImpl
             (target is Procedure && target.kind == ProcedureKind.Factory)) {
           Expression invocation;
 
-          invocation = buildStaticInvocation(
+          invocation = buildConstructorInvocation(
             target!,
             arguments,
             constness: constness,
-            charOffset: nameToken.charOffset,
+            fileOffset: nameToken.charOffset,
             charLength: nameToken.length,
             typeAliasBuilder: typeAliasBuilder as TypeAliasBuilder?,
-            isConstructorInvocation: true,
           );
           return invocation;
         } else {
@@ -8305,14 +8165,13 @@ class BodyBuilder extends StackListenerImpl
           target = constructorBuilder.invokeTarget;
         }
         if (target != null) {
-          return buildStaticInvocation(
+          return buildConstructorInvocation(
             target,
             arguments,
             constness: constness,
-            charOffset: nameToken.charOffset,
+            fileOffset: nameToken.charOffset,
             charLength: nameToken.length,
             typeAliasBuilder: typeAliasBuilder as TypeAliasBuilder?,
-            isConstructorInvocation: true,
           );
         } else {
           errorName ??= debugName(typeDeclarationBuilder.name, name);
@@ -8338,13 +8197,15 @@ class BodyBuilder extends StackListenerImpl
           name,
         );
     }
-    return buildUnresolvedError(
-      errorName,
-      nameLastToken.charOffset,
-      arguments: arguments,
-      message: message,
-      kind: unresolvedKind,
-    );
+    if (message != null) {
+      return buildProblemFromLocatedMessage(message);
+    } else {
+      return buildUnresolvedError(
+        errorName,
+        nameLastToken.charOffset,
+        kind: unresolvedKind,
+      );
+    }
   }
 
   @override
@@ -11167,14 +11028,13 @@ class BodyBuilder extends StackListenerImpl
         );
         MemberBuilder constructor = libraryBuilder.loader
             .getDuplicatedFieldInitializerError();
-        Expression invocation = buildStaticInvocation(
+        Expression invocation = buildConstructorInvocation(
           constructor.invokeTarget!,
           forest.createArguments(assignmentOffset, <Expression>[
             forest.createStringLiteral(assignmentOffset, name),
           ]),
           constness: Constness.explicitNew,
-          charOffset: assignmentOffset,
-          isConstructorInvocation: true,
+          fileOffset: assignmentOffset,
         );
         return <Initializer>[
           builder.buildErroneousInitializer(
@@ -11266,14 +11126,7 @@ class BodyBuilder extends StackListenerImpl
           .withArgumentsOld(fullName)
           .withLocation(uri, fileOffset, length);
       return buildInvalidInitializer(
-        buildUnresolvedError(
-          fullName,
-          fileOffset,
-          arguments: arguments,
-          isSuper: false,
-          message: message,
-          kind: UnresolvedKind.Constructor,
-        ),
+        buildProblemFromLocatedMessage(message),
         fileOffset,
       );
     } else {
@@ -11587,7 +11440,6 @@ class BodyBuilder extends StackListenerImpl
         name.text,
         offset,
         isSuper: true,
-        arguments: arguments,
         kind: UnresolvedKind.Method,
       );
     } else if (target is Procedure && !target.isAccessor) {

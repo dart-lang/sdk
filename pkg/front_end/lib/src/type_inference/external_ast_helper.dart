@@ -16,8 +16,10 @@ ConstructorInvocation createConstructorInvocation(
   Constructor target,
   Arguments arguments, {
   required int fileOffset,
+  bool isConst = false,
 }) {
-  return new ConstructorInvocation(target, arguments)..fileOffset = fileOffset;
+  return new ConstructorInvocation(target, arguments, isConst: isConst)
+    ..fileOffset = fileOffset;
 }
 
 /// Creates a static invocation of [target] with the given arguments.
@@ -25,8 +27,10 @@ StaticInvocation createStaticInvocation(
   Procedure target,
   Arguments arguments, {
   required int fileOffset,
+  bool isConst = false,
 }) {
-  return new StaticInvocation(target, arguments)..fileOffset = fileOffset;
+  return new StaticInvocation(target, arguments, isConst: isConst)
+    ..fileOffset = fileOffset;
 }
 
 /// Creates a `== null` test on [expression].

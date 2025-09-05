@@ -22,5 +22,5 @@ constants  {
 }
 
 Extra constant evaluation status:
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///issue53610.dart:8:11 -> NullConstant(null)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///issue53610.dart:8:11 -> NullConstant(null)
 Extra constant evaluation: evaluated: 5, effectively constant: 1

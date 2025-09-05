@@ -408,16 +408,14 @@ class EnumElementDeclaration
         _field!.initializer = bodyBuilder.buildUnresolvedError(
           fullConstructorNameForErrors,
           fileOffset,
-          arguments: arguments,
           kind: UnresolvedKind.Constructor,
         )..parent = _field;
       } else {
-        Expression initializer = bodyBuilder.buildStaticInvocation(
+        Expression initializer = bodyBuilder.buildConstructorInvocation(
           constructorBuilder.invokeTarget,
           arguments,
           constness: Constness.explicitConst,
-          charOffset: nameOffset,
-          isConstructorInvocation: true,
+          fileOffset: nameOffset,
         );
         ExpressionInferenceResult inferenceResult = bodyBuilder.typeInferrer
             .inferFieldInitializer(

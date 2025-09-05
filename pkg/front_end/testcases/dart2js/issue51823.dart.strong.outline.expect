@@ -27,7 +27,7 @@ static method method(iss::E e) → dynamic
 
 Extra constant evaluation status:
 Evaluated with empty environment: ConditionalExpression @ org-dartlang-testcase:///issue51823.dart:7:45 -> InstanceConstant(const E{_Enum.index: 1.0, _Enum._name: "b"})
-Evaluated with empty environment: FactoryConstructorInvocation @ org-dartlang-testcase:///issue51823.dart:7:17 -> BoolConstant(false)
+Evaluated with empty environment: StaticInvocation @ org-dartlang-testcase:///issue51823.dart:7:17 -> BoolConstant(false)
 Evaluated: StaticGet @ org-dartlang-testcase:///issue51823.dart:7:49 -> InstanceConstant(const E{_Enum.index: 0.0, _Enum._name: "a"})
 Evaluated: StaticGet @ org-dartlang-testcase:///issue51823.dart:7:55 -> InstanceConstant(const E{_Enum.index: 1.0, _Enum._name: "b"})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue51823_lib.dart:5:10 -> InstanceConstant(const E{_Enum.index: 0.0, _Enum._name: "a"})

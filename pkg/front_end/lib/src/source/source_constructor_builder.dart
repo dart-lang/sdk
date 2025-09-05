@@ -319,16 +319,7 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
         if (message != null) {
           _initializers.add(
             helper.buildInvalidInitializer(
-              helper.buildUnresolvedError(
-                helper.constructorNameForDiagnostics(
-                  initializer.target.name.text,
-                ),
-                initializer.fileOffset,
-                arguments: initializer.arguments,
-                isSuper: true,
-                message: message,
-                kind: UnresolvedKind.Constructor,
-              ),
+              helper.buildProblemFromLocatedMessage(message),
             )..parent = parent,
           );
         } else {
@@ -402,16 +393,7 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
         if (message != null) {
           _initializers.add(
             helper.buildInvalidInitializer(
-              helper.buildUnresolvedError(
-                helper.constructorNameForDiagnostics(
-                  initializerTarget.name.text,
-                ),
-                initializer.fileOffset,
-                arguments: initializerArguments,
-                isSuper: false,
-                message: message,
-                kind: UnresolvedKind.Constructor,
-              ),
+              helper.buildProblemFromLocatedMessage(message),
             )..parent = parent,
           );
           markAsErroneous();

@@ -38,7 +38,7 @@ Evaluated: TypeLiteral @ org-dartlang-testcase:///const_extension_type.dart:12:1
 Evaluated: TypeLiteral @ org-dartlang-testcase:///const_extension_type.dart:13:12 -> TypeLiteralConstant(Class<bool>)
 Evaluated: TypeLiteral @ org-dartlang-testcase:///const_extension_type.dart:14:12 -> TypeLiteralConstant(Class<bool>)
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_extension_type.dart:16:18 -> InstanceConstant(const Class<int>{})
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///const_extension_type.dart:17:18 -> InstanceConstant(const Class<int>{})
+Evaluated: StaticInvocation @ org-dartlang-testcase:///const_extension_type.dart:17:18 -> InstanceConstant(const Class<int>{})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_extension_type.dart:18:18 -> InstanceConstant(const Class<bool>{})
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///const_extension_type.dart:19:18 -> InstanceConstant(const Class<bool>{})
+Evaluated: StaticInvocation @ org-dartlang-testcase:///const_extension_type.dart:19:18 -> InstanceConstant(const Class<bool>{})
 Extra constant evaluation: evaluated: 12, effectively constant: 8

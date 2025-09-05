@@ -42,6 +42,7 @@ typedef Expression_Initializer = dynamic;
 abstract class ExpressionGeneratorHelper implements InferenceHelper {
   SourceLibraryBuilder get libraryBuilder;
 
+  @override
   ConstantContext get constantContext;
 
   /// Whether instance type parameters can be accessed.
@@ -109,27 +110,28 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
     required int fileOffset,
   });
 
-  Expression buildStaticInvocation(
-    Member target,
-    Arguments arguments, {
-    Constness constness = Constness.implicit,
-    int charOffset = TreeNode.noOffset,
-    required bool isConstructorInvocation,
+  Expression buildStaticInvocation({
+    required Procedure target,
+    required Arguments arguments,
+    required int fileOffset,
   });
 
   Expression buildUnresolvedError(
     String name,
-    int charOffset, {
-    Member candidate,
+    int fileOffset, {
     bool isSuper,
     required UnresolvedKind kind,
-    bool isStatic,
-    Arguments? arguments,
-    Expression? rhs,
-    LocatedMessage message,
     int? length,
     bool errorHasBeenReported,
   });
+
+  Expression buildProblemWithContextFromMember({
+    required String name,
+    required Member member,
+    required LocatedMessage message,
+  });
+
+  Expression buildProblemFromLocatedMessage(LocatedMessage message);
 
   LocatedMessage? checkArgumentsForFunction(
     FunctionNode function,
@@ -165,7 +167,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
     bool isImplicitCall = false,
   });
 
-  Expression buildConstructorInvocation(
+  Expression resolveAndBuildConstructorInvocation(
     TypeDeclarationBuilder type,
     Token nameToken,
     Token nameLastToken,

@@ -78,11 +78,15 @@ abstract class TypeInferrer {
     Initializer initializer,
   );
 
-  /// Performs type inference on the given metadata annotations.
+  /// Performs type inference on the given metadata [annotations].
+  ///
+  /// If [indices] is provided, only the annotations at the given indices are
+  /// inferred. Otherwise all annotations are inferred.
   void inferMetadata(
     InferenceHelper helper,
     TreeNode? parent,
     List<Expression>? annotations,
+    List<int>? indices,
   );
 
   /// Performs type inference on the given function parameter initializer
@@ -375,13 +379,14 @@ class TypeInferrerImpl implements TypeInferrer {
     InferenceHelper helper,
     TreeNode? parent,
     List<Expression>? annotations,
+    List<int>? indices,
   ) {
     if (annotations != null) {
       // We bypass the check for assignment of the helper during top-level
       // inference and use `_helper = helper` instead of `this.helper = helper`
       // because inference on metadata requires the helper.
       InferenceVisitorBase visitor = _createInferenceVisitor(helper);
-      visitor.inferMetadata(visitor, parent, annotations);
+      visitor.inferMetadata(visitor, parent, annotations, indices: indices);
       visitor.checkCleanState();
     }
   }
@@ -521,9 +526,15 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     InferenceHelper helper,
     TreeNode? parent,
     List<Expression>? annotations,
+    List<int>? indicesOfAnnotationsToBeInferred,
   ) {
     benchmarker.beginSubdivide(BenchmarkSubdivides.inferMetadata);
-    impl.inferMetadata(helper, parent, annotations);
+    impl.inferMetadata(
+      helper,
+      parent,
+      annotations,
+      indicesOfAnnotationsToBeInferred,
+    );
     benchmarker.endSubdivide();
   }
 

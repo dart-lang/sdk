@@ -17,5 +17,5 @@ static extension-type-member synthetic method V|constructor#_#new#tearOff<T exte
 
 
 Extra constant evaluation status:
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///issue52595.dart:7:17 -> IntConstant(0)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///issue52595.dart:7:17 -> IntConstant(0)
 Extra constant evaluation: evaluated: 5, effectively constant: 1

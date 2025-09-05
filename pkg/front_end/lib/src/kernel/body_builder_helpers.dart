@@ -436,13 +436,6 @@ class ExpressionOrPatternGuardCase {
   ) : expression = null;
 }
 
-class RedirectionTarget {
-  final Member target;
-  final List<DartType> typeArguments;
-
-  RedirectionTarget(this.target, this.typeArguments);
-}
-
 extension on MemberKind {
   bool get isFunctionType {
     switch (this) {

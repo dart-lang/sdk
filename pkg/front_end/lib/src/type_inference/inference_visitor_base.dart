@@ -2601,20 +2601,40 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     return function.computeFunctionType(Nullability.nonNullable);
   }
 
+  /// Infers the [annotations].
+  ///
+  /// If [indices] is provided, only the annotations at the given indices are
+  /// inferred. Otherwise all annotations are inferred.
   void inferMetadata(
     InferenceVisitor visitor,
     TreeNode? parent,
-    List<Expression>? annotations,
-  ) {
+    List<Expression>? annotations, {
+    List<int>? indices,
+  }) {
     if (annotations != null) {
-      for (int index = 0; index < annotations.length; index++) {
-        ExpressionInferenceResult result = visitor.inferExpression(
-          annotations[index],
-          const UnknownType(),
-        );
-        annotations[index] = result.expression..parent = parent;
+      if (indices != null) {
+        for (int index in indices) {
+          _inferMetadataAt(visitor, parent, annotations, index);
+        }
+      } else {
+        for (int index = 0; index < annotations.length; index++) {
+          _inferMetadataAt(visitor, parent, annotations, index);
+        }
       }
     }
+  }
+
+  void _inferMetadataAt(
+    InferenceVisitor visitor,
+    TreeNode? parent,
+    List<Expression> annotations,
+    int index,
+  ) {
+    ExpressionInferenceResult result = visitor.inferExpression(
+      annotations[index],
+      const UnknownType(),
+    );
+    annotations[index] = result.expression..parent = parent;
   }
 
   ArgumentsImpl createExtensionInvocationArgument(

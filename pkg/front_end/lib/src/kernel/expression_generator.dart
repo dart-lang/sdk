@@ -186,14 +186,10 @@ abstract class Generator {
   /// [value].
   ///
   /// At runtime, [value] will be evaluated before throwing an exception.
-  Expression _makeInvalidWrite({
-    required Expression value,
-    bool errorHasBeenReported = false,
-  }) {
+  Expression _makeInvalidWrite({bool errorHasBeenReported = false}) {
     return _helper.buildUnresolvedError(
       _plainNameForRead,
       fileOffset,
-      rhs: value,
       kind: UnresolvedKind.Setter,
       errorHasBeenReported: errorHasBeenReported,
     );
@@ -1260,7 +1256,6 @@ class SuperPropertyAccessGenerator extends Generator {
       return _helper.buildUnresolvedError(
         name.text,
         fileOffset,
-        rhs: value,
         isSuper: true,
         kind: UnresolvedKind.Setter,
       );
@@ -1380,7 +1375,6 @@ class SuperPropertyAccessGenerator extends Generator {
       return _helper.buildUnresolvedError(
         name.text,
         fileOffset,
-        arguments: arguments,
         isSuper: true,
         kind: UnresolvedKind.Method,
       );
@@ -1775,9 +1769,6 @@ class SuperIndexedAccessGenerator extends Generator {
         indexGetName.text,
         fileOffset,
         isSuper: true,
-        arguments: _helper.forest.createArguments(fileOffset, <Expression>[
-          index,
-        ]),
         kind: UnresolvedKind.Method,
         length: noLength,
       );
@@ -1799,10 +1790,6 @@ class SuperIndexedAccessGenerator extends Generator {
         indexSetName.text,
         fileOffset,
         isSuper: true,
-        arguments: _helper.forest.createArguments(fileOffset, <Expression>[
-          index,
-          value,
-        ]),
         kind: UnresolvedKind.Method,
         length: noLength,
       );
@@ -2076,7 +2063,7 @@ class StaticAccessGenerator extends Generator {
   Expression _createWrite(int offset, Expression value) {
     Expression write;
     if (writeTarget == null) {
-      write = _makeInvalidWrite(value: value);
+      write = _makeInvalidWrite();
     } else {
       write = new StaticSet(writeTarget!, value)..fileOffset = offset;
     }
@@ -2194,10 +2181,9 @@ class StaticAccessGenerator extends Generator {
       );
     } else {
       return _helper.buildStaticInvocation(
-        invokeTarget as Procedure,
-        arguments,
-        charOffset: offset,
-        isConstructorInvocation: false,
+        target: invokeTarget as Procedure,
+        arguments: arguments,
+        fileOffset: offset,
       );
     }
   }
@@ -2438,7 +2424,7 @@ class ExtensionInstanceAccessGenerator extends Generator {
   }) {
     Procedure? setter = writeTarget;
     if (setter == null) {
-      return _makeInvalidWrite(value: value);
+      return _makeInvalidWrite();
     } else {
       return new ExtensionSet.implicit(
         extension: extension,
@@ -2591,13 +2577,10 @@ class ExtensionInstanceAccessGenerator extends Generator {
       );
       if (argMessage != null) {
         // Coverage-ignore-block(suite): Not run.
-        return _helper.buildUnresolvedError(
-          targetName.text,
-          fileOffset,
-          arguments: arguments,
-          candidate: method,
+        return _helper.buildProblemWithContextFromMember(
+          name: targetName.text,
+          member: method,
           message: argMessage,
-          kind: UnresolvedKind.Method,
         );
       }
       return new ExtensionMethodInvocation.implicit(
@@ -2874,7 +2857,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
     Procedure? setter = writeTarget;
     if (setter == null) {
       // Coverage-ignore-block(suite): Not run.
-      return _makeInvalidWrite(value: value);
+      return _makeInvalidWrite();
     } else {
       return new ExtensionSet.explicit(
         extension: extension,
@@ -3033,13 +3016,10 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
         extension: extension,
       );
       if (argMessage != null) {
-        return _helper.buildUnresolvedError(
-          targetName.text,
-          offset,
-          arguments: arguments,
-          candidate: method,
+        return _helper.buildProblemWithContextFromMember(
+          name: targetName.text,
+          member: method,
           message: argMessage,
-          kind: UnresolvedKind.Method,
         );
       }
       return new ExtensionMethodInvocation.explicit(
@@ -3204,7 +3184,7 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
     Procedure? setter = writeTarget;
     if (setter == null) {
       // Coverage-ignore-block(suite): Not run.
-      return _makeInvalidWrite(value: value);
+      return _makeInvalidWrite();
     }
     return new ExtensionIndexSet(
       extension,
@@ -3408,7 +3388,7 @@ class ExplicitExtensionAccessGenerator extends Generator {
   @override
   // Coverage-ignore(suite): Not run.
   Expression buildAssignment(Expression value, {bool voidContext = false}) {
-    return _makeInvalidWrite(value: value);
+    return _makeInvalidWrite();
   }
 
   @override
@@ -3567,10 +3547,7 @@ class ExplicitExtensionAccessGenerator extends Generator {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Expression _makeInvalidWrite({
-    Expression? value,
-    bool errorHasBeenReported = false,
-  }) {
+  Expression _makeInvalidWrite({bool errorHasBeenReported = false}) {
     return _helper.buildProblem(
       codeExplicitExtensionAsLvalue,
       fileOffset,
@@ -3655,7 +3632,7 @@ class LoadLibraryGenerator extends Generator {
   @override
   // Coverage-ignore(suite): Not run.
   Expression buildAssignment(Expression value, {bool voidContext = false}) {
-    return _makeInvalidWrite(value: value);
+    return _makeInvalidWrite();
   }
 
   @override
@@ -3667,7 +3644,7 @@ class LoadLibraryGenerator extends Generator {
     bool voidContext = false,
   }) {
     Expression read = buildSimpleRead();
-    Expression write = _makeInvalidWrite(value: value);
+    Expression write = _makeInvalidWrite();
     return new IfNullSet(read, write, forEffect: voidContext)
       ..fileOffset = offset;
   }
@@ -3682,13 +3659,7 @@ class LoadLibraryGenerator extends Generator {
     bool isPreIncDec = false,
     bool isPostIncDec = false,
   }) {
-    Expression binary = _helper.forest.createBinary(
-      operatorOffset,
-      buildSimpleRead(),
-      binaryOperator,
-      value,
-    );
-    return _makeInvalidWrite(value: binary);
+    return _makeInvalidWrite();
   }
 
   @override
@@ -4088,7 +4059,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
     Constness constness, {
     required bool inImplicitCreationContext,
   }) {
-    return _helper.buildConstructorInvocation(
+    return _helper.resolveAndBuildConstructorInvocation(
       declaration,
       nameToken,
       nameLastToken,
@@ -4456,7 +4427,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
             unresolvedReadKind: UnresolvedKind.Member,
           );
         } else {
-          return _helper.buildConstructorInvocation(
+          return _helper.resolveAndBuildConstructorInvocation(
             declarationBuilder,
             send.token,
             send.token,
@@ -4568,7 +4539,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
         extensionTypeArgumentOffset: extensionTypeArgumentOffset,
       );
     } else {
-      return _helper.buildConstructorInvocation(
+      return _helper.resolveAndBuildConstructorInvocation(
         declaration,
         token,
         token,
@@ -4672,10 +4643,7 @@ abstract class AbstractReadOnlyAccessGenerator extends Generator {
   Expression _createRead() => expression;
 
   @override
-  Expression _makeInvalidWrite({
-    required Expression value,
-    bool errorHasBeenReported = false,
-  }) {
+  Expression _makeInvalidWrite({bool errorHasBeenReported = false}) {
     switch (kind) {
       case ReadOnlyAccessKind.ConstVariable:
         return _helper.buildProblem(
@@ -4716,15 +4684,12 @@ abstract class AbstractReadOnlyAccessGenerator extends Generator {
       case ReadOnlyAccessKind.InvalidDeclaration:
         break;
     }
-    return super._makeInvalidWrite(
-      value: value,
-      errorHasBeenReported: errorHasBeenReported,
-    );
+    return super._makeInvalidWrite(errorHasBeenReported: errorHasBeenReported);
   }
 
   @override
   Expression buildAssignment(Expression value, {bool voidContext = false}) {
-    return _makeInvalidWrite(value: value);
+    return _makeInvalidWrite();
   }
 
   @override
@@ -4735,7 +4700,7 @@ abstract class AbstractReadOnlyAccessGenerator extends Generator {
     bool voidContext = false,
   }) {
     Expression read = _createRead();
-    Expression write = _makeInvalidWrite(value: value);
+    Expression write = _makeInvalidWrite();
     return new IfNullSet(read, write, forEffect: voidContext)
       ..fileOffset = offset;
   }
@@ -4749,13 +4714,7 @@ abstract class AbstractReadOnlyAccessGenerator extends Generator {
     bool isPreIncDec = false,
     bool isPostIncDec = false,
   }) {
-    Expression binary = _helper.forest.createBinary(
-      operatorOffset,
-      _createRead(),
-      binaryOperator,
-      value,
-    );
-    return _makeInvalidWrite(value: binary);
+    return _makeInvalidWrite();
   }
 
   @override
@@ -4824,7 +4783,6 @@ abstract class ErroneousExpressionGenerator extends Generator {
 
   Expression buildError({
     Arguments? arguments,
-    Expression? rhs,
     required UnresolvedKind kind,
     int? charOffset,
     bool errorHasBeenReported = false,
@@ -4872,7 +4830,7 @@ abstract class ErroneousExpressionGenerator extends Generator {
 
   @override
   Expression buildAssignment(Expression value, {bool voidContext = false}) {
-    return buildError(rhs: value, kind: UnresolvedKind.Setter);
+    return buildError(kind: UnresolvedKind.Setter);
   }
 
   @override
@@ -4885,7 +4843,7 @@ abstract class ErroneousExpressionGenerator extends Generator {
     bool isPreIncDec = false,
     bool isPostIncDec = false,
   }) {
-    return buildError(rhs: value, kind: UnresolvedKind.Getter);
+    return buildError(kind: UnresolvedKind.Getter);
   }
 
   @override
@@ -4924,7 +4882,7 @@ abstract class ErroneousExpressionGenerator extends Generator {
     int offset, {
     bool voidContext = false,
   }) {
-    return buildError(rhs: value, kind: UnresolvedKind.Setter);
+    return buildError(kind: UnresolvedKind.Setter);
   }
 
   @override
@@ -4946,12 +4904,8 @@ abstract class ErroneousExpressionGenerator extends Generator {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Expression _makeInvalidWrite({
-    required Expression value,
-    bool errorHasBeenReported = false,
-  }) {
+  Expression _makeInvalidWrite({bool errorHasBeenReported = false}) {
     return buildError(
-      rhs: value,
       kind: UnresolvedKind.Setter,
       errorHasBeenReported: errorHasBeenReported,
     );
@@ -5040,7 +4994,6 @@ class DuplicateDeclarationGenerator extends ErroneousExpressionGenerator {
   @override
   Expression buildError({
     Arguments? arguments,
-    Expression? rhs,
     required UnresolvedKind kind,
     int? charOffset,
     bool errorHasBeenReported = false,
@@ -5059,10 +5012,7 @@ class DuplicateDeclarationGenerator extends ErroneousExpressionGenerator {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Expression _makeInvalidWrite({
-    Expression? value,
-    bool errorHasBeenReported = false,
-  }) {
+  Expression _makeInvalidWrite({bool errorHasBeenReported = false}) {
     return _createInvalidExpression();
   }
 
@@ -5170,7 +5120,6 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
   @override
   Expression buildError({
     Arguments? arguments,
-    Expression? rhs,
     required UnresolvedKind kind,
     int? charOffset,
     bool errorHasBeenReported = false,
@@ -5179,8 +5128,6 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
     return _helper.buildUnresolvedError(
       _plainNameForRead,
       charOffset,
-      arguments: arguments,
-      rhs: rhs,
       kind: kind,
       errorHasBeenReported: errorHasBeenReported,
     );
@@ -5229,7 +5176,7 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
     bool isCompound,
     Expression value,
   ) {
-    return buildError(rhs: value, kind: UnresolvedKind.Setter);
+    return buildError(kind: UnresolvedKind.Setter);
   }
 
   @override
@@ -5277,7 +5224,7 @@ abstract class ContextAwareGenerator extends Generator {
   @override
   // Coverage-ignore(suite): Not run.
   Expression buildAssignment(Expression value, {bool voidContext = false}) {
-    return _makeInvalidWrite(value: value);
+    return _makeInvalidWrite();
   }
 
   @override
@@ -5288,7 +5235,7 @@ abstract class ContextAwareGenerator extends Generator {
     int offset, {
     bool voidContext = false,
   }) {
-    return _makeInvalidWrite(value: value);
+    return _makeInvalidWrite();
   }
 
   @override
@@ -5301,7 +5248,7 @@ abstract class ContextAwareGenerator extends Generator {
     bool isPreIncDec = false,
     bool isPostIncDec = false,
   }) {
-    return _makeInvalidWrite(value: value);
+    return _makeInvalidWrite();
   }
 
   @override
@@ -5335,10 +5282,7 @@ abstract class ContextAwareGenerator extends Generator {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Expression _makeInvalidWrite({
-    Expression? value,
-    bool errorHasBeenReported = false,
-  }) {
+  Expression _makeInvalidWrite({bool errorHasBeenReported = false}) {
     return _helper.buildProblem(
       codeIllegalAssignmentToNonAssignable,
       fileOffset,
@@ -5590,7 +5534,7 @@ class PrefixUseGenerator extends Generator {
 
   @override
   Expression buildAssignment(Expression value, {bool voidContext = false}) {
-    return _makeInvalidWrite(value: value);
+    return _makeInvalidWrite();
   }
 
   @override
@@ -5723,10 +5667,8 @@ class PrefixUseGenerator extends Generator {
   }
 
   @override
-  Expression _makeInvalidWrite({
-    Expression? value,
-    bool errorHasBeenReported = false,
-  }) => _makeInvalidRead(errorHasBeenReported: errorHasBeenReported);
+  Expression _makeInvalidWrite({bool errorHasBeenReported = false}) =>
+      _makeInvalidRead(errorHasBeenReported: errorHasBeenReported);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -5784,10 +5726,7 @@ class UnexpectedQualifiedUseGenerator extends Generator {
   @override
   // Coverage-ignore(suite): Not run.
   Expression buildAssignment(Expression value, {bool voidContext = false}) {
-    return _makeInvalidWrite(
-      value: value,
-      errorHasBeenReported: errorHasBeenReported,
-    );
+    return _makeInvalidWrite(errorHasBeenReported: errorHasBeenReported);
   }
 
   @override
@@ -5844,7 +5783,6 @@ class UnexpectedQualifiedUseGenerator extends Generator {
     return _helper.buildUnresolvedError(
       _plainNameForRead,
       fileOffset,
-      arguments: arguments,
       kind: UnresolvedKind.Method,
       errorHasBeenReported: errorHasBeenReported,
     );
@@ -6024,10 +5962,8 @@ class ParserErrorGenerator extends Generator {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Expression _makeInvalidWrite({
-    Expression? value,
-    bool errorHasBeenReported = false,
-  }) => buildProblem();
+  Expression _makeInvalidWrite({bool errorHasBeenReported = false}) =>
+      buildProblem();
 
   @override
   List<Initializer> buildFieldInitializer(Map<String, int>? initializedFields) {
@@ -6417,14 +6353,7 @@ class ThisAccessGenerator extends Generator {
             .withArgumentsOld(fullName)
             .withLocation(_uri, fileOffset, lengthForToken(token));
         return _helper.buildInvalidInitializer(
-          _helper.buildUnresolvedError(
-            _helper.superConstructorNameForDiagnostics(name.text),
-            offset,
-            arguments: arguments,
-            isSuper: true,
-            message: message,
-            kind: UnresolvedKind.Constructor,
-          ),
+          _helper.buildProblemFromLocatedMessage(message),
           offset,
         );
       } else {
@@ -6562,7 +6491,6 @@ class IncompleteErrorGenerator extends ErroneousExpressionGenerator {
   @override
   Expression buildError({
     Arguments? arguments,
-    Expression? rhs,
     required UnresolvedKind kind,
     String? name,
     int? charOffset,

@@ -40,6 +40,7 @@ class Forest {
     List<Object?>? argumentsOriginalOrder,
   }) {
     if (!hasExplicitTypeArguments) {
+      // Coverage-ignore-block(suite): Not run.
       ArgumentsImpl arguments = new ArgumentsImpl(
         positional,
         types: <DartType>[],
