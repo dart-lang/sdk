@@ -5750,6 +5750,372 @@ class FineAnalysisDriverTest extends PubPackageResolutionTest
     return super.tearDown();
   }
 
+  test_dependency_class_instanceField_add_hasNonFinalField() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeInterfaceElement('A');
+      A.hasNonFinalField;
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            hasNonFinalField: false
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  var foo = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M2
+        declaredGetters
+          foo: #M3
+        declaredSetters
+          foo=: #M4
+        interface: #M5
+          map
+            foo: #M3
+            foo=: #M4
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  interfaceHasNonFinalFieldMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    expected: false
+    actual: true
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            hasNonFinalField: true
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_instanceField_add_hasNonFinalField_ofSuper() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {}
+''',
+      testCode: r'''
+import 'a.dart';
+class B extends A {}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      B: #M2
+        interface: #M3
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            interfaceId: #M1
+            hasNonFinalField: false
+            requestedConstructors
+              new: #M4
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+        interfaces
+          A
+            allConstructors: #M4
+            requestedConstructors
+              new: #M4
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  var foo = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M5
+        declaredGetters
+          foo: #M6
+        declaredSetters
+          foo=: #M7
+        interface: #M8
+          map
+            foo: #M6
+            foo=: #M7
+  requirements
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
+  interfaceIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    expectedId: #M1
+    actualId: #M8
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      B: #M2
+        interface: #M9
+          map
+            foo: #M6
+            foo=: #M7
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            interfaceId: #M8
+            hasNonFinalField: true
+            requestedConstructors
+              new: #M4
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  instanceChildrenIdsMismatch
+    libraryUri: package:test/a.dart
+    instanceName: A
+    childrenPropertyName: getters
+    expectedIds: 
+    actualIds: #M6
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M5
+            allDeclaredGetters: #M6
+            allDeclaredSetters: #M7
+        interfaces
+          A
+            allConstructors: #M4
+            requestedConstructors
+              new: #M4
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_instanceField_add_hasNonFinalField_ofSuper_private() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {}
+''',
+      testCode: r'''
+import 'a.dart';
+class B extends A {}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      B: #M2
+        interface: #M3
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            interfaceId: #M1
+            hasNonFinalField: false
+            requestedConstructors
+              new: #M4
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+        interfaces
+          A
+            allConstructors: #M4
+            requestedConstructors
+              new: #M4
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  var _foo = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          _foo: #M5
+        declaredGetters
+          _foo: #M6
+        declaredSetters
+          _foo=: #M7
+        interface: #M1
+  requirements
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
+  interfaceHasNonFinalFieldMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    expected: false
+    actual: true
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      B: #M2
+        interface: #M3
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            interfaceId: #M1
+            hasNonFinalField: true
+            requestedConstructors
+              new: #M4
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  instanceChildrenIdsMismatch
+    libraryUri: package:test/a.dart
+    instanceName: A
+    childrenPropertyName: getters
+    expectedIds: 
+    actualIds: #M6
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            allDeclaredGetters: #M6
+            allDeclaredSetters: #M7
+        interfaces
+          A
+            allConstructors: #M4
+            requestedConstructors
+              new: #M4
+[status] idle
+''',
+    );
+  }
+
   test_dependency_class_instanceField_change_getField() async {
     _ManualRequirements.install((state) {
       var A = state.singleUnit.scopeInstanceElement('A');
@@ -6027,6 +6393,7 @@ class B extends A {}
         interfaces
           A
             interfaceId: #M3
+            hasNonFinalField: false
             requestedConstructors
               new: #M6
 [status] idle
@@ -6084,6 +6451,7 @@ class A {
         interfaces
           A
             interfaceId: #M9
+            hasNonFinalField: false
             requestedConstructors
               new: #M6
 [status] idle
@@ -6275,6 +6643,7 @@ class B extends A {}
         interfaces
           A
             interfaceId: #M4
+            hasNonFinalField: false
             requestedConstructors
               new: #M7
 [operation] analyzeFile
@@ -6351,6 +6720,7 @@ class A {
         interfaces
           A
             interfaceId: #M10
+            hasNonFinalField: false
             requestedConstructors
               new: #M7
 [operation] checkLibraryDiagnosticsRequirements
@@ -7709,6 +8079,7 @@ class B extends A {}
         interfaces
           A
             interfaceId: #M2
+            hasNonFinalField: false
             requestedConstructors
               new: #M5
 [status] idle
@@ -7763,6 +8134,7 @@ class A {
         interfaces
           A
             interfaceId: #M7
+            hasNonFinalField: false
             requestedConstructors
               new: #M5
 [status] idle
@@ -8059,6 +8431,7 @@ class B extends A {}
         interfaces
           A
             interfaceId: #M3
+            hasNonFinalField: false
             requestedConstructors
               new: #M6
 [operation] analyzeFile
@@ -8129,6 +8502,7 @@ class A {
         interfaces
           A
             interfaceId: #M8
+            hasNonFinalField: false
             requestedConstructors
               new: #M6
 [operation] checkLibraryDiagnosticsRequirements
@@ -8227,6 +8601,7 @@ class X extends C {}
         interfaces
           C
             interfaceId: #M7
+            hasNonFinalField: false
             requestedConstructors
               new: #M11
 [operation] analyzeFile
@@ -8314,6 +8689,7 @@ class C extends A implements B {}
         interfaces
           C
             interfaceId: #M14
+            hasNonFinalField: false
             requestedConstructors
               new: #M11
 [operation] checkLibraryDiagnosticsRequirements
@@ -13209,6 +13585,7 @@ class B extends A {
         interfaces
           A
             interfaceId: #M2
+            hasNonFinalField: false
             requestedConstructors
               named: #M1
 [operation] analyzeFile
@@ -13275,6 +13652,7 @@ class A {
         interfaces
           A
             interfaceId: #M2
+            hasNonFinalField: false
             requestedConstructors
               named: #M6
 [operation] checkLibraryDiagnosticsRequirements
@@ -24594,6 +24972,100 @@ extension type A(double it) {
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: isLibrary
+''',
+    );
+  }
+
+  test_dependency_mixin_instanceField_add_hasNonFinalField() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeInterfaceElement('A');
+      A.hasNonFinalField;
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+mixin A {}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredMixins
+      A: #M0
+        interface: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            hasNonFinalField: false
+[status] idle
+''',
+      updatedA: r'''
+mixin A {
+  var foo = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredMixins
+      A: #M0
+        declaredFields
+          foo: #M2
+        declaredGetters
+          foo: #M3
+        declaredSetters
+          foo=: #M4
+        interface: #M5
+          map
+            foo: #M3
+            foo=: #M4
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  interfaceHasNonFinalFieldMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    expected: false
+    actual: true
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            hasNonFinalField: true
+[status] idle
 ''',
     );
   }
@@ -41856,6 +42328,100 @@ class A {
     );
   }
 
+  test_manifest_class_hasNonFinalField() async {
+    configuration.withElementManifests = true;
+
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  final int? a;
+}
+class B {
+  int? a;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredFields
+          a: #M1
+            type: int? @ dart:core
+        declaredGetters
+          a: #M2
+            returnType: int? @ dart:core
+        interface: #M3
+          map
+            a: #M2
+      B: #M4
+        flags: hasNonFinalField
+        supertype: Object @ dart:core
+        declaredFields
+          a: #M5
+            type: int? @ dart:core
+        declaredGetters
+          a: #M6
+            returnType: int? @ dart:core
+        declaredSetters
+          a=: #M7
+            functionType: FunctionType
+              positional
+                required int? @ dart:core
+              returnType: void
+        interface: #M8
+          map
+            a: #M6
+            a=: #M7
+''',
+      updatedCode: r'''
+class A {
+  int? a;
+}
+class B {
+  final int? a;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        flags: hasNonFinalField
+        supertype: Object @ dart:core
+        declaredFields
+          a: #M9
+            type: int? @ dart:core
+        declaredGetters
+          a: #M2
+            returnType: int? @ dart:core
+        declaredSetters
+          a=: #M10
+            functionType: FunctionType
+              positional
+                required int? @ dart:core
+              returnType: void
+        interface: #M11
+          map
+            a: #M2
+            a=: #M10
+      B: #M4
+        supertype: Object @ dart:core
+        declaredFields
+          a: #M12
+            type: int? @ dart:core
+        declaredGetters
+          a: #M6
+            returnType: int? @ dart:core
+        interface: #M13
+          map
+            a: #M6
+''',
+    );
+  }
+
   test_manifest_class_interfacesAdd() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -54074,6 +54640,8 @@ mixin A {
   }
 
   test_manifest_mixin_modifier_isBase() async {
+    configuration.withElementManifests = true;
+
     await _runLibraryManifestScenario(
       initialCode: r'''
 mixin A {}
@@ -54087,12 +54655,22 @@ base mixin D {}
   package:test/test.dart
     declaredMixins
       A: #M0
+        superclassConstraints
+          Object @ dart:core
         interface: #M1
       B: #M2
+        flags: isBase
+        superclassConstraints
+          Object @ dart:core
         interface: #M3
       C: #M4
+        superclassConstraints
+          Object @ dart:core
         interface: #M5
       D: #M6
+        flags: isBase
+        superclassConstraints
+          Object @ dart:core
         interface: #M7
 ''',
       updatedCode: r'''
@@ -54106,12 +54684,22 @@ mixin D {}
   package:test/test.dart
     declaredMixins
       A: #M0
+        superclassConstraints
+          Object @ dart:core
         interface: #M1
       B: #M2
+        flags: isBase
+        superclassConstraints
+          Object @ dart:core
         interface: #M3
       C: #M8
+        flags: isBase
+        superclassConstraints
+          Object @ dart:core
         interface: #M9
       D: #M10
+        superclassConstraints
+          Object @ dart:core
         interface: #M11
 ''',
     );

@@ -216,6 +216,7 @@ class LibraryManifestBuilder {
         element: element,
       );
     });
+    classItem.hasNonFinalField = element.hasNonFinalField;
     newItems[lookupName] = classItem;
 
     encodingContext.withTypeParameters(element.typeParameters, (
@@ -301,6 +302,7 @@ class LibraryManifestBuilder {
         element: element,
       );
     });
+    enumItem.hasNonFinalField = element.hasNonFinalField;
     newItems[lookupName] = enumItem;
 
     encodingContext.withTypeParameters(element.typeParameters, (
@@ -380,6 +382,7 @@ class LibraryManifestBuilder {
         element: element,
       );
     });
+    extensionTypeItem.hasNonFinalField = element.hasNonFinalField;
     newItems[lookupName] = extensionTypeItem;
 
     encodingContext.withTypeParameters(element.typeParameters, (
@@ -577,6 +580,7 @@ class LibraryManifestBuilder {
         element: element,
       );
     });
+    mixinItem.hasNonFinalField = element.hasNonFinalField;
     newItems[lookupName] = mixinItem;
 
     encodingContext.withTypeParameters(element.typeParameters, (

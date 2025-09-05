@@ -263,6 +263,9 @@ class InterfaceItemRequirements {
   /// If the element was asked for its full interface.
   ManifestItemId? interfaceId;
 
+  /// The value of `hasNonFinalField`, if it was requested.
+  bool? hasNonFinalField;
+
   /// Set if [InstanceElementImpl.constructors] is invoked.
   ManifestItemIdList? allConstructors;
 
@@ -274,6 +277,7 @@ class InterfaceItemRequirements {
 
   InterfaceItemRequirements({
     required this.interfaceId,
+    required this.hasNonFinalField,
     required this.allConstructors,
     required this.requestedConstructors,
     required this.methods,
@@ -282,6 +286,7 @@ class InterfaceItemRequirements {
   factory InterfaceItemRequirements.empty() {
     return InterfaceItemRequirements(
       interfaceId: null,
+      hasNonFinalField: null,
       allConstructors: null,
       requestedConstructors: {},
       methods: {},
@@ -291,6 +296,7 @@ class InterfaceItemRequirements {
   factory InterfaceItemRequirements.read(SummaryDataReader reader) {
     return InterfaceItemRequirements(
       interfaceId: ManifestItemId.readOptional(reader),
+      hasNonFinalField: reader.readOptionalBool(),
       allConstructors: ManifestItemIdList.readOptional(reader),
       requestedConstructors: reader.readNameToOptionalIdMap(),
       methods: reader.readNameToOptionalIdMap(),
@@ -299,6 +305,7 @@ class InterfaceItemRequirements {
 
   void write(BufferedSink sink) {
     interfaceId.writeOptional(sink);
+    sink.writeOptionalBool(hasNonFinalField);
     allConstructors.writeOptional(sink);
     sink.writeNameToIdMap(requestedConstructors);
     sink.writeNameToIdMap(methods);
@@ -724,6 +731,18 @@ class RequirementsManifest {
           }
         }
 
+        if (interfaceRequirements.hasNonFinalField case var expected?) {
+          var actual = interfaceItem.hasNonFinalField;
+          if (expected != actual) {
+            return InterfaceHasNonFinalFieldMismatch(
+              libraryUri: libraryUri,
+              interfaceName: interfaceName,
+              expected: expected,
+              actual: actual,
+            );
+          }
+        }
+
         if (interfaceRequirements.allConstructors case var required?) {
           var actualItems = interfaceItem.declaredConstructors.values;
           var actualIds = actualItems.map((item) => item.id);
@@ -1065,6 +1084,20 @@ class RequirementsManifest {
     requirements.requestedConstructors[constructorName] = constructorId;
   }
 
+  void record_interfaceElement_hasNonFinalField({
+    required InterfaceElementImpl element,
+  }) {
+    var itemRequirements = _getInterfaceItem(element);
+    if (itemRequirements == null) {
+      return;
+    }
+
+    var item = itemRequirements.item;
+    var requirements = itemRequirements.requirements;
+
+    requirements.hasNonFinalField = item.hasNonFinalField;
+  }
+
   /// Record that all accessible extensions inside a [LibraryFragmentImpl]
   /// are requested, which means dependency on all extensions exported
   /// from [importedLibraries].
@@ -1389,6 +1422,15 @@ extension _BufferedSinkExtension on BufferedSink {
       writeValue: (id) => id.writeOptional(this),
     );
   }
+
+  void writeOptionalBool(bool? value) {
+    if (value == null) {
+      writeBool(false);
+    } else {
+      writeBool(true);
+      writeBool(value);
+    }
+  }
 }
 
 extension _SummaryDataReaderExtension on SummaryDataReader {
@@ -1397,5 +1439,13 @@ extension _SummaryDataReaderExtension on SummaryDataReader {
       readKey: () => LookupName.read(this),
       readValue: () => ManifestItemId.readOptional(this),
     );
+  }
+
+  bool? readOptionalBool() {
+    if (readBool()) {
+      return readBool();
+    } else {
+      return null;
+    }
   }
 }

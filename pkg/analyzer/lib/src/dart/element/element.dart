@@ -4646,8 +4646,8 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   List<InterfaceTypeImpl>? Function(InterfaceElementImpl)?
   mixinInferenceCallback;
 
-  /// Whether the class or its superclass declares a non-final instance field.
-  bool hasNonFinalField = false;
+  /// Storage for [hasNonFinalField].
+  bool _hasNonFinalField = false;
 
   @override
   List<InterfaceTypeImpl> get allSupertypes {
@@ -4703,6 +4703,19 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
       )
         fragment,
     ];
+  }
+
+  /// Whether the class or its superclass declares a non-final instance field.
+  @trackedDirectly
+  bool get hasNonFinalField {
+    globalResultRequirements?.record_interfaceElement_hasNonFinalField(
+      element: this,
+    );
+    return _hasNonFinalField;
+  }
+
+  set hasNonFinalField(bool value) {
+    _hasNonFinalField = value;
   }
 
   InheritanceManager3 get inheritanceManager {

@@ -206,6 +206,28 @@ class InterfaceConstructorIdMismatch extends RequirementFailure {
   }
 }
 
+class InterfaceHasNonFinalFieldMismatch extends RequirementFailure {
+  final Uri libraryUri;
+  final LookupName interfaceName;
+  final bool expected;
+  final bool actual;
+
+  InterfaceHasNonFinalFieldMismatch({
+    required this.libraryUri,
+    required this.interfaceName,
+    required this.expected,
+    required this.actual,
+  });
+
+  @override
+  String toString() {
+    return 'InterfaceHasNonFinalFieldMismatch(libraryUri: $libraryUri, '
+        'interfaceName: ${interfaceName.asString}, '
+        'expected: $expected, '
+        'actual: $actual)';
+  }
+}
+
 class InterfaceIdMismatch extends RequirementFailure {
   final Uri libraryUri;
   final LookupName interfaceName;

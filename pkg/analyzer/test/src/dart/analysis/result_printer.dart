@@ -205,6 +205,9 @@ class BundleRequirementsPrinter {
           var idStr = idProvider.manifestId(id);
           sink.writelnWithIndent('interfaceId: $idStr');
         }
+        if (requirements.hasNonFinalField case var value?) {
+          sink.writelnWithIndent('hasNonFinalField: $value');
+        }
         if (requirements.allConstructors case var allConstructors?) {
           if (allConstructors.ids.isNotEmpty) {
             var idListStr = allConstructors.asString(idProvider);
@@ -626,6 +629,14 @@ class DriverEventsPrinter {
           'constructorName': failure.constructorName.asString,
           'expectedId': idProvider.manifestId(failure.expectedId),
           'actualId': idProvider.manifestId(failure.actualId),
+        });
+      case InterfaceHasNonFinalFieldMismatch():
+        sink.writelnWithIndent('interfaceHasNonFinalFieldMismatch');
+        sink.writeProperties({
+          'libraryUri': failure.libraryUri,
+          'interfaceName': failure.interfaceName.asString,
+          'expected': failure.expected,
+          'actual': failure.actual,
         });
       case TopLevelIdMismatch():
         sink.writelnWithIndent('topLevelIdMismatch');
@@ -1060,6 +1071,7 @@ class LibraryManifestPrinter {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
         sink.writeFlags({
+          'hasNonFinalField': item.hasNonFinalField,
           'isAbstract': item.isAbstract,
           'isBase': item.isBase,
           'isFinal': item.isFinal,
@@ -1085,6 +1097,7 @@ class LibraryManifestPrinter {
   void _writeEnumItem(EnumItem item) {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
+        sink.writeFlags({'hasNonFinalField': item.hasNonFinalField});
         _writeMetadata(item);
         _writeTypeParameters(item.typeParameters);
         _writeTypeList('mixins', item.mixins);
@@ -1117,6 +1130,7 @@ class LibraryManifestPrinter {
       sink.withIndent(() {
         sink.writeFlags({
           'hasImplementsSelfReference': item.hasImplementsSelfReference,
+          'hasNonFinalField': item.hasNonFinalField,
           'hasRepresentationSelfReference': item.hasRepresentationSelfReference,
         });
         _writeMetadata(item);
@@ -1371,6 +1385,10 @@ class LibraryManifestPrinter {
   void _writeMixinItem(MixinItem item) {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
+        sink.writeFlags({
+          'hasNonFinalField': item.hasNonFinalField,
+          'isBase': item.isBase,
+        });
         _writeMetadata(item);
         _writeTypeParameters(item.typeParameters);
         _writeTypeList('superclassConstraints', item.superclassConstraints);
