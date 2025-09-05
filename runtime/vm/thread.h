@@ -23,7 +23,6 @@
 #include "vm/handles.h"
 #include "vm/heap/pointer_block.h"
 #include "vm/heap/sampler.h"
-#include "vm/intrusive_dlist.h"
 #include "vm/os_thread.h"
 #include "vm/pending_deopts.h"
 #include "vm/random.h"
@@ -365,7 +364,7 @@ class MutatorThreadVisitor {
 // a thread is allocated by ThreadRegistry::GetFromFreelistLocked either
 // before entering an isolate or entering an isolate group, and destroyed
 // automatically when the underlying OS thread exits.
-class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
+class Thread : public ThreadState {
  public:
   // The kind of task this thread is performing. Sampled by the profiler.
   enum TaskKind {

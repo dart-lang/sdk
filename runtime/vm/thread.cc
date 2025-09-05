@@ -537,10 +537,10 @@ void Thread::EnterIsolateGroupAsMutator(IsolateGroup* isolate_group,
   isolate_group->IncreaseMutatorCount(/*thread=*/nullptr,
                                       /*is_nested_reenter=*/true,
                                       /*was_stolen=*/false);
+  isolate_group->RegisterIsolateGroupMutator();
+
   Thread* thread = AddActiveThread(isolate_group, /*isolate=*/nullptr,
                                    kMutatorTask, bypass_safepoint);
-  isolate_group->RegisterIsolateGroupMutator(thread);
-
   RELEASE_ASSERT(thread != nullptr);
   // Even if [bypass_safepoint] is true, a thread may need mutator state (e.g.
   // parallel scavenger threads write to the [Thread]s storebuffer)
@@ -584,7 +584,7 @@ void Thread::ExitIsolateGroupAsMutator(bool bypass_safepoint) {
   SuspendThreadInternal(thread, VMTag::kInvalidTagId);
   auto group = thread->isolate_group();
   FreeActiveThread(thread, /*isolate=*/nullptr, bypass_safepoint);
-  group->UnregisterIsolateGroupMutator(thread);
+  group->UnregisterIsolateGroupMutator();
   group->DecreaseMutatorCount(/*is_nested_exit=*/true);
 }
 
