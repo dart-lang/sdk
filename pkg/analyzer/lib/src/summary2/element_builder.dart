@@ -195,6 +195,26 @@ class ElementBuilder {
       lastFragment.addFragment(fragment);
 
       var lastTypeParameterFragments = lastFragment.typeParameters;
+
+      // Trim extra type parameters.
+      if (lastTypeParameterFragments.length < fragment.typeParameters.length) {
+        fragment.typeParameters.length = lastTypeParameterFragments.length;
+      }
+
+      // Synthesize missing type parameters.
+      if (lastTypeParameterFragments.length > fragment.typeParameters.length) {
+        for (
+          var i = fragment.typeParameters.length;
+          i < lastTypeParameterFragments.length;
+          i++
+        ) {
+          fragment.addTypeParameter(
+            TypeParameterFragmentImpl(name: lastTypeParameterFragments[i].name)
+              ..isSynthetic = true,
+          );
+        }
+      }
+
       for (var i = 0; i < lastTypeParameterFragments.length; i++) {
         lastTypeParameterFragments[i].addFragment(fragment.typeParameters[i]);
       }

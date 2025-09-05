@@ -396,7 +396,9 @@ class TypesBuilder {
 
   void _typeParameter(TypeParameterImpl node) {
     var fragment = node.declaredFragment!;
-    fragment.element.bound = node.bound?.type;
+    if (fragment.previousFragment == null) {
+      fragment.element.bound = node.bound?.type;
+    }
   }
 
   List<TypeParameterFragmentImpl> _typeParameters(TypeParameterListImpl? node) {
