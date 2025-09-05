@@ -87,8 +87,8 @@ class Options {
           help: 'total number of shards a suite is going to be split into.',
           defaultsTo: '1')
       ..addOption('shard',
-          help: 'which shard this script is executing. This should be between 0'
-              ' and `shards - 1`.')
+          help: 'which shard this script is executing. This should be between 1'
+              ' and `shards`.')
       ..addOption('output-directory',
           help: 'location where to emit the jsonl result and log files')
       ..addOption('named-configuration',
@@ -99,8 +99,8 @@ class Options {
     int shard = 1;
     if (shards > 1) {
       shard = int.tryParse(argResults['shard']) ?? 1;
-      if (shard <= 0 || shard >= shards) {
-        print('Error: shard should be between 0 and ${shards - 1},'
+      if (shard <= 0 || shard > shards) {
+        print('Error: shard should be between 1 and $shards,'
             ' but got $shard');
         exit(1);
       }
@@ -112,7 +112,8 @@ class Options {
       ..useSdk = argResults['use-sdk']
       ..filter = argResults['filter']
       ..shards = shards
-      ..shard = shard
+      // Turn shard from [1..shards] into [0..shards-1]
+      ..shard = shard - 1
       ..configurationName = argResults['named-configuration']
       ..outputDirectory = toUri(argResults['output-directory']);
   }
