@@ -594,6 +594,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     CreateNoSuchMethod.new,
     MakeClassAbstract.new,
   ],
+  CompileTimeErrorCode.constEvalMethodInvocation: [RemoveConst.new],
   CompileTimeErrorCode.constInitializedWithNonConstantValue: [
     RemoveConst.new,
     RemoveNew.new,

@@ -27,6 +27,43 @@ class RemoveConstConstConstructorParamTypeMismatchTest
   @override
   FixKind get kind => DartFixKind.REMOVE_CONST;
 
+  Future<void> test_methodInvocation() async {
+    await resolveTestCode(r'''
+class A {
+  const A([int _ = 0]);
+
+  int myMethod() => 0;
+}
+
+void foo(A a) {
+  const _ = A(a.myMethod());
+}
+''');
+    await assertHasFix(r'''
+class A {
+  const A([int _ = 0]);
+
+  int myMethod() => 0;
+}
+
+void foo(A a) {
+  final _ = A(a.myMethod());
+}
+''');
+  }
+
+  Future<void> test_methodInvocation_enum() async {
+    await resolveTestCode(r'''
+enum E {
+  enumValue(["text"].map((x) => x));
+
+  const E(this.strings);
+  final Iterable<String> strings;
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_named() async {
     await resolveTestCode(r'''
 class A {
