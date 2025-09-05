@@ -5895,6 +5895,9 @@ class B extends A {}
           A: #M0
         instances
           A
+            allDeclaredGetters: []
+            allDeclaredSetters: []
+            allDeclaredMethods: []
         interfaces
           A
             allConstructors: #M4
@@ -5956,7 +5959,7 @@ class A {
     libraryUri: package:test/a.dart
     instanceName: A
     childrenPropertyName: getters
-    expectedIds: 
+    expectedIds: []
     actualIds: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -5974,6 +5977,7 @@ class A {
               foo: #M5
             allDeclaredGetters: #M6
             allDeclaredSetters: #M7
+            allDeclaredMethods: []
         interfaces
           A
             allConstructors: #M4
@@ -6035,6 +6039,9 @@ class B extends A {}
           A: #M0
         instances
           A
+            allDeclaredGetters: []
+            allDeclaredSetters: []
+            allDeclaredMethods: []
         interfaces
           A
             allConstructors: #M4
@@ -6090,7 +6097,7 @@ class A {
     libraryUri: package:test/a.dart
     instanceName: A
     childrenPropertyName: getters
-    expectedIds: 
+    expectedIds: []
     actualIds: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -6106,6 +6113,7 @@ class A {
           A
             allDeclaredGetters: #M6
             allDeclaredSetters: #M7
+            allDeclaredMethods: []
         interfaces
           A
             allConstructors: #M4
@@ -6662,6 +6670,7 @@ class B extends A {}
               foo: #M1
             allDeclaredGetters: #M2
             allDeclaredSetters: #M3
+            allDeclaredMethods: []
         interfaces
           A
             allConstructors: #M7
@@ -6747,6 +6756,7 @@ class A {
               foo: #M8
             allDeclaredGetters: #M9
             allDeclaredSetters: #M3
+            allDeclaredMethods: []
         interfaces
           A
             allConstructors: #M7
@@ -8446,6 +8456,8 @@ class B extends A {}
           A: #M0
         instances
           A
+            allDeclaredGetters: []
+            allDeclaredSetters: []
             allDeclaredMethods: #M2 #M1
         interfaces
           A
@@ -8525,6 +8537,8 @@ class A {
           A: #M0
         instances
           A
+            allDeclaredGetters: []
+            allDeclaredSetters: []
             allDeclaredMethods: #M7 #M1
         interfaces
           A
@@ -8616,10 +8630,17 @@ class X extends C {}
           C: #M6
         instances
           A
+            allDeclaredGetters: []
+            allDeclaredSetters: []
             allDeclaredMethods: #M1
           B
+            allDeclaredGetters: []
+            allDeclaredSetters: []
             allDeclaredMethods: #M4
           C
+            allDeclaredGetters: []
+            allDeclaredSetters: []
+            allDeclaredMethods: []
         interfaces
           C
             allConstructors: #M11
@@ -8712,10 +8733,17 @@ class C extends A implements B {}
           C: #M6
         instances
           A
+            allDeclaredGetters: []
+            allDeclaredSetters: []
             allDeclaredMethods: #M12
           B
+            allDeclaredGetters: []
+            allDeclaredSetters: []
             allDeclaredMethods: #M4
           C
+            allDeclaredGetters: []
+            allDeclaredSetters: []
+            allDeclaredMethods: []
         interfaces
           C
             allConstructors: #M11
@@ -13601,6 +13629,9 @@ class B extends A {
           named: <null>
         instances
           A
+            allDeclaredGetters: []
+            allDeclaredSetters: []
+            allDeclaredMethods: []
         interfaces
           A
             allConstructors: #M1
@@ -13676,6 +13707,9 @@ class A {
           named: <null>
         instances
           A
+            allDeclaredGetters: []
+            allDeclaredSetters: []
+            allDeclaredMethods: []
         interfaces
           A
             allConstructors: #M6
@@ -28122,6 +28156,9 @@ base class X implements A {}
           A: #M0
         instances
           A
+            allDeclaredGetters: []
+            allDeclaredSetters: []
+            allDeclaredMethods: []
 [status] idle
 [future] getErrors T1
   ErrorsResult #0

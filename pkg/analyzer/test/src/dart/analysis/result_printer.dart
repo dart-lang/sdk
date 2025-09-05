@@ -84,13 +84,7 @@ class BundleRequirementsPrinter {
   }
 
   void _writeExportedExtensions(LibraryRequirements requirements) {
-    if (requirements.exportedExtensions case var extensions?) {
-      var idListStr = extensions.asString(idProvider);
-      if (idListStr.isEmpty) {
-        idListStr = '[]';
-      }
-      sink.writelnWithIndent('exportedExtensions: $idListStr');
-    }
+    _writelnIdList('exportedExtensions', requirements.exportedExtensions);
   }
 
   void _writeExportedTopLevels(LibraryRequirements requirements) {
@@ -168,26 +162,19 @@ class BundleRequirementsPrinter {
       });
 
       sink.withIndent(() {
-        void writeAllDeclared(String name, ManifestItemIdList? idList) {
-          if (idList != null && idList.ids.isNotEmpty) {
-            var idListStr = idList.asString(idProvider);
-            sink.writelnWithIndent('$name: $idListStr');
-          }
-        }
-
-        writeAllDeclared(
+        _writelnIdList(
           'allDeclaredFields',
           instanceRequirements.allDeclaredFields,
         );
-        writeAllDeclared(
+        _writelnIdList(
           'allDeclaredGetters',
           instanceRequirements.allDeclaredGetters,
         );
-        writeAllDeclared(
+        _writelnIdList(
           'allDeclaredSetters',
           instanceRequirements.allDeclaredSetters,
         );
-        writeAllDeclared(
+        _writelnIdList(
           'allDeclaredMethods',
           instanceRequirements.allDeclaredMethods,
         );
@@ -208,12 +195,7 @@ class BundleRequirementsPrinter {
         if (requirements.hasNonFinalField case var value?) {
           sink.writelnWithIndent('hasNonFinalField: $value');
         }
-        if (requirements.allConstructors case var allConstructors?) {
-          if (allConstructors.ids.isNotEmpty) {
-            var idListStr = allConstructors.asString(idProvider);
-            sink.writelnWithIndent('allConstructors: $idListStr');
-          }
-        }
+        _writelnIdList('allConstructors', requirements.allConstructors);
         sink.writeElements(
           'requestedConstructors',
           requirements.requestedConstructors.sorted,
@@ -226,6 +208,13 @@ class BundleRequirementsPrinter {
         );
       });
     });
+  }
+
+  void _writelnIdList(String name, ManifestItemIdList? idList) {
+    if (idList != null) {
+      var idListStr = idList.asString(idProvider);
+      sink.writelnWithIndent('$name: $idListStr');
+    }
   }
 
   void _writeNamedId(MapEntry<LookupName, ManifestItemId?> entry) {
@@ -1789,7 +1778,11 @@ class UnitElementPrinterConfiguration {
 
 extension on ManifestItemIdList {
   String asString(IdProvider idProvider) {
-    return ids.map((id) => idProvider.manifestId(id)).join(' ');
+    if (ids.isNotEmpty) {
+      return ids.map((id) => idProvider.manifestId(id)).join(' ');
+    } else {
+      return '[]';
+    }
   }
 }
 
