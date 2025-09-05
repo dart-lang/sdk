@@ -111,10 +111,19 @@ class DartScopeBuilder2 extends VisitorDefault<void> with VisitorVoidMixin {
         }
       }
     }
-    // TODO(jensj): If the current member is static and we're in a class we have
-    // to skip the typeParameters from the class.
+    int fromIndex = 0;
+    if (_currentCls != null &&
+        _currentMember != null &&
+        !_currentMember!.isInstanceMember &&
+        _currentMember is! Constructor) {
+      // We're inside a class, but currently in a static member (that is not a
+      // constructor). The first list in [typeParameterScopes] are the class
+      // ones, so we'll skip those here.
+      fromIndex = 1;
+    }
     List<TypeParameter> typeParameters = [];
-    for (List<TypeParameter> typeParameterScope in typeParameterScopes) {
+    for (int i = fromIndex; i < typeParameterScopes.length; i++) {
+      List<TypeParameter> typeParameterScope = typeParameterScopes[i];
       typeParameters.addAll(typeParameterScope);
     }
     DartScope2 findScope = new DartScope2(node, _library, _currentCls,
