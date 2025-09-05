@@ -2219,12 +2219,14 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
         if (parameterStructure.callStructure == node.selector.callStructure) {
           // TODO(sra): Handle adding optional arguments default values.
           assert(!node.isInterceptedCall);
-          return HInvokeStatic(
+          final replacement = HInvokeStatic(
             target,
             node.inputs.skip(1).toList(),
             node.instructionType,
             node.typeArguments,
           )..sourceInformation = node.sourceInformation;
+          _updateInvocationAttributes(replacement, target);
+          return replacement;
         }
       }
     }
