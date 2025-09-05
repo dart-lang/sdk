@@ -268,6 +268,34 @@ class InterfaceLeastUpperBoundHelper {
         visitedElements,
       );
 
+      // Since mixin applications involve only one mixin, multiple mixins induce
+      // multiple intermediate application classes. Consider the following
+      // example:
+      //
+      //     class A extends B with M1, M2, M3 {}
+      //
+      // Applying M1, M2, and M3 to B results in the following chain of
+      // declarations.
+      //
+      //     abstract class _A&B&M1 extends B implements M1 {}
+      //     abstract class _A&B&M1&M2 extends _A&B&M1 implements M2 {}
+      //     abstract class _A&B&M1&M2&M3 extends _AA&B&M1&M2 implements M3 {}
+      //     class A extends _A&B&M1&M2&M3 {}
+      //
+      // Each of the intermediate applications increase the distance to the top
+      // type by 1.
+      //
+      // Note that named mixin applications are different in that the last
+      // application is the named application itself, so its distance from the
+      // top type is shorter by 1. Consider the following example.
+      //
+      //     class A = B with M1, M2, M3;
+      //
+      // It will result in the following chain of declarations.
+      //
+      //     abstract class _A&B&M1 extends B implements M1 {}
+      //     abstract class _A&B&M1&M2 extends _A&B&M1 implements M2 {}
+      //     class A extends _A&B&M1&M2 implements M3 {}
       var mixins = element.mixins;
       for (var i = 0; i < mixins.length; i++) {
         // class _X&S&M extends S implements M {}
@@ -279,6 +307,12 @@ class InterfaceLeastUpperBoundHelper {
         superLength = max(superLength, mixinLength);
         // For this synthetic class representing the mixin application.
         superLength++;
+      }
+      if (mixins.isNotEmpty &&
+          element is ClassElementImpl &&
+          element.isMixinApplication) {
+        // In case of named mixin application, reduce the distance by 1.
+        superLength--;
       }
 
       longestPath = max(longestPath, 1 + superLength);
