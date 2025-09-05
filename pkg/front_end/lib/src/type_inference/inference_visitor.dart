@@ -22,6 +22,7 @@ import 'package:kernel/type_algebra.dart';
 import 'package:kernel/src/non_null.dart';
 
 import '../api_prototype/experimental_flags.dart';
+import '../base/constant_context.dart';
 import '../base/instrumentation.dart'
     show
         InstrumentationValueForMember,
@@ -54,6 +55,7 @@ import '../kernel/collections.dart'
         SpreadElement,
         SpreadMapEntry,
         convertToElement;
+//import '../kernel/forest.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/implicit_type_argument.dart' show ImplicitTypeArgument;
 import '../kernel/internal_ast.dart';
@@ -1416,9 +1418,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     SourceLibraryBuilder library = libraryBuilder;
     if (!hadExplicitTypeArguments) {
       library.checkBoundsInConstructorInvocation(
-        node,
-        typeSchemaEnvironment,
-        helper.uri,
+        constructor: node.target,
+        typeArguments: node.arguments.types,
+        typeEnvironment: typeSchemaEnvironment,
+        fileUri: helper.uri,
+        fileOffset: node.fileOffset,
         inferred: true,
       );
     }
@@ -2484,21 +2488,193 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     SourceLibraryBuilder library = libraryBuilder;
     if (!hadExplicitTypeArguments) {
       library.checkBoundsInFactoryInvocation(
-        node,
-        typeSchemaEnvironment,
-        helper.uri,
+        factory: node.target,
+        typeArguments: node.arguments.types,
+        typeEnvironment: typeSchemaEnvironment,
+        fileUri: helper.uri,
+        fileOffset: node.fileOffset,
         inferred: true,
       );
     }
-    Expression resolvedExpression = helper.resolveRedirectingFactoryTarget(
-      node.target,
-      node.arguments,
-      node.fileOffset,
-      node.isConst,
+    Expression resolvedExpression = _resolveRedirectingFactoryTarget(
+      target: node.target,
+      arguments: node.arguments,
+      fileOffset: node.fileOffset,
+      isConst: node.isConst,
+      hasInferredTypeArguments: !hadExplicitTypeArguments,
     )!;
     Expression resultExpression = result.applyResult(resolvedExpression);
 
     return new ExpressionInferenceResult(result.inferredType, resultExpression);
+  }
+
+  /// Return an [Expression] resolving the argument invocation.
+  ///
+  /// The arguments specify the [StaticInvocation] whose `.target` is
+  /// [target], `.arguments` is [arguments], `.fileOffset` is [fileOffset],
+  /// and `.isConst` is [isConst].
+  /// Returns null if the invocation can't be resolved.
+  Expression? _resolveRedirectingFactoryTarget({
+    required Procedure target,
+    required Arguments arguments,
+    required int fileOffset,
+    required bool isConst,
+    required bool hasInferredTypeArguments,
+  }) {
+    Procedure initialTarget = target;
+    Expression replacementNode;
+
+    _RedirectionTarget redirectionTarget = _getRedirectionTarget(initialTarget);
+    Member resolvedTarget = redirectionTarget.target;
+    if (redirectionTarget.typeArguments.any((type) => type is UnknownType)) {
+      return null;
+    }
+
+    RedirectingFactoryTarget? redirectingFactoryTarget =
+        resolvedTarget.function?.redirectingFactoryTarget;
+    if (redirectingFactoryTarget != null) {
+      // If the redirection target is itself a redirecting factory, it means
+      // that it is unresolved.
+      assert(redirectingFactoryTarget.isError);
+      String errorMessage = redirectingFactoryTarget.errorMessage!;
+      replacementNode = new InvalidExpression(errorMessage)
+        ..fileOffset = fileOffset;
+    } else {
+      Substitution substitution = Substitution.fromPairs(
+        initialTarget.function.typeParameters,
+        arguments.types,
+      );
+      for (int i = 0; i < redirectionTarget.typeArguments.length; i++) {
+        DartType typeArgument = substitution.substituteType(
+          redirectionTarget.typeArguments[i],
+        );
+        if (i < arguments.types.length) {
+          arguments.types[i] = typeArgument;
+        } else {
+          arguments.types.add(typeArgument);
+        }
+      }
+      arguments.types.length = redirectionTarget.typeArguments.length;
+
+      replacementNode = _buildRedirectingFactoryTargetInvocation(
+        resolvedTarget,
+        new Arguments(
+          arguments.positional,
+          types: arguments.types,
+          named: arguments.named,
+        )..fileOffset = arguments.fileOffset,
+        isConst: isConst,
+        fileOffset: fileOffset,
+        hasInferredTypeArguments: hasInferredTypeArguments,
+      );
+    }
+    return replacementNode;
+  }
+
+  Expression _buildRedirectingFactoryTargetInvocation(
+    Member target,
+    Arguments arguments, {
+    required bool isConst,
+    required int fileOffset,
+    required bool hasInferredTypeArguments,
+  }) {
+    Expression? result = helper.checkStaticArguments(
+      target: target,
+      arguments: arguments,
+      fileOffset: fileOffset,
+    );
+    if (result != null) {
+      return result;
+    }
+    isConst |= helper.constantContext != ConstantContext.none;
+    if (target is Constructor) {
+      if (isConst && !target.isConst) {
+        // Coverage-ignore-block(suite): Not run.
+        return helper.buildProblem(
+          codeNonConstConstructor,
+          fileOffset,
+          noLength,
+        );
+      }
+      libraryBuilder.checkBoundsInConstructorInvocation(
+        constructor: target,
+        typeArguments: arguments.types,
+        typeEnvironment: typeSchemaEnvironment,
+        fileUri: helper.uri,
+        fileOffset: fileOffset,
+      );
+      return new ConstructorInvocation(target, arguments, isConst: isConst)
+        ..fileOffset = fileOffset;
+    } else {
+      Procedure procedure = target as Procedure;
+      if (isConst && !procedure.isConst) {
+        if (procedure.isExtensionTypeMember) {
+          // Both generative constructors and factory constructors from
+          // extension type declarations are encoded as procedures so we use
+          // the message for non-const constructors here.
+          return helper.buildProblem(
+            codeNonConstConstructor,
+            fileOffset,
+            noLength,
+          );
+        } else {
+          return helper.buildProblem(codeNonConstFactory, fileOffset, noLength);
+        }
+      }
+      libraryBuilder.checkBoundsInFactoryInvocation(
+        factory: target,
+        typeArguments: arguments.types,
+        typeEnvironment: typeSchemaEnvironment,
+        fileUri: helper.uri,
+        fileOffset: fileOffset,
+        inferred: hasInferredTypeArguments,
+      );
+      return new StaticInvocation(target, arguments, isConst: isConst)
+        ..fileOffset = fileOffset;
+    }
+  }
+
+  _RedirectionTarget _getRedirectionTarget(Procedure factory) {
+    List<DartType> typeArguments = new List<DartType>.generate(
+      factory.function.typeParameters.length,
+      (int i) {
+        return new TypeParameterType.withDefaultNullability(
+          factory.function.typeParameters[i],
+        );
+      },
+      growable: true,
+    );
+
+    // Cyclic factories are detected earlier, so we're guaranteed to
+    // reach either a non-redirecting factory or an error eventually.
+    Member target = factory;
+    for (;;) {
+      RedirectingFactoryTarget? redirectingFactoryTarget =
+          target.function?.redirectingFactoryTarget;
+      if (redirectingFactoryTarget == null ||
+          redirectingFactoryTarget.isError) {
+        return new _RedirectionTarget(target, typeArguments);
+      }
+      Member nextMember = redirectingFactoryTarget.target!;
+      helper.ensureLoaded(nextMember);
+      List<DartType>? nextTypeArguments =
+          redirectingFactoryTarget.typeArguments;
+      if (nextTypeArguments != null) {
+        Substitution sub = Substitution.fromPairs(
+          target.function!.typeParameters,
+          typeArguments,
+        );
+        typeArguments = new List<DartType>.generate(nextTypeArguments.length, (
+          int i,
+        ) {
+          return sub.substituteType(nextTypeArguments[i]);
+        }, growable: true);
+      } else {
+        // Coverage-ignore-block(suite): Not run.
+        typeArguments = <DartType>[];
+      }
+      target = nextMember;
+    }
   }
 
   /// Returns the function type of [constructor] when called through [typedef].
@@ -2582,13 +2758,47 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
     node.hasBeenInferred = true;
 
-    Expression resolvedExpression = helper
-        .unaliasSingleTypeAliasedConstructorInvocation(node);
+    Expression resolvedExpression =
+        _unaliasSingleTypeAliasedConstructorInvocation(node);
     Expression resultingExpression = result.applyResult(resolvedExpression);
 
     return new ExpressionInferenceResult(
       result.inferredType,
       resultingExpression,
+    );
+  }
+
+  Expression _unaliasSingleTypeAliasedConstructorInvocation(
+    TypeAliasedConstructorInvocation invocation,
+  ) {
+    bool inferred = !hasExplicitTypeArguments(invocation.arguments);
+    DartType aliasedType = new TypedefType(
+      invocation.typeAliasBuilder.typedef,
+      Nullability.nonNullable,
+      invocation.arguments.types,
+    );
+    libraryBuilder.checkBoundsInType(
+      aliasedType,
+      typeSchemaEnvironment,
+      helper.uri,
+      invocation.fileOffset,
+      allowSuperBounded: false,
+      inferred: inferred,
+    );
+    DartType unaliasedType = aliasedType.unalias;
+    List<DartType>? invocationTypeArguments = null;
+    if (unaliasedType is InterfaceType) {
+      invocationTypeArguments = unaliasedType.typeArguments.toList();
+    }
+    Arguments invocationArguments = new Arguments(
+      invocation.arguments.positional,
+      types: invocationTypeArguments,
+      named: invocation.arguments.named,
+    )..fileOffset = invocation.arguments.fileOffset;
+    return new ConstructorInvocation(
+      invocation.target,
+      invocationArguments,
+      isConst: invocation.isConst,
     );
   }
 
@@ -2677,12 +2887,49 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       staticTarget: node.target,
     );
 
-    Expression resolvedExpression = helper
-        .unaliasSingleTypeAliasedFactoryInvocation(node)!;
+    Expression resolvedExpression = _unaliasSingleTypeAliasedFactoryInvocation(
+      node,
+    )!;
     Expression resultExpression = result.applyResult(resolvedExpression);
 
     node.hasBeenInferred = true;
     return new ExpressionInferenceResult(result.inferredType, resultExpression);
+  }
+
+  Expression? _unaliasSingleTypeAliasedFactoryInvocation(
+    TypeAliasedFactoryInvocation invocation,
+  ) {
+    bool inferred = !hasExplicitTypeArguments(invocation.arguments);
+    DartType aliasedType = new TypedefType(
+      invocation.typeAliasBuilder.typedef,
+      Nullability.nonNullable,
+      invocation.arguments.types,
+    );
+    libraryBuilder.checkBoundsInType(
+      aliasedType,
+      typeSchemaEnvironment,
+      helper.uri,
+      invocation.fileOffset,
+      allowSuperBounded: false,
+      inferred: inferred,
+    );
+    DartType unaliasedType = aliasedType.unalias;
+    List<DartType>? invocationTypeArguments = null;
+    if (unaliasedType is TypeDeclarationType) {
+      invocationTypeArguments = unaliasedType.typeArguments.toList();
+    }
+    Arguments invocationArguments = new Arguments(
+      invocation.arguments.positional,
+      types: invocationTypeArguments,
+      named: invocation.arguments.named,
+    )..fileOffset = invocation.arguments.fileOffset;
+    return _resolveRedirectingFactoryTarget(
+      target: invocation.target,
+      arguments: invocationArguments,
+      fileOffset: invocation.fileOffset,
+      isConst: invocation.isConst,
+      hasInferredTypeArguments: inferred,
+    );
   }
 
   @override
@@ -16172,11 +16419,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           staticTarget: constructor,
         );
         if (constructor.isRedirectingFactory) {
-          expr = helper.resolveRedirectingFactoryTarget(
-            constructor,
-            node.arguments,
-            node.fileOffset,
-            node.isConst,
+          expr = _resolveRedirectingFactoryTarget(
+            target: constructor,
+            arguments: node.arguments,
+            fileOffset: node.fileOffset,
+            isConst: node.isConst,
+            hasInferredTypeArguments: !hasExplicitTypeArguments(node.arguments),
           )!;
         } else {
           expr = new StaticInvocation(
@@ -16468,4 +16716,11 @@ class OverwrittenInterfaceMember {
   final Name name;
 
   OverwrittenInterfaceMember({required this.target, required this.name});
+}
+
+class _RedirectionTarget {
+  final Member target;
+  final List<DartType> typeArguments;
+
+  _RedirectionTarget(this.target, this.typeArguments);
 }

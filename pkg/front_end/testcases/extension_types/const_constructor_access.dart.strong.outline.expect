@@ -104,8 +104,8 @@ static synthetic method _#Typedef2#new#tearOff<unrelated X extends core::Object?
 
 
 Extra constant evaluation status:
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///const_constructor_access.dart:19:24 -> IntConstant(0)
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///const_constructor_access.dart:21:23 -> IntConstant(0)
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///const_constructor_access.dart:25:31 -> IntConstant(0)
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///const_constructor_access.dart:27:30 -> IntConstant(0)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///const_constructor_access.dart:19:24 -> IntConstant(0)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///const_constructor_access.dart:21:23 -> IntConstant(0)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///const_constructor_access.dart:25:31 -> IntConstant(0)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///const_constructor_access.dart:27:30 -> IntConstant(0)
 Extra constant evaluation: evaluated: 14, effectively constant: 4

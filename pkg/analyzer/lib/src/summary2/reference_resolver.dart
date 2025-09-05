@@ -569,7 +569,9 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     if (bound != null) {
       bound.accept(this);
       var fragment = node.declaredFragment!;
-      fragment.element.bound = bound.type;
+      if (fragment.previousFragment == null) {
+        fragment.element.bound = bound.type;
+      }
       nodesToBuildType.addDeclaration(node);
     }
   }

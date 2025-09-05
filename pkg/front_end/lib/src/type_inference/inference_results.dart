@@ -171,6 +171,7 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
         expression is InvocationExpression || expression is InvalidExpression,
       );
       if (expression is FactoryConstructorInvocation) {
+        // Coverage-ignore-block(suite): Not run.
         return InvocationInferenceResult._insertHoistedExpressions(
           expression,
           hoistedArguments,

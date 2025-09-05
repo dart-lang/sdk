@@ -39,8 +39,8 @@ static extension-type-member synthetic method ExInt|constructor#_#new#tearOff(co
 
 
 Extra constant evaluation status:
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///issue54357.dart:5:13 -> IntConstant(3)
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///issue54357.dart:6:13 -> IntConstant(4)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///issue54357.dart:5:13 -> IntConstant(3)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///issue54357.dart:6:13 -> IntConstant(4)
 Evaluated: ListLiteral @ org-dartlang-testcase:///issue54357.dart:8:12 -> ListConstant(const <int>[3])
 Evaluated: ListLiteral @ org-dartlang-testcase:///issue54357.dart:9:12 -> ListConstant(const <int>[4])
 Evaluated: ListConcatenation @ org-dartlang-testcase:///issue54357.dart:10:14 -> ListConstant(const <int>[3, 4])

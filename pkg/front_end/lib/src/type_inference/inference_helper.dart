@@ -4,11 +4,13 @@
 
 import 'package:kernel/ast.dart';
 
+import '../base/constant_context.dart';
 import '../codes/cfe_codes.dart' show LocatedMessage, Message;
-import '../kernel/internal_ast.dart';
 
 abstract class InferenceHelper {
   Uri get uri;
+
+  ConstantContext get constantContext;
 
   InvalidExpression buildProblem(
     Message message,
@@ -24,6 +26,12 @@ abstract class InferenceHelper {
     Arguments arguments,
     int offset,
   );
+
+  Expression? checkStaticArguments({
+    required Member target,
+    required Arguments arguments,
+    required int fileOffset,
+  });
 
   void addProblem(
     Message message,
@@ -47,18 +55,13 @@ abstract class InferenceHelper {
 
   String constructorNameForDiagnostics(String name, {String? className});
 
-  Expression unaliasSingleTypeAliasedConstructorInvocation(
-    TypeAliasedConstructorInvocation invocation,
-  );
-
-  Expression? resolveRedirectingFactoryTarget(
-    Procedure target,
-    Arguments arguments,
-    int fileOffset,
-    bool isConst,
-  );
-
-  Expression? unaliasSingleTypeAliasedFactoryInvocation(
-    TypeAliasedFactoryInvocation invocation,
-  );
+  /// Ensure that the containing library of the [member] has been loaded.
+  ///
+  /// This is for instance important for lazy dill library builders where this
+  /// method has to be called to ensure that
+  /// a) The library has been fully loaded (and for instance any internal
+  ///    transformation needed has been performed); and
+  /// b) The library is correctly marked as being used to allow for proper
+  ///    'dependency pruning'.
+  void ensureLoaded(Member? member);
 }

@@ -27892,7 +27892,7 @@ library
 ''');
   }
 
-  test_typeParameters() async {
+  test_typeParameters_111() async {
     var library = await buildLibrary(r'''
 class A<T> {}
 augment class A<T> {}
@@ -27937,6 +27937,269 @@ library
       typeParameters
         #E0 T
           firstFragment: #F3
+''');
+  }
+
+  test_typeParameters_121() async {
+    var library = await buildLibrary(r'''
+class A<T> {}
+augment class A<T, U> {}
+augment class A<T> {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          typeParameters
+            #F3 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
+              element: #E0 T
+              nextFragment: #F4
+        #F2 class A (nameOffset:28) (firstTokenOffset:14) (offset:28)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          nextFragment: #F5
+          typeParameters
+            #F4 T (nameOffset:30) (firstTokenOffset:30) (offset:30)
+              element: #E0 T
+              previousFragment: #F3
+              nextFragment: #F6
+        #F5 class A (nameOffset:53) (firstTokenOffset:39) (offset:53)
+          element: <testLibrary>::@class::A
+          previousFragment: #F2
+          typeParameters
+            #F6 T (nameOffset:55) (firstTokenOffset:55) (offset:55)
+              element: #E0 T
+              previousFragment: #F4
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F3
+''');
+  }
+
+  test_typeParameters_212() async {
+    var library = await buildLibrary(r'''
+class A<T, U> {}
+augment class A<T> {}
+augment class A<T, U> {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          typeParameters
+            #F3 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
+              element: #E0 T
+              nextFragment: #F4
+            #F5 U (nameOffset:11) (firstTokenOffset:11) (offset:11)
+              element: #E1 U
+              nextFragment: #F6
+        #F2 class A (nameOffset:31) (firstTokenOffset:17) (offset:31)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          nextFragment: #F7
+          typeParameters
+            #F4 T (nameOffset:33) (firstTokenOffset:33) (offset:33)
+              element: #E0 T
+              previousFragment: #F3
+              nextFragment: #F8
+            #F6 U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+              element: #E1 U
+              previousFragment: #F5
+              nextFragment: #F9
+        #F7 class A (nameOffset:53) (firstTokenOffset:39) (offset:53)
+          element: <testLibrary>::@class::A
+          previousFragment: #F2
+          typeParameters
+            #F8 T (nameOffset:55) (firstTokenOffset:55) (offset:55)
+              element: #E0 T
+              previousFragment: #F4
+            #F9 U (nameOffset:58) (firstTokenOffset:58) (offset:58)
+              element: #E1 U
+              previousFragment: #F6
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F3
+        #E1 U
+          firstFragment: #F5
+''');
+  }
+
+  test_typeParameters_bounds_01() async {
+    var library = await buildLibrary(r'''
+class A<T2> {}
+augment class A<T2 extends int> {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          typeParameters
+            #F3 T2 (nameOffset:8) (firstTokenOffset:8) (offset:8)
+              element: #E0 T2
+              nextFragment: #F4
+        #F2 class A (nameOffset:29) (firstTokenOffset:15) (offset:29)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          typeParameters
+            #F4 T2 (nameOffset:31) (firstTokenOffset:31) (offset:31)
+              element: #E0 T2
+              previousFragment: #F3
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T2
+          firstFragment: #F3
+''');
+  }
+
+  test_typeParameters_bounds_10() async {
+    var library = await buildLibrary(r'''
+class A<T extends int> {}
+augment class A<T> {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          typeParameters
+            #F3 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
+              element: #E0 T
+              nextFragment: #F4
+        #F2 class A (nameOffset:40) (firstTokenOffset:26) (offset:40)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          typeParameters
+            #F4 T (nameOffset:42) (firstTokenOffset:42) (offset:42)
+              element: #E0 T
+              previousFragment: #F3
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F3
+          bound: int
+''');
+  }
+
+  test_typeParameters_bounds_11() async {
+    var library = await buildLibrary(r'''
+class A<T extends int> {}
+augment class A<T extends int> {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          typeParameters
+            #F3 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
+              element: #E0 T
+              nextFragment: #F4
+        #F2 class A (nameOffset:40) (firstTokenOffset:26) (offset:40)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          typeParameters
+            #F4 T (nameOffset:42) (firstTokenOffset:42) (offset:42)
+              element: #E0 T
+              previousFragment: #F3
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F3
+          bound: int
+''');
+  }
+
+  test_typeParameters_bounds_12() async {
+    var library = await buildLibrary(r'''
+class A<T extends int> {}
+augment class A<T extends String> {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          typeParameters
+            #F3 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
+              element: #E0 T
+              nextFragment: #F4
+        #F2 class A (nameOffset:40) (firstTokenOffset:26) (offset:40)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          typeParameters
+            #F4 T (nameOffset:42) (firstTokenOffset:42) (offset:42)
+              element: #E0 T
+              previousFragment: #F3
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F3
+          bound: int
 ''');
   }
 
@@ -27998,6 +28261,52 @@ library
         synthetic new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F7
+''');
+  }
+
+  test_typeParameters_differentNames() async {
+    var library = await buildLibrary(r'''
+class A<T, U> {}
+augment class A<U, T> {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          typeParameters
+            #F3 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
+              element: #E0 T
+              nextFragment: #F4
+            #F5 U (nameOffset:11) (firstTokenOffset:11) (offset:11)
+              element: #E1 U
+              nextFragment: #F6
+        #F2 class A (nameOffset:31) (firstTokenOffset:17) (offset:31)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          typeParameters
+            #F4 U (nameOffset:33) (firstTokenOffset:33) (offset:33)
+              element: #E0 T
+              previousFragment: #F3
+            #F6 T (nameOffset:36) (firstTokenOffset:36) (offset:36)
+              element: #E1 U
+              previousFragment: #F5
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F3
+        #E1 U
+          firstFragment: #F5
 ''');
   }
 }

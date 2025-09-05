@@ -245,7 +245,7 @@ mixin BodyBuilderTestMixin on BodyBuilder {
   };
 
   @override
-  Expression buildConstructorInvocation(
+  Expression resolveAndBuildConstructorInvocation(
     TypeDeclarationBuilder? type,
     Token nameToken,
     Token nameLastToken,
@@ -297,7 +297,7 @@ mixin BodyBuilderTestMixin on BodyBuilder {
         nameToken.length,
       );
     }
-    return super.buildConstructorInvocation(
+    return super.resolveAndBuildConstructorInvocation(
       type,
       nameToken,
       nameLastToken,

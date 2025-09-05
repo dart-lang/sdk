@@ -74,6 +74,7 @@ class MetadataBuilder {
     // store it in `_expression` of the corresponding [MetadataBuilder].
     Map<MetadataBuilder, int> parsedAnnotationBuilders = {};
 
+    List<int> indicesOfAnnotationsToBeInferred = [];
     for (int i = 0; i < metadata.length; ++i) {
       MetadataBuilder annotationBuilder = metadata[i];
       bool createFileUriExpression =
@@ -118,8 +119,9 @@ class MetadataBuilder {
           )..fileOffset = annotationBuilder.atOffset;
         }
         // Record the index of [annotation] in `parent.annotations`.
-        parsedAnnotationBuilders[annotationBuilder] =
-            annotatable.annotations.length;
+        int annotationIndex = annotatable.annotations.length;
+        parsedAnnotationBuilders[annotationBuilder] = annotationIndex;
+        indicesOfAnnotationsToBeInferred.add(annotationIndex);
         // It is important for the inference and backlog computations that the
         // annotation is already a child of [parent].
         annotatable.addAnnotation(annotation);
@@ -156,9 +158,11 @@ class MetadataBuilder {
       }
     }
     if (bodyBuilder != null) {
-      // TODO(johnniwinther): Avoid potentially inferring annotations multiple
-      // times.
-      bodyBuilder.inferAnnotations(annotatable, annotatable.annotations);
+      bodyBuilder.inferAnnotations(
+        annotatable,
+        annotatable.annotations,
+        indices: indicesOfAnnotationsToBeInferred,
+      );
       bodyBuilder.performBacklogComputations();
       for (MapEntry<MetadataBuilder, int> entry
           in parsedAnnotationBuilders.entries) {

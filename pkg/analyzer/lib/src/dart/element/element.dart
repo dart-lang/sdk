@@ -4609,6 +4609,11 @@ abstract class InstanceFragmentImpl extends FragmentImpl
     _setters.add(fragment);
     fragment.enclosingFragment = this;
   }
+
+  void addTypeParameter(TypeParameterFragmentImpl typeParameter) {
+    _typeParameters.add(typeParameter);
+    typeParameter.enclosingFragment = this;
+  }
 }
 
 abstract class InterfaceElementImpl extends InstanceElementImpl
@@ -10127,7 +10132,8 @@ class TypeParameterFragmentImpl extends FragmentImpl
   MetadataImpl get metadata2 => metadata;
 
   @override
-  int get offset => nameOffset ?? firstTokenOffset!;
+  int get offset =>
+      nameOffset ?? firstTokenOffset ?? enclosingFragment?.offset ?? -1;
 
   void addFragment(TypeParameterFragmentImpl fragment) {
     fragment.element = element;

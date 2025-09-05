@@ -1650,48 +1650,50 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     _reportTypeArgumentIssues(issues, fileUri, offset, inferred: inferred);
   }
 
-  void checkBoundsInConstructorInvocation(
-    ConstructorInvocation node,
-    TypeEnvironment typeEnvironment,
-    Uri fileUri, {
+  void checkBoundsInConstructorInvocation({
+    required Constructor constructor,
+    required List<DartType> typeArguments,
+    required TypeEnvironment typeEnvironment,
+    required Uri fileUri,
+    required int fileOffset,
     bool inferred = false,
   }) {
-    if (node.arguments.types.isEmpty) return;
-    Constructor constructor = node.target;
+    if (typeArguments.isEmpty) return;
     Class klass = constructor.enclosingClass;
     DartType constructedType = new InterfaceType(
       klass,
       klass.enclosingLibrary.nonNullable,
-      node.arguments.types,
+      typeArguments,
     );
     checkBoundsInType(
       constructedType,
       typeEnvironment,
       fileUri,
-      node.fileOffset,
+      fileOffset,
       inferred: inferred,
       allowSuperBounded: false,
     );
   }
 
-  void checkBoundsInFactoryInvocation(
-    StaticInvocation node,
-    TypeEnvironment typeEnvironment,
-    Uri fileUri, {
+  void checkBoundsInFactoryInvocation({
+    required Procedure factory,
+    required List<DartType> typeArguments,
+    required TypeEnvironment typeEnvironment,
+    required Uri fileUri,
+    required int fileOffset,
     bool inferred = false,
   }) {
-    if (node.arguments.types.isEmpty) return;
-    Procedure factory = node.target;
+    if (typeArguments.isEmpty) return;
     assert(factory.isFactory || factory.isExtensionTypeMember);
     DartType constructedType = Substitution.fromPairs(
-      node.target.function.typeParameters,
-      node.arguments.types,
-    ).substituteType(node.target.function.returnType);
+      factory.function.typeParameters,
+      typeArguments,
+    ).substituteType(factory.function.returnType);
     checkBoundsInType(
       constructedType,
       typeEnvironment,
       fileUri,
-      node.fileOffset,
+      fileOffset,
       inferred: inferred,
       allowSuperBounded: false,
     );

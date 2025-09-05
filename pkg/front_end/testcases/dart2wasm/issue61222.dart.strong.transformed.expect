@@ -75,8 +75,8 @@ constants  {
 }
 
 Extra constant evaluation status:
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///issue61222.dart:7:22 -> NullConstant(null)
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///issue61222.dart:7:31 -> IntConstant(1)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///issue61222.dart:7:22 -> NullConstant(null)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///issue61222.dart:7:31 -> IntConstant(1)
 Evaluated: StaticInvocation @ org-dartlang-testcase:///issue61222.dart:14:23 -> NullConstant(null)
 Evaluated: StaticInvocation @ org-dartlang-testcase:///issue61222.dart:14:9 -> NullConstant(null)
 Evaluated: StaticInvocation @ org-dartlang-testcase:///issue61222.dart:15:23 -> IntConstant(1)
