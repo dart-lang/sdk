@@ -206,6 +206,25 @@ class BundleRequirementsPrinter {
           requirements.methods.sorted,
           _writeNamedId,
         );
+        sink.writeElements(
+          'implementedMethods',
+          requirements.implementedMethods.sorted,
+          _writeNamedId,
+        );
+        sink.writeElements(
+          'superMethods',
+          requirements.superMethods.entries.toList(),
+          (superEntry) {
+            var index = superEntry.key;
+            var nameToId = superEntry.value;
+            sink.writelnWithIndent('[$index]');
+            sink.withIndent(() {
+              for (var entry in nameToId.sorted) {
+                _writeNamedId(entry);
+              }
+            });
+          },
+        );
       });
     });
   }
@@ -580,6 +599,25 @@ class DriverEventsPrinter {
         sink.writeProperties({
           'libraryUri': failure.libraryUri,
           'interfaceName': failure.interfaceName.asString,
+          'methodName': failure.methodName.asString,
+          'expectedId': idProvider.manifestId(failure.expectedId),
+          'actualId': idProvider.manifestId(failure.actualId),
+        });
+      case ImplementedMethodIdMismatch():
+        sink.writelnWithIndent('implementedMethodIdMismatch');
+        sink.writeProperties({
+          'libraryUri': failure.libraryUri,
+          'interfaceName': failure.interfaceName.asString,
+          'methodName': failure.methodName.asString,
+          'expectedId': idProvider.manifestId(failure.expectedId),
+          'actualId': idProvider.manifestId(failure.actualId),
+        });
+      case SuperImplementedMethodIdMismatch():
+        sink.writelnWithIndent('superImplementedMethodIdMismatch');
+        sink.writeProperties({
+          'libraryUri': failure.libraryUri,
+          'interfaceName': failure.interfaceName.asString,
+          'superIndex': failure.superIndex,
           'methodName': failure.methodName.asString,
           'expectedId': idProvider.manifestId(failure.expectedId),
           'actualId': idProvider.manifestId(failure.actualId),
@@ -1344,6 +1382,40 @@ class LibraryManifestPrinter {
             }
           });
         }
+      });
+    }
+
+    var implementedEntries = notIgnored(interface.implemented);
+    if (implementedEntries.isNotEmpty) {
+      sink.withIndent(() {
+        sink.writelnWithIndent('implemented');
+        sink.withIndent(() {
+          for (var entry in implementedEntries) {
+            _writeNamedId(entry.key, entry.value);
+          }
+        });
+      });
+    }
+
+    var superImplementedLayers = interface.superImplemented
+        .map((layer) => notIgnored(layer))
+        .toList();
+    if (superImplementedLayers.any((layer) => layer.isNotEmpty)) {
+      sink.withIndent(() {
+        sink.writelnWithIndent('superImplemented');
+        sink.withIndent(() {
+          for (var i = 0; i < superImplementedLayers.length; i++) {
+            var layerEntries = superImplementedLayers[i];
+            if (layerEntries.isNotEmpty) {
+              sink.writelnWithIndent('[$i]');
+              sink.withIndent(() {
+                for (var entry in layerEntries) {
+                  _writeNamedId(entry.key, entry.value);
+                }
+              });
+            }
+          }
+        });
       });
     }
   }

@@ -986,8 +986,20 @@ sealed class InterfaceItem<E extends InterfaceElementImpl>
     required this.interface,
   });
 
+  ManifestItemId? getImplementedMethodId(LookupName name) {
+    return interface.implemented[name];
+  }
+
   ManifestItemId? getInterfaceMethodId(LookupName name) {
     return interface.map[name];
+  }
+
+  ManifestItemId? getSuperImplementedMethodId(int index, LookupName name) {
+    if (index < interface.superImplemented.length) {
+      return interface.superImplemented[index][name];
+    } else {
+      return null;
+    }
   }
 
   /// Intentionally omits [hasNonFinalField], which is tracked as a separate
@@ -1141,10 +1153,14 @@ class ManifestInterface {
 
   /// The map of names to their IDs in the interface.
   Map<LookupName, ManifestItemId> map;
+  Map<LookupName, ManifestItemId> implemented;
+  List<Map<LookupName, ManifestItemId>> superImplemented;
 
   /// We move [map] into here during building the manifest, so that we can
   /// compare after building, and decide if [id] should be updated.
   Map<LookupName, ManifestItemId> mapPrevious = {};
+  Map<LookupName, ManifestItemId> implementedPrevious = {};
+  List<Map<LookupName, ManifestItemId>> superImplementedPrevious = [];
 
   /// Key: IDs of method declarations.
   /// Value: ID assigned last time.
@@ -1158,6 +1174,8 @@ class ManifestInterface {
   ManifestInterface({
     required this.id,
     required this.map,
+    required this.implemented,
+    required this.superImplemented,
     required this.combinedIds,
   });
 
@@ -1165,6 +1183,8 @@ class ManifestInterface {
     return ManifestInterface(
       id: ManifestItemId.generate(),
       map: {},
+      implemented: {},
+      superImplemented: [],
       combinedIds: {},
     );
   }
@@ -1173,6 +1193,10 @@ class ManifestInterface {
     return ManifestInterface(
       id: ManifestItemId.read(reader),
       map: reader.readLookupNameToIdMap(),
+      implemented: reader.readLookupNameToIdMap(),
+      superImplemented: reader.readTypedList(() {
+        return reader.readLookupNameToIdMap();
+      }),
       combinedIds: reader.readMap(
         readKey: () => ManifestItemIdList.read(reader),
         readValue: () => ManifestItemId.read(reader),
@@ -1182,10 +1206,17 @@ class ManifestInterface {
 
   void afterUpdate() {
     const mapEquality = MapEquality<LookupName, ManifestItemId>();
-    if (!mapEquality.equals(map, mapPrevious)) {
+    const listEquality = ListEquality<Map<LookupName, ManifestItemId>>(
+      MapEquality<LookupName, ManifestItemId>(),
+    );
+    if (!mapEquality.equals(map, mapPrevious) ||
+        !mapEquality.equals(implemented, implementedPrevious) ||
+        !listEquality.equals(superImplemented, superImplementedPrevious)) {
       id = ManifestItemId.generate();
     }
     mapPrevious = {};
+    implementedPrevious = {};
+    superImplementedPrevious = [];
 
     combinedIdsTemp = {};
   }
@@ -1194,6 +1225,12 @@ class ManifestInterface {
     mapPrevious = map;
     map = {};
 
+    implementedPrevious = implemented;
+    implemented = {};
+
+    superImplementedPrevious = superImplemented;
+    superImplemented = [];
+
     combinedIdsTemp = combinedIds;
     combinedIds = {};
   }
@@ -1201,6 +1238,8 @@ class ManifestInterface {
   void write(BufferedSink sink) {
     id.write(sink);
     map.write(sink);
+    implemented.write(sink);
+    sink.writeList(superImplemented, (map) => map.write(sink));
     sink.writeMap(
       combinedIds,
       writeKey: (key) => key.write(sink),

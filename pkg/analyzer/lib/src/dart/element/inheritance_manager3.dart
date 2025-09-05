@@ -207,30 +207,55 @@ class InheritanceManager3 {
     element as InterfaceElementImpl; // TODO(scheglov): remove cast
 
     var interface = _getInterface(element);
+
+    InternalExecutableElement? result;
     if (forSuper) {
       if (element is ExtensionTypeElementImpl) {
-        return null;
-      }
-      var superImplemented = interface.superImplemented;
-      if (forMixinIndex >= 0) {
-        return superImplemented[forMixinIndex][name];
-      }
-      if (superImplemented.isNotEmpty) {
-        return superImplemented.last[name];
+        result = null;
       } else {
-        assert(element.name == 'Object');
-        return null;
+        var superImplemented = interface.superImplemented;
+        if (forMixinIndex >= 0) {
+          result = superImplemented[forMixinIndex][name];
+        } else if (superImplemented.isNotEmpty) {
+          result = superImplemented.last[name];
+        } else {
+          assert(element.name == 'Object');
+          result = null;
+        }
       }
-    }
-    if (concrete) {
-      return interface.implemented[name];
+    } else if (concrete) {
+      result = interface.implemented[name];
+    } else {
+      result = interface.map[name];
     }
 
-    var result = interface.map[name];
+    // if (forSuper) {
+    //   if (element is ExtensionTypeElementImpl) {
+    //     return null;
+    //   }
+    //   var superImplemented = interface.superImplemented;
+    //   if (forMixinIndex >= 0) {
+    //     return superImplemented[forMixinIndex][name];
+    //   }
+    //   if (superImplemented.isNotEmpty) {
+    //     return superImplemented.last[name];
+    //   } else {
+    //     assert(element.name == 'Object');
+    //     return null;
+    //   }
+    // }
+    // if (concrete) {
+    //   return interface.implemented[name];
+    // }
+    // var result = interface.map[name];
+
     globalResultRequirements?.record_interface_getMember(
       element: element,
       nameObj: name,
       methodElement: result,
+      concrete: concrete,
+      forSuper: forSuper,
+      forMixinIndex: forMixinIndex,
     );
     return result;
   }

@@ -274,6 +274,8 @@ class InterfaceItemRequirements {
 
   /// These are "methods" in wide meaning: methods, getters, setters.
   final Map<LookupName, ManifestItemId?> methods;
+  final Map<LookupName, ManifestItemId?> implementedMethods;
+  final Map<int, Map<LookupName, ManifestItemId?>> superMethods;
 
   InterfaceItemRequirements({
     required this.interfaceId,
@@ -281,6 +283,8 @@ class InterfaceItemRequirements {
     required this.allConstructors,
     required this.requestedConstructors,
     required this.methods,
+    required this.implementedMethods,
+    required this.superMethods,
   });
 
   factory InterfaceItemRequirements.empty() {
@@ -290,6 +294,8 @@ class InterfaceItemRequirements {
       allConstructors: null,
       requestedConstructors: {},
       methods: {},
+      implementedMethods: {},
+      superMethods: {},
     );
   }
 
@@ -300,6 +306,11 @@ class InterfaceItemRequirements {
       allConstructors: ManifestItemIdList.readOptional(reader),
       requestedConstructors: reader.readNameToOptionalIdMap(),
       methods: reader.readNameToOptionalIdMap(),
+      implementedMethods: reader.readNameToOptionalIdMap(),
+      superMethods: reader.readMap(
+        readKey: () => reader.readInt64(),
+        readValue: () => reader.readNameToOptionalIdMap(),
+      ),
     );
   }
 
@@ -309,6 +320,12 @@ class InterfaceItemRequirements {
     allConstructors.writeOptional(sink);
     sink.writeNameToIdMap(requestedConstructors);
     sink.writeNameToIdMap(methods);
+    sink.writeNameToIdMap(implementedMethods);
+    sink.writeMap(
+      superMethods,
+      writeKey: (index) => sink.writeInt64(index),
+      writeValue: (map) => sink.writeNameToIdMap(map),
+    );
   }
 }
 
@@ -788,6 +805,46 @@ class RequirementsManifest {
             );
           }
         }
+
+        var implementedMethods = interfaceRequirements.implementedMethods;
+        for (var methodEntry in implementedMethods.entries) {
+          var methodName = methodEntry.key;
+          var methodId = interfaceItem.getImplementedMethodId(methodName);
+          var expectedId = methodEntry.value;
+          if (expectedId != methodId) {
+            return ImplementedMethodIdMismatch(
+              libraryUri: libraryUri,
+              interfaceName: interfaceName,
+              methodName: methodName,
+              expectedId: expectedId,
+              actualId: methodId,
+            );
+          }
+        }
+
+        var superMethods = interfaceRequirements.superMethods;
+        for (var superEntry in superMethods.entries) {
+          var superIndex = superEntry.key;
+          var nameToId = superEntry.value;
+          for (var methodEntry in nameToId.entries) {
+            var methodName = methodEntry.key;
+            var methodId = interfaceItem.getSuperImplementedMethodId(
+              superIndex,
+              methodName,
+            );
+            var expectedId = methodEntry.value;
+            if (expectedId != methodId) {
+              return SuperImplementedMethodIdMismatch(
+                libraryUri: libraryUri,
+                interfaceName: interfaceName,
+                superIndex: superIndex,
+                methodName: methodName,
+                expectedId: expectedId,
+                actualId: methodId,
+              );
+            }
+          }
+        }
       }
 
       if (libraryRequirements.exportedExtensions case var expectedIds?) {
@@ -1035,6 +1092,9 @@ class RequirementsManifest {
     required InterfaceElementImpl element,
     required Name nameObj,
     required ExecutableElement? methodElement,
+    required bool concrete,
+    required bool forSuper,
+    required int forMixinIndex,
   }) {
     // Skip private names, cannot be used outside this library.
     if (!nameObj.isPublic) {
@@ -1048,10 +1108,23 @@ class RequirementsManifest {
 
     var item = itemRequirements.item;
     var requirements = itemRequirements.requirements;
-
     var methodName = nameObj.name.asLookupName;
-    var methodId = item.getInterfaceMethodId(methodName);
-    requirements.methods[methodName] = methodId;
+
+    ManifestItemId? methodId;
+    if (forSuper) {
+      var superIndex = forMixinIndex >= 0
+          ? forMixinIndex
+          : item.interface.superImplemented.length - 1;
+      var superMethods = requirements.superMethods[superIndex] ??= {};
+      methodId = item.getSuperImplementedMethodId(superIndex, methodName);
+      superMethods[methodName] = methodId;
+    } else if (concrete) {
+      methodId = item.getImplementedMethodId(methodName);
+      requirements.implementedMethods[methodName] = methodId;
+    } else {
+      methodId = item.getInterfaceMethodId(methodName);
+      requirements.methods[methodName] = methodId;
+    }
 
     // Check for consistency between the actual interface and manifest.
     if (methodElement != null) {
