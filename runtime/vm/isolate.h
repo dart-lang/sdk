@@ -374,8 +374,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   // Returns `true` if this was the last isolate and the caller is responsible
   // for deleting the isolate group.
   bool UnregisterIsolateDecrementCount();
-  void RegisterIsolateGroupMutator();
-  void UnregisterIsolateGroupMutator();
+  void RegisterIsolateGroupMutator(Thread* mutator);
+  void UnregisterIsolateGroupMutator(Thread* mutator);
 
   bool ContainsOnlyOneIsolate();
 
@@ -650,6 +650,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   Isolate* FirstIsolate() const;
   Isolate* FirstIsolateLocked() const;
 
+  void ForEachMutatorAtASafepoint(std::function<void(Thread* thread)> function);
+
   // Ensures mutators are stopped during execution of the provided function.
   //
   // If the current thread is the only mutator in the isolate group,
@@ -907,6 +909,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   IntrusiveDList<Isolate> isolates_;
   RelaxedAtomic<Dart_Port> interrupt_port_ = ILLEGAL_PORT;
   intptr_t isolate_count_ = 0;
+  IntrusiveDList<Thread> mutators_;
   intptr_t group_mutator_count_ = 0;
   bool initial_spawn_successful_ = false;
   Dart_LibraryTagHandler library_tag_handler_ = nullptr;
