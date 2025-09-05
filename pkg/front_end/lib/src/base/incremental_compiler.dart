@@ -56,11 +56,13 @@ import 'package:kernel/kernel.dart'
         VariableSet,
         VisitorDefault,
         VisitorVoidMixin,
-        Member;
+        Member,
+        TypeParameterType;
 import 'package:kernel/kernel.dart' as kernel show Combinator;
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/changed_structure_notifier.dart'
     show ChangedStructureNotifier;
+import 'package:kernel/type_algebra.dart' show Substitution;
 import 'package:package_config/package_config.dart' show Package, PackageConfig;
 
 import '../api_prototype/experimental_flags.dart';
@@ -1863,6 +1865,25 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             cls,
             offset,
           );
+
+          Map<TypeParameter, TypeParameterType> substitutionMap = {};
+          Map<String, TypeParameter> typeDefinitionNamesMap = {};
+          for (TypeParameter typeDefinition in typeDefinitions) {
+            if (typeDefinition.name != null) {
+              typeDefinitionNamesMap[typeDefinition.name!] = typeDefinition;
+            }
+          }
+          for (TypeParameter typeParameter in foundScope.typeParameters) {
+            TypeParameter? match = typeDefinitionNamesMap[typeParameter.name];
+            if (match != null) {
+              substitutionMap[typeParameter] = new TypeParameterType(
+                match,
+                match.computeNullabilityFromBound(),
+              );
+            }
+          }
+          Substitution substitution = Substitution.fromMap(substitutionMap);
+
           final bool alwaysInlineConstants = lastGoodKernelTarget
               .backendTarget
               .constantsBackend
@@ -1886,7 +1907,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                 extraKnownVariables.add(
                   new VariableDeclarationImpl(
                     def.key,
-                    type: def.value.type,
+                    type: substitution.substituteType(def.value.type),
                     isConst: true,
                     hasDeclaredInitializer: true,
                     initializer: def.value.initializer,
@@ -1905,7 +1926,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                 extraKnownVariables.add(
                   new VariableDeclarationImpl(
                     def.key,
-                    type: def.value.type,
+                    type: substitution.substituteType(def.value.type),
                     isConst: false,
                   )..fileOffset = def.value.fileOffset,
                 );
@@ -1914,7 +1935,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                 _ExtensionTypeFinder.isOrContainsExtensionType(
                   def.value.type,
                 )) {
-              usedDefinitions[def.key] = def.value.type;
+              usedDefinitions[def.key] = substitution.substituteType(
+                def.value.type,
+              );
             }
           }
         }

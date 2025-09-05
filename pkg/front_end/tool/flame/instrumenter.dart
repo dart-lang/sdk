@@ -247,7 +247,7 @@ class TimerCounterInstrumenterConfig implements InstrumenterConfig {
     Set<String> procedureNamesWantedInFile =
         wanted[p.fileUri.pathSegments.last] ?? const {};
     return procedureNamesWantedInFile.contains(name) ||
-        !procedureNamesWantedInFile.contains("*");
+        procedureNamesWantedInFile.contains("*");
   }
 
   @override

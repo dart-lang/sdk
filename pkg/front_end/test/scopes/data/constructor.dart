@@ -101,9 +101,7 @@ class Foo2<E extends num> {
      class=Foo2,
      member=foo,
      static,
-     typeParameters=[
-      Foo2.E,
-      Foo2.foo.E],
+     typeParameters=[Foo2.foo.E],
      variables=[a]
     */
     x;
@@ -131,7 +129,6 @@ class Foo2<E extends num> {
      class=Foo2,
      member=bar,
      static,
-     typeParameters=[Foo2.E],
      variables=[a]
     */
     x;
@@ -143,9 +140,7 @@ class Foo2<E extends num> {
      class=Foo2,
      member=baz,
      static,
-     typeParameters=[
-      Foo2.E,
-      Foo2.baz.E],
+     typeParameters=[Foo2.baz.E],
      variables=[a]
     */
     x;

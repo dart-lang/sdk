@@ -112,22 +112,18 @@ void _processData(WithOutputInfo? withOutputInfo, int factorForMicroSeconds) {
             "${withOutputInfo.names[enterProcedureNumber]}.",
           );
         }
-        bool foundMatch = false;
-        int steps = 1;
+        int? foundAt;
         for (int i = _activeStack.length - 2; i >= 0; i -= 2) {
-          steps++;
           if (_activeStack[i] == procedureNumber) {
-            foundMatch = true;
+            foundAt = i;
             break;
           }
         }
-        if (foundMatch) {
+        if (foundAt != null) {
           _activeStack.add(enterProcedureNumber);
           _activeStack.add(enterTicks);
-          enterProcedureNumber = _activeStack.removeAt(
-            _activeStack.length - steps * 2,
-          );
-          enterTicks = _activeStack.removeAt(_activeStack.length - steps * 2);
+          enterProcedureNumber = _activeStack.removeAt(foundAt);
+          enterTicks = _activeStack.removeAt(foundAt);
           assert(enterProcedureNumber != procedureNumber);
         } else {
           throw "Mismatching enter/exit with no matching "
