@@ -12,6 +12,22 @@ import 'utils/io_utils.dart';
 final Uri repoDirUri = computeRepoDirUri();
 
 Future<void> main() async {
+  Directory coverageTmpDir = await runAllCoverageTests(silent: false);
+
+  // Don't include the not-compiled stuff as we've (mostly) asked the VM to
+  // force compile everything and that the remaining stuff is (mostly) mixins
+  // and const classes etc that shouldn't (necessarily) be compiled but is
+  // potentially covered in other ways.
+  await coverageMerger.mergeFromDirUri(
+    repoDirUri.resolve(".dart_tool/package_config.json"),
+    coverageTmpDir.uri,
+    silent: false,
+    extraCoverageIgnores: const [],
+    extraCoverageBlockIgnores: const [],
+  );
+}
+
+Future<Directory> runAllCoverageTests({required bool silent}) async {
   String dartExtension = "";
   if (Platform.isWindows) {
     dartExtension = ".exe";
@@ -24,19 +40,24 @@ Future<void> main() async {
     "cfe_coverage",
   );
   print("Using $coverageTmpDir for coverage.");
-  List<List<String>> runThese = [];
-  void addSuiteSkipVm(String suitePath) {
-    runThese.add([
-      dart.toFilePath(),
-      "--enable-asserts",
-      suitePath,
-      "-DskipVm=true",
-      "--coverage=${coverageTmpDir.path}/",
-    ]);
+  List<List<String>> runTheseSeveralAtATime = [];
+  List<List<String>> runTheseOneAtATime = [];
+  void addSuiteSkipVm(String suitePath, {required int shards}) {
+    for (int shard = 1; shard <= shards; shard++) {
+      runTheseSeveralAtATime.add([
+        dart.toFilePath(),
+        "--enable-asserts",
+        suitePath,
+        "-DskipVm=true",
+        "--coverage=${coverageTmpDir.path}/",
+        "--shards=$shards",
+        "--shard=$shard",
+      ]);
+    }
   }
 
   void addWithCoverageArgument(String script) {
-    runThese.add([
+    runTheseSeveralAtATime.add([
       dart.toFilePath(),
       "--enable-asserts",
       script,
@@ -44,8 +65,8 @@ Future<void> main() async {
     ]);
   }
 
-  addSuiteSkipVm("pkg/front_end/test/strong_suite.dart");
-  addSuiteSkipVm("pkg/front_end/test/modular_suite.dart");
+  addSuiteSkipVm("pkg/front_end/test/strong_suite.dart", shards: 4);
+  addSuiteSkipVm("pkg/front_end/test/modular_suite.dart", shards: 1);
 
   addWithCoverageArgument("pkg/front_end/test/messages_suite.dart");
   addWithCoverageArgument("pkg/front_end/test/outline_suite.dart");
@@ -68,7 +89,8 @@ Future<void> main() async {
   addWithCoverageArgument("pkg/front_end/test/spelling_test_src_suite.dart");
   addWithCoverageArgument("pkg/front_end/test/compile_platform_coverage.dart");
 
-  runThese.add([
+  // These two each use all available CPUs.
+  runTheseOneAtATime.add([
     "python3",
     "tools/test.py",
     "-cfasta",
@@ -76,7 +98,7 @@ Future<void> main() async {
     "-rnone",
     "language",
   ]);
-  runThese.add([
+  runTheseOneAtATime.add([
     dart.toFilePath(),
     repoDirUri
         .resolve("pkg/front_end/test/run_our_tests_with_coverage.dart")
@@ -88,35 +110,63 @@ Future<void> main() async {
   );
   environment["CFE_COVERAGE"] = "${coverageTmpDir.path}/";
 
-  for (List<String> runThis in runThese) {
+  final int processes = Platform.numberOfProcessors;
+  int processesLeft = processes;
+  int processesRunning = 0;
+  Completer<void> completer = new Completer();
+
+  for (List<String> runThis in runTheseSeveralAtATime) {
+    while (processesLeft <= 0) {
+      await completer.future;
+    }
+    processesLeft--;
+    processesRunning++;
     print("Starting $runThis");
-    Process p = await Process.start(
-      runThis.first,
-      runThis.skip(1).toList(),
-      environment: environment,
+    unawaited(
+      _run(silent, runThis, environment).then((runExitCode) {
+        print("$runThis finished with exit code $runExitCode.");
+        processesRunning--;
+        processesLeft++;
+        Completer<void> oldCompleter = completer;
+        completer = new Completer();
+        oldCompleter.complete();
+      }),
     );
-    p.stdout.transform(utf8.decoder).transform(const LineSplitter()).listen((
-      String line,
-    ) {
-      print("stdout> $line");
-    });
-    p.stderr.transform(utf8.decoder).transform(const LineSplitter()).listen((
-      String line,
-    ) {
-      print("stderr> $line");
-    });
-    print("Exit code = ${await p.exitCode}");
+  }
+  while (processesRunning > 0) {
+    await completer.future;
   }
 
-  // Don't include the not-compiled stuff as we've (mostly) asked the VM to
-  // force compile everything and that the remaining stuff is (mostly) mixins
-  // and const classes etc that shouldn't (necessarily) be compiled but is
-  // potentially covered in other ways.
-  await coverageMerger.mergeFromDirUri(
-    repoDirUri.resolve(".dart_tool/package_config.json"),
-    coverageTmpDir.uri,
-    silent: false,
-    extraCoverageIgnores: const [],
-    extraCoverageBlockIgnores: const [],
+  for (List<String> runThis in runTheseOneAtATime) {
+    print("Starting $runThis");
+    print(
+      "Finished with exit code "
+      "${await _run(silent, runThis, environment)}",
+    );
+  }
+
+  return coverageTmpDir;
+}
+
+Future<int> _run(
+  bool silent,
+  List<String> runThis,
+  Map<String, String> environment,
+) async {
+  Process p = await Process.start(
+    runThis.first,
+    runThis.skip(1).toList(),
+    environment: environment,
   );
+  p.stdout.transform(utf8.decoder).transform(const LineSplitter()).listen((
+    String line,
+  ) {
+    if (!silent) print("stdout> $line");
+  });
+  p.stderr.transform(utf8.decoder).transform(const LineSplitter()).listen((
+    String line,
+  ) {
+    print("stderr> $line");
+  });
+  return await p.exitCode;
 }
