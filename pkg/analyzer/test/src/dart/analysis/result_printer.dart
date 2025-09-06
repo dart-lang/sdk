@@ -84,13 +84,7 @@ class BundleRequirementsPrinter {
   }
 
   void _writeExportedExtensions(LibraryRequirements requirements) {
-    if (requirements.exportedExtensions case var extensions?) {
-      var idListStr = extensions.asString(idProvider);
-      if (idListStr.isEmpty) {
-        idListStr = '[]';
-      }
-      sink.writelnWithIndent('exportedExtensions: $idListStr');
-    }
+    _writelnIdList('exportedExtensions', requirements.exportedExtensions);
   }
 
   void _writeExportedTopLevels(LibraryRequirements requirements) {
@@ -168,26 +162,19 @@ class BundleRequirementsPrinter {
       });
 
       sink.withIndent(() {
-        void writeAllDeclared(String name, ManifestItemIdList? idList) {
-          if (idList != null && idList.ids.isNotEmpty) {
-            var idListStr = idList.asString(idProvider);
-            sink.writelnWithIndent('$name: $idListStr');
-          }
-        }
-
-        writeAllDeclared(
+        _writelnIdList(
           'allDeclaredFields',
           instanceRequirements.allDeclaredFields,
         );
-        writeAllDeclared(
+        _writelnIdList(
           'allDeclaredGetters',
           instanceRequirements.allDeclaredGetters,
         );
-        writeAllDeclared(
+        _writelnIdList(
           'allDeclaredSetters',
           instanceRequirements.allDeclaredSetters,
         );
-        writeAllDeclared(
+        _writelnIdList(
           'allDeclaredMethods',
           instanceRequirements.allDeclaredMethods,
         );
@@ -205,12 +192,10 @@ class BundleRequirementsPrinter {
           var idStr = idProvider.manifestId(id);
           sink.writelnWithIndent('interfaceId: $idStr');
         }
-        if (requirements.allConstructors case var allConstructors?) {
-          if (allConstructors.ids.isNotEmpty) {
-            var idListStr = allConstructors.asString(idProvider);
-            sink.writelnWithIndent('allConstructors: $idListStr');
-          }
+        if (requirements.hasNonFinalField case var value?) {
+          sink.writelnWithIndent('hasNonFinalField: $value');
         }
+        _writelnIdList('allConstructors', requirements.allConstructors);
         sink.writeElements(
           'requestedConstructors',
           requirements.requestedConstructors.sorted,
@@ -221,8 +206,34 @@ class BundleRequirementsPrinter {
           requirements.methods.sorted,
           _writeNamedId,
         );
+        sink.writeElements(
+          'implementedMethods',
+          requirements.implementedMethods.sorted,
+          _writeNamedId,
+        );
+        sink.writeElements(
+          'superMethods',
+          requirements.superMethods.entries.toList(),
+          (superEntry) {
+            var index = superEntry.key;
+            var nameToId = superEntry.value;
+            sink.writelnWithIndent('[$index]');
+            sink.withIndent(() {
+              for (var entry in nameToId.sorted) {
+                _writeNamedId(entry);
+              }
+            });
+          },
+        );
       });
     });
+  }
+
+  void _writelnIdList(String name, ManifestItemIdList? idList) {
+    if (idList != null) {
+      var idListStr = idList.asString(idProvider);
+      sink.writelnWithIndent('$name: $idListStr');
+    }
   }
 
   void _writeNamedId(MapEntry<LookupName, ManifestItemId?> entry) {
@@ -592,6 +603,25 @@ class DriverEventsPrinter {
           'expectedId': idProvider.manifestId(failure.expectedId),
           'actualId': idProvider.manifestId(failure.actualId),
         });
+      case ImplementedMethodIdMismatch():
+        sink.writelnWithIndent('implementedMethodIdMismatch');
+        sink.writeProperties({
+          'libraryUri': failure.libraryUri,
+          'interfaceName': failure.interfaceName.asString,
+          'methodName': failure.methodName.asString,
+          'expectedId': idProvider.manifestId(failure.expectedId),
+          'actualId': idProvider.manifestId(failure.actualId),
+        });
+      case SuperImplementedMethodIdMismatch():
+        sink.writelnWithIndent('superImplementedMethodIdMismatch');
+        sink.writeProperties({
+          'libraryUri': failure.libraryUri,
+          'interfaceName': failure.interfaceName.asString,
+          'superIndex': failure.superIndex,
+          'methodName': failure.methodName.asString,
+          'expectedId': idProvider.manifestId(failure.expectedId),
+          'actualId': idProvider.manifestId(failure.actualId),
+        });
       case InstanceChildrenIdsMismatch():
         sink.writelnWithIndent('instanceChildrenIdsMismatch');
         sink.writeProperties({
@@ -626,6 +656,14 @@ class DriverEventsPrinter {
           'constructorName': failure.constructorName.asString,
           'expectedId': idProvider.manifestId(failure.expectedId),
           'actualId': idProvider.manifestId(failure.actualId),
+        });
+      case InterfaceHasNonFinalFieldMismatch():
+        sink.writelnWithIndent('interfaceHasNonFinalFieldMismatch');
+        sink.writeProperties({
+          'libraryUri': failure.libraryUri,
+          'interfaceName': failure.interfaceName.asString,
+          'expected': failure.expected,
+          'actual': failure.actual,
         });
       case TopLevelIdMismatch():
         sink.writelnWithIndent('topLevelIdMismatch');
@@ -1060,6 +1098,7 @@ class LibraryManifestPrinter {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
         sink.writeFlags({
+          'hasNonFinalField': item.hasNonFinalField,
           'isAbstract': item.isAbstract,
           'isBase': item.isBase,
           'isFinal': item.isFinal,
@@ -1085,6 +1124,7 @@ class LibraryManifestPrinter {
   void _writeEnumItem(EnumItem item) {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
+        sink.writeFlags({'hasNonFinalField': item.hasNonFinalField});
         _writeMetadata(item);
         _writeTypeParameters(item.typeParameters);
         _writeTypeList('mixins', item.mixins);
@@ -1117,6 +1157,7 @@ class LibraryManifestPrinter {
       sink.withIndent(() {
         sink.writeFlags({
           'hasImplementsSelfReference': item.hasImplementsSelfReference,
+          'hasNonFinalField': item.hasNonFinalField,
           'hasRepresentationSelfReference': item.hasRepresentationSelfReference,
         });
         _writeMetadata(item);
@@ -1343,6 +1384,40 @@ class LibraryManifestPrinter {
         }
       });
     }
+
+    var implementedEntries = notIgnored(interface.implemented);
+    if (implementedEntries.isNotEmpty) {
+      sink.withIndent(() {
+        sink.writelnWithIndent('implemented');
+        sink.withIndent(() {
+          for (var entry in implementedEntries) {
+            _writeNamedId(entry.key, entry.value);
+          }
+        });
+      });
+    }
+
+    var superImplementedLayers = interface.superImplemented
+        .map((layer) => notIgnored(layer))
+        .toList();
+    if (superImplementedLayers.any((layer) => layer.isNotEmpty)) {
+      sink.withIndent(() {
+        sink.writelnWithIndent('superImplemented');
+        sink.withIndent(() {
+          for (var i = 0; i < superImplementedLayers.length; i++) {
+            var layerEntries = superImplementedLayers[i];
+            if (layerEntries.isNotEmpty) {
+              sink.writelnWithIndent('[$i]');
+              sink.withIndent(() {
+                for (var entry in layerEntries) {
+                  _writeNamedId(entry.key, entry.value);
+                }
+              });
+            }
+          }
+        });
+      });
+    }
   }
 
   void _writelnElement(ManifestElement element) {
@@ -1371,6 +1446,10 @@ class LibraryManifestPrinter {
   void _writeMixinItem(MixinItem item) {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
+        sink.writeFlags({
+          'hasNonFinalField': item.hasNonFinalField,
+          'isBase': item.isBase,
+        });
         _writeMetadata(item);
         _writeTypeParameters(item.typeParameters);
         _writeTypeList('superclassConstraints', item.superclassConstraints);
@@ -1771,7 +1850,11 @@ class UnitElementPrinterConfiguration {
 
 extension on ManifestItemIdList {
   String asString(IdProvider idProvider) {
-    return ids.map((id) => idProvider.manifestId(id)).join(' ');
+    if (ids.isNotEmpty) {
+      return ids.map((id) => idProvider.manifestId(id)).join(' ');
+    } else {
+      return '[]';
+    }
   }
 }
 

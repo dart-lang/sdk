@@ -216,6 +216,7 @@ class LibraryManifestBuilder {
         element: element,
       );
     });
+    classItem.hasNonFinalField = element.hasNonFinalField;
     newItems[lookupName] = classItem;
 
     encodingContext.withTypeParameters(element.typeParameters, (
@@ -301,6 +302,7 @@ class LibraryManifestBuilder {
         element: element,
       );
     });
+    enumItem.hasNonFinalField = element.hasNonFinalField;
     newItems[lookupName] = enumItem;
 
     encodingContext.withTypeParameters(element.typeParameters, (
@@ -380,6 +382,7 @@ class LibraryManifestBuilder {
         element: element,
       );
     });
+    extensionTypeItem.hasNonFinalField = element.hasNonFinalField;
     newItems[lookupName] = extensionTypeItem;
 
     encodingContext.withTypeParameters(element.typeParameters, (
@@ -577,6 +580,7 @@ class LibraryManifestBuilder {
         element: element,
       );
     });
+    mixinItem.hasNonFinalField = element.hasNonFinalField;
     newItems[lookupName] = mixinItem;
 
     encodingContext.withTypeParameters(element.typeParameters, (
@@ -872,6 +876,7 @@ class LibraryManifestBuilder {
     item.interface.beforeUpdating();
 
     var interface = element.inheritanceManager.getInterface(element);
+
     for (var entry in interface.map.entries) {
       var executable = entry.value.baseElement;
 
@@ -909,6 +914,27 @@ class LibraryManifestBuilder {
 
       var id = _getInterfaceElementMemberId(executable);
       item.interface.map[lookupName] = id;
+    }
+
+    for (var entry in interface.implemented.entries) {
+      var executable = entry.value.baseElement;
+      var lookupName = executable.lookupName?.asLookupName;
+      if (lookupName != null && !lookupName.isPrivate) {
+        var id = _getInterfaceElementMemberId(executable);
+        item.interface.implemented[lookupName] = id;
+      }
+    }
+
+    for (var superImplemented in interface.superImplemented) {
+      var layer = <LookupName, ManifestItemId>{};
+      for (var entry in superImplemented.entries) {
+        var executable = entry.value.baseElement;
+        var lookupName = executable.lookupName?.asLookupName;
+        if (lookupName != null && !lookupName.isPrivate) {
+          layer[lookupName] = _getInterfaceElementMemberId(executable);
+        }
+      }
+      item.interface.superImplemented.add(layer);
     }
 
     item.interface.afterUpdate();

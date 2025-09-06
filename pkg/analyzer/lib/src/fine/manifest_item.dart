@@ -37,6 +37,7 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
     required super.declaredMethods,
     required super.declaredConstructors,
     required super.inheritedConstructors,
+    required super.hasNonFinalField,
     required super.supertype,
     required super.mixins,
     required super.interfaces,
@@ -69,6 +70,7 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
         declaredMethods: {},
         declaredConstructors: {},
         inheritedConstructors: {},
+        hasNonFinalField: element.hasNonFinalField,
         supertype: element.supertype?.encode(context),
         mixins: element.mixins.encode(context),
         interfaces: element.interfaces.encode(context),
@@ -98,6 +100,7 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
       declaredMethods: InstanceItemMethodItem.readMap(reader),
       declaredConstructors: InterfaceItemConstructorItem.readMap(reader),
       inheritedConstructors: reader.readLookupNameToIdMap(),
+      hasNonFinalField: reader.readBool(),
       supertype: ManifestType.readOptional(reader),
       mixins: ManifestType.readList(reader),
       interfaces: ManifestType.readList(reader),
@@ -151,6 +154,7 @@ class EnumItem extends InterfaceItem<EnumElementImpl> {
     required super.declaredMethods,
     required super.declaredConstructors,
     required super.inheritedConstructors,
+    required super.hasNonFinalField,
     required super.interface,
     required super.supertype,
     required super.mixins,
@@ -176,6 +180,7 @@ class EnumItem extends InterfaceItem<EnumElementImpl> {
         declaredMethods: {},
         declaredConstructors: {},
         inheritedConstructors: {},
+        hasNonFinalField: element.hasNonFinalField,
         interface: ManifestInterface.empty(),
         supertype: element.supertype?.encode(context),
         mixins: element.mixins.encode(context),
@@ -198,6 +203,7 @@ class EnumItem extends InterfaceItem<EnumElementImpl> {
       declaredMethods: InstanceItemMethodItem.readMap(reader),
       declaredConstructors: InterfaceItemConstructorItem.readMap(reader),
       inheritedConstructors: reader.readLookupNameToIdMap(),
+      hasNonFinalField: reader.readBool(),
       supertype: ManifestType.readOptional(reader),
       mixins: ManifestType.readList(reader),
       interfaces: ManifestType.readList(reader),
@@ -300,6 +306,7 @@ class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl> {
     required super.declaredMethods,
     required super.declaredConstructors,
     required super.inheritedConstructors,
+    required super.hasNonFinalField,
     required super.interface,
     required super.supertype,
     required super.mixins,
@@ -329,6 +336,7 @@ class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl> {
         declaredMethods: {},
         declaredConstructors: {},
         inheritedConstructors: {},
+        hasNonFinalField: element.hasNonFinalField,
         interface: ManifestInterface.empty(),
         supertype: element.supertype?.encode(context),
         mixins: element.mixins.encode(context),
@@ -355,6 +363,7 @@ class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl> {
       declaredMethods: InstanceItemMethodItem.readMap(reader),
       declaredConstructors: InterfaceItemConstructorItem.readMap(reader),
       inheritedConstructors: reader.readLookupNameToIdMap(),
+      hasNonFinalField: reader.readBool(),
       supertype: ManifestType.readOptional(reader),
       mixins: ManifestType.readList(reader),
       interfaces: ManifestType.readList(reader),
@@ -951,6 +960,7 @@ class InstanceItemSetterItem extends InstanceItemMemberItem<SetterElementImpl> {
 /// The item for [InterfaceElementImpl].
 sealed class InterfaceItem<E extends InterfaceElementImpl>
     extends InstanceItem<E> {
+  bool hasNonFinalField;
   final ManifestType? supertype;
   final List<ManifestType> interfaces;
   final List<ManifestType> mixins;
@@ -969,16 +979,31 @@ sealed class InterfaceItem<E extends InterfaceElementImpl>
     required super.declaredMethods,
     required super.declaredConstructors,
     required super.inheritedConstructors,
+    required this.hasNonFinalField,
     required this.supertype,
     required this.mixins,
     required this.interfaces,
     required this.interface,
   });
 
+  ManifestItemId? getImplementedMethodId(LookupName name) {
+    return interface.implemented[name];
+  }
+
   ManifestItemId? getInterfaceMethodId(LookupName name) {
     return interface.map[name];
   }
 
+  ManifestItemId? getSuperImplementedMethodId(int index, LookupName name) {
+    if (index < interface.superImplemented.length) {
+      return interface.superImplemented[index][name];
+    } else {
+      return null;
+    }
+  }
+
+  /// Intentionally omits [hasNonFinalField], which is tracked as a separate
+  /// requirement.
   @override
   bool match(MatchContext context, E element) {
     return super.match(context, element) &&
@@ -990,6 +1015,7 @@ sealed class InterfaceItem<E extends InterfaceElementImpl>
   @override
   void write(BufferedSink sink) {
     super.write(sink);
+    sink.writeBool(hasNonFinalField);
     supertype.writeOptional(sink);
     mixins.writeList(sink);
     interfaces.writeList(sink);
@@ -1127,10 +1153,14 @@ class ManifestInterface {
 
   /// The map of names to their IDs in the interface.
   Map<LookupName, ManifestItemId> map;
+  Map<LookupName, ManifestItemId> implemented;
+  List<Map<LookupName, ManifestItemId>> superImplemented;
 
   /// We move [map] into here during building the manifest, so that we can
   /// compare after building, and decide if [id] should be updated.
   Map<LookupName, ManifestItemId> mapPrevious = {};
+  Map<LookupName, ManifestItemId> implementedPrevious = {};
+  List<Map<LookupName, ManifestItemId>> superImplementedPrevious = [];
 
   /// Key: IDs of method declarations.
   /// Value: ID assigned last time.
@@ -1144,6 +1174,8 @@ class ManifestInterface {
   ManifestInterface({
     required this.id,
     required this.map,
+    required this.implemented,
+    required this.superImplemented,
     required this.combinedIds,
   });
 
@@ -1151,6 +1183,8 @@ class ManifestInterface {
     return ManifestInterface(
       id: ManifestItemId.generate(),
       map: {},
+      implemented: {},
+      superImplemented: [],
       combinedIds: {},
     );
   }
@@ -1159,6 +1193,10 @@ class ManifestInterface {
     return ManifestInterface(
       id: ManifestItemId.read(reader),
       map: reader.readLookupNameToIdMap(),
+      implemented: reader.readLookupNameToIdMap(),
+      superImplemented: reader.readTypedList(() {
+        return reader.readLookupNameToIdMap();
+      }),
       combinedIds: reader.readMap(
         readKey: () => ManifestItemIdList.read(reader),
         readValue: () => ManifestItemId.read(reader),
@@ -1168,10 +1206,17 @@ class ManifestInterface {
 
   void afterUpdate() {
     const mapEquality = MapEquality<LookupName, ManifestItemId>();
-    if (!mapEquality.equals(map, mapPrevious)) {
+    const listEquality = ListEquality<Map<LookupName, ManifestItemId>>(
+      MapEquality<LookupName, ManifestItemId>(),
+    );
+    if (!mapEquality.equals(map, mapPrevious) ||
+        !mapEquality.equals(implemented, implementedPrevious) ||
+        !listEquality.equals(superImplemented, superImplementedPrevious)) {
       id = ManifestItemId.generate();
     }
     mapPrevious = {};
+    implementedPrevious = {};
+    superImplementedPrevious = [];
 
     combinedIdsTemp = {};
   }
@@ -1180,6 +1225,12 @@ class ManifestInterface {
     mapPrevious = map;
     map = {};
 
+    implementedPrevious = implemented;
+    implemented = {};
+
+    superImplementedPrevious = superImplemented;
+    superImplemented = [];
+
     combinedIdsTemp = combinedIds;
     combinedIds = {};
   }
@@ -1187,6 +1238,8 @@ class ManifestInterface {
   void write(BufferedSink sink) {
     id.write(sink);
     map.write(sink);
+    implemented.write(sink);
+    sink.writeList(superImplemented, (map) => map.write(sink));
     sink.writeMap(
       combinedIds,
       writeKey: (key) => key.write(sink),
@@ -1286,6 +1339,7 @@ class MixinItem extends InterfaceItem<MixinElementImpl> {
     required super.declaredSetters,
     required super.declaredConstructors,
     required super.inheritedConstructors,
+    required super.hasNonFinalField,
     required super.interface,
     required this.isBase,
     required this.superclassConstraints,
@@ -1313,6 +1367,7 @@ class MixinItem extends InterfaceItem<MixinElementImpl> {
         declaredMethods: {},
         declaredConstructors: {},
         inheritedConstructors: {},
+        hasNonFinalField: element.hasNonFinalField,
         interface: ManifestInterface.empty(),
         supertype: element.supertype?.encode(context),
         mixins: element.mixins.encode(context),
@@ -1340,6 +1395,7 @@ class MixinItem extends InterfaceItem<MixinElementImpl> {
       declaredMethods: InstanceItemMethodItem.readMap(reader),
       declaredConstructors: InterfaceItemConstructorItem.readMap(reader),
       inheritedConstructors: reader.readLookupNameToIdMap(),
+      hasNonFinalField: reader.readBool(),
       supertype: ManifestType.readOptional(reader),
       mixins: ManifestType.readList(reader),
       interfaces: ManifestType.readList(reader),

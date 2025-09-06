@@ -263,6 +263,9 @@ class InterfaceItemRequirements {
   /// If the element was asked for its full interface.
   ManifestItemId? interfaceId;
 
+  /// The value of `hasNonFinalField`, if it was requested.
+  bool? hasNonFinalField;
+
   /// Set if [InstanceElementImpl.constructors] is invoked.
   ManifestItemIdList? allConstructors;
 
@@ -271,37 +274,58 @@ class InterfaceItemRequirements {
 
   /// These are "methods" in wide meaning: methods, getters, setters.
   final Map<LookupName, ManifestItemId?> methods;
+  final Map<LookupName, ManifestItemId?> implementedMethods;
+  final Map<int, Map<LookupName, ManifestItemId?>> superMethods;
 
   InterfaceItemRequirements({
     required this.interfaceId,
+    required this.hasNonFinalField,
     required this.allConstructors,
     required this.requestedConstructors,
     required this.methods,
+    required this.implementedMethods,
+    required this.superMethods,
   });
 
   factory InterfaceItemRequirements.empty() {
     return InterfaceItemRequirements(
       interfaceId: null,
+      hasNonFinalField: null,
       allConstructors: null,
       requestedConstructors: {},
       methods: {},
+      implementedMethods: {},
+      superMethods: {},
     );
   }
 
   factory InterfaceItemRequirements.read(SummaryDataReader reader) {
     return InterfaceItemRequirements(
       interfaceId: ManifestItemId.readOptional(reader),
+      hasNonFinalField: reader.readOptionalBool(),
       allConstructors: ManifestItemIdList.readOptional(reader),
       requestedConstructors: reader.readNameToOptionalIdMap(),
       methods: reader.readNameToOptionalIdMap(),
+      implementedMethods: reader.readNameToOptionalIdMap(),
+      superMethods: reader.readMap(
+        readKey: () => reader.readInt64(),
+        readValue: () => reader.readNameToOptionalIdMap(),
+      ),
     );
   }
 
   void write(BufferedSink sink) {
     interfaceId.writeOptional(sink);
+    sink.writeOptionalBool(hasNonFinalField);
     allConstructors.writeOptional(sink);
     sink.writeNameToIdMap(requestedConstructors);
     sink.writeNameToIdMap(methods);
+    sink.writeNameToIdMap(implementedMethods);
+    sink.writeMap(
+      superMethods,
+      writeKey: (index) => sink.writeInt64(index),
+      writeValue: (map) => sink.writeNameToIdMap(map),
+    );
   }
 }
 
@@ -724,6 +748,18 @@ class RequirementsManifest {
           }
         }
 
+        if (interfaceRequirements.hasNonFinalField case var expected?) {
+          var actual = interfaceItem.hasNonFinalField;
+          if (expected != actual) {
+            return InterfaceHasNonFinalFieldMismatch(
+              libraryUri: libraryUri,
+              interfaceName: interfaceName,
+              expected: expected,
+              actual: actual,
+            );
+          }
+        }
+
         if (interfaceRequirements.allConstructors case var required?) {
           var actualItems = interfaceItem.declaredConstructors.values;
           var actualIds = actualItems.map((item) => item.id);
@@ -767,6 +803,46 @@ class RequirementsManifest {
               expectedId: expectedId,
               actualId: methodId,
             );
+          }
+        }
+
+        var implementedMethods = interfaceRequirements.implementedMethods;
+        for (var methodEntry in implementedMethods.entries) {
+          var methodName = methodEntry.key;
+          var methodId = interfaceItem.getImplementedMethodId(methodName);
+          var expectedId = methodEntry.value;
+          if (expectedId != methodId) {
+            return ImplementedMethodIdMismatch(
+              libraryUri: libraryUri,
+              interfaceName: interfaceName,
+              methodName: methodName,
+              expectedId: expectedId,
+              actualId: methodId,
+            );
+          }
+        }
+
+        var superMethods = interfaceRequirements.superMethods;
+        for (var superEntry in superMethods.entries) {
+          var superIndex = superEntry.key;
+          var nameToId = superEntry.value;
+          for (var methodEntry in nameToId.entries) {
+            var methodName = methodEntry.key;
+            var methodId = interfaceItem.getSuperImplementedMethodId(
+              superIndex,
+              methodName,
+            );
+            var expectedId = methodEntry.value;
+            if (expectedId != methodId) {
+              return SuperImplementedMethodIdMismatch(
+                libraryUri: libraryUri,
+                interfaceName: interfaceName,
+                superIndex: superIndex,
+                methodName: methodName,
+                expectedId: expectedId,
+                actualId: methodId,
+              );
+            }
           }
         }
       }
@@ -1016,6 +1092,9 @@ class RequirementsManifest {
     required InterfaceElementImpl element,
     required Name nameObj,
     required ExecutableElement? methodElement,
+    required bool concrete,
+    required bool forSuper,
+    required int forMixinIndex,
   }) {
     // Skip private names, cannot be used outside this library.
     if (!nameObj.isPublic) {
@@ -1029,10 +1108,23 @@ class RequirementsManifest {
 
     var item = itemRequirements.item;
     var requirements = itemRequirements.requirements;
-
     var methodName = nameObj.name.asLookupName;
-    var methodId = item.getInterfaceMethodId(methodName);
-    requirements.methods[methodName] = methodId;
+
+    ManifestItemId? methodId;
+    if (forSuper) {
+      var superIndex = forMixinIndex >= 0
+          ? forMixinIndex
+          : item.interface.superImplemented.length - 1;
+      var superMethods = requirements.superMethods[superIndex] ??= {};
+      methodId = item.getSuperImplementedMethodId(superIndex, methodName);
+      superMethods[methodName] = methodId;
+    } else if (concrete) {
+      methodId = item.getImplementedMethodId(methodName);
+      requirements.implementedMethods[methodName] = methodId;
+    } else {
+      methodId = item.getInterfaceMethodId(methodName);
+      requirements.methods[methodName] = methodId;
+    }
 
     // Check for consistency between the actual interface and manifest.
     if (methodElement != null) {
@@ -1063,6 +1155,20 @@ class RequirementsManifest {
     var constructorName = name.asLookupName;
     var constructorId = item.getConstructorId(constructorName);
     requirements.requestedConstructors[constructorName] = constructorId;
+  }
+
+  void record_interfaceElement_hasNonFinalField({
+    required InterfaceElementImpl element,
+  }) {
+    var itemRequirements = _getInterfaceItem(element);
+    if (itemRequirements == null) {
+      return;
+    }
+
+    var item = itemRequirements.item;
+    var requirements = itemRequirements.requirements;
+
+    requirements.hasNonFinalField = item.hasNonFinalField;
   }
 
   /// Record that all accessible extensions inside a [LibraryFragmentImpl]
@@ -1389,6 +1495,15 @@ extension _BufferedSinkExtension on BufferedSink {
       writeValue: (id) => id.writeOptional(this),
     );
   }
+
+  void writeOptionalBool(bool? value) {
+    if (value == null) {
+      writeBool(false);
+    } else {
+      writeBool(true);
+      writeBool(value);
+    }
+  }
 }
 
 extension _SummaryDataReaderExtension on SummaryDataReader {
@@ -1397,5 +1512,13 @@ extension _SummaryDataReaderExtension on SummaryDataReader {
       readKey: () => LookupName.read(this),
       readValue: () => ManifestItemId.readOptional(this),
     );
+  }
+
+  bool? readOptionalBool() {
+    if (readBool()) {
+      return readBool();
+    } else {
+      return null;
+    }
   }
 }

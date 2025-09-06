@@ -84,6 +84,30 @@ final class ExportLibraryMissing extends ExportFailure {
   }
 }
 
+class ImplementedMethodIdMismatch extends RequirementFailure {
+  final Uri libraryUri;
+  final LookupName interfaceName;
+  final LookupName methodName;
+  final ManifestItemId? expectedId;
+  final ManifestItemId? actualId;
+
+  ImplementedMethodIdMismatch({
+    required this.libraryUri,
+    required this.interfaceName,
+    required this.methodName,
+    required this.expectedId,
+    required this.actualId,
+  });
+
+  @override
+  String toString() {
+    return 'ImplementedMethodIdMismatch(libraryUri: $libraryUri, '
+        'interfaceName: ${interfaceName.asString}, '
+        'methodName: ${methodName.asString}, '
+        'expectedId: $expectedId, actualId: $actualId)';
+  }
+}
+
 class InstanceChildrenIdsMismatch extends RequirementFailure {
   final Uri libraryUri;
   final LookupName instanceName;
@@ -206,6 +230,28 @@ class InterfaceConstructorIdMismatch extends RequirementFailure {
   }
 }
 
+class InterfaceHasNonFinalFieldMismatch extends RequirementFailure {
+  final Uri libraryUri;
+  final LookupName interfaceName;
+  final bool expected;
+  final bool actual;
+
+  InterfaceHasNonFinalFieldMismatch({
+    required this.libraryUri,
+    required this.interfaceName,
+    required this.expected,
+    required this.actual,
+  });
+
+  @override
+  String toString() {
+    return 'InterfaceHasNonFinalFieldMismatch(libraryUri: $libraryUri, '
+        'interfaceName: ${interfaceName.asString}, '
+        'expected: $expected, '
+        'actual: $actual)';
+  }
+}
+
 class InterfaceIdMismatch extends RequirementFailure {
   final Uri libraryUri;
   final LookupName interfaceName;
@@ -251,6 +297,33 @@ final class OpaqueApiUseFailure extends RequirementFailure {
 }
 
 sealed class RequirementFailure {}
+
+class SuperImplementedMethodIdMismatch extends RequirementFailure {
+  final Uri libraryUri;
+  final LookupName interfaceName;
+  final int superIndex;
+  final LookupName methodName;
+  final ManifestItemId? expectedId;
+  final ManifestItemId? actualId;
+
+  SuperImplementedMethodIdMismatch({
+    required this.libraryUri,
+    required this.interfaceName,
+    required this.superIndex,
+    required this.methodName,
+    required this.expectedId,
+    required this.actualId,
+  });
+
+  @override
+  String toString() {
+    return 'SuperImplementedMethodIdMismatch(libraryUri: $libraryUri, '
+        'interfaceName: ${interfaceName.asString}, '
+        'superIndex: $superIndex, '
+        'methodName: ${methodName.asString}, '
+        'expectedId: $expectedId, actualId: $actualId)';
+  }
+}
 
 sealed class TopLevelFailure extends RequirementFailure {
   final Uri libraryUri;

@@ -11,6 +11,7 @@
 #include "vm/object.h"
 #include "vm/runtime_entry.h"
 #include "vm/stack_frame.h"
+#include "vm/thread_registry.h"
 
 namespace dart {
 
@@ -55,28 +56,22 @@ void WeakCodeReferences::DisableCode(bool are_mutators_stopped) {
   auto isolate_group = IsolateGroup::Current();
   auto disable_code_fun = [&]() {
     Code& code = Code::Handle();
-    isolate_group->ForEachIsolate(
-        [&](Isolate* isolate) {
-          auto mutator_thread = isolate->mutator_thread();
-          if (mutator_thread == nullptr) {
-            return;
-          }
-          DartFrameIterator iterator(
-              mutator_thread, StackFrameIterator::kAllowCrossThreadIteration);
-          StackFrame* frame = iterator.NextFrame();
-          while (frame != nullptr) {
-            if (!frame->is_interpreted()) {
-              code = frame->LookupDartCode();
+    isolate_group->ForEachMutatorAtASafepoint([&](Thread* thread) {
+      DartFrameIterator iterator(
+          thread, StackFrameIterator::kAllowCrossThreadIteration);
+      StackFrame* frame = iterator.NextFrame();
+      while (frame != nullptr) {
+        if (!frame->is_interpreted()) {
+          code = frame->LookupDartCode();
 
-              if (set.ContainsKey(code)) {
-                ReportDeoptimization(code);
-                DeoptimizeAt(mutator_thread, code, frame);
-              }
-            }
-            frame = iterator.NextFrame();
+          if (set.ContainsKey(code)) {
+            ReportDeoptimization(code);
+            DeoptimizeAt(thread, code, frame);
           }
-        },
-        /*at_safepoint=*/true);
+        }
+        frame = iterator.NextFrame();
+      }
+    });
 
     // Switch functions that use dependent code to unoptimized code.
     Object& owner = Object::Handle();

@@ -370,7 +370,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   @override
   @trackedDirectlyOpaque
   T? accept<T>(ElementVisitor2<T> visitor) {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'accept2');
+    globalResultRequirements?.recordOpaqueApiUse(this, 'accept');
     return visitor.visitClassElement(this);
   }
 
@@ -382,10 +382,12 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   }
 
   @override
+  @trackedIndirectly
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeClassElement(this);
   }
 
+  @trackedInternal
   void ensureReadMembersForFragments() {
     for (var fragment in _fragments) {
       fragment.ensureReadMembers();
@@ -434,6 +436,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
     return isMixableIn(library);
   }
 
+  @trackedInternal
   void linkFragments(List<ClassFragmentImpl> fragments) {
     assert(identical(fragments[0], _firstFragment));
     fragments.reduce((previous, current) {
@@ -1652,6 +1655,7 @@ sealed class ElementDirectiveImpl implements ElementDirective {
   }
 }
 
+@elementClass
 abstract class ElementImpl implements Element {
   /// Cached values for [sinceSdkVersion].
   ///
@@ -1662,26 +1666,33 @@ abstract class ElementImpl implements Element {
   static final Expando<Version> _sinceSdkVersion = Expando<Version>();
 
   @override
+  @trackedIncludedInId
   final int id = FragmentImpl._NEXT_ID++;
 
   /// The modifiers associated with this element.
   EnumSet<Modifier> _modifiers = EnumSet.empty();
 
   @override
+  @trackedIncludedInId
   Element get baseElement => this;
 
   @override
+  @trackedIndirectly
   List<Element> get children => const [];
 
   @Deprecated('Use children instead')
   @override
+  @trackedIndirectly
   List<Element> get children2 => children;
 
   @override
+  @trackedIndirectly
   String get displayName => name ?? '<unnamed>';
 
   @override
+  @trackedDirectlyOpaque
   String? get documentationComment {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'documentationComment');
     var buffer = StringBuffer();
     for (var fragment in fragments) {
       var comment = fragment.documentationComment;
@@ -1716,6 +1727,7 @@ abstract class ElementImpl implements Element {
   List<FragmentImpl> get fragments;
 
   @override
+  @trackedIndirectly
   bool get isPrivate {
     var name = this.name;
     if (name == null) {
@@ -1725,6 +1737,7 @@ abstract class ElementImpl implements Element {
   }
 
   @override
+  @trackedIndirectly
   bool get isPublic => !isPrivate;
 
   @override
@@ -1734,18 +1747,22 @@ abstract class ElementImpl implements Element {
   }
 
   @override
+  @trackedIndirectly
   String? get lookupName {
     return name;
   }
 
   @override
+  @trackedIncludedInId
   MetadataImpl get metadata => MetadataImpl.empty;
 
   @override
+  @trackedIncludedInId
   Element get nonSynthetic => this;
 
   @Deprecated('Use nonSynthetic instead')
   @override
+  @trackedIndirectly
   Element get nonSynthetic2 => nonSynthetic;
 
   /// The reference of this element, used during reading summaries.
@@ -1753,14 +1770,18 @@ abstract class ElementImpl implements Element {
   /// Can be `null` if this element cannot be referenced from outside,
   /// for example a [LocalFunctionElement], a [TypeParameterElement],
   /// a positional [FormalParameterElement], etc.
+  @trackedIncludedInId
   Reference? get reference => null;
 
   @override
+  @trackedDirectlyOpaque
   AnalysisSession? get session {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'session');
     return enclosingElement?.session;
   }
 
   @override
+  @trackedIndirectly
   Version? get sinceSdkVersion {
     if (!hasModifier(Modifier.HAS_SINCE_SDK_VERSION_COMPUTED)) {
       setModifier(Modifier.HAS_SINCE_SDK_VERSION_COMPUTED, true);
@@ -1783,16 +1804,19 @@ abstract class ElementImpl implements Element {
   FragmentImpl get _firstFragment;
 
   @override
+  @trackedIncludedInId
   bool operator ==(Object other) {
     return identical(this, other);
   }
 
   /// Append a textual representation of this element to the given [builder].
+  @trackedIndirectly
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeAbstractElement(this);
   }
 
   @override
+  @trackedIndirectly
   String displayString({bool multiline = false, bool preferTypeAlias = false}) {
     var builder = ElementDisplayStringBuilder(
       multiline: multiline,
@@ -1804,6 +1828,7 @@ abstract class ElementImpl implements Element {
 
   @Deprecated('Use displayString instead')
   @override
+  @trackedIndirectly
   String displayString2({
     bool multiline = false,
     bool preferTypeAlias = false,
@@ -1815,6 +1840,7 @@ abstract class ElementImpl implements Element {
   }
 
   @override
+  @trackedIndirectly
   String getExtendedDisplayName({String? shortName}) {
     shortName ??= displayName;
     var source = _firstFragment.libraryFragment?.source;
@@ -1823,14 +1849,17 @@ abstract class ElementImpl implements Element {
 
   @Deprecated('Use getExtendedDisplayName instead')
   @override
+  @trackedIndirectly
   String getExtendedDisplayName2({String? shortName}) {
     return getExtendedDisplayName(shortName: shortName);
   }
 
   /// Whether this element has the [modifier].
+  @trackedIncludedInId
   bool hasModifier(Modifier modifier) => _modifiers[modifier];
 
   @override
+  @trackedIncludedInId
   bool isAccessibleIn(LibraryElement library) {
     var name = this.name;
     if (name == null || Identifier.isPrivateName(name)) {
@@ -1841,21 +1870,29 @@ abstract class ElementImpl implements Element {
 
   @Deprecated('Use isAccessibleIn instead')
   @override
+  @trackedIndirectly
   bool isAccessibleIn2(LibraryElement library) {
     return isAccessibleIn(library);
   }
 
+  @trackedInternal
   void readModifiers(SummaryDataReader reader) {
     _modifiers = EnumSet.read(reader);
   }
 
   /// Update [modifier] of this element to [value].
+  @trackedInternal
   void setModifier(Modifier modifier, bool value) {
     _modifiers = _modifiers.updated(modifier, value);
   }
 
   @override
+  @trackedDirectlyOpaque
   Element? thisOrAncestorMatching(bool Function(Element p1) predicate) {
+    globalResultRequirements?.recordOpaqueApiUse(
+      this,
+      'thisOrAncestorMatching',
+    );
     Element? element = this;
     while (element != null && !predicate(element)) {
       element = element.enclosingElement;
@@ -1865,12 +1902,15 @@ abstract class ElementImpl implements Element {
 
   @Deprecated('Use thisOrAncestorMatching instead')
   @override
+  @trackedIndirectly
   Element? thisOrAncestorMatching2(bool Function(Element p1) predicate) {
     return thisOrAncestorMatching(predicate);
   }
 
   @override
+  @trackedDirectlyOpaque
   E? thisOrAncestorOfType<E extends Element>() {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'thisOrAncestorOfType');
     Element element = this;
     while (element is! E) {
       var ancestor = element.enclosingElement;
@@ -1882,11 +1922,13 @@ abstract class ElementImpl implements Element {
 
   @Deprecated('Use thisOrAncestorOfType instead')
   @override
+  @trackedIndirectly
   E? thisOrAncestorOfType2<E extends Element>() {
     return thisOrAncestorOfType();
   }
 
   @override
+  @trackedIndirectly
   String toString() {
     return displayString();
   }
@@ -1894,7 +1936,9 @@ abstract class ElementImpl implements Element {
   /// Use the given [visitor] to visit all of the children of this element.
   /// There is no guarantee of the order in which the children will be visited.
   @override
+  @trackedDirectlyOpaque
   void visitChildren<T>(ElementVisitor2<T> visitor) {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'visitChildren');
     for (var child in children) {
       child.accept(visitor);
     }
@@ -1904,17 +1948,21 @@ abstract class ElementImpl implements Element {
   /// There is no guarantee of the order in which the children will be visited.
   @Deprecated('Use visitChildren instead')
   @override
+  @trackedIndirectly
   void visitChildren2<T>(ElementVisitor2<T> visitor) {
     visitChildren(visitor);
   }
 
+  @trackedInternal
   void writeModifiers(BufferedSink writer) {
     _modifiers.write(writer);
   }
 }
 
+@elementClass
 class EnumElementImpl extends InterfaceElementImpl implements EnumElement {
   @override
+  @trackedIncludedInId
   final Reference reference;
 
   @override
@@ -1926,21 +1974,29 @@ class EnumElementImpl extends InterfaceElementImpl implements EnumElement {
   }
 
   @override
+  @trackedIndirectly
   List<FieldElementImpl> get constants {
     return fields.where((field) => field.isEnumConstant).toList();
   }
 
   @Deprecated('Use constants instead')
   @override
+  @trackedIndirectly
   List<FieldElementImpl> get constants2 {
     return constants;
   }
 
   @override
-  EnumFragmentImpl get firstFragment => _firstFragment;
+  @trackedDirectlyOpaque
+  EnumFragmentImpl get firstFragment {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'firstFragment');
+    return _firstFragment;
+  }
 
   @override
+  @trackedDirectlyOpaque
   List<EnumFragmentImpl> get fragments {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'fragments');
     return [
       for (
         EnumFragmentImpl? fragment = _firstFragment;
@@ -1952,8 +2008,12 @@ class EnumElementImpl extends InterfaceElementImpl implements EnumElement {
   }
 
   @override
-  ElementKind get kind => ElementKind.ENUM;
+  @trackedIncludedInId
+  ElementKind get kind {
+    return ElementKind.ENUM;
+  }
 
+  @trackedIndirectly
   FieldElementImpl? get valuesField {
     for (var field in fields) {
       if (field.name == 'values' && field.isSyntheticEnumField) {
@@ -1964,17 +2024,24 @@ class EnumElementImpl extends InterfaceElementImpl implements EnumElement {
   }
 
   @override
-  T? accept<T>(ElementVisitor2<T> visitor) => visitor.visitEnumElement(this);
+  @trackedDirectlyOpaque
+  T? accept<T>(ElementVisitor2<T> visitor) {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'accept');
+    return visitor.visitEnumElement(this);
+  }
 
   @Deprecated('Use accept instead')
   @override
+  @trackedIndirectly
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @override
+  @trackedIndirectly
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeEnumElement(this);
   }
 
+  @trackedInternal
   void linkFragments(List<EnumFragmentImpl> fragments) {
     assert(identical(fragments[0], _firstFragment));
     fragments.reduce((previous, current) {
@@ -2297,9 +2364,11 @@ abstract class ExecutableFragmentImpl extends FunctionTypedFragmentImpl
   List<TypeParameterFragmentImpl> get typeParameters2 => typeParameters;
 }
 
+@elementClass
 class ExtensionElementImpl extends InstanceElementImpl
     implements ExtensionElement {
   @override
+  @trackedIncludedInId
   final Reference reference;
 
   @override
@@ -2313,6 +2382,7 @@ class ExtensionElementImpl extends InstanceElementImpl
   }
 
   @override
+  @trackedIncludedInId
   TypeImpl get extendedType {
     _ensureReadResolution();
     return _extendedType;
@@ -2323,10 +2393,16 @@ class ExtensionElementImpl extends InstanceElementImpl
   }
 
   @override
-  ExtensionFragmentImpl get firstFragment => _firstFragment;
+  @trackedDirectlyOpaque
+  ExtensionFragmentImpl get firstFragment {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'firstFragment');
+    return _firstFragment;
+  }
 
   @override
+  @trackedDirectlyOpaque
   List<ExtensionFragmentImpl> get fragments {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'fragments');
     return [
       for (
         ExtensionFragmentImpl? fragment = _firstFragment;
@@ -2338,25 +2414,32 @@ class ExtensionElementImpl extends InstanceElementImpl
   }
 
   @override
+  @trackedIncludedInId
   ElementKind get kind => ElementKind.EXTENSION;
 
   @override
+  @trackedIndirectly
   DartType get thisType => extendedType;
 
   @override
+  @trackedDirectlyOpaque
   T? accept<T>(ElementVisitor2<T> visitor) {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'accept');
     return visitor.visitExtensionElement(this);
   }
 
   @Deprecated('Use accept instead')
   @override
+  @trackedIndirectly
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @override
+  @trackedIndirectly
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeExtensionElement(this);
   }
 
+  @trackedInternal
   void linkFragments(List<ExtensionFragmentImpl> fragments) {
     assert(identical(fragments[0], _firstFragment));
     fragments.reduce((previous, current) {
@@ -2423,9 +2506,11 @@ class ExtensionFragmentImpl extends InstanceFragmentImpl
   }
 }
 
+@elementClass
 class ExtensionTypeElementImpl extends InterfaceElementImpl
     implements ExtensionTypeElement {
   @override
+  @trackedIncludedInId
   final Reference reference;
 
   @override
@@ -2433,10 +2518,12 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
 
   /// Whether the element has direct or indirect reference to itself,
   /// in representation.
+  @trackedIncludedInId
   bool hasRepresentationSelfReference = false;
 
   /// Whether the element has direct or indirect reference to itself,
   /// in implemented superinterfaces.
+  @trackedIncludedInId
   bool hasImplementsSelfReference = false;
 
   late DartType _typeErasure;
@@ -2447,10 +2534,67 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   }
 
   @override
-  ExtensionTypeFragmentImpl get firstFragment => _firstFragment;
+  @trackedDirectlyOpaque
+  ExtensionTypeFragmentImpl get firstFragment {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'firstFragment');
+    return _firstFragment;
+  }
 
   @override
+  @trackedDirectlyOpaque
   List<ExtensionTypeFragmentImpl> get fragments {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'fragments');
+    return _fragments;
+  }
+
+  @override
+  @trackedIncludedInId
+  ElementKind get kind => ElementKind.EXTENSION_TYPE;
+
+  @override
+  @trackedIndirectly
+  ConstructorElement get primaryConstructor {
+    return constructors.first;
+  }
+
+  @Deprecated('Use primaryConstructor instead')
+  @override
+  @trackedIndirectly
+  ConstructorElement get primaryConstructor2 {
+    return primaryConstructor;
+  }
+
+  @trackedIndirectly
+  FieldFormalParameterElementImpl get primaryFormalParameter {
+    return primaryConstructor.formalParameters.first
+        as FieldFormalParameterElementImpl;
+  }
+
+  @override
+  @trackedIndirectly
+  FieldElementImpl get representation {
+    return fields.first;
+  }
+
+  @Deprecated('Use representation instead')
+  @override
+  @trackedIndirectly
+  FieldElementImpl get representation2 {
+    return representation;
+  }
+
+  @override
+  @trackedIncludedInId
+  DartType get typeErasure {
+    _ensureReadResolution();
+    return _typeErasure;
+  }
+
+  set typeErasure(DartType value) {
+    _typeErasure = value;
+  }
+
+  List<ExtensionTypeFragmentImpl> get _fragments {
     return [
       for (
         ExtensionTypeFragmentImpl? fragment = _firstFragment;
@@ -2462,59 +2606,24 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   }
 
   @override
-  ElementKind get kind => ElementKind.EXTENSION_TYPE;
-
-  @override
-  ConstructorElement get primaryConstructor {
-    return constructors.first;
-  }
-
-  @Deprecated('Use primaryConstructor instead')
-  @override
-  ConstructorElement get primaryConstructor2 {
-    return primaryConstructor;
-  }
-
-  FieldFormalParameterElementImpl get primaryFormalParameter {
-    return primaryConstructor.formalParameters.first
-        as FieldFormalParameterElementImpl;
-  }
-
-  @override
-  FieldElementImpl get representation {
-    return fields.first;
-  }
-
-  @Deprecated('Use representation instead')
-  @override
-  FieldElementImpl get representation2 {
-    return representation;
-  }
-
-  @override
-  DartType get typeErasure {
-    _ensureReadResolution();
-    return _typeErasure;
-  }
-
-  set typeErasure(DartType value) {
-    _typeErasure = value;
-  }
-
-  @override
+  @trackedDirectlyOpaque
   T? accept<T>(ElementVisitor2<T> visitor) {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'accept');
     return visitor.visitExtensionTypeElement(this);
   }
 
   @Deprecated('Use accept instead')
   @override
+  @trackedIndirectly
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @override
+  @trackedIndirectly
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeExtensionTypeElement(this);
   }
 
+  @trackedInternal
   void linkFragments(List<ExtensionTypeFragmentImpl> fragments) {
     assert(identical(fragments[0], _firstFragment));
     fragments.reduce((previous, current) {
@@ -3513,6 +3622,7 @@ sealed class FunctionFragmentImpl extends ExecutableFragmentImpl
   FunctionFragmentImpl({required this.name, super.firstTokenOffset});
 }
 
+@elementClass
 abstract class FunctionTypedElementImpl extends ElementImpl
     implements FunctionTypedElement {
   @override
@@ -3522,14 +3632,8 @@ abstract class FunctionTypedElementImpl extends ElementImpl
   List<FunctionTypedFragmentImpl> get fragments;
 
   @override
+  @trackedIncludedInId
   LibraryElementImpl get library => super.library!;
-
-  @override
-  void visitChildren<T>(ElementVisitor2<T> visitor) {
-    for (var child in children) {
-      child.accept(visitor);
-    }
-  }
 }
 
 /// Common internal interface shared by elements whose type is a function type.
@@ -4128,18 +4232,22 @@ abstract class InstanceElementImpl extends ElementImpl
   @override
   InstanceFragmentImpl get _firstFragment;
 
+  @trackedInternal
   void addField(FieldElementImpl element) {
     _fields.add(element);
   }
 
+  @trackedInternal
   void addGetter(GetterElementImpl element) {
     _getters.add(element);
   }
 
+  @trackedInternal
   void addMethod(MethodElementImpl element) {
     _methods.add(element);
   }
 
+  @trackedInternal
   void addSetter(SetterElementImpl element) {
     _setters.add(element);
   }
@@ -4344,14 +4452,6 @@ abstract class InstanceElementImpl extends ElementImpl
   @trackedIndirectly
   E? thisOrAncestorOfType2<E extends Element>() {
     return thisOrAncestorOfType();
-  }
-
-  @override
-  void visitChildren<T>(ElementVisitor2<T> visitor) {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'visitChildren');
-    for (var child in children) {
-      child.accept(visitor);
-    }
   }
 
   Iterable<InternalPropertyAccessorElement> _implementationsOfGetter(
@@ -4616,6 +4716,7 @@ abstract class InstanceFragmentImpl extends FragmentImpl
   }
 }
 
+@elementClass
 abstract class InterfaceElementImpl extends InstanceElementImpl
     implements InterfaceElement {
   /// The non-nullable instance of this element, without alias.
@@ -4634,6 +4735,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   /// If not `null`, this element was part of a supertypes cycle. The cycle
   /// is broken by clearing supertypes for all cycle elements.
+  @trackedIncludedInId
   List<InterfaceElementImpl>? interfaceCycle;
 
   /// The cached result of [allSupertypes].
@@ -4646,27 +4748,31 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   List<InterfaceTypeImpl>? Function(InterfaceElementImpl)?
   mixinInferenceCallback;
 
-  /// Whether the class or its superclass declares a non-final instance field.
-  bool hasNonFinalField = false;
+  /// Storage for [hasNonFinalField].
+  bool _hasNonFinalField = false;
 
   @override
+  @trackedIncludedInId
   List<InterfaceTypeImpl> get allSupertypes {
     return _allSupertypes ??= library.session.classHierarchy
         .implementedInterfaces(this);
   }
 
   @override
+  @trackedIndirectly
   List<Element> get children {
     return [...super.children, ...constructors];
   }
 
   @Deprecated('Use children instead')
   @override
+  @trackedIndirectly
   List<Element> get children2 {
     return children;
   }
 
   @override
+  @trackedDirectlyExpensive
   List<ConstructorElementImpl> get constructors {
     globalResultRequirements?.record_instanceElement_constructors(
       element: this,
@@ -4686,6 +4792,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   @Deprecated('Use constructors instead')
   @override
+  @trackedIndirectly
   List<ConstructorElementImpl> get constructors2 {
     return constructors;
   }
@@ -4694,7 +4801,9 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   InterfaceFragmentImpl get firstFragment;
 
   @override
+  @trackedDirectlyOpaque
   List<InterfaceFragmentImpl> get fragments {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'fragments');
     return [
       for (
         InterfaceFragmentImpl? fragment = _firstFragment;
@@ -4705,21 +4814,48 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     ];
   }
 
+  /// Whether the class or its superclass declares a non-final instance field.
+  @trackedDirectly
+  bool get hasNonFinalField {
+    globalResultRequirements?.record_interfaceElement_hasNonFinalField(
+      element: this,
+    );
+    return _hasNonFinalField;
+  }
+
+  set hasNonFinalField(bool value) {
+    _hasNonFinalField = value;
+  }
+
+  @trackedDirectlyOpaque
   InheritanceManager3 get inheritanceManager {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'inheritanceManager');
     return library.session.inheritanceManager;
   }
 
   @override
-  Map<Name, ExecutableElement> get inheritedConcreteMembers =>
-      session.inheritanceManager.getInheritedConcreteMap(this);
+  @trackedDirectlyOpaque
+  Map<Name, ExecutableElement> get inheritedConcreteMembers {
+    globalResultRequirements?.recordOpaqueApiUse(
+      this,
+      'inheritedConcreteMembers',
+    );
+    return inheritanceManager.getInheritedConcreteMap(this);
+  }
 
   @override
-  Map<Name, ExecutableElement> get inheritedMembers =>
-      session.inheritanceManager.getInheritedMap(this);
+  @trackedDirectlyOpaque
+  Map<Name, ExecutableElement> get inheritedMembers {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'inheritedMembers');
+    return inheritanceManager.getInheritedMap(this);
+  }
 
   @override
-  Map<Name, ExecutableElement> get interfaceMembers =>
-      session.inheritanceManager.getInterface(this).map;
+  @trackedDirectlyOpaque
+  Map<Name, ExecutableElement> get interfaceMembers {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'interfaceMembers');
+    return inheritanceManager.getInterface(this).map;
+  }
 
   @override
   @trackedIncludedInId
@@ -4736,6 +4872,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   /// Return `true` if this class represents the class '_Enum' defined in the
   /// dart:core library.
+  @trackedIncludedInId
   bool get isDartCoreEnumImpl {
     return name == '_Enum' && library.isDartCore;
   }
@@ -4772,6 +4909,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   }
 
   @override
+  @trackedIncludedInId
   InterfaceTypeImpl get thisType {
     if (_thisType == null) {
       List<TypeImpl> typeArguments;
@@ -4791,12 +4929,14 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   }
 
   @override
+  @trackedIndirectly
   ConstructorElementImpl? get unnamedConstructor {
     return getNamedConstructor('new');
   }
 
   @Deprecated('Use unnamedConstructor instead')
   @override
+  @trackedIndirectly
   ConstructorElementImpl? get unnamedConstructor2 {
     return unnamedConstructor;
   }
@@ -4804,6 +4944,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   @override
   InterfaceFragmentImpl get _firstFragment;
 
+  @trackedInternal
   void addConstructor(ConstructorElementImpl element) {
     if (identical(_constructors, _Sentinel.constructorElement)) {
       _constructors = [];
@@ -4812,18 +4953,26 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   }
 
   @override
+  @trackedIndirectly
   ExecutableElement? getInheritedConcreteMember(Name name) =>
       inheritedConcreteMembers[name];
 
   @override
-  ExecutableElement? getInheritedMember(Name name) =>
-      session.inheritanceManager.getInherited(this, name);
+  @trackedDirectlyOpaque
+  ExecutableElement? getInheritedMember(Name name) {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'getInheritedMember');
+    return inheritanceManager.getInherited(this, name);
+  }
 
   @override
-  ExecutableElement? getInterfaceMember(Name name) =>
-      session.inheritanceManager.getMember(this, name);
+  @trackedDirectlyOpaque
+  ExecutableElement? getInterfaceMember(Name name) {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'getInterfaceMember');
+    return inheritanceManager.getMember(this, name);
+  }
 
   @override
+  @trackedDirectly
   ConstructorElementImpl? getNamedConstructor(String name) {
     globalResultRequirements?.record_interfaceElement_getNamedConstructor(
       element: this,
@@ -4837,15 +4986,20 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   @Deprecated('Use getNamedConstructor instead')
   @override
+  @trackedIndirectly
   ConstructorElementImpl? getNamedConstructor2(String name) {
     return getNamedConstructor(name);
   }
 
   @override
-  List<ExecutableElement>? getOverridden(Name name) =>
-      session.inheritanceManager.getOverridden(this, name);
+  @trackedDirectlyOpaque
+  List<ExecutableElement>? getOverridden(Name name) {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'getOverridden');
+    return inheritanceManager.getOverridden(this, name);
+  }
 
   @override
+  @trackedIndirectly
   InterfaceTypeImpl instantiate({
     required List<DartType> typeArguments,
     required NullabilitySuffix nullabilitySuffix,
@@ -4856,6 +5010,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     );
   }
 
+  @trackedIndirectly
   InterfaceTypeImpl instantiateImpl({
     required List<TypeImpl> typeArguments,
     required NullabilitySuffix nullabilitySuffix,
@@ -4900,6 +5055,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   }
 
   @override
+  @trackedIndirectly
   MethodElement? lookUpConcreteMethod(
     String methodName,
     LibraryElement library,
@@ -4909,6 +5065,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     );
   }
 
+  @trackedIndirectly
   PropertyAccessorElement? lookUpInheritedConcreteGetter(
     String getterName,
     LibraryElement library,
@@ -4922,6 +5079,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     );
   }
 
+  @trackedIndirectly
   MethodElement? lookUpInheritedConcreteMethod(
     String methodName,
     LibraryElement library,
@@ -4935,6 +5093,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     );
   }
 
+  @trackedIndirectly
   PropertyAccessorElement? lookUpInheritedConcreteSetter(
     String setterName,
     LibraryElement library,
@@ -4949,10 +5108,12 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   }
 
   @override
+  @trackedDirectlyOpaque
   MethodElement? lookUpInheritedMethod({
     required String methodName,
     required LibraryElement library,
   }) {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'lookUpInheritedMethod');
     return inheritanceManager
         .getInherited(this, Name.forLibrary(library, methodName))
         .ifTypeOrNull();
@@ -4960,6 +5121,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   @override
   @Deprecated('Use lookUpInheritedMethod instead')
+  @trackedIndirectly
   MethodElement? lookUpInheritedMethod2({
     required String methodName,
     required LibraryElement library,
@@ -5016,6 +5178,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
         .ifTypeOrNull();
   }
 
+  @trackedInternal
   void resetCachedAllSupertypes() {
     _allSupertypes = null;
   }
@@ -7632,8 +7795,10 @@ class MethodFragmentImpl extends ExecutableFragmentImpl
   }
 }
 
+@elementClass
 class MixinElementImpl extends InterfaceElementImpl implements MixinElement {
   @override
+  @trackedIncludedInId
   final Reference reference;
 
   @override
@@ -7649,21 +7814,21 @@ class MixinElementImpl extends InterfaceElementImpl implements MixinElement {
   }
 
   @override
-  MixinFragmentImpl get firstFragment => _firstFragment;
-
-  @override
-  List<MixinFragmentImpl> get fragments {
-    return [
-      for (
-        MixinFragmentImpl? fragment = _firstFragment;
-        fragment != null;
-        fragment = fragment.nextFragment
-      )
-        fragment,
-    ];
+  @trackedDirectlyOpaque
+  MixinFragmentImpl get firstFragment {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'firstFragment');
+    return _firstFragment;
   }
 
   @override
+  @trackedDirectlyOpaque
+  List<MixinFragmentImpl> get fragments {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'fragments');
+    return _fragments;
+  }
+
+  @override
+  @trackedIncludedInId
   bool get isBase {
     return hasModifier(Modifier.BASE);
   }
@@ -7673,9 +7838,11 @@ class MixinElementImpl extends InterfaceElementImpl implements MixinElement {
   }
 
   @override
+  @trackedIndirectly
   bool get isImplementableOutside => !isBase;
 
   @override
+  @trackedIncludedInId
   ElementKind get kind => ElementKind.MIXIN;
 
   @override
@@ -7684,6 +7851,7 @@ class MixinElementImpl extends InterfaceElementImpl implements MixinElement {
   }
 
   @override
+  @trackedIncludedInId
   List<InterfaceTypeImpl> get superclassConstraints {
     _ensureReadResolution();
     return _superclassConstraints;
@@ -7696,6 +7864,7 @@ class MixinElementImpl extends InterfaceElementImpl implements MixinElement {
   /// Names of methods, getters, setters, and operators that this mixin
   /// declaration super-invokes.  For setters this includes the trailing "=".
   /// The list will be empty if this class is not a mixin declaration.
+  @trackedIncludedInId
   List<String> get superInvokedNames => _firstFragment.superInvokedNames;
 
   @override
@@ -7703,22 +7872,38 @@ class MixinElementImpl extends InterfaceElementImpl implements MixinElement {
     throw StateError('Attempt to set a supertype for a mixin declaration.');
   }
 
+  List<MixinFragmentImpl> get _fragments {
+    return [
+      for (
+        MixinFragmentImpl? fragment = _firstFragment;
+        fragment != null;
+        fragment = fragment.nextFragment
+      )
+        fragment,
+    ];
+  }
+
   @override
+  @trackedDirectlyOpaque
   T? accept<T>(ElementVisitor2<T> visitor) {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'accept');
     return visitor.visitMixinElement(this);
   }
 
   @Deprecated('Use accept instead')
   @override
+  @trackedIndirectly
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @override
+  @trackedIndirectly
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeMixinElement(this);
   }
 
   @Deprecated('Use isImplementableOutside instead')
   @override
+  @trackedIndirectly
   bool isImplementableIn(LibraryElement library) {
     if (library == this.library) {
       return true;
@@ -7728,10 +7913,12 @@ class MixinElementImpl extends InterfaceElementImpl implements MixinElement {
 
   @Deprecated('Use isImplementableOutside instead')
   @override
+  @trackedIndirectly
   bool isImplementableIn2(LibraryElement library) {
     return isImplementableIn(library);
   }
 
+  @trackedInternal
   void linkFragments(List<MixinFragmentImpl> fragments) {
     assert(identical(fragments[0], _firstFragment));
     fragments.reduce((previous, current) {

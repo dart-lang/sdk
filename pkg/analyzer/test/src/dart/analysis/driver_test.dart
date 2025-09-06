@@ -5750,6 +5750,393 @@ class FineAnalysisDriverTest extends PubPackageResolutionTest
     return super.tearDown();
   }
 
+  test_dependency_class_instanceField_add_hasNonFinalField() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeInterfaceElement('A');
+      A.hasNonFinalField;
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            hasNonFinalField: false
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  var foo = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M2
+        declaredGetters
+          foo: #M3
+        declaredSetters
+          foo=: #M4
+        interface: #M5
+          map
+            foo: #M3
+            foo=: #M4
+          implemented
+            foo: #M3
+            foo=: #M4
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  interfaceHasNonFinalFieldMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    expected: false
+    actual: true
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            hasNonFinalField: true
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_instanceField_add_hasNonFinalField_ofSuper() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {}
+''',
+      testCode: r'''
+import 'a.dart';
+class B extends A {}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      B: #M2
+        interface: #M3
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            interfaceId: #M1
+            hasNonFinalField: false
+            requestedConstructors
+              new: #M4
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            allDeclaredGetters: []
+            allDeclaredSetters: []
+            allDeclaredMethods: []
+        interfaces
+          A
+            allConstructors: #M4
+            requestedConstructors
+              new: #M4
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  var foo = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M5
+        declaredGetters
+          foo: #M6
+        declaredSetters
+          foo=: #M7
+        interface: #M8
+          map
+            foo: #M6
+            foo=: #M7
+          implemented
+            foo: #M6
+            foo=: #M7
+  requirements
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
+  interfaceIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    expectedId: #M1
+    actualId: #M8
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      B: #M2
+        interface: #M9
+          map
+            foo: #M6
+            foo=: #M7
+          implemented
+            foo: #M6
+            foo=: #M7
+          superImplemented
+            [0]
+              foo: #M6
+              foo=: #M7
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            interfaceId: #M8
+            hasNonFinalField: true
+            requestedConstructors
+              new: #M4
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  instanceChildrenIdsMismatch
+    libraryUri: package:test/a.dart
+    instanceName: A
+    childrenPropertyName: getters
+    expectedIds: []
+    actualIds: #M6
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M5
+            allDeclaredGetters: #M6
+            allDeclaredSetters: #M7
+            allDeclaredMethods: []
+        interfaces
+          A
+            allConstructors: #M4
+            requestedConstructors
+              new: #M4
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_instanceField_add_hasNonFinalField_ofSuper_private() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {}
+''',
+      testCode: r'''
+import 'a.dart';
+class B extends A {}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      B: #M2
+        interface: #M3
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            interfaceId: #M1
+            hasNonFinalField: false
+            requestedConstructors
+              new: #M4
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            allDeclaredGetters: []
+            allDeclaredSetters: []
+            allDeclaredMethods: []
+        interfaces
+          A
+            allConstructors: #M4
+            requestedConstructors
+              new: #M4
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  var _foo = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          _foo: #M5
+        declaredGetters
+          _foo: #M6
+        declaredSetters
+          _foo=: #M7
+        interface: #M1
+  requirements
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
+  interfaceHasNonFinalFieldMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    expected: false
+    actual: true
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      B: #M2
+        interface: #M3
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            interfaceId: #M1
+            hasNonFinalField: true
+            requestedConstructors
+              new: #M4
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  instanceChildrenIdsMismatch
+    libraryUri: package:test/a.dart
+    instanceName: A
+    childrenPropertyName: getters
+    expectedIds: []
+    actualIds: #M6
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            allDeclaredGetters: #M6
+            allDeclaredSetters: #M7
+            allDeclaredMethods: []
+        interfaces
+          A
+            allConstructors: #M4
+            requestedConstructors
+              new: #M4
+[status] idle
+''',
+    );
+  }
+
   test_dependency_class_instanceField_change_getField() async {
     _ManualRequirements.install((state) {
       var A = state.singleUnit.scopeInstanceElement('A');
@@ -5779,6 +6166,8 @@ import 'a.dart';
           foo: #M2
         interface: #M3
           map
+            foo: #M2
+          implemented
             foo: #M2
   requirements
 [operation] linkLibraryCycle
@@ -5831,6 +6220,8 @@ class A {
           foo: #M5
         interface: #M6
           map
+            foo: #M5
+          implemented
             foo: #M5
   requirements
 [operation] reuseLinkedBundle
@@ -5910,6 +6301,9 @@ import 'a.dart';
           map
             bar: #M3
             foo: #M4
+          implemented
+            bar: #M3
+            foo: #M4
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -5966,6 +6360,9 @@ class A {
           map
             bar: #M7
             foo: #M4
+          implemented
+            bar: #M7
+            foo: #M4
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -6011,6 +6408,8 @@ class B extends A {}
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -6019,6 +6418,11 @@ class B extends A {}
         interface: #M5
           map
             foo: #M2
+          implemented
+            foo: #M2
+          superImplemented
+            [0]
+              foo: #M2
   requirements
     libraries
       package:test/a.dart
@@ -6027,6 +6431,7 @@ class B extends A {}
         interfaces
           A
             interfaceId: #M3
+            hasNonFinalField: false
             requestedConstructors
               new: #M6
 [status] idle
@@ -6060,6 +6465,9 @@ class A {
           map
             bar: #M8
             foo: #M2
+          implemented
+            bar: #M8
+            foo: #M2
   requirements
 [operation] checkLinkedBundleRequirements
   package:test/test.dart
@@ -6076,6 +6484,13 @@ class A {
           map
             bar: #M8
             foo: #M2
+          implemented
+            bar: #M8
+            foo: #M2
+          superImplemented
+            [0]
+              bar: #M8
+              foo: #M2
   requirements
     libraries
       package:test/a.dart
@@ -6084,6 +6499,7 @@ class A {
         interfaces
           A
             interfaceId: #M9
+            hasNonFinalField: false
             requestedConstructors
               new: #M6
 [status] idle
@@ -6127,6 +6543,8 @@ import 'a.dart';
           foo: #M2
         interface: #M3
           map
+            foo: #M2
+          implemented
             foo: #M2
   requirements
 [operation] linkLibraryCycle
@@ -6181,6 +6599,9 @@ class A {
           foo: #M2
         interface: #M6
           map
+            bar: #M5
+            foo: #M2
+          implemented
             bar: #M5
             foo: #M2
   requirements
@@ -6258,6 +6679,9 @@ class B extends A {}
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -6267,6 +6691,13 @@ class B extends A {}
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
   requirements
     libraries
       package:test/a.dart
@@ -6275,6 +6706,7 @@ class B extends A {}
         interfaces
           A
             interfaceId: #M4
+            hasNonFinalField: false
             requestedConstructors
               new: #M7
 [operation] analyzeFile
@@ -6293,6 +6725,7 @@ class B extends A {}
               foo: #M1
             allDeclaredGetters: #M2
             allDeclaredSetters: #M3
+            allDeclaredMethods: []
         interfaces
           A
             allConstructors: #M7
@@ -6327,6 +6760,9 @@ class A {
           map
             foo: #M9
             foo=: #M3
+          implemented
+            foo: #M9
+            foo=: #M3
   requirements
 [operation] checkLinkedBundleRequirements
   package:test/test.dart
@@ -6343,6 +6779,13 @@ class A {
           map
             foo: #M9
             foo=: #M3
+          implemented
+            foo: #M9
+            foo=: #M3
+          superImplemented
+            [0]
+              foo: #M9
+              foo=: #M3
   requirements
     libraries
       package:test/a.dart
@@ -6351,6 +6794,7 @@ class A {
         interfaces
           A
             interfaceId: #M10
+            hasNonFinalField: false
             requestedConstructors
               new: #M7
 [operation] checkLibraryDiagnosticsRequirements
@@ -6377,6 +6821,7 @@ class A {
               foo: #M8
             allDeclaredGetters: #M9
             allDeclaredSetters: #M3
+            allDeclaredMethods: []
         interfaces
           A
             allConstructors: #M7
@@ -6421,6 +6866,8 @@ import 'a.dart';
           foo: #M2
         interface: #M3
           map
+            foo: #M2
+          implemented
             foo: #M2
   requirements
 [operation] linkLibraryCycle
@@ -6475,6 +6922,8 @@ class A {
           foo: #M5
         interface: #M6
           map
+            foo: #M5
+          implemented
             foo: #M5
   requirements
 [operation] reuseLinkedBundle
@@ -6552,6 +7001,8 @@ import 'a.dart';
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -6603,6 +7054,8 @@ class A {
           foo: #M5
         interface: #M6
           map
+            foo: #M5
+          implemented
             foo: #M5
   requirements
 [operation] reuseLinkedBundle
@@ -6682,6 +7135,9 @@ import 'a.dart';
           map
             bar: #M3
             foo: #M4
+          implemented
+            bar: #M3
+            foo: #M4
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -6738,6 +7194,9 @@ class A {
           map
             bar: #M7
             foo: #M4
+          implemented
+            bar: #M7
+            foo: #M4
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -6783,6 +7242,8 @@ void f(A a) {
           foo: #M2
         interface: #M3
           map
+            foo: #M2
+          implemented
             foo: #M2
   requirements
 [operation] linkLibraryCycle
@@ -6841,6 +7302,8 @@ class A {
           foo: #M6
         interface: #M7
           map
+            foo: #M6
+          implemented
             foo: #M6
   requirements
 [operation] reuseLinkedBundle
@@ -6924,6 +7387,9 @@ void f() {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -6981,6 +7447,9 @@ class A {
           foo: #M4
         interface: #M9
           map
+            foo: #M8
+            foo=: #M3
+          implemented
             foo: #M8
             foo=: #M3
   requirements
@@ -7057,6 +7526,9 @@ void f(A a) {
           map
             bar: #M3
             foo: #M4
+          implemented
+            bar: #M3
+            foo: #M4
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -7115,6 +7587,8 @@ class A {
         interface: #M7
           map
             foo: #M4
+          implemented
+            foo: #M4
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -7162,10 +7636,17 @@ void f(B b) {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         interface: #M5
           map
             foo: #M2
+          implemented
+            foo: #M2
+          superImplemented
+            [0]
+              foo: #M2
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -7221,10 +7702,17 @@ class B extends A<double> {}
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M7
         interface: #M8
           map
             foo: #M2
+          implemented
+            foo: #M2
+          superImplemented
+            [0]
+              foo: #M2
   requirements
 [operation] checkLinkedBundleRequirements
   package:test/test.dart
@@ -7308,6 +7796,8 @@ void f(B b) {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         interface: #M5
           map
@@ -7366,6 +7856,8 @@ class B implements A<double> {}
           foo: #M2
         interface: #M3
           map
+            foo: #M2
+          implemented
             foo: #M2
       B: #M7
         interface: #M8
@@ -7454,10 +7946,17 @@ void f(B b) {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         interface: #M5
           map
             foo: #M2
+          implemented
+            foo: #M2
+          superImplemented
+            [1]
+              foo: #M2
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -7513,10 +8012,17 @@ class B with A<double> {}
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M7
         interface: #M8
           map
             foo: #M2
+          implemented
+            foo: #M2
+          superImplemented
+            [1]
+              foo: #M2
   requirements
 [operation] checkLinkedBundleRequirements
   package:test/test.dart
@@ -7693,6 +8199,8 @@ class B extends A {}
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -7701,6 +8209,11 @@ class B extends A {}
         interface: #M4
           map
             foo: #M1
+          implemented
+            foo: #M1
+          superImplemented
+            [0]
+              foo: #M1
   requirements
     libraries
       package:test/a.dart
@@ -7709,6 +8222,7 @@ class B extends A {}
         interfaces
           A
             interfaceId: #M2
+            hasNonFinalField: false
             requestedConstructors
               new: #M5
 [status] idle
@@ -7739,6 +8253,9 @@ class A {
           map
             bar: #M6
             foo: #M1
+          implemented
+            bar: #M6
+            foo: #M1
   requirements
 [operation] checkLinkedBundleRequirements
   package:test/test.dart
@@ -7755,6 +8272,13 @@ class A {
           map
             bar: #M6
             foo: #M1
+          implemented
+            bar: #M6
+            foo: #M1
+          superImplemented
+            [0]
+              bar: #M6
+              foo: #M1
   requirements
     libraries
       package:test/a.dart
@@ -7763,6 +8287,7 @@ class A {
         interfaces
           A
             interfaceId: #M7
+            hasNonFinalField: false
             requestedConstructors
               new: #M5
 [status] idle
@@ -7804,6 +8329,8 @@ import 'a.dart';
           foo: #M1
         interface: #M2
           map
+            foo: #M1
+          implemented
             foo: #M1
   requirements
 [operation] linkLibraryCycle
@@ -7855,6 +8382,9 @@ class A {
           foo: #M1
         interface: #M4
           map
+            bar: #M3
+            foo: #M1
+          implemented
             bar: #M3
             foo: #M1
   requirements
@@ -7978,6 +8508,8 @@ class A {
         interface: #M4
           map
             foo: #M3
+          implemented
+            foo: #M3
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -8042,6 +8574,9 @@ class B extends A {}
           map
             bar: #M1
             foo: #M2
+          implemented
+            bar: #M1
+            foo: #M2
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -8051,6 +8586,13 @@ class B extends A {}
           map
             bar: #M1
             foo: #M2
+          implemented
+            bar: #M1
+            foo: #M2
+          superImplemented
+            [0]
+              bar: #M1
+              foo: #M2
   requirements
     libraries
       package:test/a.dart
@@ -8059,6 +8601,7 @@ class B extends A {}
         interfaces
           A
             interfaceId: #M3
+            hasNonFinalField: false
             requestedConstructors
               new: #M6
 [operation] analyzeFile
@@ -8073,6 +8616,8 @@ class B extends A {}
           A: #M0
         instances
           A
+            allDeclaredGetters: []
+            allDeclaredSetters: []
             allDeclaredMethods: #M2 #M1
         interfaces
           A
@@ -8105,6 +8650,9 @@ class A {
           map
             bar: #M1
             foo: #M7
+          implemented
+            bar: #M1
+            foo: #M7
   requirements
 [operation] checkLinkedBundleRequirements
   package:test/test.dart
@@ -8121,6 +8669,13 @@ class A {
           map
             bar: #M1
             foo: #M7
+          implemented
+            bar: #M1
+            foo: #M7
+          superImplemented
+            [0]
+              bar: #M1
+              foo: #M7
   requirements
     libraries
       package:test/a.dart
@@ -8129,6 +8684,7 @@ class A {
         interfaces
           A
             interfaceId: #M8
+            hasNonFinalField: false
             requestedConstructors
               new: #M6
 [operation] checkLibraryDiagnosticsRequirements
@@ -8151,6 +8707,8 @@ class A {
           A: #M0
         instances
           A
+            allDeclaredGetters: []
+            allDeclaredSetters: []
             allDeclaredMethods: #M7 #M1
         interfaces
           A
@@ -8199,11 +8757,15 @@ class X extends C {}
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredMethods
           foo: #M4
         interface: #M5
           map
+            foo: #M4
+          implemented
             foo: #M4
       C: #M6
         interface: #M7
@@ -8211,6 +8773,11 @@ class X extends C {}
             foo: #M8
           combinedIds
             [#M1, #M4]: #M8
+          implemented
+            foo: #M1
+          superImplemented
+            [0]
+              foo: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -8219,6 +8786,11 @@ class X extends C {}
         interface: #M10
           map
             foo: #M8
+          implemented
+            foo: #M1
+          superImplemented
+            [0]
+              foo: #M1
   requirements
     libraries
       package:test/a.dart
@@ -8227,6 +8799,7 @@ class X extends C {}
         interfaces
           C
             interfaceId: #M7
+            hasNonFinalField: false
             requestedConstructors
               new: #M11
 [operation] analyzeFile
@@ -8241,10 +8814,17 @@ class X extends C {}
           C: #M6
         instances
           A
+            allDeclaredGetters: []
+            allDeclaredSetters: []
             allDeclaredMethods: #M1
           B
+            allDeclaredGetters: []
+            allDeclaredSetters: []
             allDeclaredMethods: #M4
           C
+            allDeclaredGetters: []
+            allDeclaredSetters: []
+            allDeclaredMethods: []
         interfaces
           C
             allConstructors: #M11
@@ -8279,11 +8859,15 @@ class C extends A implements B {}
         interface: #M13
           map
             foo: #M12
+          implemented
+            foo: #M12
       B: #M3
         declaredMethods
           foo: #M4
         interface: #M5
           map
+            foo: #M4
+          implemented
             foo: #M4
       C: #M6
         interface: #M14
@@ -8291,6 +8875,11 @@ class C extends A implements B {}
             foo: #M15
           combinedIds
             [#M12, #M4]: #M15
+          implemented
+            foo: #M12
+          superImplemented
+            [0]
+              foo: #M12
   requirements
 [operation] checkLinkedBundleRequirements
   package:test/test.dart
@@ -8306,6 +8895,11 @@ class C extends A implements B {}
         interface: #M16
           map
             foo: #M12
+          implemented
+            foo: #M12
+          superImplemented
+            [0]
+              foo: #M12
   requirements
     libraries
       package:test/a.dart
@@ -8314,6 +8908,7 @@ class C extends A implements B {}
         interfaces
           C
             interfaceId: #M14
+            hasNonFinalField: false
             requestedConstructors
               new: #M11
 [operation] checkLibraryDiagnosticsRequirements
@@ -8336,10 +8931,17 @@ class C extends A implements B {}
           C: #M6
         instances
           A
+            allDeclaredGetters: []
+            allDeclaredSetters: []
             allDeclaredMethods: #M12
           B
+            allDeclaredGetters: []
+            allDeclaredSetters: []
             allDeclaredMethods: #M4
           C
+            allDeclaredGetters: []
+            allDeclaredSetters: []
+            allDeclaredMethods: []
         interfaces
           C
             allConstructors: #M11
@@ -8382,6 +8984,8 @@ import 'a.dart';
           foo: #M1
         interface: #M2
           map
+            foo: #M1
+          implemented
             foo: #M1
   requirements
 [operation] linkLibraryCycle
@@ -8432,6 +9036,8 @@ class A {
           foo: #M3
         interface: #M4
           map
+            foo: #M3
+          implemented
             foo: #M3
   requirements
 [operation] reuseLinkedBundle
@@ -8508,6 +9114,9 @@ import 'a.dart';
           map
             bar: #M1
             foo: #M2
+          implemented
+            bar: #M1
+            foo: #M2
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -8561,6 +9170,9 @@ class A {
           map
             bar: #M4
             foo: #M2
+          implemented
+            bar: #M4
+            foo: #M2
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -8604,6 +9216,8 @@ void f(A a) {
           foo: #M1
         interface: #M2
           map
+            foo: #M1
+          implemented
             foo: #M1
   requirements
 [operation] linkLibraryCycle
@@ -8656,6 +9270,8 @@ class A {
           foo: #M4
         interface: #M5
           map
+            foo: #M4
+          implemented
             foo: #M4
   requirements
 [operation] reuseLinkedBundle
@@ -8727,6 +9343,8 @@ void f() {
         interface: #M3
           map
             foo: #M1
+          implemented
+            foo: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -8774,6 +9392,8 @@ class A {
           foo: #M2
         interface: #M6
           map
+            foo: #M5
+          implemented
             foo: #M5
   requirements
 [operation] reuseLinkedBundle
@@ -9030,6 +9650,821 @@ void f(B b) {
     );
   }
 
+  test_dependency_class_instanceMethod_change_lookUpMethod() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeClassElement('A');
+      A.thisType.lookUpMethod('foo', A.library);
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+abstract class A {
+  int foo();
+}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            methods
+              foo: #M1
+[status] idle
+''',
+      updatedA: r'''
+abstract class A {
+  double foo();
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M3
+        interface: #M4
+          map
+            foo: #M3
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  instanceMethodIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    methodName: foo
+    expectedId: #M1
+    actualId: #M3
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            methods
+              foo: #M3
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_instanceMethod_change_lookUpMethod_concrete() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeClassElement('A');
+      A.thisType.lookUpMethod('foo', A.library, concrete: true);
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  int foo() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+          implemented
+            foo: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            implementedMethods
+              foo: #M1
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  double foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M3
+        interface: #M4
+          map
+            foo: #M3
+          implemented
+            foo: #M3
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  implementedMethodIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    methodName: foo
+    expectedId: #M1
+    actualId: #M3
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            implementedMethods
+              foo: #M3
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_instanceMethod_change_lookUpMethod_concrete_makeAbstract() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeClassElement('A');
+      A.thisType.lookUpMethod('foo', A.library, concrete: true);
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+abstract class A {
+  void foo() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+          implemented
+            foo: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            implementedMethods
+              foo: #M1
+[status] idle
+''',
+      updatedA: r'''
+abstract class A {
+  void foo();
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M3
+          map
+            foo: #M1
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  implementedMethodIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    methodName: foo
+    expectedId: #M1
+    actualId: <null>
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            implementedMethods
+              foo: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_instanceMethod_change_lookUpMethod_concrete_makeConcrete() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeClassElement('A');
+      A.thisType.lookUpMethod('foo', A.library, concrete: true);
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+abstract class A {
+  void foo();
+}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            implementedMethods
+              foo: <null>
+[status] idle
+''',
+      updatedA: r'''
+abstract class A {
+  void foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M3
+          map
+            foo: #M1
+          implemented
+            foo: #M1
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  implementedMethodIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    methodName: foo
+    expectedId: <null>
+    actualId: #M1
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            implementedMethods
+              foo: #M1
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_instanceMethod_change_lookUpMethod_concrete_other() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeClassElement('A');
+      A.thisType.lookUpMethod('foo', A.library, concrete: true);
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  void foo() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+          implemented
+            foo: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            implementedMethods
+              foo: #M1
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  void foo() {}
+  void bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          bar: #M3
+          foo: #M1
+        interface: #M4
+          map
+            bar: #M3
+            foo: #M1
+          implemented
+            bar: #M3
+            foo: #M1
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_instanceMethod_change_lookUpMethod_inherited() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var B = state.singleUnit.scopeClassElement('B');
+      B.thisType.lookUpMethod(
+        'foo',
+        B.library,
+        concrete: true,
+        inherited: true,
+      );
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  int foo() {}
+}
+class B extends A {}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+          implemented
+            foo: #M1
+      B: #M3
+        interface: #M4
+          map
+            foo: #M1
+          implemented
+            foo: #M1
+          superImplemented
+            [0]
+              foo: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          B: #M3
+        interfaces
+          B
+            superMethods
+              [0]
+                foo: #M1
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  double foo() {}
+}
+class B extends A {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M5
+        interface: #M6
+          map
+            foo: #M5
+          implemented
+            foo: #M5
+      B: #M3
+        interface: #M7
+          map
+            foo: #M5
+          implemented
+            foo: #M5
+          superImplemented
+            [0]
+              foo: #M5
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  superImplementedMethodIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: B
+    superIndex: 0
+    methodName: foo
+    expectedId: #M1
+    actualId: #M5
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          B: #M3
+        interfaces
+          B
+            superMethods
+              [0]
+                foo: #M5
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_instanceMethod_change_lookUpMethod_inherited_other() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var B = state.singleUnit.scopeClassElement('B');
+      B.thisType.lookUpMethod(
+        'foo',
+        B.library,
+        concrete: true,
+        inherited: true,
+      );
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  void foo() {}
+}
+class B extends A {}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+          implemented
+            foo: #M1
+      B: #M3
+        interface: #M4
+          map
+            foo: #M1
+          implemented
+            foo: #M1
+          superImplemented
+            [0]
+              foo: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          B: #M3
+        interfaces
+          B
+            superMethods
+              [0]
+                foo: #M1
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  void foo() {}
+  void bar() {}
+}
+class B extends A {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          bar: #M5
+          foo: #M1
+        interface: #M6
+          map
+            bar: #M5
+            foo: #M1
+          implemented
+            bar: #M5
+            foo: #M1
+      B: #M3
+        interface: #M7
+          map
+            bar: #M5
+            foo: #M1
+          implemented
+            bar: #M5
+            foo: #M1
+          superImplemented
+            [0]
+              bar: #M5
+              foo: #M1
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_instanceMethod_change_lookUpMethod_other() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeClassElement('A');
+      A.thisType.lookUpMethod('foo', A.library);
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+abstract class A {
+  void foo();
+}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            methods
+              foo: #M1
+[status] idle
+''',
+      updatedA: r'''
+abstract class A {
+  void foo();
+  void bar();
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          bar: #M3
+          foo: #M1
+        interface: #M4
+          map
+            bar: #M3
+            foo: #M1
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
   test_dependency_class_instanceMethod_change_notUsed() async {
     await _runChangeScenarioTA(
       initialA: r'''
@@ -9057,6 +10492,9 @@ void f(A a) {
           foo: #M2
         interface: #M3
           map
+            bar: #M1
+            foo: #M2
+          implemented
             bar: #M1
             foo: #M2
   requirements
@@ -9114,6 +10552,9 @@ class A {
           map
             bar: #M5
             foo: #M2
+          implemented
+            bar: #M5
+            foo: #M2
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -9161,14 +10602,26 @@ void f(C c) {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         interface: #M4
           map
             foo: #M1
+          implemented
+            foo: #M1
+          superImplemented
+            [0]
+              foo: #M1
       C: #M5
         interface: #M6
           map
             foo: #M1
+          implemented
+            foo: #M1
+          superImplemented
+            [0]
+              foo: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -9220,14 +10673,26 @@ class C extends B {}
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M8
         interface: #M9
           map
             foo: #M1
+          implemented
+            foo: #M1
+          superImplemented
+            [0]
+              foo: #M1
       C: #M10
         interface: #M11
           map
             foo: #M1
+          implemented
+            foo: #M1
+          superImplemented
+            [0]
+              foo: #M1
   requirements
 [operation] checkLinkedBundleRequirements
   package:test/test.dart
@@ -9305,10 +10770,17 @@ void f(B b) {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         interface: #M4
           map
             foo: #M1
+          implemented
+            foo: #M1
+          superImplemented
+            [0]
+              foo: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -9358,10 +10830,17 @@ class B extends A<double> {}
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M6
         interface: #M7
           map
             foo: #M1
+          implemented
+            foo: #M1
+          superImplemented
+            [0]
+              foo: #M1
   requirements
 [operation] checkLinkedBundleRequirements
   package:test/test.dart
@@ -9439,6 +10918,8 @@ void f(B b) {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         interface: #M4
           map
@@ -9491,6 +10972,8 @@ class B implements A<double> {}
           foo: #M1
         interface: #M2
           map
+            foo: #M1
+          implemented
             foo: #M1
       B: #M6
         interface: #M7
@@ -9573,10 +11056,17 @@ void f(B b) {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         interface: #M4
           map
             foo: #M1
+          implemented
+            foo: #M1
+          superImplemented
+            [1]
+              foo: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -9626,10 +11116,17 @@ class B with A<double> {}
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M6
         interface: #M7
           map
             foo: #M1
+          implemented
+            foo: #M1
+          superImplemented
+            [1]
+              foo: #M1
   requirements
 [operation] checkLinkedBundleRequirements
   package:test/test.dart
@@ -9799,6 +11296,8 @@ void f(A a) {
           foo: #M1
         interface: #M2
           map
+            foo: #M1
+          implemented
             foo: #M1
   requirements
 [operation] linkLibraryCycle
@@ -9974,6 +11473,8 @@ class A {
         interface: #M5
           map
             foo=: #M4
+          implemented
+            foo=: #M4
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -10052,6 +11553,9 @@ import 'a.dart';
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -10108,6 +11612,9 @@ class A {
           foo=: #M5
         interface: #M6
           map
+            foo: #M2
+            foo=: #M5
+          implemented
             foo: #M2
             foo=: #M5
   requirements
@@ -10186,6 +11693,8 @@ import 'a.dart';
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -10237,6 +11746,8 @@ class A {
           foo=: #M5
         interface: #M6
           map
+            foo=: #M5
+          implemented
             foo=: #M5
   requirements
 [operation] reuseLinkedBundle
@@ -10316,6 +11827,9 @@ import 'a.dart';
           map
             bar=: #M3
             foo=: #M4
+          implemented
+            bar=: #M3
+            foo=: #M4
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -10372,6 +11886,9 @@ class A {
           map
             bar=: #M7
             foo=: #M4
+          implemented
+            bar=: #M7
+            foo=: #M4
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -10417,6 +11934,8 @@ void f(A a) {
           foo=: #M2
         interface: #M3
           map
+            foo=: #M2
+          implemented
             foo=: #M2
   requirements
 [operation] linkLibraryCycle
@@ -10475,6 +11994,8 @@ class A {
           foo=: #M6
         interface: #M7
           map
+            foo=: #M6
+          implemented
             foo=: #M6
   requirements
 [operation] reuseLinkedBundle
@@ -10558,6 +12079,9 @@ void f() {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -10615,6 +12139,9 @@ class A {
           foo: #M4
         interface: #M8
           map
+            foo: #M2
+            foo=: #M7
+          implemented
             foo: #M2
             foo=: #M7
   requirements
@@ -10691,6 +12218,9 @@ void f(A a) {
           map
             bar=: #M3
             foo=: #M4
+          implemented
+            bar=: #M3
+            foo=: #M4
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -10753,6 +12283,9 @@ class A {
           map
             bar=: #M8
             foo=: #M4
+          implemented
+            bar=: #M8
+            foo=: #M4
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -10800,10 +12333,17 @@ void f(B b) {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         interface: #M5
           map
             foo=: #M2
+          implemented
+            foo=: #M2
+          superImplemented
+            [0]
+              foo=: #M2
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -10859,10 +12399,17 @@ class B extends A<double> {}
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M7
         interface: #M8
           map
             foo=: #M2
+          implemented
+            foo=: #M2
+          superImplemented
+            [0]
+              foo=: #M2
   requirements
 [operation] checkLinkedBundleRequirements
   package:test/test.dart
@@ -10946,6 +12493,8 @@ void f(B b) {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         interface: #M5
           map
@@ -11004,6 +12553,8 @@ class B implements A<double> {}
           foo=: #M2
         interface: #M3
           map
+            foo=: #M2
+          implemented
             foo=: #M2
       B: #M7
         interface: #M8
@@ -11092,10 +12643,17 @@ void f(B b) {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         interface: #M5
           map
             foo=: #M2
+          implemented
+            foo=: #M2
+          superImplemented
+            [1]
+              foo=: #M2
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -11151,10 +12709,17 @@ class B with A<double> {}
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M7
         interface: #M8
           map
             foo=: #M2
+          implemented
+            foo=: #M2
+          superImplemented
+            [1]
+              foo=: #M2
   requirements
 [operation] checkLinkedBundleRequirements
   package:test/test.dart
@@ -11334,6 +12899,8 @@ void f(A a) {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -11468,6 +13035,8 @@ import 'a.dart';
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -11521,6 +13090,9 @@ class A {
           foo=: #M2
         interface: #M6
           map
+            bar=: #M5
+            foo=: #M2
+          implemented
             bar=: #M5
             foo=: #M2
   requirements
@@ -12951,6 +14523,9 @@ void f() {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -13008,6 +14583,9 @@ class A {
           foo: #M7
         interface: #M5
           map
+            foo: #M2
+            foo=: #M3
+          implemented
             foo: #M2
             foo=: #M3
   requirements
@@ -13082,6 +14660,8 @@ void f() {
         interface: #M3
           map
             foo: #M1
+          implemented
+            foo: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -13129,6 +14709,8 @@ class A {
           foo: #M5
         interface: #M3
           map
+            foo: #M1
+          implemented
             foo: #M1
   requirements
 [operation] reuseLinkedBundle
@@ -13209,6 +14791,7 @@ class B extends A {
         interfaces
           A
             interfaceId: #M2
+            hasNonFinalField: false
             requestedConstructors
               named: #M1
 [operation] analyzeFile
@@ -13224,6 +14807,9 @@ class B extends A {
           named: <null>
         instances
           A
+            allDeclaredGetters: []
+            allDeclaredSetters: []
+            allDeclaredMethods: []
         interfaces
           A
             allConstructors: #M1
@@ -13275,6 +14861,7 @@ class A {
         interfaces
           A
             interfaceId: #M2
+            hasNonFinalField: false
             requestedConstructors
               named: #M6
 [operation] checkLibraryDiagnosticsRequirements
@@ -13298,6 +14885,9 @@ class A {
           named: <null>
         instances
           A
+            allDeclaredGetters: []
+            allDeclaredSetters: []
+            allDeclaredMethods: []
         interfaces
           A
             allConstructors: #M6
@@ -14846,6 +16436,11 @@ void f() {
         interface: #M5
           map
             index: #M6
+          implemented
+            index: #M6
+          superImplemented
+            [0]
+              index: #M6
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -14905,6 +16500,11 @@ enum A {
         interface: #M5
           map
             index: #M6
+          implemented
+            index: #M6
+          superImplemented
+            [0]
+              index: #M6
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -14985,6 +16585,12 @@ void f(A a) {
           map
             foo: #M4
             index: #M8
+          implemented
+            foo: #M4
+            index: #M8
+          superImplemented
+            [0]
+              index: #M8
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -15049,6 +16655,12 @@ enum A {
           map
             foo: #M11
             index: #M8
+          implemented
+            foo: #M11
+            index: #M8
+          superImplemented
+            [0]
+              index: #M8
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -15131,6 +16743,13 @@ void f(A a) {
             bar: #M5
             foo: #M6
             index: #M10
+          implemented
+            bar: #M5
+            foo: #M6
+            index: #M10
+          superImplemented
+            [0]
+              index: #M10
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -15199,6 +16818,13 @@ enum A {
             bar: #M13
             foo: #M6
             index: #M10
+          implemented
+            bar: #M13
+            foo: #M6
+            index: #M10
+          superImplemented
+            [0]
+              index: #M10
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -15249,6 +16875,12 @@ void f(A a) {
           map
             foo: #M5
             index: #M7
+          implemented
+            foo: #M5
+            index: #M7
+          superImplemented
+            [0]
+              index: #M7
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -15309,6 +16941,12 @@ enum A {
           map
             foo: #M9
             index: #M7
+          implemented
+            foo: #M9
+            index: #M7
+          superImplemented
+            [0]
+              index: #M7
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -15386,6 +17024,13 @@ void f(A a) {
             bar: #M5
             foo: #M6
             index: #M8
+          implemented
+            bar: #M5
+            foo: #M6
+            index: #M8
+          superImplemented
+            [0]
+              index: #M8
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -15449,6 +17094,13 @@ enum A {
             bar: #M10
             foo: #M6
             index: #M8
+          implemented
+            bar: #M10
+            foo: #M6
+            index: #M8
+          superImplemented
+            [0]
+              index: #M8
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -15500,6 +17152,12 @@ void f(A a) {
           map
             foo=: #M6
             index: #M8
+          implemented
+            foo=: #M6
+            index: #M8
+          superImplemented
+            [0]
+              index: #M8
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -15565,6 +17223,12 @@ enum A {
           map
             foo=: #M11
             index: #M8
+          implemented
+            foo=: #M11
+            index: #M8
+          superImplemented
+            [0]
+              index: #M8
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -15648,6 +17312,13 @@ void f(A a) {
             bar=: #M7
             foo=: #M8
             index: #M10
+          implemented
+            bar=: #M7
+            foo=: #M8
+            index: #M10
+          superImplemented
+            [0]
+              index: #M10
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -15717,6 +17388,13 @@ enum A {
             bar=: #M13
             foo=: #M8
             index: #M10
+          implemented
+            bar=: #M13
+            foo=: #M8
+            index: #M10
+          superImplemented
+            [0]
+              index: #M10
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -15766,6 +17444,11 @@ void f() {
         interface: #M7
           map
             index: #M8
+          implemented
+            index: #M8
+          superImplemented
+            [0]
+              index: #M8
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -15827,6 +17510,11 @@ enum A {
         interface: #M7
           map
             index: #M8
+          implemented
+            index: #M8
+          superImplemented
+            [0]
+              index: #M8
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -15909,6 +17597,11 @@ void f() {
         interface: #M9
           map
             index: #M10
+          implemented
+            index: #M10
+          superImplemented
+            [0]
+              index: #M10
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -15973,6 +17666,11 @@ enum A {
         interface: #M9
           map
             index: #M10
+          implemented
+            index: #M10
+          superImplemented
+            [0]
+              index: #M10
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -16022,6 +17720,11 @@ void f() {
         interface: #M6
           map
             index: #M7
+          implemented
+            index: #M7
+          superImplemented
+            [0]
+              index: #M7
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -16083,6 +17786,11 @@ enum A {
         interface: #M6
           map
             index: #M7
+          implemented
+            index: #M7
+          superImplemented
+            [0]
+              index: #M7
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -16164,6 +17872,11 @@ void f() {
         interface: #M7
           map
             index: #M8
+          implemented
+            index: #M8
+          superImplemented
+            [0]
+              index: #M8
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -16227,6 +17940,11 @@ enum A {
         interface: #M7
           map
             index: #M8
+          implemented
+            index: #M8
+          superImplemented
+            [0]
+              index: #M8
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -16277,6 +17995,11 @@ void f() {
         interface: #M7
           map
             index: #M8
+          implemented
+            index: #M8
+          superImplemented
+            [0]
+              index: #M8
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -16335,6 +18058,11 @@ enum A {
         interface: #M7
           map
             index: #M8
+          implemented
+            index: #M8
+          superImplemented
+            [0]
+              index: #M8
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -16414,6 +18142,11 @@ void f() {
         interface: #M9
           map
             index: #M10
+          implemented
+            index: #M10
+          superImplemented
+            [0]
+              index: #M10
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -16475,6 +18208,11 @@ enum A {
         interface: #M9
           map
             index: #M10
+          implemented
+            index: #M10
+          superImplemented
+            [0]
+              index: #M10
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -16911,6 +18649,11 @@ export 'a.dart';
         interface: #M5
           map
             index: #M6
+          implemented
+            index: #M6
+          superImplemented
+            [0]
+              index: #M6
       _E: #M7
         declaredFields
           v: #M8
@@ -16921,6 +18664,11 @@ export 'a.dart';
         interface: #M12
           map
             index: #M6
+          implemented
+            index: #M6
+          superImplemented
+            [0]
+              index: #M6
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -16962,6 +18710,11 @@ enum _E2 {v}
         interface: #M5
           map
             index: #M6
+          implemented
+            index: #M6
+          superImplemented
+            [0]
+              index: #M6
       _E2: #M13
         declaredFields
           v: #M14
@@ -16972,6 +18725,11 @@ enum _E2 {v}
         interface: #M18
           map
             index: #M6
+          implemented
+            index: #M6
+          superImplemented
+            [0]
+              index: #M6
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -18132,6 +19890,8 @@ export 'a.dart';
         interface: #M3
           map
             it: #M2
+          implemented
+            it: #M2
       _E: #M4
         declaredFields
           it: #M5
@@ -18139,6 +19899,8 @@ export 'a.dart';
           it: #M6
         interface: #M7
           map
+            it: #M6
+          implemented
             it: #M6
   requirements
 [operation] linkLibraryCycle
@@ -18179,6 +19941,8 @@ extension type _E2(int it) {}
         interface: #M3
           map
             it: #M2
+          implemented
+            it: #M2
       _E2: #M8
         declaredFields
           it: #M9
@@ -18186,6 +19950,8 @@ extension type _E2(int it) {}
           it: #M10
         interface: #M11
           map
+            it: #M10
+          implemented
             it: #M10
   requirements
 [operation] reuseLinkedBundle
@@ -22430,6 +24196,9 @@ void f(A a) {
           map
             foo: #M3
             it: #M4
+          implemented
+            foo: #M3
+            it: #M4
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -22489,6 +24258,9 @@ extension type A(int it) {
           it: #M4
         interface: #M9
           map
+            foo: #M8
+            it: #M4
+          implemented
             foo: #M8
             it: #M4
   requirements
@@ -22570,6 +24342,10 @@ void f(A a) {
             bar: #M4
             foo: #M5
             it: #M6
+          implemented
+            bar: #M4
+            foo: #M5
+            it: #M6
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -22635,6 +24411,10 @@ extension type A(int it) {
             bar: #M10
             foo: #M5
             it: #M6
+          implemented
+            bar: #M10
+            foo: #M5
+            it: #M6
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -22680,6 +24460,9 @@ void f(A a) {
           foo: #M3
         interface: #M4
           map
+            foo: #M3
+            it: #M2
+          implemented
             foo: #M3
             it: #M2
   requirements
@@ -22737,6 +24520,9 @@ extension type A(int it) {
           foo: #M6
         interface: #M7
           map
+            foo: #M6
+            it: #M2
+          implemented
             foo: #M6
             it: #M2
   requirements
@@ -22813,6 +24599,10 @@ void f(A a) {
             bar: #M3
             foo: #M4
             it: #M2
+          implemented
+            bar: #M3
+            foo: #M4
+            it: #M2
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -22873,6 +24663,10 @@ extension type A(int it) {
             bar: #M7
             foo: #M4
             it: #M2
+          implemented
+            bar: #M7
+            foo: #M4
+            it: #M2
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -22919,6 +24713,9 @@ void f(A a) {
           foo=: #M4
         interface: #M5
           map
+            foo=: #M4
+            it: #M3
+          implemented
             foo=: #M4
             it: #M3
   requirements
@@ -22981,6 +24778,9 @@ extension type A(int it) {
           foo=: #M8
         interface: #M9
           map
+            foo=: #M8
+            it: #M3
+          implemented
             foo=: #M8
             it: #M3
   requirements
@@ -23063,6 +24863,10 @@ void f(A a) {
             bar=: #M5
             foo=: #M6
             it: #M4
+          implemented
+            bar=: #M5
+            foo=: #M6
+            it: #M4
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -23129,6 +24933,10 @@ extension type A(int it) {
             bar=: #M10
             foo=: #M6
             it: #M4
+          implemented
+            bar=: #M10
+            foo=: #M6
+            it: #M4
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -23179,6 +24987,8 @@ import 'a.dart';
           new: #M4
         interface: #M5
           map
+            it: #M2
+          implemented
             it: #M2
   requirements
 [operation] linkLibraryCycle
@@ -23233,6 +25043,8 @@ extension type A(int it) {
           new: #M4
         interface: #M5
           map
+            it: #M2
+          implemented
             it: #M2
   requirements
 [operation] reuseLinkedBundle
@@ -23309,6 +25121,8 @@ void f() {
         interface: #M5
           map
             it: #M2
+          implemented
+            it: #M2
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -23361,6 +25175,8 @@ extension type A(int it) {
           new: #M4
         interface: #M5
           map
+            it: #M2
+          implemented
             it: #M2
   requirements
 [operation] reuseLinkedBundle
@@ -23434,6 +25250,8 @@ void f() {
         interface: #M5
           map
             it: #M2
+          implemented
+            it: #M2
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -23487,6 +25305,8 @@ extension type A(int it) {
         interface: #M5
           map
             it: #M2
+          implemented
+            it: #M2
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -23532,6 +25352,8 @@ void f() {
           it: #M4
         interface: #M5
           map
+            it: #M4
+          implemented
             it: #M4
   requirements
 [operation] linkLibraryCycle
@@ -23590,6 +25412,8 @@ extension type A(int it) {
           it: #M4
         interface: #M5
           map
+            it: #M4
+          implemented
             it: #M4
   requirements
 [operation] reuseLinkedBundle
@@ -23670,6 +25494,8 @@ void f() {
         interface: #M7
           map
             it: #M6
+          implemented
+            it: #M6
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -23731,6 +25557,8 @@ extension type A(int it) {
         interface: #M7
           map
             it: #M6
+          implemented
+            it: #M6
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -23776,6 +25604,8 @@ void f() {
           foo: #M3
         interface: #M4
           map
+            it: #M2
+          implemented
             it: #M2
   requirements
 [operation] linkLibraryCycle
@@ -23834,6 +25664,8 @@ extension type A(int it) {
           foo: #M6
         interface: #M4
           map
+            it: #M2
+          implemented
             it: #M2
   requirements
 [operation] reuseLinkedBundle
@@ -23913,6 +25745,8 @@ void f() {
         interface: #M5
           map
             it: #M2
+          implemented
+            it: #M2
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -23973,6 +25807,8 @@ extension type A(int it) {
         interface: #M5
           map
             it: #M2
+          implemented
+            it: #M2
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -24019,6 +25855,8 @@ void f() {
           foo=: #M4
         interface: #M5
           map
+            it: #M3
+          implemented
             it: #M3
   requirements
 [operation] linkLibraryCycle
@@ -24074,6 +25912,8 @@ extension type A(int it) {
           foo=: #M8
         interface: #M5
           map
+            it: #M3
+          implemented
             it: #M3
   requirements
 [operation] reuseLinkedBundle
@@ -24151,6 +25991,8 @@ void f() {
         interface: #M7
           map
             it: #M4
+          implemented
+            it: #M4
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -24209,6 +26051,8 @@ extension type A(int it) {
         interface: #M7
           map
             it: #M4
+          implemented
+            it: #M4
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -24259,6 +26103,8 @@ import 'a.dart';
           new: #M4
         interface: #M5
           map
+            it: #M2
+          implemented
             it: #M2
   requirements
 [operation] linkLibraryCycle
@@ -24313,6 +26159,8 @@ extension type A(double it) {
           new: #M10
         interface: #M11
           map
+            it: #M8
+          implemented
             it: #M8
   requirements
 [operation] reuseLinkedBundle
@@ -24385,6 +26233,8 @@ void f() {
         interface: #M4
           map
             it: #M2
+          implemented
+            it: #M2
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -24434,6 +26284,8 @@ extension type A(double it) {}
           new: #M9
         interface: #M10
           map
+            it: #M8
+          implemented
             it: #M8
   requirements
 [operation] reuseLinkedBundle
@@ -24506,6 +26358,8 @@ void f() {
         interface: #M5
           map
             it: #M2
+          implemented
+            it: #M2
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -24559,6 +26413,8 @@ extension type A(double it) {
         interface: #M12
           map
             it: #M9
+          implemented
+            it: #M9
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -24598,6 +26454,103 @@ extension type A(double it) {
     );
   }
 
+  test_dependency_mixin_instanceField_add_hasNonFinalField() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeInterfaceElement('A');
+      A.hasNonFinalField;
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+mixin A {}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredMixins
+      A: #M0
+        interface: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            hasNonFinalField: false
+[status] idle
+''',
+      updatedA: r'''
+mixin A {
+  var foo = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredMixins
+      A: #M0
+        declaredFields
+          foo: #M2
+        declaredGetters
+          foo: #M3
+        declaredSetters
+          foo=: #M4
+        interface: #M5
+          map
+            foo: #M3
+            foo=: #M4
+          implemented
+            foo: #M3
+            foo=: #M4
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  interfaceHasNonFinalFieldMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    expected: false
+    actual: true
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        interfaces
+          A
+            hasNonFinalField: true
+[status] idle
+''',
+    );
+  }
+
   test_dependency_mixin_instanceGetter_change_invoked() async {
     await _runChangeScenarioTA(
       initialA: r'''
@@ -24625,6 +26578,8 @@ void f(A a) {
           foo: #M2
         interface: #M3
           map
+            foo: #M2
+          implemented
             foo: #M2
   requirements
 [operation] linkLibraryCycle
@@ -24683,6 +26638,8 @@ mixin A {
           foo: #M6
         interface: #M7
           map
+            foo: #M6
+          implemented
             foo: #M6
   requirements
 [operation] reuseLinkedBundle
@@ -24760,6 +26717,9 @@ void f(A a) {
           map
             bar: #M3
             foo: #M4
+          implemented
+            bar: #M3
+            foo: #M4
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -24818,6 +26778,8 @@ mixin A {
         interface: #M7
           map
             foo: #M4
+          implemented
+            foo: #M4
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -24865,10 +26827,15 @@ void f(B b) {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         interface: #M5
           map
             foo: #M2
+          superImplemented
+            [0]
+              foo: #M2
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -24924,10 +26891,15 @@ mixin B on A<double> {}
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M7
         interface: #M8
           map
             foo: #M2
+          superImplemented
+            [0]
+              foo: #M2
   requirements
 [operation] checkLinkedBundleRequirements
   package:test/test.dart
@@ -25058,6 +27030,8 @@ mixin A {
         interface: #M4
           map
             foo: #M3
+          implemented
+            foo: #M3
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -25119,6 +27093,8 @@ void f(A a) {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -25170,6 +27146,8 @@ mixin A {
           foo: #M4
         interface: #M5
           map
+            foo: #M4
+          implemented
             foo: #M4
   requirements
 [operation] reuseLinkedBundle
@@ -25240,6 +27218,9 @@ void f(A a) {
           map
             bar: #M1
             foo: #M2
+          implemented
+            bar: #M1
+            foo: #M2
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -25295,6 +27276,9 @@ mixin A {
           map
             bar: #M5
             foo: #M2
+          implemented
+            bar: #M5
+            foo: #M2
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -25339,6 +27323,8 @@ void f(B b) {
           foo: #M1
         interface: #M2
           map
+            foo: #M1
+          implemented
             foo: #M1
       B: #M3
         interface: #M4
@@ -25392,6 +27378,8 @@ mixin B implements A<double> {}
           foo: #M1
         interface: #M2
           map
+            foo: #M1
+          implemented
             foo: #M1
       B: #M6
         interface: #M7
@@ -25474,10 +27462,15 @@ void f(B b) {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         interface: #M4
           map
             foo: #M1
+          superImplemented
+            [0]
+              foo: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -25527,10 +27520,15 @@ mixin B on A<double> {}
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M6
         interface: #M7
           map
             foo: #M1
+          superImplemented
+            [0]
+              foo: #M1
   requirements
 [operation] checkLinkedBundleRequirements
   package:test/test.dart
@@ -25605,6 +27603,8 @@ void f(A a) {
           foo: #M1
         interface: #M2
           map
+            foo: #M1
+          implemented
             foo: #M1
   requirements
 [operation] linkLibraryCycle
@@ -25780,6 +27780,8 @@ mixin A {
         interface: #M5
           map
             foo=: #M4
+          implemented
+            foo=: #M4
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -25852,6 +27854,8 @@ void f(A a) {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -25909,6 +27913,8 @@ mixin A {
           foo=: #M6
         interface: #M7
           map
+            foo=: #M6
+          implemented
             foo=: #M6
   requirements
 [operation] reuseLinkedBundle
@@ -25986,6 +27992,9 @@ void f(A a) {
           map
             bar=: #M3
             foo=: #M4
+          implemented
+            bar=: #M3
+            foo=: #M4
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -26048,6 +28057,9 @@ mixin A {
           map
             bar=: #M8
             foo=: #M4
+          implemented
+            bar=: #M8
+            foo=: #M4
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -26095,10 +28107,15 @@ void f(B b) {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         interface: #M5
           map
             foo=: #M2
+          superImplemented
+            [0]
+              foo=: #M2
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -26154,10 +28171,15 @@ mixin B on A<double> {}
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M7
         interface: #M8
           map
             foo=: #M2
+          superImplemented
+            [0]
+              foo=: #M2
   requirements
 [operation] checkLinkedBundleRequirements
   package:test/test.dart
@@ -26237,6 +28259,8 @@ void f(A a) {
           foo=: #M2
         interface: #M3
           map
+            foo=: #M2
+          implemented
             foo=: #M2
   requirements
 [operation] linkLibraryCycle
@@ -27650,6 +29674,9 @@ base class X implements A {}
           A: #M0
         instances
           A
+            allDeclaredGetters: []
+            allDeclaredSetters: []
+            allDeclaredMethods: []
 [status] idle
 [future] getErrors T1
   ErrorsResult #0
@@ -28828,6 +30855,8 @@ class B extends A {
         interface: #M8
           map
             zzz: #M7
+          implemented
+            zzz: #M7
 ''',
     );
   }
@@ -28915,6 +30944,8 @@ class C extends B {
         interface: #M12
           map
             zzz: #M11
+          implemented
+            zzz: #M11
 ''',
     );
   }
@@ -28953,6 +30984,8 @@ class A {
           foo: #M1
         interface: #M4
           map
+            zzz: #M3
+          implemented
             zzz: #M3
 ''',
     );
@@ -28997,6 +31030,8 @@ class A {
         interface: #M5
           map
             zzz: #M4
+          implemented
+            zzz: #M4
 ''',
     );
   }
@@ -29024,6 +31059,8 @@ class A {
         interface: #M4
           map
             foo: #M2
+          implemented
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -29047,6 +31084,9 @@ class A {
           foo: #M3
         interface: #M6
           map
+            foo: #M2
+            zzz: #M5
+          implemented
             foo: #M2
             zzz: #M5
 ''',
@@ -29074,6 +31114,8 @@ class A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -29095,6 +31137,9 @@ class A {
           zzz: #M4
         interface: #M5
           map
+            foo: #M3
+            zzz: #M4
+          implemented
             foo: #M3
             zzz: #M4
 ''',
@@ -29128,6 +31173,9 @@ class A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -29154,6 +31202,10 @@ class A {
           foo: #M4
         interface: #M7
           map
+            foo: #M2
+            foo=: #M3
+            zzz: #M6
+          implemented
             foo: #M2
             foo=: #M3
             zzz: #M6
@@ -29184,6 +31236,9 @@ class A {
           map
             foo: #M1
             foo=: #M1
+          implemented
+            foo: #M1
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -29206,6 +31261,10 @@ class A {
           zzz: #M4
         interface: #M5
           map
+            foo: #M3
+            foo=: #M3
+            zzz: #M4
+          implemented
             foo: #M3
             foo=: #M3
             zzz: #M4
@@ -29239,6 +31298,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredFields
           foo: #M5
@@ -29252,6 +31313,12 @@ class B extends A {
           map
             foo: #M6
             foo=: #M7
+          implemented
+            foo: #M6
+            foo=: #M7
+          superImplemented
+            [0]
+              foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -29277,6 +31344,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredFields
           foo: #M5
@@ -29293,6 +31362,13 @@ class B extends A {
             foo: #M6
             foo=: #M7
             zzz: #M10
+          implemented
+            foo: #M6
+            foo=: #M7
+            zzz: #M10
+          superImplemented
+            [0]
+              foo: #M2
 ''',
     );
   }
@@ -29327,6 +31403,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredFields
           foo: #M6
@@ -29340,6 +31419,13 @@ class B extends A {
           map
             foo: #M7
             foo=: #M8
+          implemented
+            foo: #M7
+            foo=: #M8
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -29369,6 +31455,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredFields
           foo: #M6
@@ -29385,6 +31474,14 @@ class B extends A {
             foo: #M7
             foo=: #M8
             zzz: #M11
+          implemented
+            foo: #M7
+            foo=: #M8
+            zzz: #M11
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
     );
   }
@@ -29413,6 +31510,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredFields
           foo: #M4
@@ -29426,6 +31525,12 @@ class B extends A {
           map
             foo: #M5
             foo=: #M6
+          implemented
+            foo: #M5
+            foo=: #M6
+          superImplemented
+            [0]
+              foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -29449,6 +31554,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredFields
           foo: #M4
@@ -29465,6 +31572,13 @@ class B extends A {
             foo: #M5
             foo=: #M6
             zzz: #M9
+          implemented
+            foo: #M5
+            foo=: #M6
+            zzz: #M9
+          superImplemented
+            [0]
+              foo: #M1
 ''',
     );
   }
@@ -29495,6 +31609,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredFields
           foo: #M5
@@ -29508,6 +31624,12 @@ class B extends A {
           map
             foo: #M6
             foo=: #M7
+          implemented
+            foo: #M6
+            foo=: #M7
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -29533,6 +31655,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredFields
           foo: #M5
@@ -29549,6 +31673,13 @@ class B extends A {
             foo: #M6
             foo=: #M7
             zzz: #M10
+          implemented
+            foo: #M6
+            foo=: #M7
+            zzz: #M10
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
     );
   }
@@ -29574,6 +31705,8 @@ class A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -29595,6 +31728,9 @@ class A {
           zzz: #M4
         interface: #M5
           map
+            foo: #M3
+            zzz: #M4
+          implemented
             foo: #M3
             zzz: #M4
 ''',
@@ -29627,6 +31763,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredConflicts
           foo: #M5
@@ -29634,6 +31772,11 @@ class B extends A {
         interface: #M6
           map
             foo: #M5
+          implemented
+            foo: #M5
+          superImplemented
+            [0]
+              foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -29659,6 +31802,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredConflicts
           foo: #M7
@@ -29669,6 +31814,12 @@ class B extends A {
           map
             foo: #M7
             zzz: #M8
+          implemented
+            foo: #M7
+            zzz: #M8
+          superImplemented
+            [0]
+              foo: #M2
 ''',
     );
   }
@@ -29703,6 +31854,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredConflicts
           foo: #M6
@@ -29711,6 +31865,13 @@ class B extends A {
           map
             foo: #M6
             foo=: #M3
+          implemented
+            foo: #M6
+            foo=: #M3
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -29740,6 +31901,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredConflicts
           foo: #M8
@@ -29751,6 +31915,14 @@ class B extends A {
             foo: #M8
             foo=: #M3
             zzz: #M9
+          implemented
+            foo: #M8
+            foo=: #M3
+            zzz: #M9
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
     );
   }
@@ -29779,6 +31951,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredConflicts
           foo: #M4
@@ -29786,6 +31960,11 @@ class B extends A {
         interface: #M5
           map
             foo: #M4
+          implemented
+            foo: #M4
+          superImplemented
+            [0]
+              foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -29809,6 +31988,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredConflicts
           foo: #M6
@@ -29819,6 +32000,12 @@ class B extends A {
           map
             foo: #M6
             zzz: #M7
+          implemented
+            foo: #M6
+            zzz: #M7
+          superImplemented
+            [0]
+              foo: #M1
 ''',
     );
   }
@@ -29849,6 +32036,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredConflicts
           foo: #M5
@@ -29857,6 +32046,12 @@ class B extends A {
           map
             foo: #M5
             foo=: #M2
+          implemented
+            foo: #M5
+            foo=: #M2
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -29882,6 +32077,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredConflicts
           foo: #M7
@@ -29893,6 +32090,13 @@ class B extends A {
             foo: #M7
             foo=: #M2
             zzz: #M8
+          implemented
+            foo: #M7
+            foo=: #M2
+            zzz: #M8
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
     );
   }
@@ -29922,6 +32126,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredFields
           foo: #M5
@@ -29932,6 +32138,11 @@ class B extends A {
         interface: #M8
           map
             foo: #M6
+          implemented
+            foo: #M6
+          superImplemented
+            [0]
+              foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -29956,6 +32167,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredFields
           foo: #M5
@@ -29969,6 +32182,12 @@ class B extends A {
           map
             foo: #M6
             zzz: #M9
+          implemented
+            foo: #M6
+            zzz: #M9
+          superImplemented
+            [0]
+              foo: #M2
 ''',
     );
   }
@@ -30002,6 +32221,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredFields
           foo: #M6
@@ -30013,6 +32235,13 @@ class B extends A {
           map
             foo: #M7
             foo=: #M3
+          implemented
+            foo: #M7
+            foo=: #M3
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -30041,6 +32270,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredFields
           foo: #M6
@@ -30055,6 +32287,14 @@ class B extends A {
             foo: #M7
             foo=: #M3
             zzz: #M10
+          implemented
+            foo: #M7
+            foo=: #M3
+            zzz: #M10
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
     );
   }
@@ -30082,6 +32322,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredFields
           foo: #M4
@@ -30092,6 +32334,11 @@ class B extends A {
         interface: #M7
           map
             foo: #M5
+          implemented
+            foo: #M5
+          superImplemented
+            [0]
+              foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -30114,6 +32361,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredFields
           foo: #M4
@@ -30127,6 +32376,12 @@ class B extends A {
           map
             foo: #M5
             zzz: #M8
+          implemented
+            foo: #M5
+            zzz: #M8
+          superImplemented
+            [0]
+              foo: #M1
 ''',
     );
   }
@@ -30156,6 +32411,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredFields
           foo: #M5
@@ -30167,6 +32424,12 @@ class B extends A {
           map
             foo: #M6
             foo=: #M2
+          implemented
+            foo: #M6
+            foo=: #M2
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -30191,6 +32454,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredFields
           foo: #M5
@@ -30205,6 +32470,13 @@ class B extends A {
             foo: #M6
             foo=: #M2
             zzz: #M9
+          implemented
+            foo: #M6
+            foo=: #M2
+            zzz: #M9
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
     );
   }
@@ -30230,6 +32502,8 @@ class A {
         interface: #M3
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -30250,6 +32524,9 @@ class A {
           foo: #M2
         interface: #M5
           map
+            foo: #M1
+            zzz: #M4
+          implemented
             foo: #M1
             zzz: #M4
 ''',
@@ -30277,6 +32554,8 @@ class A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -30298,6 +32577,9 @@ class A {
           zzz: #M4
         interface: #M5
           map
+            foo: #M3
+            zzz: #M4
+          implemented
             foo: #M3
             zzz: #M4
 ''',
@@ -30326,6 +32608,8 @@ class A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -30348,6 +32632,9 @@ class A {
           zzz: #M4
         interface: #M5
           map
+            foo: #M3
+            zzz: #M4
+          implemented
             foo: #M3
             zzz: #M4
 ''',
@@ -30377,6 +32664,9 @@ class A {
           map
             foo: #M1
             foo=: #M1
+          implemented
+            foo: #M1
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -30399,6 +32689,10 @@ class A {
           zzz: #M4
         interface: #M5
           map
+            foo: #M3
+            foo=: #M3
+            zzz: #M4
+          implemented
             foo: #M3
             foo=: #M3
             zzz: #M4
@@ -30427,6 +32721,8 @@ class A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -30448,6 +32744,9 @@ class A {
           zzz: #M4
         interface: #M5
           map
+            foo: #M3
+            zzz: #M4
+          implemented
             foo: #M3
             zzz: #M4
 ''',
@@ -30476,6 +32775,9 @@ class A {
           map
             foo: #M1
             foo=: #M1
+          implemented
+            foo: #M1
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -30497,6 +32799,10 @@ class A {
           zzz: #M4
         interface: #M5
           map
+            foo: #M3
+            foo=: #M3
+            zzz: #M4
+          implemented
             foo: #M3
             foo=: #M3
             zzz: #M4
@@ -30527,6 +32833,9 @@ class A {
           map
             foo: #M1
             foo=: #M1
+          implemented
+            foo: #M1
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -30549,6 +32858,10 @@ class A {
           zzz: #M4
         interface: #M5
           map
+            foo: #M3
+            foo=: #M3
+            zzz: #M4
+          implemented
             foo: #M3
             foo=: #M3
             zzz: #M4
@@ -30581,6 +32894,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredMethods
           foo: #M5
@@ -30589,6 +32904,11 @@ class B extends A {
         interface: #M7
           map
             foo: #M5
+          implemented
+            foo: #M5
+          superImplemented
+            [0]
+              foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -30613,6 +32933,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredMethods
           foo: #M5
@@ -30623,6 +32945,12 @@ class B extends A {
           map
             foo: #M5
             zzz: #M8
+          implemented
+            foo: #M5
+            zzz: #M8
+          superImplemented
+            [0]
+              foo: #M2
 ''',
     );
   }
@@ -30656,6 +32984,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredMethods
           foo: #M6
@@ -30665,6 +32996,13 @@ class B extends A {
           map
             foo: #M6
             foo=: #M3
+          implemented
+            foo: #M6
+            foo=: #M3
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -30693,6 +33031,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredMethods
           foo: #M6
@@ -30704,6 +33045,14 @@ class B extends A {
             foo: #M6
             foo=: #M3
             zzz: #M9
+          implemented
+            foo: #M6
+            foo=: #M3
+            zzz: #M9
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
     );
   }
@@ -30731,6 +33080,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredMethods
           foo: #M4
@@ -30739,6 +33090,11 @@ class B extends A {
         interface: #M6
           map
             foo: #M4
+          implemented
+            foo: #M4
+          superImplemented
+            [0]
+              foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -30761,6 +33117,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredMethods
           foo: #M4
@@ -30771,6 +33129,12 @@ class B extends A {
           map
             foo: #M4
             zzz: #M7
+          implemented
+            foo: #M4
+            zzz: #M7
+          superImplemented
+            [0]
+              foo: #M1
 ''',
     );
   }
@@ -30800,6 +33164,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredMethods
           foo: #M5
@@ -30809,6 +33175,12 @@ class B extends A {
           map
             foo: #M5
             foo=: #M2
+          implemented
+            foo: #M5
+            foo=: #M2
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -30833,6 +33205,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredMethods
           foo: #M5
@@ -30844,6 +33218,13 @@ class B extends A {
             foo: #M5
             foo=: #M2
             zzz: #M8
+          implemented
+            foo: #M5
+            foo=: #M2
+            zzz: #M8
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
     );
   }
@@ -30871,6 +33252,8 @@ class A {
         interface: #M4
           map
             foo=: #M2
+          implemented
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -30894,6 +33277,9 @@ class A {
           foo: #M3
         interface: #M6
           map
+            foo=: #M2
+            zzz: #M5
+          implemented
             foo=: #M2
             zzz: #M5
 ''',
@@ -30921,6 +33307,8 @@ class A {
         interface: #M2
           map
             foo=: #M1
+          implemented
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -30942,6 +33330,9 @@ class A {
           zzz: #M4
         interface: #M5
           map
+            foo=: #M3
+            zzz: #M4
+          implemented
             foo=: #M3
             zzz: #M4
 ''',
@@ -30973,6 +33364,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredFields
           foo: #M5
@@ -30984,6 +33377,12 @@ class B extends A {
           map
             foo: #M2
             foo=: #M6
+          implemented
+            foo: #M2
+            foo=: #M6
+          superImplemented
+            [0]
+              foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -31008,6 +33407,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredFields
           foo: #M5
@@ -31022,6 +33423,13 @@ class B extends A {
             foo: #M2
             foo=: #M6
             zzz: #M9
+          implemented
+            foo: #M2
+            foo=: #M6
+            zzz: #M9
+          superImplemented
+            [0]
+              foo: #M2
 ''',
     );
   }
@@ -31055,6 +33463,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredFields
           foo: #M6
@@ -31066,6 +33477,13 @@ class B extends A {
           map
             foo: #M2
             foo=: #M7
+          implemented
+            foo: #M2
+            foo=: #M7
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -31094,6 +33512,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredFields
           foo: #M6
@@ -31108,6 +33529,14 @@ class B extends A {
             foo: #M2
             foo=: #M7
             zzz: #M10
+          implemented
+            foo: #M2
+            foo=: #M7
+            zzz: #M10
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
     );
   }
@@ -31135,6 +33564,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredFields
           foo: #M4
@@ -31146,6 +33577,12 @@ class B extends A {
           map
             foo: #M1
             foo=: #M5
+          implemented
+            foo: #M1
+            foo=: #M5
+          superImplemented
+            [0]
+              foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -31168,6 +33605,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredFields
           foo: #M4
@@ -31182,6 +33621,13 @@ class B extends A {
             foo: #M1
             foo=: #M5
             zzz: #M8
+          implemented
+            foo: #M1
+            foo=: #M5
+            zzz: #M8
+          superImplemented
+            [0]
+              foo: #M1
 ''',
     );
   }
@@ -31211,6 +33657,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredFields
           foo: #M5
@@ -31221,6 +33669,11 @@ class B extends A {
         interface: #M8
           map
             foo=: #M6
+          implemented
+            foo=: #M6
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -31245,6 +33698,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredFields
           foo: #M5
@@ -31258,6 +33713,12 @@ class B extends A {
           map
             foo=: #M6
             zzz: #M9
+          implemented
+            foo=: #M6
+            zzz: #M9
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
     );
   }
@@ -31301,6 +33762,8 @@ class A {
         interface: #M5
           map
             zzz: #M4
+          implemented
+            zzz: #M4
 ''',
     );
   }
@@ -31326,6 +33789,8 @@ class A {
         interface: #M2
           map
             foo=: #M1
+          implemented
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -31347,6 +33812,9 @@ class A {
           zzz: #M4
         interface: #M5
           map
+            foo=: #M3
+            zzz: #M4
+          implemented
             foo=: #M3
             zzz: #M4
 ''',
@@ -31379,6 +33847,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredConflicts
           foo: #M5
@@ -31387,6 +33857,12 @@ class B extends A {
           map
             foo: #M2
             foo=: #M5
+          implemented
+            foo: #M2
+            foo=: #M5
+          superImplemented
+            [0]
+              foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -31412,6 +33888,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredConflicts
           foo: #M7
@@ -31423,6 +33901,13 @@ class B extends A {
             foo: #M2
             foo=: #M7
             zzz: #M8
+          implemented
+            foo: #M2
+            foo=: #M7
+            zzz: #M8
+          superImplemented
+            [0]
+              foo: #M2
 ''',
     );
   }
@@ -31457,6 +33942,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredConflicts
           foo: #M6
@@ -31465,6 +33953,13 @@ class B extends A {
           map
             foo: #M2
             foo=: #M6
+          implemented
+            foo: #M2
+            foo=: #M6
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -31494,6 +33989,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredConflicts
           foo: #M8
@@ -31505,6 +34003,14 @@ class B extends A {
             foo: #M2
             foo=: #M8
             zzz: #M9
+          implemented
+            foo: #M2
+            foo=: #M8
+            zzz: #M9
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
     );
   }
@@ -31533,6 +34039,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredConflicts
           foo: #M4
@@ -31541,6 +34049,12 @@ class B extends A {
           map
             foo: #M1
             foo=: #M4
+          implemented
+            foo: #M1
+            foo=: #M4
+          superImplemented
+            [0]
+              foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -31564,6 +34078,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredConflicts
           foo: #M6
@@ -31575,6 +34091,13 @@ class B extends A {
             foo: #M1
             foo=: #M6
             zzz: #M7
+          implemented
+            foo: #M1
+            foo=: #M6
+            zzz: #M7
+          superImplemented
+            [0]
+              foo: #M1
 ''',
     );
   }
@@ -31605,6 +34128,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredConflicts
           foo: #M5
@@ -31612,6 +34137,11 @@ class B extends A {
         interface: #M6
           map
             foo=: #M5
+          implemented
+            foo=: #M5
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -31637,6 +34167,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredConflicts
           foo: #M7
@@ -31647,6 +34179,12 @@ class B extends A {
           map
             foo=: #M7
             zzz: #M8
+          implemented
+            foo=: #M7
+            zzz: #M8
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
     );
   }
@@ -31692,6 +34230,8 @@ class A {
         interface: #M5
           map
             zzz: #M4
+          implemented
+            zzz: #M4
 ''',
     );
   }
@@ -31722,6 +34262,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredConflicts
           foo: #M5
@@ -31729,6 +34271,11 @@ class B extends A {
         interface: #M6
           map
             foo: #M2
+          implemented
+            foo: #M2
+          superImplemented
+            [0]
+              foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -31754,6 +34301,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredConflicts
           foo: #M7
@@ -31764,6 +34313,12 @@ class B extends A {
           map
             foo: #M2
             zzz: #M8
+          implemented
+            foo: #M2
+            zzz: #M8
+          superImplemented
+            [0]
+              foo: #M2
 ''',
     );
   }
@@ -31798,6 +34353,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredConflicts
           foo: #M6
@@ -31806,6 +34364,13 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -31835,6 +34400,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredConflicts
           foo: #M8
@@ -31846,6 +34414,14 @@ class B extends A {
             foo: #M2
             foo=: #M3
             zzz: #M9
+          implemented
+            foo: #M2
+            foo=: #M3
+            zzz: #M9
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
     );
   }
@@ -31874,6 +34450,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredConflicts
           foo: #M4
@@ -31881,6 +34459,11 @@ class B extends A {
         interface: #M5
           map
             foo: #M1
+          implemented
+            foo: #M1
+          superImplemented
+            [0]
+              foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -31904,6 +34487,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredConflicts
           foo: #M6
@@ -31914,6 +34499,12 @@ class B extends A {
           map
             foo: #M1
             zzz: #M7
+          implemented
+            foo: #M1
+            zzz: #M7
+          superImplemented
+            [0]
+              foo: #M1
 ''',
     );
   }
@@ -31944,6 +34535,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredConflicts
           foo: #M5
@@ -31951,6 +34544,11 @@ class B extends A {
         interface: #M6
           map
             foo=: #M2
+          implemented
+            foo=: #M2
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -31976,6 +34574,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredConflicts
           foo: #M7
@@ -31986,6 +34586,12 @@ class B extends A {
           map
             foo=: #M2
             zzz: #M8
+          implemented
+            foo=: #M2
+            zzz: #M8
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
     );
   }
@@ -32015,6 +34621,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredConflicts
           foo: #M5
@@ -32022,6 +34630,11 @@ class B extends A {
         interface: #M6
           map
             foo: #M2
+          implemented
+            foo: #M2
+          superImplemented
+            [0]
+              foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -32046,6 +34659,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredConflicts
           foo: #M7
@@ -32056,6 +34671,12 @@ class B extends A {
           map
             foo: #M2
             zzz: #M8
+          implemented
+            foo: #M2
+            zzz: #M8
+          superImplemented
+            [0]
+              foo: #M2
 ''',
     );
   }
@@ -32089,6 +34710,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredConflicts
           foo: #M6
@@ -32097,6 +34721,13 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -32125,6 +34756,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredConflicts
           foo: #M8
@@ -32136,6 +34770,14 @@ class B extends A {
             foo: #M2
             foo=: #M3
             zzz: #M9
+          implemented
+            foo: #M2
+            foo=: #M3
+            zzz: #M9
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
     );
   }
@@ -32163,6 +34805,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredConflicts
           foo: #M4
@@ -32170,6 +34814,11 @@ class B extends A {
         interface: #M5
           map
             foo: #M1
+          implemented
+            foo: #M1
+          superImplemented
+            [0]
+              foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -32192,6 +34841,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredConflicts
           foo: #M6
@@ -32202,6 +34853,12 @@ class B extends A {
           map
             foo: #M1
             zzz: #M7
+          implemented
+            foo: #M1
+            zzz: #M7
+          superImplemented
+            [0]
+              foo: #M1
 ''',
     );
   }
@@ -32231,6 +34888,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredConflicts
           foo: #M5
@@ -32238,6 +34897,11 @@ class B extends A {
         interface: #M6
           map
             foo=: #M2
+          implemented
+            foo=: #M2
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -32262,6 +34926,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredConflicts
           foo: #M7
@@ -32272,6 +34938,12 @@ class B extends A {
           map
             foo=: #M2
             zzz: #M8
+          implemented
+            foo=: #M2
+            zzz: #M8
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
     );
   }
@@ -32315,6 +34987,8 @@ class A {
         interface: #M5
           map
             zzz: #M4
+          implemented
+            zzz: #M4
 ''',
     );
   }
@@ -32344,6 +35018,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredConflicts
           foo: #M5
@@ -32351,6 +35027,11 @@ class B extends A {
         interface: #M6
           map
             foo: #M2
+          implemented
+            foo: #M2
+          superImplemented
+            [0]
+              foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -32375,6 +35056,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredConflicts
           foo: #M7
@@ -32385,6 +35068,12 @@ class B extends A {
           map
             foo: #M2
             zzz: #M8
+          implemented
+            foo: #M2
+            zzz: #M8
+          superImplemented
+            [0]
+              foo: #M2
 ''',
     );
   }
@@ -32418,6 +35107,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredConflicts
           foo: #M6
@@ -32426,6 +35118,13 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -32454,6 +35153,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredConflicts
           foo: #M8
@@ -32465,6 +35167,14 @@ class B extends A {
             foo: #M2
             foo=: #M3
             zzz: #M9
+          implemented
+            foo: #M2
+            foo=: #M3
+            zzz: #M9
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
     );
   }
@@ -32492,6 +35202,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredConflicts
           foo: #M4
@@ -32499,6 +35211,11 @@ class B extends A {
         interface: #M5
           map
             foo: #M1
+          implemented
+            foo: #M1
+          superImplemented
+            [0]
+              foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -32521,6 +35238,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredConflicts
           foo: #M6
@@ -32531,6 +35250,12 @@ class B extends A {
           map
             foo: #M1
             zzz: #M7
+          implemented
+            foo: #M1
+            zzz: #M7
+          superImplemented
+            [0]
+              foo: #M1
 ''',
     );
   }
@@ -32560,6 +35285,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredConflicts
           foo: #M5
@@ -32567,6 +35294,11 @@ class B extends A {
         interface: #M6
           map
             foo=: #M2
+          implemented
+            foo=: #M2
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -32591,6 +35323,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredConflicts
           foo: #M7
@@ -32601,6 +35335,12 @@ class B extends A {
           map
             foo=: #M2
             zzz: #M8
+          implemented
+            foo=: #M2
+            zzz: #M8
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
     );
   }
@@ -32644,6 +35384,8 @@ class A {
         interface: #M5
           map
             zzz: #M4
+          implemented
+            zzz: #M4
 ''',
     );
   }
@@ -32673,6 +35415,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredConflicts
           foo: #M5
@@ -32680,6 +35424,11 @@ class B extends A {
         interface: #M6
           map
             foo: #M2
+          implemented
+            foo: #M2
+          superImplemented
+            [0]
+              foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -32704,6 +35453,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredConflicts
           foo: #M7
@@ -32714,6 +35465,12 @@ class B extends A {
           map
             foo: #M2
             zzz: #M8
+          implemented
+            foo: #M2
+            zzz: #M8
+          superImplemented
+            [0]
+              foo: #M2
 ''',
     );
   }
@@ -32747,6 +35504,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredConflicts
           foo: #M6
@@ -32755,6 +35515,13 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -32783,6 +35550,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredConflicts
           foo: #M8
@@ -32794,6 +35564,14 @@ class B extends A {
             foo: #M2
             foo=: #M3
             zzz: #M9
+          implemented
+            foo: #M2
+            foo=: #M3
+            zzz: #M9
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
     );
   }
@@ -32821,6 +35599,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredConflicts
           foo: #M4
@@ -32828,6 +35608,11 @@ class B extends A {
         interface: #M5
           map
             foo: #M1
+          implemented
+            foo: #M1
+          superImplemented
+            [0]
+              foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -32850,6 +35635,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredConflicts
           foo: #M6
@@ -32860,6 +35647,12 @@ class B extends A {
           map
             foo: #M1
             zzz: #M7
+          implemented
+            foo: #M1
+            zzz: #M7
+          superImplemented
+            [0]
+              foo: #M1
 ''',
     );
   }
@@ -32889,6 +35682,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredConflicts
           foo: #M5
@@ -32896,6 +35691,11 @@ class B extends A {
         interface: #M6
           map
             foo=: #M2
+          implemented
+            foo=: #M2
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -32920,6 +35720,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredConflicts
           foo: #M7
@@ -32930,6 +35732,12 @@ class B extends A {
           map
             foo=: #M2
             zzz: #M8
+          implemented
+            foo=: #M2
+            zzz: #M8
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
     );
   }
@@ -32958,12 +35766,19 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredConstructors
           foo: #M5
         interface: #M6
           map
             foo: #M2
+          implemented
+            foo: #M2
+          superImplemented
+            [0]
+              foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -32987,6 +35802,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredMethods
           zzz: #M7
@@ -32996,6 +35813,12 @@ class B extends A {
           map
             foo: #M2
             zzz: #M7
+          implemented
+            foo: #M2
+            zzz: #M7
+          superImplemented
+            [0]
+              foo: #M2
 ''',
     );
   }
@@ -33028,6 +35851,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredConstructors
           foo: #M6
@@ -33035,6 +35861,13 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -33062,6 +35895,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredMethods
           zzz: #M8
@@ -33072,6 +35908,14 @@ class B extends A {
             foo: #M2
             foo=: #M3
             zzz: #M8
+          implemented
+            foo: #M2
+            foo=: #M3
+            zzz: #M8
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
     );
   }
@@ -33098,12 +35942,19 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredConstructors
           foo: #M4
         interface: #M5
           map
             foo: #M1
+          implemented
+            foo: #M1
+          superImplemented
+            [0]
+              foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -33125,6 +35976,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredMethods
           zzz: #M6
@@ -33134,6 +35987,12 @@ class B extends A {
           map
             foo: #M1
             zzz: #M6
+          implemented
+            foo: #M1
+            zzz: #M6
+          superImplemented
+            [0]
+              foo: #M1
 ''',
     );
   }
@@ -33162,12 +36021,19 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredConstructors
           foo: #M5
         interface: #M6
           map
             foo=: #M2
+          implemented
+            foo=: #M2
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -33191,6 +36057,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredMethods
           zzz: #M7
@@ -33200,6 +36068,12 @@ class B extends A {
           map
             foo=: #M2
             zzz: #M7
+          implemented
+            foo=: #M2
+            zzz: #M7
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
     );
   }
@@ -33222,6 +36096,8 @@ class A {
         interface: #M2
           map
             []: #M1
+          implemented
+            []: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -33239,6 +36115,9 @@ class A {
           zzz: #M3
         interface: #M4
           map
+            []: #M1
+            zzz: #M3
+          implemented
             []: #M1
             zzz: #M3
 ''',
@@ -33265,6 +36144,8 @@ class A {
         interface: #M2
           map
             []: #M1
+          implemented
+            []: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -33285,6 +36166,9 @@ class A {
           zzz: #M4
         interface: #M5
           map
+            []: #M3
+            zzz: #M4
+          implemented
             []: #M3
             zzz: #M4
 ''',
@@ -33312,6 +36196,9 @@ class A {
           map
             []: #M1
             []=: #M2
+          implemented
+            []: #M1
+            []=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -33331,6 +36218,10 @@ class A {
           zzz: #M4
         interface: #M5
           map
+            []: #M1
+            []=: #M2
+            zzz: #M4
+          implemented
             []: #M1
             []=: #M2
             zzz: #M4
@@ -33360,6 +36251,9 @@ class A {
           map
             []: #M1
             []=: #M1
+          implemented
+            []: #M1
+            []=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -33381,6 +36275,10 @@ class A {
           zzz: #M4
         interface: #M5
           map
+            []: #M3
+            []=: #M3
+            zzz: #M4
+          implemented
             []: #M3
             []=: #M3
             zzz: #M4
@@ -33411,6 +36309,8 @@ class B extends A {
         interface: #M2
           map
             []: #M1
+          implemented
+            []: #M1
       B: #M3
         declaredMethods
           []: #M4
@@ -33419,6 +36319,12 @@ class B extends A {
           map
             []: #M4
             []=: #M5
+          implemented
+            []: #M4
+            []=: #M5
+          superImplemented
+            [0]
+              []: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -33441,6 +36347,8 @@ class B extends A {
         interface: #M2
           map
             []: #M1
+          implemented
+            []: #M1
       B: #M3
         declaredMethods
           []: #M4
@@ -33451,6 +36359,13 @@ class B extends A {
             []: #M4
             []=: #M5
             zzz: #M7
+          implemented
+            []: #M4
+            []=: #M5
+            zzz: #M7
+          superImplemented
+            [0]
+              []: #M1
 ''',
     );
   }
@@ -33478,6 +36393,8 @@ class B extends A {
         interface: #M2
           map
             []=: #M1
+          implemented
+            []=: #M1
       B: #M3
         declaredMethods
           []: #M4
@@ -33486,6 +36403,12 @@ class B extends A {
           map
             []: #M4
             []=: #M5
+          implemented
+            []: #M4
+            []=: #M5
+          superImplemented
+            [0]
+              []=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -33508,6 +36431,8 @@ class B extends A {
         interface: #M2
           map
             []=: #M1
+          implemented
+            []=: #M1
       B: #M3
         declaredMethods
           []: #M4
@@ -33518,6 +36443,13 @@ class B extends A {
             []: #M4
             []=: #M5
             zzz: #M7
+          implemented
+            []: #M4
+            []=: #M5
+            zzz: #M7
+          superImplemented
+            [0]
+              []=: #M1
 ''',
     );
   }
@@ -33544,12 +36476,19 @@ class B extends A {
         interface: #M2
           map
             []: #M1
+          implemented
+            []: #M1
       B: #M3
         declaredMethods
           []: #M4
         interface: #M5
           map
             []: #M4
+          implemented
+            []: #M4
+          superImplemented
+            [0]
+              []: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -33571,6 +36510,8 @@ class B extends A {
         interface: #M2
           map
             []: #M1
+          implemented
+            []: #M1
       B: #M3
         declaredMethods
           []: #M4
@@ -33579,6 +36520,12 @@ class B extends A {
           map
             []: #M4
             zzz: #M6
+          implemented
+            []: #M4
+            zzz: #M6
+          superImplemented
+            [0]
+              []: #M1
 ''',
     );
   }
@@ -33605,6 +36552,8 @@ class B extends A {
         interface: #M2
           map
             []=: #M1
+          implemented
+            []=: #M1
       B: #M3
         declaredMethods
           []: #M4
@@ -33612,6 +36561,12 @@ class B extends A {
           map
             []: #M4
             []=: #M1
+          implemented
+            []: #M4
+            []=: #M1
+          superImplemented
+            [0]
+              []=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -33633,6 +36588,8 @@ class B extends A {
         interface: #M2
           map
             []=: #M1
+          implemented
+            []=: #M1
       B: #M3
         declaredMethods
           []: #M4
@@ -33642,6 +36599,13 @@ class B extends A {
             []: #M4
             []=: #M1
             zzz: #M6
+          implemented
+            []: #M4
+            []=: #M1
+            zzz: #M6
+          superImplemented
+            [0]
+              []=: #M1
 ''',
     );
   }
@@ -33664,6 +36628,8 @@ class A {
         interface: #M2
           map
             []=: #M1
+          implemented
+            []=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -33681,6 +36647,9 @@ class A {
           zzz: #M3
         interface: #M4
           map
+            []=: #M1
+            zzz: #M3
+          implemented
             []=: #M1
             zzz: #M3
 ''',
@@ -33713,6 +36682,9 @@ class B extends A {
           map
             []: #M3
             []=: #M4
+          implemented
+            []: #M3
+            []=: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -33740,6 +36712,10 @@ class B extends A {
             []: #M3
             []=: #M4
             zzz: #M6
+          implemented
+            []: #M3
+            []=: #M4
+            zzz: #M6
 ''',
     );
   }
@@ -33764,6 +36740,8 @@ class A {
         interface: #M2
           map
             []=: #M1
+          implemented
+            []=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -33784,6 +36762,9 @@ class A {
           zzz: #M4
         interface: #M5
           map
+            []=: #M3
+            zzz: #M4
+          implemented
             []=: #M3
             zzz: #M4
 ''',
@@ -33812,6 +36793,8 @@ class B extends A {
         interface: #M2
           map
             []: #M1
+          implemented
+            []: #M1
       B: #M3
         declaredMethods
           []=: #M4
@@ -33819,6 +36802,12 @@ class B extends A {
           map
             []: #M1
             []=: #M4
+          implemented
+            []: #M1
+            []=: #M4
+          superImplemented
+            [0]
+              []: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -33840,6 +36829,8 @@ class B extends A {
         interface: #M2
           map
             []: #M1
+          implemented
+            []: #M1
       B: #M3
         declaredMethods
           []=: #M4
@@ -33849,6 +36840,13 @@ class B extends A {
             []: #M1
             []=: #M4
             zzz: #M6
+          implemented
+            []: #M1
+            []=: #M4
+            zzz: #M6
+          superImplemented
+            [0]
+              []: #M1
 ''',
     );
   }
@@ -33875,12 +36873,19 @@ class B extends A {
         interface: #M2
           map
             []=: #M1
+          implemented
+            []=: #M1
       B: #M3
         declaredMethods
           []=: #M4
         interface: #M5
           map
             []=: #M4
+          implemented
+            []=: #M4
+          superImplemented
+            [0]
+              []=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -33902,6 +36907,8 @@ class B extends A {
         interface: #M2
           map
             []=: #M1
+          implemented
+            []=: #M1
       B: #M3
         declaredMethods
           []=: #M4
@@ -33910,6 +36917,12 @@ class B extends A {
           map
             []=: #M4
             zzz: #M6
+          implemented
+            []=: #M4
+            zzz: #M6
+          superImplemented
+            [0]
+              []=: #M1
 ''',
     );
   }
@@ -33934,6 +36947,8 @@ class A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -33954,6 +36969,9 @@ class A {
           zzz: #M4
         interface: #M5
           map
+            foo: #M2
+            zzz: #M4
+          implemented
             foo: #M2
             zzz: #M4
 ''',
@@ -33980,6 +36998,8 @@ class A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -34000,6 +37020,9 @@ class A {
           zzz: #M4
         interface: #M5
           map
+            foo: #M3
+            zzz: #M4
+          implemented
             foo: #M3
             zzz: #M4
 ''',
@@ -34030,6 +37053,9 @@ class A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -34053,6 +37079,10 @@ class A {
           zzz: #M5
         interface: #M6
           map
+            foo: #M2
+            foo=: #M3
+            zzz: #M5
+          implemented
             foo: #M2
             foo=: #M3
             zzz: #M5
@@ -34082,6 +37112,9 @@ class A {
           map
             foo: #M1
             foo=: #M1
+          implemented
+            foo: #M1
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -34103,6 +37136,10 @@ class A {
           zzz: #M4
         interface: #M5
           map
+            foo: #M3
+            foo=: #M3
+            zzz: #M4
+          implemented
             foo: #M3
             foo=: #M3
             zzz: #M4
@@ -34135,6 +37172,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredFields
           foo: #M5
@@ -34146,6 +37185,12 @@ class B extends A {
           map
             foo: #M6
             foo=: #M7
+          implemented
+            foo: #M6
+            foo=: #M7
+          superImplemented
+            [0]
+              foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -34170,6 +37215,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredFields
           foo: #M5
@@ -34184,6 +37231,13 @@ class B extends A {
             foo: #M6
             foo=: #M7
             zzz: #M9
+          implemented
+            foo: #M6
+            foo=: #M7
+            zzz: #M9
+          superImplemented
+            [0]
+              foo: #M2
 ''',
     );
   }
@@ -34217,6 +37271,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredFields
           foo: #M6
@@ -34228,6 +37285,13 @@ class B extends A {
           map
             foo: #M7
             foo=: #M8
+          implemented
+            foo: #M7
+            foo=: #M8
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -34256,6 +37320,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredFields
           foo: #M6
@@ -34270,6 +37337,14 @@ class B extends A {
             foo: #M7
             foo=: #M8
             zzz: #M10
+          implemented
+            foo: #M7
+            foo=: #M8
+            zzz: #M10
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
     );
   }
@@ -34297,6 +37372,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredFields
           foo: #M4
@@ -34308,6 +37385,12 @@ class B extends A {
           map
             foo: #M5
             foo=: #M6
+          implemented
+            foo: #M5
+            foo=: #M6
+          superImplemented
+            [0]
+              foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -34330,6 +37413,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredFields
           foo: #M4
@@ -34344,6 +37429,13 @@ class B extends A {
             foo: #M5
             foo=: #M6
             zzz: #M8
+          implemented
+            foo: #M5
+            foo=: #M6
+            zzz: #M8
+          superImplemented
+            [0]
+              foo: #M1
 ''',
     );
   }
@@ -34373,6 +37465,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredFields
           foo: #M5
@@ -34384,6 +37478,12 @@ class B extends A {
           map
             foo: #M6
             foo=: #M7
+          implemented
+            foo: #M6
+            foo=: #M7
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -34408,6 +37508,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredFields
           foo: #M5
@@ -34422,6 +37524,13 @@ class B extends A {
             foo: #M6
             foo=: #M7
             zzz: #M9
+          implemented
+            foo: #M6
+            foo=: #M7
+            zzz: #M9
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
     );
   }
@@ -34446,6 +37555,8 @@ class A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -34466,6 +37577,9 @@ class A {
           zzz: #M4
         interface: #M5
           map
+            foo: #M3
+            zzz: #M4
+          implemented
             foo: #M3
             zzz: #M4
 ''',
@@ -34497,6 +37611,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredConflicts
           foo: #M5
@@ -34504,6 +37620,11 @@ class B extends A {
         interface: #M6
           map
             foo: #M5
+          implemented
+            foo: #M5
+          superImplemented
+            [0]
+              foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -34528,6 +37649,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredConflicts
           foo: #M7
@@ -34538,6 +37661,12 @@ class B extends A {
           map
             foo: #M7
             zzz: #M8
+          implemented
+            foo: #M7
+            zzz: #M8
+          superImplemented
+            [0]
+              foo: #M2
 ''',
     );
   }
@@ -34571,6 +37700,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredConflicts
           foo: #M6
@@ -34579,6 +37711,13 @@ class B extends A {
           map
             foo: #M6
             foo=: #M3
+          implemented
+            foo: #M6
+            foo=: #M3
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -34607,6 +37746,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredConflicts
           foo: #M8
@@ -34618,6 +37760,14 @@ class B extends A {
             foo: #M8
             foo=: #M3
             zzz: #M9
+          implemented
+            foo: #M8
+            foo=: #M3
+            zzz: #M9
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
     );
   }
@@ -34645,6 +37795,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredConflicts
           foo: #M4
@@ -34652,6 +37804,11 @@ class B extends A {
         interface: #M5
           map
             foo: #M4
+          implemented
+            foo: #M4
+          superImplemented
+            [0]
+              foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -34674,6 +37831,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredConflicts
           foo: #M6
@@ -34684,6 +37843,12 @@ class B extends A {
           map
             foo: #M6
             zzz: #M7
+          implemented
+            foo: #M6
+            zzz: #M7
+          superImplemented
+            [0]
+              foo: #M1
 ''',
     );
   }
@@ -34713,6 +37878,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredConflicts
           foo: #M5
@@ -34721,6 +37888,12 @@ class B extends A {
           map
             foo: #M5
             foo=: #M2
+          implemented
+            foo: #M5
+            foo=: #M2
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -34745,6 +37918,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredConflicts
           foo: #M7
@@ -34756,6 +37931,13 @@ class B extends A {
             foo: #M7
             foo=: #M2
             zzz: #M8
+          implemented
+            foo: #M7
+            foo=: #M2
+            zzz: #M8
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
     );
   }
@@ -34784,6 +37966,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredFields
           foo: #M5
@@ -34792,6 +37976,11 @@ class B extends A {
         interface: #M7
           map
             foo: #M6
+          implemented
+            foo: #M6
+          superImplemented
+            [0]
+              foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -34815,6 +38004,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredFields
           foo: #M5
@@ -34826,6 +38017,12 @@ class B extends A {
           map
             foo: #M6
             zzz: #M8
+          implemented
+            foo: #M6
+            zzz: #M8
+          superImplemented
+            [0]
+              foo: #M2
 ''',
     );
   }
@@ -34858,6 +38055,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredFields
           foo: #M6
@@ -34867,6 +38067,13 @@ class B extends A {
           map
             foo: #M7
             foo=: #M3
+          implemented
+            foo: #M7
+            foo=: #M3
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -34894,6 +38101,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredFields
           foo: #M6
@@ -34906,6 +38116,14 @@ class B extends A {
             foo: #M7
             foo=: #M3
             zzz: #M9
+          implemented
+            foo: #M7
+            foo=: #M3
+            zzz: #M9
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
     );
   }
@@ -34932,6 +38150,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredFields
           foo: #M4
@@ -34940,6 +38160,11 @@ class B extends A {
         interface: #M6
           map
             foo: #M5
+          implemented
+            foo: #M5
+          superImplemented
+            [0]
+              foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -34961,6 +38186,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredFields
           foo: #M4
@@ -34972,6 +38199,12 @@ class B extends A {
           map
             foo: #M5
             zzz: #M7
+          implemented
+            foo: #M5
+            zzz: #M7
+          superImplemented
+            [0]
+              foo: #M1
 ''',
     );
   }
@@ -35000,6 +38233,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredFields
           foo: #M5
@@ -35009,6 +38244,12 @@ class B extends A {
           map
             foo: #M6
             foo=: #M2
+          implemented
+            foo: #M6
+            foo=: #M2
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -35032,6 +38273,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredFields
           foo: #M5
@@ -35044,6 +38287,13 @@ class B extends A {
             foo: #M6
             foo=: #M2
             zzz: #M8
+          implemented
+            foo: #M6
+            foo=: #M2
+            zzz: #M8
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
     );
   }
@@ -35066,6 +38316,8 @@ class A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -35083,6 +38335,9 @@ class A {
           zzz: #M3
         interface: #M4
           map
+            foo: #M1
+            zzz: #M3
+          implemented
             foo: #M1
             zzz: #M3
 ''',
@@ -35109,6 +38364,8 @@ class A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -35129,6 +38386,9 @@ class A {
           zzz: #M4
         interface: #M5
           map
+            foo: #M3
+            zzz: #M4
+          implemented
             foo: #M3
             zzz: #M4
 ''',
@@ -35156,6 +38416,8 @@ class A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -35177,6 +38439,9 @@ class A {
           zzz: #M4
         interface: #M5
           map
+            foo: #M3
+            zzz: #M4
+          implemented
             foo: #M3
             zzz: #M4
 ''',
@@ -35205,6 +38470,9 @@ class A {
           map
             foo: #M1
             foo=: #M1
+          implemented
+            foo: #M1
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -35226,6 +38494,10 @@ class A {
           zzz: #M4
         interface: #M5
           map
+            foo: #M3
+            foo=: #M3
+            zzz: #M4
+          implemented
             foo: #M3
             foo=: #M3
             zzz: #M4
@@ -35256,6 +38528,9 @@ class A {
           map
             foo: #M1
             foo=: #M1
+          implemented
+            foo: #M1
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -35278,6 +38553,10 @@ class A {
           zzz: #M4
         interface: #M5
           map
+            foo: #M3
+            foo=: #M3
+            zzz: #M4
+          implemented
             foo: #M3
             foo=: #M3
             zzz: #M4
@@ -35305,6 +38584,8 @@ class A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -35325,6 +38606,9 @@ class A {
           zzz: #M4
         interface: #M5
           map
+            foo: #M3
+            zzz: #M4
+          implemented
             foo: #M3
             zzz: #M4
 ''',
@@ -35352,6 +38636,9 @@ class A {
           map
             foo: #M1
             foo=: #M1
+          implemented
+            foo: #M1
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -35372,6 +38659,10 @@ class A {
           zzz: #M4
         interface: #M5
           map
+            foo: #M3
+            foo=: #M3
+            zzz: #M4
+          implemented
             foo: #M3
             foo=: #M3
             zzz: #M4
@@ -35401,6 +38692,9 @@ class A {
           map
             foo: #M1
             foo=: #M1
+          implemented
+            foo: #M1
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -35422,6 +38716,10 @@ class A {
           zzz: #M4
         interface: #M5
           map
+            foo: #M3
+            foo=: #M3
+            zzz: #M4
+          implemented
             foo: #M3
             foo=: #M3
             zzz: #M4
@@ -35453,12 +38751,19 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredMethods
           foo: #M5
         interface: #M6
           map
             foo: #M5
+          implemented
+            foo: #M5
+          superImplemented
+            [0]
+              foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -35482,6 +38787,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredMethods
           foo: #M5
@@ -35490,6 +38797,12 @@ class B extends A {
           map
             foo: #M5
             zzz: #M7
+          implemented
+            foo: #M5
+            zzz: #M7
+          superImplemented
+            [0]
+              foo: #M2
 ''',
     );
   }
@@ -35522,6 +38835,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredMethods
           foo: #M6
@@ -35529,6 +38845,13 @@ class B extends A {
           map
             foo: #M6
             foo=: #M3
+          implemented
+            foo: #M6
+            foo=: #M3
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -35556,6 +38879,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredMethods
           foo: #M6
@@ -35565,6 +38891,14 @@ class B extends A {
             foo: #M6
             foo=: #M3
             zzz: #M8
+          implemented
+            foo: #M6
+            foo=: #M3
+            zzz: #M8
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
     );
   }
@@ -35591,12 +38925,19 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredMethods
           foo: #M4
         interface: #M5
           map
             foo: #M4
+          implemented
+            foo: #M4
+          superImplemented
+            [0]
+              foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -35618,6 +38959,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredMethods
           foo: #M4
@@ -35626,6 +38969,12 @@ class B extends A {
           map
             foo: #M4
             zzz: #M6
+          implemented
+            foo: #M4
+            zzz: #M6
+          superImplemented
+            [0]
+              foo: #M1
 ''',
     );
   }
@@ -35654,6 +39003,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredMethods
           foo: #M5
@@ -35661,6 +39012,12 @@ class B extends A {
           map
             foo: #M5
             foo=: #M2
+          implemented
+            foo: #M5
+            foo=: #M2
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -35684,6 +39041,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredMethods
           foo: #M5
@@ -35693,6 +39052,13 @@ class B extends A {
             foo: #M5
             foo=: #M2
             zzz: #M7
+          implemented
+            foo: #M5
+            foo=: #M2
+            zzz: #M7
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
     );
   }
@@ -35717,6 +39083,8 @@ class A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -35737,6 +39105,9 @@ class A {
           zzz: #M4
         interface: #M5
           map
+            foo=: #M2
+            zzz: #M4
+          implemented
             foo=: #M2
             zzz: #M4
 ''',
@@ -35763,6 +39134,8 @@ class A {
         interface: #M2
           map
             foo=: #M1
+          implemented
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -35783,6 +39156,9 @@ class A {
           zzz: #M4
         interface: #M5
           map
+            foo=: #M3
+            zzz: #M4
+          implemented
             foo=: #M3
             zzz: #M4
 ''',
@@ -35813,6 +39189,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredFields
           foo: #M5
@@ -35822,6 +39200,12 @@ class B extends A {
           map
             foo: #M2
             foo=: #M6
+          implemented
+            foo: #M2
+            foo=: #M6
+          superImplemented
+            [0]
+              foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -35845,6 +39229,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredFields
           foo: #M5
@@ -35857,6 +39243,13 @@ class B extends A {
             foo: #M2
             foo=: #M6
             zzz: #M8
+          implemented
+            foo: #M2
+            foo=: #M6
+            zzz: #M8
+          superImplemented
+            [0]
+              foo: #M2
 ''',
     );
   }
@@ -35889,6 +39282,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredFields
           foo: #M6
@@ -35898,6 +39294,13 @@ class B extends A {
           map
             foo: #M2
             foo=: #M7
+          implemented
+            foo: #M2
+            foo=: #M7
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -35925,6 +39328,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredFields
           foo: #M6
@@ -35937,6 +39343,14 @@ class B extends A {
             foo: #M2
             foo=: #M7
             zzz: #M9
+          implemented
+            foo: #M2
+            foo=: #M7
+            zzz: #M9
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
     );
   }
@@ -35963,6 +39377,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredFields
           foo: #M4
@@ -35972,6 +39388,12 @@ class B extends A {
           map
             foo: #M1
             foo=: #M5
+          implemented
+            foo: #M1
+            foo=: #M5
+          superImplemented
+            [0]
+              foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -35993,6 +39415,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredFields
           foo: #M4
@@ -36005,6 +39429,13 @@ class B extends A {
             foo: #M1
             foo=: #M5
             zzz: #M7
+          implemented
+            foo: #M1
+            foo=: #M5
+            zzz: #M7
+          superImplemented
+            [0]
+              foo: #M1
 ''',
     );
   }
@@ -36033,6 +39464,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredFields
           foo: #M5
@@ -36041,6 +39474,11 @@ class B extends A {
         interface: #M7
           map
             foo=: #M6
+          implemented
+            foo=: #M6
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -36064,6 +39502,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredFields
           foo: #M5
@@ -36075,6 +39515,12 @@ class B extends A {
           map
             foo=: #M6
             zzz: #M8
+          implemented
+            foo=: #M6
+            zzz: #M8
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
     );
   }
@@ -36118,6 +39564,8 @@ class A {
         interface: #M5
           map
             zzz: #M4
+          implemented
+            zzz: #M4
 ''',
     );
   }
@@ -36142,6 +39590,8 @@ class A {
         interface: #M2
           map
             foo=: #M1
+          implemented
+            foo=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -36162,6 +39612,9 @@ class A {
           zzz: #M4
         interface: #M5
           map
+            foo=: #M3
+            zzz: #M4
+          implemented
             foo=: #M3
             zzz: #M4
 ''',
@@ -36193,6 +39646,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredConflicts
           foo: #M5
@@ -36201,6 +39656,12 @@ class B extends A {
           map
             foo: #M2
             foo=: #M5
+          implemented
+            foo: #M2
+            foo=: #M5
+          superImplemented
+            [0]
+              foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -36225,6 +39686,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredConflicts
           foo: #M7
@@ -36236,6 +39699,13 @@ class B extends A {
             foo: #M2
             foo=: #M7
             zzz: #M8
+          implemented
+            foo: #M2
+            foo=: #M7
+            zzz: #M8
+          superImplemented
+            [0]
+              foo: #M2
 ''',
     );
   }
@@ -36269,6 +39739,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredConflicts
           foo: #M6
@@ -36277,6 +39750,13 @@ class B extends A {
           map
             foo: #M2
             foo=: #M6
+          implemented
+            foo: #M2
+            foo=: #M6
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -36305,6 +39785,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredConflicts
           foo: #M8
@@ -36316,6 +39799,14 @@ class B extends A {
             foo: #M2
             foo=: #M8
             zzz: #M9
+          implemented
+            foo: #M2
+            foo=: #M8
+            zzz: #M9
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
     );
   }
@@ -36343,6 +39834,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredConflicts
           foo: #M4
@@ -36351,6 +39844,12 @@ class B extends A {
           map
             foo: #M1
             foo=: #M4
+          implemented
+            foo: #M1
+            foo=: #M4
+          superImplemented
+            [0]
+              foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -36373,6 +39872,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredConflicts
           foo: #M6
@@ -36384,6 +39885,13 @@ class B extends A {
             foo: #M1
             foo=: #M6
             zzz: #M7
+          implemented
+            foo: #M1
+            foo=: #M6
+            zzz: #M7
+          superImplemented
+            [0]
+              foo: #M1
 ''',
     );
   }
@@ -36413,6 +39921,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredConflicts
           foo: #M5
@@ -36420,6 +39930,11 @@ class B extends A {
         interface: #M6
           map
             foo=: #M5
+          implemented
+            foo=: #M5
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -36444,6 +39959,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredConflicts
           foo: #M7
@@ -36454,6 +39971,12 @@ class B extends A {
           map
             foo=: #M7
             zzz: #M8
+          implemented
+            foo=: #M7
+            zzz: #M8
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
     );
   }
@@ -36503,6 +40026,8 @@ class A {
         interface: #M6
           map
             zzz: #M5
+          implemented
+            zzz: #M5
 ''',
     );
   }
@@ -36532,6 +40057,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredFields
           foo: #M5
@@ -36542,6 +40069,11 @@ class B extends A {
         interface: #M8
           map
             foo: #M2
+          implemented
+            foo: #M2
+          superImplemented
+            [0]
+              foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -36566,6 +40098,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredFields
           foo: #M5
@@ -36579,6 +40113,12 @@ class B extends A {
           map
             foo: #M2
             zzz: #M9
+          implemented
+            foo: #M2
+            zzz: #M9
+          superImplemented
+            [0]
+              foo: #M2
 ''',
     );
   }
@@ -36612,6 +40152,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredFields
           foo: #M6
@@ -36623,6 +40166,13 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -36651,6 +40201,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredFields
           foo: #M6
@@ -36665,6 +40218,14 @@ class B extends A {
             foo: #M2
             foo=: #M3
             zzz: #M10
+          implemented
+            foo: #M2
+            foo=: #M3
+            zzz: #M10
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
     );
   }
@@ -36692,6 +40253,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredFields
           foo: #M4
@@ -36702,6 +40265,11 @@ class B extends A {
         interface: #M7
           map
             foo: #M1
+          implemented
+            foo: #M1
+          superImplemented
+            [0]
+              foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -36724,6 +40292,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredFields
           foo: #M4
@@ -36737,6 +40307,12 @@ class B extends A {
           map
             foo: #M1
             zzz: #M8
+          implemented
+            foo: #M1
+            zzz: #M8
+          superImplemented
+            [0]
+              foo: #M1
 ''',
     );
   }
@@ -36766,6 +40342,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredFields
           foo: #M5
@@ -36776,6 +40354,11 @@ class B extends A {
         interface: #M8
           map
             foo=: #M2
+          implemented
+            foo=: #M2
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -36800,6 +40383,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredFields
           foo: #M5
@@ -36813,6 +40398,12 @@ class B extends A {
           map
             foo=: #M2
             zzz: #M9
+          implemented
+            foo=: #M2
+            zzz: #M9
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
     );
   }
@@ -36841,6 +40432,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredFields
           foo: #M5
@@ -36849,6 +40442,11 @@ class B extends A {
         interface: #M7
           map
             foo: #M2
+          implemented
+            foo: #M2
+          superImplemented
+            [0]
+              foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -36872,6 +40470,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredFields
           foo: #M5
@@ -36883,6 +40483,12 @@ class B extends A {
           map
             foo: #M2
             zzz: #M8
+          implemented
+            foo: #M2
+            zzz: #M8
+          superImplemented
+            [0]
+              foo: #M2
 ''',
     );
   }
@@ -36915,6 +40521,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredFields
           foo: #M6
@@ -36924,6 +40533,13 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -36951,6 +40567,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredFields
           foo: #M6
@@ -36963,6 +40582,14 @@ class B extends A {
             foo: #M2
             foo=: #M3
             zzz: #M9
+          implemented
+            foo: #M2
+            foo=: #M3
+            zzz: #M9
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
     );
   }
@@ -36989,6 +40616,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredFields
           foo: #M4
@@ -36997,6 +40626,11 @@ class B extends A {
         interface: #M6
           map
             foo: #M1
+          implemented
+            foo: #M1
+          superImplemented
+            [0]
+              foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -37018,6 +40652,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredFields
           foo: #M4
@@ -37029,6 +40665,12 @@ class B extends A {
           map
             foo: #M1
             zzz: #M7
+          implemented
+            foo: #M1
+            zzz: #M7
+          superImplemented
+            [0]
+              foo: #M1
 ''',
     );
   }
@@ -37057,6 +40699,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredFields
           foo: #M5
@@ -37065,6 +40709,11 @@ class B extends A {
         interface: #M7
           map
             foo=: #M2
+          implemented
+            foo=: #M2
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -37088,6 +40737,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredFields
           foo: #M5
@@ -37099,6 +40750,12 @@ class B extends A {
           map
             foo=: #M2
             zzz: #M8
+          implemented
+            foo=: #M2
+            zzz: #M8
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
     );
   }
@@ -37137,6 +40794,8 @@ class A {
         interface: #M4
           map
             zzz: #M3
+          implemented
+            zzz: #M3
 ''',
     );
   }
@@ -37165,12 +40824,19 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredMethods
           foo: #M5
         interface: #M6
           map
             foo: #M2
+          implemented
+            foo: #M2
+          superImplemented
+            [0]
+              foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -37194,6 +40860,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredMethods
           foo: #M5
@@ -37202,6 +40870,12 @@ class B extends A {
           map
             foo: #M2
             zzz: #M7
+          implemented
+            foo: #M2
+            zzz: #M7
+          superImplemented
+            [0]
+              foo: #M2
 ''',
     );
   }
@@ -37234,6 +40908,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredMethods
           foo: #M6
@@ -37241,6 +40918,13 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -37268,6 +40952,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredMethods
           foo: #M6
@@ -37277,6 +40964,14 @@ class B extends A {
             foo: #M2
             foo=: #M3
             zzz: #M8
+          implemented
+            foo: #M2
+            foo=: #M3
+            zzz: #M8
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
     );
   }
@@ -37303,12 +40998,19 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredMethods
           foo: #M4
         interface: #M5
           map
             foo: #M1
+          implemented
+            foo: #M1
+          superImplemented
+            [0]
+              foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -37330,6 +41032,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredMethods
           foo: #M4
@@ -37338,6 +41042,12 @@ class B extends A {
           map
             foo: #M1
             zzz: #M6
+          implemented
+            foo: #M1
+            zzz: #M6
+          superImplemented
+            [0]
+              foo: #M1
 ''',
     );
   }
@@ -37366,12 +41076,19 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredMethods
           foo: #M5
         interface: #M6
           map
             foo=: #M2
+          implemented
+            foo=: #M2
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -37395,6 +41112,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredMethods
           foo: #M5
@@ -37403,6 +41122,12 @@ class B extends A {
           map
             foo=: #M2
             zzz: #M7
+          implemented
+            foo=: #M2
+            zzz: #M7
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
     );
   }
@@ -37446,6 +41171,8 @@ class A {
         interface: #M5
           map
             zzz: #M4
+          implemented
+            zzz: #M4
 ''',
     );
   }
@@ -37474,6 +41201,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredFields
           foo: #M5
@@ -37482,6 +41211,11 @@ class B extends A {
         interface: #M7
           map
             foo: #M2
+          implemented
+            foo: #M2
+          superImplemented
+            [0]
+              foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -37505,6 +41239,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredFields
           foo: #M5
@@ -37516,6 +41252,12 @@ class B extends A {
           map
             foo: #M2
             zzz: #M8
+          implemented
+            foo: #M2
+            zzz: #M8
+          superImplemented
+            [0]
+              foo: #M2
 ''',
     );
   }
@@ -37548,6 +41290,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredFields
           foo: #M6
@@ -37557,6 +41302,13 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -37584,6 +41336,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredFields
           foo: #M6
@@ -37596,6 +41351,14 @@ class B extends A {
             foo: #M2
             foo=: #M3
             zzz: #M9
+          implemented
+            foo: #M2
+            foo=: #M3
+            zzz: #M9
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
     );
   }
@@ -37622,6 +41385,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredFields
           foo: #M4
@@ -37630,6 +41395,11 @@ class B extends A {
         interface: #M6
           map
             foo: #M1
+          implemented
+            foo: #M1
+          superImplemented
+            [0]
+              foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -37651,6 +41421,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredFields
           foo: #M4
@@ -37662,6 +41434,12 @@ class B extends A {
           map
             foo: #M1
             zzz: #M7
+          implemented
+            foo: #M1
+            zzz: #M7
+          superImplemented
+            [0]
+              foo: #M1
 ''',
     );
   }
@@ -37690,6 +41468,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredFields
           foo: #M5
@@ -37698,6 +41478,11 @@ class B extends A {
         interface: #M7
           map
             foo=: #M2
+          implemented
+            foo=: #M2
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -37721,6 +41506,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredFields
           foo: #M5
@@ -37732,6 +41519,12 @@ class B extends A {
           map
             foo=: #M2
             zzz: #M8
+          implemented
+            foo=: #M2
+            zzz: #M8
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
     );
   }
@@ -37885,12 +41678,21 @@ class B = A with M;
         interface: #M4
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M5
         inheritedConstructors
           foo: #M3
         interface: #M6
           map
             foo: #M2
+          implemented
+            foo: #M2
+          superImplemented
+            [0]
+              foo: #M2
+            [1]
+              foo: #M2
     declaredMixins
       M: #M7
         interface: #M8
@@ -37920,12 +41722,21 @@ class Z {}
         interface: #M4
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M5
         inheritedConstructors
           foo: #M3
         interface: #M6
           map
             foo: #M2
+          implemented
+            foo: #M2
+          superImplemented
+            [0]
+              foo: #M2
+            [1]
+              foo: #M2
       Z: #M9
         interface: #M10
     declaredMixins
@@ -37966,6 +41777,9 @@ class B = A with M;
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M6
         inheritedConstructors
           foo: #M4
@@ -37973,6 +41787,16 @@ class B = A with M;
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
+            [1]
+              foo: #M2
+              foo=: #M3
     declaredMixins
       M: #M8
         interface: #M9
@@ -38006,6 +41830,9 @@ class Z {}
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M6
         inheritedConstructors
           foo: #M4
@@ -38013,6 +41840,16 @@ class Z {}
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
+            [1]
+              foo: #M2
+              foo=: #M3
       Z: #M10
         interface: #M11
     declaredMixins
@@ -38047,12 +41884,21 @@ class B = A with M;
         interface: #M3
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M4
         inheritedConstructors
           foo: #M2
         interface: #M5
           map
             foo: #M1
+          implemented
+            foo: #M1
+          superImplemented
+            [0]
+              foo: #M1
+            [1]
+              foo: #M1
     declaredMixins
       M: #M6
         interface: #M7
@@ -38080,12 +41926,21 @@ class Z {}
         interface: #M3
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M4
         inheritedConstructors
           foo: #M2
         interface: #M5
           map
             foo: #M1
+          implemented
+            foo: #M1
+          superImplemented
+            [0]
+              foo: #M1
+            [1]
+              foo: #M1
       Z: #M8
         interface: #M9
     declaredMixins
@@ -38122,12 +41977,21 @@ class B = A with M;
         interface: #M4
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M5
         inheritedConstructors
           foo: #M3
         interface: #M6
           map
             foo=: #M2
+          implemented
+            foo=: #M2
+          superImplemented
+            [0]
+              foo=: #M2
+            [1]
+              foo=: #M2
     declaredMixins
       M: #M7
         interface: #M8
@@ -38157,12 +42021,21 @@ class Z {}
         interface: #M4
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M5
         inheritedConstructors
           foo: #M3
         interface: #M6
           map
             foo=: #M2
+          implemented
+            foo=: #M2
+          superImplemented
+            [0]
+              foo=: #M2
+            [1]
+              foo=: #M2
       Z: #M9
         interface: #M10
     declaredMixins
@@ -38193,10 +42066,17 @@ class B extends A {
         interface: #M2
           map
             []: #M1
+          implemented
+            []: #M1
       B: #M3
         interface: #M4
           map
             []: #M1
+          implemented
+            []: #M1
+          superImplemented
+            [0]
+              []: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -38217,6 +42097,8 @@ class B extends A {
         interface: #M2
           map
             []: #M1
+          implemented
+            []: #M1
       B: #M3
         declaredMethods
           zzz: #M5
@@ -38224,6 +42106,12 @@ class B extends A {
           map
             []: #M1
             zzz: #M5
+          implemented
+            []: #M1
+            zzz: #M5
+          superImplemented
+            [0]
+              []: #M1
 ''',
     );
   }
@@ -38252,11 +42140,21 @@ class B extends A {
           map
             []: #M1
             []=: #M2
+          implemented
+            []: #M1
+            []=: #M2
       B: #M4
         interface: #M5
           map
             []: #M1
             []=: #M2
+          implemented
+            []: #M1
+            []=: #M2
+          superImplemented
+            [0]
+              []: #M1
+              []=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -38280,6 +42178,9 @@ class B extends A {
           map
             []: #M1
             []=: #M2
+          implemented
+            []: #M1
+            []=: #M2
       B: #M4
         declaredMethods
           zzz: #M6
@@ -38288,6 +42189,14 @@ class B extends A {
             []: #M1
             []=: #M2
             zzz: #M6
+          implemented
+            []: #M1
+            []=: #M2
+            zzz: #M6
+          superImplemented
+            [0]
+              []: #M1
+              []=: #M2
 ''',
     );
   }
@@ -38313,10 +42222,17 @@ class B extends A {
         interface: #M2
           map
             []=: #M1
+          implemented
+            []=: #M1
       B: #M3
         interface: #M4
           map
             []=: #M1
+          implemented
+            []=: #M1
+          superImplemented
+            [0]
+              []=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -38337,6 +42253,8 @@ class B extends A {
         interface: #M2
           map
             []=: #M1
+          implemented
+            []=: #M1
       B: #M3
         declaredMethods
           zzz: #M5
@@ -38344,6 +42262,12 @@ class B extends A {
           map
             []=: #M1
             zzz: #M5
+          implemented
+            []=: #M1
+            zzz: #M5
+          superImplemented
+            [0]
+              []=: #M1
 ''',
     );
   }
@@ -38372,11 +42296,21 @@ class B extends A {
           map
             []: #M1
             []=: #M2
+          implemented
+            []: #M1
+            []=: #M2
       B: #M4
         interface: #M5
           map
             []: #M1
             []=: #M2
+          implemented
+            []: #M1
+            []=: #M2
+          superImplemented
+            [0]
+              []: #M1
+              []=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -38400,6 +42334,9 @@ class B extends A {
           map
             []: #M1
             []=: #M2
+          implemented
+            []: #M1
+            []=: #M2
       B: #M4
         declaredMethods
           zzz: #M6
@@ -38408,6 +42345,14 @@ class B extends A {
             []: #M1
             []=: #M2
             zzz: #M6
+          implemented
+            []: #M1
+            []=: #M2
+            zzz: #M6
+          superImplemented
+            [0]
+              []: #M1
+              []=: #M2
 ''',
     );
   }
@@ -38435,10 +42380,17 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         interface: #M5
           map
             foo: #M2
+          implemented
+            foo: #M2
+          superImplemented
+            [0]
+              foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -38461,6 +42413,8 @@ class B extends A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         declaredMethods
           zzz: #M6
@@ -38468,6 +42422,12 @@ class B extends A {
           map
             foo: #M2
             zzz: #M6
+          implemented
+            foo: #M2
+            zzz: #M6
+          superImplemented
+            [0]
+              foo: #M2
 ''',
     );
   }
@@ -38499,11 +42459,21 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         interface: #M6
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -38530,6 +42500,9 @@ class B extends A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
       B: #M5
         declaredMethods
           zzz: #M7
@@ -38538,6 +42511,14 @@ class B extends A {
             foo: #M2
             foo=: #M3
             zzz: #M7
+          implemented
+            foo: #M2
+            foo=: #M3
+            zzz: #M7
+          superImplemented
+            [0]
+              foo: #M2
+              foo=: #M3
 ''',
     );
   }
@@ -38563,10 +42544,17 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         interface: #M4
           map
             foo: #M1
+          implemented
+            foo: #M1
+          superImplemented
+            [0]
+              foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -38587,6 +42575,8 @@ class B extends A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         declaredMethods
           zzz: #M5
@@ -38594,6 +42584,12 @@ class B extends A {
           map
             foo: #M1
             zzz: #M5
+          implemented
+            foo: #M1
+            zzz: #M5
+          superImplemented
+            [0]
+              foo: #M1
 ''',
     );
   }
@@ -38621,10 +42617,17 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         interface: #M5
           map
             foo=: #M2
+          implemented
+            foo=: #M2
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -38647,6 +42650,8 @@ class B extends A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         declaredMethods
           zzz: #M6
@@ -38654,6 +42659,12 @@ class B extends A {
           map
             foo=: #M2
             zzz: #M6
+          implemented
+            foo=: #M2
+            zzz: #M6
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
     );
   }
@@ -38890,6 +42901,8 @@ class A {
         interface: #M4
           map
             foo: #M2
+          implemented
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -38910,6 +42923,8 @@ class A {
           named: #M5
         interface: #M4
           map
+            foo: #M2
+          implemented
             foo: #M2
 ''',
     );
@@ -38938,6 +42953,8 @@ class A {
         interface: #M4
           map
             foo: #M2
+          implemented
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -38958,6 +42975,8 @@ class A {
           named: #M5
         interface: #M4
           map
+            foo: #M2
+          implemented
             foo: #M2
 ''',
     );
@@ -39022,6 +43041,8 @@ class A {
         interface: #M5
           map
             f: #M2
+          implemented
+            f: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -39044,6 +43065,8 @@ class A {
           c2: #M6
         interface: #M5
           map
+            f: #M2
+          implemented
             f: #M2
 ''',
     );
@@ -39076,6 +43099,8 @@ class A {
         interface: #M6
           map
             f: #M2
+          implemented
+            f: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -39100,6 +43125,8 @@ class A {
           c3: #M7
         interface: #M6
           map
+            f: #M2
+          implemented
             f: #M2
 ''',
     );
@@ -39218,12 +43245,19 @@ class B extends A {
         interface: #M5
           map
             f: #M2
+          implemented
+            f: #M2
       B: #M6
         declaredConstructors
           named: #M7
         interface: #M8
           map
             f: #M2
+          implemented
+            f: #M2
+          superImplemented
+            [0]
+              f: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -39251,12 +43285,19 @@ class B extends A {
         interface: #M5
           map
             f: #M2
+          implemented
+            f: #M2
       B: #M6
         declaredConstructors
           named: #M9
         interface: #M8
           map
             f: #M2
+          implemented
+            f: #M2
+          superImplemented
+            [0]
+              f: #M2
 ''',
     );
   }
@@ -39288,12 +43329,19 @@ class B extends A {
         interface: #M4
           map
             f: #M2
+          implemented
+            f: #M2
       B: #M5
         declaredConstructors
           named: #M6
         interface: #M7
           map
             f: #M2
+          implemented
+            f: #M2
+          superImplemented
+            [0]
+              f: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -39319,12 +43367,19 @@ class B extends A {
         interface: #M4
           map
             f: #M2
+          implemented
+            f: #M2
       B: #M5
         declaredConstructors
           named: #M9
         interface: #M7
           map
             f: #M2
+          implemented
+            f: #M2
+          superImplemented
+            [0]
+              f: #M2
 ''',
     );
   }
@@ -39386,6 +43441,8 @@ class A {
         interface: #M4
           map
             foo: #M2
+          implemented
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -39406,6 +43463,8 @@ class A {
           named: #M3
         interface: #M4
           map
+            foo: #M2
+          implemented
             foo: #M2
 ''',
     );
@@ -39436,6 +43495,8 @@ class A {
         interface: #M5
           map
             f: #M2
+          implemented
+            f: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -39458,6 +43519,8 @@ class A {
           c2: #M4
         interface: #M5
           map
+            f: #M2
+          implemented
             f: #M2
 ''',
     );
@@ -39936,6 +43999,8 @@ class A {
         interface: #M3
           map
             a: #M2
+          implemented
+            a: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -39956,6 +44021,9 @@ class A {
           b: #M5
         interface: #M6
           map
+            a: #M2
+            b: #M5
+          implemented
             a: #M2
             b: #M5
 ''',
@@ -40026,6 +44094,8 @@ class A {
         interface: #M3
           map
             a: #M2
+          implemented
+            a: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -40043,6 +44113,8 @@ class A {
           a: #M5
         interface: #M6
           map
+            a: #M5
+          implemented
             a: #M5
 ''',
     );
@@ -40068,6 +44140,8 @@ class A {
         interface: #M3
           map
             a: #M2
+          implemented
+            a: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -40085,6 +44159,8 @@ class A {
           a: #M2
         interface: #M3
           map
+            a: #M2
+          implemented
             a: #M2
 ''',
     );
@@ -40197,6 +44273,11 @@ class A {
             a=: #M5
             b: #M4
             b=: #M6
+          implemented
+            a: #M3
+            a=: #M5
+            b: #M4
+            b=: #M6
 ''',
       updatedCode: r'''
 class A {
@@ -40222,6 +44303,11 @@ class A {
           b=: #M6
         interface: #M11
           map
+            a: #M9
+            a=: #M10
+            b: #M4
+            b=: #M6
+          implemented
             a: #M9
             a=: #M10
             b: #M4
@@ -40311,6 +44397,11 @@ class C {
             b: #M5
             c: #M6
             c=: #M7
+          implemented
+            a: #M4
+            b: #M5
+            c: #M6
+            c=: #M7
 ''',
       updatedCode: r'''
 class C {
@@ -40336,6 +44427,11 @@ class C {
           b=: #M11
         interface: #M12
           map
+            a: #M4
+            b: #M5
+            b=: #M11
+            c: #M6
+          implemented
             a: #M4
             b: #M5
             b=: #M11
@@ -40372,6 +44468,10 @@ class C {
             a: #M4
             b: #M5
             c: #M6
+          implemented
+            a: #M4
+            b: #M5
+            c: #M6
 ''',
       updatedCode: r'''
 class C {
@@ -40395,6 +44495,10 @@ class C {
           c: #M6
         interface: #M7
           map
+            a: #M4
+            b: #M5
+            c: #M6
+          implemented
             a: #M4
             b: #M5
             c: #M6
@@ -40440,6 +44544,8 @@ class A {
           b: #M5
         interface: #M6
           map
+            b: #M5
+          implemented
             b: #M5
 ''',
     );
@@ -40531,6 +44637,9 @@ class A {
           map
             b: #M6
             b=: #M7
+          implemented
+            b: #M6
+            b=: #M7
 ''',
     );
   }
@@ -40556,6 +44665,9 @@ class A {
           foo=: #M3
         interface: #M4
           map
+            foo: #M2
+            foo=: #M3
+          implemented
             foo: #M2
             foo=: #M3
 ''',
@@ -40621,6 +44733,9 @@ class A {
           map
             foo: #M6
             foo=: #M7
+          implemented
+            foo: #M6
+            foo=: #M7
 ''',
     );
   }
@@ -40648,6 +44763,9 @@ class A {
           map
             a: #M2
             a=: #M3
+          implemented
+            a: #M2
+            a=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -40667,6 +44785,9 @@ class A {
           a=: #M7
         interface: #M8
           map
+            a: #M6
+            a=: #M7
+          implemented
             a: #M6
             a=: #M7
 ''',
@@ -40695,10 +44816,17 @@ class B extends A {}
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         interface: #M5
           map
             foo: #M2
+          implemented
+            foo: #M2
+          superImplemented
+            [0]
+              foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -40723,11 +44851,21 @@ class B extends A {}
           map
             bar: #M7
             foo: #M2
+          implemented
+            bar: #M7
+            foo: #M2
       B: #M4
         interface: #M9
           map
             bar: #M7
             foo: #M2
+          implemented
+            bar: #M7
+            foo: #M2
+          superImplemented
+            [0]
+              bar: #M7
+              foo: #M2
 ''',
     );
   }
@@ -40754,10 +44892,17 @@ class B extends A<int> {}
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         interface: #M5
           map
             foo: #M2
+          implemented
+            foo: #M2
+          superImplemented
+            [0]
+              foo: #M2
 ''',
       updatedCode: r'''
 class A<T> {
@@ -40782,11 +44927,21 @@ class B extends A<int> {}
           map
             bar: #M7
             foo: #M2
+          implemented
+            bar: #M7
+            foo: #M2
       B: #M4
         interface: #M9
           map
             bar: #M7
             foo: #M2
+          implemented
+            bar: #M7
+            foo: #M2
+          superImplemented
+            [0]
+              bar: #M7
+              foo: #M2
 ''',
     );
   }
@@ -40812,6 +44967,8 @@ class B implements A {}
           foo: #M2
         interface: #M3
           map
+            foo: #M2
+          implemented
             foo: #M2
       B: #M4
         interface: #M5
@@ -40839,6 +44996,9 @@ class B implements A {}
           foo: #M2
         interface: #M8
           map
+            bar: #M7
+            foo: #M2
+          implemented
             bar: #M7
             foo: #M2
       B: #M4
@@ -40872,6 +45032,8 @@ class B implements A<int> {}
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         interface: #M5
           map
@@ -40898,6 +45060,9 @@ class B implements A<int> {}
           foo: #M2
         interface: #M8
           map
+            bar: #M7
+            foo: #M2
+          implemented
             bar: #M7
             foo: #M2
       B: #M4
@@ -40931,10 +45096,17 @@ class B with A {}
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         interface: #M5
           map
             foo: #M2
+          implemented
+            foo: #M2
+          superImplemented
+            [1]
+              foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -40959,11 +45131,21 @@ class B with A {}
           map
             bar: #M7
             foo: #M2
+          implemented
+            bar: #M7
+            foo: #M2
       B: #M4
         interface: #M9
           map
             bar: #M7
             foo: #M2
+          implemented
+            bar: #M7
+            foo: #M2
+          superImplemented
+            [1]
+              bar: #M7
+              foo: #M2
 ''',
     );
   }
@@ -40990,10 +45172,17 @@ class B with A<int> {}
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         interface: #M5
           map
             foo: #M2
+          implemented
+            foo: #M2
+          superImplemented
+            [1]
+              foo: #M2
 ''',
       updatedCode: r'''
 class A<T> {
@@ -41018,11 +45207,21 @@ class B with A<int> {}
           map
             bar: #M7
             foo: #M2
+          implemented
+            bar: #M7
+            foo: #M2
       B: #M4
         interface: #M9
           map
             bar: #M7
             foo: #M2
+          implemented
+            bar: #M7
+            foo: #M2
+          superImplemented
+            [1]
+              bar: #M7
+              foo: #M2
 ''',
     );
   }
@@ -41205,6 +45404,8 @@ abstract class D implements C {}
             xxx: #M13
           combinedIds
             [#M2, #M6]: #M10
+          implemented
+            xxx: #M13
       D: #M11
         interface: #M15
           map
@@ -41238,6 +45439,9 @@ class A {
           map
             foo1: #M3
             foo2: #M4
+          implemented
+            foo1: #M3
+            foo2: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -41258,6 +45462,9 @@ class A {
           foo2: #M9
         interface: #M10
           map
+            foo1: #M8
+            foo2: #M9
+          implemented
             foo1: #M8
             foo2: #M9
 ''',
@@ -41290,6 +45497,9 @@ class A {
           map
             bar: #M3
             foo: #M4
+          implemented
+            bar: #M3
+            foo: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -41312,6 +45522,9 @@ class A {
           foo: #M6
         interface: #M7
           map
+            bar: #M3
+            foo: #M6
+          implemented
             bar: #M3
             foo: #M6
 ''',
@@ -41357,6 +45570,8 @@ class A {
         interface: #M6
           map
             bar: #M5
+          implemented
+            bar: #M5
 ''',
     );
   }
@@ -41400,6 +45615,8 @@ class A {
         interface: #M6
           map
             bar: #M5
+          implemented
+            bar: #M5
 ''',
     );
   }
@@ -41428,6 +45645,8 @@ class A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -41448,6 +45667,8 @@ class A {
             returnType: double @ dart:core
         interface: #M6
           map
+            foo: #M5
+          implemented
             foo: #M5
 ''',
     );
@@ -41513,6 +45734,8 @@ class A {
           foo: #M2
         interface: #M3
           map
+            foo: #M2
+          implemented
             foo: #M2
 ''',
       updatedCode: r'''
@@ -41608,6 +45831,8 @@ class A {
         interface: #M6
           map
             foo: #M5
+          implemented
+            foo: #M5
 ''',
     );
   }
@@ -41632,6 +45857,8 @@ class A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -41649,6 +45876,8 @@ class A {
           foo=: #M4
         interface: #M5
           map
+            foo: #M4
+          implemented
             foo: #M4
 ''',
     );
@@ -41674,6 +45903,8 @@ class A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -41691,6 +45922,8 @@ class A {
           foo=: #M4
         interface: #M5
           map
+            foo: #M4
+          implemented
             foo: #M4
 ''',
     );
@@ -41716,6 +45949,8 @@ class A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -41733,6 +45968,8 @@ class A {
           foo=: #M4
         interface: #M5
           map
+            foo: #M4
+          implemented
             foo: #M4
 ''',
     );
@@ -41758,6 +45995,8 @@ class A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -41775,6 +46014,8 @@ class A {
           foo=: #M4
         interface: #M5
           map
+            foo: #M4
+          implemented
             foo: #M4
 ''',
     );
@@ -41852,6 +46093,550 @@ class A {
           foo: #M4
           foo=: #M4
         interface: #M3
+''',
+    );
+  }
+
+  test_manifest_class_hasNonFinalField() async {
+    configuration.withElementManifests = true;
+
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  final int? a;
+}
+class B {
+  int? a;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredFields
+          a: #M1
+            type: int? @ dart:core
+        declaredGetters
+          a: #M2
+            returnType: int? @ dart:core
+        interface: #M3
+          map
+            a: #M2
+          implemented
+            a: #M2
+      B: #M4
+        flags: hasNonFinalField
+        supertype: Object @ dart:core
+        declaredFields
+          a: #M5
+            type: int? @ dart:core
+        declaredGetters
+          a: #M6
+            returnType: int? @ dart:core
+        declaredSetters
+          a=: #M7
+            functionType: FunctionType
+              positional
+                required int? @ dart:core
+              returnType: void
+        interface: #M8
+          map
+            a: #M6
+            a=: #M7
+          implemented
+            a: #M6
+            a=: #M7
+''',
+      updatedCode: r'''
+class A {
+  int? a;
+}
+class B {
+  final int? a;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        flags: hasNonFinalField
+        supertype: Object @ dart:core
+        declaredFields
+          a: #M9
+            type: int? @ dart:core
+        declaredGetters
+          a: #M2
+            returnType: int? @ dart:core
+        declaredSetters
+          a=: #M10
+            functionType: FunctionType
+              positional
+                required int? @ dart:core
+              returnType: void
+        interface: #M11
+          map
+            a: #M2
+            a=: #M10
+          implemented
+            a: #M2
+            a=: #M10
+      B: #M4
+        supertype: Object @ dart:core
+        declaredFields
+          a: #M12
+            type: int? @ dart:core
+        declaredGetters
+          a: #M6
+            returnType: int? @ dart:core
+        interface: #M13
+          map
+            a: #M6
+          implemented
+            a: #M6
+''',
+    );
+  }
+
+  test_manifest_class_interface_implemented_inherited_abstract() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+abstract class A {
+  void foo();
+}
+abstract class B extends A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+      B: #M3
+        interface: #M4
+          map
+            foo: #M1
+''',
+      updatedCode: r'''
+abstract class A {
+  void foo();
+  void bar() {}
+}
+abstract class B extends A {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          bar: #M5
+          foo: #M1
+        interface: #M6
+          map
+            bar: #M5
+            foo: #M1
+          implemented
+            bar: #M5
+      B: #M3
+        interface: #M7
+          map
+            bar: #M5
+            foo: #M1
+          implemented
+            bar: #M5
+          superImplemented
+            [0]
+              bar: #M5
+''',
+    );
+  }
+
+  test_manifest_class_interface_implemented_inherited_fromMixin_thenSuper() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class S {
+  void foo() {}
+}
+mixin M {
+  void foo() {}
+}
+class X extends S with M {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      S: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+          implemented
+            foo: #M1
+      X: #M3
+        interface: #M4
+          map
+            foo: #M5
+          implemented
+            foo: #M5
+          superImplemented
+            [0]
+              foo: #M1
+            [1]
+              foo: #M5
+    declaredMixins
+      M: #M6
+        declaredMethods
+          foo: #M5
+        interface: #M7
+          map
+            foo: #M5
+          implemented
+            foo: #M5
+''',
+      updatedCode: r'''
+class S {
+  void foo() {}
+}
+mixin M {}
+class X extends S with M {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      S: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+          implemented
+            foo: #M1
+      X: #M3
+        interface: #M8
+          map
+            foo: #M1
+          implemented
+            foo: #M1
+          superImplemented
+            [0]
+              foo: #M1
+            [1]
+              foo: #M1
+    declaredMixins
+      M: #M6
+        interface: #M9
+''',
+    );
+  }
+
+  test_manifest_class_interface_implemented_inherited_fromMixins() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class S {
+  void foo() {}
+}
+mixin M1 {
+  void foo() {}
+}
+mixin M2 {}
+class X extends S with M1, M2 {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      S: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+          implemented
+            foo: #M1
+      X: #M3
+        interface: #M4
+          map
+            foo: #M5
+          implemented
+            foo: #M5
+          superImplemented
+            [0]
+              foo: #M1
+            [1]
+              foo: #M5
+            [2]
+              foo: #M5
+    declaredMixins
+      M1: #M6
+        declaredMethods
+          foo: #M5
+        interface: #M7
+          map
+            foo: #M5
+          implemented
+            foo: #M5
+      M2: #M8
+        interface: #M9
+''',
+      updatedCode: r'''
+class S {
+  void foo() {}
+}
+mixin M1 {
+  void foo() {}
+}
+mixin M2 {
+  void bar() {}
+}
+class X extends S with M1, M2 {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      S: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+          implemented
+            foo: #M1
+      X: #M3
+        interface: #M10
+          map
+            bar: #M11
+            foo: #M5
+          implemented
+            bar: #M11
+            foo: #M5
+          superImplemented
+            [0]
+              foo: #M1
+            [1]
+              foo: #M5
+            [2]
+              bar: #M11
+              foo: #M5
+    declaredMixins
+      M1: #M6
+        declaredMethods
+          foo: #M5
+        interface: #M7
+          map
+            foo: #M5
+          implemented
+            foo: #M5
+      M2: #M8
+        declaredMethods
+          bar: #M11
+        interface: #M12
+          map
+            bar: #M11
+          implemented
+            bar: #M11
+''',
+    );
+  }
+
+  test_manifest_class_interface_implemented_inherited_fromSuperclass() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+}
+class B extends A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+          implemented
+            foo: #M1
+      B: #M3
+        interface: #M4
+          map
+            foo: #M1
+          implemented
+            foo: #M1
+          superImplemented
+            [0]
+              foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+  void bar() {}
+}
+class B extends A {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          bar: #M5
+          foo: #M1
+        interface: #M6
+          map
+            bar: #M5
+            foo: #M1
+          implemented
+            bar: #M5
+            foo: #M1
+      B: #M3
+        interface: #M7
+          map
+            bar: #M5
+            foo: #M1
+          implemented
+            bar: #M5
+            foo: #M1
+          superImplemented
+            [0]
+              bar: #M5
+              foo: #M1
+''',
+    );
+  }
+
+  test_manifest_class_interface_implemented_inherited_fromSuperclass_overridden() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo() {}
+}
+class B extends A {
+  void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+          implemented
+            foo: #M1
+      B: #M3
+        declaredMethods
+          foo: #M4
+        interface: #M5
+          map
+            foo: #M4
+          implemented
+            foo: #M4
+          superImplemented
+            [0]
+              foo: #M1
+''',
+      updatedCode: r'''
+class A {
+  void foo() {}
+  void bar() {}
+}
+class B extends A {
+  void foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          bar: #M6
+          foo: #M1
+        interface: #M7
+          map
+            bar: #M6
+            foo: #M1
+          implemented
+            bar: #M6
+            foo: #M1
+      B: #M3
+        declaredMethods
+          foo: #M4
+        interface: #M8
+          map
+            bar: #M6
+            foo: #M4
+          implemented
+            bar: #M6
+            foo: #M4
+          superImplemented
+            [0]
+              bar: #M6
+              foo: #M1
+''',
+    );
+  }
+
+  test_manifest_class_interface_implemented_inherited_private() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void _foo() {}
+}
+class B extends A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          _foo: #M1
+        interface: #M2
+      B: #M3
+        interface: #M4
+''',
+      updatedCode: r'''
+class A {
+  void _foo() {}
+  void _bar() {}
+}
+class B extends A {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          _bar: #M5
+          _foo: #M1
+        interface: #M2
+      B: #M3
+        interface: #M4
 ''',
     );
   }
@@ -42012,6 +46797,8 @@ class A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -42029,6 +46816,9 @@ class A {
           foo: #M1
         interface: #M4
           map
+            bar: #M3
+            foo: #M1
+          implemented
             bar: #M3
             foo: #M1
 ''',
@@ -42055,10 +46845,17 @@ class B extends A {}
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         interface: #M4
           map
             foo: #M1
+          implemented
+            foo: #M1
+          superImplemented
+            [0]
+              foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -42080,11 +46877,21 @@ class B extends A {}
           map
             bar: #M5
             foo: #M1
+          implemented
+            bar: #M5
+            foo: #M1
       B: #M3
         interface: #M7
           map
             bar: #M5
             foo: #M1
+          implemented
+            bar: #M5
+            foo: #M1
+          superImplemented
+            [0]
+              bar: #M5
+              foo: #M1
 ''',
     );
   }
@@ -42109,10 +46916,17 @@ class B extends A<int> {}
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         interface: #M4
           map
             foo: #M1
+          implemented
+            foo: #M1
+          superImplemented
+            [0]
+              foo: #M1
 ''',
       updatedCode: r'''
 class A<T> {
@@ -42134,11 +46948,21 @@ class B extends A<int> {}
           map
             bar: #M5
             foo: #M1
+          implemented
+            bar: #M5
+            foo: #M1
       B: #M3
         interface: #M7
           map
             bar: #M5
             foo: #M1
+          implemented
+            bar: #M5
+            foo: #M1
+          superImplemented
+            [0]
+              bar: #M5
+              foo: #M1
 ''',
     );
   }
@@ -42165,14 +46989,26 @@ class C extends B {}
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         interface: #M4
           map
             foo: #M1
+          implemented
+            foo: #M1
+          superImplemented
+            [0]
+              foo: #M1
       C: #M5
         interface: #M6
           map
             foo: #M1
+          implemented
+            foo: #M1
+          superImplemented
+            [0]
+              foo: #M1
 ''',
       updatedCode: r'''
 class A<T> {
@@ -42196,16 +47032,33 @@ class C extends B {}
           map
             bar: #M7
             foo: #M1
+          implemented
+            bar: #M7
+            foo: #M1
       B: #M3
         interface: #M9
           map
             bar: #M7
             foo: #M1
+          implemented
+            bar: #M7
+            foo: #M1
+          superImplemented
+            [0]
+              bar: #M7
+              foo: #M1
       C: #M5
         interface: #M10
           map
             bar: #M7
             foo: #M1
+          implemented
+            bar: #M7
+            foo: #M1
+          superImplemented
+            [0]
+              bar: #M7
+              foo: #M1
 ''',
     );
   }
@@ -42230,6 +47083,8 @@ class B implements A {}
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         interface: #M4
           map
@@ -42253,6 +47108,9 @@ class B implements A {}
           foo: #M1
         interface: #M6
           map
+            bar: #M5
+            foo: #M1
+          implemented
             bar: #M5
             foo: #M1
       B: #M3
@@ -42284,6 +47142,8 @@ class B implements A<int> {}
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         interface: #M4
           map
@@ -42307,6 +47167,9 @@ class B implements A<int> {}
           foo: #M1
         interface: #M6
           map
+            bar: #M5
+            foo: #M1
+          implemented
             bar: #M5
             foo: #M1
       B: #M3
@@ -42338,10 +47201,17 @@ class B with A {}
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         interface: #M4
           map
             foo: #M1
+          implemented
+            foo: #M1
+          superImplemented
+            [1]
+              foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -42363,11 +47233,21 @@ class B with A {}
           map
             bar: #M5
             foo: #M1
+          implemented
+            bar: #M5
+            foo: #M1
       B: #M3
         interface: #M7
           map
             bar: #M5
             foo: #M1
+          implemented
+            bar: #M5
+            foo: #M1
+          superImplemented
+            [1]
+              bar: #M5
+              foo: #M1
 ''',
     );
   }
@@ -42392,10 +47272,17 @@ class B with A<int> {}
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         interface: #M4
           map
             foo: #M1
+          implemented
+            foo: #M1
+          superImplemented
+            [1]
+              foo: #M1
 ''',
       updatedCode: r'''
 class A<T> {
@@ -42417,11 +47304,21 @@ class B with A<int> {}
           map
             bar: #M5
             foo: #M1
+          implemented
+            bar: #M5
+            foo: #M1
       B: #M3
         interface: #M7
           map
             bar: #M5
             foo: #M1
+          implemented
+            bar: #M5
+            foo: #M1
+          superImplemented
+            [1]
+              bar: #M5
+              foo: #M1
 ''',
     );
   }
@@ -42654,6 +47551,8 @@ abstract class D implements A, B {
             xxx: #M12
           combinedIds
             [#M1, #M4]: #M8
+          implemented
+            xxx: #M12
 ''',
     );
   }
@@ -42741,6 +47640,8 @@ abstract class D implements C {}
             xxx: #M11
           combinedIds
             [#M1, #M4]: #M8
+          implemented
+            xxx: #M11
       D: #M9
         interface: #M13
           map
@@ -42891,6 +47792,8 @@ abstract class D implements B, C {
           map
             foo: #M1
             zzz: #M9
+          implemented
+            zzz: #M9
 ''',
     );
   }
@@ -42987,6 +47890,8 @@ class A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -43004,6 +47909,9 @@ class A {
           foo: #M1
         interface: #M4
           map
+            bar: #M3
+            foo: #M1
+          implemented
             bar: #M3
             foo: #M1
 ''',
@@ -43028,6 +47936,8 @@ class A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -43043,6 +47953,8 @@ class A {
           foo: #M1
         interface: #M2
           map
+            foo: #M1
+          implemented
             foo: #M1
 ''',
     );
@@ -43066,6 +47978,8 @@ class A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -43083,6 +47997,9 @@ class A {
           foo: #M1
         interface: #M4
           map
+            bar: #M3
+            foo: #M1
+          implemented
             bar: #M3
             foo: #M1
 ''',
@@ -43107,6 +48024,8 @@ class A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -43124,6 +48043,9 @@ class A {
           foo: #M1
         interface: #M4
           map
+            bar: #M3
+            foo: #M1
+          implemented
             bar: #M3
             foo: #M1
 ''',
@@ -43148,6 +48070,8 @@ class A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -43163,6 +48087,8 @@ class A {
           foo: #M3
         interface: #M4
           map
+            foo: #M3
+          implemented
             foo: #M3
 ''',
     );
@@ -43186,6 +48112,8 @@ class A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -43201,6 +48129,8 @@ class A {
           foo: #M1
         interface: #M2
           map
+            foo: #M1
+          implemented
             foo: #M1
 ''',
     );
@@ -43230,6 +48160,8 @@ class A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -43250,6 +48182,8 @@ class A {
               returnType: void
         interface: #M4
           map
+            foo: #M3
+          implemented
             foo: #M3
 ''',
     );
@@ -43273,6 +48207,8 @@ class A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -43290,6 +48226,9 @@ class A {
           foo: #M1
         interface: #M4
           map
+            bar: #M3
+            foo: #M1
+          implemented
             bar: #M3
             foo: #M1
 ''',
@@ -43323,6 +48262,11 @@ class A {
             foo2: #M2
             foo3: #M3
             foo4: #M4
+          implemented
+            foo1: #M1
+            foo2: #M2
+            foo3: #M3
+            foo4: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -43344,6 +48288,11 @@ class A {
           foo4: #M7
         interface: #M8
           map
+            foo1: #M1
+            foo2: #M2
+            foo3: #M6
+            foo4: #M7
+          implemented
             foo1: #M1
             foo2: #M2
             foo3: #M6
@@ -43379,6 +48328,11 @@ class A {
             foo2: #M2
             foo3: #M3
             foo4: #M4
+          implemented
+            foo1: #M1
+            foo2: #M2
+            foo3: #M3
+            foo4: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -43400,6 +48354,11 @@ class A {
           foo4: #M7
         interface: #M8
           map
+            foo1: #M1
+            foo2: #M2
+            foo3: #M6
+            foo4: #M7
+          implemented
             foo1: #M1
             foo2: #M2
             foo3: #M6
@@ -43426,6 +48385,8 @@ class A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -43441,6 +48402,8 @@ class A {
           foo: #M1
         interface: #M2
           map
+            foo: #M1
+          implemented
             foo: #M1
 ''',
     );
@@ -43464,6 +48427,8 @@ class A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -43479,6 +48444,8 @@ class A {
           foo: #M3
         interface: #M4
           map
+            foo: #M3
+          implemented
             foo: #M3
 ''',
     );
@@ -43504,6 +48471,8 @@ class A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -43519,6 +48488,8 @@ class A {
           foo: #M3
         interface: #M4
           map
+            foo: #M3
+          implemented
             foo: #M3
 ''',
     );
@@ -43544,6 +48515,8 @@ class A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -43559,6 +48532,8 @@ class A {
           foo: #M3
         interface: #M4
           map
+            foo: #M3
+          implemented
             foo: #M3
 ''',
     );
@@ -43583,6 +48558,8 @@ class A {
           foo=: #M1
         interface: #M2
           map
+            foo: #M1
+          implemented
             foo: #M1
 ''',
       updatedCode: r'''
@@ -43622,6 +48599,8 @@ class A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -43637,6 +48616,8 @@ class A {
           foo: #M3
         interface: #M4
           map
+            foo: #M3
+          implemented
             foo: #M3
 ''',
     );
@@ -43662,6 +48643,8 @@ class A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -43677,6 +48660,8 @@ class A {
           foo: #M3
         interface: #M4
           map
+            foo: #M3
+          implemented
             foo: #M3
 ''',
     );
@@ -43701,6 +48686,8 @@ class A {
           foo=: #M1
         interface: #M2
           map
+            foo: #M1
+          implemented
             foo: #M1
 ''',
       updatedCode: r'''
@@ -43815,6 +48802,9 @@ class A {
           map
             bar: #M1
             foo: #M2
+          implemented
+            bar: #M1
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -43834,6 +48824,9 @@ class A {
           foo: #M4
         interface: #M5
           map
+            bar: #M1
+            foo: #M4
+          implemented
             bar: #M1
             foo: #M4
 ''',
@@ -43874,6 +48867,8 @@ class A {
         interface: #M4
           map
             bar: #M3
+          implemented
+            bar: #M3
 ''',
     );
   }
@@ -43912,6 +48907,8 @@ class A {
         interface: #M4
           map
             bar: #M3
+          implemented
+            bar: #M3
 ''',
     );
   }
@@ -43937,6 +48934,9 @@ class A {
           map
             bar: #M1
             foo: #M2
+          implemented
+            bar: #M1
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -43952,6 +48952,8 @@ class A {
           foo: #M2
         interface: #M4
           map
+            foo: #M2
+          implemented
             foo: #M2
 ''',
     );
@@ -43979,6 +48981,8 @@ class A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -43997,6 +49001,8 @@ class A {
               returnType: double @ dart:core
         interface: #M4
           map
+            foo: #M3
+          implemented
             foo: #M3
 ''',
     );
@@ -44019,6 +49025,8 @@ class A {
           foo: #M1
         interface: #M2
           map
+            foo: #M1
+          implemented
             foo: #M1
 ''',
       updatedCode: r'''
@@ -44104,6 +49112,8 @@ class A {
         interface: #M4
           map
             foo: #M3
+          implemented
+            foo: #M3
 ''',
     );
   }
@@ -44126,6 +49136,8 @@ class A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -44143,6 +49155,8 @@ class A {
           foo=: #M3
         interface: #M4
           map
+            foo: #M3
+          implemented
             foo: #M3
 ''',
     );
@@ -44166,6 +49180,8 @@ class A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -44183,6 +49199,8 @@ class A {
           foo=: #M3
         interface: #M4
           map
+            foo: #M3
+          implemented
             foo: #M3
 ''',
     );
@@ -44206,6 +49224,8 @@ class A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -44223,6 +49243,8 @@ class A {
           foo=: #M3
         interface: #M4
           map
+            foo: #M3
+          implemented
             foo: #M3
 ''',
     );
@@ -44246,6 +49268,8 @@ class A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -44263,6 +49287,8 @@ class A {
           foo=: #M3
         interface: #M4
           map
+            foo: #M3
+          implemented
             foo: #M3
 ''',
     );
@@ -44302,6 +49328,8 @@ class A {
         interface: #M4
           map
             foo: #M3
+          implemented
+            foo: #M3
 ''',
     );
   }
@@ -44339,6 +49367,8 @@ class A {
           foo=: #M3
         interface: #M4
           map
+            foo: #M3
+          implemented
             foo: #M3
 ''',
     );
@@ -44446,6 +49476,8 @@ class A<T> {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 class A<T> {
@@ -44478,6 +49510,9 @@ class A<T> {
           map
             bar: #M3
             foo: #M1
+          implemented
+            bar: #M3
+            foo: #M1
 ''',
     );
   }
@@ -44500,6 +49535,8 @@ class A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -44515,6 +49552,8 @@ class A {
           foo: #M3
         interface: #M4
           map
+            foo: #M3
+          implemented
             foo: #M3
 ''',
     );
@@ -44538,6 +49577,8 @@ class A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -44553,6 +49594,8 @@ class A {
           foo: #M3
         interface: #M4
           map
+            foo: #M3
+          implemented
             foo: #M3
 ''',
     );
@@ -44978,10 +50021,17 @@ class B extends A {}
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         interface: #M5
           map
             foo=: #M2
+          implemented
+            foo=: #M2
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -45006,11 +50056,21 @@ class B extends A {}
           map
             bar=: #M7
             foo=: #M2
+          implemented
+            bar=: #M7
+            foo=: #M2
       B: #M4
         interface: #M9
           map
             bar=: #M7
             foo=: #M2
+          implemented
+            bar=: #M7
+            foo=: #M2
+          superImplemented
+            [0]
+              bar=: #M7
+              foo=: #M2
 ''',
     );
   }
@@ -45037,10 +50097,17 @@ class B extends A<int> {}
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         interface: #M5
           map
             foo=: #M2
+          implemented
+            foo=: #M2
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
       updatedCode: r'''
 class A<T> {
@@ -45065,11 +50132,21 @@ class B extends A<int> {}
           map
             bar=: #M7
             foo=: #M2
+          implemented
+            bar=: #M7
+            foo=: #M2
       B: #M4
         interface: #M9
           map
             bar=: #M7
             foo=: #M2
+          implemented
+            bar=: #M7
+            foo=: #M2
+          superImplemented
+            [0]
+              bar=: #M7
+              foo=: #M2
 ''',
     );
   }
@@ -45095,6 +50172,8 @@ class B implements A {}
           foo=: #M2
         interface: #M3
           map
+            foo=: #M2
+          implemented
             foo=: #M2
       B: #M4
         interface: #M5
@@ -45122,6 +50201,9 @@ class B implements A {}
           foo=: #M2
         interface: #M8
           map
+            bar=: #M7
+            foo=: #M2
+          implemented
             bar=: #M7
             foo=: #M2
       B: #M4
@@ -45155,6 +50237,8 @@ class B implements A<int> {}
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         interface: #M5
           map
@@ -45181,6 +50265,9 @@ class B implements A<int> {}
           foo=: #M2
         interface: #M8
           map
+            bar=: #M7
+            foo=: #M2
+          implemented
             bar=: #M7
             foo=: #M2
       B: #M4
@@ -45214,10 +50301,17 @@ class B with A {}
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         interface: #M5
           map
             foo=: #M2
+          implemented
+            foo=: #M2
+          superImplemented
+            [1]
+              foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -45242,11 +50336,21 @@ class B with A {}
           map
             bar=: #M7
             foo=: #M2
+          implemented
+            bar=: #M7
+            foo=: #M2
       B: #M4
         interface: #M9
           map
             bar=: #M7
             foo=: #M2
+          implemented
+            bar=: #M7
+            foo=: #M2
+          superImplemented
+            [1]
+              bar=: #M7
+              foo=: #M2
 ''',
     );
   }
@@ -45273,10 +50377,17 @@ class B with A<int> {}
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         interface: #M5
           map
             foo=: #M2
+          implemented
+            foo=: #M2
+          superImplemented
+            [1]
+              foo=: #M2
 ''',
       updatedCode: r'''
 class A<T> {
@@ -45301,11 +50412,21 @@ class B with A<int> {}
           map
             bar=: #M7
             foo=: #M2
+          implemented
+            bar=: #M7
+            foo=: #M2
       B: #M4
         interface: #M9
           map
             bar=: #M7
             foo=: #M2
+          implemented
+            bar=: #M7
+            foo=: #M2
+          superImplemented
+            [1]
+              bar=: #M7
+              foo=: #M2
 ''',
     );
   }
@@ -45488,6 +50609,8 @@ abstract class D implements C {}
             xxx: #M13
           combinedIds
             [#M2, #M6]: #M10
+          implemented
+            xxx: #M13
       D: #M11
         interface: #M15
           map
@@ -45529,6 +50652,11 @@ class A {
             foo2=: #M6
             foo3=: #M7
             foo4=: #M8
+          implemented
+            foo1=: #M5
+            foo2=: #M6
+            foo3=: #M7
+            foo4=: #M8
 ''',
       updatedCode: r'''
 class A {
@@ -45555,6 +50683,11 @@ class A {
           foo4=: #M11
         interface: #M12
           map
+            foo1=: #M5
+            foo2=: #M6
+            foo3=: #M10
+            foo4=: #M11
+          implemented
             foo1=: #M5
             foo2=: #M6
             foo3=: #M10
@@ -45595,6 +50728,11 @@ class A {
             foo2=: #M6
             foo3=: #M7
             foo4=: #M8
+          implemented
+            foo1=: #M5
+            foo2=: #M6
+            foo3=: #M7
+            foo4=: #M8
 ''',
       updatedCode: r'''
 class A {
@@ -45621,6 +50759,11 @@ class A {
           foo4=: #M11
         interface: #M12
           map
+            foo1=: #M5
+            foo2=: #M6
+            foo3=: #M10
+            foo4=: #M11
+          implemented
             foo1=: #M5
             foo2=: #M6
             foo3=: #M10
@@ -45652,6 +50795,9 @@ class A {
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -45672,6 +50818,9 @@ class A {
           foo=: #M7
         interface: #M8
           map
+            foo: #M6
+            foo=: #M7
+          implemented
             foo: #M6
             foo=: #M7
 ''',
@@ -45704,6 +50853,9 @@ class A {
           map
             bar=: #M3
             foo=: #M4
+          implemented
+            bar=: #M3
+            foo=: #M4
 ''',
       updatedCode: r'''
 class A {
@@ -45726,6 +50878,9 @@ class A {
           foo=: #M6
         interface: #M7
           map
+            bar=: #M3
+            foo=: #M6
+          implemented
             bar=: #M3
             foo=: #M6
 ''',
@@ -45771,6 +50926,8 @@ class A {
         interface: #M6
           map
             bar=: #M5
+          implemented
+            bar=: #M5
 ''',
     );
   }
@@ -45813,6 +50970,8 @@ class A {
           bar=: #M5
         interface: #M6
           map
+            bar=: #M5
+          implemented
             bar=: #M5
 ''',
     );
@@ -45879,6 +51038,8 @@ class A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -45934,6 +51095,8 @@ class A {
           foo=: #M5
         interface: #M6
           map
+            foo=: #M5
+          implemented
             foo=: #M5
 ''',
     );
@@ -45997,6 +51160,8 @@ class A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -46014,6 +51179,8 @@ class A {
           foo=: #M4
         interface: #M5
           map
+            foo=: #M4
+          implemented
             foo=: #M4
 ''',
     );
@@ -46039,6 +51206,8 @@ class A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -46056,6 +51225,8 @@ class A {
           foo=: #M4
         interface: #M5
           map
+            foo=: #M4
+          implemented
             foo=: #M4
 ''',
     );
@@ -46081,6 +51252,8 @@ class A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -46098,6 +51271,8 @@ class A {
           foo=: #M4
         interface: #M5
           map
+            foo=: #M4
+          implemented
             foo=: #M4
 ''',
     );
@@ -46123,6 +51298,8 @@ class A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -46140,6 +51317,8 @@ class A {
           foo=: #M4
         interface: #M5
           map
+            foo=: #M4
+          implemented
             foo=: #M4
 ''',
     );
@@ -46377,6 +51556,8 @@ class A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -46401,6 +51582,8 @@ class A {
         interface: #M6
           map
             foo=: #M5
+          implemented
+            foo=: #M5
 ''',
     );
   }
@@ -46423,6 +51606,8 @@ class A<T> {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 class A<T> {
@@ -46440,6 +51625,9 @@ class A<T> {
           foo: #M1
         interface: #M4
           map
+            bar: #M3
+            foo: #M1
+          implemented
             bar: #M3
             foo: #M1
 ''',
@@ -46983,6 +52171,9 @@ class X = A with M;
           map
             foo1: #M3
             foo2: #M4
+          implemented
+            foo1: #M3
+            foo2: #M4
       X: #M6
         interface: #M7
           map
@@ -46990,6 +52181,20 @@ class X = A with M;
             foo2: #M4
             foo3: #M8
             foo4: #M9
+          implemented
+            foo1: #M3
+            foo2: #M4
+            foo3: #M8
+            foo4: #M9
+          superImplemented
+            [0]
+              foo1: #M3
+              foo2: #M4
+            [1]
+              foo1: #M3
+              foo2: #M4
+              foo3: #M8
+              foo4: #M9
     declaredMixins
       M: #M10
         declaredFields
@@ -47000,6 +52205,9 @@ class X = A with M;
           foo4: #M9
         interface: #M13
           map
+            foo3: #M8
+            foo4: #M9
+          implemented
             foo3: #M8
             foo4: #M9
 ''',
@@ -47031,6 +52239,9 @@ class X = A with M;
           map
             foo1: #M3
             foo2: #M15
+          implemented
+            foo1: #M3
+            foo2: #M15
       X: #M6
         interface: #M17
           map
@@ -47038,6 +52249,20 @@ class X = A with M;
             foo2: #M15
             foo3: #M8
             foo4: #M18
+          implemented
+            foo1: #M3
+            foo2: #M15
+            foo3: #M8
+            foo4: #M18
+          superImplemented
+            [0]
+              foo1: #M3
+              foo2: #M15
+            [1]
+              foo1: #M3
+              foo2: #M15
+              foo3: #M8
+              foo4: #M18
     declaredMixins
       M: #M10
         declaredFields
@@ -47048,6 +52273,9 @@ class X = A with M;
           foo4: #M18
         interface: #M20
           map
+            foo3: #M8
+            foo4: #M18
+          implemented
             foo3: #M8
             foo4: #M18
 ''',
@@ -47184,6 +52412,9 @@ class X = A with M;
           map
             foo1: #M1
             foo2: #M2
+          implemented
+            foo1: #M1
+            foo2: #M2
       X: #M4
         interface: #M5
           map
@@ -47191,6 +52422,20 @@ class X = A with M;
             foo2: #M2
             foo3: #M6
             foo4: #M7
+          implemented
+            foo1: #M1
+            foo2: #M2
+            foo3: #M6
+            foo4: #M7
+          superImplemented
+            [0]
+              foo1: #M1
+              foo2: #M2
+            [1]
+              foo1: #M1
+              foo2: #M2
+              foo3: #M6
+              foo4: #M7
     declaredMixins
       M: #M8
         declaredMethods
@@ -47198,6 +52443,9 @@ class X = A with M;
           foo4: #M7
         interface: #M9
           map
+            foo3: #M6
+            foo4: #M7
+          implemented
             foo3: #M6
             foo4: #M7
 ''',
@@ -47226,6 +52474,9 @@ class X = A with M;
           map
             foo1: #M1
             foo2: #M10
+          implemented
+            foo1: #M1
+            foo2: #M10
       X: #M4
         interface: #M12
           map
@@ -47233,6 +52484,20 @@ class X = A with M;
             foo2: #M10
             foo3: #M6
             foo4: #M13
+          implemented
+            foo1: #M1
+            foo2: #M10
+            foo3: #M6
+            foo4: #M13
+          superImplemented
+            [0]
+              foo1: #M1
+              foo2: #M10
+            [1]
+              foo1: #M1
+              foo2: #M10
+              foo3: #M6
+              foo4: #M13
     declaredMixins
       M: #M8
         declaredMethods
@@ -47240,6 +52505,9 @@ class X = A with M;
           foo4: #M13
         interface: #M14
           map
+            foo3: #M6
+            foo4: #M13
+          implemented
             foo3: #M6
             foo4: #M13
 ''',
@@ -47277,6 +52545,9 @@ class X = A with M;
           map
             foo1=: #M3
             foo2=: #M4
+          implemented
+            foo1=: #M3
+            foo2=: #M4
       X: #M6
         interface: #M7
           map
@@ -47284,6 +52555,20 @@ class X = A with M;
             foo2=: #M4
             foo3=: #M8
             foo4=: #M9
+          implemented
+            foo1=: #M3
+            foo2=: #M4
+            foo3=: #M8
+            foo4=: #M9
+          superImplemented
+            [0]
+              foo1=: #M3
+              foo2=: #M4
+            [1]
+              foo1=: #M3
+              foo2=: #M4
+              foo3=: #M8
+              foo4=: #M9
     declaredMixins
       M: #M10
         declaredFields
@@ -47294,6 +52579,9 @@ class X = A with M;
           foo4=: #M9
         interface: #M13
           map
+            foo3=: #M8
+            foo4=: #M9
+          implemented
             foo3=: #M8
             foo4=: #M9
 ''',
@@ -47325,6 +52613,9 @@ class X = A with M;
           map
             foo1=: #M3
             foo2=: #M15
+          implemented
+            foo1=: #M3
+            foo2=: #M15
       X: #M6
         interface: #M17
           map
@@ -47332,6 +52623,20 @@ class X = A with M;
             foo2=: #M15
             foo3=: #M8
             foo4=: #M18
+          implemented
+            foo1=: #M3
+            foo2=: #M15
+            foo3=: #M8
+            foo4=: #M18
+          superImplemented
+            [0]
+              foo1=: #M3
+              foo2=: #M15
+            [1]
+              foo1=: #M3
+              foo2=: #M15
+              foo3=: #M8
+              foo4=: #M18
     declaredMixins
       M: #M10
         declaredFields
@@ -47342,6 +52647,9 @@ class X = A with M;
           foo4=: #M18
         interface: #M20
           map
+            foo3=: #M8
+            foo4=: #M18
+          implemented
             foo3=: #M8
             foo4=: #M18
 ''',
@@ -47560,6 +52868,8 @@ const x = a + 1;
         interface: #M2
           map
             +: #M1
+          implemented
+            +: #M1
     declaredGetters
       a: #M3
       x: #M4
@@ -47584,6 +52894,8 @@ const x = a + 1;
           +: #M7
         interface: #M8
           map
+            +: #M7
+          implemented
             +: #M7
     declaredGetters
       a: #M3
@@ -48029,6 +53341,8 @@ const a = A();
           new: #M1
         interface: #M6
           map
+            foo: #M5
+          implemented
             foo: #M5
     declaredGetters
       a: #M3
@@ -49290,6 +54604,8 @@ const b = -a;
         interface: #M2
           map
             unary-: #M1
+          implemented
+            unary-: #M1
     declaredGetters
       a: #M3
       b: #M4
@@ -49313,6 +54629,8 @@ const b = -a;
           unary-: #M7
         interface: #M8
           map
+            unary-: #M7
+          implemented
             unary-: #M7
     declaredGetters
       a: #M3
@@ -49344,6 +54662,8 @@ const b = -a;
         interface: #M2
           map
             unary-: #M1
+          implemented
+            unary-: #M1
     declaredGetters
       a: #M3
       b: #M4
@@ -49369,6 +54689,9 @@ const b = -a;
           unary-: #M1
         interface: #M8
           map
+            foo: #M7
+            unary-: #M1
+          implemented
             foo: #M7
             unary-: #M1
     declaredGetters
@@ -49728,6 +55051,11 @@ enum A {
         interface: #M7
           map
             index: #M8
+          implemented
+            index: #M8
+          superImplemented
+            [0]
+              index: #M8
 ''',
       updatedCode: r'''
 enum A {
@@ -49750,6 +55078,11 @@ enum A {
         interface: #M7
           map
             index: #M8
+          implemented
+            index: #M8
+          superImplemented
+            [0]
+              index: #M8
 ''',
     );
   }
@@ -49783,6 +55116,11 @@ enum A {
         interface: #M9
           map
             index: #M10
+          implemented
+            index: #M10
+          superImplemented
+            [0]
+              index: #M10
 ''',
       updatedCode: r'''
 enum A {
@@ -49810,6 +55148,11 @@ enum A {
         interface: #M9
           map
             index: #M10
+          implemented
+            index: #M10
+          superImplemented
+            [0]
+              index: #M10
 ''',
     );
   }
@@ -49843,6 +55186,11 @@ enum A<T> {
         interface: #M9
           map
             index: #M10
+          implemented
+            index: #M10
+          superImplemented
+            [0]
+              index: #M10
 ''',
       updatedCode: r'''
 enum A<T> {
@@ -49870,6 +55218,11 @@ enum A<T> {
         interface: #M9
           map
             index: #M10
+          implemented
+            index: #M10
+          superImplemented
+            [0]
+              index: #M10
 ''',
     );
   }
@@ -49904,6 +55257,13 @@ enum A {
             bar: #M5
             foo: #M6
             index: #M10
+          implemented
+            bar: #M5
+            foo: #M6
+            index: #M10
+          superImplemented
+            [0]
+              index: #M10
 ''',
       updatedCode: r'''
 enum A {
@@ -49932,6 +55292,13 @@ enum A {
             bar: #M12
             foo: #M6
             index: #M10
+          implemented
+            bar: #M12
+            foo: #M6
+            index: #M10
+          superImplemented
+            [0]
+              index: #M10
 ''',
     );
   }
@@ -49966,6 +55333,13 @@ enum A {
             bar: #M5
             foo: #M6
             index: #M10
+          implemented
+            bar: #M5
+            foo: #M6
+            index: #M10
+          superImplemented
+            [0]
+              index: #M10
 ''',
       updatedCode: r'''
 enum A {
@@ -49994,6 +55368,13 @@ enum A {
             bar: #M12
             foo: #M6
             index: #M10
+          implemented
+            bar: #M12
+            foo: #M6
+            index: #M10
+          superImplemented
+            [0]
+              index: #M10
 ''',
     );
   }
@@ -50022,6 +55403,11 @@ class B {}
         interface: #M7
           map
             index: #M8
+          implemented
+            index: #M8
+          superImplemented
+            [0]
+              index: #M8
 ''',
       updatedCode: r'''
 enum A implements B { v }
@@ -50044,6 +55430,11 @@ class B {}
         interface: #M14
           map
             index: #M8
+          implemented
+            index: #M8
+          superImplemented
+            [0]
+              index: #M8
 ''',
     );
   }
@@ -50072,6 +55463,11 @@ class B {}
         interface: #M7
           map
             index: #M8
+          implemented
+            index: #M8
+          superImplemented
+            [0]
+              index: #M8
 ''',
       updatedCode: r'''
 enum A { v }
@@ -50094,6 +55490,11 @@ class B {}
         interface: #M14
           map
             index: #M8
+          implemented
+            index: #M8
+          superImplemented
+            [0]
+              index: #M8
 ''',
     );
   }
@@ -50118,6 +55519,11 @@ enum A { v }
         interface: #M5
           map
             index: #M6
+          implemented
+            index: #M6
+          superImplemented
+            [0]
+              index: #M6
 ''',
       updatedCode: r'''
 enum A { v }
@@ -50137,6 +55543,11 @@ enum B { v }
         interface: #M5
           map
             index: #M6
+          implemented
+            index: #M6
+          superImplemented
+            [0]
+              index: #M6
       B: #M7
         declaredFields
           v: #M8
@@ -50147,6 +55558,11 @@ enum B { v }
         interface: #M12
           map
             index: #M6
+          implemented
+            index: #M6
+          superImplemented
+            [0]
+              index: #M6
 ''',
     );
   }
@@ -50172,6 +55588,11 @@ enum B { v }
         interface: #M5
           map
             index: #M6
+          implemented
+            index: #M6
+          superImplemented
+            [0]
+              index: #M6
       B: #M7
         declaredFields
           v: #M8
@@ -50182,6 +55603,11 @@ enum B { v }
         interface: #M12
           map
             index: #M6
+          implemented
+            index: #M6
+          superImplemented
+            [0]
+              index: #M6
 ''',
       updatedCode: r'''
 enum A { v }
@@ -50200,6 +55626,11 @@ enum A { v }
         interface: #M5
           map
             index: #M6
+          implemented
+            index: #M6
+          superImplemented
+            [0]
+              index: #M6
 ''',
     );
   }
@@ -50233,6 +55664,13 @@ enum A {
             bar: #M5
             foo: #M6
             index: #M8
+          implemented
+            bar: #M5
+            foo: #M6
+            index: #M8
+          superImplemented
+            [0]
+              index: #M8
 ''',
       updatedCode: r'''
 enum A {
@@ -50260,6 +55698,13 @@ enum A {
             bar: #M9
             foo: #M6
             index: #M8
+          implemented
+            bar: #M9
+            foo: #M6
+            index: #M8
+          superImplemented
+            [0]
+              index: #M8
 ''',
     );
   }
@@ -50295,6 +55740,13 @@ enum A {
             bar=: #M7
             foo=: #M8
             index: #M10
+          implemented
+            bar=: #M7
+            foo=: #M8
+            index: #M10
+          superImplemented
+            [0]
+              index: #M10
 ''',
       updatedCode: r'''
 enum A {
@@ -50324,6 +55776,13 @@ enum A {
             bar=: #M12
             foo=: #M8
             index: #M10
+          implemented
+            bar=: #M12
+            foo=: #M8
+            index: #M10
+          superImplemented
+            [0]
+              index: #M10
 ''',
     );
   }
@@ -50354,6 +55813,12 @@ enum A<T> {
           map
             foo: #M5
             index: #M7
+          implemented
+            foo: #M5
+            index: #M7
+          superImplemented
+            [0]
+              index: #M7
 ''',
       updatedCode: r'''
 enum A<T> {
@@ -50381,6 +55846,13 @@ enum A<T> {
             bar: #M8
             foo: #M5
             index: #M7
+          implemented
+            bar: #M8
+            foo: #M5
+            index: #M7
+          superImplemented
+            [0]
+              index: #M7
 ''',
     );
   }
@@ -50405,6 +55877,11 @@ enum A<T> { v }
         interface: #M5
           map
             index: #M6
+          implemented
+            index: #M6
+          superImplemented
+            [0]
+              index: #M6
 ''',
       updatedCode: r'''
 enum A<T, U> { v }
@@ -50423,6 +55900,11 @@ enum A<T, U> { v }
         interface: #M12
           map
             index: #M6
+          implemented
+            index: #M6
+          superImplemented
+            [0]
+              index: #M6
 ''',
     );
   }
@@ -50451,12 +55933,19 @@ mixin M {
         interface: #M5
           map
             index: #M6
+          implemented
+            index: #M6
+          superImplemented
+            [0]
+              index: #M6
     declaredMixins
       M: #M7
         declaredMethods
           foo: #M8
         interface: #M9
           map
+            foo: #M8
+          implemented
             foo: #M8
 ''',
       updatedCode: r'''
@@ -50481,12 +55970,23 @@ mixin M {
           map
             foo: #M8
             index: #M6
+          implemented
+            foo: #M8
+            index: #M6
+          superImplemented
+            [0]
+              index: #M6
+            [1]
+              foo: #M8
+              index: #M6
     declaredMixins
       M: #M7
         declaredMethods
           foo: #M8
         interface: #M9
           map
+            foo: #M8
+          implemented
             foo: #M8
 ''',
     );
@@ -50517,12 +56017,23 @@ mixin M {
           map
             foo: #M6
             index: #M7
+          implemented
+            foo: #M6
+            index: #M7
+          superImplemented
+            [0]
+              index: #M7
+            [1]
+              foo: #M6
+              index: #M7
     declaredMixins
       M: #M8
         declaredMethods
           foo: #M6
         interface: #M9
           map
+            foo: #M6
+          implemented
             foo: #M6
 ''',
       updatedCode: r'''
@@ -50546,12 +56057,19 @@ mixin M {
         interface: #M15
           map
             index: #M7
+          implemented
+            index: #M7
+          superImplemented
+            [0]
+              index: #M7
     declaredMixins
       M: #M8
         declaredMethods
           foo: #M6
         interface: #M9
           map
+            foo: #M6
+          implemented
             foo: #M6
 ''',
     );
@@ -51364,6 +56882,10 @@ extension type A(int it) {
             bar: #M4
             foo: #M5
             it: #M6
+          implemented
+            bar: #M4
+            foo: #M5
+            it: #M6
 ''',
       updatedCode: r'''
 extension type A(int it) {
@@ -51389,6 +56911,10 @@ extension type A(int it) {
             bar: #M9
             foo: #M5
             it: #M6
+          implemented
+            bar: #M9
+            foo: #M5
+            it: #M6
 ''',
     );
   }
@@ -51411,6 +56937,8 @@ extension type A(int it) implements Object {}
         interface: #M3
           map
             it: #M2
+          implemented
+            it: #M2
 ''',
       updatedCode: r'''
 extension type A(int it) implements A {}
@@ -51426,6 +56954,8 @@ extension type A(int it) implements A {}
           it: #M6
         interface: #M7
           map
+            it: #M6
+          implemented
             it: #M6
 ''',
     );
@@ -51449,6 +56979,8 @@ extension type A(NoSuchType it) {}
         interface: #M3
           map
             it: #M2
+          implemented
+            it: #M2
 ''',
       updatedCode: r'''
 extension type A(A it) {}
@@ -51464,6 +56996,8 @@ extension type A(A it) {}
           it: #M6
         interface: #M7
           map
+            it: #M6
+          implemented
             it: #M6
 ''',
     );
@@ -51487,6 +57021,8 @@ extension type A(int it) {}
         interface: #M3
           map
             it: #M2
+          implemented
+            it: #M2
 ''',
       updatedCode: r'''
 extension type A(int it) implements Object {}
@@ -51502,6 +57038,8 @@ extension type A(int it) implements Object {}
           it: #M6
         interface: #M7
           map
+            it: #M6
+          implemented
             it: #M6
 ''',
     );
@@ -51525,6 +57063,8 @@ extension type A(int it) implements Object {}
         interface: #M3
           map
             it: #M2
+          implemented
+            it: #M2
 ''',
       updatedCode: r'''
 extension type A(int it) {}
@@ -51540,6 +57080,8 @@ extension type A(int it) {}
           it: #M6
         interface: #M7
           map
+            it: #M6
+          implemented
             it: #M6
 ''',
     );
@@ -51567,6 +57109,8 @@ extension type B(int it) {}
         interface: #M3
           map
             it: #M2
+          implemented
+            it: #M2
       B: #M4
         declaredFields
           it: #M5
@@ -51574,6 +57118,8 @@ extension type B(int it) {}
           it: #M6
         interface: #M7
           map
+            it: #M6
+          implemented
             it: #M6
 ''',
       updatedCode: r'''
@@ -51595,6 +57141,8 @@ extension type B(int it) {}
         interface: #M3
           map
             it: #M2
+          implemented
+            it: #M2
       B: #M8
         declaredFields
           it: #M9
@@ -51602,6 +57150,8 @@ extension type B(int it) {}
           it: #M10
         interface: #M11
           map
+            it: #M10
+          implemented
             it: #M10
 ''',
     );
@@ -51633,6 +57183,10 @@ extension type A(int it) {
             bar: #M3
             foo: #M4
             it: #M2
+          implemented
+            bar: #M3
+            foo: #M4
+            it: #M2
 ''',
       updatedCode: r'''
 extension type A(int it) {
@@ -51654,6 +57208,10 @@ extension type A(int it) {
           foo: #M4
         interface: #M7
           map
+            bar: #M6
+            foo: #M4
+            it: #M2
+          implemented
             bar: #M6
             foo: #M4
             it: #M2
@@ -51686,6 +57244,9 @@ extension type A.foo(int it) {
           map
             baz: #M3
             it: #M2
+          implemented
+            baz: #M3
+            it: #M2
 ''',
       updatedCode: r'''
 extension type A.bar(int it) {
@@ -51707,6 +57268,9 @@ extension type A.bar(int it) {
           bar: #M6
         interface: #M5
           map
+            baz: #M3
+            it: #M2
+          implemented
             baz: #M3
             it: #M2
 ''',
@@ -51736,6 +57300,9 @@ extension type A(int it) {
           map
             foo: #M3
             it: #M2
+          implemented
+            foo: #M3
+            it: #M2
 ''',
       updatedCode: r'''
 extension type A(int _it) {
@@ -51755,6 +57322,8 @@ extension type A(int _it) {
           foo: #M3
         interface: #M7
           map
+            foo: #M3
+          implemented
             foo: #M3
 ''',
     );
@@ -51783,6 +57352,9 @@ extension type A(int it) {
           map
             foo: #M3
             it: #M2
+          implemented
+            foo: #M3
+            it: #M2
 ''',
       updatedCode: r'''
 extension type A(double it) {
@@ -51802,6 +57374,9 @@ extension type A(double it) {
           foo: #M8
         interface: #M9
           map
+            foo: #M8
+            it: #M7
+          implemented
             foo: #M8
             it: #M7
 ''',
@@ -51836,6 +57411,10 @@ extension type A(int it) {
             bar=: #M5
             foo=: #M6
             it: #M4
+          implemented
+            bar=: #M5
+            foo=: #M6
+            it: #M4
 ''',
       updatedCode: r'''
 extension type A(int it) {
@@ -51862,6 +57441,10 @@ extension type A(int it) {
             bar=: #M9
             foo=: #M6
             it: #M4
+          implemented
+            bar=: #M9
+            foo=: #M6
+            it: #M4
 ''',
     );
   }
@@ -51884,6 +57467,8 @@ extension type A(num it) {}
         interface: #M3
           map
             it: #M2
+          implemented
+            it: #M2
 ''',
       updatedCode: r'''
 extension type A(int it) {}
@@ -51899,6 +57484,8 @@ extension type A(int it) {}
           it: #M6
         interface: #M7
           map
+            it: #M6
+          implemented
             it: #M6
 ''',
     );
@@ -51927,6 +57514,9 @@ extension type A<T>(int it) {
           map
             foo: #M3
             it: #M2
+          implemented
+            foo: #M3
+            it: #M2
 ''',
       updatedCode: r'''
 extension type A<T>(int it) {
@@ -51948,6 +57538,10 @@ extension type A<T>(int it) {
           foo: #M3
         interface: #M6
           map
+            bar: #M5
+            foo: #M3
+            it: #M2
+          implemented
             bar: #M5
             foo: #M3
             it: #M2
@@ -51973,6 +57567,8 @@ extension type A<T>(int it) {}
         interface: #M3
           map
             it: #M2
+          implemented
+            it: #M2
 ''',
       updatedCode: r'''
 extension type A<T, U>(int it) {}
@@ -51988,6 +57584,8 @@ extension type A<T, U>(int it) {}
           it: #M6
         interface: #M7
           map
+            it: #M6
+          implemented
             it: #M6
 ''',
     );
@@ -52199,6 +57797,8 @@ mixin A {
         interface: #M3
           map
             a: #M2
+          implemented
+            a: #M2
 ''',
       updatedCode: r'''
 mixin A {
@@ -52219,6 +57819,9 @@ mixin A {
           b: #M5
         interface: #M6
           map
+            a: #M2
+            b: #M5
+          implemented
             a: #M2
             b: #M5
 ''',
@@ -52245,6 +57848,8 @@ mixin A {
         interface: #M3
           map
             a: #M2
+          implemented
+            a: #M2
 ''',
       updatedCode: r'''
 mixin A {
@@ -52262,6 +57867,8 @@ mixin A {
           a: #M5
         interface: #M6
           map
+            a: #M5
+          implemented
             a: #M5
 ''',
     );
@@ -52287,6 +57894,8 @@ mixin A {
         interface: #M3
           map
             a: #M2
+          implemented
+            a: #M2
 ''',
       updatedCode: r'''
 mixin A {
@@ -52304,6 +57913,8 @@ mixin A {
           a: #M2
         interface: #M3
           map
+            a: #M2
+          implemented
             a: #M2
 ''',
     );
@@ -52416,6 +58027,11 @@ mixin A {
             a=: #M5
             b: #M4
             b=: #M6
+          implemented
+            a: #M3
+            a=: #M5
+            b: #M4
+            b=: #M6
 ''',
       updatedCode: r'''
 mixin A {
@@ -52441,6 +58057,11 @@ mixin A {
           b=: #M10
         interface: #M11
           map
+            a: #M3
+            a=: #M5
+            b: #M9
+            b=: #M10
+          implemented
             a: #M3
             a=: #M5
             b: #M9
@@ -52487,6 +58108,8 @@ mixin A {
           b: #M5
         interface: #M6
           map
+            b: #M5
+          implemented
             b: #M5
 ''',
     );
@@ -52578,6 +58201,9 @@ mixin A {
           map
             b: #M6
             b=: #M7
+          implemented
+            b: #M6
+            b=: #M7
 ''',
     );
   }
@@ -52605,6 +58231,9 @@ mixin A {
           map
             a: #M2
             a=: #M3
+          implemented
+            a: #M2
+            a=: #M3
 ''',
       updatedCode: r'''
 mixin A {
@@ -52624,6 +58253,9 @@ mixin A {
           a=: #M7
         interface: #M8
           map
+            a: #M6
+            a=: #M7
+          implemented
             a: #M6
             a=: #M7
 ''',
@@ -52652,6 +58284,8 @@ mixin B implements A {}
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         interface: #M5
           map
@@ -52678,6 +58312,9 @@ mixin B implements A {}
           foo: #M2
         interface: #M8
           map
+            bar: #M7
+            foo: #M2
+          implemented
             bar: #M7
             foo: #M2
       B: #M4
@@ -52711,6 +58348,8 @@ mixin B implements A<int> {}
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         interface: #M5
           map
@@ -52737,6 +58376,9 @@ mixin B implements A<int> {}
           foo: #M2
         interface: #M8
           map
+            bar: #M7
+            foo: #M2
+          implemented
             bar: #M7
             foo: #M2
       B: #M4
@@ -52770,10 +58412,15 @@ mixin B on A {}
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         interface: #M5
           map
             foo: #M2
+          superImplemented
+            [0]
+              foo: #M2
 ''',
       updatedCode: r'''
 mixin A {
@@ -52798,11 +58445,18 @@ mixin B on A {}
           map
             bar: #M7
             foo: #M2
+          implemented
+            bar: #M7
+            foo: #M2
       B: #M4
         interface: #M9
           map
             bar: #M7
             foo: #M2
+          superImplemented
+            [0]
+              bar: #M7
+              foo: #M2
 ''',
     );
   }
@@ -52829,10 +58483,15 @@ mixin B on A<int> {}
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
       B: #M4
         interface: #M5
           map
             foo: #M2
+          superImplemented
+            [0]
+              foo: #M2
 ''',
       updatedCode: r'''
 mixin A<T> {
@@ -52857,11 +58516,18 @@ mixin B on A<int> {}
           map
             bar: #M7
             foo: #M2
+          implemented
+            bar: #M7
+            foo: #M2
       B: #M4
         interface: #M9
           map
             bar: #M7
             foo: #M2
+          superImplemented
+            [0]
+              bar: #M7
+              foo: #M2
 ''',
     );
   }
@@ -52892,6 +58558,9 @@ mixin A {
           map
             bar: #M3
             foo: #M4
+          implemented
+            bar: #M3
+            foo: #M4
 ''',
       updatedCode: r'''
 mixin A {
@@ -52914,6 +58583,9 @@ mixin A {
           foo: #M6
         interface: #M7
           map
+            bar: #M3
+            foo: #M6
+          implemented
             bar: #M3
             foo: #M6
 ''',
@@ -52959,6 +58631,8 @@ mixin A {
         interface: #M6
           map
             bar: #M5
+          implemented
+            bar: #M5
 ''',
     );
   }
@@ -53002,6 +58676,8 @@ mixin A {
         interface: #M6
           map
             bar: #M5
+          implemented
+            bar: #M5
 ''',
     );
   }
@@ -53031,6 +58707,8 @@ mixin A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
 ''',
       updatedCode: r'''
 mixin A {
@@ -53052,6 +58730,8 @@ mixin A {
             returnType: double @ dart:core
         interface: #M6
           map
+            foo: #M5
+          implemented
             foo: #M5
 ''',
     );
@@ -53117,6 +58797,8 @@ mixin A {
           foo: #M2
         interface: #M3
           map
+            foo: #M2
+          implemented
             foo: #M2
 ''',
       updatedCode: r'''
@@ -53211,6 +58893,8 @@ mixin A {
           foo: #M5
         interface: #M6
           map
+            foo: #M5
+          implemented
             foo: #M5
 ''',
     );
@@ -53372,6 +59056,8 @@ mixin A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -53389,6 +59075,9 @@ mixin A {
           foo: #M1
         interface: #M4
           map
+            bar: #M3
+            foo: #M1
+          implemented
             bar: #M3
             foo: #M1
 ''',
@@ -53415,6 +59104,8 @@ mixin B implements A {}
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         interface: #M4
           map
@@ -53438,6 +59129,9 @@ mixin B implements A {}
           foo: #M1
         interface: #M6
           map
+            bar: #M5
+            foo: #M1
+          implemented
             bar: #M5
             foo: #M1
       B: #M3
@@ -53469,6 +59163,8 @@ mixin B implements A<int> {}
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         interface: #M4
           map
@@ -53492,6 +59188,9 @@ mixin B implements A<int> {}
           foo: #M1
         interface: #M6
           map
+            bar: #M5
+            foo: #M1
+          implemented
             bar: #M5
             foo: #M1
       B: #M3
@@ -53523,10 +59222,15 @@ mixin B on A {}
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         interface: #M4
           map
             foo: #M1
+          superImplemented
+            [0]
+              foo: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -53548,11 +59252,18 @@ mixin B extends A {}
           map
             bar: #M5
             foo: #M1
+          implemented
+            bar: #M5
+            foo: #M1
       B: #M3
         interface: #M7
           map
             bar: #M5
             foo: #M1
+          superImplemented
+            [0]
+              bar: #M5
+              foo: #M1
 ''',
     );
   }
@@ -53577,10 +59288,15 @@ mixin B extends A<int> {}
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
       B: #M3
         interface: #M4
           map
             foo: #M1
+          superImplemented
+            [0]
+              foo: #M1
 ''',
       updatedCode: r'''
 mixin A<T> {
@@ -53602,11 +59318,18 @@ mixin B extends A<int> {}
           map
             bar: #M5
             foo: #M1
+          implemented
+            bar: #M5
+            foo: #M1
       B: #M3
         interface: #M7
           map
             bar: #M5
             foo: #M1
+          superImplemented
+            [0]
+              bar: #M5
+              foo: #M1
 ''',
     );
   }
@@ -53634,6 +59357,9 @@ mixin A {
           map
             bar: #M1
             foo: #M2
+          implemented
+            bar: #M1
+            foo: #M2
 ''',
       updatedCode: r'''
 mixin A {
@@ -53653,6 +59379,9 @@ mixin A {
           foo: #M4
         interface: #M5
           map
+            bar: #M1
+            foo: #M4
+          implemented
             bar: #M1
             foo: #M4
 ''',
@@ -53693,6 +59422,8 @@ mixin A {
         interface: #M4
           map
             bar: #M3
+          implemented
+            bar: #M3
 ''',
     );
   }
@@ -53731,6 +59462,8 @@ mixin A {
         interface: #M4
           map
             bar: #M3
+          implemented
+            bar: #M3
 ''',
     );
   }
@@ -53756,6 +59489,9 @@ mixin A {
           map
             bar: #M1
             foo: #M2
+          implemented
+            bar: #M1
+            foo: #M2
 ''',
       updatedCode: r'''
 mixin A {
@@ -53771,6 +59507,8 @@ mixin A {
           foo: #M2
         interface: #M4
           map
+            foo: #M2
+          implemented
             foo: #M2
 ''',
     );
@@ -53799,6 +59537,8 @@ mixin A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -53818,6 +59558,8 @@ mixin A {
               returnType: double @ dart:core
         interface: #M4
           map
+            foo: #M3
+          implemented
             foo: #M3
 ''',
     );
@@ -53840,6 +59582,8 @@ mixin A {
           foo: #M1
         interface: #M2
           map
+            foo: #M1
+          implemented
             foo: #M1
 ''',
       updatedCode: r'''
@@ -53925,6 +59669,8 @@ mixin A {
         interface: #M4
           map
             foo: #M3
+          implemented
+            foo: #M3
 ''',
     );
   }
@@ -53960,6 +59706,8 @@ mixin A<T> {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 mixin A<T> {
@@ -53993,6 +59741,9 @@ mixin A<T> {
           map
             bar: #M3
             foo: #M1
+          implemented
+            bar: #M3
+            foo: #M1
 ''',
     );
   }
@@ -54015,6 +59766,8 @@ mixin A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -54030,6 +59783,8 @@ mixin A {
           foo: #M3
         interface: #M4
           map
+            foo: #M3
+          implemented
             foo: #M3
 ''',
     );
@@ -54053,6 +59808,8 @@ mixin A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -54069,11 +59826,15 @@ mixin A {
         interface: #M4
           map
             foo: #M3
+          implemented
+            foo: #M3
 ''',
     );
   }
 
   test_manifest_mixin_modifier_isBase() async {
+    configuration.withElementManifests = true;
+
     await _runLibraryManifestScenario(
       initialCode: r'''
 mixin A {}
@@ -54087,12 +59848,22 @@ base mixin D {}
   package:test/test.dart
     declaredMixins
       A: #M0
+        superclassConstraints
+          Object @ dart:core
         interface: #M1
       B: #M2
+        flags: isBase
+        superclassConstraints
+          Object @ dart:core
         interface: #M3
       C: #M4
+        superclassConstraints
+          Object @ dart:core
         interface: #M5
       D: #M6
+        flags: isBase
+        superclassConstraints
+          Object @ dart:core
         interface: #M7
 ''',
       updatedCode: r'''
@@ -54106,12 +59877,22 @@ mixin D {}
   package:test/test.dart
     declaredMixins
       A: #M0
+        superclassConstraints
+          Object @ dart:core
         interface: #M1
       B: #M2
+        flags: isBase
+        superclassConstraints
+          Object @ dart:core
         interface: #M3
       C: #M8
+        flags: isBase
+        superclassConstraints
+          Object @ dart:core
         interface: #M9
       D: #M10
+        superclassConstraints
+          Object @ dart:core
         interface: #M11
 ''',
     );
@@ -54305,6 +60086,8 @@ mixin B implements A {}
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         interface: #M5
           map
@@ -54331,6 +60114,9 @@ mixin B implements A {}
           foo=: #M2
         interface: #M8
           map
+            bar=: #M7
+            foo=: #M2
+          implemented
             bar=: #M7
             foo=: #M2
       B: #M4
@@ -54364,6 +60150,8 @@ mixin B implements A<int> {}
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         interface: #M5
           map
@@ -54390,6 +60178,9 @@ mixin B implements A<int> {}
           foo=: #M2
         interface: #M8
           map
+            bar=: #M7
+            foo=: #M2
+          implemented
             bar=: #M7
             foo=: #M2
       B: #M4
@@ -54423,10 +60214,15 @@ mixin B on A {}
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         interface: #M5
           map
             foo=: #M2
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
       updatedCode: r'''
 mixin A {
@@ -54451,11 +60247,18 @@ mixin B on A {}
           map
             bar=: #M7
             foo=: #M2
+          implemented
+            bar=: #M7
+            foo=: #M2
       B: #M4
         interface: #M9
           map
             bar=: #M7
             foo=: #M2
+          superImplemented
+            [0]
+              bar=: #M7
+              foo=: #M2
 ''',
     );
   }
@@ -54482,10 +60285,15 @@ mixin B on A<int> {}
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
       B: #M4
         interface: #M5
           map
             foo=: #M2
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
       updatedCode: r'''
 mixin A<T> {
@@ -54510,11 +60318,18 @@ mixin B on A<int> {}
           map
             bar=: #M7
             foo=: #M2
+          implemented
+            bar=: #M7
+            foo=: #M2
       B: #M4
         interface: #M9
           map
             bar=: #M7
             foo=: #M2
+          superImplemented
+            [0]
+              bar=: #M7
+              foo=: #M2
 ''',
     );
   }
@@ -54545,6 +60360,9 @@ mixin A {
           map
             bar=: #M3
             foo=: #M4
+          implemented
+            bar=: #M3
+            foo=: #M4
 ''',
       updatedCode: r'''
 mixin A {
@@ -54567,6 +60385,9 @@ mixin A {
           foo=: #M6
         interface: #M7
           map
+            bar=: #M3
+            foo=: #M6
+          implemented
             bar=: #M3
             foo=: #M6
 ''',
@@ -54612,6 +60433,8 @@ mixin A {
         interface: #M6
           map
             bar=: #M5
+          implemented
+            bar=: #M5
 ''',
     );
   }
@@ -54654,6 +60477,8 @@ mixin A {
           bar=: #M5
         interface: #M6
           map
+            bar=: #M5
+          implemented
             bar=: #M5
 ''',
     );
@@ -54720,6 +60545,8 @@ mixin A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
 ''',
       updatedCode: r'''
 mixin A {
@@ -54775,6 +60602,8 @@ mixin A {
           foo=: #M5
         interface: #M6
           map
+            foo=: #M5
+          implemented
             foo=: #M5
 ''',
     );
@@ -54846,6 +60675,8 @@ mixin A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
 ''',
       updatedCode: r'''
 mixin A {
@@ -54870,6 +60701,8 @@ mixin A {
               returnType: void
         interface: #M6
           map
+            foo=: #M5
+          implemented
             foo=: #M5
 ''',
     );
@@ -54897,6 +60730,8 @@ mixin M {
         interface: #M2
           map
             f: #M1
+          implemented
+            f: #M1
 ''',
       updatedCode: r'''
 class A {}
@@ -54920,6 +60755,8 @@ mixin M {
           f: #M1
         interface: #M2
           map
+            f: #M1
+          implemented
             f: #M1
 ''',
     );
@@ -54951,6 +60788,8 @@ mixin M on A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
     declaredMixins
       M: #M4
         declaredMethods
@@ -54959,6 +60798,11 @@ mixin M on A {
           map
             f: #M5
             foo: #M2
+          implemented
+            f: #M5
+          superImplemented
+            [0]
+              foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -54981,6 +60825,8 @@ mixin M on A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
     declaredMixins
       M: #M7
         declaredMethods
@@ -54989,6 +60835,11 @@ mixin M on A {
           map
             f: #M8
             foo: #M2
+          implemented
+            f: #M8
+          superImplemented
+            [0]
+              foo: #M2
 ''',
     );
   }
@@ -55017,6 +60868,8 @@ mixin M on A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
     declaredMixins
       M: #M3
         declaredMethods
@@ -55025,6 +60878,11 @@ mixin M on A {
           map
             f: #M4
             foo: #M1
+          implemented
+            f: #M4
+          superImplemented
+            [0]
+              foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -55045,6 +60903,8 @@ mixin M on A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
     declaredMixins
       M: #M6
         declaredMethods
@@ -55053,6 +60913,11 @@ mixin M on A {
           map
             f: #M7
             foo: #M1
+          implemented
+            f: #M7
+          superImplemented
+            [0]
+              foo: #M1
 ''',
     );
   }
@@ -55083,6 +60948,8 @@ mixin M on A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
     declaredMixins
       M: #M4
         declaredMethods
@@ -55091,6 +60958,11 @@ mixin M on A {
           map
             f: #M5
             foo=: #M2
+          implemented
+            f: #M5
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -55113,6 +60985,8 @@ mixin M on A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
     declaredMixins
       M: #M7
         declaredMethods
@@ -55121,6 +60995,11 @@ mixin M on A {
           map
             f: #M8
             foo=: #M2
+          implemented
+            f: #M8
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
     );
   }
@@ -55149,6 +61028,8 @@ mixin M on A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
     declaredMixins
       M: #M4
         declaredMethods
@@ -55157,6 +61038,11 @@ mixin M on A {
           map
             f: #M5
             foo: #M2
+          implemented
+            f: #M5
+          superImplemented
+            [0]
+              foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -55181,6 +61067,8 @@ mixin M on A {
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
     declaredMixins
       M: #M7
         declaredMethods
@@ -55189,6 +61077,11 @@ mixin M on A {
           map
             f: #M8
             foo: #M2
+          implemented
+            f: #M8
+          superImplemented
+            [0]
+              foo: #M2
 ''',
     );
   }
@@ -55215,6 +61108,8 @@ mixin M on A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
     declaredMixins
       M: #M3
         declaredMethods
@@ -55223,6 +61118,11 @@ mixin M on A {
           map
             f: #M4
             foo: #M1
+          implemented
+            f: #M4
+          superImplemented
+            [0]
+              foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -55245,6 +61145,8 @@ mixin M on A {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
     declaredMixins
       M: #M6
         declaredMethods
@@ -55253,6 +61155,11 @@ mixin M on A {
           map
             f: #M7
             foo: #M1
+          implemented
+            f: #M7
+          superImplemented
+            [0]
+              foo: #M1
 ''',
     );
   }
@@ -55281,6 +61188,8 @@ mixin M on A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
     declaredMixins
       M: #M4
         declaredMethods
@@ -55289,6 +61198,11 @@ mixin M on A {
           map
             f: #M5
             foo=: #M2
+          implemented
+            f: #M5
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -55313,6 +61227,8 @@ mixin M on A {
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
     declaredMixins
       M: #M7
         declaredMethods
@@ -55321,6 +61237,11 @@ mixin M on A {
           map
             f: #M8
             foo=: #M2
+          implemented
+            f: #M8
+          superImplemented
+            [0]
+              foo=: #M2
 ''',
     );
   }
@@ -55343,6 +61264,8 @@ mixin A<T> {
         interface: #M2
           map
             foo: #M1
+          implemented
+            foo: #M1
 ''',
       updatedCode: r'''
 mixin A<T> {
@@ -55360,6 +61283,9 @@ mixin A<T> {
           foo: #M1
         interface: #M4
           map
+            bar: #M3
+            foo: #M1
+          implemented
             bar: #M3
             foo: #M1
 ''',
@@ -59533,6 +65459,8 @@ import 'a.dart';
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -59775,6 +65703,9 @@ import 'a.dart';
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -59828,6 +65759,8 @@ import 'a.dart';
         interface: #M3
           map
             foo: #M2
+          implemented
+            foo: #M2
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -59880,6 +65813,8 @@ import 'a.dart';
           foo: #M2
         interface: #M3
           map
+            foo: #M2
+          implemented
             foo: #M2
   requirements
 [operation] linkLibraryCycle
@@ -59980,6 +65915,9 @@ import 'a.dart';
           map
             foo: #M2
             foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -60033,6 +65971,8 @@ import 'a.dart';
         interface: #M3
           map
             foo=: #M2
+          implemented
+            foo=: #M2
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -60085,6 +66025,8 @@ import 'a.dart';
           foo=: #M2
         interface: #M3
           map
+            foo=: #M2
+          implemented
             foo=: #M2
   requirements
 [operation] linkLibraryCycle
