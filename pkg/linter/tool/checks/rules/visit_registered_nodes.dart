@@ -52,7 +52,7 @@ class _BodyVisitor extends RecursiveAstVisitor<void> {
   void visitMethodInvocation(MethodInvocation node) {
     var targetType = node.target?.staticType;
     if (targetType is! InterfaceType) return;
-    if (targetType.element.name != 'NodeLintRegistry') return;
+    if (targetType.element.name != 'RuleVisitorRegistry') return;
     var methodName = node.methodName.name;
     if (!methodName.startsWith('add')) return;
     var nodeType = methodName.substring(3);

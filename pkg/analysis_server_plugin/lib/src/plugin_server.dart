@@ -30,6 +30,7 @@ import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/lint/config.dart';
@@ -333,41 +334,47 @@ class PluginServer {
       path,
     );
     if (libraryResult is! ResolvedLibraryResult) {
+      // We only handle analyzing at the library-level. Below, we work through
+      // each of the compilation units found in `libraryResult`.
       return const [];
     }
-    var unitResult = await analysisContext.currentSession.getResolvedUnit(path);
-    if (unitResult is! ResolvedUnitResult) {
-      return const [];
-    }
-    var listener = RecordingDiagnosticListener();
-    var diagnosticReporter = DiagnosticReporter(
-      listener,
-      unitResult.libraryElement.firstFragment.source,
-    );
 
-    var currentUnit = RuleContextUnit(
-      file: unitResult.file,
-      content: unitResult.content,
-      diagnosticReporter: diagnosticReporter,
-      unit: unitResult.unit,
-    );
-    var allUnits = [
+    var diagnosticListeners = {
       for (var unitResult in libraryResult.units)
-        RuleContextUnit(
-          file: unitResult.file,
-          content: unitResult.content,
-          diagnosticReporter: diagnosticReporter,
-          unit: unitResult.unit,
+        unitResult: RecordingDiagnosticListener(),
+    };
+
+    RuleContextUnit? definingContextUnit;
+    var definingUnit =
+        (libraryResult.element as LibraryElementImpl).definingCompilationUnit;
+    var allUnits = <RuleContextUnit>[];
+
+    for (var unitResult in libraryResult.units) {
+      var contextUnit = RuleContextUnit(
+        file: unitResult.file,
+        content: unitResult.content,
+        diagnosticReporter: DiagnosticReporter(
+          diagnosticListeners[unitResult]!,
+          unitResult.libraryElement.firstFragment.source,
         ),
-    ];
+        unit: unitResult.unit,
+      );
+      allUnits.add(contextUnit);
+      if (unitResult.unit.declaredFragment == definingUnit) {
+        definingContextUnit = contextUnit;
+      }
+    }
+    // Just a fallback value. We shouldn't get into this situation, but this is
+    // a safe default.
+    definingContextUnit ??= allUnits.first;
 
     // TODO(srawlins): Enable timing similar to what the linter package's
-    // `benchhmark.dart` script does.
+    // `benchmark.dart` script does.
     var nodeRegistry = RuleVisitorRegistryImpl(enableTiming: false);
 
     var context = RuleContextWithResolvedResults(
       allUnits,
-      currentUnit,
+      definingContextUnit,
       libraryResult.element.typeProvider,
       libraryResult.element.typeSystem as TypeSystemImpl,
       // TODO(srawlins): Support 'package' parameter.
@@ -386,12 +393,7 @@ class PluginServer {
       var rules = Registry.ruleRegistry.enabled(
         configuration.diagnosticConfigs,
       );
-      for (var rule in rules) {
-        rule.reporter = diagnosticReporter;
-        // TODO(srawlins): Enable timing similar to what the linter package's
-        // `benchmark.dart` script does.
-        rule.registerNodeProcessors(nodeRegistry, context);
-      }
+
       for (var code in rules.expand((r) => r.diagnosticCodes)) {
         pluginCodeMapping.putIfAbsent(code, () => configuration.name);
         severityMapping.putIfAbsent(
@@ -399,43 +401,64 @@ class PluginServer {
           () => _configuredSeverity(configuration, code),
         );
       }
+
+      for (var rule in rules) {
+        // TODO(srawlins): Enable timing similar to what the linter package's
+        // `benchmark.dart` script does.
+        rule.registerNodeProcessors(nodeRegistry, context);
+      }
+
+      // Now to perform the actual analysis.
+      for (var currentUnit in allUnits) {
+        for (var rule in rules) {
+          rule.reporter = currentUnit.diagnosticReporter;
+        }
+
+        context.currentUnit = currentUnit;
+        currentUnit.unit.accept(
+          AnalysisRuleVisitor(nodeRegistry, shouldPropagateExceptions: true),
+        );
+      }
     }
 
-    context.currentUnit = currentUnit;
-    currentUnit.unit.accept(
-      AnalysisRuleVisitor(nodeRegistry, shouldPropagateExceptions: true),
-    );
-
-    var ignoreInfo = IgnoreInfo.forDart(unitResult.unit, unitResult.content);
-    var diagnostics = listener.diagnostics.where((e) {
-      var pluginName = pluginCodeMapping[e.diagnosticCode];
-      if (pluginName == null) {
-        // If [e] is somehow not mapped, something is wrong; but don't mark it
-        // as ignored.
-        return true;
-      }
-      return !ignoreInfo.ignored(e, pluginName: pluginName);
-    });
+    // TODO(srawlins): Support `AnalysisRuleVisitor.afterLibrary`. See how it is
+    // used in `library_analyzer.dart`.
 
     // The list of the `AnalysisError`s and their associated
     // `protocol.AnalysisError`s.
-    var diagnosticsAndProtocolErrors = [
-      for (var diagnostic in diagnostics)
-        (
+    var diagnosticsAndProtocolErrors =
+        <({Diagnostic diagnostic, protocol.AnalysisError protocolError})>[];
+
+    diagnosticListeners.forEach((unitResult, listener) {
+      var ignoreInfo = IgnoreInfo.forDart(unitResult.unit, unitResult.content);
+      var diagnostics = listener.diagnostics.where((e) {
+        var pluginName = pluginCodeMapping[e.diagnosticCode];
+        if (pluginName == null) {
+          // If [e] is somehow not mapped, something is wrong; but don't mark it
+          // as ignored.
+          return true;
+        }
+        return !ignoreInfo.ignored(e, pluginName: pluginName);
+      });
+
+      for (var diagnostic in diagnostics) {
+        diagnosticsAndProtocolErrors.add((
           diagnostic: diagnostic,
           protocolError: protocol.AnalysisError(
             severityMapping[diagnostic.diagnosticCode] ??
                 protocol.AnalysisErrorSeverity.INFO,
             protocol.AnalysisErrorType.STATIC_WARNING,
-            _locationFor(currentUnit.unit, path, diagnostic),
+            _locationFor(unitResult.unit, unitResult.path, diagnostic),
             diagnostic.message,
             diagnostic.diagnosticCode.name,
             correction: diagnostic.correctionMessage,
             // TODO(srawlins): Use a valid value here.
             hasFix: true,
           ),
-        ),
-    ];
+        ));
+      }
+    });
+
     _recentState[path] = (
       analysisContext: analysisContext,
       errors: [...diagnosticsAndProtocolErrors],

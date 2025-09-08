@@ -72,6 +72,31 @@ class NoDoublesCustomSeverityRule extends AnalysisRule {
   }
 }
 
+class NoReferencesToStringsRule extends AnalysisRule {
+  static const LintCode code = LintCode(
+    'no_references_to_strings',
+    'No references to Strings',
+  );
+
+  NoReferencesToStringsRule()
+    : super(
+        name: 'no_references_to_strings',
+        description: 'No references to Strings',
+      );
+
+  @override
+  DiagnosticCode get diagnosticCode => code;
+
+  @override
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
+    var visitor = _NoReferencesToStringsVisitor(this, context);
+    registry.addSimpleIdentifier(this, visitor);
+  }
+}
+
 class _NoBoolsVisitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
@@ -91,5 +116,20 @@ class _NoDoublesVisitor extends SimpleAstVisitor<void> {
   @override
   void visitDoubleLiteral(DoubleLiteral node) {
     rule.reportAtNode(node);
+  }
+}
+
+class _NoReferencesToStringsVisitor extends SimpleAstVisitor<void> {
+  final AnalysisRule rule;
+
+  final RuleContext context;
+
+  _NoReferencesToStringsVisitor(this.rule, this.context);
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    if (node.staticType?.isDartCoreString ?? false) {
+      rule.reportAtNode(node);
+    }
   }
 }
