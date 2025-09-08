@@ -94,11 +94,11 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
       typeParameters: ManifestTypeParameter.readList(reader),
       isSimplyBounded: reader.readBool(),
       declaredConflicts: reader.readLookupNameToIdMap(),
-      declaredFields: InstanceItemFieldItem.readMap(reader),
-      declaredGetters: InstanceItemGetterItem.readMap(reader),
-      declaredSetters: InstanceItemSetterItem.readMap(reader),
-      declaredMethods: InstanceItemMethodItem.readMap(reader),
-      declaredConstructors: InterfaceItemConstructorItem.readMap(reader),
+      declaredFields: FieldItem.readMap(reader),
+      declaredGetters: GetterItem.readMap(reader),
+      declaredSetters: SetterItem.readMap(reader),
+      declaredMethods: MethodItem.readMap(reader),
+      declaredConstructors: ConstructorItem.readMap(reader),
       inheritedConstructors: reader.readLookupNameToIdMap(),
       hasNonFinalField: reader.readBool(),
       supertype: ManifestType.readOptional(reader),
@@ -137,6 +137,82 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
     sink.writeBool(isMixinApplication);
     sink.writeBool(isMixinClass);
     sink.writeBool(isSealed);
+  }
+}
+
+class ConstructorItem extends ExecutableItem<ConstructorElementImpl> {
+  final bool isConst;
+  final bool isFactory;
+  final List<ManifestNode> constantInitializers;
+
+  ConstructorItem({
+    required super.id,
+    required super.isSynthetic,
+    required super.metadata,
+    required super.isStatic,
+    required super.functionType,
+    required this.isConst,
+    required this.isFactory,
+    required this.constantInitializers,
+  });
+
+  factory ConstructorItem.fromElement({
+    required ManifestItemId id,
+    required EncodeContext context,
+    required ConstructorElementImpl element,
+  }) {
+    return context.withFormalParameters(element.formalParameters, () {
+      return ConstructorItem(
+        id: id,
+        isSynthetic: element.isSynthetic,
+        metadata: ManifestMetadata.encode(context, element.metadata),
+        isStatic: false,
+        functionType: element.type.encode(context),
+        isConst: element.isConst,
+        isFactory: element.isFactory,
+        constantInitializers: element.constantInitializers
+            .map((initializer) => ManifestNode.encode(context, initializer))
+            .toFixedList(),
+      );
+    });
+  }
+
+  factory ConstructorItem.read(SummaryDataReader reader) {
+    return ConstructorItem(
+      id: ManifestItemId.read(reader),
+      isSynthetic: reader.readBool(),
+      metadata: ManifestMetadata.read(reader),
+      isStatic: reader.readBool(),
+      functionType: ManifestFunctionType.read(reader),
+      isConst: reader.readBool(),
+      isFactory: reader.readBool(),
+      constantInitializers: ManifestNode.readList(reader),
+    );
+  }
+
+  @override
+  bool match(MatchContext context, ConstructorElementImpl element) {
+    return context.withFormalParameters(element.formalParameters, () {
+      return super.match(context, element) &&
+          isConst == element.isConst &&
+          isFactory == element.isFactory &&
+          constantInitializers.match(context, element.constantInitializers);
+    });
+  }
+
+  @override
+  void write(BufferedSink sink) {
+    super.write(sink);
+    sink.writeBool(isConst);
+    sink.writeBool(isFactory);
+    constantInitializers.writeList(sink);
+  }
+
+  static Map<LookupName, ConstructorItem> readMap(SummaryDataReader reader) {
+    return reader.readMap(
+      readKey: () => LookupName.read(reader),
+      readValue: () => ConstructorItem.read(reader),
+    );
   }
 }
 
@@ -197,11 +273,11 @@ class EnumItem extends InterfaceItem<EnumElementImpl> {
       typeParameters: ManifestTypeParameter.readList(reader),
       isSimplyBounded: reader.readBool(),
       declaredConflicts: reader.readLookupNameToIdMap(),
-      declaredFields: InstanceItemFieldItem.readMap(reader),
-      declaredGetters: InstanceItemGetterItem.readMap(reader),
-      declaredSetters: InstanceItemSetterItem.readMap(reader),
-      declaredMethods: InstanceItemMethodItem.readMap(reader),
-      declaredConstructors: InterfaceItemConstructorItem.readMap(reader),
+      declaredFields: FieldItem.readMap(reader),
+      declaredGetters: GetterItem.readMap(reader),
+      declaredSetters: SetterItem.readMap(reader),
+      declaredMethods: MethodItem.readMap(reader),
+      declaredConstructors: ConstructorItem.readMap(reader),
       inheritedConstructors: reader.readLookupNameToIdMap(),
       hasNonFinalField: reader.readBool(),
       supertype: ManifestType.readOptional(reader),
@@ -209,6 +285,34 @@ class EnumItem extends InterfaceItem<EnumElementImpl> {
       interfaces: ManifestType.readList(reader),
       interface: ManifestInterface.read(reader),
     );
+  }
+}
+
+sealed class ExecutableItem<E extends ExecutableElementImpl>
+    extends ManifestItem<E> {
+  final bool isStatic;
+  final ManifestFunctionType functionType;
+
+  ExecutableItem({
+    required super.id,
+    required super.isSynthetic,
+    required super.metadata,
+    required this.isStatic,
+    required this.functionType,
+  });
+
+  @override
+  bool match(MatchContext context, E element) {
+    return super.match(context, element) &&
+        isStatic == element.isStatic &&
+        functionType.match(context, element.type);
+  }
+
+  @override
+  void write(BufferedSink sink) {
+    super.write(sink);
+    sink.writeBool(isStatic);
+    functionType.writeNoTag(sink);
   }
 }
 
@@ -264,11 +368,11 @@ class ExtensionItem<E extends ExtensionElementImpl> extends InstanceItem<E> {
       typeParameters: ManifestTypeParameter.readList(reader),
       isSimplyBounded: reader.readBool(),
       declaredConflicts: reader.readLookupNameToIdMap(),
-      declaredFields: InstanceItemFieldItem.readMap(reader),
-      declaredGetters: InstanceItemGetterItem.readMap(reader),
-      declaredSetters: InstanceItemSetterItem.readMap(reader),
-      declaredMethods: InstanceItemMethodItem.readMap(reader),
-      declaredConstructors: InterfaceItemConstructorItem.readMap(reader),
+      declaredFields: FieldItem.readMap(reader),
+      declaredGetters: GetterItem.readMap(reader),
+      declaredSetters: SetterItem.readMap(reader),
+      declaredMethods: MethodItem.readMap(reader),
+      declaredConstructors: ConstructorItem.readMap(reader),
       inheritedConstructors: reader.readLookupNameToIdMap(),
       extendedType: ManifestType.read(reader),
     );
@@ -357,11 +461,11 @@ class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl> {
       typeParameters: ManifestTypeParameter.readList(reader),
       isSimplyBounded: reader.readBool(),
       declaredConflicts: reader.readLookupNameToIdMap(),
-      declaredFields: InstanceItemFieldItem.readMap(reader),
-      declaredGetters: InstanceItemGetterItem.readMap(reader),
-      declaredSetters: InstanceItemSetterItem.readMap(reader),
-      declaredMethods: InstanceItemMethodItem.readMap(reader),
-      declaredConstructors: InterfaceItemConstructorItem.readMap(reader),
+      declaredFields: FieldItem.readMap(reader),
+      declaredGetters: GetterItem.readMap(reader),
+      declaredSetters: SetterItem.readMap(reader),
+      declaredMethods: MethodItem.readMap(reader),
+      declaredConstructors: ConstructorItem.readMap(reader),
       inheritedConstructors: reader.readLookupNameToIdMap(),
       hasNonFinalField: reader.readBool(),
       supertype: ManifestType.readOptional(reader),
@@ -395,9 +499,119 @@ class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl> {
   }
 }
 
+class FieldItem extends VariableItem<FieldElementImpl> {
+  final bool isStatic;
+
+  FieldItem({
+    required super.id,
+    required super.isSynthetic,
+    required super.metadata,
+    required super.isConst,
+    required super.isFinal,
+    required super.isLate,
+    required super.type,
+    required super.constInitializer,
+    required this.isStatic,
+  });
+
+  factory FieldItem.fromElement({
+    required ManifestItemId id,
+    required EncodeContext context,
+    required FieldElementImpl element,
+  }) {
+    return FieldItem(
+      id: id,
+      isSynthetic: element.isSynthetic,
+      metadata: ManifestMetadata.encode(context, element.metadata),
+      isConst: element.isConst,
+      isFinal: element.isFinal,
+      isLate: element.isLate,
+      type: element.type.encode(context),
+      constInitializer: element.constantInitializer?.encode(context),
+      isStatic: element.isStatic,
+    );
+  }
+
+  factory FieldItem.read(SummaryDataReader reader) {
+    return FieldItem(
+      id: ManifestItemId.read(reader),
+      isSynthetic: reader.readBool(),
+      metadata: ManifestMetadata.read(reader),
+      isConst: reader.readBool(),
+      isFinal: reader.readBool(),
+      isLate: reader.readBool(),
+      type: ManifestType.read(reader),
+      constInitializer: ManifestNode.readOptional(reader),
+      isStatic: reader.readBool(),
+    );
+  }
+
+  @override
+  bool match(MatchContext context, FieldElementImpl element) {
+    return super.match(context, element) && isStatic == element.isStatic;
+  }
+
+  @override
+  void write(BufferedSink sink) {
+    super.write(sink);
+    sink.writeBool(isStatic);
+  }
+
+  static Map<LookupName, FieldItem> readMap(SummaryDataReader reader) {
+    return reader.readMap(
+      readKey: () => LookupName.read(reader),
+      readValue: () => FieldItem.read(reader),
+    );
+  }
+}
+
+class GetterItem extends ExecutableItem<GetterElementImpl> {
+  GetterItem({
+    required super.id,
+    required super.isSynthetic,
+    required super.metadata,
+    required super.isStatic,
+    required super.functionType,
+  });
+
+  factory GetterItem.fromElement({
+    required ManifestItemId id,
+    required EncodeContext context,
+    required GetterElementImpl element,
+  }) {
+    return GetterItem(
+      id: id,
+      isSynthetic: element.isSynthetic,
+      metadata: ManifestMetadata.encode(
+        context,
+        element.thisOrVariableMetadata,
+      ),
+      isStatic: element.isStatic,
+      functionType: element.type.encode(context),
+    );
+  }
+
+  factory GetterItem.read(SummaryDataReader reader) {
+    return GetterItem(
+      id: ManifestItemId.read(reader),
+      isSynthetic: reader.readBool(),
+      metadata: ManifestMetadata.read(reader),
+      isStatic: reader.readBool(),
+      functionType: ManifestFunctionType.read(reader),
+    );
+  }
+
+  static Map<LookupName, GetterItem> readMap(SummaryDataReader reader) {
+    return reader.readMap(
+      readKey: () => LookupName.read(reader),
+      readValue: () => GetterItem.read(reader),
+    );
+  }
+}
+
 /// The item for [InstanceElementImpl].
 sealed class InstanceItem<E extends InstanceElementImpl>
-    extends TopLevelItem<E> {
+    extends ManifestItem<E> {
   final List<ManifestTypeParameter> typeParameters;
   final bool isSimplyBounded;
 
@@ -405,11 +619,11 @@ sealed class InstanceItem<E extends InstanceElementImpl>
   /// Such names will not be added to `declaredXyz` maps.
   Map<LookupName, ManifestItemId> declaredConflicts;
 
-  Map<LookupName, InstanceItemFieldItem> declaredFields;
-  Map<LookupName, InstanceItemGetterItem> declaredGetters;
-  Map<LookupName, InstanceItemSetterItem> declaredSetters;
-  Map<LookupName, InstanceItemMethodItem> declaredMethods;
-  Map<LookupName, InterfaceItemConstructorItem> declaredConstructors;
+  Map<LookupName, FieldItem> declaredFields;
+  Map<LookupName, GetterItem> declaredGetters;
+  Map<LookupName, SetterItem> declaredSetters;
+  Map<LookupName, MethodItem> declaredMethods;
+  Map<LookupName, ConstructorItem> declaredConstructors;
   Map<LookupName, ManifestItemId> inheritedConstructors;
 
   InstanceItem({
@@ -427,10 +641,7 @@ sealed class InstanceItem<E extends InstanceElementImpl>
     required this.inheritedConstructors,
   });
 
-  void addDeclaredConstructor(
-    LookupName lookupName,
-    InterfaceItemConstructorItem item,
-  ) {
+  void addDeclaredConstructor(LookupName lookupName, ConstructorItem item) {
     if (declaredConflicts.containsKey(lookupName)) {
       return;
     }
@@ -454,7 +665,7 @@ sealed class InstanceItem<E extends InstanceElementImpl>
     declaredConstructors[lookupName] = item;
   }
 
-  void addDeclaredGetter(LookupName lookupName, InstanceItemGetterItem item) {
+  void addDeclaredGetter(LookupName lookupName, GetterItem item) {
     if (declaredConflicts.containsKey(lookupName)) {
       return;
     }
@@ -486,7 +697,7 @@ sealed class InstanceItem<E extends InstanceElementImpl>
     declaredGetters[lookupName] = item;
   }
 
-  void addDeclaredMethod(LookupName lookupName, InstanceItemMethodItem item) {
+  void addDeclaredMethod(LookupName lookupName, MethodItem item) {
     if (declaredConflicts.containsKey(lookupName)) {
       return;
     }
@@ -512,7 +723,7 @@ sealed class InstanceItem<E extends InstanceElementImpl>
     declaredMethods[lookupName] = item;
   }
 
-  void addDeclaredSetter(LookupName lookupName, InstanceItemSetterItem item) {
+  void addDeclaredSetter(LookupName lookupName, SetterItem item) {
     if (declaredConflicts.containsKey(lookupName)) {
       return;
     }
@@ -618,302 +829,6 @@ sealed class InstanceItem<E extends InstanceElementImpl>
   }
 }
 
-class InstanceItemFieldItem extends InstanceItemMemberItem<FieldElementImpl> {
-  final bool isConst;
-  final bool isFinal;
-  final bool isLate;
-  final ManifestType type;
-  final ManifestNode? constInitializer;
-
-  InstanceItemFieldItem({
-    required super.id,
-    required super.isSynthetic,
-    required super.metadata,
-    required super.isStatic,
-    required this.isConst,
-    required this.isFinal,
-    required this.isLate,
-    required this.type,
-    required this.constInitializer,
-  });
-
-  factory InstanceItemFieldItem.fromElement({
-    required ManifestItemId id,
-    required EncodeContext context,
-    required FieldElementImpl element,
-  }) {
-    return InstanceItemFieldItem(
-      id: id,
-      isSynthetic: element.isSynthetic,
-      metadata: ManifestMetadata.encode(context, element.metadata),
-      isStatic: element.isStatic,
-      isConst: element.isConst,
-      isFinal: element.isFinal,
-      isLate: element.isLate,
-      type: element.type.encode(context),
-      constInitializer: element.constantInitializer?.encode(context),
-    );
-  }
-
-  factory InstanceItemFieldItem.read(SummaryDataReader reader) {
-    return InstanceItemFieldItem(
-      id: ManifestItemId.read(reader),
-      isSynthetic: reader.readBool(),
-      metadata: ManifestMetadata.read(reader),
-      isStatic: reader.readBool(),
-      isConst: reader.readBool(),
-      isFinal: reader.readBool(),
-      isLate: reader.readBool(),
-      type: ManifestType.read(reader),
-      constInitializer: ManifestNode.readOptional(reader),
-    );
-  }
-
-  @override
-  bool match(MatchContext context, FieldElementImpl element) {
-    return super.match(context, element) &&
-        isConst == element.isConst &&
-        isFinal == element.isFinal &&
-        isLate == element.isLate &&
-        type.match(context, element.type) &&
-        constInitializer.match(context, element.constantInitializer);
-  }
-
-  @override
-  void write(BufferedSink sink) {
-    super.write(sink);
-    sink.writeBool(isConst);
-    sink.writeBool(isFinal);
-    sink.writeBool(isLate);
-    type.write(sink);
-    constInitializer.writeOptional(sink);
-  }
-
-  static Map<LookupName, InstanceItemFieldItem> readMap(
-    SummaryDataReader reader,
-  ) {
-    return reader.readMap(
-      readKey: () => LookupName.read(reader),
-      readValue: () => InstanceItemFieldItem.read(reader),
-    );
-  }
-}
-
-class InstanceItemGetterItem extends InstanceItemMemberItem<GetterElementImpl> {
-  final ManifestType returnType;
-
-  InstanceItemGetterItem({
-    required super.id,
-    required super.isSynthetic,
-    required super.metadata,
-    required super.isStatic,
-    required this.returnType,
-  });
-
-  factory InstanceItemGetterItem.fromElement({
-    required ManifestItemId id,
-    required EncodeContext context,
-    required GetterElementImpl element,
-  }) {
-    return InstanceItemGetterItem(
-      id: id,
-      isSynthetic: element.isSynthetic,
-      metadata: ManifestMetadata.encode(
-        context,
-        element.thisOrVariableMetadata,
-      ),
-      isStatic: element.isStatic,
-      returnType: element.returnType.encode(context),
-    );
-  }
-
-  factory InstanceItemGetterItem.read(SummaryDataReader reader) {
-    return InstanceItemGetterItem(
-      id: ManifestItemId.read(reader),
-      isSynthetic: reader.readBool(),
-      metadata: ManifestMetadata.read(reader),
-      isStatic: reader.readBool(),
-      returnType: ManifestType.read(reader),
-    );
-  }
-
-  @override
-  bool match(MatchContext context, GetterElementImpl element) {
-    return super.match(context, element) &&
-        returnType.match(context, element.returnType);
-  }
-
-  @override
-  void write(BufferedSink sink) {
-    super.write(sink);
-    returnType.write(sink);
-  }
-
-  static Map<LookupName, InstanceItemGetterItem> readMap(
-    SummaryDataReader reader,
-  ) {
-    return reader.readMap(
-      readKey: () => LookupName.read(reader),
-      readValue: () => InstanceItemGetterItem.read(reader),
-    );
-  }
-}
-
-sealed class InstanceItemMemberItem<E extends ElementImpl>
-    extends ManifestItem<E> {
-  final bool isStatic;
-
-  InstanceItemMemberItem({
-    required super.id,
-    required super.isSynthetic,
-    required super.metadata,
-    required this.isStatic,
-  });
-
-  @override
-  bool match(MatchContext context, E element) {
-    if (!super.match(context, element)) {
-      return false;
-    }
-
-    switch (element) {
-      case FieldElementImpl element:
-        if (element.isStatic != isStatic) {
-          return false;
-        }
-      case ExecutableElementImpl element:
-        if (element.isStatic != isStatic) {
-          return false;
-        }
-    }
-
-    return true;
-  }
-
-  @override
-  void write(BufferedSink sink) {
-    super.write(sink);
-    sink.writeBool(isStatic);
-  }
-}
-
-class InstanceItemMethodItem extends InstanceItemMemberItem<MethodElementImpl> {
-  final ManifestFunctionType functionType;
-
-  InstanceItemMethodItem({
-    required super.id,
-    required super.isSynthetic,
-    required super.metadata,
-    required super.isStatic,
-    required this.functionType,
-  });
-
-  factory InstanceItemMethodItem.fromElement({
-    required ManifestItemId id,
-    required EncodeContext context,
-    required MethodElementImpl element,
-  }) {
-    return InstanceItemMethodItem(
-      id: id,
-      isSynthetic: element.isSynthetic,
-      metadata: ManifestMetadata.encode(context, element.metadata),
-      isStatic: element.isStatic,
-      functionType: element.type.encode(context),
-    );
-  }
-
-  factory InstanceItemMethodItem.read(SummaryDataReader reader) {
-    return InstanceItemMethodItem(
-      id: ManifestItemId.read(reader),
-      isSynthetic: reader.readBool(),
-      metadata: ManifestMetadata.read(reader),
-      isStatic: reader.readBool(),
-      functionType: ManifestFunctionType.read(reader),
-    );
-  }
-
-  @override
-  bool match(MatchContext context, MethodElementImpl element) {
-    return super.match(context, element) &&
-        functionType.match(context, element.type);
-  }
-
-  @override
-  void write(BufferedSink sink) {
-    super.write(sink);
-    functionType.writeNoTag(sink);
-  }
-
-  static Map<LookupName, InstanceItemMethodItem> readMap(
-    SummaryDataReader reader,
-  ) {
-    return reader.readMap(
-      readKey: () => LookupName.read(reader),
-      readValue: () => InstanceItemMethodItem.read(reader),
-    );
-  }
-}
-
-class InstanceItemSetterItem extends InstanceItemMemberItem<SetterElementImpl> {
-  final ManifestFunctionType functionType;
-
-  InstanceItemSetterItem({
-    required super.id,
-    required super.isSynthetic,
-    required super.metadata,
-    required super.isStatic,
-    required this.functionType,
-  });
-
-  factory InstanceItemSetterItem.fromElement({
-    required ManifestItemId id,
-    required EncodeContext context,
-    required SetterElementImpl element,
-  }) {
-    return InstanceItemSetterItem(
-      id: id,
-      isSynthetic: element.isSynthetic,
-      metadata: ManifestMetadata.encode(
-        context,
-        element.thisOrVariableMetadata,
-      ),
-      isStatic: element.isStatic,
-      functionType: element.type.encode(context),
-    );
-  }
-
-  factory InstanceItemSetterItem.read(SummaryDataReader reader) {
-    return InstanceItemSetterItem(
-      id: ManifestItemId.read(reader),
-      isSynthetic: reader.readBool(),
-      metadata: ManifestMetadata.read(reader),
-      isStatic: reader.readBool(),
-      functionType: ManifestFunctionType.read(reader),
-    );
-  }
-
-  @override
-  bool match(MatchContext context, SetterElementImpl element) {
-    return super.match(context, element) &&
-        functionType.match(context, element.type);
-  }
-
-  @override
-  void write(BufferedSink sink) {
-    super.write(sink);
-    functionType.writeNoTag(sink);
-  }
-
-  static Map<LookupName, InstanceItemSetterItem> readMap(
-    SummaryDataReader reader,
-  ) {
-    return reader.readMap(
-      readKey: () => LookupName.read(reader),
-      readValue: () => InstanceItemSetterItem.read(reader),
-    );
-  }
-}
-
 /// The item for [InterfaceElementImpl].
 sealed class InterfaceItem<E extends InterfaceElementImpl>
     extends InstanceItem<E> {
@@ -977,88 +892,6 @@ sealed class InterfaceItem<E extends InterfaceElementImpl>
     mixins.writeList(sink);
     interfaces.writeList(sink);
     interface.write(sink);
-  }
-}
-
-class InterfaceItemConstructorItem
-    extends InstanceItemMemberItem<ConstructorElementImpl> {
-  final bool isConst;
-  final bool isFactory;
-  final ManifestFunctionType functionType;
-  final List<ManifestNode> constantInitializers;
-
-  InterfaceItemConstructorItem({
-    required super.id,
-    required super.isSynthetic,
-    required super.metadata,
-    required super.isStatic,
-    required this.isConst,
-    required this.isFactory,
-    required this.functionType,
-    required this.constantInitializers,
-  });
-
-  factory InterfaceItemConstructorItem.fromElement({
-    required ManifestItemId id,
-    required EncodeContext context,
-    required ConstructorElementImpl element,
-  }) {
-    return context.withFormalParameters(element.formalParameters, () {
-      return InterfaceItemConstructorItem(
-        id: id,
-        isSynthetic: element.isSynthetic,
-        metadata: ManifestMetadata.encode(context, element.metadata),
-        isStatic: false,
-        isConst: element.isConst,
-        isFactory: element.isFactory,
-        functionType: element.type.encode(context),
-        constantInitializers: element.constantInitializers
-            .map((initializer) => ManifestNode.encode(context, initializer))
-            .toFixedList(),
-      );
-    });
-  }
-
-  factory InterfaceItemConstructorItem.read(SummaryDataReader reader) {
-    return InterfaceItemConstructorItem(
-      id: ManifestItemId.read(reader),
-      isSynthetic: reader.readBool(),
-      metadata: ManifestMetadata.read(reader),
-      isStatic: reader.readBool(),
-      isConst: reader.readBool(),
-      isFactory: reader.readBool(),
-      functionType: ManifestFunctionType.read(reader),
-      constantInitializers: ManifestNode.readList(reader),
-    );
-  }
-
-  @override
-  bool match(MatchContext context, ConstructorElementImpl element) {
-    return context.withFormalParameters(element.formalParameters, () {
-      return super.match(context, element) &&
-          isConst == element.isConst &&
-          isFactory == element.isFactory &&
-          functionType.match(context, element.type) &&
-          constantInitializers.match(context, element.constantInitializers);
-    });
-  }
-
-  @override
-  void write(BufferedSink sink) {
-    super.write(sink);
-    sink.writeBool(isConst);
-    sink.writeBool(isFactory);
-    functionType.writeNoTag(sink);
-    constantInitializers.writeList(sink);
-  }
-
-  static Map<LookupName, InterfaceItemConstructorItem> readMap(
-    SummaryDataReader reader,
-  ) {
-    return reader.readMap(
-      readKey: () => LookupName.read(reader),
-      readValue: () => InterfaceItemConstructorItem.read(reader),
-    );
   }
 }
 
@@ -1280,6 +1113,47 @@ class ManifestMetadata {
   }
 }
 
+class MethodItem extends ExecutableItem<MethodElementImpl> {
+  MethodItem({
+    required super.id,
+    required super.isSynthetic,
+    required super.metadata,
+    required super.isStatic,
+    required super.functionType,
+  });
+
+  factory MethodItem.fromElement({
+    required ManifestItemId id,
+    required EncodeContext context,
+    required MethodElementImpl element,
+  }) {
+    return MethodItem(
+      id: id,
+      isSynthetic: element.isSynthetic,
+      metadata: ManifestMetadata.encode(context, element.metadata),
+      isStatic: element.isStatic,
+      functionType: element.type.encode(context),
+    );
+  }
+
+  factory MethodItem.read(SummaryDataReader reader) {
+    return MethodItem(
+      id: ManifestItemId.read(reader),
+      isSynthetic: reader.readBool(),
+      metadata: ManifestMetadata.read(reader),
+      isStatic: reader.readBool(),
+      functionType: ManifestFunctionType.read(reader),
+    );
+  }
+
+  static Map<LookupName, MethodItem> readMap(SummaryDataReader reader) {
+    return reader.readMap(
+      readKey: () => LookupName.read(reader),
+      readValue: () => MethodItem.read(reader),
+    );
+  }
+}
+
 class MixinItem extends InterfaceItem<MixinElementImpl> {
   final bool isBase;
   final List<ManifestType> superclassConstraints;
@@ -1351,11 +1225,11 @@ class MixinItem extends InterfaceItem<MixinElementImpl> {
       typeParameters: ManifestTypeParameter.readList(reader),
       isSimplyBounded: reader.readBool(),
       declaredConflicts: reader.readLookupNameToIdMap(),
-      declaredFields: InstanceItemFieldItem.readMap(reader),
-      declaredGetters: InstanceItemGetterItem.readMap(reader),
-      declaredSetters: InstanceItemSetterItem.readMap(reader),
-      declaredMethods: InstanceItemMethodItem.readMap(reader),
-      declaredConstructors: InterfaceItemConstructorItem.readMap(reader),
+      declaredFields: FieldItem.readMap(reader),
+      declaredGetters: GetterItem.readMap(reader),
+      declaredSetters: SetterItem.readMap(reader),
+      declaredMethods: MethodItem.readMap(reader),
+      declaredConstructors: ConstructorItem.readMap(reader),
       inheritedConstructors: reader.readLookupNameToIdMap(),
       hasNonFinalField: reader.readBool(),
       supertype: ManifestType.readOptional(reader),
@@ -1388,14 +1262,57 @@ class MixinItem extends InterfaceItem<MixinElementImpl> {
   }
 }
 
-class TopLevelFunctionItem extends TopLevelItem<TopLevelFunctionElementImpl> {
-  final ManifestFunctionType functionType;
+class SetterItem extends ExecutableItem<SetterElementImpl> {
+  SetterItem({
+    required super.id,
+    required super.isSynthetic,
+    required super.metadata,
+    required super.isStatic,
+    required super.functionType,
+  });
 
+  factory SetterItem.fromElement({
+    required ManifestItemId id,
+    required EncodeContext context,
+    required SetterElementImpl element,
+  }) {
+    return SetterItem(
+      id: id,
+      isSynthetic: element.isSynthetic,
+      metadata: ManifestMetadata.encode(
+        context,
+        element.thisOrVariableMetadata,
+      ),
+      isStatic: element.isStatic,
+      functionType: element.type.encode(context),
+    );
+  }
+
+  factory SetterItem.read(SummaryDataReader reader) {
+    return SetterItem(
+      id: ManifestItemId.read(reader),
+      isSynthetic: reader.readBool(),
+      metadata: ManifestMetadata.read(reader),
+      isStatic: reader.readBool(),
+      functionType: ManifestFunctionType.read(reader),
+    );
+  }
+
+  static Map<LookupName, SetterItem> readMap(SummaryDataReader reader) {
+    return reader.readMap(
+      readKey: () => LookupName.read(reader),
+      readValue: () => SetterItem.read(reader),
+    );
+  }
+}
+
+class TopLevelFunctionItem extends ExecutableItem<TopLevelFunctionElementImpl> {
   TopLevelFunctionItem({
     required super.id,
     required super.isSynthetic,
     required super.metadata,
-    required this.functionType,
+    required super.isStatic,
+    required super.functionType,
   });
 
   factory TopLevelFunctionItem.fromElement({
@@ -1407,6 +1324,7 @@ class TopLevelFunctionItem extends TopLevelItem<TopLevelFunctionElementImpl> {
       id: id,
       isSynthetic: element.isSynthetic,
       metadata: ManifestMetadata.encode(context, element.metadata),
+      isStatic: element.isStatic,
       functionType: element.type.encode(context),
     );
   }
@@ -1416,143 +1334,22 @@ class TopLevelFunctionItem extends TopLevelItem<TopLevelFunctionElementImpl> {
       id: ManifestItemId.read(reader),
       isSynthetic: reader.readBool(),
       metadata: ManifestMetadata.read(reader),
+      isStatic: reader.readBool(),
       functionType: ManifestFunctionType.read(reader),
     );
   }
-
-  @override
-  bool match(MatchContext context, TopLevelFunctionElementImpl element) {
-    return super.match(context, element) &&
-        functionType.match(context, element.type);
-  }
-
-  @override
-  void write(BufferedSink sink) {
-    super.write(sink);
-    functionType.writeNoTag(sink);
-  }
 }
 
-class TopLevelGetterItem extends TopLevelItem<GetterElementImpl> {
-  final ManifestType returnType;
-
-  TopLevelGetterItem({
-    required super.id,
-    required super.isSynthetic,
-    required super.metadata,
-    required this.returnType,
-  });
-
-  factory TopLevelGetterItem.fromElement({
-    required ManifestItemId id,
-    required EncodeContext context,
-    required GetterElementImpl element,
-  }) {
-    return TopLevelGetterItem(
-      id: id,
-      isSynthetic: element.isSynthetic,
-      metadata: ManifestMetadata.encode(
-        context,
-        element.thisOrVariableMetadata,
-      ),
-      returnType: element.returnType.encode(context),
-    );
-  }
-
-  factory TopLevelGetterItem.read(SummaryDataReader reader) {
-    return TopLevelGetterItem(
-      id: ManifestItemId.read(reader),
-      isSynthetic: reader.readBool(),
-      metadata: ManifestMetadata.read(reader),
-      returnType: ManifestType.read(reader),
-    );
-  }
-
-  @override
-  bool match(MatchContext context, GetterElementImpl element) {
-    return super.match(context, element) &&
-        returnType.match(context, element.returnType);
-  }
-
-  @override
-  void write(BufferedSink sink) {
-    super.write(sink);
-    returnType.write(sink);
-  }
-}
-
-sealed class TopLevelItem<E extends ElementImpl> extends ManifestItem<E> {
-  TopLevelItem({
-    required super.id,
-    required super.isSynthetic,
-    required super.metadata,
-  });
-}
-
-class TopLevelSetterItem extends TopLevelItem<SetterElementImpl> {
-  final ManifestType valueType;
-
-  TopLevelSetterItem({
-    required super.id,
-    required super.isSynthetic,
-    required super.metadata,
-    required this.valueType,
-  });
-
-  factory TopLevelSetterItem.fromElement({
-    required ManifestItemId id,
-    required EncodeContext context,
-    required SetterElementImpl element,
-  }) {
-    return TopLevelSetterItem(
-      id: id,
-      isSynthetic: element.isSynthetic,
-      metadata: ManifestMetadata.encode(
-        context,
-        element.thisOrVariableMetadata,
-      ),
-      valueType: element.valueFormalParameter.type.encode(context),
-    );
-  }
-
-  factory TopLevelSetterItem.read(SummaryDataReader reader) {
-    return TopLevelSetterItem(
-      id: ManifestItemId.read(reader),
-      isSynthetic: reader.readBool(),
-      metadata: ManifestMetadata.read(reader),
-      valueType: ManifestType.read(reader),
-    );
-  }
-
-  @override
-  bool match(MatchContext context, SetterElementImpl element) {
-    return super.match(context, element) &&
-        valueType.match(context, element.valueFormalParameter.type);
-  }
-
-  @override
-  void write(BufferedSink sink) {
-    super.write(sink);
-    valueType.write(sink);
-  }
-}
-
-class TopLevelVariableItem extends TopLevelItem<TopLevelVariableElementImpl> {
-  final bool isConst;
-  final bool isFinal;
-  final bool isLate;
-  final ManifestType type;
-  final ManifestNode? constInitializer;
-
+class TopLevelVariableItem extends VariableItem<TopLevelVariableElementImpl> {
   TopLevelVariableItem({
     required super.id,
     required super.isSynthetic,
     required super.metadata,
-    required this.isConst,
-    required this.isFinal,
-    required this.isLate,
-    required this.type,
-    required this.constInitializer,
+    required super.isConst,
+    required super.isFinal,
+    required super.isLate,
+    required super.type,
+    required super.constInitializer,
   });
 
   factory TopLevelVariableItem.fromElement({
@@ -1584,29 +1381,9 @@ class TopLevelVariableItem extends TopLevelItem<TopLevelVariableElementImpl> {
       constInitializer: ManifestNode.readOptional(reader),
     );
   }
-
-  @override
-  bool match(MatchContext context, TopLevelVariableElementImpl element) {
-    return super.match(context, element) &&
-        isConst == element.isConst &&
-        isFinal == element.isFinal &&
-        isLate == element.isLate &&
-        type.match(context, element.type) &&
-        constInitializer.match(context, element.constantInitializer);
-  }
-
-  @override
-  void write(BufferedSink sink) {
-    super.write(sink);
-    sink.writeBool(isConst);
-    sink.writeBool(isFinal);
-    sink.writeBool(isLate);
-    type.write(sink);
-    constInitializer.writeOptional(sink);
-  }
 }
 
-class TypeAliasItem extends TopLevelItem<TypeAliasElementImpl> {
+class TypeAliasItem extends ManifestItem<TypeAliasElementImpl> {
   final List<ManifestTypeParameter> typeParameters;
   final ManifestType aliasedType;
 
@@ -1660,6 +1437,46 @@ class TypeAliasItem extends TopLevelItem<TypeAliasElementImpl> {
   }
 }
 
+sealed class VariableItem<E extends VariableElementImpl>
+    extends ManifestItem<E> {
+  final bool isConst;
+  final bool isFinal;
+  final bool isLate;
+  final ManifestType type;
+  final ManifestNode? constInitializer;
+
+  VariableItem({
+    required super.id,
+    required super.isSynthetic,
+    required super.metadata,
+    required this.isConst,
+    required this.isFinal,
+    required this.isLate,
+    required this.type,
+    required this.constInitializer,
+  });
+
+  @override
+  bool match(MatchContext context, E element) {
+    return super.match(context, element) &&
+        isConst == element.isConst &&
+        isFinal == element.isFinal &&
+        isLate == element.isLate &&
+        type.match(context, element.type) &&
+        constInitializer.match(context, element.constantInitializer);
+  }
+
+  @override
+  void write(BufferedSink sink) {
+    super.write(sink);
+    sink.writeBool(isConst);
+    sink.writeBool(isFinal);
+    sink.writeBool(isLate);
+    type.write(sink);
+    constInitializer.writeOptional(sink);
+  }
+}
+
 extension LookupNameToIdMapExtension on Map<LookupName, ManifestItemId> {
   void write(BufferedSink sink) {
     sink.writeMap(
@@ -1708,8 +1525,8 @@ extension _AstNodeExtension on AstNode {
   }
 }
 
-extension _LookupNameToInstanceItemFieldItemMapExtension
-    on Map<LookupName, InstanceItemFieldItem> {
+extension _LookupNameToConstructorItemMapExtension
+    on Map<LookupName, ConstructorItem> {
   void write(BufferedSink sink) {
     sink.writeMap(
       this,
@@ -1719,8 +1536,7 @@ extension _LookupNameToInstanceItemFieldItemMapExtension
   }
 }
 
-extension _LookupNameToInstanceItemGetterItemMapExtension
-    on Map<LookupName, InstanceItemGetterItem> {
+extension _LookupNameToFieldItemMapExtension on Map<LookupName, FieldItem> {
   void write(BufferedSink sink) {
     sink.writeMap(
       this,
@@ -1730,8 +1546,7 @@ extension _LookupNameToInstanceItemGetterItemMapExtension
   }
 }
 
-extension _LookupNameToInstanceItemMethodItemMapExtension
-    on Map<LookupName, InstanceItemMethodItem> {
+extension _LookupNameToGetterItemMapExtension on Map<LookupName, GetterItem> {
   void write(BufferedSink sink) {
     sink.writeMap(
       this,
@@ -1741,8 +1556,7 @@ extension _LookupNameToInstanceItemMethodItemMapExtension
   }
 }
 
-extension _LookupNameToInstanceItemSetterItemMapExtension
-    on Map<LookupName, InstanceItemSetterItem> {
+extension _LookupNameToMethodItemMapExtension on Map<LookupName, MethodItem> {
   void write(BufferedSink sink) {
     sink.writeMap(
       this,
@@ -1752,8 +1566,7 @@ extension _LookupNameToInstanceItemSetterItemMapExtension
   }
 }
 
-extension _LookupNameToInterfaceItemConstructorItemMapExtension
-    on Map<LookupName, InterfaceItemConstructorItem> {
+extension _LookupNameToSetterItemMapExtension on Map<LookupName, SetterItem> {
   void write(BufferedSink sink) {
     sink.writeMap(
       this,

@@ -361,7 +361,7 @@ extension LinkedElementFactoryExtension on LinkedElementFactory {
 
     // SAFETY: if we can reference the element, it has a name.
     var topLevelName = topLevelElement.lookupName!.asLookupName;
-    TopLevelItem? topLevelItem;
+    ManifestItem? topLevelItem;
     switch (topLevelElement) {
       case ClassElement():
         topLevelItem = manifest.declaredClasses[topLevelName];

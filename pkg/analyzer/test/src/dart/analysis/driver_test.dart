@@ -63490,7 +63490,10 @@ set a(int _) {}
   package:test/test.dart
     declaredSetters
       a=: #M0
-        valueType: int @ dart:core
+        functionType: FunctionType
+          positional
+            required int @ dart:core
+          returnType: void
     declaredVariables
       a: #M1
         type: int @ dart:core
@@ -63503,7 +63506,10 @@ set a(double _) {}
   package:test/test.dart
     declaredSetters
       a=: #M2
-        valueType: double @ dart:core
+        functionType: FunctionType
+          positional
+            required double @ dart:core
+          returnType: void
     declaredVariables
       a: #M3
         type: double @ dart:core

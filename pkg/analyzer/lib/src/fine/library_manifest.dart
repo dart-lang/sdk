@@ -30,8 +30,8 @@ class LibraryManifest {
   final Map<LookupName, ExtensionTypeItem> declaredExtensionTypes;
   final Map<LookupName, MixinItem> declaredMixins;
   final Map<LookupName, TypeAliasItem> declaredTypeAliases;
-  final Map<LookupName, TopLevelGetterItem> declaredGetters;
-  final Map<LookupName, TopLevelSetterItem> declaredSetters;
+  final Map<LookupName, GetterItem> declaredGetters;
+  final Map<LookupName, SetterItem> declaredSetters;
   final Map<LookupName, TopLevelFunctionItem> declaredFunctions;
   final Map<LookupName, TopLevelVariableItem> declaredVariables;
 
@@ -75,10 +75,10 @@ class LibraryManifest {
         readValue: () => TypeAliasItem.read(reader),
       ),
       declaredGetters: reader.readLookupNameMap(
-        readValue: () => TopLevelGetterItem.read(reader),
+        readValue: () => GetterItem.read(reader),
       ),
       declaredSetters: reader.readLookupNameMap(
-        readValue: () => TopLevelSetterItem.read(reader),
+        readValue: () => SetterItem.read(reader),
       ),
       declaredFunctions: reader.readLookupNameMap(
         readValue: () => TopLevelFunctionItem.read(reader),
@@ -93,7 +93,7 @@ class LibraryManifest {
   Map<LookupName, ManifestItemId> get exportedIds {
     return Map.fromEntries([
       ...reExportMap.entries,
-      ...<Map<LookupName, TopLevelItem>>[
+      ...<Map<LookupName, ManifestItem>>[
             declaredClasses,
             declaredEnums,
             declaredExtensions,
@@ -291,7 +291,7 @@ class LibraryManifestBuilder {
 
   void _addEnum({
     required EncodeContext encodingContext,
-    required Map<LookupName, TopLevelItem> newItems,
+    required Map<LookupName, EnumItem> newItems,
     required EnumElementImpl element,
     required LookupName lookupName,
   }) {
@@ -371,7 +371,7 @@ class LibraryManifestBuilder {
 
   void _addExtensionType({
     required EncodeContext encodingContext,
-    required Map<LookupName, TopLevelItem> newItems,
+    required Map<LookupName, ExtensionTypeItem> newItems,
     required ExtensionTypeElementImpl element,
     required LookupName lookupName,
   }) {
@@ -408,7 +408,7 @@ class LibraryManifestBuilder {
     }
 
     var item = _getOrBuildElementItem(element, () {
-      return InstanceItemFieldItem.fromElement(
+      return FieldItem.fromElement(
         id: ManifestItemId.generate(),
         context: encodingContext,
         element: element,
@@ -429,7 +429,7 @@ class LibraryManifestBuilder {
     }
 
     var item = _getOrBuildElementItem(element, () {
-      return InstanceItemGetterItem.fromElement(
+      return GetterItem.fromElement(
         id: ManifestItemId.generate(),
         context: encodingContext,
         element: element,
@@ -488,7 +488,7 @@ class LibraryManifestBuilder {
     }
 
     var item = _getOrBuildElementItem(element, () {
-      return InstanceItemMethodItem.fromElement(
+      return MethodItem.fromElement(
         id: ManifestItemId.generate(),
         context: encodingContext,
         element: element,
@@ -509,7 +509,7 @@ class LibraryManifestBuilder {
     }
 
     var item = _getOrBuildElementItem(element, () {
-      return InstanceItemSetterItem.fromElement(
+      return SetterItem.fromElement(
         id: ManifestItemId.generate(),
         context: encodingContext,
         element: element,
@@ -530,7 +530,7 @@ class LibraryManifestBuilder {
     }
 
     var item = _getOrBuildElementItem(element, () {
-      return InterfaceItemConstructorItem.fromElement(
+      return ConstructorItem.fromElement(
         id: ManifestItemId.generate(),
         context: encodingContext,
         element: element,
@@ -657,12 +657,12 @@ class LibraryManifestBuilder {
 
   void _addTopLevelGetter({
     required EncodeContext encodingContext,
-    required Map<LookupName, TopLevelGetterItem> newItems,
+    required Map<LookupName, GetterItem> newItems,
     required GetterElementImpl element,
     required LookupName lookupName,
   }) {
     var item = _getOrBuildElementItem(element, () {
-      return TopLevelGetterItem.fromElement(
+      return GetterItem.fromElement(
         id: ManifestItemId.generate(),
         context: encodingContext,
         element: element,
@@ -673,12 +673,12 @@ class LibraryManifestBuilder {
 
   void _addTopLevelSetter({
     required EncodeContext encodingContext,
-    required Map<LookupName, TopLevelSetterItem> newItems,
+    required Map<LookupName, SetterItem> newItems,
     required SetterElementImpl element,
     required LookupName lookupName,
   }) {
     var item = _getOrBuildElementItem(element, () {
-      return TopLevelSetterItem.fromElement(
+      return SetterItem.fromElement(
         id: ManifestItemId.generate(),
         context: encodingContext,
         element: element,
@@ -756,8 +756,8 @@ class LibraryManifestBuilder {
       var newExtensionTypeItems = <LookupName, ExtensionTypeItem>{};
       var newMixinItems = <LookupName, MixinItem>{};
       var newTypeAliasItems = <LookupName, TypeAliasItem>{};
-      var newTopLevelGetters = <LookupName, TopLevelGetterItem>{};
-      var newTopLevelSetters = <LookupName, TopLevelSetterItem>{};
+      var newTopLevelGetters = <LookupName, GetterItem>{};
+      var newTopLevelSetters = <LookupName, SetterItem>{};
       var newTopLevelFunctions = <LookupName, TopLevelFunctionItem>{};
       var newTopLevelVariables = <LookupName, TopLevelVariableItem>{};
 
@@ -1446,7 +1446,7 @@ class _LibraryMatch {
     }
 
     var item = instanceItem.declaredGetters[lookupName];
-    if (item is! InstanceItemGetterItem) {
+    if (item == null) {
       return false;
     }
 
@@ -1470,7 +1470,7 @@ class _LibraryMatch {
     }
 
     var item = instanceItem.declaredMethods[lookupName];
-    if (item is! InstanceItemMethodItem) {
+    if (item == null) {
       return false;
     }
 
@@ -1494,7 +1494,7 @@ class _LibraryMatch {
     }
 
     var item = instanceItem.declaredSetters[lookupName];
-    if (item is! InstanceItemSetterItem) {
+    if (item == null) {
       return false;
     }
 
@@ -1518,7 +1518,7 @@ class _LibraryMatch {
     }
 
     var item = interfaceItem.declaredConstructors[lookupName];
-    if (item is! InterfaceItemConstructorItem) {
+    if (item == null) {
       return false;
     }
 

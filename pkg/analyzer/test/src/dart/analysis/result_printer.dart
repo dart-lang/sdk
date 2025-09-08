@@ -1053,14 +1053,14 @@ class LibraryManifestPrinter {
     sink.writeElements('declaredGetters', getterEntries, (entry) {
       var item = entry.value;
       _writeNamedId(entry.key, item.id);
-      _writeTopLevelGetterItem(item);
+      _writeGetterItem(item);
     });
 
     var setterEntries = manifest.declaredSetters.sorted;
     sink.writeElements('declaredSetters', setterEntries, (entry) {
       var item = entry.value;
       _writeNamedId(entry.key, item.id);
-      _writeTopLevelSetterItem(item);
+      _writeSetterItem(item);
     });
 
     var functionEntries = manifest.declaredFunctions;
@@ -1174,6 +1174,15 @@ class LibraryManifestPrinter {
     });
   }
 
+  void _writeGetterItem(GetterItem item) {
+    if (configuration.withElementManifests) {
+      sink.withIndent(() {
+        _writeMetadata(item);
+        _writeNamedType('returnType', item.functionType.returnType);
+      });
+    }
+  }
+
   void _writeInstanceItemMembers(InstanceItem item) {
     var ignored = configuration.ignoredManifestInstanceMemberNames;
 
@@ -1232,7 +1241,7 @@ class LibraryManifestPrinter {
             if (configuration.withElementManifests) {
               sink.withIndent(() {
                 _writeMetadata(item);
-                _writeNamedType('returnType', item.returnType);
+                _writeNamedType('returnType', item.functionType.returnType);
               });
             }
           }
@@ -1537,7 +1546,7 @@ class LibraryManifestPrinter {
     }
   }
 
-  void _writeTopLevelFunctionItem(TopLevelFunctionItem item) {
+  void _writeSetterItem(SetterItem item) {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
         _writeMetadata(item);
@@ -1546,20 +1555,11 @@ class LibraryManifestPrinter {
     }
   }
 
-  void _writeTopLevelGetterItem(TopLevelGetterItem item) {
+  void _writeTopLevelFunctionItem(TopLevelFunctionItem item) {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
         _writeMetadata(item);
-        _writeNamedType('returnType', item.returnType);
-      });
-    }
-  }
-
-  void _writeTopLevelSetterItem(TopLevelSetterItem item) {
-    if (configuration.withElementManifests) {
-      sink.withIndent(() {
-        _writeMetadata(item);
-        _writeNamedType('valueType', item.valueType);
+        _writeNamedType('functionType', item.functionType);
       });
     }
   }
