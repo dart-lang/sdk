@@ -2086,15 +2086,18 @@ class EnumFragmentImpl extends InterfaceFragmentImpl implements EnumFragment {
   }
 }
 
+@elementClass
 abstract class ExecutableElementImpl extends FunctionTypedElementImpl
     with InternalExecutableElement, DeferredResolutionReadingMixin {
   TypeImpl? _returnType;
   FunctionTypeImpl? _type;
 
   @override
+  @trackedIncludedInId
   ExecutableElementImpl get baseElement => this;
 
   @override
+  @trackedIndirectly
   List<Element> get children => [
     ...super.children,
     ...typeParameters,
@@ -2103,12 +2106,14 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
 
   @Deprecated('Use children instead')
   @override
+  @trackedIndirectly
   List<Element> get children2 => children;
 
   @override
   ExecutableFragmentImpl get firstFragment;
 
   @override
+  @trackedIncludedInId
   List<FormalParameterElementImpl> get formalParameters {
     _ensureReadResolution();
     return _firstFragment.formalParameters
@@ -2125,11 +2130,13 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   ///
   /// Top-level declarations don't have enclosing element type parameters,
   /// so for them this flag is always `false`.
+  @trackedIncludedInId
   bool get hasEnclosingTypeParameterReference {
     return _firstFragment.hasEnclosingTypeParameterReference;
   }
 
   @override
+  @trackedIncludedInId
   bool get hasImplicitReturnType {
     for (var fragment in fragments) {
       if (!fragment.hasImplicitReturnType) {
@@ -2139,11 +2146,13 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
     return true;
   }
 
+  @trackedIncludedInId
   bool get invokesSuperSelf {
     return _firstFragment.hasModifier(Modifier.INVOKES_SUPER_SELF);
   }
 
   @override
+  @trackedIncludedInId
   bool get isAbstract {
     for (var fragment in fragments) {
       if (!fragment.isAbstract) {
@@ -2154,6 +2163,7 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   }
 
   @override
+  @trackedIncludedInId
   bool get isExtensionTypeMember {
     return hasModifier(Modifier.EXTENSION_TYPE_MEMBER);
   }
@@ -2163,24 +2173,30 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   }
 
   @override
+  @trackedIncludedInId
   bool get isExternal {
     return _firstFragment.isExternal;
   }
 
   @override
+  @trackedIncludedInId
   bool get isSimplyBounded => true;
 
   @override
+  @trackedIncludedInId
   bool get isStatic {
     return _firstFragment.isStatic;
   }
 
   @override
+  @trackedIncludedInId
   bool get isSynthetic {
     return _firstFragment.isSynthetic;
   }
 
+  @trackedDirectlyOpaque
   ExecutableFragmentImpl get lastFragment {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'lastFragment');
     var result = _firstFragment;
     while (true) {
       if (result.nextFragment case ExecutableFragmentImpl nextFragment) {
@@ -2193,9 +2209,11 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
 
   @Deprecated('Use library instead')
   @override
+  @trackedIndirectly
   LibraryElement get library2 => library;
 
   @override
+  @trackedIncludedInId
   MetadataImpl get metadata {
     var annotations = <ElementAnnotationImpl>[];
     for (var fragment in fragments) {
@@ -2206,9 +2224,11 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
 
   @Deprecated('Use metadata instead')
   @override
+  @trackedIndirectly
   MetadataImpl get metadata2 => metadata;
 
   @override
+  @trackedIncludedInId
   TypeImpl get returnType {
     _ensureReadResolution();
 
@@ -2237,6 +2257,7 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   }
 
   @override
+  @trackedIncludedInId
   FunctionTypeImpl get type {
     return _type ??= FunctionTypeImpl(
       typeParameters: typeParameters,
@@ -2247,6 +2268,7 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   }
 
   @override
+  @trackedIncludedInId
   List<TypeParameterElementImpl> get typeParameters {
     return _firstFragment.typeParameters
         .map((fragment) => fragment.element)
@@ -2255,6 +2277,7 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
 
   @Deprecated('Use typeParameters instead')
   @override
+  @trackedIndirectly
   List<TypeParameterElementImpl> get typeParameters2 {
     return typeParameters;
   }
@@ -2263,6 +2286,7 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   ExecutableFragmentImpl get _firstFragment;
 
   @override
+  @trackedIndirectly
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeExecutableElement(this, name!);
   }

@@ -149,6 +149,13 @@ class ConstructorItem extends ExecutableItem<ConstructorElementImpl> {
     required super.id,
     required super.isSynthetic,
     required super.metadata,
+    required super.hasEnclosingTypeParameterReference,
+    required super.hasImplicitReturnType,
+    required super.invokesSuperSelf,
+    required super.isAbstract,
+    required super.isExtensionTypeMember,
+    required super.isExternal,
+    required super.isSimplyBounded,
     required super.isStatic,
     required super.functionType,
     required this.isConst,
@@ -166,6 +173,14 @@ class ConstructorItem extends ExecutableItem<ConstructorElementImpl> {
         id: id,
         isSynthetic: element.isSynthetic,
         metadata: ManifestMetadata.encode(context, element.metadata),
+        hasEnclosingTypeParameterReference:
+            element.hasEnclosingTypeParameterReference,
+        hasImplicitReturnType: element.hasImplicitReturnType,
+        invokesSuperSelf: element.invokesSuperSelf,
+        isAbstract: element.isAbstract,
+        isExtensionTypeMember: element.isExtensionTypeMember,
+        isExternal: element.isExternal,
+        isSimplyBounded: element.isSimplyBounded,
         isStatic: false,
         functionType: element.type.encode(context),
         isConst: element.isConst,
@@ -182,6 +197,13 @@ class ConstructorItem extends ExecutableItem<ConstructorElementImpl> {
       id: ManifestItemId.read(reader),
       isSynthetic: reader.readBool(),
       metadata: ManifestMetadata.read(reader),
+      hasEnclosingTypeParameterReference: reader.readBool(),
+      hasImplicitReturnType: reader.readBool(),
+      invokesSuperSelf: reader.readBool(),
+      isAbstract: reader.readBool(),
+      isExtensionTypeMember: reader.readBool(),
+      isExternal: reader.readBool(),
+      isSimplyBounded: reader.readBool(),
       isStatic: reader.readBool(),
       functionType: ManifestFunctionType.read(reader),
       isConst: reader.readBool(),
@@ -290,6 +312,13 @@ class EnumItem extends InterfaceItem<EnumElementImpl> {
 
 sealed class ExecutableItem<E extends ExecutableElementImpl>
     extends ManifestItem<E> {
+  final bool hasEnclosingTypeParameterReference;
+  final bool hasImplicitReturnType;
+  final bool invokesSuperSelf;
+  final bool isAbstract;
+  final bool isExtensionTypeMember;
+  final bool isExternal;
+  final bool isSimplyBounded;
   final bool isStatic;
   final ManifestFunctionType functionType;
 
@@ -297,6 +326,13 @@ sealed class ExecutableItem<E extends ExecutableElementImpl>
     required super.id,
     required super.isSynthetic,
     required super.metadata,
+    required this.hasEnclosingTypeParameterReference,
+    required this.hasImplicitReturnType,
+    required this.invokesSuperSelf,
+    required this.isAbstract,
+    required this.isExtensionTypeMember,
+    required this.isExternal,
+    required this.isSimplyBounded,
     required this.isStatic,
     required this.functionType,
   });
@@ -304,6 +340,14 @@ sealed class ExecutableItem<E extends ExecutableElementImpl>
   @override
   bool match(MatchContext context, E element) {
     return super.match(context, element) &&
+        hasEnclosingTypeParameterReference ==
+            element.hasEnclosingTypeParameterReference &&
+        hasImplicitReturnType == element.hasImplicitReturnType &&
+        invokesSuperSelf == element.invokesSuperSelf &&
+        isAbstract == element.isAbstract &&
+        isExtensionTypeMember == element.isExtensionTypeMember &&
+        isExternal == element.isExternal &&
+        isSimplyBounded == element.isSimplyBounded &&
         isStatic == element.isStatic &&
         functionType.match(context, element.type);
   }
@@ -311,6 +355,13 @@ sealed class ExecutableItem<E extends ExecutableElementImpl>
   @override
   void write(BufferedSink sink) {
     super.write(sink);
+    sink.writeBool(hasEnclosingTypeParameterReference);
+    sink.writeBool(hasImplicitReturnType);
+    sink.writeBool(invokesSuperSelf);
+    sink.writeBool(isAbstract);
+    sink.writeBool(isExtensionTypeMember);
+    sink.writeBool(isExternal);
+    sink.writeBool(isSimplyBounded);
     sink.writeBool(isStatic);
     functionType.writeNoTag(sink);
   }
@@ -570,6 +621,13 @@ class GetterItem extends ExecutableItem<GetterElementImpl> {
     required super.id,
     required super.isSynthetic,
     required super.metadata,
+    required super.hasEnclosingTypeParameterReference,
+    required super.hasImplicitReturnType,
+    required super.invokesSuperSelf,
+    required super.isAbstract,
+    required super.isExtensionTypeMember,
+    required super.isExternal,
+    required super.isSimplyBounded,
     required super.isStatic,
     required super.functionType,
   });
@@ -586,6 +644,14 @@ class GetterItem extends ExecutableItem<GetterElementImpl> {
         context,
         element.thisOrVariableMetadata,
       ),
+      hasEnclosingTypeParameterReference:
+          element.hasEnclosingTypeParameterReference,
+      hasImplicitReturnType: element.hasImplicitReturnType,
+      invokesSuperSelf: element.invokesSuperSelf,
+      isAbstract: element.isAbstract,
+      isExtensionTypeMember: element.isExtensionTypeMember,
+      isExternal: element.isExternal,
+      isSimplyBounded: element.isSimplyBounded,
       isStatic: element.isStatic,
       functionType: element.type.encode(context),
     );
@@ -596,6 +662,13 @@ class GetterItem extends ExecutableItem<GetterElementImpl> {
       id: ManifestItemId.read(reader),
       isSynthetic: reader.readBool(),
       metadata: ManifestMetadata.read(reader),
+      hasEnclosingTypeParameterReference: reader.readBool(),
+      hasImplicitReturnType: reader.readBool(),
+      invokesSuperSelf: reader.readBool(),
+      isAbstract: reader.readBool(),
+      isExtensionTypeMember: reader.readBool(),
+      isExternal: reader.readBool(),
+      isSimplyBounded: reader.readBool(),
       isStatic: reader.readBool(),
       functionType: ManifestFunctionType.read(reader),
     );
@@ -1118,6 +1191,13 @@ class MethodItem extends ExecutableItem<MethodElementImpl> {
     required super.id,
     required super.isSynthetic,
     required super.metadata,
+    required super.hasEnclosingTypeParameterReference,
+    required super.hasImplicitReturnType,
+    required super.invokesSuperSelf,
+    required super.isAbstract,
+    required super.isExtensionTypeMember,
+    required super.isExternal,
+    required super.isSimplyBounded,
     required super.isStatic,
     required super.functionType,
   });
@@ -1131,6 +1211,14 @@ class MethodItem extends ExecutableItem<MethodElementImpl> {
       id: id,
       isSynthetic: element.isSynthetic,
       metadata: ManifestMetadata.encode(context, element.metadata),
+      hasEnclosingTypeParameterReference:
+          element.hasEnclosingTypeParameterReference,
+      hasImplicitReturnType: element.hasImplicitReturnType,
+      invokesSuperSelf: element.invokesSuperSelf,
+      isAbstract: element.isAbstract,
+      isExtensionTypeMember: element.isExtensionTypeMember,
+      isExternal: element.isExternal,
+      isSimplyBounded: element.isSimplyBounded,
       isStatic: element.isStatic,
       functionType: element.type.encode(context),
     );
@@ -1141,6 +1229,13 @@ class MethodItem extends ExecutableItem<MethodElementImpl> {
       id: ManifestItemId.read(reader),
       isSynthetic: reader.readBool(),
       metadata: ManifestMetadata.read(reader),
+      hasEnclosingTypeParameterReference: reader.readBool(),
+      hasImplicitReturnType: reader.readBool(),
+      invokesSuperSelf: reader.readBool(),
+      isAbstract: reader.readBool(),
+      isExtensionTypeMember: reader.readBool(),
+      isExternal: reader.readBool(),
+      isSimplyBounded: reader.readBool(),
       isStatic: reader.readBool(),
       functionType: ManifestFunctionType.read(reader),
     );
@@ -1267,6 +1362,13 @@ class SetterItem extends ExecutableItem<SetterElementImpl> {
     required super.id,
     required super.isSynthetic,
     required super.metadata,
+    required super.hasEnclosingTypeParameterReference,
+    required super.hasImplicitReturnType,
+    required super.invokesSuperSelf,
+    required super.isAbstract,
+    required super.isExtensionTypeMember,
+    required super.isExternal,
+    required super.isSimplyBounded,
     required super.isStatic,
     required super.functionType,
   });
@@ -1283,6 +1385,14 @@ class SetterItem extends ExecutableItem<SetterElementImpl> {
         context,
         element.thisOrVariableMetadata,
       ),
+      hasEnclosingTypeParameterReference:
+          element.hasEnclosingTypeParameterReference,
+      hasImplicitReturnType: element.hasImplicitReturnType,
+      invokesSuperSelf: element.invokesSuperSelf,
+      isAbstract: element.isAbstract,
+      isExtensionTypeMember: element.isExtensionTypeMember,
+      isExternal: element.isExternal,
+      isSimplyBounded: element.isSimplyBounded,
       isStatic: element.isStatic,
       functionType: element.type.encode(context),
     );
@@ -1293,6 +1403,13 @@ class SetterItem extends ExecutableItem<SetterElementImpl> {
       id: ManifestItemId.read(reader),
       isSynthetic: reader.readBool(),
       metadata: ManifestMetadata.read(reader),
+      hasEnclosingTypeParameterReference: reader.readBool(),
+      hasImplicitReturnType: reader.readBool(),
+      invokesSuperSelf: reader.readBool(),
+      isAbstract: reader.readBool(),
+      isExtensionTypeMember: reader.readBool(),
+      isExternal: reader.readBool(),
+      isSimplyBounded: reader.readBool(),
       isStatic: reader.readBool(),
       functionType: ManifestFunctionType.read(reader),
     );
@@ -1311,6 +1428,13 @@ class TopLevelFunctionItem extends ExecutableItem<TopLevelFunctionElementImpl> {
     required super.id,
     required super.isSynthetic,
     required super.metadata,
+    required super.hasEnclosingTypeParameterReference,
+    required super.hasImplicitReturnType,
+    required super.invokesSuperSelf,
+    required super.isAbstract,
+    required super.isExtensionTypeMember,
+    required super.isExternal,
+    required super.isSimplyBounded,
     required super.isStatic,
     required super.functionType,
   });
@@ -1324,6 +1448,14 @@ class TopLevelFunctionItem extends ExecutableItem<TopLevelFunctionElementImpl> {
       id: id,
       isSynthetic: element.isSynthetic,
       metadata: ManifestMetadata.encode(context, element.metadata),
+      hasEnclosingTypeParameterReference:
+          element.hasEnclosingTypeParameterReference,
+      hasImplicitReturnType: element.hasImplicitReturnType,
+      invokesSuperSelf: element.invokesSuperSelf,
+      isAbstract: element.isAbstract,
+      isExtensionTypeMember: element.isExtensionTypeMember,
+      isExternal: element.isExternal,
+      isSimplyBounded: element.isSimplyBounded,
       isStatic: element.isStatic,
       functionType: element.type.encode(context),
     );
@@ -1334,6 +1466,13 @@ class TopLevelFunctionItem extends ExecutableItem<TopLevelFunctionElementImpl> {
       id: ManifestItemId.read(reader),
       isSynthetic: reader.readBool(),
       metadata: ManifestMetadata.read(reader),
+      hasEnclosingTypeParameterReference: reader.readBool(),
+      hasImplicitReturnType: reader.readBool(),
+      invokesSuperSelf: reader.readBool(),
+      isAbstract: reader.readBool(),
+      isExtensionTypeMember: reader.readBool(),
+      isExternal: reader.readBool(),
+      isSimplyBounded: reader.readBool(),
       isStatic: reader.readBool(),
       functionType: ManifestFunctionType.read(reader),
     );
