@@ -32,7 +32,6 @@ import '../base/problems.dart' show unsupported;
 import '../builder/declaration_builders.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/inference_visitor.dart';
-import '../type_inference/type_schema.dart' show UnknownType;
 
 typedef SharedMatchContext =
     shared.MatchContext<
@@ -42,132 +41,6 @@ typedef SharedMatchContext =
       SharedTypeView,
       VariableDeclaration
     >;
-
-// Coverage-ignore(suite): Not run.
-int getExtensionTypeParameterCount(Arguments arguments) {
-  if (arguments is ArgumentsImpl) {
-    return arguments._extensionTypeParameterCount;
-  } else {
-    // TODO(johnniwinther): Remove this path or assert why it is accepted.
-    return 0;
-  }
-}
-
-// Coverage-ignore(suite): Not run.
-List<DartType>? getExplicitExtensionTypeArguments(Arguments arguments) {
-  if (arguments is ArgumentsImpl) {
-    if (arguments._explicitExtensionTypeArgumentCount == 0) {
-      return null;
-    } else {
-      return arguments.types
-          .take(arguments._explicitExtensionTypeArgumentCount)
-          .toList();
-    }
-  } else {
-    // TODO(johnniwinther): Remove this path or assert why it is accepted.
-    return null;
-  }
-}
-
-/// Information about explicit/implicit type arguments used for error
-/// reporting.
-abstract class TypeArgumentsInfo {
-  const TypeArgumentsInfo();
-
-  /// Returns `true` if the [index]th type argument was inferred.
-  bool isInferred(int index);
-
-  /// Returns the offset to use when reporting an error on the [index]th type
-  /// arguments, using [offset] as the default offset.
-  int getOffsetForIndex(int index, int offset) => offset;
-}
-
-class AllInferredTypeArgumentsInfo extends TypeArgumentsInfo {
-  const AllInferredTypeArgumentsInfo();
-
-  @override
-  bool isInferred(int index) => true;
-}
-
-class NoneInferredTypeArgumentsInfo extends TypeArgumentsInfo {
-  const NoneInferredTypeArgumentsInfo();
-
-  @override
-  bool isInferred(int index) => false;
-}
-
-// Coverage-ignore(suite): Not run.
-class ExtensionMethodTypeArgumentsInfo implements TypeArgumentsInfo {
-  final ArgumentsImpl arguments;
-
-  ExtensionMethodTypeArgumentsInfo(this.arguments);
-
-  @override
-  bool isInferred(int index) {
-    if (index < arguments._extensionTypeParameterCount) {
-      // The index refers to a type argument for a type parameter declared on
-      // the extension. Check whether we have enough explicit extension type
-      // arguments.
-      return index >= arguments._explicitExtensionTypeArgumentCount;
-    }
-    // The index refers to a type argument for a type parameter declared on
-    // the method. Check whether we have enough explicit regular type arguments.
-    return index - arguments._extensionTypeParameterCount >=
-        arguments._explicitTypeArgumentCount;
-  }
-
-  @override
-  int getOffsetForIndex(int index, int offset) {
-    if (index < arguments._extensionTypeParameterCount) {
-      return arguments._extensionTypeArgumentOffset ?? offset;
-    }
-    return offset;
-  }
-}
-
-TypeArgumentsInfo getTypeArgumentsInfo(Arguments arguments) {
-  if (arguments is ArgumentsImpl) {
-    if (arguments._extensionTypeParameterCount == 0) {
-      return arguments._explicitTypeArgumentCount == 0
-          ? const AllInferredTypeArgumentsInfo()
-          : const NoneInferredTypeArgumentsInfo();
-    } else {
-      // Coverage-ignore-block(suite): Not run.
-      return new ExtensionMethodTypeArgumentsInfo(arguments);
-    }
-  } else {
-    // Coverage-ignore-block(suite): Not run.
-    // This code path should only be taken in situations where there are no
-    // type arguments at all, e.g. calling a user-definable operator.
-    assert(arguments.types.isEmpty);
-    return const NoneInferredTypeArgumentsInfo();
-  }
-}
-
-List<DartType>? getExplicitTypeArguments(Arguments arguments) {
-  if (arguments is ArgumentsImpl) {
-    if (arguments._explicitTypeArgumentCount == 0) {
-      return null;
-    } else if (arguments._extensionTypeParameterCount == 0) {
-      return arguments.types;
-    } else {
-      // Coverage-ignore-block(suite): Not run.
-      return arguments.types
-          .skip(arguments._extensionTypeParameterCount)
-          .toList();
-    }
-  } else {
-    // Coverage-ignore-block(suite): Not run.
-    // This code path should only be taken in situations where there are no
-    // type arguments at all, e.g. calling a user-definable operator.
-    assert(arguments.types.isEmpty);
-    return null;
-  }
-}
-
-bool hasExplicitTypeArguments(Arguments arguments) {
-  return getExplicitTypeArguments(arguments) != null;
-}
 
 mixin InternalTreeNode implements TreeNode {
   @override
@@ -414,14 +287,7 @@ abstract class InternalInitializer extends AuxiliaryInitializer {
 
 /// Front end specific implementation of [Argument].
 class ArgumentsImpl extends Arguments {
-  // TODO(johnniwinther): Move this to the static invocation instead.
-  final int _extensionTypeParameterCount;
-
-  final int _explicitExtensionTypeArgumentCount;
-
-  final int? _extensionTypeArgumentOffset;
-
-  int _explicitTypeArgumentCount;
+  bool _hasExplicitTypeArguments;
 
   List<Object?>? argumentsOriginalOrder;
 
@@ -436,117 +302,32 @@ class ArgumentsImpl extends Arguments {
   /// super-positional, the field is null.
   Set<String>? namedSuperParameterNames;
 
-  // Coverage-ignore(suite): Not run.
-  ArgumentsImpl.internal({
-    required List<Expression> positional,
-    required List<DartType>? types,
-    required List<NamedExpression>? named,
-    required int extensionTypeParameterCount,
-    required int explicitExtensionTypeArgumentCount,
-    required int? extensionTypeArgumentOffset,
-    required int explicitTypeArgumentCount,
-  }) : this._extensionTypeParameterCount = extensionTypeParameterCount,
-       this._explicitExtensionTypeArgumentCount =
-           explicitExtensionTypeArgumentCount,
-       this._extensionTypeArgumentOffset = extensionTypeArgumentOffset,
-       this._explicitTypeArgumentCount = explicitTypeArgumentCount,
-       this.argumentsOriginalOrder = null,
-       super(positional, types: types, named: named);
-
   ArgumentsImpl(
     List<Expression> positional, {
-    List<DartType>? types,
     List<NamedExpression>? named,
     this.argumentsOriginalOrder,
-  }) : _explicitTypeArgumentCount = types?.length ?? 0,
-       _extensionTypeParameterCount = 0,
-       _explicitExtensionTypeArgumentCount = 0,
-       // The offset is unused in this case.
-       _extensionTypeArgumentOffset = null,
-       super(positional, types: types, named: named);
+  }) : _hasExplicitTypeArguments = false,
+       super(positional, named: named);
 
-  ArgumentsImpl.empty()
-    : _explicitTypeArgumentCount = 0,
-      _extensionTypeArgumentOffset = -1,
-      _explicitExtensionTypeArgumentCount = 0,
-      _extensionTypeParameterCount = 0,
-      super.empty();
+  ArgumentsImpl.empty() : _hasExplicitTypeArguments = false, super.empty();
 
-  ArgumentsImpl.forExtensionMethod(
-    int extensionTypeParameterCount,
-    int typeParameterCount,
-    Expression receiver, {
-    List<DartType> extensionTypeArguments = const <DartType>[],
-    int? extensionTypeArgumentOffset,
-    List<DartType> typeArguments = const <DartType>[],
-    List<Expression> positionalArguments = const <Expression>[],
-    List<NamedExpression> namedArguments = const <NamedExpression>[],
-    this.argumentsOriginalOrder,
-  }) : _extensionTypeParameterCount = extensionTypeParameterCount,
-       _explicitExtensionTypeArgumentCount = extensionTypeArguments.length,
-       _explicitTypeArgumentCount = typeArguments.length,
-       _extensionTypeArgumentOffset = extensionTypeArgumentOffset,
-       assert(
-         extensionTypeArguments.isEmpty ||
-             extensionTypeArguments.length == extensionTypeParameterCount,
-         "Extension type arguments must be empty or complete.",
-       ),
-       super(
-         <Expression>[receiver]..addAll(positionalArguments),
-         named: namedArguments,
-         types: <DartType>[]
-           ..addAll(
-             _normalizeTypeArguments(
-               extensionTypeParameterCount,
-               extensionTypeArguments,
-             ),
-           )
-           ..addAll(_normalizeTypeArguments(typeParameterCount, typeArguments)),
-       );
+  List<DartType>? get explicitTypeArguments =>
+      _hasExplicitTypeArguments ? types : null;
 
-  // Coverage-ignore(suite): Not run.
-  static ArgumentsImpl clone(
-    ArgumentsImpl node,
-    List<Expression> positional,
-    List<NamedExpression> named,
-    List<DartType> types,
-  ) {
-    return new ArgumentsImpl.internal(
-      positional: positional,
-      named: named,
-      types: types,
-      extensionTypeParameterCount: node._extensionTypeParameterCount,
-      explicitExtensionTypeArgumentCount:
-          node._explicitExtensionTypeArgumentCount,
-      explicitTypeArgumentCount: node._explicitTypeArgumentCount,
-      extensionTypeArgumentOffset: node._extensionTypeArgumentOffset,
-    );
+  void setExplicitTypeArguments(List<DartType> types) {
+    assert(this.types.isEmpty);
+    assert(!_hasExplicitTypeArguments);
+    this.types.clear();
+    this.types.addAll(types);
+    _hasExplicitTypeArguments = types.isNotEmpty;
   }
 
-  static List<DartType> _normalizeTypeArguments(
-    int length,
-    List<DartType> arguments,
-  ) {
-    if (arguments.isEmpty && length > 0) {
-      // Coverage-ignore-block(suite): Not run.
-      return new List<DartType>.filled(length, const UnknownType());
-    }
-    return arguments;
+  void resetExplicitTypeArguments() {
+    types.clear();
+    _hasExplicitTypeArguments = false;
   }
 
-  static void setNonInferrableArgumentTypes(
-    ArgumentsImpl arguments,
-    List<DartType> types,
-  ) {
-    arguments.types.clear();
-    arguments.types.addAll(types);
-    arguments._explicitTypeArgumentCount = types.length;
-  }
-
-  static void removeNonInferrableArgumentTypes(ArgumentsImpl arguments) {
-    arguments.types.clear();
-    arguments._explicitTypeArgumentCount = 0;
-  }
+  bool get hasExplicitTypeArguments => _hasExplicitTypeArguments;
 
   @override
   String toString() {
@@ -676,7 +457,7 @@ abstract class ExpressionJudgment extends AuxiliaryExpression {
 class FactoryConstructorInvocation extends InternalExpression {
   bool hasBeenInferred = false;
   final Procedure target;
-  Arguments arguments;
+  ArgumentsImpl arguments;
   final bool isConst;
 
   FactoryConstructorInvocation(
@@ -723,7 +504,7 @@ class TypeAliasedConstructorInvocation extends InternalExpression {
   bool hasBeenInferred = false;
   final TypeAliasBuilder typeAliasBuilder;
   final Constructor target;
-  Arguments arguments;
+  ArgumentsImpl arguments;
   final bool isConst;
 
   TypeAliasedConstructorInvocation(
@@ -771,7 +552,7 @@ class TypeAliasedFactoryInvocation extends InternalExpression {
   bool hasBeenInferred = false;
   final TypeAliasBuilder typeAliasBuilder;
   final Procedure target;
-  Arguments arguments;
+  ArgumentsImpl arguments;
   final bool isConst;
 
   TypeAliasedFactoryInvocation(
@@ -1016,7 +797,7 @@ class ShadowInvalidFieldInitializer extends LocalInitializer
 
 class ExpressionInvocation extends InternalExpression {
   Expression expression;
-  Arguments arguments;
+  ArgumentsImpl arguments;
 
   ExpressionInvocation(this.expression, this.arguments) {
     expression.parent = this;
@@ -1206,7 +987,7 @@ class VariableDeclarationImpl extends VariableDeclaration {
 
 /// Front end specific implementation of [LoadLibrary].
 class LoadLibraryImpl extends LoadLibrary {
-  final Arguments? arguments;
+  final ArgumentsImpl? arguments;
 
   LoadLibraryImpl(LibraryDependency import, this.arguments) : super(import);
 
@@ -4130,7 +3911,7 @@ class MethodInvocation extends InternalExpression {
   Name name;
 
   /// The arguments applied at the invocation.
-  Arguments arguments;
+  ArgumentsImpl arguments;
 
   /// `true` if the access is null-aware, i.e. of the form `o?.a()`.
   final bool isNullAware;
@@ -4295,7 +4076,7 @@ class PropertySet extends InternalExpression {
 class AugmentSuperInvocation extends InternalExpression {
   final Member target;
 
-  Arguments arguments;
+  ArgumentsImpl arguments;
 
   AugmentSuperInvocation(
     this.target,
@@ -4483,9 +4264,9 @@ class ObjectPatternInternal extends ObjectPattern {
 
 class ExtensionTypeRedirectingInitializer extends InternalInitializer {
   Reference targetReference;
-  Arguments arguments;
+  ArgumentsImpl arguments;
 
-  ExtensionTypeRedirectingInitializer(Procedure target, Arguments arguments)
+  ExtensionTypeRedirectingInitializer(Procedure target, ArgumentsImpl arguments)
     : this.byReference(
         // Getter vs setter doesn't matter for procedures.
         getNonNullableMemberReferenceGetter(target),
@@ -4605,7 +4386,7 @@ class DotShorthand extends InternalExpression {
 class DotShorthandInvocation extends InternalExpression {
   final Name name;
   final int nameOffset;
-  final Arguments arguments;
+  final ArgumentsImpl arguments;
   final bool isConst;
 
   DotShorthandInvocation(

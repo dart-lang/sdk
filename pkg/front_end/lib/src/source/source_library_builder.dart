@@ -1394,7 +1394,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Uri fileUri,
     int offset, {
     bool? inferred,
-    TypeArgumentsInfo? typeArgumentsInfo,
     DartType? targetReceiver,
     String? targetName,
   }) {
@@ -1404,10 +1403,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       TypeParameter? typeParameter = issue.typeParameter;
 
       Message message;
-      bool issueInferred =
-          inferred ?? typeArgumentsInfo?.isInferred(issue.index) ?? false;
-      offset =
-          typeArgumentsInfo?.getOffsetForIndex(issue.index, offset) ?? offset;
+      bool issueInferred = inferred ?? false;
       if (issue.isGenericTypeAsArgumentIssue) {
         if (issueInferred) {
           message = codeGenericFunctionTypeInferredAsActualTypeArgument
@@ -1705,7 +1701,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     required Uri fileUri,
     required List<TypeParameter> typeParameters,
     required List<DartType> typeArguments,
-    required TypeArgumentsInfo typeArgumentsInfo,
+    required bool explicitTypeArguments,
     required int fileOffset,
   }) {
     if (typeArguments.isEmpty) return;
@@ -1733,7 +1729,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         issues,
         fileUri,
         fileOffset,
-        typeArgumentsInfo: typeArgumentsInfo,
+        inferred: !explicitTypeArguments,
         targetName: targetName,
       );
     }
@@ -1746,7 +1742,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     ClassHierarchyMembers membersHierarchy,
     Name name,
     Member? interfaceTarget,
-    Arguments arguments,
+    ArgumentsImpl arguments,
     Uri fileUri,
     int offset,
   ) {
@@ -1818,7 +1814,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       issues,
       fileUri,
       offset,
-      typeArgumentsInfo: getTypeArgumentsInfo(arguments),
+      inferred: !arguments.hasExplicitTypeArguments,
       targetReceiver: receiverType,
       targetName: name.text,
     );
@@ -1828,7 +1824,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     TypeEnvironment typeEnvironment,
     FunctionType functionType,
     String? localName,
-    Arguments arguments,
+    ArgumentsImpl arguments,
     Uri fileUri,
     int offset,
   ) {
@@ -1858,7 +1854,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       issues,
       fileUri,
       offset,
-      typeArgumentsInfo: getTypeArgumentsInfo(arguments),
+      inferred: !arguments.hasExplicitTypeArguments,
       // TODO(johnniwinther): Special-case messaging on function type
       //  invocation to avoid reference to 'call' and use the function type
       //  instead.
@@ -1902,9 +1898,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       fileUri,
       offset,
       targetReceiver: functionType,
-      typeArgumentsInfo: inferred
-          ? const AllInferredTypeArgumentsInfo()
-          : const NoneInferredTypeArgumentsInfo(),
+      inferred: inferred,
     );
   }
 

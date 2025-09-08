@@ -90,6 +90,16 @@ instead.
 
 ### Libraries
 
+#### `dart:core`
+
+- **Breaking Change** [#61392][]: The `Uri.parseIPv4Address` function
+  no longer incorrectly allows leading zeros. This also applies to
+  `Uri.parseIPv6Address` for IPv4 addresses embedded in IPv6 addresses.
+- The `Uri.parseIPv4Address` adds `start` and `end` parameters
+  to allow parsing a substring without creating a new string.
+
+[#61392]: https://dartbug.com/61392
+
 #### `dart:io`
 
 - **Breaking Change** [#56468][]: Marked `IOOverrides` as an `abstract base`

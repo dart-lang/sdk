@@ -24,6 +24,7 @@ import 'package:front_end/src/kernel/body_builder.dart' show BodyBuilder;
 import 'package:front_end/src/kernel/body_builder_context.dart';
 import 'package:front_end/src/kernel/expression_generator.dart';
 import 'package:front_end/src/kernel/expression_generator_helper.dart';
+import 'package:front_end/src/kernel/internal_ast.dart';
 import 'package:front_end/src/kernel/kernel_target.dart' show KernelTarget;
 import 'package:front_end/src/kernel/load_library_builder.dart';
 import 'package:front_end/src/source/name_space_builder.dart';
@@ -35,7 +36,6 @@ import 'package:front_end/src/source/source_loader.dart';
 import 'package:front_end/src/type_inference/type_inference_engine.dart';
 import 'package:kernel/ast.dart'
     show
-        Arguments,
         Class,
         Component,
         DynamicType,
@@ -73,7 +73,7 @@ Future<void> main() async {
     CoreTypes coreTypes = new CoreTypes(component);
     ClassHierarchy hierarchy = new ClassHierarchy(component, coreTypes);
 
-    Arguments arguments = new Arguments(<Expression>[new StringLiteral("arg")]);
+    ArgumentsImpl arguments = new ArgumentsImpl([new StringLiteral("arg")]);
     Expression expression = new VariableGet(
       new VariableDeclaration("expression"),
     );

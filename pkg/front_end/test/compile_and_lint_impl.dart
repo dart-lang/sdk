@@ -23,6 +23,7 @@ import 'package:front_end/src/kernel/body_builder.dart' show BodyBuilder;
 import 'package:front_end/src/kernel/constness.dart' show Constness;
 import 'package:front_end/src/kernel/expression_generator_helper.dart'
     show UnresolvedKind;
+import 'package:front_end/src/kernel/internal_ast.dart';
 import 'package:front_end/src/kernel/kernel_target.dart' show BuildResult;
 import 'package:front_end/src/util/import_export_etc_helper.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -249,7 +250,7 @@ mixin BodyBuilderTestMixin on BodyBuilder {
     TypeDeclarationBuilder? type,
     Token nameToken,
     Token nameLastToken,
-    Arguments arguments,
+    ArgumentsImpl arguments,
     String name,
     List<TypeBuilder>? typeArguments,
     int charOffset,

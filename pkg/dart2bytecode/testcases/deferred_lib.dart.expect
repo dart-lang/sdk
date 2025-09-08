@@ -14,17 +14,18 @@ Function 'callDeferred', static, reflectable, debuggable
 Bytecode {
   Entry                1
   CheckStack           0
-  PushNull
-  DirectCall           CP#0, 1
+  PushConstant         CP#0
+  DirectCall           CP#1, 1
   PopLocal             r0
-  DirectCall           CP#2, 0
+  DirectCall           CP#3, 0
   ReturnTOS
 }
 ConstantPool {
-  [0] = DirectCall 'dart:async::Future::value (constructor)', ArgDesc num-args 1, num-type-args 0, names []
-  [1] = Reserved
-  [2] = DirectCall 'DART_SDK/pkg/dart2bytecode/testcases/hello.dart::main', ArgDesc num-args 0, num-type-args 0, names []
-  [3] = Reserved
+  [0] = DeferredLibraryPrefix 'lib', DART_SDK/pkg/dart2bytecode/testcases/deferred_lib.dart -> DART_SDK/pkg/dart2bytecode/testcases/hello.dart
+  [1] = DirectCall 'dart:core::_checkLoaded', ArgDesc num-args 1, num-type-args 0, names []
+  [2] = Reserved
+  [3] = DirectCall 'DART_SDK/pkg/dart2bytecode/testcases/hello.dart::main', ArgDesc num-args 0, num-type-args 0, names []
+  [4] = Reserved
 }
 
 
@@ -35,13 +36,14 @@ Function 'testLoadLibrary', static, reflectable, debuggable
 Bytecode {
   Entry                0
   CheckStack           0
-  PushNull
-  DirectCall           CP#0, 1
+  PushConstant         CP#0
+  DirectCall           CP#1, 1
   ReturnTOS
 }
 ConstantPool {
-  [0] = DirectCall 'dart:async::Future::value (constructor)', ArgDesc num-args 1, num-type-args 0, names []
-  [1] = Reserved
+  [0] = DeferredLibraryPrefix 'lib', DART_SDK/pkg/dart2bytecode/testcases/deferred_lib.dart -> DART_SDK/pkg/dart2bytecode/testcases/hello.dart
+  [1] = DirectCall 'dart:core::_loadLibrary', ArgDesc num-args 1, num-type-args 0, names []
+  [2] = Reserved
 }
 
 

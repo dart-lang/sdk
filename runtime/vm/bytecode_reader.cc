@@ -523,6 +523,7 @@ intptr_t BytecodeReaderHelper::ReadConstantPool(const Function& function,
     kDynamicCall,
     kExternalCall,
     kFfiCall,
+    kDeferredLibraryPrefix,
   };
 
   Object& obj = Object::Handle(Z);
@@ -700,6 +701,21 @@ intptr_t BytecodeReaderHelper::ReadConstantPool(const Function& function,
         pool.SetRawValueAt(i, 0);
         continue;
       }
+      case ConstantPoolTag::kDeferredLibraryPrefix: {
+        name ^= ReadObject();
+        ASSERT(name.IsSymbol());
+        const auto& enclosing_library = Library::CheckedHandle(Z, ReadObject());
+        const auto& target_library = Library::CheckedHandle(Z, ReadObject());
+        obj = enclosing_library.LookupLocalLibraryPrefix(name);
+        if (obj.IsNull()) {
+          obj = Namespace::New(target_library, Object::null_array(),
+                               Object::null_array(), enclosing_library);
+          obj = LibraryPrefix::New(name, Namespace::Cast(obj),
+                                   /*deferred_load=*/true, enclosing_library);
+          enclosing_library.AddObject(LibraryPrefix::Cast(obj), name);
+        }
+        ASSERT(LibraryPrefix::Cast(obj).GetLibrary(0) == target_library.ptr());
+      } break;
       default:
         UNREACHABLE();
     }

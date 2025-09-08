@@ -5955,6 +5955,9 @@ class A {
             [0]
               foo: #M6
               foo=: #M7
+          inherited
+            foo: #M6
+            foo=: #M7
   requirements
     libraries
       package:test/a.dart
@@ -6423,6 +6426,8 @@ class B extends A {}
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
   requirements
     libraries
       package:test/a.dart
@@ -6491,6 +6496,9 @@ class A {
             [0]
               bar: #M8
               foo: #M2
+          inherited
+            bar: #M8
+            foo: #M2
   requirements
     libraries
       package:test/a.dart
@@ -6698,6 +6706,9 @@ class B extends A {}
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
   requirements
     libraries
       package:test/a.dart
@@ -6786,6 +6797,9 @@ class A {
             [0]
               foo: #M9
               foo=: #M3
+          inherited
+            foo: #M9
+            foo=: #M3
   requirements
     libraries
       package:test/a.dart
@@ -7647,6 +7661,8 @@ void f(B b) {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -7713,6 +7729,8 @@ class B extends A<double> {}
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
   requirements
 [operation] checkLinkedBundleRequirements
   package:test/test.dart
@@ -7802,6 +7820,8 @@ void f(B b) {
         interface: #M5
           map
             foo: #M2
+          inherited
+            foo: #M2
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -7862,6 +7882,8 @@ class B implements A<double> {}
       B: #M7
         interface: #M8
           map
+            foo: #M2
+          inherited
             foo: #M2
   requirements
 [operation] checkLinkedBundleRequirements
@@ -7957,6 +7979,8 @@ void f(B b) {
           superImplemented
             [1]
               foo: #M2
+          inherited
+            foo: #M2
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -8023,6 +8047,8 @@ class B with A<double> {}
           superImplemented
             [1]
               foo: #M2
+          inherited
+            foo: #M2
   requirements
 [operation] checkLinkedBundleRequirements
   package:test/test.dart
@@ -8214,6 +8240,8 @@ class B extends A {}
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
   requirements
     libraries
       package:test/a.dart
@@ -8279,6 +8307,9 @@ class A {
             [0]
               bar: #M6
               foo: #M1
+          inherited
+            bar: #M6
+            foo: #M1
   requirements
     libraries
       package:test/a.dart
@@ -8593,6 +8624,9 @@ class B extends A {}
             [0]
               bar: #M1
               foo: #M2
+          inherited
+            bar: #M1
+            foo: #M2
   requirements
     libraries
       package:test/a.dart
@@ -8676,6 +8710,9 @@ class A {
             [0]
               bar: #M1
               foo: #M7
+          inherited
+            bar: #M1
+            foo: #M7
   requirements
     libraries
       package:test/a.dart
@@ -8778,6 +8815,8 @@ class X extends C {}
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M8
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -8791,6 +8830,8 @@ class X extends C {}
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M8
   requirements
     libraries
       package:test/a.dart
@@ -8880,6 +8921,8 @@ class C extends A implements B {}
           superImplemented
             [0]
               foo: #M12
+          inherited
+            foo: #M12
   requirements
 [operation] checkLinkedBundleRequirements
   package:test/test.dart
@@ -8900,6 +8943,8 @@ class C extends A implements B {}
           superImplemented
             [0]
               foo: #M12
+          inherited
+            foo: #M12
   requirements
     libraries
       package:test/a.dart
@@ -9187,6 +9232,243 @@ class A {
     flags: isLibrary
     errors
       7 +8 UNUSED_IMPORT
+''',
+    );
+  }
+
+  test_dependency_class_instanceMethod_change_inheritanceManager_getInheritedMap_shadowed() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var B = state.singleUnit.scopeClassElement('B');
+      B.inheritanceManager.getInheritedMap(B);
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+abstract class A {
+  int foo();
+}
+
+abstract class B extends A {
+  void foo();
+}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+      B: #M3
+        declaredMethods
+          foo: #M4
+        interface: #M5
+          map
+            foo: #M4
+          inherited
+            foo: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          B: #M3
+        interfaces
+          B
+            interfaceId: #M5
+[status] idle
+''',
+      updatedA: r'''
+abstract class A {
+  double foo();
+}
+
+abstract class B extends A {
+  void foo();
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M6
+        interface: #M7
+          map
+            foo: #M6
+      B: #M3
+        declaredMethods
+          foo: #M4
+        interface: #M8
+          map
+            foo: #M4
+          inherited
+            foo: #M6
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  interfaceIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: B
+    expectedId: #M5
+    actualId: #M8
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          B: #M3
+        interfaces
+          B
+            interfaceId: #M8
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_instanceMethod_change_inheritanceManager_getInheritedMap_shadowed2() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var C = state.singleUnit.scopeClassElement('C');
+      C.inheritanceManager.getInheritedMap(C);
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+abstract class A {
+  int foo();
+}
+
+abstract class B extends A {
+  void foo();
+}
+
+abstract class C extends B {}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+      B: #M3
+        declaredMethods
+          foo: #M4
+        interface: #M5
+          map
+            foo: #M4
+          inherited
+            foo: #M1
+      C: #M6
+        interface: #M7
+          map
+            foo: #M4
+          inherited
+            foo: #M4
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          C: #M6
+        interfaces
+          C
+            interfaceId: #M7
+[status] idle
+''',
+      updatedA: r'''
+abstract class A {
+  double foo();
+}
+
+abstract class B extends A {
+  void foo();
+}
+
+abstract class C extends B {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M8
+        interface: #M9
+          map
+            foo: #M8
+      B: #M3
+        declaredMethods
+          foo: #M4
+        interface: #M10
+          map
+            foo: #M4
+          inherited
+            foo: #M8
+      C: #M6
+        interface: #M7
+          map
+            foo: #M4
+          inherited
+            foo: #M4
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
 ''',
     );
   }
@@ -10186,6 +10468,8 @@ import 'a.dart';
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -10235,6 +10519,8 @@ class B extends A {}
           superImplemented
             [0]
               foo: #M5
+          inherited
+            foo: #M5
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -10316,6 +10602,8 @@ import 'a.dart';
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -10372,6 +10660,9 @@ class B extends A {}
             [0]
               bar: #M5
               foo: #M1
+          inherited
+            bar: #M5
+            foo: #M1
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -10613,6 +10904,8 @@ void f(C c) {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
       C: #M5
         interface: #M6
           map
@@ -10622,6 +10915,8 @@ void f(C c) {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -10684,6 +10979,8 @@ class C extends B {}
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
       C: #M10
         interface: #M11
           map
@@ -10693,6 +10990,8 @@ class C extends B {}
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
   requirements
 [operation] checkLinkedBundleRequirements
   package:test/test.dart
@@ -10781,6 +11080,8 @@ void f(B b) {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -10841,6 +11142,8 @@ class B extends A<double> {}
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
   requirements
 [operation] checkLinkedBundleRequirements
   package:test/test.dart
@@ -10924,6 +11227,8 @@ void f(B b) {
         interface: #M4
           map
             foo: #M1
+          inherited
+            foo: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -10978,6 +11283,8 @@ class B implements A<double> {}
       B: #M6
         interface: #M7
           map
+            foo: #M1
+          inherited
             foo: #M1
   requirements
 [operation] checkLinkedBundleRequirements
@@ -11067,6 +11374,8 @@ void f(B b) {
           superImplemented
             [1]
               foo: #M1
+          inherited
+            foo: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -11127,6 +11436,8 @@ class B with A<double> {}
           superImplemented
             [1]
               foo: #M1
+          inherited
+            foo: #M1
   requirements
 [operation] checkLinkedBundleRequirements
   package:test/test.dart
@@ -12344,6 +12655,8 @@ void f(B b) {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -12410,6 +12723,8 @@ class B extends A<double> {}
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
   requirements
 [operation] checkLinkedBundleRequirements
   package:test/test.dart
@@ -12499,6 +12814,8 @@ void f(B b) {
         interface: #M5
           map
             foo=: #M2
+          inherited
+            foo=: #M2
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -12559,6 +12876,8 @@ class B implements A<double> {}
       B: #M7
         interface: #M8
           map
+            foo=: #M2
+          inherited
             foo=: #M2
   requirements
 [operation] checkLinkedBundleRequirements
@@ -12654,6 +12973,8 @@ void f(B b) {
           superImplemented
             [1]
               foo=: #M2
+          inherited
+            foo=: #M2
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -12720,6 +13041,8 @@ class B with A<double> {}
           superImplemented
             [1]
               foo=: #M2
+          inherited
+            foo=: #M2
   requirements
 [operation] checkLinkedBundleRequirements
   package:test/test.dart
@@ -16441,6 +16764,8 @@ void f() {
           superImplemented
             [0]
               index: #M6
+          inherited
+            index: #M6
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -16505,6 +16830,8 @@ enum A {
           superImplemented
             [0]
               index: #M6
+          inherited
+            index: #M6
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -16591,6 +16918,8 @@ void f(A a) {
           superImplemented
             [0]
               index: #M8
+          inherited
+            index: #M8
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -16661,6 +16990,8 @@ enum A {
           superImplemented
             [0]
               index: #M8
+          inherited
+            index: #M8
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -16750,6 +17081,8 @@ void f(A a) {
           superImplemented
             [0]
               index: #M10
+          inherited
+            index: #M10
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -16825,6 +17158,8 @@ enum A {
           superImplemented
             [0]
               index: #M10
+          inherited
+            index: #M10
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -16881,6 +17216,8 @@ void f(A a) {
           superImplemented
             [0]
               index: #M7
+          inherited
+            index: #M7
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -16947,6 +17284,8 @@ enum A {
           superImplemented
             [0]
               index: #M7
+          inherited
+            index: #M7
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -17031,6 +17370,8 @@ void f(A a) {
           superImplemented
             [0]
               index: #M8
+          inherited
+            index: #M8
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -17101,6 +17442,8 @@ enum A {
           superImplemented
             [0]
               index: #M8
+          inherited
+            index: #M8
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -17158,6 +17501,8 @@ void f(A a) {
           superImplemented
             [0]
               index: #M8
+          inherited
+            index: #M8
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -17229,6 +17574,8 @@ enum A {
           superImplemented
             [0]
               index: #M8
+          inherited
+            index: #M8
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -17319,6 +17666,8 @@ void f(A a) {
           superImplemented
             [0]
               index: #M10
+          inherited
+            index: #M10
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -17395,6 +17744,8 @@ enum A {
           superImplemented
             [0]
               index: #M10
+          inherited
+            index: #M10
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -17449,6 +17800,8 @@ void f() {
           superImplemented
             [0]
               index: #M8
+          inherited
+            index: #M8
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -17515,6 +17868,8 @@ enum A {
           superImplemented
             [0]
               index: #M8
+          inherited
+            index: #M8
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -17602,6 +17957,8 @@ void f() {
           superImplemented
             [0]
               index: #M10
+          inherited
+            index: #M10
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -17671,6 +18028,8 @@ enum A {
           superImplemented
             [0]
               index: #M10
+          inherited
+            index: #M10
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -17725,6 +18084,8 @@ void f() {
           superImplemented
             [0]
               index: #M7
+          inherited
+            index: #M7
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -17791,6 +18152,8 @@ enum A {
           superImplemented
             [0]
               index: #M7
+          inherited
+            index: #M7
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -17877,6 +18240,8 @@ void f() {
           superImplemented
             [0]
               index: #M8
+          inherited
+            index: #M8
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -17945,6 +18310,8 @@ enum A {
           superImplemented
             [0]
               index: #M8
+          inherited
+            index: #M8
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -18000,6 +18367,8 @@ void f() {
           superImplemented
             [0]
               index: #M8
+          inherited
+            index: #M8
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -18063,6 +18432,8 @@ enum A {
           superImplemented
             [0]
               index: #M8
+          inherited
+            index: #M8
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -18147,6 +18518,8 @@ void f() {
           superImplemented
             [0]
               index: #M10
+          inherited
+            index: #M10
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -18213,6 +18586,8 @@ enum A {
           superImplemented
             [0]
               index: #M10
+          inherited
+            index: #M10
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -18654,6 +19029,8 @@ export 'a.dart';
           superImplemented
             [0]
               index: #M6
+          inherited
+            index: #M6
       _E: #M7
         declaredFields
           v: #M8
@@ -18669,6 +19046,8 @@ export 'a.dart';
           superImplemented
             [0]
               index: #M6
+          inherited
+            index: #M6
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -18715,6 +19094,8 @@ enum _E2 {v}
           superImplemented
             [0]
               index: #M6
+          inherited
+            index: #M6
       _E2: #M13
         declaredFields
           v: #M14
@@ -18730,6 +19111,8 @@ enum _E2 {v}
           superImplemented
             [0]
               index: #M6
+          inherited
+            index: #M6
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -26836,6 +27219,8 @@ void f(B b) {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -26900,6 +27285,8 @@ mixin B on A<double> {}
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
   requirements
 [operation] checkLinkedBundleRequirements
   package:test/test.dart
@@ -27330,6 +27717,8 @@ void f(B b) {
         interface: #M4
           map
             foo: #M1
+          inherited
+            foo: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -27384,6 +27773,8 @@ mixin B implements A<double> {}
       B: #M6
         interface: #M7
           map
+            foo: #M1
+          inherited
             foo: #M1
   requirements
 [operation] checkLinkedBundleRequirements
@@ -27471,6 +27862,8 @@ void f(B b) {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -27529,6 +27922,8 @@ mixin B on A<double> {}
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
   requirements
 [operation] checkLinkedBundleRequirements
   package:test/test.dart
@@ -28116,6 +28511,8 @@ void f(B b) {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -28180,6 +28577,8 @@ mixin B on A<double> {}
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
   requirements
 [operation] checkLinkedBundleRequirements
   package:test/test.dart
@@ -31319,6 +31718,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -31369,6 +31770,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
     );
   }
@@ -31426,6 +31829,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -31482,6 +31888,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
     );
   }
@@ -31531,6 +31940,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -31579,6 +31990,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
     );
   }
@@ -31630,6 +32043,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -31680,6 +32095,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
     );
   }
@@ -31777,6 +32194,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -31820,6 +32239,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
     );
   }
@@ -31872,6 +32293,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -31923,6 +32347,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
     );
   }
@@ -31965,6 +32392,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -32006,6 +32435,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
     );
   }
@@ -32052,6 +32483,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -32097,6 +32530,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
     );
   }
@@ -32143,6 +32578,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -32188,6 +32625,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
     );
   }
@@ -32242,6 +32681,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -32295,6 +32737,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
     );
   }
@@ -32339,6 +32784,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -32382,6 +32829,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
     );
   }
@@ -32430,6 +32879,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -32477,6 +32928,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
     );
   }
@@ -32909,6 +33362,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -32951,6 +33406,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
     );
   }
@@ -33003,6 +33460,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -33053,6 +33513,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
     );
   }
@@ -33095,6 +33558,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -33135,6 +33600,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
     );
   }
@@ -33181,6 +33648,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -33225,6 +33694,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
     );
   }
@@ -33383,6 +33854,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -33430,6 +33903,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
     );
   }
@@ -33484,6 +33959,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -33537,6 +34015,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
     );
   }
@@ -33583,6 +34064,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -33628,6 +34111,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
     );
   }
@@ -33674,6 +34159,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -33719,6 +34206,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
     );
   }
@@ -33863,6 +34352,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -33908,6 +34399,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
     );
   }
@@ -33960,6 +34453,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -34011,6 +34507,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
     );
   }
@@ -34055,6 +34554,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -34098,6 +34599,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
     );
   }
@@ -34142,6 +34645,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -34185,6 +34690,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
     );
   }
@@ -34276,6 +34783,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -34319,6 +34828,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
     );
   }
@@ -34371,6 +34882,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -34422,6 +34936,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
     );
   }
@@ -34464,6 +34981,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -34505,6 +35024,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
     );
   }
@@ -34549,6 +35070,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -34592,6 +35115,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
     );
   }
@@ -34635,6 +35160,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -34677,6 +35204,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
     );
   }
@@ -34728,6 +35257,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -34778,6 +35310,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
     );
   }
@@ -34819,6 +35354,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -34859,6 +35396,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
     );
   }
@@ -34902,6 +35441,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -34944,6 +35485,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
     );
   }
@@ -35032,6 +35575,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -35074,6 +35619,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
     );
   }
@@ -35125,6 +35672,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -35175,6 +35725,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
     );
   }
@@ -35216,6 +35769,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -35256,6 +35811,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
     );
   }
@@ -35299,6 +35856,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -35341,6 +35900,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
     );
   }
@@ -35429,6 +35990,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -35471,6 +36034,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
     );
   }
@@ -35522,6 +36087,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -35572,6 +36140,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
     );
   }
@@ -35613,6 +36184,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -35653,6 +36226,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
     );
   }
@@ -35696,6 +36271,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -35738,6 +36315,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
     );
   }
@@ -35779,6 +36358,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -35819,6 +36400,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
     );
   }
@@ -35868,6 +36451,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -35916,6 +36502,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
     );
   }
@@ -35955,6 +36544,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -35993,6 +36584,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
     );
   }
@@ -36034,6 +36627,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -36074,6 +36669,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
     );
   }
@@ -36325,6 +36922,8 @@ class B extends A {
           superImplemented
             [0]
               []: #M1
+          inherited
+            []: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -36366,6 +36965,8 @@ class B extends A {
           superImplemented
             [0]
               []: #M1
+          inherited
+            []: #M1
 ''',
     );
   }
@@ -36409,6 +37010,8 @@ class B extends A {
           superImplemented
             [0]
               []=: #M1
+          inherited
+            []=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -36450,6 +37053,8 @@ class B extends A {
           superImplemented
             [0]
               []=: #M1
+          inherited
+            []=: #M1
 ''',
     );
   }
@@ -36489,6 +37094,8 @@ class B extends A {
           superImplemented
             [0]
               []: #M1
+          inherited
+            []: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -36526,6 +37133,8 @@ class B extends A {
           superImplemented
             [0]
               []: #M1
+          inherited
+            []: #M1
 ''',
     );
   }
@@ -36567,6 +37176,8 @@ class B extends A {
           superImplemented
             [0]
               []=: #M1
+          inherited
+            []=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -36606,6 +37217,8 @@ class B extends A {
           superImplemented
             [0]
               []=: #M1
+          inherited
+            []=: #M1
 ''',
     );
   }
@@ -36808,6 +37421,8 @@ class B extends A {
           superImplemented
             [0]
               []: #M1
+          inherited
+            []: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -36847,6 +37462,8 @@ class B extends A {
           superImplemented
             [0]
               []: #M1
+          inherited
+            []: #M1
 ''',
     );
   }
@@ -36886,6 +37503,8 @@ class B extends A {
           superImplemented
             [0]
               []=: #M1
+          inherited
+            []=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -36923,6 +37542,8 @@ class B extends A {
           superImplemented
             [0]
               []=: #M1
+          inherited
+            []=: #M1
 ''',
     );
   }
@@ -37191,6 +37812,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -37238,6 +37861,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
     );
   }
@@ -37292,6 +37917,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -37345,6 +37973,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
     );
   }
@@ -37391,6 +38022,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -37436,6 +38069,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
     );
   }
@@ -37484,6 +38119,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -37531,6 +38168,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
     );
   }
@@ -37625,6 +38264,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -37667,6 +38308,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
     );
   }
@@ -37718,6 +38361,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -37768,6 +38414,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
     );
   }
@@ -37809,6 +38458,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -37849,6 +38500,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
     );
   }
@@ -37894,6 +38547,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -37938,6 +38593,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
     );
   }
@@ -37981,6 +38638,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -38023,6 +38682,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
     );
   }
@@ -38074,6 +38735,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -38124,6 +38788,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
     );
   }
@@ -38165,6 +38832,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -38205,6 +38874,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
     );
   }
@@ -38250,6 +38921,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -38294,6 +38967,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
     );
   }
@@ -38764,6 +39439,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -38803,6 +39480,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
     );
   }
@@ -38852,6 +39531,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -38899,6 +39581,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
     );
   }
@@ -38938,6 +39623,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -38975,6 +39662,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
     );
   }
@@ -39018,6 +39707,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -39059,6 +39750,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
     );
   }
@@ -39206,6 +39899,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -39250,6 +39945,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
     );
   }
@@ -39301,6 +39998,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -39351,6 +40051,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
     );
   }
@@ -39394,6 +40097,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -39436,6 +40141,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
     );
   }
@@ -39479,6 +40186,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -39521,6 +40230,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
     );
   }
@@ -39662,6 +40373,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -39706,6 +40419,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
     );
   }
@@ -39757,6 +40472,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -39807,6 +40525,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
     );
   }
@@ -39850,6 +40571,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -39892,6 +40615,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
     );
   }
@@ -39935,6 +40660,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -39977,6 +40704,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
     );
   }
@@ -40074,6 +40803,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -40119,6 +40850,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
     );
   }
@@ -40173,6 +40906,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -40226,6 +40962,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
     );
   }
@@ -40270,6 +41009,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -40313,6 +41054,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
     );
   }
@@ -40359,6 +41102,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -40404,6 +41149,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
     );
   }
@@ -40447,6 +41194,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -40489,6 +41238,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
     );
   }
@@ -40540,6 +41291,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -40590,6 +41344,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
     );
   }
@@ -40631,6 +41388,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -40671,6 +41430,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
     );
   }
@@ -40714,6 +41475,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -40756,6 +41519,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
     );
   }
@@ -40837,6 +41602,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -40876,6 +41643,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
     );
   }
@@ -40925,6 +41694,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -40972,6 +41744,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
     );
   }
@@ -41011,6 +41786,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -41048,6 +41825,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
     );
   }
@@ -41089,6 +41868,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -41128,6 +41909,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
     );
   }
@@ -41216,6 +41999,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -41258,6 +42043,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
     );
   }
@@ -41309,6 +42096,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -41359,6 +42149,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
     );
   }
@@ -41400,6 +42193,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -41440,6 +42235,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
     );
   }
@@ -41483,6 +42280,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -41525,6 +42324,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
     );
   }
@@ -41693,6 +42494,8 @@ class B = A with M;
               foo: #M2
             [1]
               foo: #M2
+          inherited
+            foo: #M2
     declaredMixins
       M: #M7
         interface: #M8
@@ -41737,6 +42540,8 @@ class Z {}
               foo: #M2
             [1]
               foo: #M2
+          inherited
+            foo: #M2
       Z: #M9
         interface: #M10
     declaredMixins
@@ -41797,6 +42602,9 @@ class B = A with M;
             [1]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
     declaredMixins
       M: #M8
         interface: #M9
@@ -41850,6 +42658,9 @@ class Z {}
             [1]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
       Z: #M10
         interface: #M11
     declaredMixins
@@ -41899,6 +42710,8 @@ class B = A with M;
               foo: #M1
             [1]
               foo: #M1
+          inherited
+            foo: #M1
     declaredMixins
       M: #M6
         interface: #M7
@@ -41941,6 +42754,8 @@ class Z {}
               foo: #M1
             [1]
               foo: #M1
+          inherited
+            foo: #M1
       Z: #M8
         interface: #M9
     declaredMixins
@@ -41992,6 +42807,8 @@ class B = A with M;
               foo=: #M2
             [1]
               foo=: #M2
+          inherited
+            foo=: #M2
     declaredMixins
       M: #M7
         interface: #M8
@@ -42036,6 +42853,8 @@ class Z {}
               foo=: #M2
             [1]
               foo=: #M2
+          inherited
+            foo=: #M2
       Z: #M9
         interface: #M10
     declaredMixins
@@ -42077,6 +42896,8 @@ class B extends A {
           superImplemented
             [0]
               []: #M1
+          inherited
+            []: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -42112,6 +42933,8 @@ class B extends A {
           superImplemented
             [0]
               []: #M1
+          inherited
+            []: #M1
 ''',
     );
   }
@@ -42155,6 +42978,9 @@ class B extends A {
             [0]
               []: #M1
               []=: #M2
+          inherited
+            []: #M1
+            []=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -42197,6 +43023,9 @@ class B extends A {
             [0]
               []: #M1
               []=: #M2
+          inherited
+            []: #M1
+            []=: #M2
 ''',
     );
   }
@@ -42233,6 +43062,8 @@ class B extends A {
           superImplemented
             [0]
               []=: #M1
+          inherited
+            []=: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -42268,6 +43099,8 @@ class B extends A {
           superImplemented
             [0]
               []=: #M1
+          inherited
+            []=: #M1
 ''',
     );
   }
@@ -42311,6 +43144,9 @@ class B extends A {
             [0]
               []: #M1
               []=: #M2
+          inherited
+            []: #M1
+            []=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -42353,6 +43189,9 @@ class B extends A {
             [0]
               []: #M1
               []=: #M2
+          inherited
+            []: #M1
+            []=: #M2
 ''',
     );
   }
@@ -42391,6 +43230,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -42428,6 +43269,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
     );
   }
@@ -42474,6 +43317,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
       updatedCode: r'''
 class A {
@@ -42519,6 +43365,9 @@ class B extends A {
             [0]
               foo: #M2
               foo=: #M3
+          inherited
+            foo: #M2
+            foo=: #M3
 ''',
     );
   }
@@ -42555,6 +43404,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -42590,6 +43441,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
     );
   }
@@ -42628,6 +43481,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -42665,6 +43520,8 @@ class B extends A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
     );
   }
@@ -43258,6 +44115,8 @@ class B extends A {
           superImplemented
             [0]
               f: #M2
+          inherited
+            f: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -43298,6 +44157,8 @@ class B extends A {
           superImplemented
             [0]
               f: #M2
+          inherited
+            f: #M2
 ''',
     );
   }
@@ -43342,6 +44203,8 @@ class B extends A {
           superImplemented
             [0]
               f: #M2
+          inherited
+            f: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -43380,6 +44243,8 @@ class B extends A {
           superImplemented
             [0]
               f: #M2
+          inherited
+            f: #M2
 ''',
     );
   }
@@ -44827,6 +45692,8 @@ class B extends A {}
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -44866,6 +45733,9 @@ class B extends A {}
             [0]
               bar: #M7
               foo: #M2
+          inherited
+            bar: #M7
+            foo: #M2
 ''',
     );
   }
@@ -44903,6 +45773,8 @@ class B extends A<int> {}
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
       updatedCode: r'''
 class A<T> {
@@ -44942,6 +45814,9 @@ class B extends A<int> {}
             [0]
               bar: #M7
               foo: #M2
+          inherited
+            bar: #M7
+            foo: #M2
 ''',
     );
   }
@@ -44974,6 +45849,8 @@ class B implements A {}
         interface: #M5
           map
             foo: #M2
+          inherited
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -45004,6 +45881,9 @@ class B implements A {}
       B: #M4
         interface: #M9
           map
+            bar: #M7
+            foo: #M2
+          inherited
             bar: #M7
             foo: #M2
 ''',
@@ -45038,6 +45918,8 @@ class B implements A<int> {}
         interface: #M5
           map
             foo: #M2
+          inherited
+            foo: #M2
 ''',
       updatedCode: r'''
 class A<T> {
@@ -45068,6 +45950,9 @@ class B implements A<int> {}
       B: #M4
         interface: #M9
           map
+            bar: #M7
+            foo: #M2
+          inherited
             bar: #M7
             foo: #M2
 ''',
@@ -45107,6 +45992,8 @@ class B with A {}
           superImplemented
             [1]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -45146,6 +46033,9 @@ class B with A {}
             [1]
               bar: #M7
               foo: #M2
+          inherited
+            bar: #M7
+            foo: #M2
 ''',
     );
   }
@@ -45183,6 +46073,8 @@ class B with A<int> {}
           superImplemented
             [1]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
       updatedCode: r'''
 class A<T> {
@@ -45222,6 +46114,9 @@ class B with A<int> {}
             [1]
               bar: #M7
               foo: #M2
+          inherited
+            bar: #M7
+            foo: #M2
 ''',
     );
   }
@@ -45266,6 +46161,8 @@ abstract class C implements A, B {}
             foo: #M10
           combinedIds
             [#M2, #M6]: #M10
+          inherited
+            foo: #M6
 ''',
       updatedCode: r'''
 abstract class A {
@@ -45309,6 +46206,8 @@ abstract class C implements A, B {
             zzz: #M11
           combinedIds
             [#M2, #M6]: #M10
+          inherited
+            foo: #M6
 ''',
     );
   }
@@ -45355,9 +46254,13 @@ abstract class D implements C {}
             foo: #M10
           combinedIds
             [#M2, #M6]: #M10
+          inherited
+            foo: #M10
       D: #M11
         interface: #M12
           map
+            foo: #M10
+          inherited
             foo: #M10
 ''',
       updatedCode: r'''
@@ -45406,9 +46309,14 @@ abstract class D implements C {}
             [#M2, #M6]: #M10
           implemented
             xxx: #M13
+          inherited
+            foo: #M10
       D: #M11
         interface: #M15
           map
+            foo: #M10
+            xxx: #M13
+          inherited
             foo: #M10
             xxx: #M13
 ''',
@@ -46224,6 +47132,8 @@ abstract class B extends A {}
         interface: #M4
           map
             foo: #M1
+          inherited
+            foo: #M1
 ''',
       updatedCode: r'''
 abstract class A {
@@ -46256,6 +47166,9 @@ abstract class B extends A {}
           superImplemented
             [0]
               bar: #M5
+          inherited
+            bar: #M5
+            foo: #M1
 ''',
     );
   }
@@ -46295,6 +47208,8 @@ class X extends S with M {}
               foo: #M1
             [1]
               foo: #M5
+          inherited
+            foo: #M5
     declaredMixins
       M: #M6
         declaredMethods
@@ -46335,6 +47250,8 @@ class X extends S with M {}
               foo: #M1
             [1]
               foo: #M1
+          inherited
+            foo: #M1
     declaredMixins
       M: #M6
         interface: #M9
@@ -46380,6 +47297,8 @@ class X extends S with M1, M2 {}
               foo: #M5
             [2]
               foo: #M5
+          inherited
+            foo: #M5
     declaredMixins
       M1: #M6
         declaredMethods
@@ -46432,6 +47351,9 @@ class X extends S with M1, M2 {}
             [2]
               bar: #M11
               foo: #M5
+          inherited
+            bar: #M11
+            foo: #M5
     declaredMixins
       M1: #M6
         declaredMethods
@@ -46483,6 +47405,8 @@ class B extends A {}
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -46518,6 +47442,9 @@ class B extends A {}
             [0]
               bar: #M5
               foo: #M1
+          inherited
+            bar: #M5
+            foo: #M1
 ''',
     );
   }
@@ -46556,6 +47483,8 @@ class B extends A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -46595,6 +47524,9 @@ class B extends A {
             [0]
               bar: #M6
               foo: #M1
+          inherited
+            bar: #M6
+            foo: #M1
 ''',
     );
   }
@@ -46856,6 +47788,8 @@ class B extends A {}
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -46892,6 +47826,9 @@ class B extends A {}
             [0]
               bar: #M5
               foo: #M1
+          inherited
+            bar: #M5
+            foo: #M1
 ''',
     );
   }
@@ -46927,6 +47864,8 @@ class B extends A<int> {}
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
       updatedCode: r'''
 class A<T> {
@@ -46963,6 +47902,9 @@ class B extends A<int> {}
             [0]
               bar: #M5
               foo: #M1
+          inherited
+            bar: #M5
+            foo: #M1
 ''',
     );
   }
@@ -47000,6 +47942,8 @@ class C extends B {}
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
       C: #M5
         interface: #M6
           map
@@ -47009,6 +47953,8 @@ class C extends B {}
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
       updatedCode: r'''
 class A<T> {
@@ -47047,6 +47993,9 @@ class C extends B {}
             [0]
               bar: #M7
               foo: #M1
+          inherited
+            bar: #M7
+            foo: #M1
       C: #M5
         interface: #M10
           map
@@ -47059,6 +48008,9 @@ class C extends B {}
             [0]
               bar: #M7
               foo: #M1
+          inherited
+            bar: #M7
+            foo: #M1
 ''',
     );
   }
@@ -47089,6 +48041,8 @@ class B implements A {}
         interface: #M4
           map
             foo: #M1
+          inherited
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -47116,6 +48070,9 @@ class B implements A {}
       B: #M3
         interface: #M7
           map
+            bar: #M5
+            foo: #M1
+          inherited
             bar: #M5
             foo: #M1
 ''',
@@ -47148,6 +48105,8 @@ class B implements A<int> {}
         interface: #M4
           map
             foo: #M1
+          inherited
+            foo: #M1
 ''',
       updatedCode: r'''
 class A<T> {
@@ -47175,6 +48134,9 @@ class B implements A<int> {}
       B: #M3
         interface: #M7
           map
+            bar: #M5
+            foo: #M1
+          inherited
             bar: #M5
             foo: #M1
 ''',
@@ -47212,6 +48174,8 @@ class B with A {}
           superImplemented
             [1]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -47248,6 +48212,9 @@ class B with A {}
             [1]
               bar: #M5
               foo: #M1
+          inherited
+            bar: #M5
+            foo: #M1
 ''',
     );
   }
@@ -47283,6 +48250,8 @@ class B with A<int> {}
           superImplemented
             [1]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
       updatedCode: r'''
 class A<T> {
@@ -47319,6 +48288,9 @@ class B with A<int> {}
             [1]
               bar: #M5
               foo: #M1
+          inherited
+            bar: #M5
+            foo: #M1
 ''',
     );
   }
@@ -47381,6 +48353,8 @@ abstract class C implements A, B {}
         interface: #M9
           map
             foo: #M1
+          inherited
+            foo: #M1
 ''',
     );
   }
@@ -47421,6 +48395,8 @@ abstract class C implements A, B {}
             foo: #M8
           combinedIds
             [#M1, #M4]: #M8
+          inherited
+            foo: #M8
 ''',
       updatedCode: r'''
 abstract class A {
@@ -47459,6 +48435,9 @@ abstract class C implements A, B {}
             zzz: #M9
           combinedIds
             [#M1, #M4]: #M8
+          inherited
+            foo: #M8
+            zzz: #M9
 ''',
     );
   }
@@ -47499,12 +48478,16 @@ abstract class D implements A, B {}
         interface: #M7
           map
             foo: #M8
+          inherited
+            foo: #M8
       D: #M9
         interface: #M10
           map
             foo: #M8
           combinedIds
             [#M1, #M4]: #M8
+          inherited
+            foo: #M8
 ''',
       updatedCode: r'''
 class A {
@@ -47542,6 +48525,9 @@ abstract class D implements A, B {
           map
             foo: #M8
             xxx: #M12
+          inherited
+            foo: #M8
+            xxx: #M12
       D: #M9
         declaredMethods
           xxx: #M12
@@ -47553,6 +48539,8 @@ abstract class D implements A, B {
             [#M1, #M4]: #M8
           implemented
             xxx: #M12
+          inherited
+            foo: #M8
 ''',
     );
   }
@@ -47595,9 +48583,13 @@ abstract class D implements C {}
             foo: #M8
           combinedIds
             [#M1, #M4]: #M8
+          inherited
+            foo: #M8
       D: #M9
         interface: #M10
           map
+            foo: #M8
+          inherited
             foo: #M8
 ''',
       updatedCode: r'''
@@ -47642,9 +48634,14 @@ abstract class D implements C {}
             [#M1, #M4]: #M8
           implemented
             xxx: #M11
+          inherited
+            foo: #M8
       D: #M9
         interface: #M13
           map
+            foo: #M8
+            xxx: #M11
+          inherited
             foo: #M8
             xxx: #M11
 ''',
@@ -47687,6 +48684,8 @@ abstract class C implements A, B {}
             foo: #M8
           combinedIds
             [#M1, #M4]: #M8
+          inherited
+            foo: #M8
 ''',
       updatedCode: r'''
 abstract class A {}
@@ -47712,6 +48711,8 @@ abstract class C implements A, B {}
       C: #M6
         interface: #M10
           map
+            foo: #M4
+          inherited
             foo: #M4
 ''',
     );
@@ -47745,13 +48746,19 @@ abstract class D implements B, C {}
         interface: #M4
           map
             foo: #M1
+          inherited
+            foo: #M1
       C: #M5
         interface: #M6
           map
             foo: #M1
+          inherited
+            foo: #M1
       D: #M7
         interface: #M8
           map
+            foo: #M1
+          inherited
             foo: #M1
 ''',
       updatedCode: r'''
@@ -47781,9 +48788,13 @@ abstract class D implements B, C {
         interface: #M4
           map
             foo: #M1
+          inherited
+            foo: #M1
       C: #M5
         interface: #M6
           map
+            foo: #M1
+          inherited
             foo: #M1
       D: #M7
         declaredMethods
@@ -47794,6 +48805,8 @@ abstract class D implements B, C {
             zzz: #M9
           implemented
             zzz: #M9
+          inherited
+            foo: #M1
 ''',
     );
   }
@@ -47834,6 +48847,8 @@ abstract class C implements A, B {}
             foo: #M8
           combinedIds
             [#M1, #M4]: #M8
+          inherited
+            foo: #M8
 ''',
       updatedCode: r'''
 abstract class A {
@@ -47868,6 +48883,8 @@ abstract class C implements A, B {}
             foo: #M12
           combinedIds
             [#M1, #M9]: #M12
+          inherited
+            foo: #M9
 ''',
     );
   }
@@ -50032,6 +51049,8 @@ class B extends A {}
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -50071,6 +51090,9 @@ class B extends A {}
             [0]
               bar=: #M7
               foo=: #M2
+          inherited
+            bar=: #M7
+            foo=: #M2
 ''',
     );
   }
@@ -50108,6 +51130,8 @@ class B extends A<int> {}
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A<T> {
@@ -50147,6 +51171,9 @@ class B extends A<int> {}
             [0]
               bar=: #M7
               foo=: #M2
+          inherited
+            bar=: #M7
+            foo=: #M2
 ''',
     );
   }
@@ -50179,6 +51206,8 @@ class B implements A {}
         interface: #M5
           map
             foo=: #M2
+          inherited
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -50209,6 +51238,9 @@ class B implements A {}
       B: #M4
         interface: #M9
           map
+            bar=: #M7
+            foo=: #M2
+          inherited
             bar=: #M7
             foo=: #M2
 ''',
@@ -50243,6 +51275,8 @@ class B implements A<int> {}
         interface: #M5
           map
             foo=: #M2
+          inherited
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A<T> {
@@ -50273,6 +51307,9 @@ class B implements A<int> {}
       B: #M4
         interface: #M9
           map
+            bar=: #M7
+            foo=: #M2
+          inherited
             bar=: #M7
             foo=: #M2
 ''',
@@ -50312,6 +51349,8 @@ class B with A {}
           superImplemented
             [1]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -50351,6 +51390,9 @@ class B with A {}
             [1]
               bar=: #M7
               foo=: #M2
+          inherited
+            bar=: #M7
+            foo=: #M2
 ''',
     );
   }
@@ -50388,6 +51430,8 @@ class B with A<int> {}
           superImplemented
             [1]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A<T> {
@@ -50427,6 +51471,9 @@ class B with A<int> {}
             [1]
               bar=: #M7
               foo=: #M2
+          inherited
+            bar=: #M7
+            foo=: #M2
 ''',
     );
   }
@@ -50471,6 +51518,8 @@ abstract class C implements A, B {}
             foo=: #M10
           combinedIds
             [#M2, #M6]: #M10
+          inherited
+            foo=: #M2
 ''',
       updatedCode: r'''
 abstract class A {
@@ -50514,6 +51563,8 @@ abstract class C implements A, B {
             zzz: #M11
           combinedIds
             [#M2, #M6]: #M10
+          inherited
+            foo=: #M2
 ''',
     );
   }
@@ -50560,9 +51611,13 @@ abstract class D implements C {}
             foo=: #M10
           combinedIds
             [#M2, #M6]: #M10
+          inherited
+            foo=: #M10
       D: #M11
         interface: #M12
           map
+            foo=: #M10
+          inherited
             foo=: #M10
 ''',
       updatedCode: r'''
@@ -50611,9 +51666,14 @@ abstract class D implements C {}
             [#M2, #M6]: #M10
           implemented
             xxx: #M13
+          inherited
+            foo=: #M10
       D: #M11
         interface: #M15
           map
+            foo=: #M10
+            xxx: #M13
+          inherited
             foo=: #M10
             xxx: #M13
 ''',
@@ -51464,6 +52524,8 @@ abstract class C implements A, B {}
             foo=: #M10
           combinedIds
             [#M2, #M6]: #M10
+          inherited
+            foo=: #M10
 ''',
       updatedCode: r'''
 abstract class A {
@@ -51525,6 +52587,8 @@ abstract class C implements A, B {}
             foo=: #M15
           combinedIds
             [#M2, #M12]: #M15
+          inherited
+            foo=: #M2
 ''',
     );
   }
@@ -52195,6 +53259,11 @@ class X = A with M;
               foo2: #M4
               foo3: #M8
               foo4: #M9
+          inherited
+            foo1: #M3
+            foo2: #M4
+            foo3: #M8
+            foo4: #M9
     declaredMixins
       M: #M10
         declaredFields
@@ -52263,6 +53332,11 @@ class X = A with M;
               foo2: #M15
               foo3: #M8
               foo4: #M18
+          inherited
+            foo1: #M3
+            foo2: #M15
+            foo3: #M8
+            foo4: #M18
     declaredMixins
       M: #M10
         declaredFields
@@ -52436,6 +53510,11 @@ class X = A with M;
               foo2: #M2
               foo3: #M6
               foo4: #M7
+          inherited
+            foo1: #M1
+            foo2: #M2
+            foo3: #M6
+            foo4: #M7
     declaredMixins
       M: #M8
         declaredMethods
@@ -52498,6 +53577,11 @@ class X = A with M;
               foo2: #M10
               foo3: #M6
               foo4: #M13
+          inherited
+            foo1: #M1
+            foo2: #M10
+            foo3: #M6
+            foo4: #M13
     declaredMixins
       M: #M8
         declaredMethods
@@ -52569,6 +53653,11 @@ class X = A with M;
               foo2=: #M4
               foo3=: #M8
               foo4=: #M9
+          inherited
+            foo1=: #M3
+            foo2=: #M4
+            foo3=: #M8
+            foo4=: #M9
     declaredMixins
       M: #M10
         declaredFields
@@ -52637,6 +53726,11 @@ class X = A with M;
               foo2=: #M15
               foo3=: #M8
               foo4=: #M18
+          inherited
+            foo1=: #M3
+            foo2=: #M15
+            foo3=: #M8
+            foo4=: #M18
     declaredMixins
       M: #M10
         declaredFields
@@ -55056,6 +56150,8 @@ enum A {
           superImplemented
             [0]
               index: #M8
+          inherited
+            index: #M8
 ''',
       updatedCode: r'''
 enum A {
@@ -55083,6 +56179,8 @@ enum A {
           superImplemented
             [0]
               index: #M8
+          inherited
+            index: #M8
 ''',
     );
   }
@@ -55121,6 +56219,8 @@ enum A {
           superImplemented
             [0]
               index: #M10
+          inherited
+            index: #M10
 ''',
       updatedCode: r'''
 enum A {
@@ -55153,6 +56253,8 @@ enum A {
           superImplemented
             [0]
               index: #M10
+          inherited
+            index: #M10
 ''',
     );
   }
@@ -55191,6 +56293,8 @@ enum A<T> {
           superImplemented
             [0]
               index: #M10
+          inherited
+            index: #M10
 ''',
       updatedCode: r'''
 enum A<T> {
@@ -55223,6 +56327,8 @@ enum A<T> {
           superImplemented
             [0]
               index: #M10
+          inherited
+            index: #M10
 ''',
     );
   }
@@ -55264,6 +56370,8 @@ enum A {
           superImplemented
             [0]
               index: #M10
+          inherited
+            index: #M10
 ''',
       updatedCode: r'''
 enum A {
@@ -55299,6 +56407,8 @@ enum A {
           superImplemented
             [0]
               index: #M10
+          inherited
+            index: #M10
 ''',
     );
   }
@@ -55340,6 +56450,8 @@ enum A {
           superImplemented
             [0]
               index: #M10
+          inherited
+            index: #M10
 ''',
       updatedCode: r'''
 enum A {
@@ -55375,6 +56487,8 @@ enum A {
           superImplemented
             [0]
               index: #M10
+          inherited
+            index: #M10
 ''',
     );
   }
@@ -55408,6 +56522,8 @@ class B {}
           superImplemented
             [0]
               index: #M8
+          inherited
+            index: #M8
 ''',
       updatedCode: r'''
 enum A implements B { v }
@@ -55435,6 +56551,8 @@ class B {}
           superImplemented
             [0]
               index: #M8
+          inherited
+            index: #M8
 ''',
     );
   }
@@ -55468,6 +56586,8 @@ class B {}
           superImplemented
             [0]
               index: #M8
+          inherited
+            index: #M8
 ''',
       updatedCode: r'''
 enum A { v }
@@ -55495,6 +56615,8 @@ class B {}
           superImplemented
             [0]
               index: #M8
+          inherited
+            index: #M8
 ''',
     );
   }
@@ -55524,6 +56646,8 @@ enum A { v }
           superImplemented
             [0]
               index: #M6
+          inherited
+            index: #M6
 ''',
       updatedCode: r'''
 enum A { v }
@@ -55548,6 +56672,8 @@ enum B { v }
           superImplemented
             [0]
               index: #M6
+          inherited
+            index: #M6
       B: #M7
         declaredFields
           v: #M8
@@ -55563,6 +56689,8 @@ enum B { v }
           superImplemented
             [0]
               index: #M6
+          inherited
+            index: #M6
 ''',
     );
   }
@@ -55593,6 +56721,8 @@ enum B { v }
           superImplemented
             [0]
               index: #M6
+          inherited
+            index: #M6
       B: #M7
         declaredFields
           v: #M8
@@ -55608,6 +56738,8 @@ enum B { v }
           superImplemented
             [0]
               index: #M6
+          inherited
+            index: #M6
 ''',
       updatedCode: r'''
 enum A { v }
@@ -55631,6 +56763,8 @@ enum A { v }
           superImplemented
             [0]
               index: #M6
+          inherited
+            index: #M6
 ''',
     );
   }
@@ -55671,6 +56805,8 @@ enum A {
           superImplemented
             [0]
               index: #M8
+          inherited
+            index: #M8
 ''',
       updatedCode: r'''
 enum A {
@@ -55705,6 +56841,8 @@ enum A {
           superImplemented
             [0]
               index: #M8
+          inherited
+            index: #M8
 ''',
     );
   }
@@ -55747,6 +56885,8 @@ enum A {
           superImplemented
             [0]
               index: #M10
+          inherited
+            index: #M10
 ''',
       updatedCode: r'''
 enum A {
@@ -55783,6 +56923,8 @@ enum A {
           superImplemented
             [0]
               index: #M10
+          inherited
+            index: #M10
 ''',
     );
   }
@@ -55819,6 +56961,8 @@ enum A<T> {
           superImplemented
             [0]
               index: #M7
+          inherited
+            index: #M7
 ''',
       updatedCode: r'''
 enum A<T> {
@@ -55853,6 +56997,8 @@ enum A<T> {
           superImplemented
             [0]
               index: #M7
+          inherited
+            index: #M7
 ''',
     );
   }
@@ -55882,6 +57028,8 @@ enum A<T> { v }
           superImplemented
             [0]
               index: #M6
+          inherited
+            index: #M6
 ''',
       updatedCode: r'''
 enum A<T, U> { v }
@@ -55905,6 +57053,8 @@ enum A<T, U> { v }
           superImplemented
             [0]
               index: #M6
+          inherited
+            index: #M6
 ''',
     );
   }
@@ -55938,6 +57088,8 @@ mixin M {
           superImplemented
             [0]
               index: #M6
+          inherited
+            index: #M6
     declaredMixins
       M: #M7
         declaredMethods
@@ -55979,6 +57131,9 @@ mixin M {
             [1]
               foo: #M8
               index: #M6
+          inherited
+            foo: #M8
+            index: #M6
     declaredMixins
       M: #M7
         declaredMethods
@@ -56026,6 +57181,9 @@ mixin M {
             [1]
               foo: #M6
               index: #M7
+          inherited
+            foo: #M6
+            index: #M7
     declaredMixins
       M: #M8
         declaredMethods
@@ -56062,6 +57220,8 @@ mixin M {
           superImplemented
             [0]
               index: #M7
+          inherited
+            index: #M7
     declaredMixins
       M: #M8
         declaredMethods
@@ -58290,6 +59450,8 @@ mixin B implements A {}
         interface: #M5
           map
             foo: #M2
+          inherited
+            foo: #M2
 ''',
       updatedCode: r'''
 mixin A {
@@ -58320,6 +59482,9 @@ mixin B implements A {}
       B: #M4
         interface: #M9
           map
+            bar: #M7
+            foo: #M2
+          inherited
             bar: #M7
             foo: #M2
 ''',
@@ -58354,6 +59519,8 @@ mixin B implements A<int> {}
         interface: #M5
           map
             foo: #M2
+          inherited
+            foo: #M2
 ''',
       updatedCode: r'''
 mixin A<T> {
@@ -58384,6 +59551,9 @@ mixin B implements A<int> {}
       B: #M4
         interface: #M9
           map
+            bar: #M7
+            foo: #M2
+          inherited
             bar: #M7
             foo: #M2
 ''',
@@ -58421,6 +59591,8 @@ mixin B on A {}
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
       updatedCode: r'''
 mixin A {
@@ -58457,6 +59629,9 @@ mixin B on A {}
             [0]
               bar: #M7
               foo: #M2
+          inherited
+            bar: #M7
+            foo: #M2
 ''',
     );
   }
@@ -58492,6 +59667,8 @@ mixin B on A<int> {}
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
       updatedCode: r'''
 mixin A<T> {
@@ -58528,6 +59705,9 @@ mixin B on A<int> {}
             [0]
               bar: #M7
               foo: #M2
+          inherited
+            bar: #M7
+            foo: #M2
 ''',
     );
   }
@@ -59110,6 +60290,8 @@ mixin B implements A {}
         interface: #M4
           map
             foo: #M1
+          inherited
+            foo: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -59137,6 +60319,9 @@ mixin B implements A {}
       B: #M3
         interface: #M7
           map
+            bar: #M5
+            foo: #M1
+          inherited
             bar: #M5
             foo: #M1
 ''',
@@ -59169,6 +60354,8 @@ mixin B implements A<int> {}
         interface: #M4
           map
             foo: #M1
+          inherited
+            foo: #M1
 ''',
       updatedCode: r'''
 mixin A<T> {
@@ -59196,6 +60383,9 @@ mixin B implements A<int> {}
       B: #M3
         interface: #M7
           map
+            bar: #M5
+            foo: #M1
+          inherited
             bar: #M5
             foo: #M1
 ''',
@@ -59231,6 +60421,8 @@ mixin B on A {}
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
       updatedCode: r'''
 mixin A {
@@ -59264,6 +60456,9 @@ mixin B extends A {}
             [0]
               bar: #M5
               foo: #M1
+          inherited
+            bar: #M5
+            foo: #M1
 ''',
     );
   }
@@ -59297,6 +60492,8 @@ mixin B extends A<int> {}
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
       updatedCode: r'''
 mixin A<T> {
@@ -59330,6 +60527,9 @@ mixin B extends A<int> {}
             [0]
               bar: #M5
               foo: #M1
+          inherited
+            bar: #M5
+            foo: #M1
 ''',
     );
   }
@@ -60092,6 +61292,8 @@ mixin B implements A {}
         interface: #M5
           map
             foo=: #M2
+          inherited
+            foo=: #M2
 ''',
       updatedCode: r'''
 mixin A {
@@ -60122,6 +61324,9 @@ mixin B implements A {}
       B: #M4
         interface: #M9
           map
+            bar=: #M7
+            foo=: #M2
+          inherited
             bar=: #M7
             foo=: #M2
 ''',
@@ -60156,6 +61361,8 @@ mixin B implements A<int> {}
         interface: #M5
           map
             foo=: #M2
+          inherited
+            foo=: #M2
 ''',
       updatedCode: r'''
 mixin A<T> {
@@ -60186,6 +61393,9 @@ mixin B implements A<int> {}
       B: #M4
         interface: #M9
           map
+            bar=: #M7
+            foo=: #M2
+          inherited
             bar=: #M7
             foo=: #M2
 ''',
@@ -60223,6 +61433,8 @@ mixin B on A {}
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
       updatedCode: r'''
 mixin A {
@@ -60259,6 +61471,9 @@ mixin B on A {}
             [0]
               bar=: #M7
               foo=: #M2
+          inherited
+            bar=: #M7
+            foo=: #M2
 ''',
     );
   }
@@ -60294,6 +61509,8 @@ mixin B on A<int> {}
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
       updatedCode: r'''
 mixin A<T> {
@@ -60330,6 +61547,9 @@ mixin B on A<int> {}
             [0]
               bar=: #M7
               foo=: #M2
+          inherited
+            bar=: #M7
+            foo=: #M2
 ''',
     );
   }
@@ -60803,6 +62023,8 @@ mixin M on A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -60840,6 +62062,8 @@ mixin M on A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
     );
   }
@@ -60883,6 +62107,8 @@ mixin M on A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -60918,6 +62144,8 @@ mixin M on A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
     );
   }
@@ -60963,6 +62191,8 @@ mixin M on A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -61000,6 +62230,8 @@ mixin M on A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
     );
   }
@@ -61043,6 +62275,8 @@ mixin M on A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -61082,6 +62316,8 @@ mixin M on A {
           superImplemented
             [0]
               foo: #M2
+          inherited
+            foo: #M2
 ''',
     );
   }
@@ -61123,6 +62359,8 @@ mixin M on A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
       updatedCode: r'''
 class A {
@@ -61160,6 +62398,8 @@ mixin M on A {
           superImplemented
             [0]
               foo: #M1
+          inherited
+            foo: #M1
 ''',
     );
   }
@@ -61203,6 +62443,8 @@ mixin M on A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
       updatedCode: r'''
 class A {
@@ -61242,6 +62484,8 @@ mixin M on A {
           superImplemented
             [0]
               foo=: #M2
+          inherited
+            foo=: #M2
 ''',
     );
   }
@@ -62246,7 +63490,10 @@ set a(int _) {}
   package:test/test.dart
     declaredSetters
       a=: #M0
-        valueType: int @ dart:core
+        functionType: FunctionType
+          positional
+            required int @ dart:core
+          returnType: void
     declaredVariables
       a: #M1
         type: int @ dart:core
@@ -62259,7 +63506,10 @@ set a(double _) {}
   package:test/test.dart
     declaredSetters
       a=: #M2
-        valueType: double @ dart:core
+        functionType: FunctionType
+          positional
+            required double @ dart:core
+          returnType: void
     declaredVariables
       a: #M3
         type: double @ dart:core

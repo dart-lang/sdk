@@ -104,7 +104,7 @@ abstract class BodyBuilderContext {
   /// in the same class.
   Initializer buildRedirectingInitializer(
     Builder constructorBuilder,
-    Arguments arguments, {
+    ArgumentsImpl arguments, {
     required int fileOffset,
   }) {
     return declarationContext.buildRedirectingInitializer(
@@ -353,10 +353,18 @@ abstract class BodyBuilderContext {
   /// Adds [initializer] to generative constructor currently being built.
   void addInitializer(
     Initializer initializer,
-    ExpressionGeneratorHelper helper, {
-    required InitializerInferenceResult? inferenceResult,
-  }) {
+    ExpressionGeneratorHelper helper,
+  ) {
     throw new UnsupportedError('${runtimeType}.addInitializer');
+  }
+
+  /// Adds the inferred [Initializer] from the [inferenceResult] to generative
+  /// constructor currently being built.
+  void addInferredInitializer(
+    InitializerInferenceResult inferenceResult,
+    ExpressionGeneratorHelper helper,
+  ) {
+    throw new UnsupportedError('${runtimeType}.addInferredInitializer');
   }
 
   /// Infers the [initializer].
@@ -452,7 +460,7 @@ abstract class BodyBuilderDeclarationContext {
 
   Initializer buildRedirectingInitializer(
     Builder constructorBuilder,
-    Arguments arguments, {
+    ArgumentsImpl arguments, {
     required int fileOffset,
   }) {
     throw new UnsupportedError('${runtimeType}.buildRedirectingInitializer');
@@ -562,7 +570,7 @@ class _SourceClassBodyBuilderDeclarationContext
   @override
   Initializer buildRedirectingInitializer(
     covariant SourceConstructorBuilder constructorBuilder,
-    Arguments arguments, {
+    ArgumentsImpl arguments, {
     required int fileOffset,
   }) {
     return new RedirectingInitializer(
@@ -667,7 +675,7 @@ class _SourceExtensionTypeDeclarationBodyBuilderDeclarationContext
   @override
   Initializer buildRedirectingInitializer(
     covariant SourceConstructorBuilder constructorBuilder,
-    Arguments arguments, {
+    ArgumentsImpl arguments, {
     required int fileOffset,
   }) {
     return new ExtensionTypeRedirectingInitializer(

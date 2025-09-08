@@ -1035,7 +1035,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // Coverage-ignore-block(suite): Not run.
       node.statement = (result.statement as AssertStatement)..parent = node;
     }
-    return const SuccessfulInitializerInferenceResult();
+    return new SuccessfulInitializerInferenceResult(node);
   }
 
   @override
@@ -1402,7 +1402,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType typeContext,
   ) {
     ensureMemberType(node.target);
-    bool hadExplicitTypeArguments = hasExplicitTypeArguments(node.arguments);
+    ArgumentsImpl arguments = node.arguments as ArgumentsImpl;
+    bool hadExplicitTypeArguments = arguments.hasExplicitTypeArguments;
     FunctionType functionType = node.target.function.computeThisFunctionType(
       Nullability.nonNullable,
     );
@@ -1411,7 +1412,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       typeContext,
       node.fileOffset,
       new InvocationTargetFunctionType(functionType),
-      node.arguments as ArgumentsImpl,
+      arguments,
       isConst: node.isConst,
       staticTarget: node.target,
     );
@@ -1479,9 +1480,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       typeEnvironment: typeSchemaEnvironment,
       fileUri: helper.uri,
       fileOffset: node.extensionTypeArgumentOffset ?? node.fileOffset,
-      typeArgumentsInfo: node.knownTypeArguments != null
-          ? const NoneInferredTypeArgumentsInfo()
-          : const AllInferredTypeArgumentsInfo(),
+      explicitTypeArguments: node.knownTypeArguments != null,
       typeParameters: node.extension.typeParameters,
       typeArguments: extensionTypeArguments,
     );
@@ -1554,9 +1553,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       typeEnvironment: typeSchemaEnvironment,
       fileUri: helper.uri,
       fileOffset: node.extensionTypeArgumentOffset ?? node.fileOffset,
-      typeArgumentsInfo: node.knownTypeArguments != null
-          ? const NoneInferredTypeArgumentsInfo()
-          : const AllInferredTypeArgumentsInfo(),
+      explicitTypeArguments: node.knownTypeArguments != null,
       typeParameters: node.extension.typeParameters,
       typeArguments: extensionTypeArguments,
     );
@@ -1627,9 +1624,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       typeEnvironment: typeSchemaEnvironment,
       fileUri: helper.uri,
       fileOffset: node.extensionTypeArgumentOffset ?? node.fileOffset,
-      typeArgumentsInfo: node.knownTypeArguments != null
-          ? const NoneInferredTypeArgumentsInfo()
-          : const AllInferredTypeArgumentsInfo(),
+      explicitTypeArguments: node.knownTypeArguments != null,
       typeParameters: node.extension.typeParameters,
       typeArguments: extensionTypeArguments,
     );
@@ -1744,9 +1739,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       typeEnvironment: typeSchemaEnvironment,
       fileUri: helper.uri,
       fileOffset: node.extensionTypeArgumentOffset ?? node.fileOffset,
-      typeArgumentsInfo: node.knownTypeArguments != null
-          ? const NoneInferredTypeArgumentsInfo()
-          : const AllInferredTypeArgumentsInfo(),
+      explicitTypeArguments: node.knownTypeArguments != null,
       typeParameters: node.extension.typeParameters,
       typeArguments: extensionTypeArguments,
     );
@@ -1914,9 +1907,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       typeEnvironment: typeSchemaEnvironment,
       fileUri: helper.uri,
       fileOffset: node.extensionTypeArgumentOffset ?? node.fileOffset,
-      typeArgumentsInfo: node.knownTypeArguments != null
-          ? const NoneInferredTypeArgumentsInfo()
-          : const AllInferredTypeArgumentsInfo(),
+      explicitTypeArguments: node.knownTypeArguments != null,
       typeParameters: node.extension.typeParameters,
       typeArguments: extensionTypeArguments,
     );
@@ -1997,9 +1988,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       typeEnvironment: typeSchemaEnvironment,
       fileUri: helper.uri,
       fileOffset: node.extensionTypeArgumentOffset ?? node.fileOffset,
-      typeArgumentsInfo: node.knownTypeArguments != null
-          ? const NoneInferredTypeArgumentsInfo()
-          : const AllInferredTypeArgumentsInfo(),
+      explicitTypeArguments: node.knownTypeArguments != null,
       typeParameters: node.extension.typeParameters,
       typeArguments: extensionTypeArguments,
     );
@@ -2030,7 +2019,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType: receiverType,
     );
 
-    TypeArgumentsInfo typeArgumentsInfo = getTypeArgumentsInfo(node.arguments);
     String targetName = node.name.text;
     if (!node.extension.isUnnamedExtension) {
       targetName = '${node.extension.name}.${targetName}';
@@ -2040,17 +2028,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       typeEnvironment: typeSchemaEnvironment,
       fileUri: helper.uri,
       fileOffset: node.fileOffset,
-      typeArgumentsInfo: typeArgumentsInfo,
+      explicitTypeArguments: node.arguments.hasExplicitTypeArguments,
       typeParameters: target.getTypeParameters(),
       typeArguments: node.arguments.types,
     );
 
-    ArgumentsImpl extensionInvocationArguments =
-        createExtensionInvocationArgument(target, receiver, node.arguments);
-    StaticInvocation replacement = createStaticInvocation(
-      node.method,
-      extensionInvocationArguments,
-      fileOffset: node.fileOffset,
+    StaticInvocation replacement = createExtensionInvocation(
+      node.fileOffset,
+      target,
+      receiver,
+      node.arguments,
     );
 
     return new ExpressionInferenceResult(
@@ -2098,9 +2085,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       typeEnvironment: typeSchemaEnvironment,
       fileUri: helper.uri,
       fileOffset: node.extensionTypeArgumentOffset ?? node.fileOffset,
-      typeArgumentsInfo: node.knownTypeArguments != null
-          ? const NoneInferredTypeArgumentsInfo()
-          : const AllInferredTypeArgumentsInfo(),
+      explicitTypeArguments: node.knownTypeArguments != null,
       typeParameters: node.extension.typeParameters,
       typeArguments: extensionTypeArguments,
     );
@@ -2284,9 +2269,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       typeEnvironment: typeSchemaEnvironment,
       fileUri: helper.uri,
       fileOffset: node.extensionTypeArgumentOffset ?? node.fileOffset,
-      typeArgumentsInfo: node.knownTypeArguments != null
-          ? const NoneInferredTypeArgumentsInfo()
-          : const AllInferredTypeArgumentsInfo(),
+      explicitTypeArguments: node.knownTypeArguments != null,
       typeParameters: node.extension.typeParameters,
       typeArguments: extensionTypeArguments,
     );
@@ -2469,7 +2452,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ) {
     ensureMemberType(node.target);
 
-    bool hadExplicitTypeArguments = hasExplicitTypeArguments(node.arguments);
+    bool hadExplicitTypeArguments = node.arguments.hasExplicitTypeArguments;
 
     FunctionType functionType = node.target.function.computeThisFunctionType(
       Nullability.nonNullable,
@@ -2480,7 +2463,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       typeContext,
       node.fileOffset,
       new InvocationTargetFunctionType(functionType),
-      node.arguments as ArgumentsImpl,
+      node.arguments,
       isConst: node.isConst,
       staticTarget: node.target,
     );
@@ -2738,7 +2721,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     TypeAliasedConstructorInvocation node,
     DartType typeContext,
   ) {
-    assert(getExplicitTypeArguments(node.arguments) == null);
+    assert(node.arguments.explicitTypeArguments == null);
     ensureMemberType(node.target);
 
     Typedef typedef = node.typeAliasBuilder.typedef;
@@ -2752,7 +2735,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       typeContext,
       node.fileOffset,
       new InvocationTargetFunctionType(calleeType),
-      node.arguments as ArgumentsImpl,
+      node.arguments,
       isConst: node.isConst,
       staticTarget: node.target,
     );
@@ -2771,7 +2754,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   Expression _unaliasSingleTypeAliasedConstructorInvocation(
     TypeAliasedConstructorInvocation invocation,
   ) {
-    bool inferred = !hasExplicitTypeArguments(invocation.arguments);
+    bool inferred = !invocation.arguments.hasExplicitTypeArguments;
     DartType aliasedType = new TypedefType(
       invocation.typeAliasBuilder.typedef,
       Nullability.nonNullable,
@@ -2870,7 +2853,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ) {
     ensureMemberType(node.target);
 
-    assert(getExplicitTypeArguments(node.arguments) == null);
+    assert(node.arguments.explicitTypeArguments == null);
     Typedef typedef = node.typeAliasBuilder.typedef;
     FunctionType calleeType = _computeAliasedFactoryFunctionType(
       node.target,
@@ -2882,7 +2865,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       typeContext,
       node.fileOffset,
       new InvocationTargetFunctionType(calleeType),
-      node.arguments as ArgumentsImpl,
+      node.arguments,
       isConst: node.isConst,
       staticTarget: node.target,
     );
@@ -2899,7 +2882,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   Expression? _unaliasSingleTypeAliasedFactoryInvocation(
     TypeAliasedFactoryInvocation invocation,
   ) {
-    bool inferred = !hasExplicitTypeArguments(invocation.arguments);
+    bool inferred = !invocation.arguments.hasExplicitTypeArguments;
     DartType aliasedType = new TypedefType(
       invocation.typeAliasBuilder.typedef,
       Nullability.nonNullable,
@@ -2946,7 +2929,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       fileOffset: node.fileOffset,
     ).expression;
     node.value = initializer..parent = node;
-    return const SuccessfulInitializerInferenceResult();
+    return new SuccessfulInitializerInferenceResult(node);
   }
 
   ForInResult handleForInDeclaringVariable(
@@ -3787,7 +3770,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
     node.variable.initializer = initializerResult.expression
       ..parent = node.variable;
-    return const SuccessfulInitializerInferenceResult();
+    return new SuccessfulInitializerInferenceResult(node);
   }
 
   InitializerInferenceResult visitShadowInvalidFieldInitializer(
@@ -3799,7 +3782,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       isVoidAllowed: false,
     );
     node.value = initializerResult.expression..parent = node;
-    return const SuccessfulInitializerInferenceResult();
+    return new SuccessfulInitializerInferenceResult(node);
   }
 
   @override
@@ -8082,7 +8065,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiver,
       receiverType,
       node.name,
-      node.arguments as ArgumentsImpl,
+      node.arguments,
       typeContext,
       isExpressionInvocation: false,
       isImplicitCall: false,
@@ -8109,7 +8092,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         receiver,
         receiverType,
         member.name,
-        node.arguments as ArgumentsImpl,
+        node.arguments,
         typeContext,
         isExpressionInvocation: false,
         isImplicitCall: false,
@@ -8119,15 +8102,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       FunctionType calleeType = member.function.computeFunctionType(
         Nullability.nonNullable,
       );
-      TypeArgumentsInfo typeArgumentsInfo = getTypeArgumentsInfo(
-        node.arguments,
-      );
       InvocationInferenceResult result = inferInvocation(
         this,
         typeContext,
         node.fileOffset,
         new InvocationTargetFunctionType(calleeType),
-        node.arguments as ArgumentsImpl,
+        node.arguments,
         staticTarget: node.target,
       );
       StaticInvocation invocation = new StaticInvocation(
@@ -8143,7 +8123,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         typeEnvironment: typeSchemaEnvironment,
         fileUri: helper.uri,
         fileOffset: node.fileOffset,
-        typeArgumentsInfo: typeArgumentsInfo,
+        explicitTypeArguments: node.arguments.hasExplicitTypeArguments,
         typeParameters: invocation.target.typeParameters,
         typeArguments: invocation.arguments.types,
       );
@@ -8162,7 +8142,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         receiver,
         receiverType,
         callName,
-        node.arguments as ArgumentsImpl,
+        node.arguments,
         typeContext,
         isExpressionInvocation: true,
         isImplicitCall: true,
@@ -8187,7 +8167,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiver,
       receiverType,
       callName,
-      node.arguments as ArgumentsImpl,
+      node.arguments,
       typeContext,
       isExpressionInvocation: true,
       isImplicitCall: true,
@@ -9240,9 +9220,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       typeEnvironment: typeSchemaEnvironment,
       fileUri: helper.uri,
       fileOffset: node.extensionTypeArgumentOffset ?? node.fileOffset,
-      typeArgumentsInfo: node.explicitTypeArguments != null
-          ? const NoneInferredTypeArgumentsInfo()
-          : const AllInferredTypeArgumentsInfo(),
+      explicitTypeArguments: node.explicitTypeArguments != null,
       typeParameters: node.extension.typeParameters,
       typeArguments: extensionTypeArguments,
     );
@@ -9327,9 +9305,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       typeEnvironment: typeSchemaEnvironment,
       fileUri: helper.uri,
       fileOffset: node.extensionTypeArgumentOffset ?? node.fileOffset,
-      typeArgumentsInfo: node.explicitTypeArguments != null
-          ? const NoneInferredTypeArgumentsInfo()
-          : const AllInferredTypeArgumentsInfo(),
+      explicitTypeArguments: node.explicitTypeArguments != null,
       typeParameters: node.extension.typeParameters,
       typeArguments: extensionTypeArguments,
     );
@@ -9851,9 +9827,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       typeEnvironment: typeSchemaEnvironment,
       fileUri: helper.uri,
       fileOffset: node.extensionTypeArgumentOffset ?? node.fileOffset,
-      typeArgumentsInfo: node.knownTypeArguments != null
-          ? const NoneInferredTypeArgumentsInfo()
-          : const AllInferredTypeArgumentsInfo(),
+      explicitTypeArguments: node.knownTypeArguments != null,
       typeParameters: node.extension.typeParameters,
       typeArguments: extensionTypeArguments,
     );
@@ -11569,9 +11543,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       typeEnvironment: typeSchemaEnvironment,
       fileUri: helper.uri,
       fileOffset: node.extensionTypeArgumentOffset ?? node.fileOffset,
-      typeArgumentsInfo: node.explicitTypeArguments != null
-          ? const NoneInferredTypeArgumentsInfo()
-          : const AllInferredTypeArgumentsInfo(),
+      explicitTypeArguments: node.explicitTypeArguments != null,
       typeParameters: node.extension.typeParameters,
       typeArguments: extensionTypeArguments,
     );
@@ -12152,13 +12124,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           new TypeParameterType.withDefaultNullability(classTypeParameters[i]),
       growable: false,
     );
+    ArgumentsImpl arguments = node.arguments as ArgumentsImpl;
+    // TODO(johnniwinther): Avoid this workaround.
     // The redirecting initializer syntax doesn't include type arguments passed
     // to the target constructor but we need to add them to the arguments before
     // calling [inferInvocation]. These are removed again afterwards.
-    ArgumentsImpl.setNonInferrableArgumentTypes(
-      node.arguments as ArgumentsImpl,
-      typeArguments,
-    );
+    arguments.setExplicitTypeArguments(typeArguments);
     FunctionType functionType = replaceReturnType(
       node.target.function.computeThisFunctionType(Nullability.nonNullable),
       coreTypes.thisInterfaceType(
@@ -12171,14 +12142,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       const UnknownType(),
       node.fileOffset,
       new InvocationTargetFunctionType(functionType),
-      node.arguments as ArgumentsImpl,
+      arguments,
       skipTypeArgumentInference: true,
       staticTarget: node.target,
     );
-    ArgumentsImpl.removeNonInferrableArgumentTypes(
-      node.arguments as ArgumentsImpl,
-    );
+    arguments.resetExplicitTypeArguments();
     return new InitializerInferenceResult.fromInvocationInferenceResult(
+      node,
       inferenceResult,
     );
   }
@@ -12203,10 +12173,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // Unlike in [visitRedirectingInitializer] we leave in the type arguments
     // for the call to the target, since these are needed for the static
     // invocation of the lowering.
-    ArgumentsImpl.setNonInferrableArgumentTypes(
-      node.arguments as ArgumentsImpl,
-      typeArguments,
-    );
+    node.arguments.setExplicitTypeArguments(typeArguments);
     FunctionType functionType = node.target.function.computeThisFunctionType(
       Nullability.nonNullable,
     );
@@ -12215,11 +12182,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       const UnknownType(),
       node.fileOffset,
       new InvocationTargetFunctionType(functionType),
-      node.arguments as ArgumentsImpl,
+      node.arguments,
       skipTypeArgumentInference: true,
       staticTarget: node.target,
     );
     return new InitializerInferenceResult.fromInvocationInferenceResult(
+      node,
       inferenceResult,
     );
   }
@@ -12239,7 +12207,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       fileOffset: node.fileOffset,
     ).expression;
     node.value = initializer..parent = node;
-    return const SuccessfulInitializerInferenceResult();
+    return new SuccessfulInitializerInferenceResult(node);
   }
 
   @override
@@ -12491,13 +12459,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     FunctionType calleeType = node.target.function.computeFunctionType(
       Nullability.nonNullable,
     );
-    TypeArgumentsInfo typeArgumentsInfo = getTypeArgumentsInfo(node.arguments);
+    ArgumentsImpl arguments = node.arguments as ArgumentsImpl;
     InvocationInferenceResult result = inferInvocation(
       this,
       typeContext,
       node.fileOffset,
       new InvocationTargetFunctionType(calleeType),
-      node.arguments as ArgumentsImpl,
+      arguments,
       staticTarget: node.target,
     );
     String targetName = node.name.text;
@@ -12509,9 +12477,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       typeEnvironment: typeSchemaEnvironment,
       fileUri: helper.uri,
       fileOffset: node.fileOffset,
-      typeArgumentsInfo: typeArgumentsInfo,
+      explicitTypeArguments: arguments.hasExplicitTypeArguments,
       typeParameters: node.target.typeParameters,
-      typeArguments: node.arguments.types,
+      typeArguments: arguments.types,
     );
     return new ExpressionInferenceResult(
       result.inferredType,
@@ -12582,6 +12550,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       staticTarget: node.target,
     );
     return new InitializerInferenceResult.fromInvocationInferenceResult(
+      node,
       inferenceResult,
     );
   }
@@ -13551,7 +13520,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         typeContext,
         node.fileOffset,
         new InvocationTargetFunctionType(calleeType),
-        node.arguments! as ArgumentsImpl,
+        node.arguments!,
       );
     }
     return new ExpressionInferenceResult(inferredType, node);
@@ -16310,7 +16279,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         typeContext,
         node.fileOffset,
         new InvocationTargetFunctionType(functionType),
-        node.arguments as ArgumentsImpl,
+        node.arguments,
         isConst: node.isConst,
         staticTarget: member,
       );
@@ -16377,7 +16346,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           typeContext,
           node.fileOffset,
           new InvocationTargetFunctionType(functionType),
-          node.arguments as ArgumentsImpl,
+          node.arguments,
           isConst: node.isConst,
           staticTarget: constructor,
         );
@@ -16414,7 +16383,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           typeContext,
           node.fileOffset,
           new InvocationTargetFunctionType(functionType),
-          node.arguments as ArgumentsImpl,
+          node.arguments,
           isConst: node.isConst,
           staticTarget: constructor,
         );
@@ -16424,7 +16393,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             arguments: node.arguments,
             fileOffset: node.fileOffset,
             isConst: node.isConst,
-            hasInferredTypeArguments: !hasExplicitTypeArguments(node.arguments),
+            hasInferredTypeArguments: !node.arguments.hasExplicitTypeArguments,
           )!;
         } else {
           expr = new StaticInvocation(
@@ -16451,7 +16420,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         receiver,
         receiverType,
         callName,
-        node.arguments as ArgumentsImpl,
+        node.arguments,
         typeContext,
         isExpressionInvocation: true,
         isImplicitCall: true,

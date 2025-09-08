@@ -656,9 +656,9 @@ new library test:dummy::Class()''',
       factoryConstructor,
       new ArgumentsImpl(
         [new IntLiteral(0)],
-        types: [const VoidType()],
+
         named: [new NamedExpression('bar', new IntLiteral(1))],
-      ),
+      )..setExplicitTypeArguments([const VoidType()]),
     ),
     '''
 new Class<void>(0, bar: 1)''',
@@ -672,9 +672,8 @@ new library test:dummy::Class<void>(0, bar: 1)''',
       factoryConstructor,
       new ArgumentsImpl(
         [new IntLiteral(0)],
-        types: [const VoidType()],
         named: [new NamedExpression('bar', new IntLiteral(1))],
-      ),
+      )..setExplicitTypeArguments([const VoidType()]),
     ),
     '''
 new Class<void>.foo(0, bar: 1)''',
@@ -738,9 +737,8 @@ new library test:dummy::Typedef()''',
       constructor,
       new ArgumentsImpl(
         [new IntLiteral(0)],
-        types: [const VoidType()],
         named: [new NamedExpression('bar', new IntLiteral(1))],
-      ),
+      )..setExplicitTypeArguments([const VoidType()]),
     ),
     '''
 new Typedef<void>(0, bar: 1)''',
@@ -755,9 +753,8 @@ new library test:dummy::Typedef<void>(0, bar: 1)''',
       constructor,
       new ArgumentsImpl(
         [new IntLiteral(0)],
-        types: [const VoidType()],
         named: [new NamedExpression('bar', new IntLiteral(1))],
-      ),
+      )..setExplicitTypeArguments([const VoidType()]),
     ),
     '''
 new Typedef<void>.foo(0, bar: 1)''',
@@ -772,9 +769,8 @@ new library test:dummy::Typedef<void>.foo(0, bar: 1)''',
       constructor,
       new ArgumentsImpl(
         [new IntLiteral(0)],
-        types: [const VoidType()],
         named: [new NamedExpression('bar', new IntLiteral(1))],
-      ),
+      )..setExplicitTypeArguments([const VoidType()]),
       isConst: true,
     ),
     '''
@@ -840,9 +836,8 @@ new library test:dummy::Typedef()''',
       factoryConstructor,
       new ArgumentsImpl(
         [new IntLiteral(0)],
-        types: [const VoidType()],
         named: [new NamedExpression('bar', new IntLiteral(1))],
-      ),
+      )..setExplicitTypeArguments([const VoidType()]),
     ),
     '''
 new Typedef<void>(0, bar: 1)''',
@@ -857,9 +852,8 @@ new library test:dummy::Typedef<void>(0, bar: 1)''',
       factoryConstructor,
       new ArgumentsImpl(
         [new IntLiteral(0)],
-        types: [const VoidType()],
         named: [new NamedExpression('bar', new IntLiteral(1))],
-      ),
+      )..setExplicitTypeArguments([const VoidType()]),
     ),
     '''
 new Typedef<void>.foo(0, bar: 1)''',
@@ -874,9 +868,8 @@ new library test:dummy::Typedef<void>.foo(0, bar: 1)''',
       factoryConstructor,
       new ArgumentsImpl(
         [new IntLiteral(0)],
-        types: [const VoidType()],
         named: [new NamedExpression('bar', new IntLiteral(1))],
-      ),
+      )..setExplicitTypeArguments([const VoidType()]),
       isConst: true,
     ),
     '''
@@ -928,12 +921,11 @@ void _testInternalMethodInvocation() {
       new Name('boz'),
       new ArgumentsImpl(
         [new IntLiteral(1)],
-        types: [const VoidType(), const DynamicType()],
         named: [
           new NamedExpression('foo', new IntLiteral(2)),
           new NamedExpression('bar', new IntLiteral(3)),
         ],
-      ),
+      )..setExplicitTypeArguments([const VoidType(), const DynamicType()]),
       isNullAware: false,
     ),
     '''
@@ -955,12 +947,11 @@ void _testInternalMethodInvocation() {
       new Name('boz'),
       new ArgumentsImpl(
         [new IntLiteral(1)],
-        types: [const VoidType(), const DynamicType()],
         named: [
           new NamedExpression('foo', new IntLiteral(2)),
           new NamedExpression('bar', new IntLiteral(3)),
         ],
-      ),
+      )..setExplicitTypeArguments([const VoidType(), const DynamicType()]),
       isNullAware: true,
     ),
     '''
@@ -1021,12 +1012,11 @@ void _testExpressionInvocation() {
       new IntLiteral(0),
       new ArgumentsImpl(
         [new IntLiteral(1)],
-        types: [const VoidType(), const DynamicType()],
         named: [
           new NamedExpression('foo', new IntLiteral(2)),
           new NamedExpression('bar', new IntLiteral(3)),
         ],
-      ),
+      )..setExplicitTypeArguments([const VoidType(), const DynamicType()]),
     ),
     '''
 0<void, dynamic>(1, foo: 2, bar: 3)''',
@@ -3225,7 +3215,10 @@ void _testExtensionTypeRedirectingInitializer() {
   );
 
   testInitializer(
-    new ExtensionTypeRedirectingInitializer(unnamedTarget, new Arguments([])),
+    new ExtensionTypeRedirectingInitializer(
+      unnamedTarget,
+      new ArgumentsImpl([]),
+    ),
     '''
 this()''',
   );
@@ -3233,7 +3226,7 @@ this()''',
   testInitializer(
     new ExtensionTypeRedirectingInitializer(
       namedTarget,
-      new Arguments([new IntLiteral(0)]),
+      new ArgumentsImpl([new IntLiteral(0)]),
     ),
     '''
 this.named(0)''',

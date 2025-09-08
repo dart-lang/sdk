@@ -329,7 +329,7 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
     } else if (initializer
         case RedirectingInitializer(
               target: Member initializerTarget,
-              arguments: var initializerArguments,
+              arguments: var initializerArguments as ArgumentsImpl,
             ) ||
             ExtensionTypeRedirectingInitializer(
               target: Member initializerTarget,
