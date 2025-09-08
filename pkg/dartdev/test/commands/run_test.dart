@@ -383,6 +383,31 @@ void main(List<String> args) => print("$b $args");
     ], onData3);
   });
 
+  test('with VM environment declaration options specified', () async {
+    p = project(mainSrc: r'''
+    void main() {
+      print(const bool.fromEnvironment('key'));
+    }
+    ''');
+
+    final result =
+        await p.run(['run', '--define=key=true', p.relativeFilePath]);
+
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, contains('true'));
+    expect(result.exitCode, 0);
+
+    final abbreviationResult = await p.run([
+      'run',
+      '-Dkey=true',
+      p.relativeFilePath,
+    ]);
+
+    expect(abbreviationResult.stderr, isEmpty);
+    expect(abbreviationResult.stdout, contains('true'));
+    expect(abbreviationResult.exitCode, 0);
+  });
+
   test('with accepted VM flags related to the timeline', () async {
     p = project(
         mainSrc: 'import "dart:developer";'
