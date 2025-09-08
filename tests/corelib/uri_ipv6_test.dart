@@ -4,6 +4,8 @@
 
 import 'package:expect/expect.dart';
 
+import 'uri_ipv4_test.dart' as ipv4 show passSamples, failSamples;
+
 void testValidIpv6Uri() {
   var path = 'http://[::1]:1234/path?query=5#now';
   var uri = Uri.parse(path);
@@ -183,71 +185,237 @@ void testValidIpv6Uri() {
 }
 
 void testParseIPv6Address() {
-  void pass(String host, List<int> expected) {
-    Expect.listEquals(expected, Uri.parseIPv6Address(host));
+  for (var i = 0; i < passSamples.length; i++) {
+    var sample = passSamples[i];
+    passIPv6(sample.host, sample.out);
   }
 
-  void fail(String host) {
-    Expect.throwsFormatException(() => Uri.parseIPv6Address(host));
+  for (var i = 0; i < failSamples.length; i++) {
+    var sample = failSamples[i];
+    failIPv6(sample);
   }
 
-  pass('::127.0.0.1', [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 127, 0, 0, 1]);
-  pass('0::127.0.0.1', [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 127, 0, 0, 1]);
-  pass('::', [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
-  pass('0::', [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
-  fail(':0::127.0.0.1');
-  fail('0:::');
-  fail(':::');
-  fail('::0:');
-  fail('::0::');
-  fail('::0::0');
-  fail('00000::0');
-  fail('-1::0');
-  fail('-AAA::0');
-  fail('0::127.0.0.1:0');
-  fail('0::127.0.0');
-  pass('0::1111', [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 17, 17]);
-  pass('2010:836B:4179::836B:4179', [
-    32,
-    16,
-    131,
-    107,
-    65,
-    121,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    131,
-    107,
-    65,
-    121,
+  for (var i = 0; i < ipv4.passSamples.length; i++) {
+    var sample = ipv4.passSamples[i];
+    var host = sample.host;
+    passIPv4inIPv6(host, sample.out);
+
+    // Invalid positions of valid IPv4.
+    // IPv4 alone.
+    failIPv6(host);
+    // IPv4 first.
+    failIPv6('$host:3:4:5:6:7:8');
+    failIPv6('$host::8');
+    // IPv4 in the middle.
+    failIPv6('1:2:3:$host:6:7:8:');
+    failIPv6('::3:$host:6:7:8:');
+    failIPv6('1:2:3:$host:6::');
+    // Too long with IPv4.
+    failIPv6('1:2:3:4:5:6:7::$host');
+    failIPv6('::1:2:3:4:5:6:$host');
+    failIPv6('1:2:3:4::5:6:$host');
+    failIPv6('1:2:3:4:5:6::$host');
+    // Too short with IPv4 and no wildcard.
+    failIPv6('1:2:3:4:5:$host');
+    failIPv6('1:$host');
+    // Too short or long with IPv4, longer parts.
+    failIPv6('2010:836B:4179:0000:$host');
+    failIPv6('2010:836B:4179:0000:0000:$host');
+    failIPv6('2010:836B:4179:0000:0000:0000::$host');
+    failIPv6('2010:836B:4179:0000:0000:0000:0000:$host');
+  }
+
+  for (var i = 0; i < ipv4.failSamples.length; i++) {
+    var sample = ipv4.failSamples[i];
+    // Avoid anything that would be valid as non-IPv4 after a `::`.
+    // Heuristically that's "nothing" or hex digits.
+    if (sample.isEmpty ||
+        (sample.trim() == sample && int.tryParse(sample, radix: 16) != null)) {
+      continue;
+    }
+    failIPv4inIPv6(sample);
+  }
+}
+
+void failIPv6(String host) {
+  void failWrap(String prefix, String suffix) {
+    var wrapped = "$prefix$host$suffix";
+    var start = prefix.length;
+    var end = start + host.length;
+    Expect.throwsFormatException(
+      () => Uri.parseIPv6Address(wrapped, start, end),
+      wrapped,
+    );
+  }
+
+  failWrap('', '');
+  failWrap('xyz', '');
+  failWrap('', 'xyz');
+  failWrap('0', '0');
+  failWrap(':', ':');
+  failWrap('::', '::');
+  failWrap('0:', ':0');
+  failWrap('', '.0');
+  failWrap('', '.0.0.0.0');
+}
+
+void passIPv4inIPv6(String ipv4Host, List<int> ipv4Bytes) {
+  // No wildcard.
+  passIPv6('1234:5678:9abc:def0:8765:4321:$ipv4Host', [
+    0x12,
+    0x34,
+    0x56,
+    0x78,
+    0x9a,
+    0xbc,
+    0xde,
+    0xf0,
+    0x87,
+    0x65,
+    0x43,
+    0x21,
+    ...ipv4Bytes,
   ]);
-  fail('2010:836B:4179:0000:127.0.0.1');
-  fail('2010:836B:4179:0000:0000:127.0.0.1');
-  fail('2010:836B:4179:0000:0000:0000::127.0.0.1');
-  fail('2010:836B:4179:0000:0000:0000:0000:127.0.0.1');
-  pass('2010:836B:4179:0000:0000:0000:127.0.0.1', [
-    32,
-    16,
-    131,
-    107,
-    65,
-    121,
+  // Wildcards.
+  passIPv6('::$ipv4Host', [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...ipv4Bytes]);
+  passIPv6('0::$ipv4Host', [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...ipv4Bytes]);
+  passIPv6('::0:$ipv4Host', [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...ipv4Bytes]);
+  passIPv6('0000::FFFF:$ipv4Host', [
     0,
     0,
     0,
     0,
     0,
     0,
-    127,
     0,
     0,
-    1,
+    0,
+    0,
+    0xFF,
+    0xFF,
+    ...ipv4Bytes,
   ]);
 }
+
+void failIPv4inIPv6(String ipv4Host) {
+  failIPv6('::$ipv4Host');
+  failIPv6('0::$ipv4Host');
+  failIPv6('::0:$ipv4Host');
+  failIPv6('::FFFF:$ipv4Host');
+  failIPv6('1234:5678:9abc:def0:8765:4321:$ipv4Host');
+}
+
+const ____ = 0; // Used to represent wildcard fills below.
+/// Samples containing IPv4 are generated from [ipv4.passSamples].
+const List<({String host, List<int> out})> passSamples = [
+  // Upper and lower case both allowed.
+  (
+    host: 'abcd:efAB:CDEF:aBcD:eFAb:CdEf:aAaA:bBbB',
+    out: [
+      0xab, 0xcd, 0xef, 0xab, 0xcd, 0xef, 0xab, 0xcd, //
+      0xef, 0xab, 0xcd, 0xef, 0xaa, 0xaa, 0xbb, 0xbb,
+    ],
+  ),
+  // 1-4 digits allowed, leading zeros allowed.
+  (
+    host: 'a:bc:def:1234:0a:00b:000c:0de',
+    out: [
+      0x00, 0x0a, 0x00, 0xbc, 0x0d, 0xef, 0x12, 0x34, //
+      0x00, 0x0a, 0x00, 0x0b, 0x00, 0x0c, 0x00, 0xde,
+    ],
+  ),
+  //
+  // Wildcard positions and sizes.
+  // No wildcard.
+  (
+    host: '1223:3445:5667:7889:9aab:bccd:deef:f001',
+    out: [
+      0x12, 0x23, 0x34, 0x45, 0x56, 0x67, 0x78, 0x89, //
+      0x9a, 0xab, 0xbc, 0xcd, 0xde, 0xef, 0xf0, 0x01,
+    ],
+  ),
+  // At start.
+  (
+    host: '::3445:5667:7889:9aab:bccd:deef:f001',
+    out: [
+      ____, ____, 0x34, 0x45, 0x56, 0x67, 0x78, 0x89, //
+      0x9a, 0xab, 0xbc, 0xcd, 0xde, 0xef, 0xf0, 0x01,
+    ],
+  ),
+  (
+    host: '::f001',
+    out: [
+      ____, ____, ____, ____, ____, ____, ____, ____, //
+      ____, ____, ____, ____, ____, ____, 0xf0, 0x01,
+    ],
+  ),
+  // In middle
+  (
+    host: '1223:3445:5667:7889::bccd:deef:f001',
+    out: [
+      0x12, 0x23, 0x34, 0x45, 0x56, 0x67, 0x78, 0x89, //
+      ____, ____, 0xbc, 0xcd, 0xde, 0xef, 0xf0, 0x01,
+    ],
+  ),
+  (
+    host: '1223::f001',
+    out: [
+      0x12, 0x23, ____, ____, ____, ____, ____, ____, //
+      ____, ____, ____, ____, ____, ____, 0xf0, 0x01,
+    ],
+  ),
+  // At end
+  (
+    host: '1223:3445:5667:7889:9aab:bccd:deef::',
+    out: [
+      0x12, 0x23, 0x34, 0x45, 0x56, 0x67, 0x78, 0x89, //
+      0x9a, 0xab, 0xbc, 0xcd, 0xde, 0xef, ____, ____,
+    ],
+  ),
+  (
+    host: '1223::',
+    out: [
+      0x12, 0x23, ____, ____, ____, ____, ____, ____, //
+      ____, ____, ____, ____, ____, ____, ____, ____,
+    ],
+  ),
+  // All.
+  (
+    host: '::',
+    out: [
+      ____, ____, ____, ____, ____, ____, ____, ____, //
+      ____, ____, ____, ____, ____, ____, ____, ____,
+    ],
+  ),
+];
+
+const List<String> failSamples = [
+  '', // No part
+  ':', // Empty leading part, at end.
+  ':0::', // Leading `:`.
+  '0::0:', // trailing colon.
+  // More than two `:`s
+  ':::',
+  '0:::0',
+  // More than one wildcard.
+  '::0::',
+  '0::0::0',
+  // More than four digits in a part.
+  '00000::0',
+  '0::00000',
+  '0.0.0.0.00000.0.0.0',
+  // Negative
+  '-1::0',
+  '0::-1',
+  '0:0:0:-1:0:0:0:0',
+  '-AAA::0',
+  // Too long without wildcard.
+  '1:2:3:4:5:6:7:8:9',
+  // Too long with wildcard.
+  '::1:2:3:4:5:6:7:8',
+  '1:2:3:4::5:6:7:8',
+  '1:2:3:4:5:6:7:8::',
+];
 
 void testPropagateIPv6() {
   // A regression test for https://dartbug.com/55085
@@ -362,4 +530,21 @@ void main() {
   testValidIpv6Uri();
   testParseIPv6Address();
   testPropagateIPv6();
+}
+
+void passIPv6(String host, List<int> expected) {
+  _passIPv6(expected, host, 0, host.length);
+  _passIPv6(expected, '0${host}0', 1, host.length + 1);
+  _passIPv6(expected, ':${host}:', 1, host.length + 1);
+  _passIPv6(expected, '${host}.0', 0, host.length);
+  _passIPv6(expected, '0x${host}x0', 2, host.length + 2);
+}
+
+void _passIPv6(List<int> expected, String input, int start, int end) {
+  try {
+    Expect.listEquals(expected, Uri.parseIPv6Address(input, start, end), input);
+  } on Object {
+    print("Failed: $input[$start..$end]");
+    rethrow;
+  }
 }
