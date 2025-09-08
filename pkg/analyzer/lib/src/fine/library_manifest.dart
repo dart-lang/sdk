@@ -875,7 +875,8 @@ class LibraryManifestBuilder {
     var item = declaredItems[element] as InterfaceItem;
     item.interface.beforeUpdating();
 
-    var interface = element.inheritanceManager.getInterface(element);
+    var inheritance = element.inheritanceManager;
+    var interface = inheritance.getInterface(element);
 
     for (var entry in interface.map.entries) {
       var executable = entry.value.baseElement;
@@ -935,6 +936,15 @@ class LibraryManifestBuilder {
         }
       }
       item.interface.superImplemented.add(layer);
+    }
+
+    for (var entry in inheritance.getInheritedMap(element).entries) {
+      var executable = entry.value.baseElement;
+      var lookupName = executable.lookupName?.asLookupName;
+      if (lookupName != null && !lookupName.isPrivate) {
+        var id = _getInterfaceElementMemberId(executable);
+        item.interface.inherited[lookupName] = id;
+      }
     }
 
     item.interface.afterUpdate();

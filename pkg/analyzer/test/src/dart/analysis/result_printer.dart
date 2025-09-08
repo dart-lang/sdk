@@ -1418,6 +1418,18 @@ class LibraryManifestPrinter {
         });
       });
     }
+
+    var inheritedEntries = notIgnored(interface.inherited);
+    if (inheritedEntries.isNotEmpty) {
+      sink.withIndent(() {
+        sink.writelnWithIndent('inherited');
+        sink.withIndent(() {
+          for (var entry in inheritedEntries) {
+            _writeNamedId(entry.key, entry.value);
+          }
+        });
+      });
+    }
   }
 
   void _writelnElement(ManifestElement element) {

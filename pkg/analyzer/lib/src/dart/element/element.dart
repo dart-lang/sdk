@@ -4827,9 +4827,8 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     _hasNonFinalField = value;
   }
 
-  @trackedDirectlyOpaque
+  @trackedIndirectly
   InheritanceManager3 get inheritanceManager {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'inheritanceManager');
     return library.session.inheritanceManager;
   }
 

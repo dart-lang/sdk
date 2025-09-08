@@ -1155,12 +1155,14 @@ class ManifestInterface {
   Map<LookupName, ManifestItemId> map;
   Map<LookupName, ManifestItemId> implemented;
   List<Map<LookupName, ManifestItemId>> superImplemented;
+  Map<LookupName, ManifestItemId> inherited;
 
   /// We move [map] into here during building the manifest, so that we can
   /// compare after building, and decide if [id] should be updated.
   Map<LookupName, ManifestItemId> mapPrevious = {};
   Map<LookupName, ManifestItemId> implementedPrevious = {};
   List<Map<LookupName, ManifestItemId>> superImplementedPrevious = [];
+  Map<LookupName, ManifestItemId> inheritedPrevious = {};
 
   /// Key: IDs of method declarations.
   /// Value: ID assigned last time.
@@ -1176,6 +1178,7 @@ class ManifestInterface {
     required this.map,
     required this.implemented,
     required this.superImplemented,
+    required this.inherited,
     required this.combinedIds,
   });
 
@@ -1185,6 +1188,7 @@ class ManifestInterface {
       map: {},
       implemented: {},
       superImplemented: [],
+      inherited: {},
       combinedIds: {},
     );
   }
@@ -1197,6 +1201,7 @@ class ManifestInterface {
       superImplemented: reader.readTypedList(() {
         return reader.readLookupNameToIdMap();
       }),
+      inherited: reader.readLookupNameToIdMap(),
       combinedIds: reader.readMap(
         readKey: () => ManifestItemIdList.read(reader),
         readValue: () => ManifestItemId.read(reader),
@@ -1211,13 +1216,14 @@ class ManifestInterface {
     );
     if (!mapEquality.equals(map, mapPrevious) ||
         !mapEquality.equals(implemented, implementedPrevious) ||
-        !listEquality.equals(superImplemented, superImplementedPrevious)) {
+        !listEquality.equals(superImplemented, superImplementedPrevious) ||
+        !mapEquality.equals(inherited, inheritedPrevious)) {
       id = ManifestItemId.generate();
     }
     mapPrevious = {};
     implementedPrevious = {};
     superImplementedPrevious = [];
-
+    inheritedPrevious = {};
     combinedIdsTemp = {};
   }
 
@@ -1231,6 +1237,9 @@ class ManifestInterface {
     superImplementedPrevious = superImplemented;
     superImplemented = [];
 
+    inheritedPrevious = inherited;
+    inherited = {};
+
     combinedIdsTemp = combinedIds;
     combinedIds = {};
   }
@@ -1240,6 +1249,7 @@ class ManifestInterface {
     map.write(sink);
     implemented.write(sink);
     sink.writeList(superImplemented, (map) => map.write(sink));
+    inherited.write(sink);
     sink.writeMap(
       combinedIds,
       writeKey: (key) => key.write(sink),
