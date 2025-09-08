@@ -1035,7 +1035,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // Coverage-ignore-block(suite): Not run.
       node.statement = (result.statement as AssertStatement)..parent = node;
     }
-    return const SuccessfulInitializerInferenceResult();
+    return new SuccessfulInitializerInferenceResult(node);
   }
 
   @override
@@ -2929,7 +2929,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       fileOffset: node.fileOffset,
     ).expression;
     node.value = initializer..parent = node;
-    return const SuccessfulInitializerInferenceResult();
+    return new SuccessfulInitializerInferenceResult(node);
   }
 
   ForInResult handleForInDeclaringVariable(
@@ -3770,7 +3770,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
     node.variable.initializer = initializerResult.expression
       ..parent = node.variable;
-    return const SuccessfulInitializerInferenceResult();
+    return new SuccessfulInitializerInferenceResult(node);
   }
 
   InitializerInferenceResult visitShadowInvalidFieldInitializer(
@@ -3782,7 +3782,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       isVoidAllowed: false,
     );
     node.value = initializerResult.expression..parent = node;
-    return const SuccessfulInitializerInferenceResult();
+    return new SuccessfulInitializerInferenceResult(node);
   }
 
   @override
@@ -12148,6 +12148,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
     arguments.resetExplicitTypeArguments();
     return new InitializerInferenceResult.fromInvocationInferenceResult(
+      node,
       inferenceResult,
     );
   }
@@ -12186,6 +12187,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       staticTarget: node.target,
     );
     return new InitializerInferenceResult.fromInvocationInferenceResult(
+      node,
       inferenceResult,
     );
   }
@@ -12205,7 +12207,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       fileOffset: node.fileOffset,
     ).expression;
     node.value = initializer..parent = node;
-    return const SuccessfulInitializerInferenceResult();
+    return new SuccessfulInitializerInferenceResult(node);
   }
 
   @override
@@ -12548,6 +12550,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       staticTarget: node.target,
     );
     return new InitializerInferenceResult.fromInvocationInferenceResult(
+      node,
       inferenceResult,
     );
   }

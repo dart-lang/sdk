@@ -353,10 +353,18 @@ abstract class BodyBuilderContext {
   /// Adds [initializer] to generative constructor currently being built.
   void addInitializer(
     Initializer initializer,
-    ExpressionGeneratorHelper helper, {
-    required InitializerInferenceResult? inferenceResult,
-  }) {
+    ExpressionGeneratorHelper helper,
+  ) {
     throw new UnsupportedError('${runtimeType}.addInitializer');
+  }
+
+  /// Adds the inferred [Initializer] from the [inferenceResult] to generative
+  /// constructor currently being built.
+  void addInferredInitializer(
+    InitializerInferenceResult inferenceResult,
+    ExpressionGeneratorHelper helper,
+  ) {
+    throw new UnsupportedError('${runtimeType}.addInferredInitializer');
   }
 
   /// Infers the [initializer].

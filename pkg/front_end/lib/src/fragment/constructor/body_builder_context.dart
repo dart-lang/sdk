@@ -103,11 +103,23 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
   @override
   void addInitializer(
     Initializer initializer,
-    ExpressionGeneratorHelper helper, {
-    required InitializerInferenceResult? inferenceResult,
-  }) {
+    ExpressionGeneratorHelper helper,
+  ) {
     _builder.addInitializer(
       initializer,
+      helper,
+      inferenceResult: null,
+      parent: _member,
+    );
+  }
+
+  @override
+  void addInferredInitializer(
+    InitializerInferenceResult inferenceResult,
+    ExpressionGeneratorHelper helper,
+  ) {
+    _builder.addInitializer(
+      inferenceResult.initializer,
       helper,
       inferenceResult: inferenceResult,
       parent: _member,

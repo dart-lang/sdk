@@ -1183,7 +1183,7 @@ class BodyBuilder extends StackListenerImpl
               );
             }
             for (Initializer initializer in initializers) {
-              _context.addInitializer(initializer, this, inferenceResult: null);
+              _context.addInitializer(initializer, this);
             }
           }
         }
@@ -2106,12 +2106,8 @@ class BodyBuilder extends StackListenerImpl
           );
 
       if (!_context.isExternalConstructor) {
-        for (int i = 0; i < initializers.length; i++) {
-          _context.addInitializer(
-            initializers[i],
-            this,
-            inferenceResult: inferenceResults[i],
-          );
+        for (InitializerInferenceResult result in inferenceResults) {
+          _context.addInferredInitializer(result, this);
         }
       }
     }
@@ -2122,7 +2118,6 @@ class BodyBuilder extends StackListenerImpl
           buildProblem(cfe.codeConstructorNotSync, body!.fileOffset, noLength),
         ),
         this,
-        inferenceResult: null,
       );
     }
     if (needsImplicitSuperInitializer) {
@@ -2343,13 +2338,9 @@ class BodyBuilder extends StackListenerImpl
           this,
           typeInferrer,
         );
-        _context.addInitializer(
-          initializer,
-          this,
-          inferenceResult: inferenceResult,
-        );
+        _context.addInferredInitializer(inferenceResult, this);
       } else {
-        _context.addInitializer(initializer, this, inferenceResult: null);
+        _context.addInitializer(initializer, this);
       }
     }
     if (body == null && !_context.isExternalConstructor) {
