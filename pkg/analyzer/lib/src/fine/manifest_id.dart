@@ -4,8 +4,8 @@
 
 import 'dart:math';
 
-import 'package:analyzer/src/summary2/data_reader.dart';
-import 'package:analyzer/src/summary2/data_writer.dart';
+import 'package:analyzer/src/binary/binary_reader.dart';
+import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:collection/collection.dart';
 
 /// The globally unique identifier.

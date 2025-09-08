@@ -7,12 +7,12 @@ import 'package:_fe_analyzer_shared/src/types/shared_type.dart'
     show Variance;
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/binary/binary_reader.dart';
+import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/fine/manifest_context.dart';
 import 'package:analyzer/src/fine/manifest_item.dart';
-import 'package:analyzer/src/summary2/data_reader.dart';
-import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 final class ManifestDynamicType extends ManifestType {

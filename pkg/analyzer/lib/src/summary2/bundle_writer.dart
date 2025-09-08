@@ -10,6 +10,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/binary/binary_writer.dart';
+import 'package:analyzer/src/binary/string_table.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
@@ -19,7 +21,6 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/summary2/ast_binary_tag.dart';
 import 'package:analyzer/src/summary2/ast_binary_writer.dart';
-import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 
@@ -1191,80 +1192,6 @@ class ResolutionSink extends _SummaryDataWriter {
 
     var fresh = getFreshTypeParameters(typeParameters);
     return fresh.applyToFunctionType(type);
-  }
-}
-
-class StringIndexer {
-  final Map<String, int> _index = {};
-
-  int operator [](String string) {
-    var result = _index[string];
-
-    if (result == null) {
-      result = _index.length;
-      _index[string] = result;
-    }
-
-    return result;
-  }
-
-  int write(BufferedSink sink) {
-    var bytesOffset = sink.offset;
-
-    var length = _index.length;
-    var lengths = Uint32List(length);
-    var lengthsIndex = 0;
-    for (var key in _index.keys) {
-      var stringStart = sink.offset;
-      _writeWtf8(sink, key);
-      lengths[lengthsIndex++] = sink.offset - stringStart;
-    }
-
-    var resultOffset = sink.offset;
-
-    var lengthOfBytes = sink.offset - bytesOffset;
-    sink.writeUInt30(lengthOfBytes);
-    sink.writeUint30List(lengths);
-
-    return resultOffset;
-  }
-
-  /// Write [source] string into [sink].
-  static void _writeWtf8(BufferedSink sink, String source) {
-    var end = source.length;
-    if (end == 0) {
-      return;
-    }
-
-    int i = 0;
-    do {
-      var codeUnit = source.codeUnitAt(i++);
-      if (codeUnit < 128) {
-        // ASCII.
-        sink.writeByte(codeUnit);
-      } else if (codeUnit < 0x800) {
-        // Two-byte sequence (11-bit unicode value).
-        sink.writeByte(0xC0 | (codeUnit >> 6));
-        sink.writeByte(0x80 | (codeUnit & 0x3f));
-      } else if ((codeUnit & 0xFC00) == 0xD800 &&
-          i < end &&
-          (source.codeUnitAt(i) & 0xFC00) == 0xDC00) {
-        // Surrogate pair -> four-byte sequence (non-BMP unicode value).
-        int codeUnit2 = source.codeUnitAt(i++);
-        int unicode =
-            0x10000 + ((codeUnit & 0x3FF) << 10) + (codeUnit2 & 0x3FF);
-        sink.writeByte(0xF0 | (unicode >> 18));
-        sink.writeByte(0x80 | ((unicode >> 12) & 0x3F));
-        sink.writeByte(0x80 | ((unicode >> 6) & 0x3F));
-        sink.writeByte(0x80 | (unicode & 0x3F));
-      } else {
-        // Three-byte sequence (16-bit unicode value), including lone
-        // surrogates.
-        sink.writeByte(0xE0 | (codeUnit >> 12));
-        sink.writeByte(0x80 | ((codeUnit >> 6) & 0x3f));
-        sink.writeByte(0x80 | (codeUnit & 0x3f));
-      }
-    } while (i < end);
   }
 }
 

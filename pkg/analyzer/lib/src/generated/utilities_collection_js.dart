@@ -5,8 +5,8 @@
 /// Provides [EnumSet] which works when compiled to JS.
 library;
 
-import 'package:analyzer/src/summary2/data_reader.dart';
-import 'package:analyzer/src/summary2/data_writer.dart';
+import 'package:analyzer/src/binary/binary_reader.dart';
+import 'package:analyzer/src/binary/binary_writer.dart';
 
 /// The set of [Enum] values, up to `60` constants.
 extension type EnumSet<T extends Enum>((int, int) _bits) {
