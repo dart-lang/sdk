@@ -100,19 +100,19 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   Initializer buildSuperInitializer(
     bool isSynthetic,
     Constructor constructor,
-    Arguments arguments, [
+    ArgumentsImpl arguments, [
     int offset = TreeNode.noOffset,
   ]);
 
   Initializer buildRedirectingInitializer(
     Name name,
-    Arguments arguments, {
+    ArgumentsImpl arguments, {
     required int fileOffset,
   });
 
   Expression buildStaticInvocation({
     required Procedure target,
-    required Arguments arguments,
+    required ArgumentsImpl arguments,
     required int fileOffset,
   });
 
@@ -152,7 +152,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   Expression buildMethodInvocation(
     Expression receiver,
     Name name,
-    Arguments arguments,
+    ArgumentsImpl arguments,
     int offset, {
     bool isConstantExpression = false,
     bool isNullAware = false,
@@ -160,7 +160,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   Expression buildSuperInvocation(
     Name name,
-    Arguments arguments,
+    ArgumentsImpl arguments,
     int offset, {
     bool isConstantExpression = false,
     bool isNullAware = false,
@@ -171,7 +171,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
     TypeDeclarationBuilder type,
     Token nameToken,
     Token nameLastToken,
-    Arguments arguments,
+    ArgumentsImpl arguments,
     String name,
     List<TypeBuilder>? typeArguments,
     int charOffset,
@@ -202,7 +202,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   });
 
   Expression evaluateArgumentsBefore(
-    Arguments arguments,
+    ArgumentsImpl arguments,
     Expression expression,
   );
 
@@ -269,7 +269,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
     List<TypeBuilder>? typeArguments,
     String className,
     String constructorName,
-    Arguments arguments, {
+    ArgumentsImpl arguments, {
     required int instantiationOffset,
     required int invocationOffset,
     required bool inImplicitCreationContext,

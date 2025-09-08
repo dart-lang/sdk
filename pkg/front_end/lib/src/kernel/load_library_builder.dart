@@ -4,7 +4,6 @@
 
 import 'package:kernel/ast.dart'
     show
-        Arguments,
         Combinator,
         DartType,
         DynamicType,
@@ -23,6 +22,7 @@ import '../builder/builder.dart';
 import '../builder/compilation_unit.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import 'forest.dart' show Forest;
+import 'internal_ast.dart';
 
 /// Builder to represent the `deferLibrary.loadLibrary` calls and tear-offs.
 class LoadLibraryBuilder extends NamedBuilderImpl {
@@ -71,7 +71,7 @@ class LoadLibraryBuilder extends NamedBuilderImpl {
   LoadLibrary createLoadLibrary(
     int charOffset,
     Forest forest,
-    Arguments? arguments,
+    ArgumentsImpl? arguments,
   ) {
     return forest.createLoadLibrary(charOffset, importDependency, arguments);
   }

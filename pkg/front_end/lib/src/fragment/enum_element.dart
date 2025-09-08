@@ -388,7 +388,7 @@ class EnumElementDeclaration
         arguments = new ArgumentsImpl(enumSyntheticArguments);
       }
       if (typeArguments != null) {
-        ArgumentsImpl.setNonInferrableArgumentTypes(arguments, typeArguments);
+        arguments.setExplicitTypeArguments(typeArguments);
       } else if (sourceEnumBuilder.cls.typeParameters.isNotEmpty) {
         arguments.types.addAll(
           new List<DartType>.filled(

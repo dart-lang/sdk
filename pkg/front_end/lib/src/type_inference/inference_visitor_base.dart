@@ -1766,7 +1766,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       calleeTypeParameters = fresh.freshTypeParameters;
     }
 
-    List<DartType>? explicitTypeArguments = getExplicitTypeArguments(arguments);
+    List<DartType>? explicitTypeArguments = arguments.explicitTypeArguments;
 
     bool inferenceNeeded =
         !skipTypeArgumentInference &&
@@ -2637,7 +2637,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     annotations[index] = result.expression..parent = parent;
   }
 
-  ArgumentsImpl createExtensionInvocationArgument(
+  StaticInvocation createExtensionInvocation(
+    int fileOffset,
     ObjectAccessTarget target,
     Expression receiver,
     ArgumentsImpl arguments,
@@ -2649,36 +2650,16 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           target.isNullableExtensionTypeMember,
     );
     Procedure procedure = target.member as Procedure;
-    return new ArgumentsImpl.forExtensionMethod(
-      target.receiverTypeArguments.length,
-      procedure.function.typeParameters.length -
-          target.receiverTypeArguments.length,
-      receiver,
-      extensionTypeArguments: target.receiverTypeArguments,
-      positionalArguments: arguments.positional,
-      namedArguments: arguments.named,
-      typeArguments: arguments.types,
-      argumentsOriginalOrder: arguments.argumentsOriginalOrder != null
-          ?
-            // Coverage-ignore(suite): Not run.
-            [receiver, ...arguments.argumentsOriginalOrder!]
-          : null,
+    Arguments extensionInvocationArguments = new Arguments(
+      [receiver, ...arguments.positional],
+      named: arguments.named,
+      types: [...target.receiverTypeArguments, ...arguments.types],
     )..fileOffset = arguments.fileOffset;
-  }
-
-  StaticInvocation createExtensionInvocation(
-    int fileOffset,
-    ObjectAccessTarget target,
-    ArgumentsImpl arguments,
-  ) {
-    assert(
-      target.isExtensionMember ||
-          target.isNullableExtensionMember ||
-          target.isExtensionTypeMember ||
-          target.isNullableExtensionTypeMember,
+    return createStaticInvocation(
+      procedure,
+      extensionInvocationArguments,
+      fileOffset: fileOffset,
     );
-    Procedure procedure = target.member as Procedure;
-    return createStaticInvocation(procedure, arguments, fileOffset: fileOffset);
   }
 
   ExpressionInferenceResult _inferDynamicInvocation(
@@ -2814,16 +2795,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     InvocationTargetType invocationTargetType = target.getFunctionType(this);
 
     if (target.declarationMethodKind == ClassMemberKind.Getter) {
-      ArgumentsImpl extensionInvocationArguments =
-          createExtensionInvocationArgument(
-            target,
-            receiver,
-            new ArgumentsImpl.empty(),
-          );
       StaticInvocation staticInvocation = createExtensionInvocation(
         fileOffset,
         target,
-        extensionInvocationArguments,
+        receiver,
+        new ArgumentsImpl.empty(),
       );
       ExpressionInferenceResult result = inferMethodInvocation(
         visitor,
@@ -2879,17 +2855,16 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         typeEnvironment: typeSchemaEnvironment,
         fileUri: helper.uri,
         fileOffset: fileOffset,
-        typeArgumentsInfo: getTypeArgumentsInfo(arguments),
+        explicitTypeArguments: arguments.hasExplicitTypeArguments,
         typeParameters: target.getTypeParameters(),
         typeArguments: arguments.types,
       );
 
-      ArgumentsImpl extensionInvocationArguments =
-          createExtensionInvocationArgument(target, receiver, arguments);
       StaticInvocation staticInvocation = createExtensionInvocation(
         fileOffset,
         target,
-        extensionInvocationArguments,
+        receiver,
+        arguments,
       );
 
       Expression replacement = result.applyResult(
@@ -4051,7 +4026,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     DartType receiverType,
     DartType calleeType,
     Name methodName,
-    Arguments arguments,
+    ArgumentsImpl arguments,
     int fileOffset,
   ) {
     // If [arguments] were inferred, check them.
@@ -4111,7 +4086,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   void _checkBoundsInFunctionInvocation(
     FunctionType functionType,
     String? localName,
-    Arguments arguments,
+    ArgumentsImpl arguments,
     int fileOffset,
   ) {
     // If [arguments] were inferred, check them.
@@ -5203,7 +5178,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           case ClassMemberKind.Getter:
             read = new StaticInvocation(
               readTarget.member as Procedure,
-              new ArgumentsImpl(
+              new Arguments(
                 <Expression>[receiver],
                 types: readTarget.receiverTypeArguments,
               )..fileOffset = fileOffset,

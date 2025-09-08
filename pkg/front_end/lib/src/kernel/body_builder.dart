@@ -2614,14 +2614,13 @@ class BodyBuilder extends StackListenerImpl
     // Delay adding [typeArguments] to [forest] for type aliases: They
     // must be unaliased to the type arguments of the denoted type.
     bool isInForest =
-        arguments is Arguments &&
+        arguments is ArgumentsImpl &&
         typeArguments != null &&
         (receiver is! TypeUseGenerator ||
             receiver.declaration is! TypeAliasBuilder);
     if (isInForest) {
-      assert(forest.argumentsTypeArguments(arguments).isEmpty);
-      forest.argumentsSetTypeArguments(
-        arguments,
+      assert(arguments.types.isEmpty);
+      arguments.setExplicitTypeArguments(
         buildDartTypeArguments(
           typeArguments,
           TypeUse.invocationTypeArgument,
@@ -2648,7 +2647,7 @@ class BodyBuilder extends StackListenerImpl
             beginToken,
             name,
             typeArguments,
-            arguments as Arguments,
+            arguments as ArgumentsImpl,
             isTypeArgumentsInForest: isInForest,
           ),
         );
@@ -7226,7 +7225,7 @@ class BodyBuilder extends StackListenerImpl
 
   Expression buildConstructorInvocation(
     Member target,
-    Arguments arguments, {
+    ArgumentsImpl arguments, {
     Constness constness = Constness.implicit,
     TypeAliasBuilder? typeAliasBuilder,
     int fileOffset = -1,
@@ -7314,7 +7313,7 @@ class BodyBuilder extends StackListenerImpl
           typeEnvironment: typeEnvironment,
           fileUri: uri,
           fileOffset: fileOffset,
-          inferred: !hasExplicitTypeArguments(arguments),
+          inferred: !arguments.hasExplicitTypeArguments,
         );
         node = factoryConstructorInvocation;
       } else {
@@ -7381,7 +7380,7 @@ class BodyBuilder extends StackListenerImpl
           .withArgumentsOld(positionalParameterCount, positionalArgumentsCount)
           .withLocation(uri, arguments.fileOffset, noLength);
     }
-    List<NamedExpression> named = forest.argumentsNamed(arguments);
+    List<NamedExpression> named = arguments.named;
     if (named.isNotEmpty) {
       Set<String?> parameterNames = new Set.of(
         function.namedParameters.map((a) => a.name),
@@ -7433,11 +7432,8 @@ class BodyBuilder extends StackListenerImpl
     int requiredPositionalParameterCountToReport =
         function.requiredParameterCount;
     int positionalParameterCountToReport = function.positionalParameters.length;
-    int positionalArgumentCountToReport = forest
-        .argumentsPositional(arguments)
-        .length;
-    if (forest.argumentsPositional(arguments).length <
-        function.requiredParameterCount) {
+    int positionalArgumentCountToReport = arguments.positional.length;
+    if (arguments.positional.length < function.requiredParameterCount) {
       return cfe.codeTooFewArguments
           .withArgumentsOld(
             requiredPositionalParameterCountToReport,
@@ -7445,8 +7441,7 @@ class BodyBuilder extends StackListenerImpl
           )
           .withLocation(uri, arguments.fileOffset, noLength);
     }
-    if (forest.argumentsPositional(arguments).length >
-        function.positionalParameters.length) {
+    if (arguments.positional.length > function.positionalParameters.length) {
       return cfe.codeTooManyArguments
           .withArgumentsOld(
             positionalParameterCountToReport,
@@ -7454,7 +7449,7 @@ class BodyBuilder extends StackListenerImpl
           )
           .withLocation(uri, arguments.fileOffset, noLength);
     }
-    List<NamedExpression> named = forest.argumentsNamed(arguments);
+    List<NamedExpression> named = arguments.named;
     if (named.isNotEmpty) {
       Set<String> names = new Set.of(
         function.namedParameters.map((a) => a.name),
@@ -7479,7 +7474,7 @@ class BodyBuilder extends StackListenerImpl
         }
       }
     }
-    List<Object> types = forest.argumentsTypeArguments(arguments);
+    List<Object> types = arguments.types;
     List<StructuralParameter> typeParameters = function.typeParameters;
     if (typeParameters.length != types.length && types.length != 0) {
       // A wrong (non-zero) amount of type arguments given. That's an error.
@@ -7589,7 +7584,7 @@ class BodyBuilder extends StackListenerImpl
 
     ConstantContext savedConstantContext = pop() as ConstantContext;
 
-    if (arguments is! Arguments) {
+    if (arguments is! ArgumentsImpl) {
       push(new ParserErrorGenerator(this, nameToken, cfe.codeSyntheticToken));
       arguments = forest.createArguments(offset, []);
     } else if (type is Generator) {
@@ -7647,7 +7642,7 @@ class BodyBuilder extends StackListenerImpl
     List<TypeBuilder>? typeArguments,
     String className,
     String constructorName,
-    Arguments arguments, {
+    ArgumentsImpl arguments, {
     required int instantiationOffset,
     required int invocationOffset,
     required bool inImplicitCreationContext,
@@ -7686,9 +7681,8 @@ class BodyBuilder extends StackListenerImpl
       );
     } else {
       if (typeArguments != null) {
-        assert(forest.argumentsTypeArguments(arguments).isEmpty);
-        forest.argumentsSetTypeArguments(
-          arguments,
+        assert(arguments.types.isEmpty);
+        arguments.setExplicitTypeArguments(
           buildDartTypeArguments(
             typeArguments,
             TypeUse.constructorTypeArgument,
@@ -7721,7 +7715,7 @@ class BodyBuilder extends StackListenerImpl
     TypeDeclarationBuilder? typeDeclarationBuilder,
     Token nameToken,
     Token nameLastToken,
-    Arguments arguments,
+    ArgumentsImpl arguments,
     String name,
     List<TypeBuilder>? typeArguments,
     int charOffset,
@@ -7937,8 +7931,8 @@ class BodyBuilder extends StackListenerImpl
                   ),
                 );
               }
-              assert(forest.argumentsTypeArguments(arguments).isEmpty);
-              forest.argumentsSetTypeArguments(arguments, dartTypeArguments);
+              assert(arguments.types.isEmpty);
+              arguments.setExplicitTypeArguments(dartTypeArguments);
             case TypeAliasBuilder():
             // Coverage-ignore(suite): Not run.
             case NominalParameterBuilder():
@@ -8029,8 +8023,8 @@ class BodyBuilder extends StackListenerImpl
                 ),
               );
             }
-            assert(forest.argumentsTypeArguments(arguments).isEmpty);
-            forest.argumentsSetTypeArguments(arguments, dartTypeArguments);
+            assert(arguments.types.isEmpty);
+            arguments.setExplicitTypeArguments(dartTypeArguments);
           } else {
             LibraryBuilder libraryBuilder;
             List<NominalParameterBuilder>? typeParameters;
@@ -8045,10 +8039,10 @@ class BodyBuilder extends StackListenerImpl
               typeParameters = typeDeclarationBuilder.typeParameters;
             }
             if (typeParameters == null || typeParameters.isEmpty) {
-              assert(forest.argumentsTypeArguments(arguments).isEmpty);
-              forest.argumentsSetTypeArguments(arguments, []);
+              assert(arguments.types.isEmpty);
+              arguments.setExplicitTypeArguments([]);
             } else {
-              if (forest.argumentsTypeArguments(arguments).isEmpty) {
+              if (arguments.types.isEmpty) {
                 // No type arguments provided to unaliased class, use defaults.
                 List<DartType> result = new List<DartType>.generate(
                   typeParameters.length,
@@ -8058,7 +8052,7 @@ class BodyBuilder extends StackListenerImpl
                   ),
                   growable: true,
                 );
-                forest.argumentsSetTypeArguments(arguments, result);
+                arguments.setExplicitTypeArguments(result);
               }
             }
           }
@@ -8073,9 +8067,8 @@ class BodyBuilder extends StackListenerImpl
       }
     } else {
       if (typeArguments != null && !isTypeArgumentsInForest) {
-        assert(forest.argumentsTypeArguments(arguments).isEmpty);
-        forest.argumentsSetTypeArguments(
-          arguments,
+        assert(arguments.types.isEmpty);
+        arguments.setExplicitTypeArguments(
           buildDartTypeArguments(
             typeArguments,
             TypeUse.constructorTypeArgument,
@@ -11111,7 +11104,7 @@ class BodyBuilder extends StackListenerImpl
   @override
   Initializer buildRedirectingInitializer(
     Name name,
-    Arguments arguments, {
+    ArgumentsImpl arguments, {
     required int fileOffset,
   }) {
     Builder? constructorBuilder = _context.lookupConstructor(name);
@@ -11361,14 +11354,14 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   Expression evaluateArgumentsBefore(
-    Arguments? arguments,
+    ArgumentsImpl? arguments,
     Expression expression,
   ) {
     if (arguments == null) return expression;
     List<Expression> expressions = new List<Expression>.of(
-      forest.argumentsPositional(arguments),
+      arguments.positional,
     );
-    for (NamedExpression named in forest.argumentsNamed(arguments)) {
+    for (NamedExpression named in arguments.named) {
       // Coverage-ignore-block(suite): Not run.
       expressions.add(named.value);
     }
@@ -11392,7 +11385,7 @@ class BodyBuilder extends StackListenerImpl
   Expression buildMethodInvocation(
     Expression receiver,
     Name name,
-    Arguments arguments,
+    ArgumentsImpl arguments,
     int offset, {
     bool isConstantExpression = false,
     bool isNullAware = false,
@@ -11418,7 +11411,7 @@ class BodyBuilder extends StackListenerImpl
   @override
   Expression buildSuperInvocation(
     Name name,
-    Arguments arguments,
+    ArgumentsImpl arguments,
     int offset, {
     bool isConstantExpression = false,
     bool isNullAware = false,
