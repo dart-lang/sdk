@@ -474,16 +474,22 @@ bool IsolateGroup::UnregisterIsolateDecrementCount() {
   return isolate_count_ == 0;
 }
 
-void IsolateGroup::RegisterIsolateGroupMutator(Thread* mutator) {
+void IsolateGroup::IncrementIsolateGroupMutatorCount() {
   SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
-  mutators_.Append(mutator);
   group_mutator_count_++;
 }
 
-void IsolateGroup::UnregisterIsolateGroupMutator(Thread* mutator) {
+void IsolateGroup::DecrementIsolateGroupMutatorCount() {
   SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
-  mutators_.Remove(mutator);
   group_mutator_count_--;
+}
+
+void IsolateGroup::RegisterIsolateGroupMutator(Thread* mutator) {
+  mutators_.Append(mutator);
+}
+
+void IsolateGroup::UnregisterIsolateGroupMutator(Thread* mutator) {
+  mutators_.Remove(mutator);
 }
 
 void IsolateGroup::CreateHeap(bool is_vm_isolate,
