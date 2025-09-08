@@ -14,6 +14,7 @@
 
 #if defined(__APPLE__)
 .globl _FfiCallTrampoline
+.private_extern _FfiCallTrampoline
 _FfiCallTrampoline:
 #else
 .globl FfiCallTrampoline
@@ -72,6 +73,7 @@ FfiCallTrampoline:
 
 #if defined(__APPLE__)
 .globl _SimulatorFfiCalloutTrampoline
+.private_extern _SimulatorFfiCalloutTrampoline
 _SimulatorFfiCalloutTrampoline:
 #else
 .globl SimulatorFfiCalloutTrampoline
@@ -128,6 +130,7 @@ SimulatorFfiCalloutTrampoline:
 
 #if defined(__APPLE__)
 .globl _SimulatorFfiCallbackTrampoline
+.private_extern _SimulatorFfiCallbackTrampoline
 _SimulatorFfiCallbackTrampoline:
 #else
 .globl SimulatorFfiCallbackTrampoline
@@ -181,6 +184,7 @@ SimulatorFfiCallbackTrampoline:
 
 #if defined(__APPLE__)
 .globl _SimulatorFfiCallbackTrampolineEnd
+.private_extern _SimulatorFfiCallbackTrampolineEnd
 _SimulatorFfiCallbackTrampolineEnd:
 #else
 .globl SimulatorFfiCallbackTrampolineEnd
