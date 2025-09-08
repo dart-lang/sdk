@@ -4710,9 +4710,9 @@ abstract class InstanceFragmentImpl extends FragmentImpl
     fragment.enclosingFragment = this;
   }
 
-  void addTypeParameter(TypeParameterFragmentImpl typeParameter) {
-    _typeParameters.add(typeParameter);
-    typeParameter.enclosingFragment = this;
+  void addTypeParameter(TypeParameterFragmentImpl fragment) {
+    _typeParameters.add(fragment);
+    fragment.enclosingFragment = this;
   }
 }
 
