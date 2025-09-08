@@ -201,7 +201,7 @@ class ElementBuilder {
         fragment.typeParameters.length = lastTypeParameterFragments.length;
       }
 
-      // Synthesize missing type parameters.
+      // Add missing type parameters.
       if (lastTypeParameterFragments.length > fragment.typeParameters.length) {
         for (
           var i = fragment.typeParameters.length;

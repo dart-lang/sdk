@@ -537,9 +537,9 @@ void Thread::EnterIsolateGroupAsMutator(IsolateGroup* isolate_group,
   isolate_group->IncreaseMutatorCount(/*thread=*/nullptr,
                                       /*is_nested_reenter=*/true,
                                       /*was_stolen=*/false);
+  isolate_group->IncrementIsolateGroupMutatorCount();
   Thread* thread = AddActiveThread(isolate_group, /*isolate=*/nullptr,
                                    kMutatorTask, bypass_safepoint);
-  isolate_group->RegisterIsolateGroupMutator(thread);
 
   RELEASE_ASSERT(thread != nullptr);
   // Even if [bypass_safepoint] is true, a thread may need mutator state (e.g.
@@ -583,8 +583,8 @@ void Thread::ExitIsolateGroupAsMutator(bool bypass_safepoint) {
   thread->ClearStackLimit();
   SuspendThreadInternal(thread, VMTag::kInvalidTagId);
   auto group = thread->isolate_group();
-  group->UnregisterIsolateGroupMutator(thread);
   FreeActiveThread(thread, /*isolate=*/nullptr, bypass_safepoint);
+  group->DecrementIsolateGroupMutatorCount();
   group->DecreaseMutatorCount(/*is_nested_exit=*/true);
 }
 
@@ -693,9 +693,12 @@ Thread* Thread::AddActiveThread(IsolateGroup* group,
   thread->isolate_ = isolate;  // May be nullptr.
   thread->isolate_group_ = group;
   thread->scheduled_dart_mutator_isolate_ = isolate;
-  if (isolate != nullptr && task_kind == kMutatorTask) {
-    ASSERT(thread_registry->threads_lock()->IsOwnedByCurrentThread());
-    isolate->mutator_thread_ = thread;
+  if (task_kind == kMutatorTask) {
+    if (isolate != nullptr) {
+      isolate->mutator_thread_ = thread;
+    } else {
+      group->RegisterIsolateGroupMutator(thread);
+    }
   }
 
   // We start at being at-safepoint (in case any safepoint operation is
@@ -750,9 +753,12 @@ void Thread::FreeActiveThread(Thread* thread,
   thread->isolate_ = nullptr;
   thread->isolate_group_ = nullptr;
   thread->scheduled_dart_mutator_isolate_ = nullptr;
-  if (isolate != nullptr && thread->task_kind() == kMutatorTask) {
-    ASSERT(thread_registry->threads_lock()->IsOwnedByCurrentThread());
-    isolate->mutator_thread_ = nullptr;
+  if (thread->task_kind() == kMutatorTask) {
+    if (isolate != nullptr) {
+      isolate->mutator_thread_ = nullptr;
+    } else {
+      group->UnregisterIsolateGroupMutator(thread);
+    }
   }
   thread->set_execution_state(Thread::kThreadInNative);
   thread->stack_limit_.store(0);

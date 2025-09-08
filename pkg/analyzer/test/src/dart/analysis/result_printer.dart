@@ -1094,6 +1094,21 @@ class LibraryManifestPrinter {
     }
   }
 
+  Map<String, bool> _executableItemFlags(ExecutableItem item) {
+    return {
+      'hasEnclosingTypeParameterReference':
+          item.hasEnclosingTypeParameterReference,
+      'hasImplicitReturnType': item.hasImplicitReturnType,
+      'invokesSuperSelf': item.invokesSuperSelf,
+      'isAbstract': item.isAbstract,
+      'isExtensionTypeMember': item.isExtensionTypeMember,
+      'isExternal': item.isExternal,
+      'isSimplyBounded': item.isSimplyBounded,
+      'isStatic': item.isStatic,
+      'isSynthetic': item.isSynthetic,
+    };
+  }
+
   void _writeClassItem(ClassItem item) {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
@@ -1177,6 +1192,7 @@ class LibraryManifestPrinter {
   void _writeGetterItem(GetterItem item) {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
+        sink.writeFlags({..._executableItemFlags(item)});
         _writeMetadata(item);
         _writeNamedType('returnType', item.functionType.returnType);
       });
@@ -1240,6 +1256,7 @@ class LibraryManifestPrinter {
             sink.writelnWithIndent('$name: $idStr');
             if (configuration.withElementManifests) {
               sink.withIndent(() {
+                sink.writeFlags({..._executableItemFlags(item)});
                 _writeMetadata(item);
                 _writeNamedType('returnType', item.functionType.returnType);
               });
@@ -1264,6 +1281,7 @@ class LibraryManifestPrinter {
             sink.writelnWithIndent('$name: $idStr');
             if (configuration.withElementManifests) {
               sink.withIndent(() {
+                sink.writeFlags({..._executableItemFlags(item)});
                 _writeMetadata(item);
                 _writeNamedType('functionType', item.functionType);
               });
@@ -1288,6 +1306,7 @@ class LibraryManifestPrinter {
             sink.writelnWithIndent('$name: $idStr');
             if (configuration.withElementManifests) {
               sink.withIndent(() {
+                sink.writeFlags({..._executableItemFlags(item)});
                 _writeMetadata(item);
                 _writeNamedType('functionType', item.functionType);
               });
@@ -1315,6 +1334,11 @@ class LibraryManifestPrinter {
             if (configuration.withElementManifests) {
               sink.withIndent(() {
                 sink.withIndent(() {
+                  sink.writeFlags({
+                    ..._executableItemFlags(item),
+                    'isConst': item.isConst,
+                    'isFactory': item.isFactory,
+                  });
                   _writeMetadata(item);
                   _writeNamedType('functionType', item.functionType);
                 });
@@ -1549,6 +1573,7 @@ class LibraryManifestPrinter {
   void _writeSetterItem(SetterItem item) {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
+        sink.writeFlags({..._executableItemFlags(item)});
         _writeMetadata(item);
         _writeNamedType('functionType', item.functionType);
       });
@@ -1558,6 +1583,7 @@ class LibraryManifestPrinter {
   void _writeTopLevelFunctionItem(TopLevelFunctionItem item) {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
+        sink.writeFlags({..._executableItemFlags(item)});
         _writeMetadata(item);
         _writeNamedType('functionType', item.functionType);
       });

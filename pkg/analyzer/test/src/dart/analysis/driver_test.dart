@@ -10198,10 +10198,10 @@ abstract class A {
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M1
-        interface: #M3
+          foo: #M3
+        interface: #M4
           map
-            foo: #M1
+            foo: #M3
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -10296,12 +10296,12 @@ abstract class A {
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M1
-        interface: #M3
+          foo: #M3
+        interface: #M4
           map
-            foo: #M1
+            foo: #M3
           implemented
-            foo: #M1
+            foo: #M3
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -10312,7 +10312,7 @@ abstract class A {
     interfaceName: A
     methodName: foo
     expectedId: <null>
-    actualId: #M1
+    actualId: #M3
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -10326,7 +10326,7 @@ abstract class A {
         interfaces
           A
             implementedMethods
-              foo: #M1
+              foo: #M3
 [status] idle
 ''',
     );
@@ -19227,6 +19227,7 @@ export 'a.dart';
             type: int @ dart:core
         declaredGetters
           foo: #M2
+            flags: isSimplyBounded
             returnType: int @ dart:core
     exportedExtensions: #M0
   requirements
@@ -19272,8 +19273,10 @@ extension E on int {
             type: int @ dart:core
         declaredGetters
           bar: #M4
+            flags: isSimplyBounded
             returnType: int @ dart:core
           foo: #M2
+            flags: isSimplyBounded
             returnType: int @ dart:core
     exportedExtensions: #M0
   requirements
@@ -19322,8 +19325,10 @@ export 'a.dart';
             type: int @ dart:core
         declaredGetters
           bar: #M3
+            flags: isSimplyBounded
             returnType: int @ dart:core
           foo: #M4
+            flags: isSimplyBounded
             returnType: int @ dart:core
     exportedExtensions: #M0
   requirements
@@ -19369,8 +19374,10 @@ extension E on int {
             type: int @ dart:core
         declaredGetters
           bar: #M6
+            flags: isSimplyBounded
             returnType: double @ dart:core
           foo: #M4
+            flags: isSimplyBounded
             returnType: int @ dart:core
     exportedExtensions: #M0
   requirements
@@ -19419,8 +19426,10 @@ export 'a.dart';
             type: int @ dart:core
         declaredGetters
           bar: #M3
+            flags: isSimplyBounded
             returnType: int @ dart:core
           foo: #M4
+            flags: isSimplyBounded
             returnType: int @ dart:core
     exportedExtensions: #M0
   requirements
@@ -19463,6 +19472,7 @@ extension E on int {
             type: int @ dart:core
         declaredGetters
           foo: #M4
+            flags: isSimplyBounded
             returnType: int @ dart:core
     exportedExtensions: #M0
   requirements
@@ -19694,6 +19704,7 @@ export 'a.dart';
         extendedType: int @ dart:core
         declaredMethods
           foo: #M1
+            flags: isSimplyBounded
             functionType: FunctionType
               returnType: void
     exportedExtensions: #M0
@@ -19735,9 +19746,11 @@ extension E on int {
         extendedType: int @ dart:core
         declaredMethods
           bar: #M2
+            flags: isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo: #M1
+            flags: isSimplyBounded
             functionType: FunctionType
               returnType: void
     exportedExtensions: #M0
@@ -19782,9 +19795,11 @@ export 'a.dart';
         extendedType: int @ dart:core
         declaredMethods
           bar: #M1
+            flags: isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo: #M2
+            flags: isSimplyBounded
             functionType: FunctionType
               returnType: void
     exportedExtensions: #M0
@@ -19826,11 +19841,13 @@ extension E on int {
         extendedType: int @ dart:core
         declaredMethods
           bar: #M3
+            flags: isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo: #M2
+            flags: isSimplyBounded
             functionType: FunctionType
               returnType: void
     exportedExtensions: #M0
@@ -19875,9 +19892,11 @@ export 'a.dart';
         extendedType: int @ dart:core
         declaredMethods
           bar: #M1
+            flags: isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo: #M2
+            flags: isSimplyBounded
             functionType: FunctionType
               returnType: void
     exportedExtensions: #M0
@@ -19918,6 +19937,7 @@ extension E on int {
         extendedType: int @ dart:core
         declaredMethods
           foo: #M2
+            flags: isSimplyBounded
             functionType: FunctionType
               returnType: void
     exportedExtensions: #M0
@@ -19964,6 +19984,7 @@ export 'a.dart';
             type: int @ dart:core
         declaredSetters
           foo=: #M2
+            flags: hasImplicitReturnType isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -20012,11 +20033,13 @@ extension E on int {
             type: int @ dart:core
         declaredSetters
           bar=: #M4
+            flags: hasImplicitReturnType isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo=: #M2
+            flags: hasImplicitReturnType isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -20068,11 +20091,13 @@ export 'a.dart';
             type: int @ dart:core
         declaredSetters
           bar=: #M3
+            flags: hasImplicitReturnType isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo=: #M4
+            flags: hasImplicitReturnType isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -20121,11 +20146,13 @@ extension E on int {
             type: int @ dart:core
         declaredSetters
           bar=: #M6
+            flags: hasImplicitReturnType isSimplyBounded
             functionType: FunctionType
               positional
                 required double @ dart:core
               returnType: void
           foo=: #M4
+            flags: hasImplicitReturnType isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -20177,11 +20204,13 @@ export 'a.dart';
             type: int @ dart:core
         declaredSetters
           bar=: #M3
+            flags: hasImplicitReturnType isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
           foo=: #M4
+            flags: hasImplicitReturnType isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -20227,6 +20256,7 @@ extension E on int {
             type: int @ dart:core
         declaredSetters
           foo=: #M4
+            flags: hasImplicitReturnType isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -44664,6 +44694,225 @@ class A {
     );
   }
 
+  test_manifest_class_constructor_modifier_isConst() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.foo1();
+  const A.foo2();
+  A.foo3();
+  const A.foo4();
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredConstructors
+          foo1: #M1
+              flags: hasEnclosingTypeParameterReference isSimplyBounded
+              functionType: FunctionType
+                returnType: A @ package:test/test.dart
+          foo2: #M2
+              flags: hasEnclosingTypeParameterReference isConst isSimplyBounded
+              functionType: FunctionType
+                returnType: A @ package:test/test.dart
+          foo3: #M3
+              flags: hasEnclosingTypeParameterReference isSimplyBounded
+              functionType: FunctionType
+                returnType: A @ package:test/test.dart
+          foo4: #M4
+              flags: hasEnclosingTypeParameterReference isConst isSimplyBounded
+              functionType: FunctionType
+                returnType: A @ package:test/test.dart
+        interface: #M5
+''',
+      updatedCode: r'''
+class A {
+  A.foo1();
+  const A.foo2();
+  const A.foo3();
+  A.foo4();
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredConstructors
+          foo1: #M1
+              flags: hasEnclosingTypeParameterReference isSimplyBounded
+              functionType: FunctionType
+                returnType: A @ package:test/test.dart
+          foo2: #M2
+              flags: hasEnclosingTypeParameterReference isConst isSimplyBounded
+              functionType: FunctionType
+                returnType: A @ package:test/test.dart
+          foo3: #M6
+              flags: hasEnclosingTypeParameterReference isConst isSimplyBounded
+              functionType: FunctionType
+                returnType: A @ package:test/test.dart
+          foo4: #M7
+              flags: hasEnclosingTypeParameterReference isSimplyBounded
+              functionType: FunctionType
+                returnType: A @ package:test/test.dart
+        interface: #M5
+''',
+    );
+  }
+
+  test_manifest_class_constructor_modifier_isExternal() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.foo1() {}
+  external A.foo2();
+  A.foo3() {}
+  external A.foo4();
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredConstructors
+          foo1: #M1
+              flags: hasEnclosingTypeParameterReference isSimplyBounded
+              functionType: FunctionType
+                returnType: A @ package:test/test.dart
+          foo2: #M2
+              flags: hasEnclosingTypeParameterReference isExternal isSimplyBounded
+              functionType: FunctionType
+                returnType: A @ package:test/test.dart
+          foo3: #M3
+              flags: hasEnclosingTypeParameterReference isSimplyBounded
+              functionType: FunctionType
+                returnType: A @ package:test/test.dart
+          foo4: #M4
+              flags: hasEnclosingTypeParameterReference isExternal isSimplyBounded
+              functionType: FunctionType
+                returnType: A @ package:test/test.dart
+        interface: #M5
+''',
+      updatedCode: r'''
+class A {
+  A.foo1() {}
+  external A.foo2();
+  external A.foo3();
+  A.foo4() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredConstructors
+          foo1: #M1
+              flags: hasEnclosingTypeParameterReference isSimplyBounded
+              functionType: FunctionType
+                returnType: A @ package:test/test.dart
+          foo2: #M2
+              flags: hasEnclosingTypeParameterReference isExternal isSimplyBounded
+              functionType: FunctionType
+                returnType: A @ package:test/test.dart
+          foo3: #M6
+              flags: hasEnclosingTypeParameterReference isExternal isSimplyBounded
+              functionType: FunctionType
+                returnType: A @ package:test/test.dart
+          foo4: #M7
+              flags: hasEnclosingTypeParameterReference isSimplyBounded
+              functionType: FunctionType
+                returnType: A @ package:test/test.dart
+        interface: #M5
+''',
+    );
+  }
+
+  test_manifest_class_constructor_modifier_isFactory() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.foo1();
+  factory A.foo2();
+  A.foo3();
+  factory A.foo4();
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredConstructors
+          foo1: #M1
+              flags: hasEnclosingTypeParameterReference isSimplyBounded
+              functionType: FunctionType
+                returnType: A @ package:test/test.dart
+          foo2: #M2
+              flags: hasEnclosingTypeParameterReference isFactory isSimplyBounded
+              functionType: FunctionType
+                returnType: A @ package:test/test.dart
+          foo3: #M3
+              flags: hasEnclosingTypeParameterReference isSimplyBounded
+              functionType: FunctionType
+                returnType: A @ package:test/test.dart
+          foo4: #M4
+              flags: hasEnclosingTypeParameterReference isFactory isSimplyBounded
+              functionType: FunctionType
+                returnType: A @ package:test/test.dart
+        interface: #M5
+''',
+      updatedCode: r'''
+class A {
+  A.foo1();
+  factory A.foo2();
+  factory A.foo3();
+  A.foo4();
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredConstructors
+          foo1: #M1
+              flags: hasEnclosingTypeParameterReference isSimplyBounded
+              functionType: FunctionType
+                returnType: A @ package:test/test.dart
+          foo2: #M2
+              flags: hasEnclosingTypeParameterReference isFactory isSimplyBounded
+              functionType: FunctionType
+                returnType: A @ package:test/test.dart
+          foo3: #M6
+              flags: hasEnclosingTypeParameterReference isFactory isSimplyBounded
+              functionType: FunctionType
+                returnType: A @ package:test/test.dart
+          foo4: #M7
+              flags: hasEnclosingTypeParameterReference isSimplyBounded
+              functionType: FunctionType
+                returnType: A @ package:test/test.dart
+        interface: #M5
+''',
+    );
+  }
+
   test_manifest_class_constructor_private() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -46439,6 +46688,700 @@ class A {
     );
   }
 
+  test_manifest_class_getter_modifier_hasEnclosingTypeParameterReference() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+abstract class A<T> {
+  T get foo1;
+  int get foo2;
+  T get foo3;
+  int get foo4;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        flags: isAbstract
+        typeParameters
+          #0 covariant
+            bound: <null>
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: typeParameter#0
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: typeParameter#0
+          foo4: #M4
+            type: int @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: hasEnclosingTypeParameterReference isAbstract isSimplyBounded
+            returnType: typeParameter#0
+          foo2: #M6
+            flags: isAbstract isSimplyBounded
+            returnType: int @ dart:core
+          foo3: #M7
+            flags: hasEnclosingTypeParameterReference isAbstract isSimplyBounded
+            returnType: typeParameter#0
+          foo4: #M8
+            flags: isAbstract isSimplyBounded
+            returnType: int @ dart:core
+        interface: #M9
+          map
+            foo1: #M5
+            foo2: #M6
+            foo3: #M7
+            foo4: #M8
+''',
+      updatedCode: r'''
+abstract class A<T> {
+  T get foo1;
+  int get foo2;
+  int get foo3;
+  T get foo4;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        flags: isAbstract
+        typeParameters
+          #0 covariant
+            bound: <null>
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: typeParameter#0
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M10
+            type: int @ dart:core
+          foo4: #M11
+            type: typeParameter#0
+        declaredGetters
+          foo1: #M5
+            flags: hasEnclosingTypeParameterReference isAbstract isSimplyBounded
+            returnType: typeParameter#0
+          foo2: #M6
+            flags: isAbstract isSimplyBounded
+            returnType: int @ dart:core
+          foo3: #M12
+            flags: isAbstract isSimplyBounded
+            returnType: int @ dart:core
+          foo4: #M13
+            flags: hasEnclosingTypeParameterReference isAbstract isSimplyBounded
+            returnType: typeParameter#0
+        interface: #M14
+          map
+            foo1: #M5
+            foo2: #M6
+            foo3: #M12
+            foo4: #M13
+''',
+    );
+  }
+
+  test_manifest_class_getter_modifier_hasImplicitReturnType() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  get foo1 => 0;
+  int get foo2 => 0;
+  get foo3 => 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: dynamic
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: dynamic
+        declaredGetters
+          foo1: #M4
+            flags: hasImplicitReturnType isSimplyBounded
+            returnType: dynamic
+          foo2: #M5
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo3: #M6
+            flags: hasImplicitReturnType isSimplyBounded
+            returnType: dynamic
+        interface: #M7
+          map
+            foo1: #M4
+            foo2: #M5
+            foo3: #M6
+          implemented
+            foo1: #M4
+            foo2: #M5
+            foo3: #M6
+''',
+      updatedCode: r'''
+class A {
+  get foo1 => 0;
+  get foo2 => 0;
+  int get foo3 => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: dynamic
+          foo2: #M8
+            type: dynamic
+          foo3: #M9
+            type: int @ dart:core
+        declaredGetters
+          foo1: #M4
+            flags: hasImplicitReturnType isSimplyBounded
+            returnType: dynamic
+          foo2: #M10
+            flags: hasImplicitReturnType isSimplyBounded
+            returnType: dynamic
+          foo3: #M11
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+        interface: #M12
+          map
+            foo1: #M4
+            foo2: #M10
+            foo3: #M11
+          implemented
+            foo1: #M4
+            foo2: #M10
+            foo3: #M11
+''',
+    );
+  }
+
+  test_manifest_class_getter_modifier_invokesSuperSelf() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo1 => 0;
+  int get foo2 => 0;
+  int get foo3 => 0;
+  int get foo4 => 0;
+}
+class B extends A {
+  int get foo1 => 1;
+  int get foo2 { return super.foo2; }
+  int get foo3 => 3;
+  int get foo4 { return super.foo4; }
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo2: #M6
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo3: #M7
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo4: #M8
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+        interface: #M9
+          map
+            foo1: #M5
+            foo2: #M6
+            foo3: #M7
+            foo4: #M8
+          implemented
+            foo1: #M5
+            foo2: #M6
+            foo3: #M7
+            foo4: #M8
+      B: #M10
+        supertype: A @ package:test/test.dart
+        declaredFields
+          foo1: #M11
+            type: int @ dart:core
+          foo2: #M12
+            type: int @ dart:core
+          foo3: #M13
+            type: int @ dart:core
+          foo4: #M14
+            type: int @ dart:core
+        declaredGetters
+          foo1: #M15
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo2: #M16
+            flags: invokesSuperSelf isSimplyBounded
+            returnType: int @ dart:core
+          foo3: #M17
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo4: #M18
+            flags: invokesSuperSelf isSimplyBounded
+            returnType: int @ dart:core
+        interface: #M19
+          map
+            foo1: #M15
+            foo2: #M16
+            foo3: #M17
+            foo4: #M18
+          implemented
+            foo1: #M15
+            foo2: #M16
+            foo3: #M17
+            foo4: #M18
+          superImplemented
+            [0]
+              foo1: #M5
+              foo2: #M6
+              foo3: #M7
+              foo4: #M8
+          inherited
+            foo1: #M5
+            foo2: #M6
+            foo3: #M7
+            foo4: #M8
+''',
+      updatedCode: r'''
+class A {
+  int get foo1 => 0;
+  int get foo2 => 0;
+  int get foo3 => 0;
+  int get foo4 => 0;
+}
+class B extends A {
+  int get foo1 => 1;
+  int get foo2 { return super.foo2; }
+  int get foo3 { return super.foo3; }
+  int get foo4 => 4;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo2: #M6
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo3: #M7
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo4: #M8
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+        interface: #M9
+          map
+            foo1: #M5
+            foo2: #M6
+            foo3: #M7
+            foo4: #M8
+          implemented
+            foo1: #M5
+            foo2: #M6
+            foo3: #M7
+            foo4: #M8
+      B: #M10
+        supertype: A @ package:test/test.dart
+        declaredFields
+          foo1: #M11
+            type: int @ dart:core
+          foo2: #M12
+            type: int @ dart:core
+          foo3: #M13
+            type: int @ dart:core
+          foo4: #M14
+            type: int @ dart:core
+        declaredGetters
+          foo1: #M15
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo2: #M16
+            flags: invokesSuperSelf isSimplyBounded
+            returnType: int @ dart:core
+          foo3: #M20
+            flags: invokesSuperSelf isSimplyBounded
+            returnType: int @ dart:core
+          foo4: #M21
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+        interface: #M22
+          map
+            foo1: #M15
+            foo2: #M16
+            foo3: #M20
+            foo4: #M21
+          implemented
+            foo1: #M15
+            foo2: #M16
+            foo3: #M20
+            foo4: #M21
+          superImplemented
+            [0]
+              foo1: #M5
+              foo2: #M6
+              foo3: #M7
+              foo4: #M8
+          inherited
+            foo1: #M5
+            foo2: #M6
+            foo3: #M7
+            foo4: #M8
+''',
+    );
+  }
+
+  test_manifest_class_getter_modifier_isAbstract() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+abstract class A {
+  int get foo1 => 1;
+  int get foo2;
+  int get foo3 => 3;
+  int get foo4;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        flags: isAbstract
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo2: #M6
+            flags: isAbstract isSimplyBounded
+            returnType: int @ dart:core
+          foo3: #M7
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo4: #M8
+            flags: isAbstract isSimplyBounded
+            returnType: int @ dart:core
+        interface: #M9
+          map
+            foo1: #M5
+            foo2: #M6
+            foo3: #M7
+            foo4: #M8
+          implemented
+            foo1: #M5
+            foo3: #M7
+''',
+      updatedCode: r'''
+abstract class A {
+  int get foo1 => 1;
+  int get foo2;
+  int get foo3;
+  int get foo4 => 4;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        flags: isAbstract
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo2: #M6
+            flags: isAbstract isSimplyBounded
+            returnType: int @ dart:core
+          foo3: #M10
+            flags: isAbstract isSimplyBounded
+            returnType: int @ dart:core
+          foo4: #M11
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+        interface: #M12
+          map
+            foo1: #M5
+            foo2: #M6
+            foo3: #M10
+            foo4: #M11
+          implemented
+            foo1: #M5
+            foo4: #M11
+''',
+    );
+  }
+
+  test_manifest_class_getter_modifier_isExternal() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo1 => 1;
+  external int get foo2;
+  int get foo3 => 3;
+  external int get foo4;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo2: #M6
+            flags: isExternal isSimplyBounded
+            returnType: int @ dart:core
+          foo3: #M7
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo4: #M8
+            flags: isExternal isSimplyBounded
+            returnType: int @ dart:core
+        interface: #M9
+          map
+            foo1: #M5
+            foo2: #M6
+            foo3: #M7
+            foo4: #M8
+          implemented
+            foo1: #M5
+            foo2: #M6
+            foo3: #M7
+            foo4: #M8
+''',
+      updatedCode: r'''
+class A {
+  int get foo1 => 1;
+  external int get foo2;
+  external int get foo3;
+  int get foo4 => 4;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo2: #M6
+            flags: isExternal isSimplyBounded
+            returnType: int @ dart:core
+          foo3: #M10
+            flags: isExternal isSimplyBounded
+            returnType: int @ dart:core
+          foo4: #M11
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+        interface: #M12
+          map
+            foo1: #M5
+            foo2: #M6
+            foo3: #M10
+            foo4: #M11
+          implemented
+            foo1: #M5
+            foo2: #M6
+            foo3: #M10
+            foo4: #M11
+''',
+    );
+  }
+
+  test_manifest_class_getter_modifier_isStatic() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int get foo1 => 1;
+  static int get foo2 => 2;
+  int get foo3 => 3;
+  static int get foo4 => 4;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo2: #M6
+            flags: isSimplyBounded isStatic
+            returnType: int @ dart:core
+          foo3: #M7
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo4: #M8
+            flags: isSimplyBounded isStatic
+            returnType: int @ dart:core
+        interface: #M9
+          map
+            foo1: #M5
+            foo3: #M7
+          implemented
+            foo1: #M5
+            foo3: #M7
+''',
+      updatedCode: r'''
+class A {
+  int get foo1 => 1;
+  static int get foo2 => 2;
+  static int get foo3 => 3;
+  int get foo4 => 4;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M10
+            type: int @ dart:core
+          foo4: #M11
+            type: int @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo2: #M6
+            flags: isSimplyBounded isStatic
+            returnType: int @ dart:core
+          foo3: #M12
+            flags: isSimplyBounded isStatic
+            returnType: int @ dart:core
+          foo4: #M13
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+        interface: #M14
+          map
+            foo1: #M5
+            foo4: #M13
+          implemented
+            foo1: #M5
+            foo4: #M13
+''',
+    );
+  }
+
   test_manifest_class_getter_private_instance() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -46549,6 +47492,7 @@ class A {
             type: int @ dart:core
         declaredGetters
           foo: #M2
+            flags: isSimplyBounded
             returnType: int @ dart:core
         interface: #M3
           map
@@ -46572,6 +47516,7 @@ class A {
             type: double @ dart:core
         declaredGetters
           foo: #M5
+            flags: isSimplyBounded
             returnType: double @ dart:core
         interface: #M6
           map
@@ -47029,6 +47974,7 @@ class B {
             type: int? @ dart:core
         declaredGetters
           a: #M2
+            flags: isSimplyBounded isSynthetic
             returnType: int? @ dart:core
         interface: #M3
           map
@@ -47043,9 +47989,11 @@ class B {
             type: int? @ dart:core
         declaredGetters
           a: #M6
+            flags: isSimplyBounded isSynthetic
             returnType: int? @ dart:core
         declaredSetters
           a=: #M7
+            flags: isSimplyBounded isSynthetic
             functionType: FunctionType
               positional
                 required int? @ dart:core
@@ -47078,9 +48026,11 @@ class B {
             type: int? @ dart:core
         declaredGetters
           a: #M2
+            flags: isSimplyBounded isSynthetic
             returnType: int? @ dart:core
         declaredSetters
           a=: #M10
+            flags: isSimplyBounded isSynthetic
             functionType: FunctionType
               positional
                 required int? @ dart:core
@@ -47099,6 +48049,7 @@ class B {
             type: int? @ dart:core
         declaredGetters
           a: #M6
+            flags: isSimplyBounded isSynthetic
             returnType: int? @ dart:core
         interface: #M13
           map
@@ -49170,6 +50121,7 @@ class A {
         supertype: Object @ dart:core
         declaredMethods
           foo: #M1
+            flags: isSimplyBounded
             functionType: FunctionType
               named
                 a: required int @ dart:core
@@ -49193,6 +50145,7 @@ class A {
         supertype: Object @ dart:core
         declaredMethods
           foo: #M3
+            flags: isSimplyBounded
             functionType: FunctionType
               named
                 a: required double @ dart:core
@@ -49850,6 +50803,640 @@ class A {
     );
   }
 
+  test_manifest_class_method_modifier_hasEnclosingTypeParameterReference() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+abstract class A<T> {
+  T foo1();
+  void foo2();
+  T foo3();
+  void foo4();
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        flags: isAbstract
+        typeParameters
+          #0 covariant
+            bound: <null>
+        supertype: Object @ dart:core
+        declaredMethods
+          foo1: #M1
+            flags: hasEnclosingTypeParameterReference isAbstract isSimplyBounded
+            functionType: FunctionType
+              returnType: typeParameter#0
+          foo2: #M2
+            flags: isAbstract isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo3: #M3
+            flags: hasEnclosingTypeParameterReference isAbstract isSimplyBounded
+            functionType: FunctionType
+              returnType: typeParameter#0
+          foo4: #M4
+            flags: isAbstract isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+        interface: #M5
+          map
+            foo1: #M1
+            foo2: #M2
+            foo3: #M3
+            foo4: #M4
+''',
+      updatedCode: r'''
+abstract class A<T> {
+  T foo1();
+  void foo2();
+  void foo3();
+  T foo4();
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        flags: isAbstract
+        typeParameters
+          #0 covariant
+            bound: <null>
+        supertype: Object @ dart:core
+        declaredMethods
+          foo1: #M1
+            flags: hasEnclosingTypeParameterReference isAbstract isSimplyBounded
+            functionType: FunctionType
+              returnType: typeParameter#0
+          foo2: #M2
+            flags: isAbstract isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo3: #M6
+            flags: isAbstract isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo4: #M7
+            flags: hasEnclosingTypeParameterReference isAbstract isSimplyBounded
+            functionType: FunctionType
+              returnType: typeParameter#0
+        interface: #M8
+          map
+            foo1: #M1
+            foo2: #M2
+            foo3: #M6
+            foo4: #M7
+''',
+    );
+  }
+
+  test_manifest_class_method_modifier_hasImplicitReturnType() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  foo1() {}
+  void foo2() {}
+  foo3() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredMethods
+          foo1: #M1
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              returnType: dynamic
+          foo2: #M2
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo3: #M3
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              returnType: dynamic
+        interface: #M4
+          map
+            foo1: #M1
+            foo2: #M2
+            foo3: #M3
+          implemented
+            foo1: #M1
+            foo2: #M2
+            foo3: #M3
+''',
+      updatedCode: r'''
+class A {
+  foo1() {}
+  foo2() {}
+  void foo3() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredMethods
+          foo1: #M1
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              returnType: dynamic
+          foo2: #M5
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              returnType: dynamic
+          foo3: #M6
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+        interface: #M7
+          map
+            foo1: #M1
+            foo2: #M5
+            foo3: #M6
+          implemented
+            foo1: #M1
+            foo2: #M5
+            foo3: #M6
+''',
+    );
+  }
+
+  test_manifest_class_method_modifier_invokesSuperSelf() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo1() {}
+  void foo2() {}
+  void foo3() {}
+  void foo4() {}
+}
+class B extends A {
+  void foo1() {}
+  void foo2() {
+    super.foo2();
+  }
+  void foo3() {}
+  void foo4() {
+    super.foo4();
+  }
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredMethods
+          foo1: #M1
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo2: #M2
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo3: #M3
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo4: #M4
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+        interface: #M5
+          map
+            foo1: #M1
+            foo2: #M2
+            foo3: #M3
+            foo4: #M4
+          implemented
+            foo1: #M1
+            foo2: #M2
+            foo3: #M3
+            foo4: #M4
+      B: #M6
+        supertype: A @ package:test/test.dart
+        declaredMethods
+          foo1: #M7
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo2: #M8
+            flags: invokesSuperSelf isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo3: #M9
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo4: #M10
+            flags: invokesSuperSelf isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+        interface: #M11
+          map
+            foo1: #M7
+            foo2: #M8
+            foo3: #M9
+            foo4: #M10
+          implemented
+            foo1: #M7
+            foo2: #M8
+            foo3: #M9
+            foo4: #M10
+          superImplemented
+            [0]
+              foo1: #M1
+              foo2: #M2
+              foo3: #M3
+              foo4: #M4
+          inherited
+            foo1: #M1
+            foo2: #M2
+            foo3: #M3
+            foo4: #M4
+''',
+      updatedCode: r'''
+class A {
+  void foo1() {}
+  void foo2() {}
+  void foo3() {}
+  void foo4() {}
+}
+class B extends A {
+  void foo1() {}
+  void foo2() {
+    super.foo2();
+  }
+  void foo3() {
+    super.foo3();
+  }
+  void foo4() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredMethods
+          foo1: #M1
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo2: #M2
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo3: #M3
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo4: #M4
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+        interface: #M5
+          map
+            foo1: #M1
+            foo2: #M2
+            foo3: #M3
+            foo4: #M4
+          implemented
+            foo1: #M1
+            foo2: #M2
+            foo3: #M3
+            foo4: #M4
+      B: #M6
+        supertype: A @ package:test/test.dart
+        declaredMethods
+          foo1: #M7
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo2: #M8
+            flags: invokesSuperSelf isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo3: #M12
+            flags: invokesSuperSelf isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo4: #M13
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+        interface: #M14
+          map
+            foo1: #M7
+            foo2: #M8
+            foo3: #M12
+            foo4: #M13
+          implemented
+            foo1: #M7
+            foo2: #M8
+            foo3: #M12
+            foo4: #M13
+          superImplemented
+            [0]
+              foo1: #M1
+              foo2: #M2
+              foo3: #M3
+              foo4: #M4
+          inherited
+            foo1: #M1
+            foo2: #M2
+            foo3: #M3
+            foo4: #M4
+''',
+    );
+  }
+
+  test_manifest_class_method_modifier_isAbstract() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+abstract class A {
+  void foo1() {}
+  void foo2();
+  void foo3() {}
+  void foo4();
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        flags: isAbstract
+        supertype: Object @ dart:core
+        declaredMethods
+          foo1: #M1
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo2: #M2
+            flags: isAbstract isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo3: #M3
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo4: #M4
+            flags: isAbstract isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+        interface: #M5
+          map
+            foo1: #M1
+            foo2: #M2
+            foo3: #M3
+            foo4: #M4
+          implemented
+            foo1: #M1
+            foo3: #M3
+''',
+      updatedCode: r'''
+abstract class A {
+  void foo1() {}
+  void foo2();
+  void foo3();
+  void foo4() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        flags: isAbstract
+        supertype: Object @ dart:core
+        declaredMethods
+          foo1: #M1
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo2: #M2
+            flags: isAbstract isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo3: #M6
+            flags: isAbstract isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo4: #M7
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+        interface: #M8
+          map
+            foo1: #M1
+            foo2: #M2
+            foo3: #M6
+            foo4: #M7
+          implemented
+            foo1: #M1
+            foo4: #M7
+''',
+    );
+  }
+
+  test_manifest_class_method_modifier_isExternal() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo1() {}
+  external void foo2();
+  void foo3() {}
+  external void foo4();
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredMethods
+          foo1: #M1
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo2: #M2
+            flags: isExternal isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo3: #M3
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo4: #M4
+            flags: isExternal isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+        interface: #M5
+          map
+            foo1: #M1
+            foo2: #M2
+            foo3: #M3
+            foo4: #M4
+          implemented
+            foo1: #M1
+            foo2: #M2
+            foo3: #M3
+            foo4: #M4
+''',
+      updatedCode: r'''
+class A {
+  void foo1() {}
+  external void foo2();
+  external void foo3();
+  void foo4() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredMethods
+          foo1: #M1
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo2: #M2
+            flags: isExternal isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo3: #M6
+            flags: isExternal isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo4: #M7
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+        interface: #M8
+          map
+            foo1: #M1
+            foo2: #M2
+            foo3: #M6
+            foo4: #M7
+          implemented
+            foo1: #M1
+            foo2: #M2
+            foo3: #M6
+            foo4: #M7
+''',
+    );
+  }
+
+  test_manifest_class_method_modifier_isStatic() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  void foo1() {}
+  static void foo2() {}
+  void foo3() {}
+  static void foo4() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredMethods
+          foo1: #M1
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo2: #M2
+            flags: isSimplyBounded isStatic
+            functionType: FunctionType
+              returnType: void
+          foo3: #M3
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo4: #M4
+            flags: isSimplyBounded isStatic
+            functionType: FunctionType
+              returnType: void
+        interface: #M5
+          map
+            foo1: #M1
+            foo3: #M3
+          implemented
+            foo1: #M1
+            foo3: #M3
+''',
+      updatedCode: r'''
+class A {
+  void foo1() {}
+  static void foo2() {}
+  static void foo3() {}
+  void foo4() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredMethods
+          foo1: #M1
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo2: #M2
+            flags: isSimplyBounded isStatic
+            functionType: FunctionType
+              returnType: void
+          foo3: #M6
+            flags: isSimplyBounded isStatic
+            functionType: FunctionType
+              returnType: void
+          foo4: #M7
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+        interface: #M8
+          map
+            foo1: #M1
+            foo4: #M7
+          implemented
+            foo1: #M1
+            foo4: #M7
+''',
+    );
+  }
+
   test_manifest_class_method_private_instance() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -49993,6 +51580,7 @@ class A {
         supertype: Object @ dart:core
         declaredMethods
           foo: #M1
+            flags: isSimplyBounded
             functionType: FunctionType
               returnType: int @ dart:core
         interface: #M2
@@ -50014,118 +51602,9 @@ class A {
         supertype: Object @ dart:core
         declaredMethods
           foo: #M3
+            flags: isSimplyBounded
             functionType: FunctionType
               returnType: double @ dart:core
-        interface: #M4
-          map
-            foo: #M3
-          implemented
-            foo: #M3
-''',
-    );
-  }
-
-  test_manifest_class_method_static_falseToTrue() async {
-    await _runLibraryManifestScenario(
-      initialCode: r'''
-class A {
-  void foo() {}
-}
-''',
-      expectedInitialEvents: r'''
-[operation] linkLibraryCycle SDK
-[operation] linkLibraryCycle
-  package:test/test.dart
-    declaredClasses
-      A: #M0
-        declaredMethods
-          foo: #M1
-        interface: #M2
-          map
-            foo: #M1
-          implemented
-            foo: #M1
-''',
-      updatedCode: r'''
-class A {
-  static void foo() {}
-}
-''',
-      expectedUpdatedEvents: r'''
-[operation] linkLibraryCycle
-  package:test/test.dart
-    declaredClasses
-      A: #M0
-        declaredMethods
-          foo: #M3
-        interface: #M4
-''',
-    );
-  }
-
-  test_manifest_class_method_static_returnType() async {
-    await _runLibraryManifestScenario(
-      initialCode: r'''
-class A {
-  static int foo() {}
-}
-''',
-      expectedInitialEvents: r'''
-[operation] linkLibraryCycle SDK
-[operation] linkLibraryCycle
-  package:test/test.dart
-    declaredClasses
-      A: #M0
-        declaredMethods
-          foo: #M1
-        interface: #M2
-''',
-      updatedCode: r'''
-class A {
-  static double foo() {}
-}
-''',
-      expectedUpdatedEvents: r'''
-[operation] linkLibraryCycle
-  package:test/test.dart
-    declaredClasses
-      A: #M0
-        declaredMethods
-          foo: #M3
-        interface: #M2
-''',
-    );
-  }
-
-  test_manifest_class_method_static_trueToFalse() async {
-    await _runLibraryManifestScenario(
-      initialCode: r'''
-class A {
-  static void foo() {}
-}
-''',
-      expectedInitialEvents: r'''
-[operation] linkLibraryCycle SDK
-[operation] linkLibraryCycle
-  package:test/test.dart
-    declaredClasses
-      A: #M0
-        declaredMethods
-          foo: #M1
-        interface: #M2
-''',
-      updatedCode: r'''
-class A {
-  void foo() {}
-}
-''',
-      expectedUpdatedEvents: r'''
-[operation] linkLibraryCycle
-  package:test/test.dart
-    declaredClasses
-      A: #M0
-        declaredMethods
-          foo: #M3
         interface: #M4
           map
             foo: #M3
@@ -50483,6 +51962,7 @@ class A<T> {
         supertype: Object @ dart:core
         declaredMethods
           foo: #M1
+            flags: hasEnclosingTypeParameterReference isSimplyBounded
             functionType: FunctionType
               typeParameters
                 #0 covariant
@@ -50513,9 +51993,11 @@ class A<T> {
         supertype: Object @ dart:core
         declaredMethods
           bar: #M3
+            flags: isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo: #M1
+            flags: hasEnclosingTypeParameterReference isSimplyBounded
             functionType: FunctionType
               typeParameters
                 #0 covariant
@@ -51947,6 +53429,757 @@ class A {
     );
   }
 
+  test_manifest_class_setter_modifier_hasEnclosingTypeParameterReference() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+abstract class A<T> {
+  set foo1(T value);
+  set foo2(int value);
+  set foo3(T value);
+  set foo4(int value);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        flags: isAbstract
+        typeParameters
+          #0 covariant
+            bound: <null>
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: typeParameter#0
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: typeParameter#0
+          foo4: #M4
+            type: int @ dart:core
+        declaredSetters
+          foo1=: #M5
+            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isAbstract isSimplyBounded
+            functionType: FunctionType
+              positional
+                required typeParameter#0
+              returnType: void
+          foo2=: #M6
+            flags: hasImplicitReturnType isAbstract isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo3=: #M7
+            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isAbstract isSimplyBounded
+            functionType: FunctionType
+              positional
+                required typeParameter#0
+              returnType: void
+          foo4=: #M8
+            flags: hasImplicitReturnType isAbstract isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+        interface: #M9
+          map
+            foo1=: #M5
+            foo2=: #M6
+            foo3=: #M7
+            foo4=: #M8
+''',
+      updatedCode: r'''
+abstract class A<T> {
+  set foo1(T value);
+  set foo2(int value);
+  set foo3(int value);
+  set foo4(T value);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        flags: isAbstract
+        typeParameters
+          #0 covariant
+            bound: <null>
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: typeParameter#0
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M10
+            type: int @ dart:core
+          foo4: #M11
+            type: typeParameter#0
+        declaredSetters
+          foo1=: #M5
+            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isAbstract isSimplyBounded
+            functionType: FunctionType
+              positional
+                required typeParameter#0
+              returnType: void
+          foo2=: #M6
+            flags: hasImplicitReturnType isAbstract isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo3=: #M12
+            flags: hasImplicitReturnType isAbstract isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo4=: #M13
+            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isAbstract isSimplyBounded
+            functionType: FunctionType
+              positional
+                required typeParameter#0
+              returnType: void
+        interface: #M14
+          map
+            foo1=: #M5
+            foo2=: #M6
+            foo3=: #M12
+            foo4=: #M13
+''',
+    );
+  }
+
+  test_manifest_class_setter_modifier_invokesSuperSelf() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo1(int value) {}
+  set foo2(int value) {}
+  set foo3(int value) {}
+  set foo4(int value) {}
+}
+class B extends A {
+  set foo1(int value) {}
+  set foo2(int value) { super.foo2 = value; }
+  set foo3(int value) {}
+  set foo4(int value) { super.foo4 = value; }
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+        declaredSetters
+          foo1=: #M5
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo2=: #M6
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo3=: #M7
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo4=: #M8
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+        interface: #M9
+          map
+            foo1=: #M5
+            foo2=: #M6
+            foo3=: #M7
+            foo4=: #M8
+          implemented
+            foo1=: #M5
+            foo2=: #M6
+            foo3=: #M7
+            foo4=: #M8
+      B: #M10
+        supertype: A @ package:test/test.dart
+        declaredFields
+          foo1: #M11
+            type: int @ dart:core
+          foo2: #M12
+            type: int @ dart:core
+          foo3: #M13
+            type: int @ dart:core
+          foo4: #M14
+            type: int @ dart:core
+        declaredSetters
+          foo1=: #M15
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo2=: #M16
+            flags: hasImplicitReturnType invokesSuperSelf isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo3=: #M17
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo4=: #M18
+            flags: hasImplicitReturnType invokesSuperSelf isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+        interface: #M19
+          map
+            foo1=: #M15
+            foo2=: #M16
+            foo3=: #M17
+            foo4=: #M18
+          implemented
+            foo1=: #M15
+            foo2=: #M16
+            foo3=: #M17
+            foo4=: #M18
+          superImplemented
+            [0]
+              foo1=: #M5
+              foo2=: #M6
+              foo3=: #M7
+              foo4=: #M8
+          inherited
+            foo1=: #M5
+            foo2=: #M6
+            foo3=: #M7
+            foo4=: #M8
+''',
+      updatedCode: r'''
+class A {
+  set foo1(int value) {}
+  set foo2(int value) {}
+  set foo3(int value) {}
+  set foo4(int value) {}
+}
+class B extends A {
+  set foo1(int value) {}
+  set foo2(int value) { super.foo2 = value; }
+  set foo3(int value) { super.foo3 = value; }
+  set foo4(int value) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+        declaredSetters
+          foo1=: #M5
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo2=: #M6
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo3=: #M7
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo4=: #M8
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+        interface: #M9
+          map
+            foo1=: #M5
+            foo2=: #M6
+            foo3=: #M7
+            foo4=: #M8
+          implemented
+            foo1=: #M5
+            foo2=: #M6
+            foo3=: #M7
+            foo4=: #M8
+      B: #M10
+        supertype: A @ package:test/test.dart
+        declaredFields
+          foo1: #M11
+            type: int @ dart:core
+          foo2: #M12
+            type: int @ dart:core
+          foo3: #M13
+            type: int @ dart:core
+          foo4: #M14
+            type: int @ dart:core
+        declaredSetters
+          foo1=: #M15
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo2=: #M16
+            flags: hasImplicitReturnType invokesSuperSelf isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo3=: #M20
+            flags: hasImplicitReturnType invokesSuperSelf isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo4=: #M21
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+        interface: #M22
+          map
+            foo1=: #M15
+            foo2=: #M16
+            foo3=: #M20
+            foo4=: #M21
+          implemented
+            foo1=: #M15
+            foo2=: #M16
+            foo3=: #M20
+            foo4=: #M21
+          superImplemented
+            [0]
+              foo1=: #M5
+              foo2=: #M6
+              foo3=: #M7
+              foo4=: #M8
+          inherited
+            foo1=: #M5
+            foo2=: #M6
+            foo3=: #M7
+            foo4=: #M8
+''',
+    );
+  }
+
+  test_manifest_class_setter_modifier_isAbstract() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+abstract class A {
+  set foo1(int value) {}
+  set foo2(int value);
+  set foo3(int value) {}
+  set foo4(int value);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        flags: isAbstract
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+        declaredSetters
+          foo1=: #M5
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo2=: #M6
+            flags: hasImplicitReturnType isAbstract isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo3=: #M7
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo4=: #M8
+            flags: hasImplicitReturnType isAbstract isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+        interface: #M9
+          map
+            foo1=: #M5
+            foo2=: #M6
+            foo3=: #M7
+            foo4=: #M8
+          implemented
+            foo1=: #M5
+            foo3=: #M7
+''',
+      updatedCode: r'''
+abstract class A {
+  set foo1(int value) {}
+  set foo2(int value);
+  set foo3(int value);
+  set foo4(int value) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        flags: isAbstract
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+        declaredSetters
+          foo1=: #M5
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo2=: #M6
+            flags: hasImplicitReturnType isAbstract isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo3=: #M10
+            flags: hasImplicitReturnType isAbstract isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo4=: #M11
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+        interface: #M12
+          map
+            foo1=: #M5
+            foo2=: #M6
+            foo3=: #M10
+            foo4=: #M11
+          implemented
+            foo1=: #M5
+            foo4=: #M11
+''',
+    );
+  }
+
+  test_manifest_class_setter_modifier_isExternal() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo1(int value) {}
+  external set foo2(int value);
+  set foo3(int value) {}
+  external set foo4(int value);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+        declaredSetters
+          foo1=: #M5
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo2=: #M6
+            flags: hasImplicitReturnType isExternal isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo3=: #M7
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo4=: #M8
+            flags: hasImplicitReturnType isExternal isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+        interface: #M9
+          map
+            foo1=: #M5
+            foo2=: #M6
+            foo3=: #M7
+            foo4=: #M8
+          implemented
+            foo1=: #M5
+            foo2=: #M6
+            foo3=: #M7
+            foo4=: #M8
+''',
+      updatedCode: r'''
+class A {
+  set foo1(int value) {}
+  external set foo2(int value);
+  external set foo3(int value);
+  set foo4(int value) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+        declaredSetters
+          foo1=: #M5
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo2=: #M6
+            flags: hasImplicitReturnType isExternal isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo3=: #M10
+            flags: hasImplicitReturnType isExternal isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo4=: #M11
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+        interface: #M12
+          map
+            foo1=: #M5
+            foo2=: #M6
+            foo3=: #M10
+            foo4=: #M11
+          implemented
+            foo1=: #M5
+            foo2=: #M6
+            foo3=: #M10
+            foo4=: #M11
+''',
+    );
+  }
+
+  test_manifest_class_setter_modifier_isStatic() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  set foo1(int value) {}
+  static set foo2(int value) {}
+  set foo3(int value) {}
+  static set foo4(int value) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+        declaredSetters
+          foo1=: #M5
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo2=: #M6
+            flags: hasImplicitReturnType isSimplyBounded isStatic
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo3=: #M7
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo4=: #M8
+            flags: hasImplicitReturnType isSimplyBounded isStatic
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+        interface: #M9
+          map
+            foo1=: #M5
+            foo3=: #M7
+          implemented
+            foo1=: #M5
+            foo3=: #M7
+''',
+      updatedCode: r'''
+class A {
+  set foo1(int value) {}
+  static set foo2(int value) {}
+  static set foo3(int value) {}
+  set foo4(int value) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M10
+            type: int @ dart:core
+          foo4: #M11
+            type: int @ dart:core
+        declaredSetters
+          foo1=: #M5
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo2=: #M6
+            flags: hasImplicitReturnType isSimplyBounded isStatic
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo3=: #M12
+            flags: hasImplicitReturnType isSimplyBounded isStatic
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo4=: #M13
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+        interface: #M14
+          map
+            foo1=: #M5
+            foo4=: #M13
+          implemented
+            foo1=: #M5
+            foo4=: #M13
+''',
+    );
+  }
+
   test_manifest_class_setter_private_instance() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -52488,6 +54721,7 @@ abstract class C implements A, B {}
               dynamic
         declaredSetters
           foo=: #M2
+            flags: hasImplicitReturnType isAbstract isSimplyBounded
             functionType: FunctionType
               positional
                 required List @ dart:core
@@ -52505,6 +54739,7 @@ abstract class C implements A, B {}
               void
         declaredSetters
           foo=: #M6
+            flags: hasImplicitReturnType isAbstract isSimplyBounded
             functionType: FunctionType
               positional
                 required List @ dart:core
@@ -52551,6 +54786,7 @@ abstract class C implements A, B {}
               dynamic
         declaredSetters
           foo=: #M2
+            flags: hasImplicitReturnType isAbstract isSimplyBounded
             functionType: FunctionType
               positional
                 required List @ dart:core
@@ -52568,6 +54804,7 @@ abstract class C implements A, B {}
               int @ dart:core
         declaredSetters
           foo=: #M12
+            flags: hasImplicitReturnType isAbstract isSimplyBounded
             functionType: FunctionType
               positional
                 required List @ dart:core
@@ -52613,6 +54850,7 @@ class A {
             type: int @ dart:core
         declaredSetters
           foo=: #M2
+            flags: hasImplicitReturnType isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -52639,6 +54877,7 @@ class A {
             type: double @ dart:core
         declaredSetters
           foo=: #M5
+            flags: hasImplicitReturnType isSimplyBounded
             functionType: FunctionType
               positional
                 required double @ dart:core
@@ -54075,6 +56314,7 @@ const b = 0 + a;
   package:test/test.dart
     declaredGetters
       b: #M0
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: double @ dart:core
     declaredVariables
       b: #M1
@@ -54097,8 +56337,10 @@ const b = 0 + a;
   package:test/test.dart
     declaredGetters
       a: #M3
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
       b: #M4
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       a: #M5
@@ -54136,8 +56378,10 @@ const b = 1 + a;
   package:test/test.dart
     declaredGetters
       a: #M0
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
       b: #M1
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       a: #M2
@@ -54167,6 +56411,7 @@ const b = 1 + a;
   package:test/test.dart
     declaredGetters
       b: #M5
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: double @ dart:core
     declaredVariables
       b: #M6
@@ -54226,6 +56471,7 @@ const a = 0..abs();
   package:test/test.dart
     declaredGetters
       a: #M0
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       a: #M1
@@ -54242,8 +56488,10 @@ const b = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
       b: #M2
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       a: #M3
@@ -54585,6 +56833,7 @@ const a = 0 as core.int;
   package:test/test.dart
     declaredGetters
       a: #M0
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       a: #M1
@@ -54608,8 +56857,10 @@ const b = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
       b: #M3
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       a: #M1
@@ -54643,6 +56894,7 @@ const a = [0][0];
   package:test/test.dart
     declaredGetters
       a: #M0
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       a: #M1
@@ -54659,8 +56911,10 @@ const b = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
       b: #M2
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       a: #M3
@@ -54943,6 +57197,7 @@ const a = 0.abs();
   package:test/test.dart
     declaredGetters
       a: #M0
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       a: #M1
@@ -54959,8 +57214,10 @@ const b = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
       b: #M2
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       a: #M3
@@ -54988,6 +57245,7 @@ const a = identical(0, 1);
   package:test/test.dart
     declaredGetters
       a: #M0
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: bool @ dart:core
     declaredVariables
       a: #M1
@@ -55009,8 +57267,10 @@ const b = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: bool @ dart:core
       b: #M3
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       a: #M1
@@ -55053,6 +57313,7 @@ const x = foo;
   package:test/a.dart
     declaredGetters
       foo: #M0
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       foo: #M1
@@ -55064,6 +57325,7 @@ const x = foo;
   package:test/b.dart
     declaredGetters
       foo: #M2
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       foo: #M3
@@ -55075,6 +57337,7 @@ const x = foo;
   package:test/test.dart
     declaredGetters
       x: #M4
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: InvalidType
     declaredVariables
       x: #M5
@@ -55100,6 +57363,7 @@ class A {}
         interface: #M7
     declaredGetters
       x: #M4
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: InvalidType
     declaredVariables
       x: #M5
@@ -55174,8 +57438,10 @@ const b = a++;
   package:test/test.dart
     declaredGetters
       a: #M0
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
       b: #M1
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       a: #M2
@@ -55198,10 +57464,13 @@ const c = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
       b: #M1
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
       c: #M4
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       a: #M2
@@ -55234,6 +57503,7 @@ const a = 0!;
   package:test/test.dart
     declaredGetters
       a: #M0
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       a: #M1
@@ -55250,8 +57520,10 @@ const b = 0;
   package:test/test.dart
     declaredGetters
       a: #M0
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
       b: #M2
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       a: #M3
@@ -55427,16 +57699,20 @@ const d = prefix.A.b;
               tokenLengthList: [1]
         declaredGetters
           a: #M3
+            flags: isSimplyBounded isStatic isSynthetic
             returnType: int @ dart:core
           b: #M4
+            flags: isSimplyBounded isStatic isSynthetic
             returnType: int @ dart:core
         interface: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredGetters
       c: #M6
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
       d: #M7
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       c: #M8
@@ -55494,8 +57770,10 @@ class A {
               tokenLengthList: [1]
         declaredGetters
           a: #M3
+            flags: isSimplyBounded isStatic isSynthetic
             returnType: int @ dart:core
           b: #M4
+            flags: isSimplyBounded isStatic isSynthetic
             returnType: int @ dart:core
         interface: #M5
 [operation] checkLinkedBundleRequirements
@@ -55510,8 +57788,10 @@ class A {
   package:test/test.dart
     declaredGetters
       c: #M6
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
       d: #M7
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: int @ dart:core
     declaredVariables
       c: #M8
@@ -56027,6 +58307,7 @@ const x = A;
   package:test/test.dart
     declaredGetters
       x: #M1
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: Type @ dart:core
     declaredVariables
       x: #M2
@@ -56049,8 +58330,10 @@ const y = double;
   package:test/test.dart
     declaredGetters
       x: #M1
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: Type @ dart:core
       y: #M3
+        flags: isSimplyBounded isStatic isSynthetic
         returnType: Type @ dart:core
     declaredVariables
       x: #M2
@@ -57742,6 +60025,7 @@ extension A on int {
         extendedType: int @ dart:core
         declaredMethods
           foo: #M1
+            flags: isSimplyBounded
             functionType: FunctionType
               returnType: void
     exportedExtensions: #M0
@@ -57759,6 +60043,7 @@ extension A on double {
         extendedType: double @ dart:core
         declaredMethods
           foo: #M3
+            flags: isSimplyBounded
             functionType: FunctionType
               returnType: void
     exportedExtensions: #M2
@@ -57805,6 +60090,332 @@ extension A on int {
         declaredGetters
           bar: #M6
           foo: #M4
+    exportedExtensions: #M0
+''',
+    );
+  }
+
+  test_manifest_extension_getter_modifier_hasEnclosingTypeParameterReference() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension E<T> on int {
+  T get foo1 => throw 0;
+  int get foo2 => 0;
+  T get foo3 => throw 0;
+  int get foo4 => 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensions
+      E: #M0
+        typeParameters
+          #0 covariant
+            bound: <null>
+        extendedType: int @ dart:core
+        declaredFields
+          foo1: #M1
+            type: typeParameter#0
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: typeParameter#0
+          foo4: #M4
+            type: int @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: hasEnclosingTypeParameterReference isSimplyBounded
+            returnType: typeParameter#0
+          foo2: #M6
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo3: #M7
+            flags: hasEnclosingTypeParameterReference isSimplyBounded
+            returnType: typeParameter#0
+          foo4: #M8
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+    exportedExtensions: #M0
+''',
+      updatedCode: r'''
+extension E<T> on int {
+  T get foo1 => throw 0;
+  int get foo2 => 0;
+  int get foo3 => 0;
+  T get foo4 => throw 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensions
+      E: #M0
+        typeParameters
+          #0 covariant
+            bound: <null>
+        extendedType: int @ dart:core
+        declaredFields
+          foo1: #M1
+            type: typeParameter#0
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M9
+            type: int @ dart:core
+          foo4: #M10
+            type: typeParameter#0
+        declaredGetters
+          foo1: #M5
+            flags: hasEnclosingTypeParameterReference isSimplyBounded
+            returnType: typeParameter#0
+          foo2: #M6
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo3: #M11
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo4: #M12
+            flags: hasEnclosingTypeParameterReference isSimplyBounded
+            returnType: typeParameter#0
+    exportedExtensions: #M0
+''',
+    );
+  }
+
+  test_manifest_extension_getter_modifier_hasImplicitReturnType() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension E on int {
+  get foo1 => 0;
+  int get foo2 => 0;
+  get foo3 => 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensions
+      E: #M0
+        extendedType: int @ dart:core
+        declaredFields
+          foo1: #M1
+            type: dynamic
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: dynamic
+        declaredGetters
+          foo1: #M4
+            flags: hasImplicitReturnType isSimplyBounded
+            returnType: dynamic
+          foo2: #M5
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo3: #M6
+            flags: hasImplicitReturnType isSimplyBounded
+            returnType: dynamic
+    exportedExtensions: #M0
+''',
+      updatedCode: r'''
+extension E on int {
+  get foo1 => 0;
+  get foo2 => 0;
+  int get foo3 => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensions
+      E: #M0
+        extendedType: int @ dart:core
+        declaredFields
+          foo1: #M1
+            type: dynamic
+          foo2: #M7
+            type: dynamic
+          foo3: #M8
+            type: int @ dart:core
+        declaredGetters
+          foo1: #M4
+            flags: hasImplicitReturnType isSimplyBounded
+            returnType: dynamic
+          foo2: #M9
+            flags: hasImplicitReturnType isSimplyBounded
+            returnType: dynamic
+          foo3: #M10
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+    exportedExtensions: #M0
+''',
+    );
+  }
+
+  test_manifest_extension_getter_modifier_isExternal() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension E on int {
+  int get foo1 => 1;
+  external int get foo2;
+  int get foo3 => 3;
+  external int get foo4;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensions
+      E: #M0
+        extendedType: int @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo2: #M6
+            flags: isExternal isSimplyBounded
+            returnType: int @ dart:core
+          foo3: #M7
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo4: #M8
+            flags: isExternal isSimplyBounded
+            returnType: int @ dart:core
+    exportedExtensions: #M0
+''',
+      updatedCode: r'''
+extension E on int {
+  int get foo1 => 1;
+  external int get foo2;
+  external int get foo3;
+  int get foo4 => 4;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensions
+      E: #M0
+        extendedType: int @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo2: #M6
+            flags: isExternal isSimplyBounded
+            returnType: int @ dart:core
+          foo3: #M9
+            flags: isExternal isSimplyBounded
+            returnType: int @ dart:core
+          foo4: #M10
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+    exportedExtensions: #M0
+''',
+    );
+  }
+
+  test_manifest_extension_getter_modifier_isStatic() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension E on int {
+  int get foo1 => 1;
+  static int get foo2 => 2;
+  int get foo3 => 3;
+  static int get foo4 => 4;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensions
+      E: #M0
+        extendedType: int @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo2: #M6
+            flags: isSimplyBounded isStatic
+            returnType: int @ dart:core
+          foo3: #M7
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo4: #M8
+            flags: isSimplyBounded isStatic
+            returnType: int @ dart:core
+    exportedExtensions: #M0
+''',
+      updatedCode: r'''
+extension E on int {
+  int get foo1 => 1;
+  static int get foo2 => 2;
+  static int get foo3 => 3;
+  int get foo4 => 4;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensions
+      E: #M0
+        extendedType: int @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M9
+            type: int @ dart:core
+          foo4: #M10
+            type: int @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo2: #M6
+            flags: isSimplyBounded isStatic
+            returnType: int @ dart:core
+          foo3: #M11
+            flags: isSimplyBounded isStatic
+            returnType: int @ dart:core
+          foo4: #M12
+            flags: isSimplyBounded
+            returnType: int @ dart:core
     exportedExtensions: #M0
 ''',
     );
@@ -57884,6 +60495,294 @@ extension A on int {
     );
   }
 
+  test_manifest_extension_method_modifier_hasEnclosingTypeParameterReference() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension E<T> on int {
+  T foo1() => throw 0;
+  void foo2() {}
+  T foo3() => throw 0;
+  void foo4() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensions
+      E: #M0
+        typeParameters
+          #0 covariant
+            bound: <null>
+        extendedType: int @ dart:core
+        declaredMethods
+          foo1: #M1
+            flags: hasEnclosingTypeParameterReference isSimplyBounded
+            functionType: FunctionType
+              returnType: typeParameter#0
+          foo2: #M2
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo3: #M3
+            flags: hasEnclosingTypeParameterReference isSimplyBounded
+            functionType: FunctionType
+              returnType: typeParameter#0
+          foo4: #M4
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+    exportedExtensions: #M0
+''',
+      updatedCode: r'''
+extension E<T> on int {
+  T foo1() => throw 0;
+  void foo2() {}
+  void foo3() {}
+  T foo4() => throw 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensions
+      E: #M0
+        typeParameters
+          #0 covariant
+            bound: <null>
+        extendedType: int @ dart:core
+        declaredMethods
+          foo1: #M1
+            flags: hasEnclosingTypeParameterReference isSimplyBounded
+            functionType: FunctionType
+              returnType: typeParameter#0
+          foo2: #M2
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo3: #M5
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo4: #M6
+            flags: hasEnclosingTypeParameterReference isSimplyBounded
+            functionType: FunctionType
+              returnType: typeParameter#0
+    exportedExtensions: #M0
+''',
+    );
+  }
+
+  test_manifest_extension_method_modifier_hasImplicitReturnType() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension E on int {
+  foo1() {}
+  void foo2() {}
+  foo3() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensions
+      E: #M0
+        extendedType: int @ dart:core
+        declaredMethods
+          foo1: #M1
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              returnType: dynamic
+          foo2: #M2
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo3: #M3
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              returnType: dynamic
+    exportedExtensions: #M0
+''',
+      updatedCode: r'''
+extension E on int {
+  foo1() {}
+  foo2() {}
+  void foo3() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensions
+      E: #M0
+        extendedType: int @ dart:core
+        declaredMethods
+          foo1: #M1
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              returnType: dynamic
+          foo2: #M4
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              returnType: dynamic
+          foo3: #M5
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+    exportedExtensions: #M0
+''',
+    );
+  }
+
+  test_manifest_extension_method_modifier_isExternal() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension E on int {
+  void foo1() {}
+  external void foo2();
+  void foo3() {}
+  external void foo4();
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensions
+      E: #M0
+        extendedType: int @ dart:core
+        declaredMethods
+          foo1: #M1
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo2: #M2
+            flags: isExternal isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo3: #M3
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo4: #M4
+            flags: isExternal isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+    exportedExtensions: #M0
+''',
+      updatedCode: r'''
+extension E on int {
+  void foo1() {}
+  external void foo2();
+  external void foo3();
+  void foo4() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensions
+      E: #M0
+        extendedType: int @ dart:core
+        declaredMethods
+          foo1: #M1
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo2: #M2
+            flags: isExternal isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo3: #M5
+            flags: isExternal isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo4: #M6
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+    exportedExtensions: #M0
+''',
+    );
+  }
+
+  test_manifest_extension_method_modifier_isStatic() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension E on int {
+  void foo1() {}
+  static void foo2() {}
+  void foo3() {}
+  static void foo4() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensions
+      E: #M0
+        extendedType: int @ dart:core
+        declaredMethods
+          foo1: #M1
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo2: #M2
+            flags: isSimplyBounded isStatic
+            functionType: FunctionType
+              returnType: void
+          foo3: #M3
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo4: #M4
+            flags: isSimplyBounded isStatic
+            functionType: FunctionType
+              returnType: void
+    exportedExtensions: #M0
+''',
+      updatedCode: r'''
+extension E on int {
+  void foo1() {}
+  static void foo2() {}
+  static void foo3() {}
+  void foo4() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensions
+      E: #M0
+        extendedType: int @ dart:core
+        declaredMethods
+          foo1: #M1
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo2: #M2
+            flags: isSimplyBounded isStatic
+            functionType: FunctionType
+              returnType: void
+          foo3: #M5
+            flags: isSimplyBounded isStatic
+            functionType: FunctionType
+              returnType: void
+          foo4: #M6
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+    exportedExtensions: #M0
+''',
+    );
+  }
+
   test_manifest_extension_noName() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -57953,6 +60852,333 @@ extension A on int {
     );
   }
 
+  test_manifest_extension_setter_modifier_hasEnclosingTypeParameterReference() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension E<T> on int {
+  set foo1(T value) {}
+  set foo2(int value) {}
+  set foo3(T value) {}
+  set foo4(int value) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensions
+      E: #M0
+        typeParameters
+          #0 covariant
+            bound: <null>
+        extendedType: int @ dart:core
+        declaredFields
+          foo1: #M1
+            type: typeParameter#0
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: typeParameter#0
+          foo4: #M4
+            type: int @ dart:core
+        declaredSetters
+          foo1=: #M5
+            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required typeParameter#0
+              returnType: void
+          foo2=: #M6
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo3=: #M7
+            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required typeParameter#0
+              returnType: void
+          foo4=: #M8
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+    exportedExtensions: #M0
+''',
+      updatedCode: r'''
+extension E<T> on int {
+  set foo1(T value) {}
+  set foo2(int value) {}
+  set foo3(int value) {}
+  set foo4(T value) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensions
+      E: #M0
+        typeParameters
+          #0 covariant
+            bound: <null>
+        extendedType: int @ dart:core
+        declaredFields
+          foo1: #M1
+            type: typeParameter#0
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M9
+            type: int @ dart:core
+          foo4: #M10
+            type: typeParameter#0
+        declaredSetters
+          foo1=: #M5
+            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required typeParameter#0
+              returnType: void
+          foo2=: #M6
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo3=: #M11
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo4=: #M12
+            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required typeParameter#0
+              returnType: void
+    exportedExtensions: #M0
+''',
+    );
+  }
+
+  test_manifest_extension_setter_modifier_isExternal() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension E on int {
+  set foo1(int value) {}
+  external set foo2(int value);
+  set foo3(int value) {}
+  external set foo4(int value);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensions
+      E: #M0
+        extendedType: int @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+        declaredSetters
+          foo1=: #M5
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo2=: #M6
+            flags: hasImplicitReturnType isExternal isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo3=: #M7
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo4=: #M8
+            flags: hasImplicitReturnType isExternal isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+    exportedExtensions: #M0
+''',
+      updatedCode: r'''
+extension E on int {
+  set foo1(int value) {}
+  external set foo2(int value);
+  external set foo3(int value);
+  set foo4(int value) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensions
+      E: #M0
+        extendedType: int @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+        declaredSetters
+          foo1=: #M5
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo2=: #M6
+            flags: hasImplicitReturnType isExternal isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo3=: #M9
+            flags: hasImplicitReturnType isExternal isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo4=: #M10
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+    exportedExtensions: #M0
+''',
+    );
+  }
+
+  test_manifest_extension_setter_modifier_isStatic() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension E on int {
+  set foo1(int value) {}
+  static set foo2(int value) {}
+  set foo3(int value) {}
+  static set foo4(int value) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensions
+      E: #M0
+        extendedType: int @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+        declaredSetters
+          foo1=: #M5
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo2=: #M6
+            flags: hasImplicitReturnType isSimplyBounded isStatic
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo3=: #M7
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo4=: #M8
+            flags: hasImplicitReturnType isSimplyBounded isStatic
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+    exportedExtensions: #M0
+''',
+      updatedCode: r'''
+extension E on int {
+  set foo1(int value) {}
+  static set foo2(int value) {}
+  static set foo3(int value) {}
+  set foo4(int value) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensions
+      E: #M0
+        extendedType: int @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M9
+            type: int @ dart:core
+          foo4: #M10
+            type: int @ dart:core
+        declaredSetters
+          foo1=: #M5
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo2=: #M6
+            flags: hasImplicitReturnType isSimplyBounded isStatic
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo3=: #M11
+            flags: hasImplicitReturnType isSimplyBounded isStatic
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo4=: #M12
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+    exportedExtensions: #M0
+''',
+    );
+  }
+
   test_manifest_extension_typeParameters() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -58011,6 +61237,345 @@ extension A<T, U> on int {}
     declaredExtensions
       A: #M1
     exportedExtensions: #M1
+''',
+    );
+  }
+
+  test_manifest_extensionType_constructor_modifier_isConst() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension type E(int it) {
+  E.foo1(this.it);
+  const E.foo2(this.it);
+  E.foo3(this.it);
+  const E.foo4(this.it);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      E: #M0
+        representationType: int @ dart:core
+        typeErasure: int @ dart:core
+        declaredFields
+          it: #M1
+            type: int @ dart:core
+        declaredGetters
+          it: #M2
+            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+        declaredConstructors
+          foo1: #M3
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+              functionType: FunctionType
+                positional
+                  required int @ dart:core
+                returnType: E @ package:test/test.dart
+          foo2: #M4
+              flags: hasEnclosingTypeParameterReference isConst isExtensionTypeMember isSimplyBounded
+              functionType: FunctionType
+                positional
+                  required int @ dart:core
+                returnType: E @ package:test/test.dart
+          foo3: #M5
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+              functionType: FunctionType
+                positional
+                  required int @ dart:core
+                returnType: E @ package:test/test.dart
+          foo4: #M6
+              flags: hasEnclosingTypeParameterReference isConst isExtensionTypeMember isSimplyBounded
+              functionType: FunctionType
+                positional
+                  required int @ dart:core
+                returnType: E @ package:test/test.dart
+        interface: #M7
+          map
+            it: #M2
+          implemented
+            it: #M2
+''',
+      updatedCode: r'''
+extension type E(int it) {
+  E.foo1(this.it);
+  const E.foo2(this.it);
+  const E.foo3(this.it);
+  E.foo4(this.it);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      E: #M0
+        representationType: int @ dart:core
+        typeErasure: int @ dart:core
+        declaredFields
+          it: #M1
+            type: int @ dart:core
+        declaredGetters
+          it: #M2
+            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+        declaredConstructors
+          foo1: #M3
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+              functionType: FunctionType
+                positional
+                  required int @ dart:core
+                returnType: E @ package:test/test.dart
+          foo2: #M4
+              flags: hasEnclosingTypeParameterReference isConst isExtensionTypeMember isSimplyBounded
+              functionType: FunctionType
+                positional
+                  required int @ dart:core
+                returnType: E @ package:test/test.dart
+          foo3: #M8
+              flags: hasEnclosingTypeParameterReference isConst isExtensionTypeMember isSimplyBounded
+              functionType: FunctionType
+                positional
+                  required int @ dart:core
+                returnType: E @ package:test/test.dart
+          foo4: #M9
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+              functionType: FunctionType
+                positional
+                  required int @ dart:core
+                returnType: E @ package:test/test.dart
+        interface: #M7
+          map
+            it: #M2
+          implemented
+            it: #M2
+''',
+    );
+  }
+
+  test_manifest_extensionType_constructor_modifier_isExternal() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension type E(int it) {
+  E.foo1(this.it);
+  external E.foo2(int it);
+  E.foo3(this.it);
+  external E.foo4(int it);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      E: #M0
+        representationType: int @ dart:core
+        typeErasure: int @ dart:core
+        declaredFields
+          it: #M1
+            type: int @ dart:core
+        declaredGetters
+          it: #M2
+            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+        declaredConstructors
+          foo1: #M3
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+              functionType: FunctionType
+                positional
+                  required int @ dart:core
+                returnType: E @ package:test/test.dart
+          foo2: #M4
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isExternal isSimplyBounded
+              functionType: FunctionType
+                positional
+                  required int @ dart:core
+                returnType: E @ package:test/test.dart
+          foo3: #M5
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+              functionType: FunctionType
+                positional
+                  required int @ dart:core
+                returnType: E @ package:test/test.dart
+          foo4: #M6
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isExternal isSimplyBounded
+              functionType: FunctionType
+                positional
+                  required int @ dart:core
+                returnType: E @ package:test/test.dart
+        interface: #M7
+          map
+            it: #M2
+          implemented
+            it: #M2
+''',
+      updatedCode: r'''
+extension type E(int it) {
+  E.foo1(this.it);
+  external E.foo2(int it);
+  external E.foo3(int it);
+  E.foo4(this.it);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      E: #M0
+        representationType: int @ dart:core
+        typeErasure: int @ dart:core
+        declaredFields
+          it: #M1
+            type: int @ dart:core
+        declaredGetters
+          it: #M2
+            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+        declaredConstructors
+          foo1: #M3
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+              functionType: FunctionType
+                positional
+                  required int @ dart:core
+                returnType: E @ package:test/test.dart
+          foo2: #M4
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isExternal isSimplyBounded
+              functionType: FunctionType
+                positional
+                  required int @ dart:core
+                returnType: E @ package:test/test.dart
+          foo3: #M8
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isExternal isSimplyBounded
+              functionType: FunctionType
+                positional
+                  required int @ dart:core
+                returnType: E @ package:test/test.dart
+          foo4: #M9
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+              functionType: FunctionType
+                positional
+                  required int @ dart:core
+                returnType: E @ package:test/test.dart
+        interface: #M7
+          map
+            it: #M2
+          implemented
+            it: #M2
+''',
+    );
+  }
+
+  test_manifest_extensionType_constructor_modifier_isFactory() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension type E(int it) {
+  E.foo1(this.it);
+  factory E.foo2(int it) => E(it);
+  E.foo3(this.it);
+  factory E.foo4(int it) => E(it);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      E: #M0
+        representationType: int @ dart:core
+        typeErasure: int @ dart:core
+        declaredFields
+          it: #M1
+            type: int @ dart:core
+        declaredGetters
+          it: #M2
+            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+        declaredConstructors
+          foo1: #M3
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+              functionType: FunctionType
+                positional
+                  required int @ dart:core
+                returnType: E @ package:test/test.dart
+          foo2: #M4
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isFactory isSimplyBounded
+              functionType: FunctionType
+                positional
+                  required int @ dart:core
+                returnType: E @ package:test/test.dart
+          foo3: #M5
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+              functionType: FunctionType
+                positional
+                  required int @ dart:core
+                returnType: E @ package:test/test.dart
+          foo4: #M6
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isFactory isSimplyBounded
+              functionType: FunctionType
+                positional
+                  required int @ dart:core
+                returnType: E @ package:test/test.dart
+        interface: #M7
+          map
+            it: #M2
+          implemented
+            it: #M2
+''',
+      updatedCode: r'''
+extension type E(int it) {
+  E.foo1(int it) => E(it);
+  factory E.foo2(this.it);
+  factory E.foo3(int it) => E(it);
+  E.foo4(this.it);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      E: #M0
+        representationType: int @ dart:core
+        typeErasure: int @ dart:core
+        declaredFields
+          it: #M1
+            type: int @ dart:core
+        declaredGetters
+          it: #M2
+            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+        declaredConstructors
+          foo1: #M3
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+              functionType: FunctionType
+                positional
+                  required int @ dart:core
+                returnType: E @ package:test/test.dart
+          foo2: #M4
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isFactory isSimplyBounded
+              functionType: FunctionType
+                positional
+                  required int @ dart:core
+                returnType: E @ package:test/test.dart
+          foo3: #M8
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isFactory isSimplyBounded
+              functionType: FunctionType
+                positional
+                  required int @ dart:core
+                returnType: E @ package:test/test.dart
+          foo4: #M9
+              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+              functionType: FunctionType
+                positional
+                  required int @ dart:core
+                returnType: E @ package:test/test.dart
+        interface: #M7
+          map
+            it: #M2
+          implemented
+            it: #M2
 ''',
     );
   }
@@ -58075,6 +61640,464 @@ extension type A(int it) {
             bar: #M9
             foo: #M5
             it: #M6
+''',
+    );
+  }
+
+  test_manifest_extensionType_getter_modifier_hasEnclosingTypeParameterReference() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension type E<T>(T it) {
+  T get foo1 => throw 0;
+  int get foo2 => 0;
+  T get foo3 => throw 0;
+  int get foo4 => 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      E: #M0
+        typeParameters
+          #0 covariant
+            bound: <null>
+        representationType: typeParameter#0
+        typeErasure: typeParameter#0
+        declaredFields
+          foo1: #M1
+            type: typeParameter#0
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: typeParameter#0
+          foo4: #M4
+            type: int @ dart:core
+          it: #M5
+            type: typeParameter#0
+        declaredGetters
+          foo1: #M6
+            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+            returnType: typeParameter#0
+          foo2: #M7
+            flags: isExtensionTypeMember isSimplyBounded
+            returnType: int @ dart:core
+          foo3: #M8
+            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+            returnType: typeParameter#0
+          foo4: #M9
+            flags: isExtensionTypeMember isSimplyBounded
+            returnType: int @ dart:core
+          it: #M10
+            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded isSynthetic
+            returnType: typeParameter#0
+        interface: #M11
+          map
+            foo1: #M6
+            foo2: #M7
+            foo3: #M8
+            foo4: #M9
+            it: #M10
+          implemented
+            foo1: #M6
+            foo2: #M7
+            foo3: #M8
+            foo4: #M9
+            it: #M10
+''',
+      updatedCode: r'''
+extension type E<T>(T it) {
+  T get foo1 => throw 0;
+  int get foo2 => 0;
+  int get foo3 => 0;
+  T get foo4 => throw 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      E: #M0
+        typeParameters
+          #0 covariant
+            bound: <null>
+        representationType: typeParameter#0
+        typeErasure: typeParameter#0
+        declaredFields
+          foo1: #M1
+            type: typeParameter#0
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M12
+            type: int @ dart:core
+          foo4: #M13
+            type: typeParameter#0
+          it: #M5
+            type: typeParameter#0
+        declaredGetters
+          foo1: #M6
+            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+            returnType: typeParameter#0
+          foo2: #M7
+            flags: isExtensionTypeMember isSimplyBounded
+            returnType: int @ dart:core
+          foo3: #M14
+            flags: isExtensionTypeMember isSimplyBounded
+            returnType: int @ dart:core
+          foo4: #M15
+            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+            returnType: typeParameter#0
+          it: #M10
+            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded isSynthetic
+            returnType: typeParameter#0
+        interface: #M16
+          map
+            foo1: #M6
+            foo2: #M7
+            foo3: #M14
+            foo4: #M15
+            it: #M10
+          implemented
+            foo1: #M6
+            foo2: #M7
+            foo3: #M14
+            foo4: #M15
+            it: #M10
+''',
+    );
+  }
+
+  test_manifest_extensionType_getter_modifier_hasImplicitReturnType() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension type E(int it) {
+  get foo1 => 0;
+  int get foo2 => 0;
+  get foo3 => 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      E: #M0
+        representationType: int @ dart:core
+        typeErasure: int @ dart:core
+        declaredFields
+          foo1: #M1
+            type: dynamic
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: dynamic
+          it: #M4
+            type: int @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            returnType: dynamic
+          foo2: #M6
+            flags: isExtensionTypeMember isSimplyBounded
+            returnType: int @ dart:core
+          foo3: #M7
+            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            returnType: dynamic
+          it: #M8
+            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+        interface: #M9
+          map
+            foo1: #M5
+            foo2: #M6
+            foo3: #M7
+            it: #M8
+          implemented
+            foo1: #M5
+            foo2: #M6
+            foo3: #M7
+            it: #M8
+''',
+      updatedCode: r'''
+extension type E(int it) {
+  get foo1 => 0;
+  get foo2 => 0;
+  int get foo3 => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      E: #M0
+        representationType: int @ dart:core
+        typeErasure: int @ dart:core
+        declaredFields
+          foo1: #M1
+            type: dynamic
+          foo2: #M10
+            type: dynamic
+          foo3: #M11
+            type: int @ dart:core
+          it: #M4
+            type: int @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            returnType: dynamic
+          foo2: #M12
+            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            returnType: dynamic
+          foo3: #M13
+            flags: isExtensionTypeMember isSimplyBounded
+            returnType: int @ dart:core
+          it: #M8
+            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+        interface: #M14
+          map
+            foo1: #M5
+            foo2: #M12
+            foo3: #M13
+            it: #M8
+          implemented
+            foo1: #M5
+            foo2: #M12
+            foo3: #M13
+            it: #M8
+''',
+    );
+  }
+
+  test_manifest_extensionType_getter_modifier_isExternal() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension type E(int it) {
+  int get foo1 => 1;
+  external int get foo2;
+  int get foo3 => 3;
+  external int get foo4;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      E: #M0
+        representationType: int @ dart:core
+        typeErasure: int @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+          it: #M5
+            type: int @ dart:core
+        declaredGetters
+          foo1: #M6
+            flags: isExtensionTypeMember isSimplyBounded
+            returnType: int @ dart:core
+          foo2: #M7
+            flags: isExtensionTypeMember isExternal isSimplyBounded
+            returnType: int @ dart:core
+          foo3: #M8
+            flags: isExtensionTypeMember isSimplyBounded
+            returnType: int @ dart:core
+          foo4: #M9
+            flags: isExtensionTypeMember isExternal isSimplyBounded
+            returnType: int @ dart:core
+          it: #M10
+            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+        interface: #M11
+          map
+            foo1: #M6
+            foo2: #M7
+            foo3: #M8
+            foo4: #M9
+            it: #M10
+          implemented
+            foo1: #M6
+            foo2: #M7
+            foo3: #M8
+            foo4: #M9
+            it: #M10
+''',
+      updatedCode: r'''
+extension type E(int it) {
+  int get foo1 => 1;
+  external int get foo2;
+  external int get foo3;
+  int get foo4 => 4;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      E: #M0
+        representationType: int @ dart:core
+        typeErasure: int @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+          it: #M5
+            type: int @ dart:core
+        declaredGetters
+          foo1: #M6
+            flags: isExtensionTypeMember isSimplyBounded
+            returnType: int @ dart:core
+          foo2: #M7
+            flags: isExtensionTypeMember isExternal isSimplyBounded
+            returnType: int @ dart:core
+          foo3: #M12
+            flags: isExtensionTypeMember isExternal isSimplyBounded
+            returnType: int @ dart:core
+          foo4: #M13
+            flags: isExtensionTypeMember isSimplyBounded
+            returnType: int @ dart:core
+          it: #M10
+            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+        interface: #M14
+          map
+            foo1: #M6
+            foo2: #M7
+            foo3: #M12
+            foo4: #M13
+            it: #M10
+          implemented
+            foo1: #M6
+            foo2: #M7
+            foo3: #M12
+            foo4: #M13
+            it: #M10
+''',
+    );
+  }
+
+  test_manifest_extensionType_getter_modifier_isStatic() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension type E(int it) {
+  int get foo1 => 1;
+  static int get foo2 => 2;
+  int get foo3 => 3;
+  static int get foo4 => 4;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      E: #M0
+        representationType: int @ dart:core
+        typeErasure: int @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+          it: #M5
+            type: int @ dart:core
+        declaredGetters
+          foo1: #M6
+            flags: isExtensionTypeMember isSimplyBounded
+            returnType: int @ dart:core
+          foo2: #M7
+            flags: isExtensionTypeMember isSimplyBounded isStatic
+            returnType: int @ dart:core
+          foo3: #M8
+            flags: isExtensionTypeMember isSimplyBounded
+            returnType: int @ dart:core
+          foo4: #M9
+            flags: isExtensionTypeMember isSimplyBounded isStatic
+            returnType: int @ dart:core
+          it: #M10
+            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+        interface: #M11
+          map
+            foo1: #M6
+            foo3: #M8
+            it: #M10
+          implemented
+            foo1: #M6
+            foo3: #M8
+            it: #M10
+''',
+      updatedCode: r'''
+extension type E(int it) {
+  int get foo1 => 1;
+  static int get foo2 => 2;
+  static int get foo3 => 3;
+  int get foo4 => 4;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      E: #M0
+        representationType: int @ dart:core
+        typeErasure: int @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M12
+            type: int @ dart:core
+          foo4: #M13
+            type: int @ dart:core
+          it: #M5
+            type: int @ dart:core
+        declaredGetters
+          foo1: #M6
+            flags: isExtensionTypeMember isSimplyBounded
+            returnType: int @ dart:core
+          foo2: #M7
+            flags: isExtensionTypeMember isSimplyBounded isStatic
+            returnType: int @ dart:core
+          foo3: #M14
+            flags: isExtensionTypeMember isSimplyBounded isStatic
+            returnType: int @ dart:core
+          foo4: #M15
+            flags: isExtensionTypeMember isSimplyBounded
+            returnType: int @ dart:core
+          it: #M10
+            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+        interface: #M16
+          map
+            foo1: #M6
+            foo4: #M15
+            it: #M10
+          implemented
+            foo1: #M6
+            foo4: #M15
+            it: #M10
 ''',
     );
   }
@@ -58318,6 +62341,7 @@ extension type B(int it) {}
   }
 
   test_manifest_extensionType_method() async {
+    configuration.withElementManifests = true;
     await _runLibraryManifestScenario(
       initialCode: r'''
 extension type A(int it) {
@@ -58331,13 +62355,24 @@ extension type A(int it) {
   package:test/test.dart
     declaredExtensionTypes
       A: #M0
+        representationType: int @ dart:core
+        typeErasure: int @ dart:core
         declaredFields
           it: #M1
+            type: int @ dart:core
         declaredGetters
           it: #M2
+            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            returnType: int @ dart:core
         declaredMethods
           bar: #M3
+            flags: isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              returnType: int @ dart:core
           foo: #M4
+            flags: isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              returnType: int @ dart:core
         interface: #M5
           map
             bar: #M3
@@ -58359,13 +62394,24 @@ extension type A(int it) {
   package:test/test.dart
     declaredExtensionTypes
       A: #M0
+        representationType: int @ dart:core
+        typeErasure: int @ dart:core
         declaredFields
           it: #M1
+            type: int @ dart:core
         declaredGetters
           it: #M2
+            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            returnType: int @ dart:core
         declaredMethods
           bar: #M6
+            flags: isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              returnType: double @ dart:core
           foo: #M4
+            flags: isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              returnType: int @ dart:core
         interface: #M7
           map
             bar: #M6
@@ -58374,6 +62420,442 @@ extension type A(int it) {
           implemented
             bar: #M6
             foo: #M4
+            it: #M2
+''',
+    );
+  }
+
+  test_manifest_extensionType_method_modifier_hasEnclosingTypeParameterReference() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension type E<T>(T it) {
+  T foo1() => throw 0;
+  void foo2() {}
+  T foo3() => throw 0;
+  void foo4() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      E: #M0
+        typeParameters
+          #0 covariant
+            bound: <null>
+        representationType: typeParameter#0
+        typeErasure: typeParameter#0
+        declaredFields
+          it: #M1
+            type: typeParameter#0
+        declaredGetters
+          it: #M2
+            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded isSynthetic
+            returnType: typeParameter#0
+        declaredMethods
+          foo1: #M3
+            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              returnType: typeParameter#0
+          foo2: #M4
+            flags: isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo3: #M5
+            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              returnType: typeParameter#0
+          foo4: #M6
+            flags: isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+        interface: #M7
+          map
+            foo1: #M3
+            foo2: #M4
+            foo3: #M5
+            foo4: #M6
+            it: #M2
+          implemented
+            foo1: #M3
+            foo2: #M4
+            foo3: #M5
+            foo4: #M6
+            it: #M2
+''',
+      updatedCode: r'''
+extension type E<T>(T it) {
+  T foo1() => throw 0;
+  void foo2() {}
+  void foo3() {}
+  T foo4() => throw 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      E: #M0
+        typeParameters
+          #0 covariant
+            bound: <null>
+        representationType: typeParameter#0
+        typeErasure: typeParameter#0
+        declaredFields
+          it: #M1
+            type: typeParameter#0
+        declaredGetters
+          it: #M2
+            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded isSynthetic
+            returnType: typeParameter#0
+        declaredMethods
+          foo1: #M3
+            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              returnType: typeParameter#0
+          foo2: #M4
+            flags: isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo3: #M8
+            flags: isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo4: #M9
+            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              returnType: typeParameter#0
+        interface: #M10
+          map
+            foo1: #M3
+            foo2: #M4
+            foo3: #M8
+            foo4: #M9
+            it: #M2
+          implemented
+            foo1: #M3
+            foo2: #M4
+            foo3: #M8
+            foo4: #M9
+            it: #M2
+''',
+    );
+  }
+
+  test_manifest_extensionType_method_modifier_hasImplicitReturnType() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension type E(int it) {
+  foo1() {}
+  void foo2() {}
+  foo3() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      E: #M0
+        representationType: int @ dart:core
+        typeErasure: int @ dart:core
+        declaredFields
+          it: #M1
+            type: int @ dart:core
+        declaredGetters
+          it: #M2
+            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+        declaredMethods
+          foo1: #M3
+            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              returnType: dynamic
+          foo2: #M4
+            flags: isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo3: #M5
+            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              returnType: dynamic
+        interface: #M6
+          map
+            foo1: #M3
+            foo2: #M4
+            foo3: #M5
+            it: #M2
+          implemented
+            foo1: #M3
+            foo2: #M4
+            foo3: #M5
+            it: #M2
+''',
+      updatedCode: r'''
+extension type E(int it) {
+  foo1() {}
+  foo2() {}
+  void foo3() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      E: #M0
+        representationType: int @ dart:core
+        typeErasure: int @ dart:core
+        declaredFields
+          it: #M1
+            type: int @ dart:core
+        declaredGetters
+          it: #M2
+            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+        declaredMethods
+          foo1: #M3
+            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              returnType: dynamic
+          foo2: #M7
+            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              returnType: dynamic
+          foo3: #M8
+            flags: isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+        interface: #M9
+          map
+            foo1: #M3
+            foo2: #M7
+            foo3: #M8
+            it: #M2
+          implemented
+            foo1: #M3
+            foo2: #M7
+            foo3: #M8
+            it: #M2
+''',
+    );
+  }
+
+  test_manifest_extensionType_method_modifier_isExternal() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension type E(int it) {
+  void foo1() {}
+  external void foo2();
+  void foo3() {}
+  external void foo4();
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      E: #M0
+        representationType: int @ dart:core
+        typeErasure: int @ dart:core
+        declaredFields
+          it: #M1
+            type: int @ dart:core
+        declaredGetters
+          it: #M2
+            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+        declaredMethods
+          foo1: #M3
+            flags: isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo2: #M4
+            flags: isExtensionTypeMember isExternal isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo3: #M5
+            flags: isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo4: #M6
+            flags: isExtensionTypeMember isExternal isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+        interface: #M7
+          map
+            foo1: #M3
+            foo2: #M4
+            foo3: #M5
+            foo4: #M6
+            it: #M2
+          implemented
+            foo1: #M3
+            foo2: #M4
+            foo3: #M5
+            foo4: #M6
+            it: #M2
+''',
+      updatedCode: r'''
+extension type E(int it) {
+  void foo1() {}
+  external void foo2();
+  external void foo3();
+  void foo4() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      E: #M0
+        representationType: int @ dart:core
+        typeErasure: int @ dart:core
+        declaredFields
+          it: #M1
+            type: int @ dart:core
+        declaredGetters
+          it: #M2
+            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+        declaredMethods
+          foo1: #M3
+            flags: isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo2: #M4
+            flags: isExtensionTypeMember isExternal isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo3: #M8
+            flags: isExtensionTypeMember isExternal isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo4: #M9
+            flags: isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+        interface: #M10
+          map
+            foo1: #M3
+            foo2: #M4
+            foo3: #M8
+            foo4: #M9
+            it: #M2
+          implemented
+            foo1: #M3
+            foo2: #M4
+            foo3: #M8
+            foo4: #M9
+            it: #M2
+''',
+    );
+  }
+
+  test_manifest_extensionType_method_modifier_isStatic() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension type E(int it) {
+  void foo1() {}
+  static void foo2() {}
+  void foo3() {}
+  static void foo4() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      E: #M0
+        representationType: int @ dart:core
+        typeErasure: int @ dart:core
+        declaredFields
+          it: #M1
+            type: int @ dart:core
+        declaredGetters
+          it: #M2
+            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+        declaredMethods
+          foo1: #M3
+            flags: isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo2: #M4
+            flags: isExtensionTypeMember isSimplyBounded isStatic
+            functionType: FunctionType
+              returnType: void
+          foo3: #M5
+            flags: isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo4: #M6
+            flags: isExtensionTypeMember isSimplyBounded isStatic
+            functionType: FunctionType
+              returnType: void
+        interface: #M7
+          map
+            foo1: #M3
+            foo3: #M5
+            it: #M2
+          implemented
+            foo1: #M3
+            foo3: #M5
+            it: #M2
+''',
+      updatedCode: r'''
+extension type E(int it) {
+  void foo1() {}
+  static void foo2() {}
+  static void foo3() {}
+  void foo4() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      E: #M0
+        representationType: int @ dart:core
+        typeErasure: int @ dart:core
+        declaredFields
+          it: #M1
+            type: int @ dart:core
+        declaredGetters
+          it: #M2
+            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+        declaredMethods
+          foo1: #M3
+            flags: isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo2: #M4
+            flags: isExtensionTypeMember isSimplyBounded isStatic
+            functionType: FunctionType
+              returnType: void
+          foo3: #M8
+            flags: isExtensionTypeMember isSimplyBounded isStatic
+            functionType: FunctionType
+              returnType: void
+          foo4: #M9
+            flags: isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+        interface: #M10
+          map
+            foo1: #M3
+            foo4: #M9
+            it: #M2
+          implemented
+            foo1: #M3
+            foo4: #M9
             it: #M2
 ''',
     );
@@ -58605,6 +63087,439 @@ extension type A(int it) {
             bar=: #M9
             foo=: #M6
             it: #M4
+''',
+    );
+  }
+
+  test_manifest_extensionType_setter_modifier_hasEnclosingTypeParameterReference() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension type E<T>(T it) {
+  set foo1(T value) {}
+  set foo2(int value) {}
+  set foo3(T value) {}
+  set foo4(int value) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      E: #M0
+        typeParameters
+          #0 covariant
+            bound: <null>
+        representationType: typeParameter#0
+        typeErasure: typeParameter#0
+        declaredFields
+          foo1: #M1
+            type: typeParameter#0
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: typeParameter#0
+          foo4: #M4
+            type: int @ dart:core
+          it: #M5
+            type: typeParameter#0
+        declaredGetters
+          it: #M6
+            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded isSynthetic
+            returnType: typeParameter#0
+        declaredSetters
+          foo1=: #M7
+            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              positional
+                required typeParameter#0
+              returnType: void
+          foo2=: #M8
+            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo3=: #M9
+            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              positional
+                required typeParameter#0
+              returnType: void
+          foo4=: #M10
+            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+        interface: #M11
+          map
+            foo1=: #M7
+            foo2=: #M8
+            foo3=: #M9
+            foo4=: #M10
+            it: #M6
+          implemented
+            foo1=: #M7
+            foo2=: #M8
+            foo3=: #M9
+            foo4=: #M10
+            it: #M6
+''',
+      updatedCode: r'''
+extension type E<T>(T it) {
+  set foo1(T value) {}
+  set foo2(int value) {}
+  set foo3(int value) {}
+  set foo4(T value) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      E: #M0
+        typeParameters
+          #0 covariant
+            bound: <null>
+        representationType: typeParameter#0
+        typeErasure: typeParameter#0
+        declaredFields
+          foo1: #M1
+            type: typeParameter#0
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M12
+            type: int @ dart:core
+          foo4: #M13
+            type: typeParameter#0
+          it: #M5
+            type: typeParameter#0
+        declaredGetters
+          it: #M6
+            flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded isSynthetic
+            returnType: typeParameter#0
+        declaredSetters
+          foo1=: #M7
+            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              positional
+                required typeParameter#0
+              returnType: void
+          foo2=: #M8
+            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo3=: #M14
+            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo4=: #M15
+            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              positional
+                required typeParameter#0
+              returnType: void
+        interface: #M16
+          map
+            foo1=: #M7
+            foo2=: #M8
+            foo3=: #M14
+            foo4=: #M15
+            it: #M6
+          implemented
+            foo1=: #M7
+            foo2=: #M8
+            foo3=: #M14
+            foo4=: #M15
+            it: #M6
+''',
+    );
+  }
+
+  test_manifest_extensionType_setter_modifier_isExternal() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension type E(int it) {
+  set foo1(int value) {}
+  external set foo2(int value);
+  set foo3(int value) {}
+  external set foo4(int value);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      E: #M0
+        representationType: int @ dart:core
+        typeErasure: int @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+          it: #M5
+            type: int @ dart:core
+        declaredGetters
+          it: #M6
+            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+        declaredSetters
+          foo1=: #M7
+            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo2=: #M8
+            flags: hasImplicitReturnType isExtensionTypeMember isExternal isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo3=: #M9
+            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo4=: #M10
+            flags: hasImplicitReturnType isExtensionTypeMember isExternal isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+        interface: #M11
+          map
+            foo1=: #M7
+            foo2=: #M8
+            foo3=: #M9
+            foo4=: #M10
+            it: #M6
+          implemented
+            foo1=: #M7
+            foo2=: #M8
+            foo3=: #M9
+            foo4=: #M10
+            it: #M6
+''',
+      updatedCode: r'''
+extension type E(int it) {
+  set foo1(int value) {}
+  external set foo2(int value);
+  external set foo3(int value);
+  set foo4(int value) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      E: #M0
+        representationType: int @ dart:core
+        typeErasure: int @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+          it: #M5
+            type: int @ dart:core
+        declaredGetters
+          it: #M6
+            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+        declaredSetters
+          foo1=: #M7
+            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo2=: #M8
+            flags: hasImplicitReturnType isExtensionTypeMember isExternal isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo3=: #M12
+            flags: hasImplicitReturnType isExtensionTypeMember isExternal isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo4=: #M13
+            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+        interface: #M14
+          map
+            foo1=: #M7
+            foo2=: #M8
+            foo3=: #M12
+            foo4=: #M13
+            it: #M6
+          implemented
+            foo1=: #M7
+            foo2=: #M8
+            foo3=: #M12
+            foo4=: #M13
+            it: #M6
+''',
+    );
+  }
+
+  test_manifest_extensionType_setter_modifier_isStatic() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension type E(int it) {
+  set foo1(int value) {}
+  static set foo2(int value) {}
+  set foo3(int value) {}
+  static set foo4(int value) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      E: #M0
+        representationType: int @ dart:core
+        typeErasure: int @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+          it: #M5
+            type: int @ dart:core
+        declaredGetters
+          it: #M6
+            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+        declaredSetters
+          foo1=: #M7
+            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo2=: #M8
+            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded isStatic
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo3=: #M9
+            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo4=: #M10
+            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded isStatic
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+        interface: #M11
+          map
+            foo1=: #M7
+            foo3=: #M9
+            it: #M6
+          implemented
+            foo1=: #M7
+            foo3=: #M9
+            it: #M6
+''',
+      updatedCode: r'''
+extension type E(int it) {
+  set foo1(int value) {}
+  static set foo2(int value) {}
+  static set foo3(int value) {}
+  set foo4(int value) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensionTypes
+      E: #M0
+        representationType: int @ dart:core
+        typeErasure: int @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M12
+            type: int @ dart:core
+          foo4: #M13
+            type: int @ dart:core
+          it: #M5
+            type: int @ dart:core
+        declaredGetters
+          it: #M6
+            flags: isExtensionTypeMember isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+        declaredSetters
+          foo1=: #M7
+            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo2=: #M8
+            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded isStatic
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo3=: #M14
+            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded isStatic
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo4=: #M15
+            flags: hasImplicitReturnType isExtensionTypeMember isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+        interface: #M16
+          map
+            foo1=: #M7
+            foo4=: #M15
+            it: #M6
+          implemented
+            foo1=: #M7
+            foo4=: #M15
+            it: #M6
 ''',
     );
   }
@@ -59772,6 +64687,710 @@ mixin A {
     );
   }
 
+  test_manifest_mixin_getter_modifier_hasEnclosingTypeParameterReference() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin M<T> {
+  T get foo1;
+  int get foo2;
+  T get foo3;
+  int get foo4;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      M: #M0
+        typeParameters
+          #0 covariant
+            bound: <null>
+        superclassConstraints
+          Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: typeParameter#0
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: typeParameter#0
+          foo4: #M4
+            type: int @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: hasEnclosingTypeParameterReference isAbstract isSimplyBounded
+            returnType: typeParameter#0
+          foo2: #M6
+            flags: isAbstract isSimplyBounded
+            returnType: int @ dart:core
+          foo3: #M7
+            flags: hasEnclosingTypeParameterReference isAbstract isSimplyBounded
+            returnType: typeParameter#0
+          foo4: #M8
+            flags: isAbstract isSimplyBounded
+            returnType: int @ dart:core
+        interface: #M9
+          map
+            foo1: #M5
+            foo2: #M6
+            foo3: #M7
+            foo4: #M8
+''',
+      updatedCode: r'''
+mixin M<T> {
+  T get foo1;
+  int get foo2;
+  int get foo3;
+  T get foo4;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      M: #M0
+        typeParameters
+          #0 covariant
+            bound: <null>
+        superclassConstraints
+          Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: typeParameter#0
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M10
+            type: int @ dart:core
+          foo4: #M11
+            type: typeParameter#0
+        declaredGetters
+          foo1: #M5
+            flags: hasEnclosingTypeParameterReference isAbstract isSimplyBounded
+            returnType: typeParameter#0
+          foo2: #M6
+            flags: isAbstract isSimplyBounded
+            returnType: int @ dart:core
+          foo3: #M12
+            flags: isAbstract isSimplyBounded
+            returnType: int @ dart:core
+          foo4: #M13
+            flags: hasEnclosingTypeParameterReference isAbstract isSimplyBounded
+            returnType: typeParameter#0
+        interface: #M14
+          map
+            foo1: #M5
+            foo2: #M6
+            foo3: #M12
+            foo4: #M13
+''',
+    );
+  }
+
+  test_manifest_mixin_getter_modifier_hasImplicitReturnType() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin M {
+  get foo1 => 0;
+  int get foo2 => 0;
+  get foo3 => 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      M: #M0
+        superclassConstraints
+          Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: dynamic
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: dynamic
+        declaredGetters
+          foo1: #M4
+            flags: hasImplicitReturnType isSimplyBounded
+            returnType: dynamic
+          foo2: #M5
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo3: #M6
+            flags: hasImplicitReturnType isSimplyBounded
+            returnType: dynamic
+        interface: #M7
+          map
+            foo1: #M4
+            foo2: #M5
+            foo3: #M6
+          implemented
+            foo1: #M4
+            foo2: #M5
+            foo3: #M6
+''',
+      updatedCode: r'''
+mixin M {
+  get foo1 => 0;
+  get foo2 => 0;
+  int get foo3 => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      M: #M0
+        superclassConstraints
+          Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: dynamic
+          foo2: #M8
+            type: dynamic
+          foo3: #M9
+            type: int @ dart:core
+        declaredGetters
+          foo1: #M4
+            flags: hasImplicitReturnType isSimplyBounded
+            returnType: dynamic
+          foo2: #M10
+            flags: hasImplicitReturnType isSimplyBounded
+            returnType: dynamic
+          foo3: #M11
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+        interface: #M12
+          map
+            foo1: #M4
+            foo2: #M10
+            foo3: #M11
+          implemented
+            foo1: #M4
+            foo2: #M10
+            foo3: #M11
+''',
+    );
+  }
+
+  test_manifest_mixin_getter_modifier_invokesSuperSelf() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class S {
+  int get foo1 => 1;
+  int get foo2 => 2;
+  int get foo3 => 3;
+  int get foo4 => 4;
+}
+mixin M on S {
+  int get foo1 => 11;
+  int get foo2 { return super.foo2; }
+  int get foo3 => 33;
+  int get foo4 { return super.foo4; }
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      S: #M0
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo2: #M6
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo3: #M7
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo4: #M8
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+        interface: #M9
+          map
+            foo1: #M5
+            foo2: #M6
+            foo3: #M7
+            foo4: #M8
+          implemented
+            foo1: #M5
+            foo2: #M6
+            foo3: #M7
+            foo4: #M8
+    declaredMixins
+      M: #M10
+        superclassConstraints
+          S @ package:test/test.dart
+        declaredFields
+          foo1: #M11
+            type: int @ dart:core
+          foo2: #M12
+            type: int @ dart:core
+          foo3: #M13
+            type: int @ dart:core
+          foo4: #M14
+            type: int @ dart:core
+        declaredGetters
+          foo1: #M15
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo2: #M16
+            flags: invokesSuperSelf isSimplyBounded
+            returnType: int @ dart:core
+          foo3: #M17
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo4: #M18
+            flags: invokesSuperSelf isSimplyBounded
+            returnType: int @ dart:core
+        interface: #M19
+          map
+            foo1: #M15
+            foo2: #M16
+            foo3: #M17
+            foo4: #M18
+          implemented
+            foo1: #M15
+            foo2: #M16
+            foo3: #M17
+            foo4: #M18
+          superImplemented
+            [0]
+              foo1: #M5
+              foo2: #M6
+              foo3: #M7
+              foo4: #M8
+          inherited
+            foo1: #M5
+            foo2: #M6
+            foo3: #M7
+            foo4: #M8
+''',
+      updatedCode: r'''
+class S {
+  int get foo1 => 1;
+  int get foo2 => 2;
+  int get foo3 => 3;
+  int get foo4 => 4;
+}
+mixin M on S {
+  int get foo1 => 11;
+  int get foo2 { return super.foo2; }
+  int get foo3 { return super.foo3; }
+  int get foo4 => 44;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      S: #M0
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo2: #M6
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo3: #M7
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo4: #M8
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+        interface: #M9
+          map
+            foo1: #M5
+            foo2: #M6
+            foo3: #M7
+            foo4: #M8
+          implemented
+            foo1: #M5
+            foo2: #M6
+            foo3: #M7
+            foo4: #M8
+    declaredMixins
+      M: #M20
+        superclassConstraints
+          S @ package:test/test.dart
+        declaredFields
+          foo1: #M21
+            type: int @ dart:core
+          foo2: #M22
+            type: int @ dart:core
+          foo3: #M23
+            type: int @ dart:core
+          foo4: #M24
+            type: int @ dart:core
+        declaredGetters
+          foo1: #M25
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo2: #M26
+            flags: invokesSuperSelf isSimplyBounded
+            returnType: int @ dart:core
+          foo3: #M27
+            flags: invokesSuperSelf isSimplyBounded
+            returnType: int @ dart:core
+          foo4: #M28
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+        interface: #M29
+          map
+            foo1: #M25
+            foo2: #M26
+            foo3: #M27
+            foo4: #M28
+          implemented
+            foo1: #M25
+            foo2: #M26
+            foo3: #M27
+            foo4: #M28
+          superImplemented
+            [0]
+              foo1: #M5
+              foo2: #M6
+              foo3: #M7
+              foo4: #M8
+          inherited
+            foo1: #M5
+            foo2: #M6
+            foo3: #M7
+            foo4: #M8
+''',
+    );
+  }
+
+  test_manifest_mixin_getter_modifier_isAbstract() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin M {
+  int get foo1 => 1;
+  int get foo2;
+  int get foo3 => 3;
+  int get foo4;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      M: #M0
+        superclassConstraints
+          Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo2: #M6
+            flags: isAbstract isSimplyBounded
+            returnType: int @ dart:core
+          foo3: #M7
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo4: #M8
+            flags: isAbstract isSimplyBounded
+            returnType: int @ dart:core
+        interface: #M9
+          map
+            foo1: #M5
+            foo2: #M6
+            foo3: #M7
+            foo4: #M8
+          implemented
+            foo1: #M5
+            foo3: #M7
+''',
+      updatedCode: r'''
+mixin M {
+  int get foo1 => 1;
+  int get foo2;
+  int get foo3;
+  int get foo4 => 4;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      M: #M0
+        superclassConstraints
+          Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo2: #M6
+            flags: isAbstract isSimplyBounded
+            returnType: int @ dart:core
+          foo3: #M10
+            flags: isAbstract isSimplyBounded
+            returnType: int @ dart:core
+          foo4: #M11
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+        interface: #M12
+          map
+            foo1: #M5
+            foo2: #M6
+            foo3: #M10
+            foo4: #M11
+          implemented
+            foo1: #M5
+            foo4: #M11
+''',
+    );
+  }
+
+  test_manifest_mixin_getter_modifier_isExternal() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin M {
+  int get foo1 => 1;
+  external int get foo2;
+  int get foo3 => 3;
+  external int get foo4;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      M: #M0
+        superclassConstraints
+          Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo2: #M6
+            flags: isExternal isSimplyBounded
+            returnType: int @ dart:core
+          foo3: #M7
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo4: #M8
+            flags: isExternal isSimplyBounded
+            returnType: int @ dart:core
+        interface: #M9
+          map
+            foo1: #M5
+            foo2: #M6
+            foo3: #M7
+            foo4: #M8
+          implemented
+            foo1: #M5
+            foo2: #M6
+            foo3: #M7
+            foo4: #M8
+''',
+      updatedCode: r'''
+mixin M {
+  int get foo1 => 1;
+  external int get foo2;
+  external int get foo3;
+  int get foo4 => 4;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      M: #M0
+        superclassConstraints
+          Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo2: #M6
+            flags: isExternal isSimplyBounded
+            returnType: int @ dart:core
+          foo3: #M10
+            flags: isExternal isSimplyBounded
+            returnType: int @ dart:core
+          foo4: #M11
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+        interface: #M12
+          map
+            foo1: #M5
+            foo2: #M6
+            foo3: #M10
+            foo4: #M11
+          implemented
+            foo1: #M5
+            foo2: #M6
+            foo3: #M10
+            foo4: #M11
+''',
+    );
+  }
+
+  test_manifest_mixin_getter_modifier_isStatic() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin M {
+  int get foo1 => 1;
+  static int get foo2 => 2;
+  int get foo3 => 3;
+  static int get foo4 => 4;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      M: #M0
+        superclassConstraints
+          Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo2: #M6
+            flags: isSimplyBounded isStatic
+            returnType: int @ dart:core
+          foo3: #M7
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo4: #M8
+            flags: isSimplyBounded isStatic
+            returnType: int @ dart:core
+        interface: #M9
+          map
+            foo1: #M5
+            foo3: #M7
+          implemented
+            foo1: #M5
+            foo3: #M7
+''',
+      updatedCode: r'''
+mixin M {
+  int get foo1 => 1;
+  static int get foo2 => 2;
+  static int get foo3 => 3;
+  int get foo4 => 4;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      M: #M0
+        superclassConstraints
+          Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M10
+            type: int @ dart:core
+          foo4: #M11
+            type: int @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+          foo2: #M6
+            flags: isSimplyBounded isStatic
+            returnType: int @ dart:core
+          foo3: #M12
+            flags: isSimplyBounded isStatic
+            returnType: int @ dart:core
+          foo4: #M13
+            flags: isSimplyBounded
+            returnType: int @ dart:core
+        interface: #M14
+          map
+            foo1: #M5
+            foo4: #M13
+          implemented
+            foo1: #M5
+            foo4: #M13
+''',
+    );
+  }
+
   test_manifest_mixin_getter_private_instance() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -59883,6 +65502,7 @@ mixin A {
             type: int @ dart:core
         declaredGetters
           foo: #M2
+            flags: isSimplyBounded
             returnType: int @ dart:core
         interface: #M3
           map
@@ -59907,6 +65527,7 @@ mixin A {
             type: double @ dart:core
         declaredGetters
           foo: #M5
+            flags: isSimplyBounded
             returnType: double @ dart:core
         interface: #M6
           map
@@ -60588,6 +66209,642 @@ mixin A {
     );
   }
 
+  test_manifest_mixin_method_modifier_hasEnclosingTypeParameterReference() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin M<T> {
+  T foo1();
+  void foo2();
+  T foo3();
+  void foo4();
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      M: #M0
+        typeParameters
+          #0 covariant
+            bound: <null>
+        superclassConstraints
+          Object @ dart:core
+        declaredMethods
+          foo1: #M1
+            flags: hasEnclosingTypeParameterReference isAbstract isSimplyBounded
+            functionType: FunctionType
+              returnType: typeParameter#0
+          foo2: #M2
+            flags: isAbstract isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo3: #M3
+            flags: hasEnclosingTypeParameterReference isAbstract isSimplyBounded
+            functionType: FunctionType
+              returnType: typeParameter#0
+          foo4: #M4
+            flags: isAbstract isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+        interface: #M5
+          map
+            foo1: #M1
+            foo2: #M2
+            foo3: #M3
+            foo4: #M4
+''',
+      updatedCode: r'''
+mixin M<T> {
+  T foo1();
+  void foo2();
+  void foo3();
+  T foo4();
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      M: #M0
+        typeParameters
+          #0 covariant
+            bound: <null>
+        superclassConstraints
+          Object @ dart:core
+        declaredMethods
+          foo1: #M1
+            flags: hasEnclosingTypeParameterReference isAbstract isSimplyBounded
+            functionType: FunctionType
+              returnType: typeParameter#0
+          foo2: #M2
+            flags: isAbstract isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo3: #M6
+            flags: isAbstract isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo4: #M7
+            flags: hasEnclosingTypeParameterReference isAbstract isSimplyBounded
+            functionType: FunctionType
+              returnType: typeParameter#0
+        interface: #M8
+          map
+            foo1: #M1
+            foo2: #M2
+            foo3: #M6
+            foo4: #M7
+''',
+    );
+  }
+
+  test_manifest_mixin_method_modifier_hasImplicitReturnType() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin M {
+  foo1() {}
+  void foo2() {}
+  foo3() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      M: #M0
+        superclassConstraints
+          Object @ dart:core
+        declaredMethods
+          foo1: #M1
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              returnType: dynamic
+          foo2: #M2
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo3: #M3
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              returnType: dynamic
+        interface: #M4
+          map
+            foo1: #M1
+            foo2: #M2
+            foo3: #M3
+          implemented
+            foo1: #M1
+            foo2: #M2
+            foo3: #M3
+''',
+      updatedCode: r'''
+mixin M {
+  foo1() {}
+  foo2() {}
+  void foo3() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      M: #M0
+        superclassConstraints
+          Object @ dart:core
+        declaredMethods
+          foo1: #M1
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              returnType: dynamic
+          foo2: #M5
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              returnType: dynamic
+          foo3: #M6
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+        interface: #M7
+          map
+            foo1: #M1
+            foo2: #M5
+            foo3: #M6
+          implemented
+            foo1: #M1
+            foo2: #M5
+            foo3: #M6
+''',
+    );
+  }
+
+  test_manifest_mixin_method_modifier_invokesSuperSelf() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class S {
+  void foo1() {}
+  void foo2() {}
+  void foo3() {}
+  void foo4() {}
+}
+mixin M on S {
+  void foo1() {}
+  void foo2() { super.foo2(); }
+  void foo3() {}
+  void foo4() { super.foo4(); }
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      S: #M0
+        supertype: Object @ dart:core
+        declaredMethods
+          foo1: #M1
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo2: #M2
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo3: #M3
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo4: #M4
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+        interface: #M5
+          map
+            foo1: #M1
+            foo2: #M2
+            foo3: #M3
+            foo4: #M4
+          implemented
+            foo1: #M1
+            foo2: #M2
+            foo3: #M3
+            foo4: #M4
+    declaredMixins
+      M: #M6
+        superclassConstraints
+          S @ package:test/test.dart
+        declaredMethods
+          foo1: #M7
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo2: #M8
+            flags: invokesSuperSelf isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo3: #M9
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo4: #M10
+            flags: invokesSuperSelf isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+        interface: #M11
+          map
+            foo1: #M7
+            foo2: #M8
+            foo3: #M9
+            foo4: #M10
+          implemented
+            foo1: #M7
+            foo2: #M8
+            foo3: #M9
+            foo4: #M10
+          superImplemented
+            [0]
+              foo1: #M1
+              foo2: #M2
+              foo3: #M3
+              foo4: #M4
+          inherited
+            foo1: #M1
+            foo2: #M2
+            foo3: #M3
+            foo4: #M4
+''',
+      updatedCode: r'''
+class S {
+  void foo1() {}
+  void foo2() {}
+  void foo3() {}
+  void foo4() {}
+}
+mixin M on S {
+  void foo1() {}
+  void foo2() { super.foo2(); }
+  void foo3() { super.foo3(); }
+  void foo4() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      S: #M0
+        supertype: Object @ dart:core
+        declaredMethods
+          foo1: #M1
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo2: #M2
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo3: #M3
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo4: #M4
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+        interface: #M5
+          map
+            foo1: #M1
+            foo2: #M2
+            foo3: #M3
+            foo4: #M4
+          implemented
+            foo1: #M1
+            foo2: #M2
+            foo3: #M3
+            foo4: #M4
+    declaredMixins
+      M: #M12
+        superclassConstraints
+          S @ package:test/test.dart
+        declaredMethods
+          foo1: #M13
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo2: #M14
+            flags: invokesSuperSelf isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo3: #M15
+            flags: invokesSuperSelf isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo4: #M16
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+        interface: #M17
+          map
+            foo1: #M13
+            foo2: #M14
+            foo3: #M15
+            foo4: #M16
+          implemented
+            foo1: #M13
+            foo2: #M14
+            foo3: #M15
+            foo4: #M16
+          superImplemented
+            [0]
+              foo1: #M1
+              foo2: #M2
+              foo3: #M3
+              foo4: #M4
+          inherited
+            foo1: #M1
+            foo2: #M2
+            foo3: #M3
+            foo4: #M4
+''',
+    );
+  }
+
+  test_manifest_mixin_method_modifier_isAbstract() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin M {
+  void foo1() {}
+  void foo2();
+  void foo3() {}
+  void foo4();
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      M: #M0
+        superclassConstraints
+          Object @ dart:core
+        declaredMethods
+          foo1: #M1
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo2: #M2
+            flags: isAbstract isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo3: #M3
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo4: #M4
+            flags: isAbstract isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+        interface: #M5
+          map
+            foo1: #M1
+            foo2: #M2
+            foo3: #M3
+            foo4: #M4
+          implemented
+            foo1: #M1
+            foo3: #M3
+''',
+      updatedCode: r'''
+mixin M {
+  void foo1() {}
+  void foo2();
+  void foo3();
+  void foo4() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      M: #M0
+        superclassConstraints
+          Object @ dart:core
+        declaredMethods
+          foo1: #M1
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo2: #M2
+            flags: isAbstract isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo3: #M6
+            flags: isAbstract isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo4: #M7
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+        interface: #M8
+          map
+            foo1: #M1
+            foo2: #M2
+            foo3: #M6
+            foo4: #M7
+          implemented
+            foo1: #M1
+            foo4: #M7
+''',
+    );
+  }
+
+  test_manifest_mixin_method_modifier_isExternal() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin M {
+  void foo1() {}
+  external void foo2();
+  void foo3() {}
+  external void foo4();
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      M: #M0
+        superclassConstraints
+          Object @ dart:core
+        declaredMethods
+          foo1: #M1
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo2: #M2
+            flags: isExternal isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo3: #M3
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo4: #M4
+            flags: isExternal isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+        interface: #M5
+          map
+            foo1: #M1
+            foo2: #M2
+            foo3: #M3
+            foo4: #M4
+          implemented
+            foo1: #M1
+            foo2: #M2
+            foo3: #M3
+            foo4: #M4
+''',
+      updatedCode: r'''
+mixin M {
+  void foo1() {}
+  external void foo2();
+  external void foo3();
+  void foo4() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      M: #M0
+        superclassConstraints
+          Object @ dart:core
+        declaredMethods
+          foo1: #M1
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo2: #M2
+            flags: isExternal isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo3: #M6
+            flags: isExternal isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo4: #M7
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+        interface: #M8
+          map
+            foo1: #M1
+            foo2: #M2
+            foo3: #M6
+            foo4: #M7
+          implemented
+            foo1: #M1
+            foo2: #M2
+            foo3: #M6
+            foo4: #M7
+''',
+    );
+  }
+
+  test_manifest_mixin_method_modifier_isStatic() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin M {
+  void foo1() {}
+  static void foo2() {}
+  void foo3() {}
+  static void foo4() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      M: #M0
+        superclassConstraints
+          Object @ dart:core
+        declaredMethods
+          foo1: #M1
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo2: #M2
+            flags: isSimplyBounded isStatic
+            functionType: FunctionType
+              returnType: void
+          foo3: #M3
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo4: #M4
+            flags: isSimplyBounded isStatic
+            functionType: FunctionType
+              returnType: void
+        interface: #M5
+          map
+            foo1: #M1
+            foo3: #M3
+          implemented
+            foo1: #M1
+            foo3: #M3
+''',
+      updatedCode: r'''
+mixin M {
+  void foo1() {}
+  static void foo2() {}
+  static void foo3() {}
+  void foo4() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      M: #M0
+        superclassConstraints
+          Object @ dart:core
+        declaredMethods
+          foo1: #M1
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+          foo2: #M2
+            flags: isSimplyBounded isStatic
+            functionType: FunctionType
+              returnType: void
+          foo3: #M6
+            flags: isSimplyBounded isStatic
+            functionType: FunctionType
+              returnType: void
+          foo4: #M7
+            flags: isSimplyBounded
+            functionType: FunctionType
+              returnType: void
+        interface: #M8
+          map
+            foo1: #M1
+            foo4: #M7
+          implemented
+            foo1: #M1
+            foo4: #M7
+''',
+    );
+  }
+
   test_manifest_mixin_method_private_instance() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -60732,6 +66989,7 @@ mixin A {
           Object @ dart:core
         declaredMethods
           foo: #M1
+            flags: isSimplyBounded
             functionType: FunctionType
               returnType: int @ dart:core
         interface: #M2
@@ -60754,6 +67012,7 @@ mixin A {
           Object @ dart:core
         declaredMethods
           foo: #M3
+            flags: isSimplyBounded
             functionType: FunctionType
               returnType: double @ dart:core
         interface: #M4
@@ -60896,6 +67155,7 @@ mixin A<T> {
           Object @ dart:core
         declaredMethods
           foo: #M1
+            flags: hasEnclosingTypeParameterReference isSimplyBounded
             functionType: FunctionType
               typeParameters
                 #0 covariant
@@ -60927,9 +67187,11 @@ mixin A<T> {
           Object @ dart:core
         declaredMethods
           bar: #M3
+            flags: isSimplyBounded
             functionType: FunctionType
               returnType: void
           foo: #M1
+            flags: hasEnclosingTypeParameterReference isSimplyBounded
             functionType: FunctionType
               typeParameters
                 #0 covariant
@@ -61614,6 +67876,765 @@ mixin A {
     );
   }
 
+  test_manifest_mixin_setter_modifier_hasEnclosingTypeParameterReference() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin M<T> {
+  set foo1(T value);
+  set foo2(int value);
+  set foo3(T value);
+  set foo4(int value);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      M: #M0
+        typeParameters
+          #0 covariant
+            bound: <null>
+        superclassConstraints
+          Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: typeParameter#0
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: typeParameter#0
+          foo4: #M4
+            type: int @ dart:core
+        declaredSetters
+          foo1=: #M5
+            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isAbstract isSimplyBounded
+            functionType: FunctionType
+              positional
+                required typeParameter#0
+              returnType: void
+          foo2=: #M6
+            flags: hasImplicitReturnType isAbstract isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo3=: #M7
+            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isAbstract isSimplyBounded
+            functionType: FunctionType
+              positional
+                required typeParameter#0
+              returnType: void
+          foo4=: #M8
+            flags: hasImplicitReturnType isAbstract isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+        interface: #M9
+          map
+            foo1=: #M5
+            foo2=: #M6
+            foo3=: #M7
+            foo4=: #M8
+''',
+      updatedCode: r'''
+mixin M<T> {
+  set foo1(T value);
+  set foo2(int value);
+  set foo3(int value);
+  set foo4(T value);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      M: #M0
+        typeParameters
+          #0 covariant
+            bound: <null>
+        superclassConstraints
+          Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: typeParameter#0
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M10
+            type: int @ dart:core
+          foo4: #M11
+            type: typeParameter#0
+        declaredSetters
+          foo1=: #M5
+            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isAbstract isSimplyBounded
+            functionType: FunctionType
+              positional
+                required typeParameter#0
+              returnType: void
+          foo2=: #M6
+            flags: hasImplicitReturnType isAbstract isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo3=: #M12
+            flags: hasImplicitReturnType isAbstract isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo4=: #M13
+            flags: hasEnclosingTypeParameterReference hasImplicitReturnType isAbstract isSimplyBounded
+            functionType: FunctionType
+              positional
+                required typeParameter#0
+              returnType: void
+        interface: #M14
+          map
+            foo1=: #M5
+            foo2=: #M6
+            foo3=: #M12
+            foo4=: #M13
+''',
+    );
+  }
+
+  test_manifest_mixin_setter_modifier_invokesSuperSelf() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class S {
+  set foo1(int value) {}
+  set foo2(int value) {}
+  set foo3(int value) {}
+  set foo4(int value) {}
+}
+mixin M on S {
+  set foo1(int value) {}
+  set foo2(int value) { super.foo2 = value; }
+  set foo3(int value) {}
+  set foo4(int value) { super.foo4 = value; }
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      S: #M0
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+        declaredSetters
+          foo1=: #M5
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo2=: #M6
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo3=: #M7
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo4=: #M8
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+        interface: #M9
+          map
+            foo1=: #M5
+            foo2=: #M6
+            foo3=: #M7
+            foo4=: #M8
+          implemented
+            foo1=: #M5
+            foo2=: #M6
+            foo3=: #M7
+            foo4=: #M8
+    declaredMixins
+      M: #M10
+        superclassConstraints
+          S @ package:test/test.dart
+        declaredFields
+          foo1: #M11
+            type: int @ dart:core
+          foo2: #M12
+            type: int @ dart:core
+          foo3: #M13
+            type: int @ dart:core
+          foo4: #M14
+            type: int @ dart:core
+        declaredSetters
+          foo1=: #M15
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo2=: #M16
+            flags: hasImplicitReturnType invokesSuperSelf isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo3=: #M17
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo4=: #M18
+            flags: hasImplicitReturnType invokesSuperSelf isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+        interface: #M19
+          map
+            foo1=: #M15
+            foo2=: #M16
+            foo3=: #M17
+            foo4=: #M18
+          implemented
+            foo1=: #M15
+            foo2=: #M16
+            foo3=: #M17
+            foo4=: #M18
+          superImplemented
+            [0]
+              foo1=: #M5
+              foo2=: #M6
+              foo3=: #M7
+              foo4=: #M8
+          inherited
+            foo1=: #M5
+            foo2=: #M6
+            foo3=: #M7
+            foo4=: #M8
+''',
+      updatedCode: r'''
+class S {
+  set foo1(int value) {}
+  set foo2(int value) {}
+  set foo3(int value) {}
+  set foo4(int value) {}
+}
+mixin M on S {
+  set foo1(int value) {}
+  set foo2(int value) { super.foo2 = value; }
+  set foo3(int value) { super.foo3 = value; }
+  set foo4(int value) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      S: #M0
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+        declaredSetters
+          foo1=: #M5
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo2=: #M6
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo3=: #M7
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo4=: #M8
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+        interface: #M9
+          map
+            foo1=: #M5
+            foo2=: #M6
+            foo3=: #M7
+            foo4=: #M8
+          implemented
+            foo1=: #M5
+            foo2=: #M6
+            foo3=: #M7
+            foo4=: #M8
+    declaredMixins
+      M: #M20
+        superclassConstraints
+          S @ package:test/test.dart
+        declaredFields
+          foo1: #M21
+            type: int @ dart:core
+          foo2: #M22
+            type: int @ dart:core
+          foo3: #M23
+            type: int @ dart:core
+          foo4: #M24
+            type: int @ dart:core
+        declaredSetters
+          foo1=: #M25
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo2=: #M26
+            flags: hasImplicitReturnType invokesSuperSelf isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo3=: #M27
+            flags: hasImplicitReturnType invokesSuperSelf isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo4=: #M28
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+        interface: #M29
+          map
+            foo1=: #M25
+            foo2=: #M26
+            foo3=: #M27
+            foo4=: #M28
+          implemented
+            foo1=: #M25
+            foo2=: #M26
+            foo3=: #M27
+            foo4=: #M28
+          superImplemented
+            [0]
+              foo1=: #M5
+              foo2=: #M6
+              foo3=: #M7
+              foo4=: #M8
+          inherited
+            foo1=: #M5
+            foo2=: #M6
+            foo3=: #M7
+            foo4=: #M8
+''',
+    );
+  }
+
+  test_manifest_mixin_setter_modifier_isAbstract() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin M {
+  set foo1(int value) {}
+  set foo2(int value);
+  set foo3(int value) {}
+  set foo4(int value);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      M: #M0
+        superclassConstraints
+          Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+        declaredSetters
+          foo1=: #M5
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo2=: #M6
+            flags: hasImplicitReturnType isAbstract isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo3=: #M7
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo4=: #M8
+            flags: hasImplicitReturnType isAbstract isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+        interface: #M9
+          map
+            foo1=: #M5
+            foo2=: #M6
+            foo3=: #M7
+            foo4=: #M8
+          implemented
+            foo1=: #M5
+            foo3=: #M7
+''',
+      updatedCode: r'''
+mixin M {
+  set foo1(int value) {}
+  set foo2(int value);
+  set foo3(int value);
+  set foo4(int value) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      M: #M0
+        superclassConstraints
+          Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+        declaredSetters
+          foo1=: #M5
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo2=: #M6
+            flags: hasImplicitReturnType isAbstract isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo3=: #M10
+            flags: hasImplicitReturnType isAbstract isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo4=: #M11
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+        interface: #M12
+          map
+            foo1=: #M5
+            foo2=: #M6
+            foo3=: #M10
+            foo4=: #M11
+          implemented
+            foo1=: #M5
+            foo4=: #M11
+''',
+    );
+  }
+
+  test_manifest_mixin_setter_modifier_isExternal() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin M {
+  set foo1(int value) {}
+  external set foo2(int value);
+  set foo3(int value) {}
+  external set foo4(int value);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      M: #M0
+        superclassConstraints
+          Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+        declaredSetters
+          foo1=: #M5
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo2=: #M6
+            flags: hasImplicitReturnType isExternal isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo3=: #M7
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo4=: #M8
+            flags: hasImplicitReturnType isExternal isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+        interface: #M9
+          map
+            foo1=: #M5
+            foo2=: #M6
+            foo3=: #M7
+            foo4=: #M8
+          implemented
+            foo1=: #M5
+            foo2=: #M6
+            foo3=: #M7
+            foo4=: #M8
+''',
+      updatedCode: r'''
+mixin M {
+  set foo1(int value) {}
+  external set foo2(int value);
+  external set foo3(int value);
+  set foo4(int value) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      M: #M0
+        superclassConstraints
+          Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+        declaredSetters
+          foo1=: #M5
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo2=: #M6
+            flags: hasImplicitReturnType isExternal isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo3=: #M10
+            flags: hasImplicitReturnType isExternal isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo4=: #M11
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+        interface: #M12
+          map
+            foo1=: #M5
+            foo2=: #M6
+            foo3=: #M10
+            foo4=: #M11
+          implemented
+            foo1=: #M5
+            foo2=: #M6
+            foo3=: #M10
+            foo4=: #M11
+''',
+    );
+  }
+
+  test_manifest_mixin_setter_modifier_isStatic() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin M {
+  set foo1(int value) {}
+  static set foo2(int value) {}
+  set foo3(int value) {}
+  static set foo4(int value) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      M: #M0
+        superclassConstraints
+          Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M3
+            type: int @ dart:core
+          foo4: #M4
+            type: int @ dart:core
+        declaredSetters
+          foo1=: #M5
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo2=: #M6
+            flags: hasImplicitReturnType isSimplyBounded isStatic
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo3=: #M7
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo4=: #M8
+            flags: hasImplicitReturnType isSimplyBounded isStatic
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+        interface: #M9
+          map
+            foo1=: #M5
+            foo3=: #M7
+          implemented
+            foo1=: #M5
+            foo3=: #M7
+''',
+      updatedCode: r'''
+mixin M {
+  set foo1(int value) {}
+  static set foo2(int value) {}
+  static set foo3(int value) {}
+  set foo4(int value) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      M: #M0
+        superclassConstraints
+          Object @ dart:core
+        declaredFields
+          foo1: #M1
+            type: int @ dart:core
+          foo2: #M2
+            type: int @ dart:core
+          foo3: #M10
+            type: int @ dart:core
+          foo4: #M11
+            type: int @ dart:core
+        declaredSetters
+          foo1=: #M5
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo2=: #M6
+            flags: hasImplicitReturnType isSimplyBounded isStatic
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo3=: #M12
+            flags: hasImplicitReturnType isSimplyBounded isStatic
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+          foo4=: #M13
+            flags: hasImplicitReturnType isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+        interface: #M14
+          map
+            foo1=: #M5
+            foo4=: #M13
+          implemented
+            foo1=: #M5
+            foo4=: #M13
+''',
+    );
+  }
+
   test_manifest_mixin_setter_private_instance() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -61888,6 +68909,7 @@ mixin A {
             type: int @ dart:core
         declaredSetters
           foo=: #M2
+            flags: hasImplicitReturnType isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
@@ -61915,6 +68937,7 @@ mixin A {
             type: double @ dart:core
         declaredSetters
           foo=: #M5
+            flags: hasImplicitReturnType isSimplyBounded
             functionType: FunctionType
               positional
                 required double @ dart:core
@@ -63024,6 +70047,118 @@ void b() {}
     );
   }
 
+  test_manifest_topLevelFunction_modifier_hasImplicitReturnType() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+foo1() {}
+void foo2() {}
+foo3() {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      foo1: #M0
+        flags: hasEnclosingTypeParameterReference hasImplicitReturnType isSimplyBounded isStatic
+        functionType: FunctionType
+          returnType: dynamic
+      foo2: #M1
+        flags: hasEnclosingTypeParameterReference isSimplyBounded isStatic
+        functionType: FunctionType
+          returnType: void
+      foo3: #M2
+        flags: hasEnclosingTypeParameterReference hasImplicitReturnType isSimplyBounded isStatic
+        functionType: FunctionType
+          returnType: dynamic
+''',
+      updatedCode: r'''
+foo1() {}
+foo2() {}
+void foo3() {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      foo1: #M0
+        flags: hasEnclosingTypeParameterReference hasImplicitReturnType isSimplyBounded isStatic
+        functionType: FunctionType
+          returnType: dynamic
+      foo2: #M3
+        flags: hasEnclosingTypeParameterReference hasImplicitReturnType isSimplyBounded isStatic
+        functionType: FunctionType
+          returnType: dynamic
+      foo3: #M4
+        flags: hasEnclosingTypeParameterReference isSimplyBounded isStatic
+        functionType: FunctionType
+          returnType: void
+''',
+    );
+  }
+
+  test_manifest_topLevelFunction_modifier_isExternal() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+void foo1() {}
+external void foo2();
+void foo3() {}
+external void foo4();
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      foo1: #M0
+        flags: hasEnclosingTypeParameterReference isSimplyBounded isStatic
+        functionType: FunctionType
+          returnType: void
+      foo2: #M1
+        flags: hasEnclosingTypeParameterReference isExternal isSimplyBounded isStatic
+        functionType: FunctionType
+          returnType: void
+      foo3: #M2
+        flags: hasEnclosingTypeParameterReference isSimplyBounded isStatic
+        functionType: FunctionType
+          returnType: void
+      foo4: #M3
+        flags: hasEnclosingTypeParameterReference isExternal isSimplyBounded isStatic
+        functionType: FunctionType
+          returnType: void
+''',
+      updatedCode: r'''
+void foo1() {}
+external void foo2();
+external void foo3();
+void foo4() {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      foo1: #M0
+        flags: hasEnclosingTypeParameterReference isSimplyBounded isStatic
+        functionType: FunctionType
+          returnType: void
+      foo2: #M1
+        flags: hasEnclosingTypeParameterReference isExternal isSimplyBounded isStatic
+        functionType: FunctionType
+          returnType: void
+      foo3: #M4
+        flags: hasEnclosingTypeParameterReference isExternal isSimplyBounded isStatic
+        functionType: FunctionType
+          returnType: void
+      foo4: #M5
+        flags: hasEnclosingTypeParameterReference isSimplyBounded isStatic
+        functionType: FunctionType
+          returnType: void
+''',
+    );
+  }
+
   test_manifest_topLevelFunction_private() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -63293,6 +70428,136 @@ int get b => 0;
     );
   }
 
+  test_manifest_topLevelGetter_modifier_hasImplicitReturnType() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+get foo1 => 0;
+int get foo2 => 0;
+get foo3 => 0;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      foo1: #M0
+        flags: hasImplicitReturnType isSimplyBounded isStatic
+        returnType: dynamic
+      foo2: #M1
+        flags: isSimplyBounded isStatic
+        returnType: int @ dart:core
+      foo3: #M2
+        flags: hasImplicitReturnType isSimplyBounded isStatic
+        returnType: dynamic
+    declaredVariables
+      foo1: #M3
+        type: dynamic
+      foo2: #M4
+        type: int @ dart:core
+      foo3: #M5
+        type: dynamic
+''',
+      updatedCode: r'''
+get foo1 => 0;
+get foo2 => 0;
+int get foo3 => 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      foo1: #M0
+        flags: hasImplicitReturnType isSimplyBounded isStatic
+        returnType: dynamic
+      foo2: #M6
+        flags: hasImplicitReturnType isSimplyBounded isStatic
+        returnType: dynamic
+      foo3: #M7
+        flags: isSimplyBounded isStatic
+        returnType: int @ dart:core
+    declaredVariables
+      foo1: #M3
+        type: dynamic
+      foo2: #M8
+        type: dynamic
+      foo3: #M9
+        type: int @ dart:core
+''',
+    );
+  }
+
+  test_manifest_topLevelGetter_modifier_isExternal() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+int get foo1 => 1;
+external int get foo2;
+int get foo3 => 3;
+external int get foo4;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      foo1: #M0
+        flags: isSimplyBounded isStatic
+        returnType: int @ dart:core
+      foo2: #M1
+        flags: isExternal isSimplyBounded isStatic
+        returnType: int @ dart:core
+      foo3: #M2
+        flags: isSimplyBounded isStatic
+        returnType: int @ dart:core
+      foo4: #M3
+        flags: isExternal isSimplyBounded isStatic
+        returnType: int @ dart:core
+    declaredVariables
+      foo1: #M4
+        type: int @ dart:core
+      foo2: #M5
+        type: int @ dart:core
+      foo3: #M6
+        type: int @ dart:core
+      foo4: #M7
+        type: int @ dart:core
+''',
+      updatedCode: r'''
+int get foo1 => 1;
+external int get foo2;
+external int get foo3;
+int get foo4 => 4;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      foo1: #M0
+        flags: isSimplyBounded isStatic
+        returnType: int @ dart:core
+      foo2: #M1
+        flags: isExternal isSimplyBounded isStatic
+        returnType: int @ dart:core
+      foo3: #M8
+        flags: isExternal isSimplyBounded isStatic
+        returnType: int @ dart:core
+      foo4: #M9
+        flags: isSimplyBounded isStatic
+        returnType: int @ dart:core
+    declaredVariables
+      foo1: #M4
+        type: int @ dart:core
+      foo2: #M5
+        type: int @ dart:core
+      foo3: #M6
+        type: int @ dart:core
+      foo4: #M7
+        type: int @ dart:core
+''',
+    );
+  }
+
   test_manifest_topLevelGetter_private() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -63478,6 +70743,178 @@ set b(int _) {}
     );
   }
 
+  test_manifest_topLevelSetter_modifier_hasImplicitReturnType() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+set foo1(int value) {}
+void set foo2(int value) {}
+set foo3(int value) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredSetters
+      foo1=: #M0
+        flags: hasImplicitReturnType isSimplyBounded isStatic
+        functionType: FunctionType
+          positional
+            required int @ dart:core
+          returnType: void
+      foo2=: #M1
+        flags: isSimplyBounded isStatic
+        functionType: FunctionType
+          positional
+            required int @ dart:core
+          returnType: void
+      foo3=: #M2
+        flags: hasImplicitReturnType isSimplyBounded isStatic
+        functionType: FunctionType
+          positional
+            required int @ dart:core
+          returnType: void
+    declaredVariables
+      foo1: #M3
+        type: int @ dart:core
+      foo2: #M4
+        type: int @ dart:core
+      foo3: #M5
+        type: int @ dart:core
+''',
+      updatedCode: r'''
+set foo1(int value) {}
+set foo2(int value) {}
+void set foo3(int value) {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredSetters
+      foo1=: #M0
+        flags: hasImplicitReturnType isSimplyBounded isStatic
+        functionType: FunctionType
+          positional
+            required int @ dart:core
+          returnType: void
+      foo2=: #M6
+        flags: hasImplicitReturnType isSimplyBounded isStatic
+        functionType: FunctionType
+          positional
+            required int @ dart:core
+          returnType: void
+      foo3=: #M7
+        flags: isSimplyBounded isStatic
+        functionType: FunctionType
+          positional
+            required int @ dart:core
+          returnType: void
+    declaredVariables
+      foo1: #M3
+        type: int @ dart:core
+      foo2: #M4
+        type: int @ dart:core
+      foo3: #M5
+        type: int @ dart:core
+''',
+    );
+  }
+
+  test_manifest_topLevelSetter_modifier_isExternal() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+set foo1(int value) {}
+external set foo2(int value);
+set foo3(int value) {}
+external set foo4(int value);
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredSetters
+      foo1=: #M0
+        flags: hasImplicitReturnType isSimplyBounded isStatic
+        functionType: FunctionType
+          positional
+            required int @ dart:core
+          returnType: void
+      foo2=: #M1
+        flags: hasImplicitReturnType isExternal isSimplyBounded isStatic
+        functionType: FunctionType
+          positional
+            required int @ dart:core
+          returnType: void
+      foo3=: #M2
+        flags: hasImplicitReturnType isSimplyBounded isStatic
+        functionType: FunctionType
+          positional
+            required int @ dart:core
+          returnType: void
+      foo4=: #M3
+        flags: hasImplicitReturnType isExternal isSimplyBounded isStatic
+        functionType: FunctionType
+          positional
+            required int @ dart:core
+          returnType: void
+    declaredVariables
+      foo1: #M4
+        type: int @ dart:core
+      foo2: #M5
+        type: int @ dart:core
+      foo3: #M6
+        type: int @ dart:core
+      foo4: #M7
+        type: int @ dart:core
+''',
+      updatedCode: r'''
+set foo1(int value) {}
+external set foo2(int value);
+external set foo3(int value);
+set foo4(int value) {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredSetters
+      foo1=: #M0
+        flags: hasImplicitReturnType isSimplyBounded isStatic
+        functionType: FunctionType
+          positional
+            required int @ dart:core
+          returnType: void
+      foo2=: #M1
+        flags: hasImplicitReturnType isExternal isSimplyBounded isStatic
+        functionType: FunctionType
+          positional
+            required int @ dart:core
+          returnType: void
+      foo3=: #M8
+        flags: hasImplicitReturnType isExternal isSimplyBounded isStatic
+        functionType: FunctionType
+          positional
+            required int @ dart:core
+          returnType: void
+      foo4=: #M9
+        flags: hasImplicitReturnType isSimplyBounded isStatic
+        functionType: FunctionType
+          positional
+            required int @ dart:core
+          returnType: void
+    declaredVariables
+      foo1: #M4
+        type: int @ dart:core
+      foo2: #M5
+        type: int @ dart:core
+      foo3: #M6
+        type: int @ dart:core
+      foo4: #M7
+        type: int @ dart:core
+''',
+    );
+  }
+
   test_manifest_topLevelSetter_valueType() async {
     configuration.withElementManifests = true;
     await _runLibraryManifestScenario(
@@ -63490,6 +70927,7 @@ set a(int _) {}
   package:test/test.dart
     declaredSetters
       a=: #M0
+        flags: hasImplicitReturnType isSimplyBounded isStatic
         functionType: FunctionType
           positional
             required int @ dart:core
@@ -63506,6 +70944,7 @@ set a(double _) {}
   package:test/test.dart
     declaredSetters
       a=: #M2
+        flags: hasImplicitReturnType isSimplyBounded isStatic
         functionType: FunctionType
           positional
             required double @ dart:core

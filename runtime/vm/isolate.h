@@ -374,10 +374,11 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   // Returns `true` if this was the last isolate and the caller is responsible
   // for deleting the isolate group.
   bool UnregisterIsolateDecrementCount();
+  void IncrementIsolateGroupMutatorCount();
+  void DecrementIsolateGroupMutatorCount();
+  bool ContainsOnlyOneIsolate();
   void RegisterIsolateGroupMutator(Thread* mutator);
   void UnregisterIsolateGroupMutator(Thread* mutator);
-
-  bool ContainsOnlyOneIsolate();
 
   Dart_Port interrupt_port() { return interrupt_port_; }
 
