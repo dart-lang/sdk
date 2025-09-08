@@ -805,6 +805,13 @@ type ConstantExternalCall extends ConstantPoolEntry {
 type ConstantFfiCall extends ConstantPoolEntry {
   Byte tag = 16;
 }
+
+type ConstantDeferredLibraryPrefix extends ConstantPoolEntry {
+  Byte tag = 17;
+  PackedObject name;
+  PackedObject enclosingLibrary;
+  PackedObject targetLibrary;
+}
 ```
 
 ### Exceptions table

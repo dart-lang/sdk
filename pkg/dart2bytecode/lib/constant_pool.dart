@@ -32,6 +32,7 @@ enum ConstantTag {
   kDynamicCall,
   kExternalCall,
   kFfiCall,
+  kDeferredLibraryPrefix,
 }
 
 String constantTagToString(ConstantTag tag) =>
@@ -90,6 +91,8 @@ abstract class ConstantPoolEntry {
         return new ConstantExternalCall.read(reader);
       case ConstantTag.kFfiCall:
         return new ConstantFfiCall.read(reader);
+      case ConstantTag.kDeferredLibraryPrefix:
+        return new ConstantDeferredLibraryPrefix.read(reader);
     }
     throw 'Unexpected constant tag $tag';
   }
@@ -556,6 +559,45 @@ class ConstantFfiCall extends ConstantPoolEntry {
   bool operator ==(other) => identical(this, other);
 }
 
+class ConstantDeferredLibraryPrefix extends ConstantPoolEntry {
+  final ObjectHandle name;
+  final ObjectHandle enclosingLibrary;
+  final ObjectHandle targetLibrary;
+
+  ConstantDeferredLibraryPrefix(
+      this.name, this.enclosingLibrary, this.targetLibrary);
+
+  @override
+  ConstantTag get tag => ConstantTag.kDeferredLibraryPrefix;
+
+  @override
+  void writeValue(BufferedWriter writer) {
+    writer.writePackedObject(name);
+    writer.writePackedObject(enclosingLibrary);
+    writer.writePackedObject(targetLibrary);
+  }
+
+  ConstantDeferredLibraryPrefix.read(BufferedReader reader)
+      : name = reader.readPackedObject(),
+        enclosingLibrary = reader.readPackedObject(),
+        targetLibrary = reader.readPackedObject();
+
+  @override
+  String toString() =>
+      'DeferredLibraryPrefix $name, $enclosingLibrary -> $targetLibrary';
+
+  @override
+  int get hashCode => _combineHashes(name.hashCode,
+      _combineHashes(enclosingLibrary.hashCode, targetLibrary.hashCode));
+
+  @override
+  bool operator ==(other) =>
+      other is ConstantDeferredLibraryPrefix &&
+      this.name == other.name &&
+      this.enclosingLibrary == other.enclosingLibrary &&
+      this.targetLibrary == other.targetLibrary;
+}
+
 /// Reserved constant pool entry.
 class _ReservedConstantPoolEntry extends ConstantPoolEntry {
   const _ReservedConstantPoolEntry();
@@ -662,6 +704,14 @@ class ConstantPool {
   int addSubtypeTestCache() => _add(new ConstantSubtypeTestCache());
 
   int addEmptyTypeArguments() => _add(const ConstantEmptyTypeArguments());
+
+  int addDeferredLibraryPrefix(
+          String name, Library enclosingLibrary, Library targetLibrary) =>
+      _add(ConstantDeferredLibraryPrefix(
+        objectTable.getConstStringHandle(name),
+        objectTable.getHandle(enclosingLibrary)!,
+        objectTable.getHandle(targetLibrary)!,
+      ));
 
   int addObjectRef(Node? node) {
     // Constant objects should not depend on the type parameters of

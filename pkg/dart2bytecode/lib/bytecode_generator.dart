@@ -909,9 +909,6 @@ class BytecodeGenerator extends RecursiveVisitor {
       libraryIndex.getTopLevelProcedure(
           'dart:_internal', '_boundsCheckForPartialInstantiation');
 
-  late Procedure futureValue =
-      libraryIndex.getProcedure('dart:async', 'Future', 'value');
-
   late Procedure throwLocalNotInitialized = libraryIndex.getProcedure(
       'dart:_internal', 'LateError', '_throwLocalNotInitialized');
 
@@ -930,6 +927,12 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   late Procedure allocateInvocationMirror = libraryIndex.getProcedure(
       'dart:core', '_InvocationMirror', '_allocateInvocationMirror');
+
+  late Procedure loadLibrary =
+      libraryIndex.getTopLevelProcedure('dart:core', '_loadLibrary');
+
+  late Procedure checkLoaded =
+      libraryIndex.getTopLevelProcedure('dart:core', '_checkLoaded');
 
   late Procedure unsafeCast =
       libraryIndex.getTopLevelProcedure('dart:_internal', 'unsafeCast');
@@ -3704,19 +3707,22 @@ class BytecodeGenerator extends RecursiveVisitor {
       rhs is VariableGet ||
       rhs is AsExpression;
 
-  void _genFutureNull() {
-    asm.emitPushNull();
-    _genDirectCall(futureValue, objectTable.getArgDescHandle(1), 1);
-  }
-
   @override
   void visitLoadLibrary(LoadLibrary node) {
-    _genFutureNull();
+    final dependency = node.import;
+    assert(dependency.isDeferred);
+    asm.emitPushConstant(cp.addDeferredLibraryPrefix(dependency.name!,
+        dependency.enclosingLibrary, dependency.targetLibrary));
+    _genDirectCall(loadLibrary, objectTable.getArgDescHandle(1), 1);
   }
 
   @override
   void visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
-    _genFutureNull();
+    final dependency = node.import;
+    assert(dependency.isDeferred);
+    asm.emitPushConstant(cp.addDeferredLibraryPrefix(dependency.name!,
+        dependency.enclosingLibrary, dependency.targetLibrary));
+    _genDirectCall(checkLoaded, objectTable.getArgDescHandle(1), 1);
   }
 
   @override
