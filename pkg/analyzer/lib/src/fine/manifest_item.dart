@@ -689,11 +689,6 @@ class InstanceItemFieldItem extends InstanceItemMemberItem<FieldElementImpl> {
     constInitializer.writeOptional(sink);
   }
 
-  @override
-  void writeKind(BufferedSink sink) {
-    sink.writeEnum(_InstanceItemMemberItemKind.field);
-  }
-
   static Map<LookupName, InstanceItemFieldItem> readMap(
     SummaryDataReader reader,
   ) {
@@ -754,11 +749,6 @@ class InstanceItemGetterItem extends InstanceItemMemberItem<GetterElementImpl> {
     returnType.write(sink);
   }
 
-  @override
-  void writeKind(BufferedSink sink) {
-    sink.writeEnum(_InstanceItemMemberItemKind.getter);
-  }
-
   static Map<LookupName, InstanceItemGetterItem> readMap(
     SummaryDataReader reader,
   ) {
@@ -804,29 +794,6 @@ sealed class InstanceItemMemberItem<E extends ElementImpl>
   void write(BufferedSink sink) {
     super.write(sink);
     sink.writeBool(isStatic);
-  }
-
-  void writeKind(BufferedSink sink);
-
-  void writeWithKind(BufferedSink sink) {
-    writeKind(sink);
-    write(sink);
-  }
-
-  static InstanceItemMemberItem<ElementImpl> read(SummaryDataReader reader) {
-    var kind = reader.readEnum(_InstanceItemMemberItemKind.values);
-    switch (kind) {
-      case _InstanceItemMemberItemKind.field:
-        return InstanceItemFieldItem.read(reader);
-      case _InstanceItemMemberItemKind.getter:
-        return InstanceItemGetterItem.read(reader);
-      case _InstanceItemMemberItemKind.method:
-        return InstanceItemMethodItem.read(reader);
-      case _InstanceItemMemberItemKind.setter:
-        return InstanceItemSetterItem.read(reader);
-      case _InstanceItemMemberItemKind.constructor:
-        return InterfaceItemConstructorItem.read(reader);
-    }
   }
 }
 
@@ -875,11 +842,6 @@ class InstanceItemMethodItem extends InstanceItemMemberItem<MethodElementImpl> {
   void write(BufferedSink sink) {
     super.write(sink);
     functionType.writeNoTag(sink);
-  }
-
-  @override
-  void writeKind(BufferedSink sink) {
-    sink.writeEnum(_InstanceItemMemberItemKind.method);
   }
 
   static Map<LookupName, InstanceItemMethodItem> readMap(
@@ -940,11 +902,6 @@ class InstanceItemSetterItem extends InstanceItemMemberItem<SetterElementImpl> {
   void write(BufferedSink sink) {
     super.write(sink);
     functionType.writeNoTag(sink);
-  }
-
-  @override
-  void writeKind(BufferedSink sink) {
-    sink.writeEnum(_InstanceItemMemberItemKind.setter);
   }
 
   static Map<LookupName, InstanceItemSetterItem> readMap(
@@ -1093,11 +1050,6 @@ class InterfaceItemConstructorItem
     sink.writeBool(isFactory);
     functionType.writeNoTag(sink);
     constantInitializers.writeList(sink);
-  }
-
-  @override
-  void writeKind(BufferedSink sink) {
-    sink.writeEnum(_InstanceItemMemberItemKind.constructor);
   }
 
   static Map<LookupName, InterfaceItemConstructorItem> readMap(
@@ -1707,8 +1659,6 @@ class TypeAliasItem extends TopLevelItem<TypeAliasElementImpl> {
     aliasedType.write(sink);
   }
 }
-
-enum _InstanceItemMemberItemKind { field, constructor, method, getter, setter }
 
 extension LookupNameToIdMapExtension on Map<LookupName, ManifestItemId> {
   void write(BufferedSink sink) {
