@@ -34,6 +34,8 @@ class PluginServerTest extends PluginServerTestBase {
 
   String get filePath => join(packagePath, 'lib', 'test.dart');
 
+  String get file2Path => join(packagePath, 'lib', 'test2.dart');
+
   String get packagePath => convertPath('/package1');
 
   StreamQueue<protocol.AnalysisErrorsParams> get _analysisErrorsParams {
@@ -41,7 +43,7 @@ class PluginServerTest extends PluginServerTestBase {
       channel.notifications
           .where((n) => n.event == protocol.ANALYSIS_NOTIFICATION_ERRORS)
           .map((n) => protocol.AnalysisErrorsParams.fromNotification(n))
-          .where((p) => p.file == filePath),
+          .where((p) => p.file == filePath || p.file == file2Path),
     );
   }
 
@@ -229,7 +231,11 @@ bool b = false;
     expect(details.name, 'No Literals Plugin');
     expect(
       details.lintRules,
-      unorderedEquals(['no_doubles', 'no_doubles_custom_severity']),
+      unorderedEquals([
+        'no_doubles',
+        'no_doubles_custom_severity',
+        'no_references_to_strings',
+      ]),
     );
     expect(details.warningRules, unorderedEquals(['no_bools']));
     expect(details.fixes, hasLength(1));
@@ -312,6 +318,87 @@ bool b = false;
     params = await paramsQueue.next;
     expect(params.errors, hasLength(1));
     _expectAnalysisError(params.errors.single, message: 'No bools message');
+  }
+
+  Future<void> test_updateContent_addOverlay_affectedPart() async {
+    writeAnalysisOptionsWithPlugin({'no_references_to_strings': 'enable'});
+    newFile(filePath, '''
+part 'test2.dart';
+int s = 7;
+''');
+    newFile(file2Path, '''
+part of 'test.dart';
+void f() {
+  print(s);
+}
+''');
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
+
+    var paramsQueue = _analysisErrorsParams;
+    var params = await paramsQueue.next; // test.dart
+    expect(params.errors, isEmpty);
+    params = await paramsQueue.next; // test2.dart
+    expect(params.errors, isEmpty);
+
+    await channel.sendRequest(
+      protocol.AnalysisUpdateContentParams({
+        filePath: protocol.AddContentOverlay('''
+part 'test2.dart';
+String s = "hello";
+'''),
+      }),
+    );
+
+    params = await paramsQueue.next;
+    expect(params.errors, hasLength(1));
+    _expectAnalysisError(
+      params.errors.single,
+      message: 'No references to Strings',
+    );
+  }
+
+  Future<void> test_updateContent_addOverlay_affectedLibrary() async {
+    writeAnalysisOptionsWithPlugin({'no_references_to_strings': 'enable'});
+    newFile(filePath, '''
+int s = 7;
+void f() {
+  print(s);
+}
+''');
+    newFile(file2Path, '''
+import 'test.dart';
+void f() {
+  print(s);
+}
+''');
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
+
+    var paramsQueue = _analysisErrorsParams;
+    var params = await paramsQueue.next; // test.dart
+    expect(params.errors, isEmpty);
+    params = await paramsQueue.next; // test2.dart
+    expect(params.errors, isEmpty);
+
+    await channel.sendRequest(
+      protocol.AnalysisUpdateContentParams({
+        filePath: protocol.AddContentOverlay('''
+String s = "hello";
+'''),
+      }),
+    );
+
+    params = await paramsQueue.next; // test.dart
+    params = await paramsQueue.next; // test2.dart
+    expect(params.errors, hasLength(1));
+    expect(params.file, file2Path);
+    _expectAnalysisError(
+      params.errors.single,
+      message: 'No references to Strings',
+    );
   }
 
   Future<void> test_updateContent_removeOverlay() async {
@@ -509,6 +596,7 @@ class _NoLiteralsPlugin extends Plugin {
     registry.registerWarningRule(NoBoolsRule());
     registry.registerLintRule(NoDoublesRule());
     registry.registerLintRule(NoDoublesCustomSeverityRule());
+    registry.registerLintRule(NoReferencesToStringsRule());
     registry.registerFixForRule(NoBoolsRule.code, _WrapInQuotes.new);
     registry.registerAssist(_InvertBoolean.new);
   }
