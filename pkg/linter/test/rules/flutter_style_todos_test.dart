@@ -17,8 +17,10 @@ class FlutterStyleTodosTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.flutter_style_todos;
 
-  // TODO(srawlins): This test is called, "bad patterns", contains 10 TODO-like
-  // comment lines, but then only expects 9 lints. Why?
+  // TODO(srawlins): line "// TODO(somebody): something,
+  // github.com/flutter/flutter" currently isn't recognized as a
+  // bad pattern, should the URI part be validated or should this
+  // be an acceptable case
   test_badPatterns() async {
     await assertDiagnostics(
       r'''
@@ -78,6 +80,13 @@ class FlutterStyleTodosTest extends LintRuleTest {
 ''');
   }
 
+  test_goodPatterns_noLeadingSpace() async {
+    await assertNoDiagnostics(r'''
+//TODO(somebody): something
+//TODO(somebody): something, https://github.com/flutter/flutter
+''');
+  }
+
   test_justTodo() async {
     await assertDiagnostics(r'// TODO', [lint(0, 7)]);
   }
@@ -88,6 +97,16 @@ class FlutterStyleTodosTest extends LintRuleTest {
 
   test_missingColon() async {
     await assertDiagnostics(r'// TODO(user) bla', [lint(0, 17)]);
+  }
+
+  test_missingMessage() async {
+    await assertDiagnostics(
+      r'''
+//TODO(somebody):
+// TODO(somebody):
+''',
+      [lint(0, 17), lint(18, 18)],
+    );
   }
 
   test_missingParens() async {
