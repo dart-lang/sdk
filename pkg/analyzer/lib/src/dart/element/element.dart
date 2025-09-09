@@ -628,6 +628,16 @@ class ConstructorElementImpl extends ExecutableElementImpl
   // So, ideally we should have some kind of "either" or "variant" here.
   InternalConstructorElement? _superConstructor;
 
+  /// For every constructor we initially set this flag to `true`, and then
+  /// set it to `false` during computing constant values if we detect that it
+  /// is a part of a cycle.
+  @trackedInternal
+  bool isCycleFree = true;
+
+  @override
+  @trackedInternal
+  bool isConstantEvaluated = false;
+
   ConstructorElementImpl({
     required this.name,
     required this.reference,
@@ -683,9 +693,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   bool get isConst => _firstFragment.isConst;
-
-  @override
-  bool get isConstantEvaluated => _firstFragment.isConstantEvaluated;
 
   @override
   bool get isDefaultConstructor => _firstFragment.isDefaultConstructor;
@@ -839,14 +846,6 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
 
   @override
   ConstructorFragmentImpl? nextFragment;
-
-  /// For every constructor we initially set this flag to `true`, and then
-  /// set it to `false` during computing constant values if we detect that it
-  /// is a part of a cycle.
-  bool isCycleFree = true;
-
-  /// Return whether this constant is evaluated.
-  bool isConstantEvaluated = false;
 
   /// Initialize a newly created constructor element to have the given [name]
   /// and [offset].
