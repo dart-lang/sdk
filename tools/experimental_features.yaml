@@ -135,11 +135,6 @@ features:
     experimentalReleaseVersion: '3.3.0'
     help: "Static meta-programming"
 
-  native-assets:
-    help: "Compile and bundle native assets."
-    channels: [ "main", "dev", "beta" ]
-    enabledIn: '3.9.0'
-
   record-use:
     help: "Output arguments used by static functions."
     channels: [ "main", "dev" ]
@@ -183,6 +178,11 @@ features:
       }
     help: "Shorter dot syntax for static accesses."
 
+  native-assets:
+    help: "Compile and bundle native assets."
+    channels: [ "main", "dev", "beta" ]
+    enabledIn: '3.9.0'
+    expired: true
 
   getter-setter-error:
     enabledIn: '3.9.0'
@@ -197,6 +197,7 @@ features:
         print(a.foo);
       }
     help: "Stop reporting errors about mismatching types in a getter/setter pair."
+    expired: true
 
   sound-flow-analysis:
     enabledIn: '3.9.0'
@@ -209,6 +210,7 @@ features:
       }
     # See https://github.com/dart-lang/language/issues/3100
     help: "Assume sound null safety when computing type promotion, reachability, and definite assignment."
+    expired: true
 
   null-aware-elements:
     enabledIn: '3.8.0'
@@ -220,6 +222,7 @@ features:
         }
       }
     help: "Null-aware elements and map entries in collections."
+    expired: true
 
   inference-using-bounds:
     enabledIn: '3.7.0'

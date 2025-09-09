@@ -785,7 +785,7 @@ class IsExpired {
   static const bool generic_metadata = true;
 
   /// Expiration status of the experiment "getter-setter-error"
-  static const bool getter_setter_error = false;
+  static const bool getter_setter_error = true;
 
   /// Expiration status of the experiment "inference-update-1"
   static const bool inference_update_1 = true;
@@ -812,7 +812,7 @@ class IsExpired {
   static const bool named_arguments_anywhere = true;
 
   /// Expiration status of the experiment "native-assets"
-  static const bool native_assets = false;
+  static const bool native_assets = true;
 
   /// Expiration status of the experiment "non-nullable"
   static const bool non_nullable = true;
@@ -821,7 +821,7 @@ class IsExpired {
   static const bool nonfunction_type_aliases = true;
 
   /// Expiration status of the experiment "null-aware-elements"
-  static const bool null_aware_elements = false;
+  static const bool null_aware_elements = true;
 
   /// Expiration status of the experiment "patterns"
   static const bool patterns = true;
@@ -839,7 +839,7 @@ class IsExpired {
   static const bool set_literals = true;
 
   /// Expiration status of the experiment "sound-flow-analysis"
-  static const bool sound_flow_analysis = false;
+  static const bool sound_flow_analysis = true;
 
   /// Expiration status of the experiment "spread-collections"
   static const bool spread_collections = true;

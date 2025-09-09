@@ -5,8 +5,6 @@
 // Exercises flow analysis of patterns that match a non-nullable scrutinee when
 // `sound-flow-analysis` is enabled.
 
-// SharedOptions=--enable-experiment=sound-flow-analysis
-
 // ignore_for_file: unnecessary_null_check_pattern
 
 import '../static_type_helper.dart';

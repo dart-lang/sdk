@@ -5,8 +5,6 @@
 // Tests how flow analysis layers promotions from `try` and `finally` blocks
 // when `sound-flow-analysis` is enabled.
 
-// SharedOptions=--enable-experiment=sound-flow-analysis
-
 import '../static_type_helper.dart';
 
 class C {

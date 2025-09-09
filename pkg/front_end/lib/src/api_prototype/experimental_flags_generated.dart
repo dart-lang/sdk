@@ -173,7 +173,7 @@ class ExperimentalFlag {
   static const ExperimentalFlag getterSetterError = const ExperimentalFlag(
     name: 'getter-setter-error',
     isEnabledByDefault: true,
-    isExpired: false,
+    isExpired: true,
     enabledVersion: const Version(3, 9),
     experimentEnabledVersion: const Version(3, 9),
     experimentReleasedVersion: const Version(3, 9),
@@ -254,7 +254,7 @@ class ExperimentalFlag {
   static const ExperimentalFlag nativeAssets = const ExperimentalFlag(
     name: 'native-assets',
     isEnabledByDefault: true,
-    isExpired: false,
+    isExpired: true,
     enabledVersion: const Version(3, 9),
     experimentEnabledVersion: const Version(3, 9),
     experimentReleasedVersion: const Version(3, 9),
@@ -281,7 +281,7 @@ class ExperimentalFlag {
   static const ExperimentalFlag nullAwareElements = const ExperimentalFlag(
     name: 'null-aware-elements',
     isEnabledByDefault: true,
-    isExpired: false,
+    isExpired: true,
     enabledVersion: const Version(3, 8),
     experimentEnabledVersion: const Version(3, 8),
     experimentReleasedVersion: const Version(3, 8),
@@ -335,7 +335,7 @@ class ExperimentalFlag {
   static const ExperimentalFlag soundFlowAnalysis = const ExperimentalFlag(
     name: 'sound-flow-analysis',
     isEnabledByDefault: true,
-    isExpired: false,
+    isExpired: true,
     enabledVersion: const Version(3, 9),
     experimentEnabledVersion: const Version(3, 9),
     experimentReleasedVersion: const Version(3, 9),

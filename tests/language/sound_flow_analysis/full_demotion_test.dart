@@ -5,8 +5,6 @@
 // Exercises flow analysis of assignments that fully demote the assigned
 // variable when `sound-flow-analysis` is enabled.
 
-// SharedOptions=--enable-experiment=sound-flow-analysis
-
 import '../static_type_helper.dart';
 
 // If an assignment fully demotes a variable, types of interest are not cleared.
