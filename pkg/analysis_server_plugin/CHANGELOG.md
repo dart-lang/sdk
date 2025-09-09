@@ -4,6 +4,7 @@
 - Require Dart SDK `^3.9.0`.
 - Add support for automatic re-analysis of files changed on-disk (as opposed to
   file contents changed in the IDE, which is already supported).
+- Add support for analyzing and reporting diagnostics in part files.
 - Breaking change: a `Plugin` class must now implement `String get name`.
 
 ## 0.2.2

@@ -44,14 +44,16 @@ import 'package:analyzer_plugin/protocol/protocol_constants.dart' as protocol;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as protocol;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
 
-typedef _ErrorAndProtocolError = ({
+/// A pair, matching a [Diagnostic] with it's equivalent
+/// [protocol.AnalysisError].
+typedef _DiagnosticAndAnalysisError = ({
   Diagnostic diagnostic,
-  protocol.AnalysisError protocolError,
+  protocol.AnalysisError analysisError,
 });
 
 typedef _PluginState = ({
   AnalysisContext analysisContext,
-  List<_ErrorAndProtocolError> errors,
+  List<_DiagnosticAndAnalysisError> errors,
 });
 
 /// The server that communicates with the analysis server, passing requests and
@@ -201,7 +203,7 @@ class PluginServer {
     var errorFixesList = <protocol.AnalysisErrorFixes>[];
 
     var workspace = DartChangeWorkspace([analysisContext.currentSession]);
-    for (var (:diagnostic, :protocolError) in lintAtOffset) {
+    for (var (:diagnostic, :analysisError) in lintAtOffset) {
       var context = DartFixContext(
         // TODO(srawlins): Use a real instrumentation service. Other
         // implementations get InstrumentationService from AnalysisServer.
@@ -223,7 +225,7 @@ class PluginServer {
 
       if (fixes.isNotEmpty) {
         fixes.sort(Fix.compareFixes);
-        var errorFixes = protocol.AnalysisErrorFixes(protocolError);
+        var errorFixes = protocol.AnalysisErrorFixes(analysisError);
         errorFixesList.add(errorFixes);
         for (var fix in fixes) {
           errorFixes.fixes.add(protocol.PrioritizedSourceChange(1, fix.change));
@@ -282,7 +284,7 @@ class PluginServer {
           .where((p) => file_paths.isDart(_resourceProvider.pathContext, p))
           .toSet();
 
-      await _analyzeFiles(analysisContext: analysisContext, paths: paths);
+      await _analyzeLibraries(analysisContext: analysisContext, paths: paths);
     });
     _channel.sendNotification(
       protocol.PluginStatusParams(
@@ -291,52 +293,65 @@ class PluginServer {
     );
   }
 
-  Future<void> _analyzeFile({
+  /// Analyzes the library at the given [libraryPath], sending an
+  /// 'analysis.errors' [Notification] for each compilation unit.
+  Future<void> _analyzeLibrary({
     required AnalysisContext analysisContext,
-    required String path,
+    required String libraryPath,
   }) async {
-    var file = _resourceProvider.getFile(path);
+    var file = _resourceProvider.getFile(libraryPath);
     var analysisOptions = analysisContext.getAnalysisOptionsForFile(file);
-    var diagnostics = await _computeDiagnostics(
+    var analysisErrorsByPath = await _computeAnalysisErrors(
       analysisContext,
-      path,
+      libraryPath,
       analysisOptions: analysisOptions as AnalysisOptionsImpl,
     );
-    _channel.sendNotification(
-      protocol.AnalysisErrorsParams(path, diagnostics).toNotification(),
-    );
+    for (var MapEntry(key: path, value: analysisErrors)
+        in analysisErrorsByPath.entries) {
+      _channel.sendNotification(
+        protocol.AnalysisErrorsParams(path, analysisErrors).toNotification(),
+      );
+    }
   }
 
-  /// Analyzes the files at the given [paths].
-  Future<void> _analyzeFiles({
+  /// Analyzes the libraries at the given [paths].
+  Future<void> _analyzeLibraries({
     required AnalysisContext analysisContext,
     required Set<String> paths,
   }) async {
     // First analyze priority files.
     for (var path in _priorityPaths) {
       if (paths.remove(path)) {
-        await _analyzeFile(analysisContext: analysisContext, path: path);
+        await _analyzeLibrary(
+          analysisContext: analysisContext,
+          libraryPath: path,
+        );
       }
     }
 
     // Then analyze the remaining files.
     for (var path in paths) {
-      await _analyzeFile(analysisContext: analysisContext, path: path);
+      await _analyzeLibrary(
+        analysisContext: analysisContext,
+        libraryPath: path,
+      );
     }
   }
 
-  Future<List<protocol.AnalysisError>> _computeDiagnostics(
+  /// Computes and returns [protocol.AnalysisError]s for each of the parts in
+  /// the library at [libraryPath].
+  Future<Map<String, List<protocol.AnalysisError>>> _computeAnalysisErrors(
     AnalysisContext analysisContext,
-    String path, {
+    String libraryPath, {
     required AnalysisOptionsImpl analysisOptions,
   }) async {
     var libraryResult = await analysisContext.currentSession.getResolvedLibrary(
-      path,
+      libraryPath,
     );
     if (libraryResult is! ResolvedLibraryResult) {
       // We only handle analyzing at the library-level. Below, we work through
       // each of the compilation units found in `libraryResult`.
-      return const [];
+      return const {};
     }
 
     var diagnosticListeners = {
@@ -426,8 +441,8 @@ class PluginServer {
 
     // The list of the `AnalysisError`s and their associated
     // `protocol.AnalysisError`s.
-    var diagnosticsAndProtocolErrors =
-        <({Diagnostic diagnostic, protocol.AnalysisError protocolError})>[];
+    var diagnosticsAndAnalysisErrors =
+        <({Diagnostic diagnostic, protocol.AnalysisError analysisError})>[];
 
     diagnosticListeners.forEach((unitResult, listener) {
       var ignoreInfo = IgnoreInfo.forDart(unitResult.unit, unitResult.content);
@@ -442,9 +457,9 @@ class PluginServer {
       });
 
       for (var diagnostic in diagnostics) {
-        diagnosticsAndProtocolErrors.add((
+        diagnosticsAndAnalysisErrors.add((
           diagnostic: diagnostic,
-          protocolError: protocol.AnalysisError(
+          analysisError: protocol.AnalysisError(
             severityMapping[diagnostic.diagnosticCode] ??
                 protocol.AnalysisErrorSeverity.INFO,
             protocol.AnalysisErrorType.STATIC_WARNING,
@@ -459,11 +474,22 @@ class PluginServer {
       }
     });
 
-    _recentState[path] = (
+    _recentState[libraryPath] = (
       analysisContext: analysisContext,
-      errors: [...diagnosticsAndProtocolErrors],
+      errors: [...diagnosticsAndAnalysisErrors],
     );
-    return diagnosticsAndProtocolErrors.map((e) => e.protocolError).toList();
+
+    // A map that has a key for each unit's path. It is important to collect the
+    // analysis errors for each unit, even if it has none. We must send a
+    // notification for each unit, even if there are no analysis errors to
+    // report.
+    var analysisErrorsByPath = <String, List<protocol.AnalysisError>>{
+      for (var unitResult in libraryResult.units) unitResult.path: [],
+    };
+    for (var (diagnostic: _, :analysisError) in diagnosticsAndAnalysisErrors) {
+      analysisErrorsByPath[analysisError.location.file]!.add(analysisError);
+    }
+    return analysisErrorsByPath;
   }
 
   /// Converts the severity of [code] into a [protocol.AnalysisErrorSeverity].
@@ -601,7 +627,7 @@ class PluginServer {
   /// one or more files. The implementation may check if these files should
   /// be analyzed, do such analysis, and send diagnostics.
   ///
-  /// By default invokes [_analyzeFiles] only for files that are analyzed in
+  /// By default invokes [_analyzeLibraries] only for files that are analyzed in
   /// this [analysisContext].
   Future<void> _handleAffectedFiles({
     required AnalysisContext analysisContext,
@@ -611,7 +637,10 @@ class PluginServer {
         .where(analysisContext.contextRoot.isAnalyzed)
         .toSet();
 
-    await _analyzeFiles(analysisContext: analysisContext, paths: analyzedPaths);
+    await _analyzeLibraries(
+      analysisContext: analysisContext,
+      paths: analyzedPaths,
+    );
   }
 
   /// Handles an 'analysis.setContextRoots' request.
