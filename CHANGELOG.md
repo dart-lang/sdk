@@ -1,5 +1,7 @@
 ## 3.9.3
 
+**Released on:** 2025-09-09
+
 ### Tools
 
 #### Dart Development Compiler (dartdevc)
