@@ -352,7 +352,12 @@ String s = "hello";
     );
 
     params = await paramsQueue.next;
+    expect(params.errors, isEmpty);
+    expect(params.file, filePath);
+
+    params = await paramsQueue.next;
     expect(params.errors, hasLength(1));
+    expect(params.file, file2Path);
     _expectAnalysisError(
       params.errors.single,
       message: 'No references to Strings',
