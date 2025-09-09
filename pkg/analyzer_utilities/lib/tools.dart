@@ -245,9 +245,15 @@ class CodeGeneratorSettings {
 
 /// A utility class for invoking 'dart format'.
 class DartFormat {
-  static final String _dartPath =
-      // TODO(paulberry): check that this is the right path on Windows.
-      join(packageRoot, '..', 'tools', 'sdks', 'dart-sdk', 'bin', 'dart');
+  static final String _dartPath = join(
+    packageRoot,
+    '..',
+    'tools',
+    'sdks',
+    'dart-sdk',
+    'bin',
+    Platform.isWindows ? 'dart.exe' : 'dart',
+  );
 
   static void formatFile(File file) {
     var result = Process.runSync(_dartPath, ['format', file.path]);
