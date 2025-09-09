@@ -2811,7 +2811,7 @@ class _InstanceCreationEvaluator {
   late final DiagnosticReporter _externalDiagnosticReporter =
       DiagnosticReporter(
         _externalDiagnosticListener,
-        _constructor.firstFragment.libraryFragment.source,
+        _constructor.baseElement.firstFragmentLocation.libraryFragment!.source,
       );
 
   late final ConstantVisitor _initializerVisitor = ConstantVisitor(
