@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/summary2/data_reader.dart';
-import 'package:analyzer/src/summary2/data_writer.dart';
+import 'package:analyzer/src/binary/binary_reader.dart';
+import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 
 /// The base name of an element.

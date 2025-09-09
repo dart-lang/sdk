@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/binary/binary_reader.dart';
+import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/fine/lookup_name.dart';
 import 'package:analyzer/src/fine/manifest_id.dart';
 import 'package:analyzer/src/fine/manifest_item.dart';
 import 'package:analyzer/src/fine/manifest_type.dart';
-import 'package:analyzer/src/summary2/data_reader.dart';
-import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 
 class EncodeContext {

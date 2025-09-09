@@ -104,18 +104,6 @@ class BufferedSink {
     }
   }
 
-  void writeIfType<T extends Object>(
-    Object? object,
-    void Function(T t) ifTrue,
-  ) {
-    if (object is T) {
-      writeBool(true);
-      ifTrue(object);
-    } else {
-      writeBool(false);
-    }
-  }
-
   void writeInt64(int value) {
     _int64Buffer[0] = value;
     _addByte4(
@@ -141,15 +129,6 @@ class BufferedSink {
     writeUInt30(items.length);
     for (var i = 0; i < items.length; i++) {
       writeItem(items[i]);
-    }
-  }
-
-  /// Write [items] filtering them by [T].
-  void writeList2<T>(List<Object> items, void Function(T x) writeItem) {
-    var typedItems = items.whereType<T>().toList();
-    writeUInt30(typedItems.length);
-    for (var i = 0; i < typedItems.length; i++) {
-      writeItem(typedItems[i]);
     }
   }
 

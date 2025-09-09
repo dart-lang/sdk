@@ -4,9 +4,9 @@
 
 import 'dart:typed_data';
 
+import 'package:analyzer/src/binary/binary_reader.dart';
+import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:analyzer/src/fine/requirements.dart';
-import 'package:analyzer/src/summary2/data_reader.dart';
-import 'package:analyzer/src/summary2/data_writer.dart';
 
 /// The diagnostics for a library, and the requirements for using them.
 ///

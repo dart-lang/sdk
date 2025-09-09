@@ -4,8 +4,8 @@
 
 import 'dart:typed_data';
 
-import 'package:analyzer/src/summary2/data_reader.dart';
-import 'package:analyzer/src/summary2/data_writer.dart';
+import 'package:analyzer/src/binary/binary_reader.dart';
+import 'package:analyzer/src/binary/binary_writer.dart';
 
 /// Unlinked information about a compilation unit.
 class AnalysisDriverUnlinkedUnit {

@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/binary/string_table.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/summary2/ast_binary_flags.dart';
 import 'package:analyzer/src/summary2/ast_binary_tag.dart';
