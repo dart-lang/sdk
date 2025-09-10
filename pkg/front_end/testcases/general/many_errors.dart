@@ -8,6 +8,8 @@ class A {
   const A.named1() sync* {}
 
   const A.named2() : x = new Object();
+
+  const A.named3() : x = const Object();
 }
 
 external foo(String x) {

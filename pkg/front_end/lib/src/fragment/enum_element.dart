@@ -327,7 +327,6 @@ class EnumElementDeclaration
     );
     MemberBuilder? constructorBuilder = result?.getable;
 
-    ArgumentsImpl arguments;
     List<Expression> enumSyntheticArguments = <Expression>[
       new IntLiteral(elementIndex),
       new StringLiteral(constant),
@@ -373,6 +372,7 @@ class EnumElementDeclaration
           );
       bodyBuilder.constantContext = ConstantContext.inferred;
 
+      ArgumentsImpl arguments;
       if (token != null) {
         arguments = bodyBuilder.parseArguments(token);
         // We pass `true` for [allowFurtherDelays] here because the members of
@@ -433,8 +433,7 @@ class EnumElementDeclaration
         _field!.initializer = initializer..parent = _field;
       }
     } else {
-      arguments = new ArgumentsImpl(enumSyntheticArguments);
-      setParents(enumSyntheticArguments, arguments);
+      Arguments arguments = new Arguments(enumSyntheticArguments);
       if (constructorBuilder == null ||
           constructorBuilder is! SourceConstructorBuilder ||
           !constructorBuilder.isConst) {

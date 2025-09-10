@@ -68,7 +68,8 @@ const char* kKernelInvalidFilesize =
     "File size is too small to be a valid kernel file";
 const char* kKernelInvalidMagicIdentifier = "Invalid magic identifier";
 const char* kKernelInvalidBinaryFormatVersion =
-    "Invalid kernel binary format version";
+    "Invalid kernel binary format version (expected %" Pu32 ", found %" Pu32
+    ")";
 const char* kKernelInvalidSizeIndicated =
     "Invalid kernel binary: Indicated size is invalid";
 const char* kKernelInvalidSdkHash = "Invalid SDK hash";
@@ -119,7 +120,9 @@ std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
   const uint32_t format_version = reader->ReadUInt32();
   if (format_version != kSupportedKernelFormatVersion) {
     if (error != nullptr) {
-      *error = kKernelInvalidBinaryFormatVersion;
+      *error = OS::SCreate(Thread::Current()->zone(),
+                           kKernelInvalidBinaryFormatVersion,
+                           kSupportedKernelFormatVersion, format_version);
     }
     return nullptr;
   }

@@ -4450,14 +4450,119 @@ class DotShorthandPropertyGet extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('.');
+    printer.writeName(name);
+  }
+
+  @override
   String toString() {
     return "DotShorthandPropertyGet(${toStringInternal()})";
+  }
+}
+
+class InternalConstructorInvocation extends InternalExpression {
+  final Constructor target;
+  final ArgumentsImpl arguments;
+  final bool isConst;
+
+  InternalConstructorInvocation(
+    this.target,
+    this.arguments, {
+    required this.isConst,
+  }) {
+    arguments.parent = this;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
+    return visitor.visitInternalConstructorInvocation(this, typeContext);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.write('.');
+    if (isConst) {
+      printer.write('const ');
+    } else {
+      printer.write('new ');
+    }
+    printer.writeClassName(target.enclosingClass.reference);
+    printer.writeTypeArguments(arguments.types);
+    if (target.name.text.isNotEmpty) {
+      printer.write('.');
+      printer.write(target.name.text);
+    }
+    arguments.toTextInternal(printer, includeTypeArguments: false);
+  }
+
+  @override
+  String toString() {
+    return "InternalConstructorInvocation(${toStringInternal()})";
+  }
+}
+
+class InternalStaticInvocation extends InternalExpression {
+  final Name name;
+  final Procedure target;
+  final ArgumentsImpl arguments;
+
+  InternalStaticInvocation(this.name, this.target, this.arguments) {
+    arguments.parent = this;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
+    return visitor.visitInternalStaticInvocation(this, typeContext);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
     printer.writeName(name);
+    arguments.toTextInternal(printer);
+  }
+
+  @override
+  String toString() {
+    return "InternalStaticInvocation(${toStringInternal()})";
+  }
+}
+
+class InternalSuperMethodInvocation extends InternalExpression {
+  final Name name;
+  final Procedure target;
+  final ArgumentsImpl arguments;
+
+  InternalSuperMethodInvocation(this.name, this.arguments, this.target) {
+    arguments.parent = this;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
+    return visitor.visitInternalSuperMethodInvocation(this, typeContext);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('super.');
+    printer.writeName(name);
+    arguments.toTextInternal(printer);
+  }
+
+  @override
+  String toString() {
+    return "InternalSuperMethodInvocation(${toStringInternal()})";
   }
 }

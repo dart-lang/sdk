@@ -443,10 +443,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult _unhandledExpression(
-    Expression node,
-    DartType typeContext,
-  ) {
+  Never _unhandledExpression(Expression node, DartType typeContext) {
     UriOffset uriOffset = _computeUriOffset(node);
     problems.unhandled(
       "$node (${node.runtimeType})",
@@ -795,9 +792,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   // Coverage-ignore(suite): Not run.
-  StatementInferenceResult _unhandledStatement(Statement node) {
+  Never _unhandledStatement(Statement node) {
     UriOffset uriOffset = _computeUriOffset(node);
-    return problems.unhandled(
+    problems.unhandled(
       "${node.runtimeType}",
       "InferenceVisitor",
       uriOffset.fileOffset,
@@ -1397,12 +1394,20 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitConstructorInvocation(
     ConstructorInvocation node,
     DartType typeContext,
   ) {
+    _unhandledExpression(node, typeContext);
+  }
+
+  ExpressionInferenceResult visitInternalConstructorInvocation(
+    InternalConstructorInvocation node,
+    DartType typeContext,
+  ) {
     ensureMemberType(node.target);
-    ArgumentsImpl arguments = node.arguments as ArgumentsImpl;
+    ArgumentsImpl arguments = node.arguments;
     bool hadExplicitTypeArguments = arguments.hasExplicitTypeArguments;
     FunctionType functionType = node.target.function.computeThisFunctionType(
       Nullability.nonNullable,
@@ -1427,9 +1432,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         inferred: true,
       );
     }
+    Expression replacement = createConstructorInvocation(
+      node.target,
+      arguments,
+      fileOffset: node.fileOffset,
+      isConst: node.isConst,
+    );
     return new ExpressionInferenceResult(
       result.inferredType,
-      result.applyResult(node),
+      result.applyResult(
+        replacement
+      ),
     );
   }
 
@@ -7162,7 +7175,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       patternGuard.guard = guardError..parent = patternGuard;
     } else {
       if (!identical(patternGuard.guard, rewrite)) {
-        // Coverage-ignore-block(suite): Not run.
         patternGuard.guard = (rewrite as Expression?)?..parent = patternGuard;
       }
       if (analysisResult.guardType is DynamicType) {
@@ -12452,14 +12464,22 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitStaticInvocation(
     StaticInvocation node,
+    DartType typeContext,
+  ) {
+    _unhandledExpression(node, typeContext);
+  }
+
+  ExpressionInferenceResult visitInternalStaticInvocation(
+    InternalStaticInvocation node,
     DartType typeContext,
   ) {
     FunctionType calleeType = node.target.function.computeFunctionType(
       Nullability.nonNullable,
     );
-    ArgumentsImpl arguments = node.arguments as ArgumentsImpl;
+    ArgumentsImpl arguments = node.arguments;
     InvocationInferenceResult result = inferInvocation(
       this,
       typeContext,
@@ -12481,9 +12501,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       typeParameters: node.target.typeParameters,
       typeArguments: arguments.types,
     );
+    Expression replacement = createStaticInvocation(
+      node.target,
+      arguments,
+      fileOffset: node.fileOffset,
+    );
+    flowAnalysis.forwardExpression(replacement, node);
     return new ExpressionInferenceResult(
       result.inferredType,
-      result.applyResult(node),
+      result.applyResult(replacement),
     );
   }
 
@@ -12561,40 +12587,35 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     AbstractSuperMethodInvocation node,
     DartType typeContext,
   ) {
-    instrumentation?.record(
-      uriForInstrumentation,
-      node.fileOffset,
-      'target',
-      new InstrumentationValueForMember(node.interfaceTarget),
-    );
-    return inferSuperMethodInvocation(
-      this,
-      node,
-      node.name,
-      node.arguments as ArgumentsImpl,
-      typeContext,
-      node.interfaceTarget,
-    );
+    _unhandledExpression(node, typeContext);
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitSuperMethodInvocation(
     SuperMethodInvocation node,
+    DartType typeContext,
+  ) {
+    _unhandledExpression(node, typeContext);
+  }
+
+  ExpressionInferenceResult visitInternalSuperMethodInvocation(
+    InternalSuperMethodInvocation node,
     DartType typeContext,
   ) {
     instrumentation?.record(
       uriForInstrumentation,
       node.fileOffset,
       'target',
-      new InstrumentationValueForMember(node.interfaceTarget),
+      new InstrumentationValueForMember(node.target),
     );
     return inferSuperMethodInvocation(
       this,
-      node,
-      node.name,
-      node.arguments as ArgumentsImpl,
-      typeContext,
-      node.interfaceTarget,
+      name: node.name,
+      arguments: node.arguments,
+      typeContext: typeContext,
+      procedure: node.target,
+      fileOffset: node.fileOffset,
     );
   }
 
@@ -16150,7 +16171,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     rewrite = popRewrite();
     if (!identical(rewrite, entryElement.key)) {
-      // Coverage-ignore-block(suite): Not run.
       entryElement.key = (rewrite as Expression)..parent = entryElement;
     }
 

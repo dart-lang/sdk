@@ -36,6 +36,7 @@
 #endif
 
 #include "platform/assert.h"
+#include "platform/thread_sanitizer.h"
 #include "platform/utils.h"
 #include "vm/heap/pages.h"
 #include "vm/isolate.h"
@@ -113,8 +114,10 @@ static void* GenericMapAligned(void* hint,
                                intptr_t alignment,
                                intptr_t allocated_size,
                                int map_flags) {
-#if defined(DART_HOST_OS_MACOS)
+#if defined(DART_HOST_OS_MACOS) && !defined(USING_THREAD_SANITIZER)
+  // Allocate aligned memory in one step when possible.
   // vm_map doesn't support MAP_JIT.
+  // tsan is missing an interceptor for mach_vm_map.
   if ((map_flags & MAP_JIT) == 0) {
     vm_address_t address = 0;
     vm_prot_t cur_prot = 0;
