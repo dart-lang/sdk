@@ -2,4 +2,7 @@
 version: 1
 sdk: dart
 # Note that paths are relative to the root of the built SDK.
-packages: []
+packages: [
+
+  test: ^1.26.3
+]

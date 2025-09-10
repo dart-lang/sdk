@@ -449,4 +449,28 @@ abstract final class int extends num {
   /// print(int.tryParse('z1', radix: 36)); // 1261 == 35 * 36 + 1
   /// ```
   external static int? tryParse(String source, {int? radix});
+
+String decimaltobinary(int n){
+  if(n==0){
+    return "0";
+  }
+  
+  String binary = "";
+  int number = n;
+  
+  while(number>0){
+    
+   int remainder = number%2;
+    binary = remainder.toString() + binary;
+    
+    number = number~/2;
+    
+  }
+  
+  return binary;
+}
+
+
+
+
 }
