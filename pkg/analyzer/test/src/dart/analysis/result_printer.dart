@@ -1110,6 +1110,20 @@ class LibraryManifestPrinter {
     };
   }
 
+  Map<String, bool> _variableItemFlags(VariableItem item) {
+    return {
+      'hasInitializer': item.hasInitializer,
+      'hasImplicitType': item.hasImplicitType,
+      'isConst': item.isConst,
+      'isFinal': item.isFinal,
+      'isLate': item.isLate,
+      'isStatic': item.isStatic,
+      'isSynthetic': item.isSynthetic,
+      'shouldUseTypeForInitializerInference':
+          item.shouldUseTypeForInitializerInference,
+    };
+  }
+
   void _writeClassItem(ClassItem item) {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
@@ -1232,6 +1246,16 @@ class LibraryManifestPrinter {
             sink.writelnWithIndent('$name: $idStr');
             if (configuration.withElementManifests) {
               sink.withIndent(() {
+                sink.writeFlags({
+                  ..._variableItemFlags(item),
+                  'hasEnclosingTypeParameterReference':
+                      item.hasEnclosingTypeParameterReference,
+                  'isAbstract': item.isAbstract,
+                  'isCovariant': item.isCovariant,
+                  'isEnumConstant': item.isEnumConstant,
+                  'isExternal': item.isExternal,
+                  'isPromotable': item.isPromotable,
+                });
                 _writeMetadata(item);
                 _writeNamedType('type', item.type);
                 _writeNode('constInitializer', item.constInitializer);
@@ -1627,6 +1651,10 @@ class LibraryManifestPrinter {
   void _writeTopLevelVariableItem(TopLevelVariableItem item) {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
+        sink.writeFlags({
+          ..._variableItemFlags(item),
+          'isExternal': item.isExternal,
+        });
         _writeMetadata(item);
         _writeNamedType('type', item.type);
         _writeNode('constInitializer', item.constInitializer);

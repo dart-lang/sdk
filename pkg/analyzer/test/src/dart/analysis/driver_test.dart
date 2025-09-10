@@ -19224,6 +19224,7 @@ export 'a.dart';
         extendedType: int @ dart:core
         declaredFields
           foo: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo: #M2
@@ -19268,8 +19269,10 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           bar: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           bar: #M4
@@ -19320,8 +19323,10 @@ export 'a.dart';
         extendedType: int @ dart:core
         declaredFields
           bar: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           bar: #M3
@@ -19369,8 +19374,10 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           bar: #M5
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: double @ dart:core
           foo: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           bar: #M6
@@ -19421,8 +19428,10 @@ export 'a.dart';
         extendedType: int @ dart:core
         declaredFields
           bar: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           bar: #M3
@@ -19469,6 +19478,7 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           foo: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo: #M4
@@ -19981,6 +19991,7 @@ export 'a.dart';
         extendedType: int @ dart:core
         declaredFields
           foo: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo=: #M2
@@ -20028,8 +20039,10 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           bar: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           bar=: #M4
@@ -20086,8 +20099,10 @@ export 'a.dart';
         extendedType: int @ dart:core
         declaredFields
           bar: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           bar=: #M3
@@ -20141,8 +20156,10 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           bar: #M5
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: double @ dart:core
           foo: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           bar=: #M6
@@ -20199,8 +20216,10 @@ export 'a.dart';
         extendedType: int @ dart:core
         declaredFields
           bar: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           bar=: #M3
@@ -20253,6 +20272,7 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           foo: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo=: #M4
@@ -45476,6 +45496,520 @@ class A {
     );
   }
 
+  test_manifest_class_field_modifier_hasEnclosingTypeParameterReference() async {
+    configuration.withElementManifests = true;
+
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A<T> {
+  final T? foo1;
+  final int? foo2;
+  final T? foo3;
+  final int? foo4;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        typeParameters
+          #0 covariant
+            bound: <null>
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            flags: hasEnclosingTypeParameterReference isFinal shouldUseTypeForInitializerInference
+            type: typeParameter#0?
+          foo2: #M2
+            flags: isFinal shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo3: #M3
+            flags: hasEnclosingTypeParameterReference isFinal shouldUseTypeForInitializerInference
+            type: typeParameter#0?
+          foo4: #M4
+            flags: isFinal shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: hasEnclosingTypeParameterReference isSimplyBounded isSynthetic
+            returnType: typeParameter#0?
+          foo2: #M6
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          foo3: #M7
+            flags: hasEnclosingTypeParameterReference isSimplyBounded isSynthetic
+            returnType: typeParameter#0?
+          foo4: #M8
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+        interface: #M9
+          map
+            foo1: #M5
+            foo2: #M6
+            foo3: #M7
+            foo4: #M8
+          implemented
+            foo1: #M5
+            foo2: #M6
+            foo3: #M7
+            foo4: #M8
+''',
+      updatedCode: r'''
+class A<T> {
+  final T? foo1;
+  final int? foo2;
+  final int? foo3;
+  final T? foo4;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        typeParameters
+          #0 covariant
+            bound: <null>
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            flags: hasEnclosingTypeParameterReference isFinal shouldUseTypeForInitializerInference
+            type: typeParameter#0?
+          foo2: #M2
+            flags: isFinal shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo3: #M10
+            flags: isFinal shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo4: #M11
+            flags: hasEnclosingTypeParameterReference isFinal shouldUseTypeForInitializerInference
+            type: typeParameter#0?
+        declaredGetters
+          foo1: #M5
+            flags: hasEnclosingTypeParameterReference isSimplyBounded isSynthetic
+            returnType: typeParameter#0?
+          foo2: #M6
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          foo3: #M12
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          foo4: #M13
+            flags: hasEnclosingTypeParameterReference isSimplyBounded isSynthetic
+            returnType: typeParameter#0?
+        interface: #M14
+          map
+            foo1: #M5
+            foo2: #M6
+            foo3: #M12
+            foo4: #M13
+          implemented
+            foo1: #M5
+            foo2: #M6
+            foo3: #M12
+            foo4: #M13
+''',
+    );
+  }
+
+  test_manifest_class_field_modifier_hasImplicitType() async {
+    configuration.withElementManifests = true;
+
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  final foo1 = 0;
+  final int foo2 = 0;
+  final foo3 = 0;
+  final int foo4 = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            flags: hasImplicitType hasInitializer isFinal
+            type: int @ dart:core
+          foo2: #M2
+            flags: hasInitializer isFinal shouldUseTypeForInitializerInference
+            type: int @ dart:core
+          foo3: #M3
+            flags: hasImplicitType hasInitializer isFinal
+            type: int @ dart:core
+          foo4: #M4
+            flags: hasInitializer isFinal shouldUseTypeForInitializerInference
+            type: int @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+          foo2: #M6
+            flags: isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+          foo3: #M7
+            flags: isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+          foo4: #M8
+            flags: isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+        interface: #M9
+          map
+            foo1: #M5
+            foo2: #M6
+            foo3: #M7
+            foo4: #M8
+          implemented
+            foo1: #M5
+            foo2: #M6
+            foo3: #M7
+            foo4: #M8
+''',
+      updatedCode: r'''
+class A {
+  final foo1 = 0;
+  final int foo2 = 0;
+  final int foo3 = 0;
+  final foo4 = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            flags: hasImplicitType hasInitializer isFinal
+            type: int @ dart:core
+          foo2: #M2
+            flags: hasInitializer isFinal shouldUseTypeForInitializerInference
+            type: int @ dart:core
+          foo3: #M10
+            flags: hasInitializer isFinal shouldUseTypeForInitializerInference
+            type: int @ dart:core
+          foo4: #M11
+            flags: hasImplicitType hasInitializer isFinal
+            type: int @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+          foo2: #M6
+            flags: isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+          foo3: #M7
+            flags: isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+          foo4: #M8
+            flags: isSimplyBounded isSynthetic
+            returnType: int @ dart:core
+        interface: #M9
+          map
+            foo1: #M5
+            foo2: #M6
+            foo3: #M7
+            foo4: #M8
+          implemented
+            foo1: #M5
+            foo2: #M6
+            foo3: #M7
+            foo4: #M8
+''',
+    );
+  }
+
+  test_manifest_class_field_modifier_hasInitializer() async {
+    configuration.withElementManifests = true;
+
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  final int? foo1 = 0;
+  final int? foo2;
+  final int? foo3 = 0;
+  final int? foo4;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            flags: hasInitializer isFinal shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo2: #M2
+            flags: isFinal shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo3: #M3
+            flags: hasInitializer isFinal shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo4: #M4
+            flags: isFinal shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          foo2: #M6
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          foo3: #M7
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          foo4: #M8
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+        interface: #M9
+          map
+            foo1: #M5
+            foo2: #M6
+            foo3: #M7
+            foo4: #M8
+          implemented
+            foo1: #M5
+            foo2: #M6
+            foo3: #M7
+            foo4: #M8
+''',
+      updatedCode: r'''
+class A {
+  final int? foo1 = 0;
+  final int? foo2;
+  final int? foo3;
+  final int? foo4 = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            flags: hasInitializer isFinal shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo2: #M2
+            flags: isFinal shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo3: #M10
+            flags: isFinal shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo4: #M11
+            flags: hasInitializer isFinal shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          foo2: #M6
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          foo3: #M7
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          foo4: #M8
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+        interface: #M9
+          map
+            foo1: #M5
+            foo2: #M6
+            foo3: #M7
+            foo4: #M8
+          implemented
+            foo1: #M5
+            foo2: #M6
+            foo3: #M7
+            foo4: #M8
+''',
+    );
+  }
+
+  test_manifest_class_field_modifier_isAbstract() async {
+    configuration.withElementManifests = true;
+
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  abstract int? foo1;
+  int? foo2;
+  abstract int? foo3;
+  int? foo4;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        flags: hasNonFinalField
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            flags: isAbstract shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo2: #M2
+            flags: shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo3: #M3
+            flags: isAbstract shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo4: #M4
+            flags: shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: isAbstract isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          foo2: #M6
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          foo3: #M7
+            flags: isAbstract isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          foo4: #M8
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+        declaredSetters
+          foo1=: #M9
+            flags: isAbstract isSimplyBounded isSynthetic
+            functionType: FunctionType
+              positional
+                required int? @ dart:core
+              returnType: void
+          foo2=: #M10
+            flags: isSimplyBounded isSynthetic
+            functionType: FunctionType
+              positional
+                required int? @ dart:core
+              returnType: void
+          foo3=: #M11
+            flags: isAbstract isSimplyBounded isSynthetic
+            functionType: FunctionType
+              positional
+                required int? @ dart:core
+              returnType: void
+          foo4=: #M12
+            flags: isSimplyBounded isSynthetic
+            functionType: FunctionType
+              positional
+                required int? @ dart:core
+              returnType: void
+        interface: #M13
+          map
+            foo1: #M5
+            foo1=: #M9
+            foo2: #M6
+            foo2=: #M10
+            foo3: #M7
+            foo3=: #M11
+            foo4: #M8
+            foo4=: #M12
+          implemented
+            foo2: #M6
+            foo2=: #M10
+            foo4: #M8
+            foo4=: #M12
+''',
+      updatedCode: r'''
+class A {
+  abstract int? foo1;
+  int? foo2;
+  int? foo3;
+  abstract int? foo4;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        flags: hasNonFinalField
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            flags: isAbstract shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo2: #M2
+            flags: shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo3: #M14
+            flags: shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo4: #M15
+            flags: isAbstract shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: isAbstract isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          foo2: #M6
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          foo3: #M16
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          foo4: #M17
+            flags: isAbstract isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+        declaredSetters
+          foo1=: #M9
+            flags: isAbstract isSimplyBounded isSynthetic
+            functionType: FunctionType
+              positional
+                required int? @ dart:core
+              returnType: void
+          foo2=: #M10
+            flags: isSimplyBounded isSynthetic
+            functionType: FunctionType
+              positional
+                required int? @ dart:core
+              returnType: void
+          foo3=: #M18
+            flags: isSimplyBounded isSynthetic
+            functionType: FunctionType
+              positional
+                required int? @ dart:core
+              returnType: void
+          foo4=: #M19
+            flags: isAbstract isSimplyBounded isSynthetic
+            functionType: FunctionType
+              positional
+                required int? @ dart:core
+              returnType: void
+        interface: #M20
+          map
+            foo1: #M5
+            foo1=: #M9
+            foo2: #M6
+            foo2=: #M10
+            foo3: #M16
+            foo3=: #M18
+            foo4: #M17
+            foo4=: #M19
+          implemented
+            foo2: #M6
+            foo2=: #M10
+            foo3: #M16
+            foo3=: #M18
+''',
+    );
+  }
+
   test_manifest_class_field_modifier_isConst() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -45522,6 +46056,298 @@ class C {
           b: #M5
           c: #M6
         interface: #M7
+''',
+    );
+  }
+
+  test_manifest_class_field_modifier_isCovariant() async {
+    configuration.withElementManifests = true;
+
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  covariant int? foo1;
+  int? foo2;
+  covariant int? foo3;
+  int? foo4;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        flags: hasNonFinalField
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            flags: isCovariant shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo2: #M2
+            flags: shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo3: #M3
+            flags: isCovariant shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo4: #M4
+            flags: shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          foo2: #M6
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          foo3: #M7
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          foo4: #M8
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+        declaredSetters
+          foo1=: #M9
+            flags: isSimplyBounded isSynthetic
+            functionType: FunctionType
+              positional
+                required int? @ dart:core
+              returnType: void
+          foo2=: #M10
+            flags: isSimplyBounded isSynthetic
+            functionType: FunctionType
+              positional
+                required int? @ dart:core
+              returnType: void
+          foo3=: #M11
+            flags: isSimplyBounded isSynthetic
+            functionType: FunctionType
+              positional
+                required int? @ dart:core
+              returnType: void
+          foo4=: #M12
+            flags: isSimplyBounded isSynthetic
+            functionType: FunctionType
+              positional
+                required int? @ dart:core
+              returnType: void
+        interface: #M13
+          map
+            foo1: #M5
+            foo1=: #M9
+            foo2: #M6
+            foo2=: #M10
+            foo3: #M7
+            foo3=: #M11
+            foo4: #M8
+            foo4=: #M12
+          implemented
+            foo1: #M5
+            foo1=: #M9
+            foo2: #M6
+            foo2=: #M10
+            foo3: #M7
+            foo3=: #M11
+            foo4: #M8
+            foo4=: #M12
+''',
+      updatedCode: r'''
+class A {
+  covariant int? foo1;
+  int? foo2;
+  int? foo3;
+  covariant int? foo4;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        flags: hasNonFinalField
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            flags: isCovariant shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo2: #M2
+            flags: shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo3: #M14
+            flags: shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo4: #M15
+            flags: isCovariant shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          foo2: #M6
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          foo3: #M7
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          foo4: #M8
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+        declaredSetters
+          foo1=: #M9
+            flags: isSimplyBounded isSynthetic
+            functionType: FunctionType
+              positional
+                required int? @ dart:core
+              returnType: void
+          foo2=: #M10
+            flags: isSimplyBounded isSynthetic
+            functionType: FunctionType
+              positional
+                required int? @ dart:core
+              returnType: void
+          foo3=: #M16
+            flags: isSimplyBounded isSynthetic
+            functionType: FunctionType
+              positional
+                required int? @ dart:core
+              returnType: void
+          foo4=: #M17
+            flags: isSimplyBounded isSynthetic
+            functionType: FunctionType
+              positional
+                required int? @ dart:core
+              returnType: void
+        interface: #M18
+          map
+            foo1: #M5
+            foo1=: #M9
+            foo2: #M6
+            foo2=: #M10
+            foo3: #M7
+            foo3=: #M16
+            foo4: #M8
+            foo4=: #M17
+          implemented
+            foo1: #M5
+            foo1=: #M9
+            foo2: #M6
+            foo2=: #M10
+            foo3: #M7
+            foo3=: #M16
+            foo4: #M8
+            foo4=: #M17
+''',
+    );
+  }
+
+  test_manifest_class_field_modifier_isExternal() async {
+    configuration.withElementManifests = true;
+
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  external final int? foo1;
+  final int? foo2;
+  external final int? foo3;
+  final int? foo4;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            flags: isExternal isFinal shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo2: #M2
+            flags: isFinal shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo3: #M3
+            flags: isExternal isFinal shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo4: #M4
+            flags: isFinal shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          foo2: #M6
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          foo3: #M7
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          foo4: #M8
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+        interface: #M9
+          map
+            foo1: #M5
+            foo2: #M6
+            foo3: #M7
+            foo4: #M8
+          implemented
+            foo1: #M5
+            foo2: #M6
+            foo3: #M7
+            foo4: #M8
+''',
+      updatedCode: r'''
+class A {
+  external final int? foo1;
+  final int? foo2;
+  final int? foo3;
+  external final int? foo4;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            flags: isExternal isFinal shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo2: #M2
+            flags: isFinal shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo3: #M10
+            flags: isFinal shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo4: #M11
+            flags: isExternal isFinal shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          foo2: #M6
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          foo3: #M7
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          foo4: #M8
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+        interface: #M9
+          map
+            foo1: #M5
+            foo2: #M6
+            foo3: #M7
+            foo4: #M8
+          implemented
+            foo1: #M5
+            foo2: #M6
+            foo3: #M7
+            foo4: #M8
 ''',
     );
   }
@@ -45666,6 +46492,358 @@ class C {
     );
   }
 
+  test_manifest_class_field_modifier_isPromotable() async {
+    configuration.withElementManifests = true;
+
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  final int? _foo1;
+  final int? _foo2;
+  final int? _foo3;
+  final int? _foo4;
+}
+
+class B {
+  int? get _foo2;
+  int? get _foo4;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredFields
+          _foo1: #M1
+            flags: isFinal isPromotable shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          _foo2: #M2
+            flags: isFinal shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          _foo3: #M3
+            flags: isFinal isPromotable shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          _foo4: #M4
+            flags: isFinal shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+        declaredGetters
+          _foo1: #M5
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          _foo2: #M6
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          _foo3: #M7
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          _foo4: #M8
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+        interface: #M9
+      B: #M10
+        supertype: Object @ dart:core
+        declaredFields
+          _foo2: #M11
+            flags: isSynthetic shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          _foo4: #M12
+            flags: isSynthetic shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+        declaredGetters
+          _foo2: #M13
+            flags: isAbstract isSimplyBounded
+            returnType: int? @ dart:core
+          _foo4: #M14
+            flags: isAbstract isSimplyBounded
+            returnType: int? @ dart:core
+        interface: #M15
+''',
+      updatedCode: r'''
+class A {
+  final int? _foo1;
+  final int? _foo2;
+  final int? _foo3;
+  final int? _foo4;
+}
+
+class B {
+  int? get _foo2;
+  int? get _foo3;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredFields
+          _foo1: #M1
+            flags: isFinal isPromotable shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          _foo2: #M2
+            flags: isFinal shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          _foo3: #M16
+            flags: isFinal shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          _foo4: #M17
+            flags: isFinal isPromotable shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+        declaredGetters
+          _foo1: #M5
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          _foo2: #M6
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          _foo3: #M7
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          _foo4: #M8
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+        interface: #M9
+      B: #M10
+        supertype: Object @ dart:core
+        declaredFields
+          _foo2: #M11
+            flags: isSynthetic shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          _foo3: #M18
+            flags: isSynthetic shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+        declaredGetters
+          _foo2: #M13
+            flags: isAbstract isSimplyBounded
+            returnType: int? @ dart:core
+          _foo3: #M19
+            flags: isAbstract isSimplyBounded
+            returnType: int? @ dart:core
+        interface: #M15
+''',
+    );
+  }
+
+  test_manifest_class_field_modifier_isStatic() async {
+    configuration.withElementManifests = true;
+
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  static final int? foo1;
+  final int? foo2;
+  static final int? foo3;
+  final int? foo4;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            flags: isFinal isStatic shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo2: #M2
+            flags: isFinal shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo3: #M3
+            flags: isFinal isStatic shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo4: #M4
+            flags: isFinal shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: isSimplyBounded isStatic isSynthetic
+            returnType: int? @ dart:core
+          foo2: #M6
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          foo3: #M7
+            flags: isSimplyBounded isStatic isSynthetic
+            returnType: int? @ dart:core
+          foo4: #M8
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+        interface: #M9
+          map
+            foo2: #M6
+            foo4: #M8
+          implemented
+            foo2: #M6
+            foo4: #M8
+''',
+      updatedCode: r'''
+class A {
+  static final int? foo1;
+  final int? foo2;
+  final int? foo3;
+  static final int? foo4;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            flags: isFinal isStatic shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo2: #M2
+            flags: isFinal shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo3: #M10
+            flags: isFinal shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo4: #M11
+            flags: isFinal isStatic shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: isSimplyBounded isStatic isSynthetic
+            returnType: int? @ dart:core
+          foo2: #M6
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          foo3: #M12
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          foo4: #M13
+            flags: isSimplyBounded isStatic isSynthetic
+            returnType: int? @ dart:core
+        interface: #M14
+          map
+            foo2: #M6
+            foo3: #M12
+          implemented
+            foo2: #M6
+            foo3: #M12
+''',
+    );
+  }
+
+  test_manifest_class_field_modifier_isSynthetic() async {
+    configuration.withElementManifests = true;
+
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  int? get foo1 => 0;
+  final int? foo2;
+  int? get foo3 => 0;
+  final int? foo4;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo2: #M2
+            flags: isFinal shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo4: #M4
+            flags: isFinal shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: isSimplyBounded
+            returnType: int? @ dart:core
+          foo2: #M6
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          foo3: #M7
+            flags: isSimplyBounded
+            returnType: int? @ dart:core
+          foo4: #M8
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+        interface: #M9
+          map
+            foo1: #M5
+            foo2: #M6
+            foo3: #M7
+            foo4: #M8
+          implemented
+            foo1: #M5
+            foo2: #M6
+            foo3: #M7
+            foo4: #M8
+''',
+      updatedCode: r'''
+class A {
+  int? get foo1 => 0;
+  final int? foo2;
+  final int? foo3;
+  int? get foo4 => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        declaredFields
+          foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo2: #M2
+            flags: isFinal shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo3: #M10
+            flags: isFinal shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+          foo4: #M11
+            flags: isSynthetic shouldUseTypeForInitializerInference
+            type: int? @ dart:core
+        declaredGetters
+          foo1: #M5
+            flags: isSimplyBounded
+            returnType: int? @ dart:core
+          foo2: #M6
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          foo3: #M12
+            flags: isSimplyBounded isSynthetic
+            returnType: int? @ dart:core
+          foo4: #M13
+            flags: isSimplyBounded
+            returnType: int? @ dart:core
+        interface: #M14
+          map
+            foo1: #M5
+            foo2: #M6
+            foo3: #M12
+            foo4: #M13
+          implemented
+            foo1: #M5
+            foo2: #M6
+            foo3: #M12
+            foo4: #M13
+''',
+    );
+  }
+
   test_manifest_class_field_private_final() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -45800,102 +46978,6 @@ class A {
           implemented
             b: #M6
             b=: #M7
-''',
-    );
-  }
-
-  test_manifest_class_field_static_falseToTrue() async {
-    await _runLibraryManifestScenario(
-      initialCode: r'''
-class A {
-  int foo = 0;
-}
-''',
-      expectedInitialEvents: r'''
-[operation] linkLibraryCycle SDK
-[operation] linkLibraryCycle
-  package:test/test.dart
-    declaredClasses
-      A: #M0
-        declaredFields
-          foo: #M1
-        declaredGetters
-          foo: #M2
-        declaredSetters
-          foo=: #M3
-        interface: #M4
-          map
-            foo: #M2
-            foo=: #M3
-          implemented
-            foo: #M2
-            foo=: #M3
-''',
-      updatedCode: r'''
-class A {
-  static int foo = 0;
-}
-''',
-      expectedUpdatedEvents: r'''
-[operation] linkLibraryCycle
-  package:test/test.dart
-    declaredClasses
-      A: #M0
-        declaredFields
-          foo: #M5
-        declaredGetters
-          foo: #M6
-        declaredSetters
-          foo=: #M7
-        interface: #M8
-''',
-    );
-  }
-
-  test_manifest_class_field_static_trueToFalse() async {
-    await _runLibraryManifestScenario(
-      initialCode: r'''
-class A {
-  static int foo = 0;
-}
-''',
-      expectedInitialEvents: r'''
-[operation] linkLibraryCycle SDK
-[operation] linkLibraryCycle
-  package:test/test.dart
-    declaredClasses
-      A: #M0
-        declaredFields
-          foo: #M1
-        declaredGetters
-          foo: #M2
-        declaredSetters
-          foo=: #M3
-        interface: #M4
-''',
-      updatedCode: r'''
-class A {
-  int foo = 0;
-}
-''',
-      expectedUpdatedEvents: r'''
-[operation] linkLibraryCycle
-  package:test/test.dart
-    declaredClasses
-      A: #M0
-        declaredFields
-          foo: #M5
-        declaredGetters
-          foo: #M6
-        declaredSetters
-          foo=: #M7
-        interface: #M8
-          map
-            foo: #M6
-            foo=: #M7
-          implemented
-            foo: #M6
-            foo=: #M7
 ''',
     );
   }
@@ -46758,12 +47840,16 @@ abstract class A<T> {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -46805,12 +47891,16 @@ abstract class A<T> {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M10
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M11
+            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
         declaredGetters
           foo1: #M5
@@ -46854,10 +47944,13 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: dynamic
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: dynamic
         declaredGetters
           foo1: #M4
@@ -46894,10 +47987,13 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: dynamic
           foo2: #M8
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: dynamic
           foo3: #M9
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M4
@@ -46948,12 +48044,16 @@ class B extends A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -46983,12 +48083,16 @@ class B extends A {
         supertype: A @ package:test/test.dart
         declaredFields
           foo1: #M11
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M12
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M13
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M14
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M15
@@ -47048,12 +48152,16 @@ class B extends A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -47083,12 +48191,16 @@ class B extends A {
         supertype: A @ package:test/test.dart
         declaredFields
           foo1: #M11
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M12
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M13
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M14
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M15
@@ -47150,12 +48262,16 @@ abstract class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -47197,12 +48313,16 @@ abstract class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -47250,12 +48370,16 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -47298,12 +48422,16 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -47353,12 +48481,16 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -47397,12 +48529,16 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M10
+            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M11
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -47535,6 +48671,7 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo: #M2
@@ -47559,6 +48696,7 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: double @ dart:core
         declaredGetters
           foo: #M5
@@ -48017,6 +49155,7 @@ class B {
         supertype: Object @ dart:core
         declaredFields
           a: #M1
+            flags: isFinal shouldUseTypeForInitializerInference
             type: int? @ dart:core
         declaredGetters
           a: #M2
@@ -48032,6 +49171,7 @@ class B {
         supertype: Object @ dart:core
         declaredFields
           a: #M5
+            flags: shouldUseTypeForInitializerInference
             type: int? @ dart:core
         declaredGetters
           a: #M6
@@ -48069,6 +49209,7 @@ class B {
         supertype: Object @ dart:core
         declaredFields
           a: #M9
+            flags: shouldUseTypeForInitializerInference
             type: int? @ dart:core
         declaredGetters
           a: #M2
@@ -48092,6 +49233,7 @@ class B {
         supertype: Object @ dart:core
         declaredFields
           a: #M12
+            flags: isFinal shouldUseTypeForInitializerInference
             type: int? @ dart:core
         declaredGetters
           a: #M6
@@ -53743,12 +54885,16 @@ abstract class A<T> {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -53802,12 +54948,16 @@ abstract class A<T> {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M10
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M11
+            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
         declaredSetters
           foo1=: #M5
@@ -53870,12 +55020,16 @@ class B extends A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -53917,12 +55071,16 @@ class B extends A {
         supertype: A @ package:test/test.dart
         declaredFields
           foo1: #M11
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M12
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M13
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M14
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M15
@@ -53994,12 +55152,16 @@ class B extends A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -54041,12 +55203,16 @@ class B extends A {
         supertype: A @ package:test/test.dart
         declaredFields
           foo1: #M11
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M12
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M13
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M14
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M15
@@ -54120,12 +55286,16 @@ abstract class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -54179,12 +55349,16 @@ abstract class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -54244,12 +55418,16 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -54304,12 +55482,16 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -54371,12 +55553,16 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -54427,12 +55613,16 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M10
+            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M11
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -55007,6 +56197,7 @@ abstract class C implements A, B {}
         supertype: Object @ dart:core
         declaredFields
           foo: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: List @ dart:core
               dynamic
         declaredSetters
@@ -55025,6 +56216,7 @@ abstract class C implements A, B {}
         supertype: Object @ dart:core
         declaredFields
           foo: #M5
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: List @ dart:core
               void
         declaredSetters
@@ -55072,6 +56264,7 @@ abstract class C implements A, B {}
         supertype: Object @ dart:core
         declaredFields
           foo: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: List @ dart:core
               dynamic
         declaredSetters
@@ -55090,6 +56283,7 @@ abstract class C implements A, B {}
         supertype: Object @ dart:core
         declaredFields
           foo: #M11
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: List @ dart:core
               int @ dart:core
         declaredSetters
@@ -55137,6 +56331,7 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo=: #M2
@@ -55164,6 +56359,7 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: double @ dart:core
         declaredSetters
           foo=: #M5
@@ -56608,6 +57804,7 @@ const b = 0 + a;
         returnType: double @ dart:core
     declaredVariables
       b: #M1
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: double @ dart:core
         constInitializer
           tokenBuffer: 0+a
@@ -56634,11 +57831,13 @@ const b = 0 + a;
         returnType: int @ dart:core
     declaredVariables
       a: #M5
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: 1
           tokenLengthList: [1]
       b: #M6
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0+a
@@ -56675,11 +57874,13 @@ const b = 1 + a;
         returnType: int @ dart:core
     declaredVariables
       a: #M2
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
           tokenLengthList: [1]
       b: #M3
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: 1+a
@@ -56705,6 +57906,7 @@ const b = 1 + a;
         returnType: double @ dart:core
     declaredVariables
       b: #M6
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: double @ dart:core
         constInitializer
           tokenBuffer: 1+a
@@ -56765,6 +57967,7 @@ const a = 0..abs();
         returnType: int @ dart:core
     declaredVariables
       a: #M1
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
         constInitializer
           isValid: false
@@ -56785,10 +57988,12 @@ const b = 0;
         returnType: int @ dart:core
     declaredVariables
       a: #M3
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
         constInitializer
           isValid: false
       b: #M4
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
@@ -57127,6 +58332,7 @@ const a = 0 as core.int;
         returnType: int @ dart:core
     declaredVariables
       a: #M1
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0ascore.int
@@ -57154,6 +58360,7 @@ const b = 0;
         returnType: int @ dart:core
     declaredVariables
       a: #M1
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0ascore.int
@@ -57164,6 +58371,7 @@ const b = 0;
             3 = importPrefix
             5 = element 0
       b: #M4
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
@@ -57188,6 +58396,7 @@ const a = [0][0];
         returnType: int @ dart:core
     declaredVariables
       a: #M1
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
         constInitializer
           isValid: false
@@ -57208,10 +58417,12 @@ const b = 0;
         returnType: int @ dart:core
     declaredVariables
       a: #M3
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
         constInitializer
           isValid: false
       b: #M4
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
@@ -57491,6 +58702,7 @@ const a = 0.abs();
         returnType: int @ dart:core
     declaredVariables
       a: #M1
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
         constInitializer
           isValid: false
@@ -57511,10 +58723,12 @@ const b = 0;
         returnType: int @ dart:core
     declaredVariables
       a: #M3
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
         constInitializer
           isValid: false
       b: #M4
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
@@ -57539,6 +58753,7 @@ const a = identical(0, 1);
         returnType: bool @ dart:core
     declaredVariables
       a: #M1
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: bool @ dart:core
         constInitializer
           tokenBuffer: identical(0,1)
@@ -57564,6 +58779,7 @@ const b = 0;
         returnType: int @ dart:core
     declaredVariables
       a: #M1
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: bool @ dart:core
         constInitializer
           tokenBuffer: identical(0,1)
@@ -57573,6 +58789,7 @@ const b = 0;
           elementIndexList
             5 = element 0
       b: #M4
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
@@ -57607,6 +58824,7 @@ const x = foo;
         returnType: int @ dart:core
     declaredVariables
       foo: #M1
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
@@ -57619,6 +58837,7 @@ const x = foo;
         returnType: int @ dart:core
     declaredVariables
       foo: #M3
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
@@ -57631,6 +58850,7 @@ const x = foo;
         returnType: InvalidType
     declaredVariables
       x: #M5
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: InvalidType
         constInitializer
           tokenBuffer: foo
@@ -57657,6 +58877,7 @@ class A {}
         returnType: InvalidType
     declaredVariables
       x: #M5
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: InvalidType
         constInitializer
           tokenBuffer: foo
@@ -57735,11 +58956,13 @@ const b = a++;
         returnType: int @ dart:core
     declaredVariables
       a: #M2
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
           tokenLengthList: [1]
       b: #M3
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
         constInitializer
           isValid: false
@@ -57764,15 +58987,18 @@ const c = 0;
         returnType: int @ dart:core
     declaredVariables
       a: #M2
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
           tokenLengthList: [1]
       b: #M5
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
         constInitializer
           isValid: false
       c: #M6
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
@@ -57797,6 +59023,7 @@ const a = 0!;
         returnType: int @ dart:core
     declaredVariables
       a: #M1
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
         constInitializer
           isValid: false
@@ -57817,10 +59044,12 @@ const b = 0;
         returnType: int @ dart:core
     declaredVariables
       a: #M3
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
         constInitializer
           isValid: false
       b: #M4
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
@@ -57978,11 +59207,13 @@ const d = prefix.A.b;
         supertype: Object @ dart:core
         declaredFields
           a: #M1
+            flags: hasImplicitType hasInitializer isConst isStatic
             type: int @ dart:core
             constInitializer
               tokenBuffer: 0
               tokenLengthList: [1]
           b: #M2
+            flags: hasImplicitType hasInitializer isConst isStatic
             type: int @ dart:core
             constInitializer
               tokenBuffer: 0
@@ -58006,6 +59237,7 @@ const d = prefix.A.b;
         returnType: int @ dart:core
     declaredVariables
       c: #M8
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: prefix.A.a
@@ -58020,6 +59252,7 @@ const d = prefix.A.b;
             13 = element 1
             21 = element 2
       d: #M9
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: prefix.A.b
@@ -58049,11 +59282,13 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           a: #M1
+            flags: hasImplicitType hasInitializer isConst isStatic
             type: int @ dart:core
             constInitializer
               tokenBuffer: 0
               tokenLengthList: [1]
           b: #M10
+            flags: hasImplicitType hasInitializer isConst isStatic
             type: int @ dart:core
             constInitializer
               tokenBuffer: 1
@@ -58085,6 +59320,7 @@ class A {
         returnType: int @ dart:core
     declaredVariables
       c: #M8
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: prefix.A.a
@@ -58099,6 +59335,7 @@ class A {
             13 = element 1
             21 = element 2
       d: #M11
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
         constInitializer
           tokenBuffer: prefix.A.b
@@ -58601,6 +59838,7 @@ const x = A;
         returnType: Type @ dart:core
     declaredVariables
       x: #M2
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: Type @ dart:core
         constInitializer
           tokenBuffer: A
@@ -58627,6 +59865,7 @@ const y = double;
         returnType: Type @ dart:core
     declaredVariables
       x: #M2
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: Type @ dart:core
         constInitializer
           tokenBuffer: A
@@ -58636,6 +59875,7 @@ const y = double;
           elementIndexList
             5 = element 0
       y: #M4
+        flags: hasImplicitType hasInitializer isConst isStatic
         type: Type @ dart:core
         constInitializer
           tokenBuffer: double
@@ -60408,12 +61648,16 @@ extension E<T> on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
+            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -60449,12 +61693,16 @@ extension E<T> on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
+            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M9
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M10
+            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
         declaredGetters
           foo1: #M5
@@ -60493,10 +61741,13 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: dynamic
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: dynamic
         declaredGetters
           foo1: #M4
@@ -60525,10 +61776,13 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: dynamic
           foo2: #M7
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: dynamic
           foo3: #M8
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M4
@@ -60565,12 +61819,16 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -60603,12 +61861,16 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -60648,12 +61910,16 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -60686,12 +61952,16 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M9
+            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M10
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -61165,12 +62435,16 @@ extension E<T> on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
+            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -61218,12 +62492,16 @@ extension E<T> on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
+            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M9
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M10
+            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
         declaredSetters
           foo1=: #M5
@@ -61275,12 +62553,16 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -61325,12 +62607,16 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -61382,12 +62668,16 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -61432,12 +62722,16 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M9
+            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M10
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -61552,6 +62846,7 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
+            flags: isFinal shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           it: #M2
@@ -61605,6 +62900,7 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
+            flags: isFinal shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           it: #M2
@@ -61665,6 +62961,7 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
+            flags: isFinal shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           it: #M2
@@ -61718,6 +63015,7 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
+            flags: isFinal shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           it: #M2
@@ -61778,6 +63076,7 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
+            flags: isFinal shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           it: #M2
@@ -61831,6 +63130,7 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
+            flags: isFinal shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           it: #M2
@@ -61958,14 +63258,19 @@ extension type E<T>(T it) {
         typeErasure: typeParameter#0
         declaredFields
           foo1: #M1
+            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           it: #M5
+            flags: hasEnclosingTypeParameterReference isFinal shouldUseTypeForInitializerInference
             type: typeParameter#0
         declaredGetters
           foo1: #M6
@@ -62017,14 +63322,19 @@ extension type E<T>(T it) {
         typeErasure: typeParameter#0
         declaredFields
           foo1: #M1
+            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M12
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M13
+            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           it: #M5
+            flags: hasEnclosingTypeParameterReference isFinal shouldUseTypeForInitializerInference
             type: typeParameter#0
         declaredGetters
           foo1: #M6
@@ -62079,12 +63389,16 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: dynamic
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: dynamic
           it: #M4
+            flags: isFinal shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -62127,12 +63441,16 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: dynamic
           foo2: #M10
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: dynamic
           foo3: #M11
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           it: #M4
+            flags: isFinal shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -62183,14 +63501,19 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           it: #M5
+            flags: isFinal shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M6
@@ -62239,14 +63562,19 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           it: #M5
+            flags: isFinal shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M6
@@ -62302,14 +63630,19 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           it: #M5
+            flags: isFinal shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M6
@@ -62354,14 +63687,19 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M12
+            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M13
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           it: #M5
+            flags: isFinal shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M6
@@ -62649,6 +63987,7 @@ extension type A(int it) {
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
+            flags: isFinal shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           it: #M2
@@ -62688,6 +64027,7 @@ extension type A(int it) {
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
+            flags: isFinal shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           it: #M2
@@ -62739,6 +64079,7 @@ extension type E<T>(T it) {
         typeErasure: typeParameter#0
         declaredFields
           it: #M1
+            flags: hasEnclosingTypeParameterReference isFinal shouldUseTypeForInitializerInference
             type: typeParameter#0
         declaredGetters
           it: #M2
@@ -62795,6 +64136,7 @@ extension type E<T>(T it) {
         typeErasure: typeParameter#0
         declaredFields
           it: #M1
+            flags: hasEnclosingTypeParameterReference isFinal shouldUseTypeForInitializerInference
             type: typeParameter#0
         declaredGetters
           it: #M2
@@ -62854,6 +64196,7 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
+            flags: isFinal shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           it: #M2
@@ -62900,6 +64243,7 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
+            flags: isFinal shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           it: #M2
@@ -62954,6 +64298,7 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
+            flags: isFinal shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           it: #M2
@@ -63007,6 +64352,7 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
+            flags: isFinal shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           it: #M2
@@ -63067,6 +64413,7 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
+            flags: isFinal shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           it: #M2
@@ -63116,6 +64463,7 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
+            flags: isFinal shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           it: #M2
@@ -63405,14 +64753,19 @@ extension type E<T>(T it) {
         typeErasure: typeParameter#0
         declaredFields
           foo1: #M1
+            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           it: #M5
+            flags: hasEnclosingTypeParameterReference isFinal shouldUseTypeForInitializerInference
             type: typeParameter#0
         declaredGetters
           it: #M6
@@ -63477,14 +64830,19 @@ extension type E<T>(T it) {
         typeErasure: typeParameter#0
         declaredFields
           foo1: #M1
+            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M12
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M13
+            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           it: #M5
+            flags: hasEnclosingTypeParameterReference isFinal shouldUseTypeForInitializerInference
             type: typeParameter#0
         declaredGetters
           it: #M6
@@ -63553,14 +64911,19 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           it: #M5
+            flags: isFinal shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           it: #M6
@@ -63622,14 +64985,19 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           it: #M5
+            flags: isFinal shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           it: #M6
@@ -63698,14 +65066,19 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           it: #M5
+            flags: isFinal shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           it: #M6
@@ -63763,14 +65136,19 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M12
+            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M13
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           it: #M5
+            flags: isFinal shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           it: #M6
@@ -65001,12 +66379,16 @@ mixin M<T> {
           Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -65048,12 +66430,16 @@ mixin M<T> {
           Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M10
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M11
+            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
         declaredGetters
           foo1: #M5
@@ -65098,10 +66484,13 @@ mixin M {
           Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: dynamic
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: dynamic
         declaredGetters
           foo1: #M4
@@ -65139,10 +66528,13 @@ mixin M {
           Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: dynamic
           foo2: #M8
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: dynamic
           foo3: #M9
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M4
@@ -65193,12 +66585,16 @@ mixin M on S {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -65230,12 +66626,16 @@ mixin M on S {
           S @ package:test/test.dart
         declaredFields
           foo1: #M11
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M12
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M13
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M14
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M15
@@ -65295,12 +66695,16 @@ mixin M on S {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -65332,12 +66736,16 @@ mixin M on S {
           S @ package:test/test.dart
         declaredFields
           foo1: #M21
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M22
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M23
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M24
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M25
@@ -65399,12 +66807,16 @@ mixin M {
           Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -65446,12 +66858,16 @@ mixin M {
           Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -65500,12 +66916,16 @@ mixin M {
           Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -65549,12 +66969,16 @@ mixin M {
           Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -65605,12 +67029,16 @@ mixin M {
           Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -65650,12 +67078,16 @@ mixin M {
           Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M10
+            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M11
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -65789,6 +67221,7 @@ mixin A {
           Object @ dart:core
         declaredFields
           foo: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredGetters
           foo: #M2
@@ -65814,6 +67247,7 @@ mixin A {
           Object @ dart:core
         declaredFields
           foo: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: double @ dart:core
         declaredGetters
           foo: #M5
@@ -68190,12 +69624,16 @@ mixin M<T> {
           Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -68249,12 +69687,16 @@ mixin M<T> {
           Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M10
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M11
+            flags: hasEnclosingTypeParameterReference isSynthetic shouldUseTypeForInitializerInference
             type: typeParameter#0
         declaredSetters
           foo1=: #M5
@@ -68317,12 +69759,16 @@ mixin M on S {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -68366,12 +69812,16 @@ mixin M on S {
           S @ package:test/test.dart
         declaredFields
           foo1: #M11
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M12
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M13
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M14
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M15
@@ -68443,12 +69893,16 @@ mixin M on S {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -68492,12 +69946,16 @@ mixin M on S {
           S @ package:test/test.dart
         declaredFields
           foo1: #M21
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M22
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M23
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M24
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M25
@@ -68571,12 +70029,16 @@ mixin M {
           Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -68630,12 +70092,16 @@ mixin M {
           Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -68696,12 +70162,16 @@ mixin M {
           Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -68757,12 +70227,16 @@ mixin M {
           Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -68825,12 +70299,16 @@ mixin M {
           Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M3
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M4
+            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -68882,12 +70360,16 @@ mixin M {
           Object @ dart:core
         declaredFields
           foo1: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo2: #M2
+            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo3: #M10
+            flags: isStatic isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
           foo4: #M11
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -69196,6 +70678,7 @@ mixin A {
           Object @ dart:core
         declaredFields
           foo: #M1
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: int @ dart:core
         declaredSetters
           foo=: #M2
@@ -69224,6 +70707,7 @@ mixin A {
           Object @ dart:core
         declaredFields
           foo: #M4
+            flags: isSynthetic shouldUseTypeForInitializerInference
             type: double @ dart:core
         declaredSetters
           foo=: #M5
@@ -70742,10 +72226,13 @@ get foo3 => 0;
         returnType: dynamic
     declaredVariables
       foo1: #M3
+        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
         type: dynamic
       foo2: #M4
+        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
       foo3: #M5
+        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
         type: dynamic
 ''',
       updatedCode: r'''
@@ -70768,10 +72255,13 @@ int get foo3 => 0;
         returnType: int @ dart:core
     declaredVariables
       foo1: #M3
+        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
         type: dynamic
       foo2: #M8
+        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
         type: dynamic
       foo3: #M9
+        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
 ''',
     );
@@ -70805,12 +72295,16 @@ external int get foo4;
         returnType: int @ dart:core
     declaredVariables
       foo1: #M4
+        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
       foo2: #M5
+        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
       foo3: #M6
+        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
       foo4: #M7
+        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
 ''',
       updatedCode: r'''
@@ -70837,12 +72331,16 @@ int get foo4 => 4;
         returnType: int @ dart:core
     declaredVariables
       foo1: #M4
+        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
       foo2: #M5
+        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
       foo3: #M6
+        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
       foo4: #M7
+        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
 ''',
     );
@@ -71066,10 +72564,13 @@ set foo3(int value) {}
           returnType: void
     declaredVariables
       foo1: #M3
+        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
       foo2: #M4
+        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
       foo3: #M5
+        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
 ''',
       updatedCode: r'''
@@ -71101,10 +72602,13 @@ void set foo3(int value) {}
           returnType: void
     declaredVariables
       foo1: #M3
+        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
       foo2: #M4
+        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
       foo3: #M5
+        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
 ''',
     );
@@ -71150,12 +72654,16 @@ external set foo4(int value);
           returnType: void
     declaredVariables
       foo1: #M4
+        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
       foo2: #M5
+        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
       foo3: #M6
+        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
       foo4: #M7
+        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
 ''',
       updatedCode: r'''
@@ -71194,12 +72702,16 @@ set foo4(int value) {}
           returnType: void
     declaredVariables
       foo1: #M4
+        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
       foo2: #M5
+        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
       foo3: #M6
+        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
       foo4: #M7
+        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
 ''',
     );
@@ -71224,6 +72736,7 @@ set a(int _) {}
           returnType: void
     declaredVariables
       a: #M1
+        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
         type: int @ dart:core
 ''',
       updatedCode: r'''
@@ -71241,6 +72754,7 @@ set a(double _) {}
           returnType: void
     declaredVariables
       a: #M3
+        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
         type: double @ dart:core
 ''',
     );
@@ -71405,6 +72919,166 @@ var b = 0;
     );
   }
 
+  test_manifest_topLevelVariable_modifier_hasImplicitType() async {
+    configuration.withElementManifests = true;
+
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+final foo1 = 0;
+final int foo2 = 0;
+final foo3 = 0;
+final int foo4 = 0;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      foo1: #M0
+        flags: isSimplyBounded isStatic isSynthetic
+        returnType: int @ dart:core
+      foo2: #M1
+        flags: isSimplyBounded isStatic isSynthetic
+        returnType: int @ dart:core
+      foo3: #M2
+        flags: isSimplyBounded isStatic isSynthetic
+        returnType: int @ dart:core
+      foo4: #M3
+        flags: isSimplyBounded isStatic isSynthetic
+        returnType: int @ dart:core
+    declaredVariables
+      foo1: #M4
+        flags: hasImplicitType hasInitializer isFinal isStatic
+        type: int @ dart:core
+      foo2: #M5
+        flags: hasInitializer isFinal isStatic shouldUseTypeForInitializerInference
+        type: int @ dart:core
+      foo3: #M6
+        flags: hasImplicitType hasInitializer isFinal isStatic
+        type: int @ dart:core
+      foo4: #M7
+        flags: hasInitializer isFinal isStatic shouldUseTypeForInitializerInference
+        type: int @ dart:core
+''',
+      updatedCode: r'''
+final foo1 = 0;
+final int foo2 = 0;
+final int foo3 = 0;
+final foo4 = 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      foo1: #M0
+        flags: isSimplyBounded isStatic isSynthetic
+        returnType: int @ dart:core
+      foo2: #M1
+        flags: isSimplyBounded isStatic isSynthetic
+        returnType: int @ dart:core
+      foo3: #M2
+        flags: isSimplyBounded isStatic isSynthetic
+        returnType: int @ dart:core
+      foo4: #M3
+        flags: isSimplyBounded isStatic isSynthetic
+        returnType: int @ dart:core
+    declaredVariables
+      foo1: #M4
+        flags: hasImplicitType hasInitializer isFinal isStatic
+        type: int @ dart:core
+      foo2: #M5
+        flags: hasInitializer isFinal isStatic shouldUseTypeForInitializerInference
+        type: int @ dart:core
+      foo3: #M8
+        flags: hasInitializer isFinal isStatic shouldUseTypeForInitializerInference
+        type: int @ dart:core
+      foo4: #M9
+        flags: hasImplicitType hasInitializer isFinal isStatic
+        type: int @ dart:core
+''',
+    );
+  }
+
+  test_manifest_topLevelVariable_modifier_hasInitializer() async {
+    configuration.withElementManifests = true;
+
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+final int? foo1 = 0;
+final int? foo2;
+final int? foo3 = 0;
+final int? foo4;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      foo1: #M0
+        flags: isSimplyBounded isStatic isSynthetic
+        returnType: int? @ dart:core
+      foo2: #M1
+        flags: isSimplyBounded isStatic isSynthetic
+        returnType: int? @ dart:core
+      foo3: #M2
+        flags: isSimplyBounded isStatic isSynthetic
+        returnType: int? @ dart:core
+      foo4: #M3
+        flags: isSimplyBounded isStatic isSynthetic
+        returnType: int? @ dart:core
+    declaredVariables
+      foo1: #M4
+        flags: hasInitializer isFinal isStatic shouldUseTypeForInitializerInference
+        type: int? @ dart:core
+      foo2: #M5
+        flags: isFinal isStatic shouldUseTypeForInitializerInference
+        type: int? @ dart:core
+      foo3: #M6
+        flags: hasInitializer isFinal isStatic shouldUseTypeForInitializerInference
+        type: int? @ dart:core
+      foo4: #M7
+        flags: isFinal isStatic shouldUseTypeForInitializerInference
+        type: int? @ dart:core
+''',
+      updatedCode: r'''
+final int? foo1 = 0;
+final int? foo2;
+final int? foo3;
+final int? foo4 = 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      foo1: #M0
+        flags: isSimplyBounded isStatic isSynthetic
+        returnType: int? @ dart:core
+      foo2: #M1
+        flags: isSimplyBounded isStatic isSynthetic
+        returnType: int? @ dart:core
+      foo3: #M2
+        flags: isSimplyBounded isStatic isSynthetic
+        returnType: int? @ dart:core
+      foo4: #M3
+        flags: isSimplyBounded isStatic isSynthetic
+        returnType: int? @ dart:core
+    declaredVariables
+      foo1: #M4
+        flags: hasInitializer isFinal isStatic shouldUseTypeForInitializerInference
+        type: int? @ dart:core
+      foo2: #M5
+        flags: isFinal isStatic shouldUseTypeForInitializerInference
+        type: int? @ dart:core
+      foo3: #M8
+        flags: isFinal isStatic shouldUseTypeForInitializerInference
+        type: int? @ dart:core
+      foo4: #M9
+        flags: hasInitializer isFinal isStatic shouldUseTypeForInitializerInference
+        type: int? @ dart:core
+''',
+    );
+  }
+
   test_manifest_topLevelVariable_modifier_isConst() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -71441,6 +73115,86 @@ const c = 0;
       a: #M3
       b: #M6
       c: #M7
+''',
+    );
+  }
+
+  test_manifest_topLevelVariable_modifier_isExternal() async {
+    configuration.withElementManifests = true;
+
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+external final int? foo1;
+final int? foo2;
+external final int? foo3;
+final int? foo4;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      foo1: #M0
+        flags: isSimplyBounded isStatic isSynthetic
+        returnType: int? @ dart:core
+      foo2: #M1
+        flags: isSimplyBounded isStatic isSynthetic
+        returnType: int? @ dart:core
+      foo3: #M2
+        flags: isSimplyBounded isStatic isSynthetic
+        returnType: int? @ dart:core
+      foo4: #M3
+        flags: isSimplyBounded isStatic isSynthetic
+        returnType: int? @ dart:core
+    declaredVariables
+      foo1: #M4
+        flags: isExternal isFinal isStatic shouldUseTypeForInitializerInference
+        type: int? @ dart:core
+      foo2: #M5
+        flags: isFinal isStatic shouldUseTypeForInitializerInference
+        type: int? @ dart:core
+      foo3: #M6
+        flags: isExternal isFinal isStatic shouldUseTypeForInitializerInference
+        type: int? @ dart:core
+      foo4: #M7
+        flags: isFinal isStatic shouldUseTypeForInitializerInference
+        type: int? @ dart:core
+''',
+      updatedCode: r'''
+external final int? foo1;
+final int? foo2;
+final int? foo3;
+external final int? foo4;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      foo1: #M0
+        flags: isSimplyBounded isStatic isSynthetic
+        returnType: int? @ dart:core
+      foo2: #M1
+        flags: isSimplyBounded isStatic isSynthetic
+        returnType: int? @ dart:core
+      foo3: #M2
+        flags: isSimplyBounded isStatic isSynthetic
+        returnType: int? @ dart:core
+      foo4: #M3
+        flags: isSimplyBounded isStatic isSynthetic
+        returnType: int? @ dart:core
+    declaredVariables
+      foo1: #M4
+        flags: isExternal isFinal isStatic shouldUseTypeForInitializerInference
+        type: int? @ dart:core
+      foo2: #M5
+        flags: isFinal isStatic shouldUseTypeForInitializerInference
+        type: int? @ dart:core
+      foo3: #M8
+        flags: isFinal isStatic shouldUseTypeForInitializerInference
+        type: int? @ dart:core
+      foo4: #M9
+        flags: isExternal isFinal isStatic shouldUseTypeForInitializerInference
+        type: int? @ dart:core
 ''',
     );
   }
@@ -71525,6 +73279,86 @@ late final c = 0;
       a: #M3
       b: #M6
       c: #M7
+''',
+    );
+  }
+
+  test_manifest_topLevelVariable_modifier_isSynthetic() async {
+    configuration.withElementManifests = true;
+
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+int? get foo1 => 0;
+final int? foo2;
+int? get foo3 => 0;
+final int? foo4;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      foo1: #M0
+        flags: isSimplyBounded isStatic
+        returnType: int? @ dart:core
+      foo2: #M1
+        flags: isSimplyBounded isStatic isSynthetic
+        returnType: int? @ dart:core
+      foo3: #M2
+        flags: isSimplyBounded isStatic
+        returnType: int? @ dart:core
+      foo4: #M3
+        flags: isSimplyBounded isStatic isSynthetic
+        returnType: int? @ dart:core
+    declaredVariables
+      foo1: #M4
+        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        type: int? @ dart:core
+      foo2: #M5
+        flags: isFinal isStatic shouldUseTypeForInitializerInference
+        type: int? @ dart:core
+      foo3: #M6
+        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        type: int? @ dart:core
+      foo4: #M7
+        flags: isFinal isStatic shouldUseTypeForInitializerInference
+        type: int? @ dart:core
+''',
+      updatedCode: r'''
+int? get foo1 => 0;
+final int? foo2;
+final int? foo3;
+int? get foo4 => 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      foo1: #M0
+        flags: isSimplyBounded isStatic
+        returnType: int? @ dart:core
+      foo2: #M1
+        flags: isSimplyBounded isStatic isSynthetic
+        returnType: int? @ dart:core
+      foo3: #M8
+        flags: isSimplyBounded isStatic isSynthetic
+        returnType: int? @ dart:core
+      foo4: #M9
+        flags: isSimplyBounded isStatic
+        returnType: int? @ dart:core
+    declaredVariables
+      foo1: #M4
+        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        type: int? @ dart:core
+      foo2: #M5
+        flags: isFinal isStatic shouldUseTypeForInitializerInference
+        type: int? @ dart:core
+      foo3: #M10
+        flags: isFinal isStatic shouldUseTypeForInitializerInference
+        type: int? @ dart:core
+      foo4: #M11
+        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        type: int? @ dart:core
 ''',
     );
   }
@@ -74359,6 +76193,124 @@ extension on int {
     );
   }
 
+  test_req_instanceElement_fieldElement_getter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  int foo = 0;
+}
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+''');
+
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeInstanceElement('A');
+      A.getField('foo')!.getter;
+    });
+
+    await _runManualRequirementsRecording(
+      expectedEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredGetters
+          foo: #M2
+        declaredSetters
+          foo=: #M3
+        interface: #M4
+          map
+            foo: #M2
+            foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+            requestedDeclaredGetters
+              foo: #M2
+[status] idle
+''',
+    );
+  }
+
+  test_req_instanceElement_fieldElement_setter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  int foo = 0;
+}
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+''');
+
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeInstanceElement('A');
+      A.getField('foo')!.setter;
+    });
+
+    await _runManualRequirementsRecording(
+      expectedEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredGetters
+          foo: #M2
+        declaredSetters
+          foo=: #M3
+        interface: #M4
+          map
+            foo: #M2
+            foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+            requestedDeclaredSetters
+              foo=: #M3
+[status] idle
+''',
+    );
+  }
+
   test_req_instanceElement_fields() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
@@ -74648,6 +76600,126 @@ import 'a.dart';
     );
   }
 
+  test_req_instanceElement_getterElement_correspondingSetter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  int foo = 0;
+}
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+''');
+
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeInstanceElement('A');
+      A.getGetter('foo')!.correspondingSetter;
+    });
+
+    await _runManualRequirementsRecording(
+      expectedEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredGetters
+          foo: #M2
+        declaredSetters
+          foo=: #M3
+        interface: #M4
+          map
+            foo: #M2
+            foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+            requestedDeclaredGetters
+              foo: #M2
+            requestedDeclaredSetters
+              foo=: #M3
+[status] idle
+''',
+    );
+  }
+
+  test_req_instanceElement_getterElement_nonSynthetic() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  int foo = 0;
+}
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+''');
+
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeInstanceElement('A');
+      A.getGetter('foo')!.nonSynthetic;
+    });
+
+    await _runManualRequirementsRecording(
+      expectedEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredGetters
+          foo: #M2
+        declaredSetters
+          foo=: #M3
+        interface: #M4
+          map
+            foo: #M2
+            foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+            requestedDeclaredGetters
+              foo: #M2
+[status] idle
+''',
+    );
+  }
+
   test_req_instanceElement_getterElement_variable() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
@@ -74855,6 +76927,126 @@ import 'a.dart';
         instances
           A
             allDeclaredMethods: #M1
+[status] idle
+''',
+    );
+  }
+
+  test_req_instanceElement_setterElement_correspondingGetter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  int foo = 0;
+}
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+''');
+
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeInstanceElement('A');
+      A.getSetter('foo')!.correspondingGetter;
+    });
+
+    await _runManualRequirementsRecording(
+      expectedEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredGetters
+          foo: #M2
+        declaredSetters
+          foo=: #M3
+        interface: #M4
+          map
+            foo: #M2
+            foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+            requestedDeclaredGetters
+              foo: #M2
+            requestedDeclaredSetters
+              foo=: #M3
+[status] idle
+''',
+    );
+  }
+
+  test_req_instanceElement_setterElement_nonSynthetic() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  int foo = 0;
+}
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+''');
+
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeInstanceElement('A');
+      A.getSetter('foo')!.nonSynthetic;
+    });
+
+    await _runManualRequirementsRecording(
+      expectedEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredGetters
+          foo: #M2
+        declaredSetters
+          foo=: #M3
+        interface: #M4
+          map
+            foo: #M2
+            foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+            requestedDeclaredSetters
+              foo=: #M3
 [status] idle
 ''',
     );

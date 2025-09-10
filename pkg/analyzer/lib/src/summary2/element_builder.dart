@@ -194,30 +194,11 @@ class ElementBuilder {
     if (fragment.isAugmentation && lastFragment is ClassFragmentImpl) {
       lastFragment.addFragment(fragment);
 
-      var lastTypeParameterFragments = lastFragment.typeParameters;
-
-      // Trim extra type parameters.
-      if (lastTypeParameterFragments.length < fragment.typeParameters.length) {
-        fragment.typeParameters.length = lastTypeParameterFragments.length;
-      }
-
-      // Add missing type parameters.
-      if (lastTypeParameterFragments.length > fragment.typeParameters.length) {
-        for (
-          var i = fragment.typeParameters.length;
-          i < lastTypeParameterFragments.length;
-          i++
-        ) {
-          fragment.addTypeParameter(
-            TypeParameterFragmentImpl(name: lastTypeParameterFragments[i].name)
-              ..isSynthetic = true,
-          );
-        }
-      }
-
-      for (var i = 0; i < lastTypeParameterFragments.length; i++) {
-        lastTypeParameterFragments[i].addFragment(fragment.typeParameters[i]);
-      }
+      _linkTypeParameters(
+        lastFragments: lastFragment.typeParameters,
+        fragments: fragment.typeParameters,
+        add: fragment.addTypeParameter,
+      );
       return;
     }
 
@@ -227,6 +208,7 @@ class ElementBuilder {
     );
 
     for (var typeParameterFragment in fragment.typeParameters) {
+      // Side effect: set element for the fragment.
       TypeParameterElementImpl(firstFragment: typeParameterFragment);
     }
 
@@ -471,7 +453,19 @@ class ElementBuilder {
 
     if (lastFragment is MethodFragmentImpl && fragment.isAugmentation) {
       lastFragment.addFragment(fragment);
+
+      _linkTypeParameters(
+        lastFragments: lastFragment.typeParameters,
+        fragments: fragment.typeParameters,
+        add: fragment.addTypeParameter,
+      );
+
       return;
+    }
+
+    for (var typeParameterFragment in fragment.typeParameters) {
+      // Side effect: set element for the fragment.
+      TypeParameterElementImpl(firstFragment: typeParameterFragment);
     }
 
     instanceElement.addMethod(
@@ -549,9 +543,15 @@ class ElementBuilder {
   ) {
     assert(!fragment.isSynthetic);
     libraryFragment.addMixin(fragment);
-
     if (fragment.isAugmentation && lastFragment is MixinFragmentImpl) {
       lastFragment.addFragment(fragment);
+
+      _linkTypeParameters(
+        lastFragments: lastFragment.typeParameters,
+        fragments: fragment.typeParameters,
+        add: fragment.addTypeParameter,
+      );
+
       return;
     }
 
@@ -559,6 +559,12 @@ class ElementBuilder {
       _addTopReference('@mixin', fragment.name),
       fragment,
     );
+
+    for (var typeParameterFragment in fragment.typeParameters) {
+      // Side effect: set element for the fragment.
+      TypeParameterElementImpl(firstFragment: typeParameterFragment);
+    }
+
     libraryElement.addMixin(element);
     libraryBuilder.declare(element, element.reference);
   }
@@ -763,6 +769,31 @@ class ElementBuilder {
       );
       libraryElement.typeAliases.add(element);
       libraryBuilder.declare(element, element.reference);
+    }
+  }
+
+  void _linkTypeParameters<T extends FragmentImpl>({
+    required List<TypeParameterFragmentImpl> lastFragments,
+    required List<TypeParameterFragmentImpl> fragments,
+    required void Function(TypeParameterFragmentImpl) add,
+  }) {
+    // Trim extra type parameters.
+    if (lastFragments.length < fragments.length) {
+      fragments.length = lastFragments.length;
+    }
+
+    // Synthesize missing type parameters.
+    if (lastFragments.length > fragments.length) {
+      for (var i = fragments.length; i < lastFragments.length; i++) {
+        add(
+          TypeParameterFragmentImpl(name: lastFragments[i].name)
+            ..isSynthetic = true,
+        );
+      }
+    }
+
+    for (var i = 0; i < lastFragments.length; i++) {
+      lastFragments[i].addFragment(fragments[i]);
     }
   }
 

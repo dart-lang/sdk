@@ -570,18 +570,32 @@ class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl> {
 }
 
 class FieldItem extends VariableItem<FieldElementImpl> {
-  final bool isStatic;
+  final bool hasEnclosingTypeParameterReference;
+  final bool isAbstract;
+  final bool isCovariant;
+  final bool isEnumConstant;
+  final bool isExternal;
+  final bool isPromotable;
 
   FieldItem({
     required super.id,
     required super.isSynthetic,
     required super.metadata,
+    required super.hasInitializer,
+    required super.hasImplicitType,
     required super.isConst,
     required super.isFinal,
     required super.isLate,
+    required super.isStatic,
+    required super.shouldUseTypeForInitializerInference,
     required super.type,
     required super.constInitializer,
-    required this.isStatic,
+    required this.hasEnclosingTypeParameterReference,
+    required this.isAbstract,
+    required this.isCovariant,
+    required this.isEnumConstant,
+    required this.isExternal,
+    required this.isPromotable,
   });
 
   factory FieldItem.fromElement({
@@ -593,12 +607,23 @@ class FieldItem extends VariableItem<FieldElementImpl> {
       id: id,
       isSynthetic: element.isSynthetic,
       metadata: ManifestMetadata.encode(context, element.metadata),
+      hasInitializer: element.hasInitializer,
+      hasImplicitType: element.hasImplicitType,
       isConst: element.isConst,
       isFinal: element.isFinal,
       isLate: element.isLate,
+      isStatic: element.isStatic,
+      shouldUseTypeForInitializerInference:
+          element.shouldUseTypeForInitializerInference,
       type: element.type.encode(context),
       constInitializer: element.constantInitializer?.encode(context),
-      isStatic: element.isStatic,
+      hasEnclosingTypeParameterReference:
+          element.hasEnclosingTypeParameterReference,
+      isAbstract: element.isAbstract,
+      isCovariant: element.isCovariant,
+      isEnumConstant: element.isEnumConstant,
+      isExternal: element.isExternal,
+      isPromotable: element.isPromotable,
     );
   }
 
@@ -607,24 +632,45 @@ class FieldItem extends VariableItem<FieldElementImpl> {
       id: ManifestItemId.read(reader),
       isSynthetic: reader.readBool(),
       metadata: ManifestMetadata.read(reader),
+      hasInitializer: reader.readBool(),
+      hasImplicitType: reader.readBool(),
       isConst: reader.readBool(),
       isFinal: reader.readBool(),
       isLate: reader.readBool(),
+      isStatic: reader.readBool(),
+      shouldUseTypeForInitializerInference: reader.readBool(),
       type: ManifestType.read(reader),
       constInitializer: ManifestNode.readOptional(reader),
-      isStatic: reader.readBool(),
+      hasEnclosingTypeParameterReference: reader.readBool(),
+      isAbstract: reader.readBool(),
+      isCovariant: reader.readBool(),
+      isEnumConstant: reader.readBool(),
+      isExternal: reader.readBool(),
+      isPromotable: reader.readBool(),
     );
   }
 
   @override
   bool match(MatchContext context, FieldElementImpl element) {
-    return super.match(context, element) && isStatic == element.isStatic;
+    return super.match(context, element) &&
+        hasEnclosingTypeParameterReference ==
+            element.hasEnclosingTypeParameterReference &&
+        isAbstract == element.isAbstract &&
+        isCovariant == element.isCovariant &&
+        isEnumConstant == element.isEnumConstant &&
+        isExternal == element.isExternal &&
+        isPromotable == element.isPromotable;
   }
 
   @override
   void write(BufferedSink sink) {
     super.write(sink);
-    sink.writeBool(isStatic);
+    sink.writeBool(hasEnclosingTypeParameterReference);
+    sink.writeBool(isAbstract);
+    sink.writeBool(isCovariant);
+    sink.writeBool(isEnumConstant);
+    sink.writeBool(isExternal);
+    sink.writeBool(isPromotable);
   }
 
   static Map<LookupName, FieldItem> readMap(SummaryDataReader reader) {
@@ -1524,15 +1570,22 @@ class TopLevelFunctionItem extends ExecutableItem<TopLevelFunctionElementImpl> {
 }
 
 class TopLevelVariableItem extends VariableItem<TopLevelVariableElementImpl> {
+  final bool isExternal;
+
   TopLevelVariableItem({
     required super.id,
     required super.isSynthetic,
     required super.metadata,
+    required super.hasInitializer,
+    required super.hasImplicitType,
     required super.isConst,
     required super.isFinal,
     required super.isLate,
+    required super.isStatic,
+    required super.shouldUseTypeForInitializerInference,
     required super.type,
     required super.constInitializer,
+    required this.isExternal,
   });
 
   factory TopLevelVariableItem.fromElement({
@@ -1544,11 +1597,17 @@ class TopLevelVariableItem extends VariableItem<TopLevelVariableElementImpl> {
       id: id,
       isSynthetic: element.isSynthetic,
       metadata: ManifestMetadata.encode(context, element.metadata),
+      hasInitializer: element.hasInitializer,
+      hasImplicitType: element.hasImplicitType,
       isConst: element.isConst,
       isFinal: element.isFinal,
       isLate: element.isLate,
+      isStatic: element.isStatic,
+      shouldUseTypeForInitializerInference:
+          element.shouldUseTypeForInitializerInference,
       type: element.type.encode(context),
       constInitializer: element.constantInitializer?.encode(context),
+      isExternal: element.isExternal,
     );
   }
 
@@ -1557,12 +1616,28 @@ class TopLevelVariableItem extends VariableItem<TopLevelVariableElementImpl> {
       id: ManifestItemId.read(reader),
       isSynthetic: reader.readBool(),
       metadata: ManifestMetadata.read(reader),
+      hasInitializer: reader.readBool(),
+      hasImplicitType: reader.readBool(),
       isConst: reader.readBool(),
       isFinal: reader.readBool(),
       isLate: reader.readBool(),
+      isStatic: reader.readBool(),
+      shouldUseTypeForInitializerInference: reader.readBool(),
       type: ManifestType.read(reader),
       constInitializer: ManifestNode.readOptional(reader),
+      isExternal: reader.readBool(),
     );
+  }
+
+  @override
+  bool match(MatchContext context, TopLevelVariableElementImpl element) {
+    return super.match(context, element) && isExternal == element.isExternal;
+  }
+
+  @override
+  void write(BufferedSink sink) {
+    super.write(sink);
+    sink.writeBool(isExternal);
   }
 }
 
@@ -1620,11 +1695,15 @@ class TypeAliasItem extends ManifestItem<TypeAliasElementImpl> {
   }
 }
 
-sealed class VariableItem<E extends VariableElementImpl>
+sealed class VariableItem<E extends PropertyInducingElementImpl>
     extends ManifestItem<E> {
+  final bool hasInitializer;
+  final bool hasImplicitType;
   final bool isConst;
   final bool isFinal;
   final bool isLate;
+  final bool isStatic;
+  final bool shouldUseTypeForInitializerInference;
   final ManifestType type;
   final ManifestNode? constInitializer;
 
@@ -1632,9 +1711,13 @@ sealed class VariableItem<E extends VariableElementImpl>
     required super.id,
     required super.isSynthetic,
     required super.metadata,
+    required this.hasInitializer,
+    required this.hasImplicitType,
     required this.isConst,
     required this.isFinal,
     required this.isLate,
+    required this.isStatic,
+    required this.shouldUseTypeForInitializerInference,
     required this.type,
     required this.constInitializer,
   });
@@ -1642,9 +1725,14 @@ sealed class VariableItem<E extends VariableElementImpl>
   @override
   bool match(MatchContext context, E element) {
     return super.match(context, element) &&
+        hasInitializer == element.hasInitializer &&
+        hasImplicitType == element.hasImplicitType &&
         isConst == element.isConst &&
         isFinal == element.isFinal &&
         isLate == element.isLate &&
+        isStatic == element.isStatic &&
+        shouldUseTypeForInitializerInference ==
+            element.shouldUseTypeForInitializerInference &&
         type.match(context, element.type) &&
         constInitializer.match(context, element.constantInitializer);
   }
@@ -1652,9 +1740,13 @@ sealed class VariableItem<E extends VariableElementImpl>
   @override
   void write(BufferedSink sink) {
     super.write(sink);
+    sink.writeBool(hasInitializer);
+    sink.writeBool(hasImplicitType);
     sink.writeBool(isConst);
     sink.writeBool(isFinal);
     sink.writeBool(isLate);
+    sink.writeBool(isStatic);
+    sink.writeBool(shouldUseTypeForInitializerInference);
     type.write(sink);
     constInitializer.writeOptional(sink);
   }
