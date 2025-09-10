@@ -4102,14 +4102,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   /// Performs the core type inference algorithm for super method invocations.
   ExpressionInferenceResult inferSuperMethodInvocation(
-    InferenceVisitor visitor,
-    Expression expression,
-    Name methodName,
-    ArgumentsImpl arguments,
-    DartType typeContext,
-    Procedure procedure,
-  ) {
-    int fileOffset = expression.fileOffset;
+    InferenceVisitor visitor, {
+    required Name name,
+    required ArgumentsImpl arguments,
+    required DartType typeContext,
+    required Procedure procedure,
+    required int fileOffset,
+  }) {
     ObjectAccessTarget target = thisType!.classNode.isMixinDeclaration
         ? new ObjectAccessTarget.interfaceMember(
             thisType!,
@@ -4123,7 +4122,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     );
     DartType calleeType = target.getGetterType(this);
     InvocationTargetType invocationTargetType = target.getFunctionType(this);
-    if (methodName == equalsName) {
+    if (name == equalsName) {
       switch (invocationTargetType) {
         case InvocationTargetFunctionType():
           FunctionType functionType = invocationTargetType.functionType;
@@ -4158,21 +4157,27 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       receiverType: receiverType,
     );
     DartType inferredType = result.inferredType;
-    if (methodName.text == '==') {
+    if (name.text == '==') {
       inferredType = coreTypes.boolRawType(Nullability.nonNullable);
     }
     _checkBoundsInMethodInvocation(
       target,
       receiverType,
       calleeType,
-      methodName,
+      name,
       arguments,
       fileOffset,
     );
-
     return new ExpressionInferenceResult(
       inferredType,
-      result.applyResult(expression),
+      result.applyResult(
+        createSuperMethodInvocation(
+          name,
+          procedure,
+          arguments,
+          fileOffset: fileOffset,
+        ),
+      ),
     );
   }
 

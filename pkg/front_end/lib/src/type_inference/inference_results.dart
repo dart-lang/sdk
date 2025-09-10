@@ -174,25 +174,7 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
       assert(
         expression is InvocationExpression || expression is InvalidExpression,
       );
-      if (expression is FactoryConstructorInvocation) {
-        // Coverage-ignore-block(suite): Not run.
-        return InvocationInferenceResult._insertHoistedExpressions(
-          expression,
-          hoistedArguments,
-        );
-      } else if (expression is TypeAliasedConstructorInvocation) {
-        // Coverage-ignore-block(suite): Not run.
-        return InvocationInferenceResult._insertHoistedExpressions(
-          expression,
-          hoistedArguments,
-        );
-      } else if (expression is TypeAliasedFactoryInvocation) {
-        // Coverage-ignore-block(suite): Not run.
-        return InvocationInferenceResult._insertHoistedExpressions(
-          expression,
-          hoistedArguments,
-        );
-      } else if (expression is ConstructorInvocation) {
+      if (expression is ConstructorInvocation) {
         return InvocationInferenceResult._insertHoistedExpressions(
           expression,
           hoistedArguments,

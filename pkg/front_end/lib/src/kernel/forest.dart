@@ -777,13 +777,13 @@ class Forest {
     )..fileOffset = fileOffset;
   }
 
-  SuperMethodInvocation createSuperMethodInvocation(
+  Expression createSuperMethodInvocation(
     int fileOffset,
     Name name,
     Procedure procedure,
     ArgumentsImpl arguments,
   ) {
-    return new SuperMethodInvocation(name, arguments, procedure)
+    return new InternalSuperMethodInvocation(name, arguments, procedure)
       ..fileOffset = fileOffset;
   }
 

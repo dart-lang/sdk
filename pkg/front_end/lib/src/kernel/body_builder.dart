@@ -1262,7 +1262,7 @@ class BodyBuilder extends StackListenerImpl
       initializers = <Initializer>[node];
     } else if (node is Generator) {
       initializers = node.buildFieldInitializer(initializedFields);
-    } else if (node is ConstructorInvocation) {
+    } else if (node is InternalConstructorInvocation) {
       // Coverage-ignore-block(suite): Not run.
       initializers = <Initializer>[
         // TODO(jensj): Does this offset make sense?
@@ -7248,8 +7248,11 @@ class BodyBuilder extends StackListenerImpl
       }
       Expression node;
       if (typeAliasBuilder == null) {
-        node = new ConstructorInvocation(target, arguments, isConst: isConst)
-          ..fileOffset = fileOffset;
+        node = new InternalConstructorInvocation(
+          target,
+          arguments,
+          isConst: isConst,
+        )..fileOffset = fileOffset;
         libraryBuilder.checkBoundsInConstructorInvocation(
           constructor: target,
           typeArguments: arguments.types,
@@ -7326,7 +7329,7 @@ class BodyBuilder extends StackListenerImpl
   @override
   Expression buildStaticInvocation({
     required Procedure target,
-    required Arguments arguments,
+    required ArgumentsImpl arguments,
     required int fileOffset,
   }) {
     Expression? result = checkStaticArguments(
@@ -7338,7 +7341,7 @@ class BodyBuilder extends StackListenerImpl
       return result;
     }
 
-    return new StaticInvocation(target, arguments, isConst: false)
+    return new InternalStaticInvocation(target.name, target, arguments)
       ..fileOffset = fileOffset;
   }
 
@@ -11012,14 +11015,12 @@ class BodyBuilder extends StackListenerImpl
         );
         MemberBuilder constructor = libraryBuilder.loader
             .getDuplicatedFieldInitializerError();
-        Expression invocation = buildConstructorInvocation(
-          constructor.invokeTarget!,
-          forest.createArguments(assignmentOffset, <Expression>[
-            forest.createStringLiteral(assignmentOffset, name),
-          ]),
-          constness: Constness.explicitNew,
-          fileOffset: assignmentOffset,
-        );
+        Expression invocation = new ConstructorInvocation(
+          constructor.invokeTarget as Constructor,
+          new Arguments([
+            new StringLiteral(name)..fileOffset = assignmentOffset,
+          ])..fileOffset = assignmentOffset,
+        )..fileOffset = assignmentOffset;
         return <Initializer>[
           builder.buildErroneousInitializer(
             forest.createThrow(assignmentOffset, invocation),
@@ -11427,7 +11428,7 @@ class BodyBuilder extends StackListenerImpl
         kind: UnresolvedKind.Method,
       );
     } else if (target is Procedure && !target.isAccessor) {
-      return new SuperMethodInvocation(name, arguments, target)
+      return new InternalSuperMethodInvocation(name, arguments, target)
         ..fileOffset = offset;
     }
     if (isImplicitCall) {
