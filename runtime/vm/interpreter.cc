@@ -260,6 +260,7 @@ DART_FORCE_INLINE static bool TryAllocate(Thread* thread,
                                           ObjectPtr* result) {
   ASSERT(instance_size > 0);
   ASSERT(Utils::IsAligned(instance_size, kObjectAlignment));
+  ASSERT(IsAllocatableInNewSpace(instance_size));
 
   const uword top = thread->top();
   const intptr_t remaining = thread->end() - top;
@@ -1532,7 +1533,9 @@ bool Interpreter::AllocateArray(Thread* thread,
                                 ObjectPtr* SP) {
   if (LIKELY(!length_object->IsHeapObject())) {
     const intptr_t length = Smi::Value(Smi::RawCast(length_object));
-    if (LIKELY(Array::IsValidLength(length))) {
+    if (LIKELY(static_cast<uintptr_t>(length) <=
+               static_cast<uintptr_t>(Array::kMaxNewSpaceElements))) {
+      ASSERT(Array::IsValidLength(length));
       ArrayPtr result;
       if (TryAllocate(thread, kArrayCid, Array::InstanceSize(length),
                       reinterpret_cast<ObjectPtr*>(&result))) {
