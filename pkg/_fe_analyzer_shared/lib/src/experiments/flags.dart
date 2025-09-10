@@ -109,7 +109,7 @@ enum ExperimentalFlag {
   getterSetterError(
     name: 'getter-setter-error',
     isEnabledByDefault: true,
-    isExpired: false,
+    isExpired: true,
     experimentEnabledVersion: const Version(3, 9),
     experimentReleasedVersion: const Version(3, 9),
   ),
@@ -181,7 +181,7 @@ enum ExperimentalFlag {
   nativeAssets(
     name: 'native-assets',
     isEnabledByDefault: true,
-    isExpired: false,
+    isExpired: true,
     experimentEnabledVersion: const Version(3, 9),
     experimentReleasedVersion: const Version(3, 9),
   ),
@@ -205,7 +205,7 @@ enum ExperimentalFlag {
   nullAwareElements(
     name: 'null-aware-elements',
     isEnabledByDefault: true,
-    isExpired: false,
+    isExpired: true,
     experimentEnabledVersion: const Version(3, 8),
     experimentReleasedVersion: const Version(3, 8),
   ),
@@ -253,7 +253,7 @@ enum ExperimentalFlag {
   soundFlowAnalysis(
     name: 'sound-flow-analysis',
     isEnabledByDefault: true,
-    isExpired: false,
+    isExpired: true,
     experimentEnabledVersion: const Version(3, 9),
     experimentReleasedVersion: const Version(3, 9),
   ),

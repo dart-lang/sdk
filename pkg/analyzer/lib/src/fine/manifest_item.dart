@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/binary/binary_reader.dart';
 import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/fine/lookup_name.dart';
 import 'package:analyzer/src/fine/manifest_ast.dart';
 import 'package:analyzer/src/fine/manifest_context.dart';
@@ -144,6 +145,8 @@ class ConstructorItem extends ExecutableItem<ConstructorElementImpl> {
   final bool isConst;
   final bool isFactory;
   final List<ManifestNode> constantInitializers;
+  final ManifestElement? redirectedConstructor;
+  final ManifestElement? superConstructor;
 
   ConstructorItem({
     required super.id,
@@ -161,6 +164,8 @@ class ConstructorItem extends ExecutableItem<ConstructorElementImpl> {
     required this.isConst,
     required this.isFactory,
     required this.constantInitializers,
+    required this.redirectedConstructor,
+    required this.superConstructor,
   });
 
   factory ConstructorItem.fromElement({
@@ -188,6 +193,14 @@ class ConstructorItem extends ExecutableItem<ConstructorElementImpl> {
         constantInitializers: element.constantInitializers
             .map((initializer) => ManifestNode.encode(context, initializer))
             .toFixedList(),
+        redirectedConstructor: ManifestElement.encodeOptional(
+          context,
+          element.redirectedConstructor,
+        ),
+        superConstructor: ManifestElement.encodeOptional(
+          context,
+          element.superConstructor,
+        ),
       );
     });
   }
@@ -209,6 +222,8 @@ class ConstructorItem extends ExecutableItem<ConstructorElementImpl> {
       isConst: reader.readBool(),
       isFactory: reader.readBool(),
       constantInitializers: ManifestNode.readList(reader),
+      redirectedConstructor: ManifestElement.readOptional(reader),
+      superConstructor: ManifestElement.readOptional(reader),
     );
   }
 
@@ -218,7 +233,9 @@ class ConstructorItem extends ExecutableItem<ConstructorElementImpl> {
       return super.match(context, element) &&
           isConst == element.isConst &&
           isFactory == element.isFactory &&
-          constantInitializers.match(context, element.constantInitializers);
+          constantInitializers.match(context, element.constantInitializers) &&
+          redirectedConstructor.match(context, element.redirectedConstructor) &&
+          superConstructor.match(context, element.superConstructor);
     });
   }
 
@@ -228,6 +245,8 @@ class ConstructorItem extends ExecutableItem<ConstructorElementImpl> {
     sink.writeBool(isConst);
     sink.writeBool(isFactory);
     constantInitializers.writeList(sink);
+    redirectedConstructor.writeOptional(sink);
+    superConstructor.writeOptional(sink);
   }
 
   static Map<LookupName, ConstructorItem> readMap(SummaryDataReader reader) {
@@ -1187,6 +1206,9 @@ class ManifestMetadata {
 }
 
 class MethodItem extends ExecutableItem<MethodElementImpl> {
+  final bool isOperatorEqualWithParameterTypeFromObject;
+  final TopLevelInferenceError? typeInferenceError;
+
   MethodItem({
     required super.id,
     required super.isSynthetic,
@@ -1200,6 +1222,8 @@ class MethodItem extends ExecutableItem<MethodElementImpl> {
     required super.isSimplyBounded,
     required super.isStatic,
     required super.functionType,
+    required this.isOperatorEqualWithParameterTypeFromObject,
+    required this.typeInferenceError,
   });
 
   factory MethodItem.fromElement({
@@ -1221,6 +1245,9 @@ class MethodItem extends ExecutableItem<MethodElementImpl> {
       isSimplyBounded: element.isSimplyBounded,
       isStatic: element.isStatic,
       functionType: element.type.encode(context),
+      isOperatorEqualWithParameterTypeFromObject:
+          element.isOperatorEqualWithParameterTypeFromObject,
+      typeInferenceError: element.typeInferenceError,
     );
   }
 
@@ -1238,7 +1265,24 @@ class MethodItem extends ExecutableItem<MethodElementImpl> {
       isSimplyBounded: reader.readBool(),
       isStatic: reader.readBool(),
       functionType: ManifestFunctionType.read(reader),
+      isOperatorEqualWithParameterTypeFromObject: reader.readBool(),
+      typeInferenceError: TopLevelInferenceError.readOptional(reader),
     );
+  }
+
+  @override
+  bool match(MatchContext context, MethodElementImpl element) {
+    return super.match(context, element) &&
+        isOperatorEqualWithParameterTypeFromObject ==
+            element.isOperatorEqualWithParameterTypeFromObject &&
+        typeInferenceError == element.typeInferenceError;
+  }
+
+  @override
+  void write(BufferedSink sink) {
+    super.write(sink);
+    sink.writeBool(isOperatorEqualWithParameterTypeFromObject);
+    typeInferenceError.writeOptional(sink);
   }
 
   static Map<LookupName, MethodItem> readMap(SummaryDataReader reader) {

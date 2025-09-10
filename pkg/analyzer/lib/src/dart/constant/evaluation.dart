@@ -164,7 +164,7 @@ class ConstantEvaluationEngine {
         // the dependency graph to ensure that any constants referred to in
         // initializer lists and parameter defaults are evaluated before
         // invocations of the constructor.
-        constant.firstFragment.isConstantEvaluated = true;
+        constant.isConstantEvaluated = true;
       }
     } else if (constant is ElementAnnotationImpl) {
       var constNode = constant.annotationAst;
@@ -2811,7 +2811,7 @@ class _InstanceCreationEvaluator {
   late final DiagnosticReporter _externalDiagnosticReporter =
       DiagnosticReporter(
         _externalDiagnosticListener,
-        _constructor.firstFragment.libraryFragment.source,
+        _constructor.baseElement.firstFragmentLocation.libraryFragment!.source,
       );
 
   late final ConstantVisitor _initializerVisitor = ConstantVisitor(
@@ -3560,7 +3560,7 @@ class _InstanceCreationEvaluator {
       );
     }
 
-    if (!constructor.baseElement.firstFragment.isCycleFree) {
+    if (!constructor.baseElement.isCycleFree) {
       // It's not safe to evaluate this constructor, so bail out.
       //
       // Instead of reporting an error at the call-sites, we will report an

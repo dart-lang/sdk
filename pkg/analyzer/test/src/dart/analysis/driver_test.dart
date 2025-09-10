@@ -15173,7 +15173,7 @@ class A {
     declaredClasses
       B: #M3
         declaredConstructors
-          foo: #M4
+          foo: #M7
         interface: #M5
   requirements
     libraries
@@ -44471,142 +44471,6 @@ class B extends A {
     );
   }
 
-  test_manifest_class_constructor_isConst_falseToTrue() async {
-    await _runLibraryManifestScenario(
-      initialCode: r'''
-class A {
-  A.foo();
-}
-''',
-      expectedInitialEvents: r'''
-[operation] linkLibraryCycle SDK
-[operation] linkLibraryCycle
-  package:test/test.dart
-    declaredClasses
-      A: #M0
-        declaredConstructors
-          foo: #M1
-        interface: #M2
-''',
-      updatedCode: r'''
-class A {
-  const A.foo();
-}
-''',
-      expectedUpdatedEvents: r'''
-[operation] linkLibraryCycle
-  package:test/test.dart
-    declaredClasses
-      A: #M0
-        declaredConstructors
-          foo: #M3
-        interface: #M2
-''',
-    );
-  }
-
-  test_manifest_class_constructor_isConst_trueToFalse() async {
-    await _runLibraryManifestScenario(
-      initialCode: r'''
-class A {
-  const A.foo();
-}
-''',
-      expectedInitialEvents: r'''
-[operation] linkLibraryCycle SDK
-[operation] linkLibraryCycle
-  package:test/test.dart
-    declaredClasses
-      A: #M0
-        declaredConstructors
-          foo: #M1
-        interface: #M2
-''',
-      updatedCode: r'''
-class A {
-  A.foo() {}
-}
-''',
-      expectedUpdatedEvents: r'''
-[operation] linkLibraryCycle
-  package:test/test.dart
-    declaredClasses
-      A: #M0
-        declaredConstructors
-          foo: #M3
-        interface: #M2
-''',
-    );
-  }
-
-  test_manifest_class_constructor_isFactory_falseToTrue() async {
-    await _runLibraryManifestScenario(
-      initialCode: r'''
-class A {
-  A.foo();
-}
-''',
-      expectedInitialEvents: r'''
-[operation] linkLibraryCycle SDK
-[operation] linkLibraryCycle
-  package:test/test.dart
-    declaredClasses
-      A: #M0
-        declaredConstructors
-          foo: #M1
-        interface: #M2
-''',
-      updatedCode: r'''
-class A {
-  factory A.foo();
-}
-''',
-      expectedUpdatedEvents: r'''
-[operation] linkLibraryCycle
-  package:test/test.dart
-    declaredClasses
-      A: #M0
-        declaredConstructors
-          foo: #M3
-        interface: #M2
-''',
-    );
-  }
-
-  test_manifest_class_constructor_isFactory_trueToFalse() async {
-    await _runLibraryManifestScenario(
-      initialCode: r'''
-class A {
-  factory A.foo();
-}
-''',
-      expectedInitialEvents: r'''
-[operation] linkLibraryCycle SDK
-[operation] linkLibraryCycle
-  package:test/test.dart
-    declaredClasses
-      A: #M0
-        declaredConstructors
-          foo: #M1
-        interface: #M2
-''',
-      updatedCode: r'''
-class A {
-  A.foo();
-}
-''',
-      expectedUpdatedEvents: r'''
-[operation] linkLibraryCycle
-  package:test/test.dart
-    declaredClasses
-      A: #M0
-        declaredConstructors
-          foo: #M3
-        interface: #M2
-''',
-    );
-  }
-
   test_manifest_class_constructor_isSynthetic() async {
     configuration.includeDefaultConstructors();
     await _runLibraryManifestScenario(
@@ -44717,19 +44581,23 @@ class A {
               flags: hasEnclosingTypeParameterReference isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
-          foo2: #M2
+              superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
+          foo2: #M3
               flags: hasEnclosingTypeParameterReference isConst isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
-          foo3: #M3
+              superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
+          foo3: #M4
               flags: hasEnclosingTypeParameterReference isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
-          foo4: #M4
+              superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
+          foo4: #M5
               flags: hasEnclosingTypeParameterReference isConst isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
-        interface: #M5
+              superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
+        interface: #M6
 ''',
       updatedCode: r'''
 class A {
@@ -44750,19 +44618,23 @@ class A {
               flags: hasEnclosingTypeParameterReference isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
-          foo2: #M2
+              superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
+          foo2: #M3
               flags: hasEnclosingTypeParameterReference isConst isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
-          foo3: #M6
+              superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
+          foo3: #M7
               flags: hasEnclosingTypeParameterReference isConst isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
-          foo4: #M7
+              superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
+          foo4: #M8
               flags: hasEnclosingTypeParameterReference isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
-        interface: #M5
+              superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
+        interface: #M6
 ''',
     );
   }
@@ -44790,19 +44662,23 @@ class A {
               flags: hasEnclosingTypeParameterReference isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
-          foo2: #M2
+              superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
+          foo2: #M3
               flags: hasEnclosingTypeParameterReference isExternal isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
-          foo3: #M3
+              superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
+          foo3: #M4
               flags: hasEnclosingTypeParameterReference isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
-          foo4: #M4
+              superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
+          foo4: #M5
               flags: hasEnclosingTypeParameterReference isExternal isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
-        interface: #M5
+              superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
+        interface: #M6
 ''',
       updatedCode: r'''
 class A {
@@ -44823,19 +44699,23 @@ class A {
               flags: hasEnclosingTypeParameterReference isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
-          foo2: #M2
+              superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
+          foo2: #M3
               flags: hasEnclosingTypeParameterReference isExternal isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
-          foo3: #M6
+              superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
+          foo3: #M7
               flags: hasEnclosingTypeParameterReference isExternal isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
-          foo4: #M7
+              superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
+          foo4: #M8
               flags: hasEnclosingTypeParameterReference isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
-        interface: #M5
+              superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
+        interface: #M6
 ''',
     );
   }
@@ -44863,19 +44743,21 @@ class A {
               flags: hasEnclosingTypeParameterReference isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
-          foo2: #M2
+              superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
+          foo2: #M3
               flags: hasEnclosingTypeParameterReference isFactory isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
-          foo3: #M3
+          foo3: #M4
               flags: hasEnclosingTypeParameterReference isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
-          foo4: #M4
+              superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
+          foo4: #M5
               flags: hasEnclosingTypeParameterReference isFactory isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
-        interface: #M5
+        interface: #M6
 ''',
       updatedCode: r'''
 class A {
@@ -44896,19 +44778,21 @@ class A {
               flags: hasEnclosingTypeParameterReference isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
-          foo2: #M2
+              superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
+          foo2: #M3
               flags: hasEnclosingTypeParameterReference isFactory isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
-          foo3: #M6
+          foo3: #M7
               flags: hasEnclosingTypeParameterReference isFactory isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
-          foo4: #M7
+          foo4: #M8
               flags: hasEnclosingTypeParameterReference isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
-        interface: #M5
+              superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
+        interface: #M6
 ''',
     );
   }
@@ -44981,6 +44865,168 @@ class A {
           _foo: #M1
           bar: #M3
         interface: #M2
+''',
+    );
+  }
+
+  test_manifest_class_constructor_redirectingConstructor() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.foo1(int _);
+  A.foo2(int _);
+  A.foo3(int _) : this.foo1(0);
+  A.foo4(int _) : this.foo2(0);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredConstructors
+          foo1: #M1
+          foo2: #M2
+          foo3: #M3
+          foo4: #M4
+        interface: #M5
+''',
+      updatedCode: r'''
+class A {
+  A.foo1(int _);
+  A.foo2(double _);
+  A.foo3(int _) : this.foo1(0);
+  A.foo4(int _) : this.foo2(0);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredConstructors
+          foo1: #M1
+          foo2: #M6
+          foo3: #M3
+          foo4: #M7
+        interface: #M5
+''',
+    );
+  }
+
+  test_manifest_class_constructor_redirectingConstructor_factory() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  factory A.foo1(int _) = B.bar1;
+  factory A.foo2(int _) = B.bar2;
+}
+
+class B implements A {
+  B.bar1(int _);
+  B.bar2(int _);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredConstructors
+          foo1: #M1
+          foo2: #M2
+        interface: #M3
+      B: #M4
+        declaredConstructors
+          bar1: #M5
+          bar2: #M6
+        interface: #M7
+''',
+      updatedCode: r'''
+class A {
+  factory A.foo1(int _) = B.bar1;
+  factory A.foo2(int _) = B.bar2;
+}
+
+class B implements A {
+  B.bar1(int _);
+  B.bar2(double _);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredConstructors
+          foo1: #M1
+          foo2: #M8
+        interface: #M3
+      B: #M4
+        declaredConstructors
+          bar1: #M5
+          bar2: #M9
+        interface: #M7
+''',
+    );
+  }
+
+  test_manifest_class_constructor_superConstructor() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.foo1(int _);
+  A.foo2(int _);
+}
+
+class B extends A {
+  B.bar1(int _) : super.foo1();
+  B.bar2(int _) : super.foo2();
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredConstructors
+          foo1: #M1
+          foo2: #M2
+        interface: #M3
+      B: #M4
+        declaredConstructors
+          bar1: #M5
+          bar2: #M6
+        interface: #M7
+''',
+      updatedCode: r'''
+class A {
+  A.foo1(int _);
+  A.foo2(double _);
+}
+
+class B extends A {
+  B.bar1(int _) : super.foo1();
+  B.bar2(int _) : super.foo2();
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredConstructors
+          foo1: #M1
+          foo2: #M8
+        interface: #M3
+      B: #M4
+        declaredConstructors
+          bar1: #M5
+          bar2: #M9
+        interface: #M7
 ''',
     );
   }
@@ -51352,6 +51398,122 @@ class A {
     );
   }
 
+  test_manifest_class_method_modifier_isOperatorEqualWithParameterTypeFromObject() async {
+    configuration
+      ..withElementManifests = true
+      ..ignoredManifestInstanceMemberNames.remove('==');
+
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+abstract class A {
+  bool operator ==(other);
+}
+abstract class B {
+  bool operator ==(Object? other);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        flags: isAbstract
+        supertype: Object @ dart:core
+        declaredMethods
+          ==: #M1
+            flags: isAbstract isOperatorEqualWithParameterTypeFromObject isSimplyBounded
+            functionType: FunctionType
+              positional
+                required Object @ dart:core
+              returnType: bool @ dart:core
+        interface: #M2
+          map
+            ==: #M1
+          implemented
+            ==: #M3
+          superImplemented
+            [0]
+              ==: #M3
+          inherited
+            ==: #M3
+      B: #M4
+        flags: isAbstract
+        supertype: Object @ dart:core
+        declaredMethods
+          ==: #M5
+            flags: isAbstract isSimplyBounded
+            functionType: FunctionType
+              positional
+                required Object? @ dart:core
+              returnType: bool @ dart:core
+        interface: #M6
+          map
+            ==: #M5
+          implemented
+            ==: #M3
+          superImplemented
+            [0]
+              ==: #M3
+          inherited
+            ==: #M3
+''',
+      updatedCode: r'''
+abstract class A {
+  bool operator ==(Object? other);
+}
+abstract class B {
+  bool operator ==(other);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        flags: isAbstract
+        supertype: Object @ dart:core
+        declaredMethods
+          ==: #M7
+            flags: isAbstract isSimplyBounded
+            functionType: FunctionType
+              positional
+                required Object? @ dart:core
+              returnType: bool @ dart:core
+        interface: #M8
+          map
+            ==: #M7
+          implemented
+            ==: #M3
+          superImplemented
+            [0]
+              ==: #M3
+          inherited
+            ==: #M3
+      B: #M4
+        flags: isAbstract
+        supertype: Object @ dart:core
+        declaredMethods
+          ==: #M9
+            flags: isAbstract isOperatorEqualWithParameterTypeFromObject isSimplyBounded
+            functionType: FunctionType
+              positional
+                required Object @ dart:core
+              returnType: bool @ dart:core
+        interface: #M10
+          map
+            ==: #M9
+          implemented
+            ==: #M3
+          superImplemented
+            [0]
+              ==: #M3
+          inherited
+            ==: #M3
+''',
+    );
+  }
+
   test_manifest_class_method_modifier_isStatic() async {
     configuration.withElementManifests = true;
     await _runLibraryManifestScenario(
@@ -51433,6 +51595,134 @@ class A {
           implemented
             foo1: #M1
             foo4: #M7
+''',
+    );
+  }
+
+  test_manifest_class_method_modifier_typeInferenceError() async {
+    configuration.withElementManifests = true;
+
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+abstract class A {
+  void foo(double x);
+}
+abstract class B {
+  void foo(int x);
+}
+class C implements A, B {
+  void foo(x) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        flags: isAbstract
+        supertype: Object @ dart:core
+        declaredMethods
+          foo: #M1
+            flags: isAbstract isSimplyBounded
+            functionType: FunctionType
+              positional
+                required double @ dart:core
+              returnType: void
+        interface: #M2
+          map
+            foo: #M1
+      B: #M3
+        flags: isAbstract
+        supertype: Object @ dart:core
+        declaredMethods
+          foo: #M4
+            flags: isAbstract isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+        interface: #M5
+          map
+            foo: #M4
+      C: #M6
+        supertype: Object @ dart:core
+        interfaces
+          A @ package:test/test.dart
+          B @ package:test/test.dart
+        declaredMethods
+          foo: #M7
+            flags: isSimplyBounded
+            functionType: FunctionType
+              positional
+                required dynamic
+              returnType: void
+            inferenceError: overrideNoCombinedSuperSignature(A.foo (void Function(double)), B.foo (void Function(int)))
+        interface: #M8
+          map
+            foo: #M7
+          implemented
+            foo: #M7
+''',
+      updatedCode: r'''
+abstract class A {
+  void foo(String x);
+}
+abstract class B {
+  void foo(int x);
+}
+class C implements A, B {
+  void foo(x) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        flags: isAbstract
+        supertype: Object @ dart:core
+        declaredMethods
+          foo: #M9
+            flags: isAbstract isSimplyBounded
+            functionType: FunctionType
+              positional
+                required String @ dart:core
+              returnType: void
+        interface: #M10
+          map
+            foo: #M9
+      B: #M3
+        flags: isAbstract
+        supertype: Object @ dart:core
+        declaredMethods
+          foo: #M4
+            flags: isAbstract isSimplyBounded
+            functionType: FunctionType
+              positional
+                required int @ dart:core
+              returnType: void
+        interface: #M5
+          map
+            foo: #M4
+      C: #M6
+        supertype: Object @ dart:core
+        interfaces
+          A @ package:test/test.dart
+          B @ package:test/test.dart
+        declaredMethods
+          foo: #M11
+            flags: isSimplyBounded
+            functionType: FunctionType
+              positional
+                required dynamic
+              returnType: void
+            inferenceError: overrideNoCombinedSuperSignature(A.foo (void Function(String)), B.foo (void Function(int)))
+        interface: #M12
+          map
+            foo: #M11
+          implemented
+            foo: #M11
 ''',
     );
   }

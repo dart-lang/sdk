@@ -5,8 +5,6 @@
 // Checks that when `sound-flow-analysis` is enabled, each type in a promotion
 // chain is a proper subtype of the previous type (and of the declared type).
 
-// SharedOptions=--enable-experiment=sound-flow-analysis
-
 import '../static_type_helper.dart';
 
 class C {

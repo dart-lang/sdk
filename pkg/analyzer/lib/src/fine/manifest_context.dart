@@ -199,8 +199,19 @@ final class ManifestElement {
     );
   }
 
+  static ManifestElement? encodeOptional(
+    EncodeContext context,
+    Element? element,
+  ) {
+    return element != null ? encode(context, element) : null;
+  }
+
   static List<ManifestElement> readList(SummaryDataReader reader) {
     return reader.readTypedList(() => ManifestElement.read(reader));
+  }
+
+  static ManifestElement? readOptional(SummaryDataReader reader) {
+    return reader.readOptionalObject(() => ManifestElement.read(reader));
   }
 }
 
@@ -433,5 +444,20 @@ extension LinkedElementFactoryExtension on LinkedElementFactory {
         (throw '[runtimeType: ${element.runtimeType}]'
             '[topLevelName: $topLevelName]'
             '[memberName: $memberName]');
+  }
+}
+
+extension ManifestElementExtension on ManifestElement? {
+  bool match(MatchContext context, Element? element) {
+    if (this case var self?) {
+      return element != null && self.match(context, element);
+    }
+    return element == null;
+  }
+
+  void writeOptional(BufferedSink sink) {
+    sink.writeOptionalObject(this, (it) {
+      it.write(sink);
+    });
   }
 }

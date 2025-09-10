@@ -5,8 +5,6 @@
 // Exercises flow analysis of if-null expressions (expressions involving `??`)
 // when `sound-flow-analysis` is enabled.
 
-// SharedOptions=--enable-experiment=sound-flow-analysis
-
 // ignore_for_file: dead_null_aware_expression
 
 import '../static_type_helper.dart';

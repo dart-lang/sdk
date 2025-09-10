@@ -605,13 +605,16 @@ class ConstantInitializerImpl {
   ConstantInitializerImpl({required this.fragment, required this.expression});
 }
 
+@elementClass
 class ConstructorElementImpl extends ExecutableElementImpl
     with InternalConstructorElement
     implements ConstantEvaluationTarget {
   @override
+  @trackedIncludedInId
   final Reference reference;
 
   @override
+  @trackedIncludedInId
   final String? name;
 
   @override
@@ -628,6 +631,16 @@ class ConstructorElementImpl extends ExecutableElementImpl
   // So, ideally we should have some kind of "either" or "variant" here.
   InternalConstructorElement? _superConstructor;
 
+  /// For every constructor we initially set this flag to `true`, and then
+  /// set it to `false` during computing constant values if we detect that it
+  /// is a part of a cycle.
+  @trackedInternal
+  bool isCycleFree = true;
+
+  @override
+  @trackedInternal
+  bool isConstantEvaluated = false;
+
   ConstructorElementImpl({
     required this.name,
     required this.reference,
@@ -638,16 +651,19 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
+  @trackedIncludedInId
   ConstructorElementImpl get baseElement => this;
 
   /// The constant initializers for this element, from all fragments.
+  @trackedIncludedInId
   List<ConstructorInitializer> get constantInitializers {
-    return fragments
+    return _fragments
         .expand((fragment) => fragment.constantInitializers)
         .toList(growable: false);
   }
 
   @override
+  @trackedIndirectly
   String get displayName {
     var className = enclosingElement.name ?? '<null>';
     var name = this.name ?? '<null>';
@@ -659,59 +675,67 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
+  @trackedIndirectly
   InterfaceElementImpl get enclosingElement =>
       _firstFragment.enclosingFragment.element;
 
   @Deprecated('Use enclosingElement instead')
   @override
+  @trackedIndirectly
   InterfaceElementImpl get enclosingElement2 => enclosingElement;
 
   @override
-  ConstructorFragmentImpl get firstFragment => _firstFragment;
-
-  @override
-  List<ConstructorFragmentImpl> get fragments {
-    return [
-      for (
-        ConstructorFragmentImpl? fragment = _firstFragment;
-        fragment != null;
-        fragment = fragment.nextFragment
-      )
-        fragment,
-    ];
+  @trackedDirectlyOpaque
+  ConstructorFragmentImpl get firstFragment {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'firstFragment');
+    return _firstFragment;
   }
 
   @override
+  @trackedDirectlyOpaque
+  List<ConstructorFragmentImpl> get fragments {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'fragments');
+    return _fragments;
+  }
+
+  @override
+  @trackedIncludedInId
   bool get isConst => _firstFragment.isConst;
 
   @override
-  bool get isConstantEvaluated => _firstFragment.isConstantEvaluated;
-
-  @override
+  @trackedIndirectly
   bool get isDefaultConstructor => _firstFragment.isDefaultConstructor;
 
   @override
+  @trackedIncludedInId
   bool get isFactory => _firstFragment.isFactory;
 
   @override
-  bool get isGenerative => _firstFragment.isGenerative;
+  @trackedIndirectly
+  bool get isGenerative => !isFactory;
 
   @override
+  @trackedIncludedInId
   ElementKind get kind => ElementKind.CONSTRUCTOR;
 
   @override
+  @trackedDirectlyOpaque
   ConstructorFragmentImpl get lastFragment {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'lastFragment');
     return super.lastFragment as ConstructorFragmentImpl;
   }
 
   @override
+  @trackedInternal
   LibraryFragmentImpl get libraryFragment => _firstFragment.libraryFragment;
 
   @Deprecated('Use name instead')
   @override
+  @trackedIndirectly
   String? get name3 => name;
 
   @override
+  @trackedIncludedInId
   Element get nonSynthetic {
     if (isSynthetic) {
       return enclosingElement;
@@ -721,6 +745,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
+  @trackedIncludedInId
   InternalConstructorElement? get redirectedConstructor {
     _ensureReadResolution();
     return _redirectedConstructor;
@@ -732,11 +757,13 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @Deprecated('Use redirectedConstructor instead')
   @override
+  @trackedIndirectly
   InternalConstructorElement? get redirectedConstructor2 {
     return redirectedConstructor;
   }
 
   @override
+  @trackedIncludedInId
   InterfaceTypeImpl get returnType {
     var result = _returnType;
     if (result != null) {
@@ -747,6 +774,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
+  @trackedIncludedInId
   InternalConstructorElement? get superConstructor {
     _ensureReadResolution();
     return _superConstructor;
@@ -758,26 +786,44 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @Deprecated('Use superConstructor instead')
   @override
+  @trackedIndirectly
   InternalConstructorElement? get superConstructor2 {
     return superConstructor;
   }
 
   @override
+  List<ConstructorFragmentImpl> get _fragments {
+    return [
+      for (
+        ConstructorFragmentImpl? fragment = _firstFragment;
+        fragment != null;
+        fragment = fragment.nextFragment
+      )
+        fragment,
+    ];
+  }
+
+  @override
+  @trackedDirectlyOpaque
   T? accept<T>(ElementVisitor2<T> visitor) {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'accept');
     return visitor.visitConstructorElement(this);
   }
 
   @Deprecated('Use accept instead')
   @override
+  @trackedIndirectly
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @override
+  @trackedIndirectly
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeConstructorElement(this);
   }
 
   /// Ensures that dependencies of this constructor, such as default values
   /// of formal parameters, are evaluated.
+  @trackedInternal
   void computeConstantDependencies() {
     if (!isConstantEvaluated) {
       computeConstants(
@@ -789,6 +835,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
     }
   }
 
+  @trackedInternal
   void linkFragments(List<ConstructorFragmentImpl> fragments) {
     assert(identical(fragments[0], _firstFragment));
     fragments.reduce((previous, current) {
@@ -798,7 +845,9 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
+  @trackedDirectlyOpaque
   void visitChildren<T>(ElementVisitor2<T> visitor) {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'visitChildren');
     for (var child in children) {
       child.accept(visitor);
     }
@@ -839,14 +888,6 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
 
   @override
   ConstructorFragmentImpl? nextFragment;
-
-  /// For every constructor we initially set this flag to `true`, and then
-  /// set it to `false` during computing constant values if we detect that it
-  /// is a part of a cycle.
-  bool isCycleFree = true;
-
-  /// Return whether this constant is evaluated.
-  bool isConstantEvaluated = false;
 
   /// Initialize a newly created constructor element to have the given [name]
   /// and [offset].
@@ -2138,7 +2179,7 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   @override
   @trackedIncludedInId
   bool get hasImplicitReturnType {
-    for (var fragment in fragments) {
+    for (var fragment in _fragments) {
       if (!fragment.hasImplicitReturnType) {
         return false;
       }
@@ -2154,7 +2195,7 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   @override
   @trackedIncludedInId
   bool get isAbstract {
-    for (var fragment in fragments) {
+    for (var fragment in _fragments) {
       if (!fragment.isAbstract) {
         return false;
       }
@@ -2216,7 +2257,7 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   @trackedIncludedInId
   MetadataImpl get metadata {
     var annotations = <ElementAnnotationImpl>[];
-    for (var fragment in fragments) {
+    for (var fragment in _fragments) {
       annotations.addAll(fragment.metadata.annotations);
     }
     return MetadataImpl(annotations);
@@ -2284,6 +2325,8 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
 
   @override
   ExecutableFragmentImpl get _firstFragment;
+
+  List<ExecutableFragmentImpl> get _fragments;
 
   @override
   @trackedIndirectly
@@ -3949,15 +3992,10 @@ class GetterElementImpl extends PropertyAccessorElementImpl
   GetterFragmentImpl get firstFragment => _firstFragment;
 
   @override
+  @trackedDirectlyOpaque
   List<GetterFragmentImpl> get fragments {
-    return [
-      for (
-        GetterFragmentImpl? fragment = _firstFragment;
-        fragment != null;
-        fragment = fragment.nextFragment
-      )
-        fragment,
-    ];
+    globalResultRequirements?.recordOpaqueApiUse(this, 'fragments');
+    return _fragments;
   }
 
   @override
@@ -3983,6 +4021,18 @@ class GetterElementImpl extends PropertyAccessorElementImpl
       return variable.sinceSdkVersion;
     }
     return super.sinceSdkVersion;
+  }
+
+  @override
+  List<GetterFragmentImpl> get _fragments {
+    return [
+      for (
+        GetterFragmentImpl? fragment = _firstFragment;
+        fragment != null;
+        fragment = fragment.nextFragment
+      )
+        fragment,
+    ];
   }
 
   @override
@@ -7040,15 +7090,10 @@ class LocalFunctionElementImpl extends ExecutableElementImpl
   LocalFunctionFragmentImpl get firstFragment => _firstFragment;
 
   @override
+  @trackedDirectlyOpaque
   List<LocalFunctionFragmentImpl> get fragments {
-    return [
-      for (
-        LocalFunctionFragmentImpl? fragment = _firstFragment;
-        fragment != null;
-        fragment = fragment.nextFragment
-      )
-        fragment,
-    ];
+    globalResultRequirements?.recordOpaqueApiUse(this, 'fragments');
+    return _fragments;
   }
 
   @override
@@ -7060,6 +7105,18 @@ class LocalFunctionElementImpl extends ExecutableElementImpl
   @Deprecated('Use name instead')
   @override
   String? get name3 => name;
+
+  @override
+  List<LocalFunctionFragmentImpl> get _fragments {
+    return [
+      for (
+        LocalFunctionFragmentImpl? fragment = _firstFragment;
+        fragment != null;
+        fragment = fragment.nextFragment
+      )
+        fragment,
+    ];
+  }
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {
@@ -7649,12 +7706,15 @@ final class MetadataImpl implements Metadata {
   }
 }
 
+@elementClass
 class MethodElementImpl extends ExecutableElementImpl
     with InternalMethodElement {
   @override
+  @trackedIncludedInId
   final Reference reference;
 
   @override
+  @trackedIncludedInId
   final String? name;
 
   @override
@@ -7663,10 +7723,12 @@ class MethodElementImpl extends ExecutableElementImpl
   /// Is `true` if this method is `operator==`, and there is no explicit
   /// type specified for its formal parameter, in this method or in any
   /// overridden methods other than the one declared in `Object`.
+  @trackedIncludedInId
   bool isOperatorEqualWithParameterTypeFromObject = false;
 
   /// The error reported during type inference for this variable, or `null` if
   /// this variable is not a subject of type inference, or there was no error.
+  @trackedIncludedInId
   TopLevelInferenceError? typeInferenceError;
 
   MethodElementImpl({
@@ -7679,27 +7741,71 @@ class MethodElementImpl extends ExecutableElementImpl
   }
 
   @override
+  @trackedIncludedInId
   MethodElementImpl get baseElement => this;
 
   @override
+  @trackedIndirectly
   String get displayName {
     return lookupName ?? '<unnamed>';
   }
 
   @override
+  @trackedIncludedInId
   InstanceElementImpl get enclosingElement {
     return _firstFragment.enclosingFragment.element;
   }
 
   @Deprecated('Use enclosingElement instead')
   @override
+  @trackedIndirectly
   Element? get enclosingElement2 => enclosingElement;
 
   @override
-  MethodFragmentImpl get firstFragment => _firstFragment;
+  @trackedDirectlyOpaque
+  MethodFragmentImpl get firstFragment {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'firstFragment');
+    return _firstFragment;
+  }
 
   @override
+  @trackedDirectlyOpaque
   List<MethodFragmentImpl> get fragments {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'fragments');
+    return _fragments;
+  }
+
+  @override
+  @trackedIncludedInId
+  bool get isOperator => _firstFragment.isOperator;
+
+  @override
+  @trackedIncludedInId
+  ElementKind get kind => ElementKind.METHOD;
+
+  @override
+  @trackedDirectlyOpaque
+  MethodFragmentImpl get lastFragment {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'lastFragment');
+    return super.lastFragment as MethodFragmentImpl;
+  }
+
+  @override
+  @trackedIndirectly
+  String? get lookupName {
+    if (name == '-' && formalParameters.isEmpty) {
+      return 'unary-';
+    }
+    return name;
+  }
+
+  @Deprecated('Use name instead')
+  @override
+  @trackedIndirectly
+  String? get name3 => name;
+
+  @override
+  List<MethodFragmentImpl> get _fragments {
     return [
       for (
         MethodFragmentImpl? fragment = _firstFragment;
@@ -7711,42 +7817,24 @@ class MethodElementImpl extends ExecutableElementImpl
   }
 
   @override
-  bool get isOperator => _firstFragment.isOperator;
-
-  @override
-  ElementKind get kind => ElementKind.METHOD;
-
-  @override
-  MethodFragmentImpl get lastFragment {
-    return super.lastFragment as MethodFragmentImpl;
-  }
-
-  @override
-  String? get lookupName {
-    if (name == '-' && formalParameters.isEmpty) {
-      return 'unary-';
-    }
-    return name;
-  }
-
-  @Deprecated('Use name instead')
-  @override
-  String? get name3 => name;
-
-  @override
+  @trackedDirectlyOpaque
   T? accept<T>(ElementVisitor2<T> visitor) {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'accept');
     return visitor.visitMethodElement(this);
   }
 
   @Deprecated('Use accept instead')
   @override
+  @trackedIndirectly
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @override
+  @trackedIndirectly
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeMethodElement(this);
   }
 
+  @trackedInternal
   void linkFragments(List<MethodFragmentImpl> fragments) {
     assert(identical(fragments[0], _firstFragment));
     fragments.reduce((previous, current) {
@@ -9131,15 +9219,10 @@ class SetterElementImpl extends PropertyAccessorElementImpl
   SetterFragmentImpl get firstFragment => _firstFragment;
 
   @override
+  @trackedDirectlyOpaque
   List<SetterFragmentImpl> get fragments {
-    return [
-      for (
-        SetterFragmentImpl? fragment = _firstFragment;
-        fragment != null;
-        fragment = fragment.nextFragment
-      )
-        fragment,
-    ];
+    globalResultRequirements?.recordOpaqueApiUse(this, 'fragments');
+    return _fragments;
   }
 
   @override
@@ -9177,6 +9260,18 @@ class SetterElementImpl extends PropertyAccessorElementImpl
 
   FormalParameterElementImpl get valueFormalParameter {
     return formalParameters.single;
+  }
+
+  @override
+  List<SetterFragmentImpl> get _fragments {
+    return [
+      for (
+        SetterFragmentImpl? fragment = _firstFragment;
+        fragment != null;
+        fragment = fragment.nextFragment
+      )
+        fragment,
+    ];
   }
 
   @override
@@ -9436,9 +9531,11 @@ class SuperFormalParameterFragmentImpl extends FormalParameterFragmentImpl
   );
 }
 
+@elementClass
 class TopLevelFunctionElementImpl extends ExecutableElementImpl
     implements TopLevelFunctionElement {
   @override
+  @trackedIncludedInId
   final Reference reference;
 
   @override
@@ -9450,20 +9547,71 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl
   }
 
   @override
+  @trackedIncludedInId
   TopLevelFunctionElementImpl get baseElement => this;
 
   @override
+  @trackedIncludedInId
   LibraryElementImpl get enclosingElement => library;
 
   @Deprecated('Use enclosingElement instead')
   @override
+  @trackedIndirectly
   LibraryElementImpl get enclosingElement2 => enclosingElement;
 
   @override
-  TopLevelFunctionFragmentImpl get firstFragment => _firstFragment;
+  @trackedDirectlyOpaque
+  TopLevelFunctionFragmentImpl get firstFragment {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'firstFragment');
+    return _firstFragment;
+  }
 
   @override
+  @trackedDirectlyOpaque
   List<TopLevelFunctionFragmentImpl> get fragments {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'fragments');
+    return _fragments;
+  }
+
+  @override
+  @trackedIncludedInId
+  bool get isDartCoreIdentical {
+    return name == 'identical' && library.isDartCore;
+  }
+
+  @override
+  @trackedIndirectly
+  bool get isEntryPoint {
+    return displayName == TopLevelFunctionElement.MAIN_FUNCTION_NAME;
+  }
+
+  @override
+  @trackedIncludedInId
+  ElementKind get kind => ElementKind.FUNCTION;
+
+  @override
+  @trackedDirectlyOpaque
+  TopLevelFunctionFragmentImpl get lastFragment {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'lastFragment');
+    return super.lastFragment as TopLevelFunctionFragmentImpl;
+  }
+
+  @Deprecated('Use library instead')
+  @override
+  @trackedIncludedInId
+  LibraryElementImpl get library2 => library;
+
+  @override
+  @trackedIncludedInId
+  String? get name => _firstFragment.name;
+
+  @Deprecated('Use name instead')
+  @override
+  @trackedIndirectly
+  String? get name3 => name;
+
+  @override
+  List<TopLevelFunctionFragmentImpl> get _fragments {
     return [
       for (
         TopLevelFunctionFragmentImpl? fragment = _firstFragment;
@@ -9475,48 +9623,24 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl
   }
 
   @override
-  bool get isDartCoreIdentical {
-    return name == 'identical' && library.isDartCore;
-  }
-
-  @override
-  bool get isEntryPoint {
-    return displayName == TopLevelFunctionElement.MAIN_FUNCTION_NAME;
-  }
-
-  @override
-  ElementKind get kind => ElementKind.FUNCTION;
-
-  @override
-  TopLevelFunctionFragmentImpl get lastFragment {
-    return super.lastFragment as TopLevelFunctionFragmentImpl;
-  }
-
-  @Deprecated('Use library instead')
-  @override
-  LibraryElementImpl get library2 => library;
-
-  @override
-  String? get name => _firstFragment.name;
-
-  @Deprecated('Use name instead')
-  @override
-  String? get name3 => name;
-
-  @override
+  @trackedDirectlyOpaque
   T? accept<T>(ElementVisitor2<T> visitor) {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'accept');
     return visitor.visitTopLevelFunctionElement(this);
   }
 
   @Deprecated('Use accept instead')
   @override
+  @trackedIndirectly
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @override
+  @trackedIndirectly
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeTopLevelFunctionElement(this);
   }
 
+  @trackedInternal
   void linkFragments(List<TopLevelFunctionFragmentImpl> fragments) {
     assert(identical(fragments[0], _firstFragment));
     fragments.reduce((previous, current) {

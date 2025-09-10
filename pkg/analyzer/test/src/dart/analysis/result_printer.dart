@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
+import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/fine/library_manifest.dart';
 import 'package:analyzer/src/fine/lookup_name.dart';
 import 'package:analyzer/src/fine/manifest_ast.dart';
@@ -1306,9 +1307,17 @@ class LibraryManifestPrinter {
             sink.writelnWithIndent('$name: $idStr');
             if (configuration.withElementManifests) {
               sink.withIndent(() {
-                sink.writeFlags({..._executableItemFlags(item)});
+                sink.writeFlags({
+                  ..._executableItemFlags(item),
+                  'isOperatorEqualWithParameterTypeFromObject':
+                      item.isOperatorEqualWithParameterTypeFromObject,
+                });
                 _writeMetadata(item);
                 _writeNamedType('functionType', item.functionType);
+                _writeTopLevelInferenceError(
+                  'inferenceError',
+                  item.typeInferenceError,
+                );
               });
             }
           }
@@ -1341,6 +1350,14 @@ class LibraryManifestPrinter {
                   });
                   _writeMetadata(item);
                   _writeNamedType('functionType', item.functionType);
+                  _writelnNamedElement(
+                    'redirectedConstructor',
+                    item.redirectedConstructor,
+                  );
+                  _writelnNamedElement(
+                    'superConstructor',
+                    item.superConstructor,
+                  );
                 });
               });
             }
@@ -1476,6 +1493,13 @@ class LibraryManifestPrinter {
     sink.writeln('(${parts.join(', ')}) $idStr');
   }
 
+  void _writelnNamedElement(String name, ManifestElement? element) {
+    if (element != null) {
+      sink.writeWithIndent('$name: ');
+      _writelnElement(element);
+    }
+  }
+
   void _writeMetadata(ManifestItem item) {
     if (configuration.withElementManifests) {
       sink.writeElements(
@@ -1587,6 +1611,16 @@ class LibraryManifestPrinter {
         _writeMetadata(item);
         _writeNamedType('functionType', item.functionType);
       });
+    }
+  }
+
+  void _writeTopLevelInferenceError(
+    String name,
+    TopLevelInferenceError? error,
+  ) {
+    if (error != null) {
+      var arguments = error.arguments.join(', ');
+      sink.writelnWithIndent('$name: ${error.kind.name}($arguments)');
     }
   }
 
