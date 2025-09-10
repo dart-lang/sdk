@@ -266,18 +266,6 @@ class LibraryReader {
       var element = ClassElementImpl(reference, fragments.first);
       element.linkFragments(fragments);
 
-      element.withoutLoadingResolution(() {
-        var typeParameterFragments = fragments.first.typeParameters;
-        for (var i = 0; i < typeParameterFragments.length; i++) {
-          // Side effect: set element for the fragment.
-          TypeParameterElementImpl(firstFragment: typeParameterFragments[i]);
-          fragments.reduce((previous, current) {
-            previous.typeParameters[i].addFragment(current.typeParameters[i]);
-            return current;
-          });
-        }
-      });
-
       element.readModifiers(_reader);
       element.hasNonFinalField = _reader.readBool();
 
@@ -913,6 +901,7 @@ class LibraryReader {
         firstFragment: fragments.first,
       );
       element.linkFragments(fragments);
+
       element.readModifiers(_reader);
       element.typeInferenceError = _readTopLevelInferenceError();
 
@@ -970,6 +959,7 @@ class LibraryReader {
       var fragments = _readFragmentsById<MixinFragmentImpl>();
       var element = MixinElementImpl(reference, fragments.first);
       element.linkFragments(fragments);
+
       element.readModifiers(_reader);
       element.hasNonFinalField = _reader.readBool();
 

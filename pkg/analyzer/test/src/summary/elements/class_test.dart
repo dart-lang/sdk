@@ -23147,7 +23147,7 @@ library
         hasInitializer foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
-          type: double
+          type: int
           getter: <testLibrary>::@class::A::@getter::foo
           setter: <testLibrary>::@class::A::@setter::foo
       constructors
@@ -23158,7 +23158,7 @@ library
         synthetic foo
           reference: <testLibrary>::@class::A::@getter::foo
           firstFragment: #F6
-          returnType: double
+          returnType: int
           variable: <testLibrary>::@class::A::@field::foo
       setters
         synthetic foo
@@ -23167,7 +23167,7 @@ library
           formalParameters
             #E0 requiredPositional value
               firstFragment: #F8
-              type: double
+              type: int
           returnType: void
           variable: <testLibrary>::@class::A::@field::foo
 ''');
@@ -26901,6 +26901,521 @@ library
 ''');
   }
 
+  test_method_typeParameters_111() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo<T>(){}
+}
+augment class A {
+  augment void foo<T>(){}
+}
+augment class A {
+  augment void foo<T>(){}
+}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          methods
+            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F4
+              typeParameters
+                #F5 T (nameOffset:21) (firstTokenOffset:21) (offset:21)
+                  element: #E0 T
+                  nextFragment: #F6
+        #F2 class A (nameOffset:44) (firstTokenOffset:30) (offset:44)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          nextFragment: #F7
+          methods
+            #F4 augment foo (nameOffset:63) (firstTokenOffset:50) (offset:63)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F3
+              nextFragment: #F8
+              typeParameters
+                #F6 T (nameOffset:67) (firstTokenOffset:67) (offset:67)
+                  element: #E0 T
+                  previousFragment: #F5
+                  nextFragment: #F9
+        #F7 class A (nameOffset:90) (firstTokenOffset:76) (offset:90)
+          element: <testLibrary>::@class::A
+          previousFragment: #F2
+          methods
+            #F8 augment foo (nameOffset:109) (firstTokenOffset:96) (offset:109)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F4
+              typeParameters
+                #F9 T (nameOffset:113) (firstTokenOffset:113) (offset:113)
+                  element: #E0 T
+                  previousFragment: #F6
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          typeParameters
+            #E0 T
+              firstFragment: #F5
+          returnType: void
+''');
+  }
+
+  test_method_typeParameters_121() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo<T>(){}
+}
+augment class A {
+  augment void foo<T, U>(){}
+}
+augment class A {
+  augment void foo<T>(){}
+}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          methods
+            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F4
+              typeParameters
+                #F5 T (nameOffset:21) (firstTokenOffset:21) (offset:21)
+                  element: #E0 T
+                  nextFragment: #F6
+        #F2 class A (nameOffset:44) (firstTokenOffset:30) (offset:44)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          nextFragment: #F7
+          methods
+            #F4 augment foo (nameOffset:63) (firstTokenOffset:50) (offset:63)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F3
+              nextFragment: #F8
+              typeParameters
+                #F6 T (nameOffset:67) (firstTokenOffset:67) (offset:67)
+                  element: #E0 T
+                  previousFragment: #F5
+                  nextFragment: #F9
+        #F7 class A (nameOffset:93) (firstTokenOffset:79) (offset:93)
+          element: <testLibrary>::@class::A
+          previousFragment: #F2
+          methods
+            #F8 augment foo (nameOffset:112) (firstTokenOffset:99) (offset:112)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F4
+              typeParameters
+                #F9 T (nameOffset:116) (firstTokenOffset:116) (offset:116)
+                  element: #E0 T
+                  previousFragment: #F6
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          typeParameters
+            #E0 T
+              firstFragment: #F5
+          returnType: void
+''');
+  }
+
+  test_method_typeParameters_212() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo<T, U>(){}
+}
+augment class A {
+  augment void foo<T>(){}
+}
+augment class A {
+  augment void foo<T, U>(){}
+}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          methods
+            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F4
+              typeParameters
+                #F5 T (nameOffset:21) (firstTokenOffset:21) (offset:21)
+                  element: #E0 T
+                  nextFragment: #F6
+                #F7 U (nameOffset:24) (firstTokenOffset:24) (offset:24)
+                  element: #E1 U
+                  nextFragment: #F8
+        #F2 class A (nameOffset:47) (firstTokenOffset:33) (offset:47)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          nextFragment: #F9
+          methods
+            #F4 augment foo (nameOffset:66) (firstTokenOffset:53) (offset:66)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F3
+              nextFragment: #F10
+              typeParameters
+                #F6 T (nameOffset:70) (firstTokenOffset:70) (offset:70)
+                  element: #E0 T
+                  previousFragment: #F5
+                  nextFragment: #F11
+                #F8 U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
+                  element: #E1 U
+                  previousFragment: #F7
+                  nextFragment: #F12
+        #F9 class A (nameOffset:93) (firstTokenOffset:79) (offset:93)
+          element: <testLibrary>::@class::A
+          previousFragment: #F2
+          methods
+            #F10 augment foo (nameOffset:112) (firstTokenOffset:99) (offset:112)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F4
+              typeParameters
+                #F11 T (nameOffset:116) (firstTokenOffset:116) (offset:116)
+                  element: #E0 T
+                  previousFragment: #F6
+                #F12 U (nameOffset:119) (firstTokenOffset:119) (offset:119)
+                  element: #E1 U
+                  previousFragment: #F8
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          typeParameters
+            #E0 T
+              firstFragment: #F5
+            #E1 U
+              firstFragment: #F7
+          returnType: void
+''');
+  }
+
+  test_method_typeParameters_bounds_bounds_int_int() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo<T extends int>() {}
+}
+augment class A {
+  augment void foo<T extends int>() {}
+}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          methods
+            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F4
+              typeParameters
+                #F5 T (nameOffset:21) (firstTokenOffset:21) (offset:21)
+                  element: #E0 T
+                  nextFragment: #F6
+        #F2 class A (nameOffset:57) (firstTokenOffset:43) (offset:57)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          methods
+            #F4 augment foo (nameOffset:76) (firstTokenOffset:63) (offset:76)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F3
+              typeParameters
+                #F6 T (nameOffset:80) (firstTokenOffset:80) (offset:80)
+                  element: #E0 T
+                  previousFragment: #F5
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          typeParameters
+            #E0 T
+              firstFragment: #F5
+              bound: int
+          returnType: void
+''');
+  }
+
+  test_method_typeParameters_bounds_int_nothing() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo<T extends int>() {}
+}
+augment class A {
+  augment void foo<T>() {}
+}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          methods
+            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F4
+              typeParameters
+                #F5 T (nameOffset:21) (firstTokenOffset:21) (offset:21)
+                  element: #E0 T
+                  nextFragment: #F6
+        #F2 class A (nameOffset:57) (firstTokenOffset:43) (offset:57)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          methods
+            #F4 augment foo (nameOffset:76) (firstTokenOffset:63) (offset:76)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F3
+              typeParameters
+                #F6 T (nameOffset:80) (firstTokenOffset:80) (offset:80)
+                  element: #E0 T
+                  previousFragment: #F5
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          typeParameters
+            #E0 T
+              firstFragment: #F5
+              bound: int
+          returnType: void
+''');
+  }
+
+  test_method_typeParameters_bounds_int_string() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo<T extends int>() {}
+}
+augment class A {
+  augment void foo<T extends String>() {}
+}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          methods
+            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F4
+              typeParameters
+                #F5 T (nameOffset:21) (firstTokenOffset:21) (offset:21)
+                  element: #E0 T
+                  nextFragment: #F6
+        #F2 class A (nameOffset:57) (firstTokenOffset:43) (offset:57)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          methods
+            #F4 augment foo (nameOffset:76) (firstTokenOffset:63) (offset:76)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F3
+              typeParameters
+                #F6 T (nameOffset:80) (firstTokenOffset:80) (offset:80)
+                  element: #E0 T
+                  previousFragment: #F5
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          typeParameters
+            #E0 T
+              firstFragment: #F5
+              bound: int
+          returnType: void
+''');
+  }
+
+  test_method_typeParameters_bounds_nothing_int() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo<T>() {}
+}
+augment class A {
+  augment void foo<T extends int>() {}
+}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          methods
+            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F4
+              typeParameters
+                #F5 T (nameOffset:21) (firstTokenOffset:21) (offset:21)
+                  element: #E0 T
+                  nextFragment: #F6
+        #F2 class A (nameOffset:45) (firstTokenOffset:31) (offset:45)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          methods
+            #F4 augment foo (nameOffset:64) (firstTokenOffset:51) (offset:64)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F3
+              typeParameters
+                #F6 T (nameOffset:68) (firstTokenOffset:68) (offset:68)
+                  element: #E0 T
+                  previousFragment: #F5
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          typeParameters
+            #E0 T
+              firstFragment: #F5
+          returnType: void
+''');
+  }
+
+  test_method_typeParameters_differentNames() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo<T, U>() {}
+}
+
+augment class A {
+  augment void foo<U, T>() {}
+}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          methods
+            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F4
+              typeParameters
+                #F5 T (nameOffset:21) (firstTokenOffset:21) (offset:21)
+                  element: #E0 T
+                  nextFragment: #F6
+                #F7 U (nameOffset:24) (firstTokenOffset:24) (offset:24)
+                  element: #E1 U
+                  nextFragment: #F8
+        #F2 class A (nameOffset:49) (firstTokenOffset:35) (offset:49)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          methods
+            #F4 augment foo (nameOffset:68) (firstTokenOffset:55) (offset:68)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F3
+              typeParameters
+                #F6 U (nameOffset:72) (firstTokenOffset:72) (offset:72)
+                  element: #E0 T
+                  previousFragment: #F5
+                #F8 T (nameOffset:75) (firstTokenOffset:75) (offset:75)
+                  element: #E1 U
+                  previousFragment: #F7
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          typeParameters
+            #E0 T
+              firstFragment: #F5
+            #E1 U
+              firstFragment: #F7
+          returnType: void
+''');
+  }
+
   test_modifiers_abstract() async {
     var library = await buildLibrary(r'''
 abstract class A {}
@@ -27541,9 +28056,9 @@ library
 ''');
   }
 
-  test_typeParameters_bounds_01() async {
+  test_typeParameters_bounds_int_int() async {
     var library = await buildLibrary(r'''
-class A<T> {}
+class A<T extends int> {}
 augment class A<T extends int> {}
 ''');
 
@@ -27562,11 +28077,11 @@ library
             #F3 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
               nextFragment: #F4
-        #F2 class A (nameOffset:28) (firstTokenOffset:14) (offset:28)
+        #F2 class A (nameOffset:40) (firstTokenOffset:26) (offset:40)
           element: <testLibrary>::@class::A
           previousFragment: #F1
           typeParameters
-            #F4 T (nameOffset:30) (firstTokenOffset:30) (offset:30)
+            #F4 T (nameOffset:42) (firstTokenOffset:42) (offset:42)
               element: #E0 T
               previousFragment: #F3
   classes
@@ -27576,10 +28091,11 @@ library
       typeParameters
         #E0 T
           firstFragment: #F3
+          bound: int
 ''');
   }
 
-  test_typeParameters_bounds_10() async {
+  test_typeParameters_bounds_int_nothing() async {
     var library = await buildLibrary(r'''
 class A<T extends int> {}
 augment class A<T> {}
@@ -27618,46 +28134,7 @@ library
 ''');
   }
 
-  test_typeParameters_bounds_11() async {
-    var library = await buildLibrary(r'''
-class A<T extends int> {}
-augment class A<T extends int> {}
-''');
-
-    configuration.withConstructors = false;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  fragments
-    #F0 <testLibraryFragment>
-      element: <testLibrary>
-      classes
-        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
-          element: <testLibrary>::@class::A
-          nextFragment: #F2
-          typeParameters
-            #F3 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
-              element: #E0 T
-              nextFragment: #F4
-        #F2 class A (nameOffset:40) (firstTokenOffset:26) (offset:40)
-          element: <testLibrary>::@class::A
-          previousFragment: #F1
-          typeParameters
-            #F4 T (nameOffset:42) (firstTokenOffset:42) (offset:42)
-              element: #E0 T
-              previousFragment: #F3
-  classes
-    class A
-      reference: <testLibrary>::@class::A
-      firstFragment: #F1
-      typeParameters
-        #E0 T
-          firstFragment: #F3
-          bound: int
-''');
-  }
-
-  test_typeParameters_bounds_12() async {
+  test_typeParameters_bounds_int_string() async {
     var library = await buildLibrary(r'''
 class A<T extends int> {}
 augment class A<T extends String> {}
@@ -27696,14 +28173,13 @@ library
 ''');
   }
 
-  test_typeParameters_defaultType() async {
+  test_typeParameters_bounds_nothing_int() async {
     var library = await buildLibrary(r'''
-class A<T extends B> {}
-class B {}
-
-augment class A<T extends B> {}
+class A<T> {}
+augment class A<T extends int> {}
 ''');
 
+    configuration.withConstructors = false;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -27718,21 +28194,11 @@ library
             #F3 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
               nextFragment: #F4
-          constructors
-            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
-              element: <testLibrary>::@class::A::@constructor::new
-              typeName: A
-        #F6 class B (nameOffset:30) (firstTokenOffset:24) (offset:30)
-          element: <testLibrary>::@class::B
-          constructors
-            #F7 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
-              element: <testLibrary>::@class::B::@constructor::new
-              typeName: B
-        #F2 class A (nameOffset:50) (firstTokenOffset:36) (offset:50)
+        #F2 class A (nameOffset:28) (firstTokenOffset:14) (offset:28)
           element: <testLibrary>::@class::A
           previousFragment: #F1
           typeParameters
-            #F4 T (nameOffset:52) (firstTokenOffset:52) (offset:52)
+            #F4 T (nameOffset:30) (firstTokenOffset:30) (offset:30)
               element: #E0 T
               previousFragment: #F3
   classes
@@ -27742,18 +28208,6 @@ library
       typeParameters
         #E0 T
           firstFragment: #F3
-          bound: B
-      constructors
-        synthetic new
-          reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F5
-    class B
-      reference: <testLibrary>::@class::B
-      firstFragment: #F6
-      constructors
-        synthetic new
-          reference: <testLibrary>::@class::B::@constructor::new
-          firstFragment: #F7
 ''');
   }
 

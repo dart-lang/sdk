@@ -443,6 +443,10 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
       previous.addFragment(current);
       return current;
     });
+    TypeParameterFragmentImpl._linkFragments(
+      fragments,
+      getFragments: (f) => f.typeParameters,
+    );
   }
 
   @override
@@ -1015,12 +1019,6 @@ mixin DeferredResolutionReadingMixin {
     _applyResolutionConstantOffsets = callback;
   }
 
-  void withoutLoadingResolution(void Function() operation) {
-    _lockResolutionLoading++;
-    operation();
-    _lockResolutionLoading--;
-  }
-
   void _ensureReadResolution() {
     if (_lockResolutionLoading > 0) {
       return;
@@ -1036,6 +1034,12 @@ mixin DeferredResolutionReadingMixin {
         callback();
       }
     }
+  }
+
+  static void withoutLoadingResolution(void Function() operation) {
+    _lockResolutionLoading++;
+    operation();
+    _lockResolutionLoading--;
   }
 }
 
@@ -7860,6 +7864,10 @@ class MethodElementImpl extends ExecutableElementImpl
       previous.addFragment(current);
       return current;
     });
+    TypeParameterFragmentImpl._linkFragments(
+      fragments,
+      getFragments: (f) => f.typeParameters,
+    );
   }
 }
 
@@ -7922,6 +7930,11 @@ class MethodFragmentImpl extends ExecutableFragmentImpl
     fragment.element = element;
     fragment.previousFragment = this;
     nextFragment = fragment;
+  }
+
+  void addTypeParameter(TypeParameterFragmentImpl typeParameter) {
+    _typeParameters.add(typeParameter);
+    typeParameter.enclosingFragment = this;
   }
 }
 
@@ -8055,6 +8068,10 @@ class MixinElementImpl extends InterfaceElementImpl implements MixinElement {
       previous.addFragment(current);
       return current;
     });
+    TypeParameterFragmentImpl._linkFragments(
+      fragments,
+      getFragments: (f) => f.typeParameters,
+    );
   }
 }
 
@@ -10523,6 +10540,23 @@ class TypeParameterFragmentImpl extends FragmentImpl
     fragment.element = element;
     fragment.previousFragment = this;
     nextFragment = fragment;
+  }
+
+  static void _linkFragments<T extends FragmentImpl>(
+    List<T> fragments, {
+    required List<TypeParameterFragmentImpl> Function(T) getFragments,
+  }) {
+    DeferredResolutionReadingMixin.withoutLoadingResolution(() {
+      var firstFragments = getFragments(fragments.first);
+      for (var i = 0; i < firstFragments.length; i++) {
+        // Side effect: set element for the fragment.
+        TypeParameterElementImpl(firstFragment: firstFragments[i]);
+        fragments.reduce((previous, current) {
+          getFragments(previous)[i].addFragment(getFragments(current)[i]);
+          return current;
+        });
+      }
+    });
   }
 }
 

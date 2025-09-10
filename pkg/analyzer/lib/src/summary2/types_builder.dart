@@ -346,10 +346,14 @@ class TypesBuilder {
     var constraints = _toInterfaceTypeList(
       node.onClause?.superclassConstraints,
     );
-    element.superclassConstraints = constraints;
-    element.interfaces = _toInterfaceTypeList(
-      node.implementsClause?.interfaces,
-    );
+    element.superclassConstraints = [
+      ...element.superclassConstraints,
+      ...constraints,
+    ];
+    element.interfaces = [
+      ...element.interfaces,
+      ..._toInterfaceTypeList(node.implementsClause?.interfaces),
+    ];
   }
 
   NullabilitySuffix _nullability(AstNode node, bool hasQuestion) {
@@ -414,8 +418,9 @@ class TypesBuilder {
     if (type != null) {
       for (var variable in node.variables) {
         var variableFragment = variable.declaredFragment!;
-        var variableElement = variableFragment.element;
-        variableElement.type = type;
+        if (variableFragment.previousFragment == null) {
+          variableFragment.element.type = type;
+        }
       }
     }
   }
