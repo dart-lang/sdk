@@ -3957,9 +3957,11 @@ class GenericFunctionTypeFragmentImpl extends FragmentImpl
   List<TypeParameterFragmentImpl> get typeParameters2 => typeParameters;
 }
 
+@elementClass
 class GetterElementImpl extends PropertyAccessorElementImpl
     with InternalGetterElement {
   @override
+  @trackedIncludedInId
   Reference reference;
 
   @override
@@ -3975,21 +3977,28 @@ class GetterElementImpl extends PropertyAccessorElementImpl
   }
 
   @override
+  @trackedIncludedInId
   GetterElementImpl get baseElement => this;
 
   @override
+  @trackedIndirectly
   SetterElement? get correspondingSetter {
     return variable.setter;
   }
 
   @Deprecated('Use correspondingSetter instead')
   @override
+  @trackedIndirectly
   SetterElement? get correspondingSetter2 {
     return correspondingSetter;
   }
 
   @override
-  GetterFragmentImpl get firstFragment => _firstFragment;
+  @trackedDirectlyOpaque
+  GetterFragmentImpl get firstFragment {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'firstFragment');
+    return _firstFragment;
+  }
 
   @override
   @trackedDirectlyOpaque
@@ -3999,14 +4008,18 @@ class GetterElementImpl extends PropertyAccessorElementImpl
   }
 
   @override
+  @trackedIncludedInId
   ElementKind get kind => ElementKind.GETTER;
 
   @override
+  @trackedDirectlyOpaque
   GetterFragmentImpl get lastFragment {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'lastFragment');
     return super.lastFragment as GetterFragmentImpl;
   }
 
   @override
+  @trackedIndirectly
   Element get nonSynthetic {
     if (isSynthetic) {
       return variable.nonSynthetic;
@@ -4016,6 +4029,7 @@ class GetterElementImpl extends PropertyAccessorElementImpl
   }
 
   @override
+  @trackedIndirectly
   Version? get sinceSdkVersion {
     if (isSynthetic) {
       return variable.sinceSdkVersion;
@@ -4036,19 +4050,24 @@ class GetterElementImpl extends PropertyAccessorElementImpl
   }
 
   @override
+  @trackedDirectlyOpaque
   T? accept<T>(ElementVisitor2<T> visitor) {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'accept');
     return visitor.visitGetterElement(this);
   }
 
   @Deprecated('Use accept instead')
   @override
+  @trackedIndirectly
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @override
+  @trackedIndirectly
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeGetterElement(this);
   }
 
+  @trackedInternal
   void linkFragments(List<GetterFragmentImpl> fragments) {
     assert(identical(fragments[0], _firstFragment));
     fragments.reduce((previous, current) {
@@ -8888,18 +8907,22 @@ class PrefixFragmentImpl extends FragmentImpl implements PrefixFragment {
 
 abstract class PromotableElementImpl extends VariableElementImpl {}
 
+@elementClass
 abstract class PropertyAccessorElementImpl extends ExecutableElementImpl
     with InternalPropertyAccessorElement {
   PropertyInducingElementImpl? _variable3;
 
   @override
+  @trackedIncludedInId
   PropertyAccessorElementImpl get baseElement => this;
 
   @override
+  @trackedIncludedInId
   Element get enclosingElement => _firstFragment.enclosingFragment.element;
 
   @Deprecated('Use enclosingElement instead')
   @override
+  @trackedIndirectly
   Element get enclosingElement2 => enclosingElement;
 
   @override
@@ -8909,15 +8932,19 @@ abstract class PropertyAccessorElementImpl extends ExecutableElementImpl
   List<PropertyAccessorFragmentImpl> get fragments;
 
   @override
+  @trackedDirectlyOpaque
   PropertyAccessorFragmentImpl get lastFragment {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'lastFragment');
     return super.lastFragment as PropertyAccessorFragmentImpl;
   }
 
   @override
+  @trackedIncludedInId
   String? get name => _firstFragment.name;
 
   @Deprecated('Use name instead')
   @override
+  @trackedIndirectly
   String? get name3 => name;
 
   @override
@@ -8940,7 +8967,7 @@ abstract class PropertyAccessorElementImpl extends ExecutableElementImpl
 
   @Deprecated('Use variable instead')
   @override
-  @trackedDirectly
+  @trackedIndirectly
   PropertyInducingElementImpl? get variable3 {
     return variable;
   }
@@ -9177,9 +9204,11 @@ abstract class PropertyInducingFragmentImpl
   MetadataImpl get metadata2 => metadata;
 }
 
+@elementClass
 class SetterElementImpl extends PropertyAccessorElementImpl
     with InternalSetterElement {
   @override
+  @trackedIncludedInId
   Reference reference;
 
   @override
@@ -9195,28 +9224,37 @@ class SetterElementImpl extends PropertyAccessorElementImpl
   }
 
   @override
+  @trackedIncludedInId
   SetterElementImpl get baseElement => this;
 
   @override
+  @trackedIndirectly
   GetterElement? get correspondingGetter {
     return variable.getter;
   }
 
   @Deprecated('Use correspondingGetter instead')
   @override
+  @trackedIndirectly
   GetterElement? get correspondingGetter2 {
     return correspondingGetter;
   }
 
   @override
+  @trackedIncludedInId
   Element get enclosingElement => _firstFragment.enclosingFragment.element;
 
   @Deprecated('Use enclosingElement instead')
   @override
+  @trackedIndirectly
   Element get enclosingElement2 => enclosingElement;
 
   @override
-  SetterFragmentImpl get firstFragment => _firstFragment;
+  @trackedDirectlyOpaque
+  SetterFragmentImpl get firstFragment {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'firstFragment');
+    return _firstFragment;
+  }
 
   @override
   @trackedDirectlyOpaque
@@ -9226,14 +9264,18 @@ class SetterElementImpl extends PropertyAccessorElementImpl
   }
 
   @override
+  @trackedIncludedInId
   ElementKind get kind => ElementKind.SETTER;
 
   @override
+  @trackedDirectlyOpaque
   SetterFragmentImpl get lastFragment {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'lastFragment');
     return super.lastFragment as SetterFragmentImpl;
   }
 
   @override
+  @trackedIndirectly
   String? get lookupName {
     if (name case var name?) {
       return '$name=';
@@ -9242,6 +9284,7 @@ class SetterElementImpl extends PropertyAccessorElementImpl
   }
 
   @override
+  @trackedIndirectly
   Element get nonSynthetic {
     if (isSynthetic) {
       return variable.nonSynthetic;
@@ -9251,6 +9294,7 @@ class SetterElementImpl extends PropertyAccessorElementImpl
   }
 
   @override
+  @trackedIndirectly
   Version? get sinceSdkVersion {
     if (isSynthetic) {
       return variable.sinceSdkVersion;
@@ -9258,6 +9302,7 @@ class SetterElementImpl extends PropertyAccessorElementImpl
     return super.sinceSdkVersion;
   }
 
+  @trackedIncludedInId
   FormalParameterElementImpl get valueFormalParameter {
     return formalParameters.single;
   }
@@ -9275,19 +9320,24 @@ class SetterElementImpl extends PropertyAccessorElementImpl
   }
 
   @override
+  @trackedDirectlyOpaque
   T? accept<T>(ElementVisitor2<T> visitor) {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'accept');
     return visitor.visitSetterElement(this);
   }
 
   @Deprecated('Use accept instead')
   @override
+  @trackedIndirectly
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @override
+  @trackedIndirectly
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeSetterElement(this);
   }
 
+  @trackedInternal
   void linkFragments(List<SetterFragmentImpl> fragments) {
     assert(identical(fragments[0], _firstFragment));
     fragments.reduce((previous, current) {

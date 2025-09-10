@@ -74359,6 +74359,124 @@ extension on int {
     );
   }
 
+  test_req_instanceElement_fieldElement_getter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  int foo = 0;
+}
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+''');
+
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeInstanceElement('A');
+      A.getField('foo')!.getter;
+    });
+
+    await _runManualRequirementsRecording(
+      expectedEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredGetters
+          foo: #M2
+        declaredSetters
+          foo=: #M3
+        interface: #M4
+          map
+            foo: #M2
+            foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+            requestedDeclaredGetters
+              foo: #M2
+[status] idle
+''',
+    );
+  }
+
+  test_req_instanceElement_fieldElement_setter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  int foo = 0;
+}
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+''');
+
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeInstanceElement('A');
+      A.getField('foo')!.setter;
+    });
+
+    await _runManualRequirementsRecording(
+      expectedEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredGetters
+          foo: #M2
+        declaredSetters
+          foo=: #M3
+        interface: #M4
+          map
+            foo: #M2
+            foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+            requestedDeclaredSetters
+              foo=: #M3
+[status] idle
+''',
+    );
+  }
+
   test_req_instanceElement_fields() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
@@ -74648,6 +74766,126 @@ import 'a.dart';
     );
   }
 
+  test_req_instanceElement_getterElement_correspondingSetter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  int foo = 0;
+}
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+''');
+
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeInstanceElement('A');
+      A.getGetter('foo')!.correspondingSetter;
+    });
+
+    await _runManualRequirementsRecording(
+      expectedEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredGetters
+          foo: #M2
+        declaredSetters
+          foo=: #M3
+        interface: #M4
+          map
+            foo: #M2
+            foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+            requestedDeclaredGetters
+              foo: #M2
+            requestedDeclaredSetters
+              foo=: #M3
+[status] idle
+''',
+    );
+  }
+
+  test_req_instanceElement_getterElement_nonSynthetic() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  int foo = 0;
+}
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+''');
+
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeInstanceElement('A');
+      A.getGetter('foo')!.nonSynthetic;
+    });
+
+    await _runManualRequirementsRecording(
+      expectedEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredGetters
+          foo: #M2
+        declaredSetters
+          foo=: #M3
+        interface: #M4
+          map
+            foo: #M2
+            foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+            requestedDeclaredGetters
+              foo: #M2
+[status] idle
+''',
+    );
+  }
+
   test_req_instanceElement_getterElement_variable() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
@@ -74855,6 +75093,126 @@ import 'a.dart';
         instances
           A
             allDeclaredMethods: #M1
+[status] idle
+''',
+    );
+  }
+
+  test_req_instanceElement_setterElement_correspondingGetter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  int foo = 0;
+}
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+''');
+
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeInstanceElement('A');
+      A.getSetter('foo')!.correspondingGetter;
+    });
+
+    await _runManualRequirementsRecording(
+      expectedEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredGetters
+          foo: #M2
+        declaredSetters
+          foo=: #M3
+        interface: #M4
+          map
+            foo: #M2
+            foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+            requestedDeclaredGetters
+              foo: #M2
+            requestedDeclaredSetters
+              foo=: #M3
+[status] idle
+''',
+    );
+  }
+
+  test_req_instanceElement_setterElement_nonSynthetic() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  int foo = 0;
+}
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+''');
+
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeInstanceElement('A');
+      A.getSetter('foo')!.nonSynthetic;
+    });
+
+    await _runManualRequirementsRecording(
+      expectedEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredGetters
+          foo: #M2
+        declaredSetters
+          foo=: #M3
+        interface: #M4
+          map
+            foo: #M2
+            foo=: #M3
+          implemented
+            foo: #M2
+            foo=: #M3
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M1
+            requestedDeclaredSetters
+              foo=: #M3
 [status] idle
 ''',
     );
