@@ -303,7 +303,23 @@ analyzer:
     expect(analysisOptions.propagateLinterExceptions, true);
   }
 
-  test_analyzer_plugins_pathConstraint() {
+  test_codeStyle_format_false() {
+    var analysisOptions = parseOptions('''
+code-style:
+  format: false
+''');
+    expect(analysisOptions.codeStyleOptions.useFormatter, false);
+  }
+
+  test_codeStyle_format_true() {
+    var analysisOptions = parseOptions('''
+code-style:
+  format: true
+''');
+    expect(analysisOptions.codeStyleOptions.useFormatter, true);
+  }
+
+  test_plugins_pathConstraint() {
     var analysisOptions = parseOptions('''
 plugins:
   plugin_one:
@@ -326,7 +342,7 @@ plugins:
     );
   }
 
-  test_analyzer_plugins_pathConstraint_relative() {
+  test_plugins_pathConstraint_relative() {
     var analysisOptions = parseOptions('''
 plugins:
   plugin_one:
@@ -349,7 +365,7 @@ plugins:
     );
   }
 
-  test_analyzer_plugins_pathConstraint_relativeNonNormal() {
+  test_plugins_pathConstraint_relativeNonNormal() {
     var analysisOptions = parseOptions('''
 plugins:
   plugin_one:
@@ -372,7 +388,7 @@ plugins:
     );
   }
 
-  test_analyzer_plugins_scalarConstraint() {
+  test_plugins_scalarConstraint() {
     var analysisOptions = parseOptions('''
 plugins:
   plugin_one: ^1.2.3
@@ -391,7 +407,7 @@ plugins:
     );
   }
 
-  test_analyzer_plugins_versionConstraint() {
+  test_plugins_versionConstraint() {
     var analysisOptions = parseOptions('''
 plugins:
   plugin_one:
@@ -409,22 +425,6 @@ plugins:
         '  plugin_one: ^1.2.3\n',
       ),
     );
-  }
-
-  test_codeStyle_format_false() {
-    var analysisOptions = parseOptions('''
-code-style:
-  format: false
-''');
-    expect(analysisOptions.codeStyleOptions.useFormatter, false);
-  }
-
-  test_codeStyle_format_true() {
-    var analysisOptions = parseOptions('''
-code-style:
-  format: true
-''');
-    expect(analysisOptions.codeStyleOptions.useFormatter, true);
   }
 
   test_signature_on_different_error_ordering() {
