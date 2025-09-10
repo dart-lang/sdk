@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -13,8 +12,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/constant/evaluation.dart';
-import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -109,24 +106,15 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   /// Subclass of `Struct` or `Union` we are currently visiting, or `null`.
   ClassDeclaration? compound;
 
-  final LibraryElementImpl _currentLibrary;
-
-  final ConstantEvaluationEngine _evaluationEngine;
-
   /// The `Void` type from `dart:ffi`, or `null` if unresolved.
   InterfaceTypeImpl? ffiVoidType;
 
   /// Initialize a newly created verifier.
   FfiVerifier(
     this.typeSystem,
-    this._diagnosticReporter,
-    this._currentLibrary,
-    DeclaredVariables declaredVariables, {
+    this._diagnosticReporter, {
     required this.strictCasts,
-  }) : _evaluationEngine = ConstantEvaluationEngine(
-         declaredVariables: declaredVariables,
-         configuration: ConstantEvaluationConfiguration(),
-       );
+  });
 
   @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
@@ -756,17 +744,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   }
 
   bool _isConst(Expression expr) {
-    var subDiagnosticReporter = DiagnosticReporter(
-      RecordingDiagnosticListener(),
-      _diagnosticReporter.source,
-    );
-    var constantVisitor = ConstantVisitor(
-      _evaluationEngine,
-      _currentLibrary,
-      subDiagnosticReporter,
-    );
-    var result = constantVisitor.evaluateConstant(expr);
-    return result is! InvalidConstant;
+    var computedConstant = expr.computeConstantValue();
+    return computedConstant?.value != null;
   }
 
   bool _isLeaf(NodeList<Expression>? args) {
