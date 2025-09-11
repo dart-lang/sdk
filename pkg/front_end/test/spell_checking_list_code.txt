@@ -1324,6 +1324,7 @@ pieces
 pipe
 pkg
 pkgs
+placement
 play
 player
 plugin

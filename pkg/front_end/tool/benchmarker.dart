@@ -16,6 +16,7 @@ void main(List<String> args) {
   bool silent = false;
   int iterations = 5;
   int core = 7;
+  int gcRuns = 1;
   String? aotRuntime;
   String? checkFileSize;
   List<String> snapshots = [];
@@ -23,6 +24,8 @@ void main(List<String> args) {
   for (String arg in args) {
     if (arg.startsWith("--iterations=")) {
       iterations = int.parse(arg.substring("--iterations=".length));
+    } else if (arg.startsWith("--gcs=")) {
+      gcRuns = int.parse(arg.substring("--gcs=".length));
     } else if (arg.startsWith("--core=")) {
       core = int.parse(arg.substring("--core=".length));
     } else if (arg.startsWith("--aotruntime")) {
@@ -59,6 +62,7 @@ void main(List<String> args) {
     checkFileSize,
     cacheBenchmarking: false,
     silent: silent,
+    gcRuns: gcRuns,
   );
   if (doCacheBenchmarkingToo) {
     _doRun(
@@ -70,6 +74,7 @@ void main(List<String> args) {
       checkFileSize,
       cacheBenchmarking: true,
       silent: silent,
+      gcRuns: gcRuns,
     );
   }
 }
@@ -83,6 +88,7 @@ void _doRun(
   String? checkFileSize, {
   required bool cacheBenchmarking,
   required bool silent,
+  required int gcRuns,
 }) {
   print(
     "Will now run $iterations iterations with "
@@ -90,9 +96,11 @@ void _doRun(
   );
 
   List<List<Map<String, num>>> runResults = [];
-  List<GCInfo> gcInfos = [];
+  List<List<GCInfo>> gcInfos = [];
   Warnings warnings = new Warnings();
   for (String snapshot in snapshots) {
+    List<GCInfo> gcInfo = [];
+    gcInfos.add(gcInfo);
     List<Map<String, num>> snapshotResults = [];
     runResults.add(snapshotResults);
     for (int iteration = 0; iteration < iterations; iteration++) {
@@ -118,11 +126,13 @@ void _doRun(
       snapshotResults.add(benchmarkRun);
     }
 
-    // Do a single GC run too.
-    if (silent) stdout.write(".");
-    gcInfos.add(
-      _verboseGcRun(aotRuntime, snapshot, [], arguments, silent: true),
-    );
+    // Do GC runs too.
+    for (int i = 0; i < gcRuns; i++) {
+      if (silent) stdout.write(".");
+      gcInfo.add(
+        _verboseGcRun(aotRuntime, snapshot, [], arguments, silent: true),
+      );
+    }
   }
   stdout.write("\n\n");
 
@@ -137,7 +147,20 @@ void _doRun(
     if (!_compare(firstSnapshotResults, compareToResults)) {
       print("No change.");
     }
-    printGcDiff(gcInfos.first, gcInfos[i]);
+    print("Comparing GC:");
+    if (gcRuns >= 3) {
+      if (!_compareSingle(
+        gcInfos[i].map((gcInfo) => gcInfo.combinedTime).toList(),
+        gcInfos[0].map((gcInfo) => gcInfo.combinedTime).toList(),
+        "Combined GC time",
+      )) {
+        print("No change in combined time.");
+      }
+    } else {
+      for (int gcNum = 0; gcNum < gcRuns; gcNum++) {
+        printGcDiff(gcInfos[0][gcNum], gcInfos[i][gcNum]);
+      }
+    }
   }
 
   if (warnings.scalingInEffect) {
@@ -213,17 +236,26 @@ bool _compare(List<Map<String, num>> from, List<Map<String, num>> to) {
       }
     }
     if (fromForCaption.isEmpty || toForCaption.isEmpty) continue;
-    TTestResult stats = SimpleTTestStat.ttest(toForCaption, fromForCaption);
-    if (stats.significant) {
-      somethingWasSignificant = true;
-      print(
-        "$caption: ${stats.percentChangeIfSignificant(fractionDigits: 4)} "
-        "(${stats.valueChangeIfSignificant(fractionDigits: 2)}) "
-        "(${stats.meanChangeStringIfSignificant(fractionDigits: 2)})",
-      );
-    }
+    somethingWasSignificant = _compareSingle(
+      toForCaption,
+      fromForCaption,
+      caption,
+    );
   }
   return somethingWasSignificant;
+}
+
+bool _compareSingle(List<num> to, List<num> from, String caption) {
+  TTestResult stats = SimpleTTestStat.ttest(to, from);
+  if (stats.significant) {
+    print(
+      "$caption: ${stats.percentChangeIfSignificant(fractionDigits: 4)} "
+      "(${stats.valueChangeIfSignificant(fractionDigits: 2)}) "
+      "(${stats.meanChangeStringIfSignificant(fractionDigits: 2)})",
+    );
+    return true;
+  }
+  return false;
 }
 
 List<num> _extractDataForCaption(String caption, List<Map<String, num>> data) {
@@ -461,6 +493,10 @@ GCInfo parseVerboseGcText(List<String> stderrLines) {
     countWhat[spaceReason] = (countWhat[spaceReason] ?? 0) + 1;
   }
   return new GCInfo(combinedTime, countWhat);
+}
+
+void combinedGcDiff(List<GCInfo> prev, List<GCInfo> current) {
+  prev.map((gcInfo) => gcInfo.combinedTime).toList();
 }
 
 void printGcDiff(GCInfo prev, GCInfo current) {
