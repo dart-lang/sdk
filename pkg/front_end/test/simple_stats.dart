@@ -5,9 +5,9 @@
 import 'dart:math' as math;
 
 class SimpleTTestStat {
-  static TTestResult ttest<E extends num>(List<E> a, List<E> b) {
-    E aSum = a.reduce((value, element) => (value + element) as E);
-    E bSum = b.reduce((value, element) => (value + element) as E);
+  static TTestResult ttest(List<num> a, List<num> b) {
+    num aSum = sum(a);
+    num bSum = sum(b);
     int aCount = a.length;
     int bCount = b.length;
     double aMean = aSum / aCount;
@@ -41,18 +41,16 @@ class SimpleTTestStat {
     }
   }
 
-  static double average<E extends num>(List<E> data) {
-    E sum = data.reduce((value, element) => (value + element) as E);
-    return sum / data.length;
+  static double average(List<num> data) {
+    return sum(data) / data.length;
   }
 
-  static double variance<E extends num>(List<E> data) {
-    E sum = data.reduce((value, element) => (value + element) as E);
+  static double variance(List<num> data) {
     int count = data.length;
-    double average = sum / count;
+    double average = sum(data) / count;
 
     double diffSquareSum = 0;
-    for (E value in data) {
+    for (num value in data) {
       double diff = value - average;
       double squared = diff * diff;
       diffSquareSum += squared;
@@ -60,6 +58,14 @@ class SimpleTTestStat {
 
     double variance = diffSquareSum / (count - 1);
     return variance;
+  }
+
+  static num sum(List<num> data) {
+    num result = 0;
+    for (num value in data) {
+      result += value;
+    }
+    return result;
   }
 
   static double tTableTwoTails_0_05(int value) {

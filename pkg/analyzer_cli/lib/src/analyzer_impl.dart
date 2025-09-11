@@ -47,6 +47,8 @@ class AnalyzerImpl {
   /// specified the "--package-warnings" option.
   String? _selfPackageName;
 
+  final Set<String> gotErrorsFor;
+
   AnalyzerImpl(
     this.analysisOptions,
     this.analysisDriver,
@@ -54,6 +56,7 @@ class AnalyzerImpl {
     this.options,
     this.stats,
     this.startTime,
+    this.gotErrorsFor,
   );
 
   void addCompilationUnitSource(
@@ -134,9 +137,11 @@ class AnalyzerImpl {
   /// Fills [errorsResults] using [files].
   Future<void> prepareErrors() async {
     for (var path in files) {
-      var errorsResult = await analysisDriver.getErrors(path);
-      if (errorsResult is ErrorsResult) {
-        errorsResults.add(errorsResult);
+      if (gotErrorsFor.add(path)) {
+        var errorsResult = await analysisDriver.getErrors(path);
+        if (errorsResult is ErrorsResult) {
+          errorsResults.add(errorsResult);
+        }
       }
     }
   }
