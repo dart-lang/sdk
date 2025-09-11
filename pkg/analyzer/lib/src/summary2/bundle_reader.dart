@@ -160,7 +160,7 @@ class LibraryReader {
     );
 
     // Read the library units.
-    _libraryElement.definingCompilationUnit = _readUnitElement(
+    _libraryElement.firstFragment = _readUnitElement(
       containerUnit: null,
       unitSource: librarySource,
     );
@@ -179,7 +179,7 @@ class LibraryReader {
 
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
     _libraryElement.deferReadResolution(() {
-      var unitElement = _libraryElement.definingCompilationUnit;
+      var unitElement = _libraryElement.firstFragment;
       var reader = ResolutionReader(
         _elementFactory,
         _referenceReader,
@@ -208,7 +208,7 @@ class LibraryReader {
       );
 
       _libraryElement.exportNamespace = _elementFactory.buildExportNamespace(
-        _libraryElement.source.uri,
+        _libraryElement.uri,
         _libraryElement.exportedReferences,
       );
     });

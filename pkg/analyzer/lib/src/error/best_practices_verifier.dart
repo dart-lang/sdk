@@ -428,7 +428,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         if (element
             case PropertyAccessorElement(name: var name?) ||
                 FieldElement(name: var name?)) {
-          var nameObj = Name(_currentLibrary.source.uri, name);
+          var nameObj = Name(_currentLibrary.uri, name);
           overriddenElement =
               enclosingElement.getInheritedConcreteMember(nameObj) ??
               enclosingElement.getInheritedConcreteMember(nameObj.forSetter);
@@ -2008,20 +2008,18 @@ class _InvalidAccessVerifier {
     }
 
     if (isVisibleForTemplateApplied) {
-      var libraryFragment = definingClass.firstFragment.libraryFragment!;
       _errorReporter.atEntity(
         errorEntity,
         WarningCode.invalidUseOfVisibleForTemplateMember,
-        arguments: [name, libraryFragment.source.uri],
+        arguments: [name, definingClass.library!.uri],
       );
     }
 
     if (hasVisibleForTesting) {
-      var libraryFragment = definingClass.firstFragment.libraryFragment!;
       _errorReporter.atEntity(
         errorEntity,
         WarningCode.invalidUseOfVisibleForTestingMember,
-        arguments: [name, libraryFragment.source.uri],
+        arguments: [name, definingClass.library!.uri],
       );
     }
 

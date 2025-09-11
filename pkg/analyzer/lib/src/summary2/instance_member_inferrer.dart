@@ -105,19 +105,19 @@ class InstanceMemberInferrer {
       if (getter.isSynthetic || getter.isStatic) {
         return;
       }
-      elementLibraryUri = getter.library.source.uri;
+      elementLibraryUri = getter.library.uri;
       elementName = getter.displayName;
     } else if (setter != null) {
       if (setter.isSynthetic || setter.isStatic) {
         return;
       }
-      elementLibraryUri = setter.library.source.uri;
+      elementLibraryUri = setter.library.uri;
       elementName = setter.displayName;
     } else if (field != null) {
       if (field.isSynthetic || field.isStatic) {
         return;
       }
-      elementLibraryUri = field.library.source.uri;
+      elementLibraryUri = field.library.uri;
       elementName = field.name ?? '';
     } else {
       throw UnimplementedError();

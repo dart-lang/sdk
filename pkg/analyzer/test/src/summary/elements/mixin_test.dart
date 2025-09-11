@@ -632,7 +632,7 @@ mixin M {}
 
     // We intentionally ask `mixins` directly, to check that we can ask them
     // separately, without asking classes.
-    var mixins = library.definingCompilationUnit.mixins;
+    var mixins = library.firstFragment.mixins;
     expect(mixins, hasLength(1));
     expect(mixins[0].name, 'M');
   }

@@ -12681,7 +12681,7 @@ class C {
   int m() => 0;
 }
 ''');
-    var c = library.definingCompilationUnit.classes.single;
+    var c = library.firstFragment.classes.single;
     var m = c.methods.single;
     expect(m.hasImplicitReturnType, isFalse);
   }
@@ -12692,7 +12692,7 @@ class C {
   m() => 0;
 }
 ''');
-    var c = library.definingCompilationUnit.classes.single;
+    var c = library.firstFragment.classes.single;
     var m = c.methods.single;
     expect(m.hasImplicitReturnType, isTrue);
   }

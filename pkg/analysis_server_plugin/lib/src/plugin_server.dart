@@ -361,7 +361,7 @@ class PluginServer {
 
     RuleContextUnit? definingContextUnit;
     var definingUnit =
-        (libraryResult.element as LibraryElementImpl).definingCompilationUnit;
+        (libraryResult.element as LibraryElementImpl).firstFragment;
     var allUnits = <RuleContextUnit>[];
 
     for (var unitResult in libraryResult.units) {

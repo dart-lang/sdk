@@ -17,20 +17,11 @@ import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
 class ClassItem extends InterfaceItem<ClassElementImpl> {
-  final bool isAbstract;
-  final bool isBase;
-  final bool isFinal;
-  final bool isInterface;
-  final bool isMixinApplication;
-  final bool isMixinClass;
-  final bool isSealed;
-
   ClassItem({
     required super.id,
-    required super.isSynthetic,
+    required _ClassItemFlags super.flags,
     required super.metadata,
     required super.typeParameters,
-    required super.isSimplyBounded,
     required super.declaredConflicts,
     required super.declaredFields,
     required super.declaredGetters,
@@ -43,13 +34,6 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
     required super.mixins,
     required super.interfaces,
     required super.interface,
-    required this.isAbstract,
-    required this.isBase,
-    required this.isFinal,
-    required this.isInterface,
-    required this.isMixinApplication,
-    required this.isMixinClass,
-    required this.isSealed,
   });
 
   factory ClassItem.fromElement({
@@ -60,10 +44,9 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
     return context.withTypeParameters(element.typeParameters, (typeParameters) {
       return ClassItem(
         id: id,
-        isSynthetic: element.isSynthetic,
+        flags: _ClassItemFlags.encode(element),
         metadata: ManifestMetadata.encode(context, element.metadata),
         typeParameters: typeParameters,
-        isSimplyBounded: element.isSimplyBounded,
         declaredConflicts: {},
         declaredFields: {},
         declaredGetters: {},
@@ -76,13 +59,6 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
         mixins: element.mixins.encode(context),
         interfaces: element.interfaces.encode(context),
         interface: ManifestInterface.empty(),
-        isAbstract: element.isAbstract,
-        isBase: element.isBase,
-        isFinal: element.isFinal,
-        isInterface: element.isInterface,
-        isMixinApplication: element.isMixinApplication,
-        isMixinClass: element.isMixinClass,
-        isSealed: element.isSealed,
       );
     });
   }
@@ -90,10 +66,9 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
   factory ClassItem.read(SummaryDataReader reader) {
     return ClassItem(
       id: ManifestItemId.read(reader),
-      isSynthetic: reader.readBool(),
+      flags: _ClassItemFlags.read(reader),
       metadata: ManifestMetadata.read(reader),
       typeParameters: ManifestTypeParameter.readList(reader),
-      isSimplyBounded: reader.readBool(),
       declaredConflicts: reader.readLookupNameToIdMap(),
       declaredFields: FieldItem.readMap(reader),
       declaredGetters: GetterItem.readMap(reader),
@@ -106,63 +81,35 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
       mixins: ManifestType.readList(reader),
       interfaces: ManifestType.readList(reader),
       interface: ManifestInterface.read(reader),
-      isAbstract: reader.readBool(),
-      isBase: reader.readBool(),
-      isFinal: reader.readBool(),
-      isInterface: reader.readBool(),
-      isMixinApplication: reader.readBool(),
-      isMixinClass: reader.readBool(),
-      isSealed: reader.readBool(),
     );
   }
 
   @override
-  bool match(MatchContext context, ClassElementImpl element) {
-    return super.match(context, element) &&
-        isAbstract == element.isAbstract &&
-        isBase == element.isBase &&
-        isFinal == element.isFinal &&
-        isInterface == element.isInterface &&
-        isMixinApplication == element.isMixinApplication &&
-        isMixinClass == element.isMixinClass &&
-        isSealed == element.isSealed;
-  }
+  _ClassItemFlags get flags => super.flags as _ClassItemFlags;
 
   @override
-  void write(BufferedSink sink) {
-    super.write(sink);
-    sink.writeBool(isAbstract);
-    sink.writeBool(isBase);
-    sink.writeBool(isFinal);
-    sink.writeBool(isInterface);
-    sink.writeBool(isMixinApplication);
-    sink.writeBool(isMixinClass);
-    sink.writeBool(isSealed);
+  bool match(MatchContext context, ClassElementImpl element) {
+    return super.match(context, element) &&
+        flags.isAbstract == element.isAbstract &&
+        flags.isBase == element.isBase &&
+        flags.isFinal == element.isFinal &&
+        flags.isInterface == element.isInterface &&
+        flags.isMixinApplication == element.isMixinApplication &&
+        flags.isMixinClass == element.isMixinClass &&
+        flags.isSealed == element.isSealed;
   }
 }
 
 class ConstructorItem extends ExecutableItem<ConstructorElementImpl> {
-  final bool isConst;
-  final bool isFactory;
   final List<ManifestNode> constantInitializers;
   final ManifestElement? redirectedConstructor;
   final ManifestElement? superConstructor;
 
   ConstructorItem({
     required super.id,
-    required super.isSynthetic,
+    required _ConstructorItemFlags super.flags,
     required super.metadata,
-    required super.hasEnclosingTypeParameterReference,
-    required super.hasImplicitReturnType,
-    required super.invokesSuperSelf,
-    required super.isAbstract,
-    required super.isExtensionTypeMember,
-    required super.isExternal,
-    required super.isSimplyBounded,
-    required super.isStatic,
     required super.functionType,
-    required this.isConst,
-    required this.isFactory,
     required this.constantInitializers,
     required this.redirectedConstructor,
     required this.superConstructor,
@@ -176,20 +123,9 @@ class ConstructorItem extends ExecutableItem<ConstructorElementImpl> {
     return context.withFormalParameters(element.formalParameters, () {
       return ConstructorItem(
         id: id,
-        isSynthetic: element.isSynthetic,
+        flags: _ConstructorItemFlags.encode(element),
         metadata: ManifestMetadata.encode(context, element.metadata),
-        hasEnclosingTypeParameterReference:
-            element.hasEnclosingTypeParameterReference,
-        hasImplicitReturnType: element.hasImplicitReturnType,
-        invokesSuperSelf: element.invokesSuperSelf,
-        isAbstract: element.isAbstract,
-        isExtensionTypeMember: element.isExtensionTypeMember,
-        isExternal: element.isExternal,
-        isSimplyBounded: element.isSimplyBounded,
-        isStatic: false,
         functionType: element.type.encode(context),
-        isConst: element.isConst,
-        isFactory: element.isFactory,
         constantInitializers: element.constantInitializers
             .map((initializer) => ManifestNode.encode(context, initializer))
             .toFixedList(),
@@ -208,19 +144,9 @@ class ConstructorItem extends ExecutableItem<ConstructorElementImpl> {
   factory ConstructorItem.read(SummaryDataReader reader) {
     return ConstructorItem(
       id: ManifestItemId.read(reader),
-      isSynthetic: reader.readBool(),
+      flags: _ConstructorItemFlags.read(reader),
       metadata: ManifestMetadata.read(reader),
-      hasEnclosingTypeParameterReference: reader.readBool(),
-      hasImplicitReturnType: reader.readBool(),
-      invokesSuperSelf: reader.readBool(),
-      isAbstract: reader.readBool(),
-      isExtensionTypeMember: reader.readBool(),
-      isExternal: reader.readBool(),
-      isSimplyBounded: reader.readBool(),
-      isStatic: reader.readBool(),
       functionType: ManifestFunctionType.read(reader),
-      isConst: reader.readBool(),
-      isFactory: reader.readBool(),
       constantInitializers: ManifestNode.readList(reader),
       redirectedConstructor: ManifestElement.readOptional(reader),
       superConstructor: ManifestElement.readOptional(reader),
@@ -228,11 +154,14 @@ class ConstructorItem extends ExecutableItem<ConstructorElementImpl> {
   }
 
   @override
+  _ConstructorItemFlags get flags => super.flags as _ConstructorItemFlags;
+
+  @override
   bool match(MatchContext context, ConstructorElementImpl element) {
     return context.withFormalParameters(element.formalParameters, () {
       return super.match(context, element) &&
-          isConst == element.isConst &&
-          isFactory == element.isFactory &&
+          flags.isConst == element.isConst &&
+          flags.isFactory == element.isFactory &&
           constantInitializers.match(context, element.constantInitializers) &&
           redirectedConstructor.match(context, element.redirectedConstructor) &&
           superConstructor.match(context, element.superConstructor);
@@ -242,8 +171,6 @@ class ConstructorItem extends ExecutableItem<ConstructorElementImpl> {
   @override
   void write(BufferedSink sink) {
     super.write(sink);
-    sink.writeBool(isConst);
-    sink.writeBool(isFactory);
     constantInitializers.writeList(sink);
     redirectedConstructor.writeOptional(sink);
     superConstructor.writeOptional(sink);
@@ -260,10 +187,9 @@ class ConstructorItem extends ExecutableItem<ConstructorElementImpl> {
 class EnumItem extends InterfaceItem<EnumElementImpl> {
   EnumItem({
     required super.id,
-    required super.isSynthetic,
+    required super.flags,
     required super.metadata,
     required super.typeParameters,
-    required super.isSimplyBounded,
     required super.declaredConflicts,
     required super.declaredFields,
     required super.declaredGetters,
@@ -286,10 +212,9 @@ class EnumItem extends InterfaceItem<EnumElementImpl> {
     return context.withTypeParameters(element.typeParameters, (typeParameters) {
       return EnumItem(
         id: id,
-        isSynthetic: element.isSynthetic,
+        flags: _InterfaceItemFlags.encode(element),
         metadata: ManifestMetadata.encode(context, element.metadata),
         typeParameters: typeParameters,
-        isSimplyBounded: element.isSimplyBounded,
         declaredConflicts: {},
         declaredFields: {},
         declaredGetters: {},
@@ -309,10 +234,9 @@ class EnumItem extends InterfaceItem<EnumElementImpl> {
   factory EnumItem.read(SummaryDataReader reader) {
     return EnumItem(
       id: ManifestItemId.read(reader),
-      isSynthetic: reader.readBool(),
+      flags: _InterfaceItemFlags.read(reader),
       metadata: ManifestMetadata.read(reader),
       typeParameters: ManifestTypeParameter.readList(reader),
-      isSimplyBounded: reader.readBool(),
       declaredConflicts: reader.readLookupNameToIdMap(),
       declaredFields: FieldItem.readMap(reader),
       declaredGetters: GetterItem.readMap(reader),
@@ -331,57 +255,36 @@ class EnumItem extends InterfaceItem<EnumElementImpl> {
 
 sealed class ExecutableItem<E extends ExecutableElementImpl>
     extends ManifestItem<E> {
-  final bool hasEnclosingTypeParameterReference;
-  final bool hasImplicitReturnType;
-  final bool invokesSuperSelf;
-  final bool isAbstract;
-  final bool isExtensionTypeMember;
-  final bool isExternal;
-  final bool isSimplyBounded;
-  final bool isStatic;
   final ManifestFunctionType functionType;
 
   ExecutableItem({
     required super.id,
-    required super.isSynthetic,
+    required _ExecutableItemFlags super.flags,
     required super.metadata,
-    required this.hasEnclosingTypeParameterReference,
-    required this.hasImplicitReturnType,
-    required this.invokesSuperSelf,
-    required this.isAbstract,
-    required this.isExtensionTypeMember,
-    required this.isExternal,
-    required this.isSimplyBounded,
-    required this.isStatic,
     required this.functionType,
   });
 
   @override
+  _ExecutableItemFlags get flags => super.flags as _ExecutableItemFlags;
+
+  @override
   bool match(MatchContext context, E element) {
     return super.match(context, element) &&
-        hasEnclosingTypeParameterReference ==
+        flags.hasEnclosingTypeParameterReference ==
             element.hasEnclosingTypeParameterReference &&
-        hasImplicitReturnType == element.hasImplicitReturnType &&
-        invokesSuperSelf == element.invokesSuperSelf &&
-        isAbstract == element.isAbstract &&
-        isExtensionTypeMember == element.isExtensionTypeMember &&
-        isExternal == element.isExternal &&
-        isSimplyBounded == element.isSimplyBounded &&
-        isStatic == element.isStatic &&
+        flags.hasImplicitReturnType == element.hasImplicitReturnType &&
+        flags.invokesSuperSelf == element.invokesSuperSelf &&
+        flags.isAbstract == element.isAbstract &&
+        flags.isExtensionTypeMember == element.isExtensionTypeMember &&
+        flags.isExternal == element.isExternal &&
+        flags.isSimplyBounded == element.isSimplyBounded &&
+        flags.isStatic == element.isStatic &&
         functionType.match(context, element.type);
   }
 
   @override
   void write(BufferedSink sink) {
     super.write(sink);
-    sink.writeBool(hasEnclosingTypeParameterReference);
-    sink.writeBool(hasImplicitReturnType);
-    sink.writeBool(invokesSuperSelf);
-    sink.writeBool(isAbstract);
-    sink.writeBool(isExtensionTypeMember);
-    sink.writeBool(isExternal);
-    sink.writeBool(isSimplyBounded);
-    sink.writeBool(isStatic);
     functionType.writeNoTag(sink);
   }
 }
@@ -392,10 +295,9 @@ class ExtensionItem<E extends ExtensionElementImpl> extends InstanceItem<E> {
 
   ExtensionItem({
     required super.id,
-    required super.isSynthetic,
+    required super.flags,
     required super.metadata,
     required super.typeParameters,
-    required super.isSimplyBounded,
     required super.declaredConflicts,
     required super.declaredFields,
     required super.declaredGetters,
@@ -414,10 +316,9 @@ class ExtensionItem<E extends ExtensionElementImpl> extends InstanceItem<E> {
     return context.withTypeParameters(element.typeParameters, (typeParameters) {
       return ExtensionItem(
         id: id,
-        isSynthetic: element.isSynthetic,
+        flags: _InstanceItemFlags.encode(element),
         metadata: ManifestMetadata.encode(context, element.metadata),
         typeParameters: typeParameters,
-        isSimplyBounded: element.isSimplyBounded,
         declaredConflicts: {},
         declaredFields: {},
         declaredGetters: {},
@@ -433,10 +334,9 @@ class ExtensionItem<E extends ExtensionElementImpl> extends InstanceItem<E> {
   factory ExtensionItem.read(SummaryDataReader reader) {
     return ExtensionItem(
       id: ManifestItemId.read(reader),
-      isSynthetic: reader.readBool(),
+      flags: _InstanceItemFlags.read(reader),
       metadata: ManifestMetadata.read(reader),
       typeParameters: ManifestTypeParameter.readList(reader),
-      isSimplyBounded: reader.readBool(),
       declaredConflicts: reader.readLookupNameToIdMap(),
       declaredFields: FieldItem.readMap(reader),
       declaredGetters: GetterItem.readMap(reader),
@@ -462,17 +362,14 @@ class ExtensionItem<E extends ExtensionElementImpl> extends InstanceItem<E> {
 }
 
 class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl> {
-  final bool hasImplementsSelfReference;
-  final bool hasRepresentationSelfReference;
   final ManifestType representationType;
   final ManifestType typeErasure;
 
   ExtensionTypeItem({
     required super.id,
-    required super.isSynthetic,
+    required _ExtensionTypeItemFlags super.flags,
     required super.metadata,
     required super.typeParameters,
-    required super.isSimplyBounded,
     required super.declaredConflicts,
     required super.declaredFields,
     required super.declaredGetters,
@@ -485,8 +382,6 @@ class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl> {
     required super.supertype,
     required super.mixins,
     required super.interfaces,
-    required this.hasImplementsSelfReference,
-    required this.hasRepresentationSelfReference,
     required this.representationType,
     required this.typeErasure,
   });
@@ -499,10 +394,9 @@ class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl> {
     return context.withTypeParameters(element.typeParameters, (typeParameters) {
       return ExtensionTypeItem(
         id: id,
-        isSynthetic: element.isSynthetic,
+        flags: _ExtensionTypeItemFlags.encode(element),
         metadata: ManifestMetadata.encode(context, element.metadata),
         typeParameters: typeParameters,
-        isSimplyBounded: element.isSimplyBounded,
         declaredConflicts: {},
         declaredFields: {},
         declaredGetters: {},
@@ -515,8 +409,6 @@ class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl> {
         supertype: element.supertype?.encode(context),
         mixins: element.mixins.encode(context),
         interfaces: element.interfaces.encode(context),
-        hasImplementsSelfReference: element.hasImplementsSelfReference,
-        hasRepresentationSelfReference: element.hasRepresentationSelfReference,
         representationType: element.representation.type.encode(context),
         typeErasure: element.typeErasure.encode(context),
       );
@@ -526,10 +418,9 @@ class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl> {
   factory ExtensionTypeItem.read(SummaryDataReader reader) {
     return ExtensionTypeItem(
       id: ManifestItemId.read(reader),
-      isSynthetic: reader.readBool(),
+      flags: _ExtensionTypeItemFlags.read(reader),
       metadata: ManifestMetadata.read(reader),
       typeParameters: ManifestTypeParameter.readList(reader),
-      isSimplyBounded: reader.readBool(),
       declaredConflicts: reader.readLookupNameToIdMap(),
       declaredFields: FieldItem.readMap(reader),
       declaredGetters: GetterItem.readMap(reader),
@@ -542,18 +433,20 @@ class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl> {
       mixins: ManifestType.readList(reader),
       interfaces: ManifestType.readList(reader),
       interface: ManifestInterface.read(reader),
-      hasImplementsSelfReference: reader.readBool(),
-      hasRepresentationSelfReference: reader.readBool(),
       representationType: ManifestType.read(reader),
       typeErasure: ManifestType.read(reader),
     );
   }
 
   @override
+  _ExtensionTypeItemFlags get flags => super.flags as _ExtensionTypeItemFlags;
+
+  @override
   bool match(MatchContext context, ExtensionTypeElementImpl element) {
     return super.match(context, element) &&
-        hasImplementsSelfReference == element.hasImplementsSelfReference &&
-        hasRepresentationSelfReference ==
+        flags.hasImplementsSelfReference ==
+            element.hasImplementsSelfReference &&
+        flags.hasRepresentationSelfReference ==
             element.hasRepresentationSelfReference &&
         representationType.match(context, element.representation.type) &&
         typeErasure.match(context, element.typeErasure);
@@ -562,40 +455,18 @@ class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl> {
   @override
   void write(BufferedSink sink) {
     super.write(sink);
-    sink.writeBool(hasImplementsSelfReference);
-    sink.writeBool(hasRepresentationSelfReference);
     representationType.write(sink);
     typeErasure.write(sink);
   }
 }
 
 class FieldItem extends VariableItem<FieldElementImpl> {
-  final bool hasEnclosingTypeParameterReference;
-  final bool isAbstract;
-  final bool isCovariant;
-  final bool isEnumConstant;
-  final bool isExternal;
-  final bool isPromotable;
-
   FieldItem({
     required super.id,
-    required super.isSynthetic,
+    required _FieldItemFlags super.flags,
     required super.metadata,
-    required super.hasInitializer,
-    required super.hasImplicitType,
-    required super.isConst,
-    required super.isFinal,
-    required super.isLate,
-    required super.isStatic,
-    required super.shouldUseTypeForInitializerInference,
     required super.type,
     required super.constInitializer,
-    required this.hasEnclosingTypeParameterReference,
-    required this.isAbstract,
-    required this.isCovariant,
-    required this.isEnumConstant,
-    required this.isExternal,
-    required this.isPromotable,
   });
 
   factory FieldItem.fromElement({
@@ -605,72 +476,36 @@ class FieldItem extends VariableItem<FieldElementImpl> {
   }) {
     return FieldItem(
       id: id,
-      isSynthetic: element.isSynthetic,
+      flags: _FieldItemFlags.encode(element),
       metadata: ManifestMetadata.encode(context, element.metadata),
-      hasInitializer: element.hasInitializer,
-      hasImplicitType: element.hasImplicitType,
-      isConst: element.isConst,
-      isFinal: element.isFinal,
-      isLate: element.isLate,
-      isStatic: element.isStatic,
-      shouldUseTypeForInitializerInference:
-          element.shouldUseTypeForInitializerInference,
       type: element.type.encode(context),
       constInitializer: element.constantInitializer?.encode(context),
-      hasEnclosingTypeParameterReference:
-          element.hasEnclosingTypeParameterReference,
-      isAbstract: element.isAbstract,
-      isCovariant: element.isCovariant,
-      isEnumConstant: element.isEnumConstant,
-      isExternal: element.isExternal,
-      isPromotable: element.isPromotable,
     );
   }
 
   factory FieldItem.read(SummaryDataReader reader) {
     return FieldItem(
       id: ManifestItemId.read(reader),
-      isSynthetic: reader.readBool(),
+      flags: _FieldItemFlags.read(reader),
       metadata: ManifestMetadata.read(reader),
-      hasInitializer: reader.readBool(),
-      hasImplicitType: reader.readBool(),
-      isConst: reader.readBool(),
-      isFinal: reader.readBool(),
-      isLate: reader.readBool(),
-      isStatic: reader.readBool(),
-      shouldUseTypeForInitializerInference: reader.readBool(),
       type: ManifestType.read(reader),
       constInitializer: ManifestNode.readOptional(reader),
-      hasEnclosingTypeParameterReference: reader.readBool(),
-      isAbstract: reader.readBool(),
-      isCovariant: reader.readBool(),
-      isEnumConstant: reader.readBool(),
-      isExternal: reader.readBool(),
-      isPromotable: reader.readBool(),
     );
   }
 
   @override
-  bool match(MatchContext context, FieldElementImpl element) {
-    return super.match(context, element) &&
-        hasEnclosingTypeParameterReference ==
-            element.hasEnclosingTypeParameterReference &&
-        isAbstract == element.isAbstract &&
-        isCovariant == element.isCovariant &&
-        isEnumConstant == element.isEnumConstant &&
-        isExternal == element.isExternal &&
-        isPromotable == element.isPromotable;
-  }
+  _FieldItemFlags get flags => super.flags as _FieldItemFlags;
 
   @override
-  void write(BufferedSink sink) {
-    super.write(sink);
-    sink.writeBool(hasEnclosingTypeParameterReference);
-    sink.writeBool(isAbstract);
-    sink.writeBool(isCovariant);
-    sink.writeBool(isEnumConstant);
-    sink.writeBool(isExternal);
-    sink.writeBool(isPromotable);
+  bool match(MatchContext context, FieldElementImpl element) {
+    return super.match(context, element) &&
+        flags.hasEnclosingTypeParameterReference ==
+            element.hasEnclosingTypeParameterReference &&
+        flags.isAbstract == element.isAbstract &&
+        flags.isCovariant == element.isCovariant &&
+        flags.isEnumConstant == element.isEnumConstant &&
+        flags.isExternal == element.isExternal &&
+        flags.isPromotable == element.isPromotable;
   }
 
   static Map<LookupName, FieldItem> readMap(SummaryDataReader reader) {
@@ -684,16 +519,8 @@ class FieldItem extends VariableItem<FieldElementImpl> {
 class GetterItem extends ExecutableItem<GetterElementImpl> {
   GetterItem({
     required super.id,
-    required super.isSynthetic,
+    required super.flags,
     required super.metadata,
-    required super.hasEnclosingTypeParameterReference,
-    required super.hasImplicitReturnType,
-    required super.invokesSuperSelf,
-    required super.isAbstract,
-    required super.isExtensionTypeMember,
-    required super.isExternal,
-    required super.isSimplyBounded,
-    required super.isStatic,
     required super.functionType,
   });
 
@@ -704,20 +531,11 @@ class GetterItem extends ExecutableItem<GetterElementImpl> {
   }) {
     return GetterItem(
       id: id,
-      isSynthetic: element.isSynthetic,
+      flags: _ExecutableItemFlags.encode(element),
       metadata: ManifestMetadata.encode(
         context,
         element.thisOrVariableMetadata,
       ),
-      hasEnclosingTypeParameterReference:
-          element.hasEnclosingTypeParameterReference,
-      hasImplicitReturnType: element.hasImplicitReturnType,
-      invokesSuperSelf: element.invokesSuperSelf,
-      isAbstract: element.isAbstract,
-      isExtensionTypeMember: element.isExtensionTypeMember,
-      isExternal: element.isExternal,
-      isSimplyBounded: element.isSimplyBounded,
-      isStatic: element.isStatic,
       functionType: element.type.encode(context),
     );
   }
@@ -725,16 +543,8 @@ class GetterItem extends ExecutableItem<GetterElementImpl> {
   factory GetterItem.read(SummaryDataReader reader) {
     return GetterItem(
       id: ManifestItemId.read(reader),
-      isSynthetic: reader.readBool(),
+      flags: _ExecutableItemFlags.read(reader),
       metadata: ManifestMetadata.read(reader),
-      hasEnclosingTypeParameterReference: reader.readBool(),
-      hasImplicitReturnType: reader.readBool(),
-      invokesSuperSelf: reader.readBool(),
-      isAbstract: reader.readBool(),
-      isExtensionTypeMember: reader.readBool(),
-      isExternal: reader.readBool(),
-      isSimplyBounded: reader.readBool(),
-      isStatic: reader.readBool(),
       functionType: ManifestFunctionType.read(reader),
     );
   }
@@ -751,7 +561,6 @@ class GetterItem extends ExecutableItem<GetterElementImpl> {
 sealed class InstanceItem<E extends InstanceElementImpl>
     extends ManifestItem<E> {
   final List<ManifestTypeParameter> typeParameters;
-  final bool isSimplyBounded;
 
   /// The names of duplicate or otherwise conflicting members.
   /// Such names will not be added to `declaredXyz` maps.
@@ -766,10 +575,9 @@ sealed class InstanceItem<E extends InstanceElementImpl>
 
   InstanceItem({
     required super.id,
-    required super.isSynthetic,
+    required _InstanceItemFlags super.flags,
     required super.metadata,
     required this.typeParameters,
-    required this.isSimplyBounded,
     required this.declaredConflicts,
     required this.declaredFields,
     required this.declaredGetters,
@@ -778,6 +586,9 @@ sealed class InstanceItem<E extends InstanceElementImpl>
     required this.declaredConstructors,
     required this.inheritedConstructors,
   });
+
+  @override
+  _InstanceItemFlags get flags => super.flags as _InstanceItemFlags;
 
   void addDeclaredConstructor(LookupName lookupName, ConstructorItem item) {
     if (declaredConflicts.containsKey(lookupName)) {
@@ -790,9 +601,9 @@ sealed class InstanceItem<E extends InstanceElementImpl>
         return true;
       }
       // Constructors conflict with static properties and methods.
-      return declaredGetters[lookupName]?.isStatic ??
-          declaredSetters[lookupName]?.isStatic ??
-          declaredMethods[lookupName]?.isStatic ??
+      return declaredGetters[lookupName]?.flags.isStatic ??
+          declaredSetters[lookupName]?.flags.isStatic ??
+          declaredMethods[lookupName]?.flags.isStatic ??
           false;
     }();
     if (hasConflict) {
@@ -815,13 +626,13 @@ sealed class InstanceItem<E extends InstanceElementImpl>
         return true;
       }
       // Static getters conflict with constructors.
-      if (item.isStatic && declaredConstructors.containsKey(lookupName)) {
+      if (item.flags.isStatic && declaredConstructors.containsKey(lookupName)) {
         return true;
       }
       // Instance / static getters conflict with static / instance setter.
       var lookupNameSetter = '${lookupName.asString}='.asLookupName;
       if (declaredSetters[lookupNameSetter] case var setter?) {
-        if (setter.isStatic != item.isStatic) {
+        if (setter.flags.isStatic != item.flags.isStatic) {
           return true;
         }
       }
@@ -848,7 +659,7 @@ sealed class InstanceItem<E extends InstanceElementImpl>
         return true;
       }
       // Static methods conflict with constructors.
-      if (item.isStatic && declaredConstructors.containsKey(lookupName)) {
+      if (item.flags.isStatic && declaredConstructors.containsKey(lookupName)) {
         return true;
       }
       return false;
@@ -874,12 +685,13 @@ sealed class InstanceItem<E extends InstanceElementImpl>
         return true;
       }
       // Static setters conflict with constructors.
-      if (item.isStatic && declaredConstructors.containsKey(lookupNameGetter)) {
+      if (item.flags.isStatic &&
+          declaredConstructors.containsKey(lookupNameGetter)) {
         return true;
       }
       // Instance / static setters conflict with static / instance getter.
       if (declaredGetters[lookupNameGetter] case var getter?) {
-        if (getter.isStatic != item.isStatic) {
+        if (getter.flags.isStatic != item.flags.isStatic) {
           return true;
         }
       }
@@ -936,14 +748,13 @@ sealed class InstanceItem<E extends InstanceElementImpl>
     context.addTypeParameters(element.typeParameters);
     return super.match(context, element) &&
         typeParameters.match(context, element.typeParameters) &&
-        isSimplyBounded == element.isSimplyBounded;
+        flags.isSimplyBounded == element.isSimplyBounded;
   }
 
   @override
   void write(BufferedSink sink) {
     super.write(sink);
     typeParameters.write(sink);
-    sink.writeBool(isSimplyBounded);
     declaredConflicts.write(sink);
     declaredFields.write(sink);
     declaredGetters.write(sink);
@@ -978,10 +789,9 @@ sealed class InterfaceItem<E extends InterfaceElementImpl>
 
   InterfaceItem({
     required super.id,
-    required super.isSynthetic,
+    required _InterfaceItemFlags super.flags,
     required super.metadata,
     required super.typeParameters,
-    required super.isSimplyBounded,
     required super.declaredConflicts,
     required super.declaredFields,
     required super.declaredGetters,
@@ -995,6 +805,9 @@ sealed class InterfaceItem<E extends InterfaceElementImpl>
     required this.interfaces,
     required this.interface,
   });
+
+  @override
+  _InterfaceItemFlags get flags => super.flags as _InterfaceItemFlags;
 
   ManifestItemId? getImplementedMethodId(LookupName name) {
     return interface.implemented[name];
@@ -1184,25 +997,21 @@ class ManifestInterface {
 sealed class ManifestItem<E extends ElementImpl> {
   /// The unique identifier of this item.
   final ManifestItemId id;
-  final bool isSynthetic;
+  final _ManifestItemFlags flags;
   final ManifestMetadata metadata;
 
-  ManifestItem({
-    required this.id,
-    required this.isSynthetic,
-    required this.metadata,
-  });
+  ManifestItem({required this.id, required this.flags, required this.metadata});
 
   @mustCallSuper
   bool match(MatchContext context, E element) {
-    return isSynthetic == element.isSynthetic &&
+    return flags.isSynthetic == element.isSynthetic &&
         metadata.match(context, element.effectiveMetadata);
   }
 
   @mustCallSuper
   void write(BufferedSink sink) {
     id.write(sink);
-    sink.writeBool(isSynthetic);
+    flags.write(sink);
     metadata.write(sink);
   }
 }
@@ -1252,23 +1061,13 @@ class ManifestMetadata {
 }
 
 class MethodItem extends ExecutableItem<MethodElementImpl> {
-  final bool isOperatorEqualWithParameterTypeFromObject;
   final TopLevelInferenceError? typeInferenceError;
 
   MethodItem({
     required super.id,
-    required super.isSynthetic,
+    required _MethodItemFlags super.flags,
     required super.metadata,
-    required super.hasEnclosingTypeParameterReference,
-    required super.hasImplicitReturnType,
-    required super.invokesSuperSelf,
-    required super.isAbstract,
-    required super.isExtensionTypeMember,
-    required super.isExternal,
-    required super.isSimplyBounded,
-    required super.isStatic,
     required super.functionType,
-    required this.isOperatorEqualWithParameterTypeFromObject,
     required this.typeInferenceError,
   });
 
@@ -1279,20 +1078,9 @@ class MethodItem extends ExecutableItem<MethodElementImpl> {
   }) {
     return MethodItem(
       id: id,
-      isSynthetic: element.isSynthetic,
+      flags: _MethodItemFlags.encode(element),
       metadata: ManifestMetadata.encode(context, element.metadata),
-      hasEnclosingTypeParameterReference:
-          element.hasEnclosingTypeParameterReference,
-      hasImplicitReturnType: element.hasImplicitReturnType,
-      invokesSuperSelf: element.invokesSuperSelf,
-      isAbstract: element.isAbstract,
-      isExtensionTypeMember: element.isExtensionTypeMember,
-      isExternal: element.isExternal,
-      isSimplyBounded: element.isSimplyBounded,
-      isStatic: element.isStatic,
       functionType: element.type.encode(context),
-      isOperatorEqualWithParameterTypeFromObject:
-          element.isOperatorEqualWithParameterTypeFromObject,
       typeInferenceError: element.typeInferenceError,
     );
   }
@@ -1300,26 +1088,20 @@ class MethodItem extends ExecutableItem<MethodElementImpl> {
   factory MethodItem.read(SummaryDataReader reader) {
     return MethodItem(
       id: ManifestItemId.read(reader),
-      isSynthetic: reader.readBool(),
+      flags: _MethodItemFlags.read(reader),
       metadata: ManifestMetadata.read(reader),
-      hasEnclosingTypeParameterReference: reader.readBool(),
-      hasImplicitReturnType: reader.readBool(),
-      invokesSuperSelf: reader.readBool(),
-      isAbstract: reader.readBool(),
-      isExtensionTypeMember: reader.readBool(),
-      isExternal: reader.readBool(),
-      isSimplyBounded: reader.readBool(),
-      isStatic: reader.readBool(),
       functionType: ManifestFunctionType.read(reader),
-      isOperatorEqualWithParameterTypeFromObject: reader.readBool(),
       typeInferenceError: TopLevelInferenceError.readOptional(reader),
     );
   }
 
   @override
+  _MethodItemFlags get flags => super.flags as _MethodItemFlags;
+
+  @override
   bool match(MatchContext context, MethodElementImpl element) {
     return super.match(context, element) &&
-        isOperatorEqualWithParameterTypeFromObject ==
+        flags.isOperatorEqualWithParameterTypeFromObject ==
             element.isOperatorEqualWithParameterTypeFromObject &&
         typeInferenceError == element.typeInferenceError;
   }
@@ -1327,7 +1109,6 @@ class MethodItem extends ExecutableItem<MethodElementImpl> {
   @override
   void write(BufferedSink sink) {
     super.write(sink);
-    sink.writeBool(isOperatorEqualWithParameterTypeFromObject);
     typeInferenceError.writeOptional(sink);
   }
 
@@ -1340,16 +1121,14 @@ class MethodItem extends ExecutableItem<MethodElementImpl> {
 }
 
 class MixinItem extends InterfaceItem<MixinElementImpl> {
-  final bool isBase;
   final List<ManifestType> superclassConstraints;
   final List<LookupName> superInvokedNames;
 
   MixinItem({
     required super.id,
-    required super.isSynthetic,
+    required _MixinItemFlags super.flags,
     required super.metadata,
     required super.typeParameters,
-    required super.isSimplyBounded,
     required super.supertype,
     required super.interfaces,
     required super.mixins,
@@ -1362,7 +1141,6 @@ class MixinItem extends InterfaceItem<MixinElementImpl> {
     required super.inheritedConstructors,
     required super.hasNonFinalField,
     required super.interface,
-    required this.isBase,
     required this.superclassConstraints,
     required this.superInvokedNames,
   }) : assert(supertype == null),
@@ -1377,10 +1155,9 @@ class MixinItem extends InterfaceItem<MixinElementImpl> {
     return context.withTypeParameters(element.typeParameters, (typeParameters) {
       return MixinItem(
         id: id,
-        isSynthetic: element.isSynthetic,
+        flags: _MixinItemFlags.encode(element),
         metadata: ManifestMetadata.encode(context, element.metadata),
         typeParameters: typeParameters,
-        isSimplyBounded: element.isSimplyBounded,
         declaredConflicts: {},
         declaredFields: {},
         declaredGetters: {},
@@ -1393,7 +1170,6 @@ class MixinItem extends InterfaceItem<MixinElementImpl> {
         supertype: element.supertype?.encode(context),
         mixins: element.mixins.encode(context),
         interfaces: element.interfaces.encode(context),
-        isBase: element.isBase,
         superclassConstraints: element.superclassConstraints.encode(context),
         superInvokedNames: element.superInvokedNames
             .map((name) => name.asLookupName)
@@ -1405,10 +1181,9 @@ class MixinItem extends InterfaceItem<MixinElementImpl> {
   factory MixinItem.read(SummaryDataReader reader) {
     return MixinItem(
       id: ManifestItemId.read(reader),
-      isSynthetic: reader.readBool(),
+      flags: _MixinItemFlags.read(reader),
       metadata: ManifestMetadata.read(reader),
       typeParameters: ManifestTypeParameter.readList(reader),
-      isSimplyBounded: reader.readBool(),
       declaredConflicts: reader.readLookupNameToIdMap(),
       declaredFields: FieldItem.readMap(reader),
       declaredGetters: GetterItem.readMap(reader),
@@ -1421,16 +1196,18 @@ class MixinItem extends InterfaceItem<MixinElementImpl> {
       mixins: ManifestType.readList(reader),
       interfaces: ManifestType.readList(reader),
       interface: ManifestInterface.read(reader),
-      isBase: reader.readBool(),
       superclassConstraints: ManifestType.readList(reader),
       superInvokedNames: reader.readLookupNameList(),
     );
   }
 
   @override
+  _MixinItemFlags get flags => super.flags as _MixinItemFlags;
+
+  @override
   bool match(MatchContext context, MixinElementImpl element) {
     return super.match(context, element) &&
-        isBase == element.isBase &&
+        flags.isBase == element.isBase &&
         superclassConstraints.match(context, element.superclassConstraints) &&
         const IterableEquality<String>().equals(
           superInvokedNames.map((lookupName) => lookupName.asString),
@@ -1441,7 +1218,6 @@ class MixinItem extends InterfaceItem<MixinElementImpl> {
   @override
   void write(BufferedSink sink) {
     super.write(sink);
-    sink.writeBool(isBase);
     superclassConstraints.writeList(sink);
     superInvokedNames.write(sink);
   }
@@ -1450,16 +1226,8 @@ class MixinItem extends InterfaceItem<MixinElementImpl> {
 class SetterItem extends ExecutableItem<SetterElementImpl> {
   SetterItem({
     required super.id,
-    required super.isSynthetic,
+    required super.flags,
     required super.metadata,
-    required super.hasEnclosingTypeParameterReference,
-    required super.hasImplicitReturnType,
-    required super.invokesSuperSelf,
-    required super.isAbstract,
-    required super.isExtensionTypeMember,
-    required super.isExternal,
-    required super.isSimplyBounded,
-    required super.isStatic,
     required super.functionType,
   });
 
@@ -1470,20 +1238,11 @@ class SetterItem extends ExecutableItem<SetterElementImpl> {
   }) {
     return SetterItem(
       id: id,
-      isSynthetic: element.isSynthetic,
+      flags: _ExecutableItemFlags.encode(element),
       metadata: ManifestMetadata.encode(
         context,
         element.thisOrVariableMetadata,
       ),
-      hasEnclosingTypeParameterReference:
-          element.hasEnclosingTypeParameterReference,
-      hasImplicitReturnType: element.hasImplicitReturnType,
-      invokesSuperSelf: element.invokesSuperSelf,
-      isAbstract: element.isAbstract,
-      isExtensionTypeMember: element.isExtensionTypeMember,
-      isExternal: element.isExternal,
-      isSimplyBounded: element.isSimplyBounded,
-      isStatic: element.isStatic,
       functionType: element.type.encode(context),
     );
   }
@@ -1491,16 +1250,8 @@ class SetterItem extends ExecutableItem<SetterElementImpl> {
   factory SetterItem.read(SummaryDataReader reader) {
     return SetterItem(
       id: ManifestItemId.read(reader),
-      isSynthetic: reader.readBool(),
+      flags: _ExecutableItemFlags.read(reader),
       metadata: ManifestMetadata.read(reader),
-      hasEnclosingTypeParameterReference: reader.readBool(),
-      hasImplicitReturnType: reader.readBool(),
-      invokesSuperSelf: reader.readBool(),
-      isAbstract: reader.readBool(),
-      isExtensionTypeMember: reader.readBool(),
-      isExternal: reader.readBool(),
-      isSimplyBounded: reader.readBool(),
-      isStatic: reader.readBool(),
       functionType: ManifestFunctionType.read(reader),
     );
   }
@@ -1516,16 +1267,8 @@ class SetterItem extends ExecutableItem<SetterElementImpl> {
 class TopLevelFunctionItem extends ExecutableItem<TopLevelFunctionElementImpl> {
   TopLevelFunctionItem({
     required super.id,
-    required super.isSynthetic,
+    required super.flags,
     required super.metadata,
-    required super.hasEnclosingTypeParameterReference,
-    required super.hasImplicitReturnType,
-    required super.invokesSuperSelf,
-    required super.isAbstract,
-    required super.isExtensionTypeMember,
-    required super.isExternal,
-    required super.isSimplyBounded,
-    required super.isStatic,
     required super.functionType,
   });
 
@@ -1536,17 +1279,8 @@ class TopLevelFunctionItem extends ExecutableItem<TopLevelFunctionElementImpl> {
   }) {
     return TopLevelFunctionItem(
       id: id,
-      isSynthetic: element.isSynthetic,
+      flags: _ExecutableItemFlags.encode(element),
       metadata: ManifestMetadata.encode(context, element.metadata),
-      hasEnclosingTypeParameterReference:
-          element.hasEnclosingTypeParameterReference,
-      hasImplicitReturnType: element.hasImplicitReturnType,
-      invokesSuperSelf: element.invokesSuperSelf,
-      isAbstract: element.isAbstract,
-      isExtensionTypeMember: element.isExtensionTypeMember,
-      isExternal: element.isExternal,
-      isSimplyBounded: element.isSimplyBounded,
-      isStatic: element.isStatic,
       functionType: element.type.encode(context),
     );
   }
@@ -1554,38 +1288,20 @@ class TopLevelFunctionItem extends ExecutableItem<TopLevelFunctionElementImpl> {
   factory TopLevelFunctionItem.read(SummaryDataReader reader) {
     return TopLevelFunctionItem(
       id: ManifestItemId.read(reader),
-      isSynthetic: reader.readBool(),
+      flags: _ExecutableItemFlags.read(reader),
       metadata: ManifestMetadata.read(reader),
-      hasEnclosingTypeParameterReference: reader.readBool(),
-      hasImplicitReturnType: reader.readBool(),
-      invokesSuperSelf: reader.readBool(),
-      isAbstract: reader.readBool(),
-      isExtensionTypeMember: reader.readBool(),
-      isExternal: reader.readBool(),
-      isSimplyBounded: reader.readBool(),
-      isStatic: reader.readBool(),
       functionType: ManifestFunctionType.read(reader),
     );
   }
 }
 
 class TopLevelVariableItem extends VariableItem<TopLevelVariableElementImpl> {
-  final bool isExternal;
-
   TopLevelVariableItem({
     required super.id,
-    required super.isSynthetic,
+    required _TopLevelVariableItemFlags super.flags,
     required super.metadata,
-    required super.hasInitializer,
-    required super.hasImplicitType,
-    required super.isConst,
-    required super.isFinal,
-    required super.isLate,
-    required super.isStatic,
-    required super.shouldUseTypeForInitializerInference,
     required super.type,
     required super.constInitializer,
-    required this.isExternal,
   });
 
   factory TopLevelVariableItem.fromElement({
@@ -1595,49 +1311,31 @@ class TopLevelVariableItem extends VariableItem<TopLevelVariableElementImpl> {
   }) {
     return TopLevelVariableItem(
       id: id,
-      isSynthetic: element.isSynthetic,
+      flags: _TopLevelVariableItemFlags.encode(element),
       metadata: ManifestMetadata.encode(context, element.metadata),
-      hasInitializer: element.hasInitializer,
-      hasImplicitType: element.hasImplicitType,
-      isConst: element.isConst,
-      isFinal: element.isFinal,
-      isLate: element.isLate,
-      isStatic: element.isStatic,
-      shouldUseTypeForInitializerInference:
-          element.shouldUseTypeForInitializerInference,
       type: element.type.encode(context),
       constInitializer: element.constantInitializer?.encode(context),
-      isExternal: element.isExternal,
     );
   }
 
   factory TopLevelVariableItem.read(SummaryDataReader reader) {
     return TopLevelVariableItem(
       id: ManifestItemId.read(reader),
-      isSynthetic: reader.readBool(),
+      flags: _TopLevelVariableItemFlags.read(reader),
       metadata: ManifestMetadata.read(reader),
-      hasInitializer: reader.readBool(),
-      hasImplicitType: reader.readBool(),
-      isConst: reader.readBool(),
-      isFinal: reader.readBool(),
-      isLate: reader.readBool(),
-      isStatic: reader.readBool(),
-      shouldUseTypeForInitializerInference: reader.readBool(),
       type: ManifestType.read(reader),
       constInitializer: ManifestNode.readOptional(reader),
-      isExternal: reader.readBool(),
     );
   }
 
   @override
-  bool match(MatchContext context, TopLevelVariableElementImpl element) {
-    return super.match(context, element) && isExternal == element.isExternal;
-  }
+  _TopLevelVariableItemFlags get flags =>
+      super.flags as _TopLevelVariableItemFlags;
 
   @override
-  void write(BufferedSink sink) {
-    super.write(sink);
-    sink.writeBool(isExternal);
+  bool match(MatchContext context, TopLevelVariableElementImpl element) {
+    return super.match(context, element) &&
+        flags.isExternal == element.isExternal;
   }
 }
 
@@ -1647,7 +1345,7 @@ class TypeAliasItem extends ManifestItem<TypeAliasElementImpl> {
 
   TypeAliasItem({
     required super.id,
-    required super.isSynthetic,
+    required super.flags,
     required super.metadata,
     required this.typeParameters,
     required this.aliasedType,
@@ -1661,7 +1359,7 @@ class TypeAliasItem extends ManifestItem<TypeAliasElementImpl> {
     return context.withTypeParameters(element.typeParameters, (typeParameters) {
       return TypeAliasItem(
         id: id,
-        isSynthetic: element.isSynthetic,
+        flags: _ManifestItemFlags.encode(element),
         metadata: ManifestMetadata.encode(context, element.metadata),
         typeParameters: typeParameters,
         aliasedType: element.aliasedType.encode(context),
@@ -1672,7 +1370,7 @@ class TypeAliasItem extends ManifestItem<TypeAliasElementImpl> {
   factory TypeAliasItem.read(SummaryDataReader reader) {
     return TypeAliasItem(
       id: ManifestItemId.read(reader),
-      isSynthetic: reader.readBool(),
+      flags: _ManifestItemFlags.read(reader),
       metadata: ManifestMetadata.read(reader),
       typeParameters: ManifestTypeParameter.readList(reader),
       aliasedType: ManifestType.read(reader),
@@ -1697,41 +1395,30 @@ class TypeAliasItem extends ManifestItem<TypeAliasElementImpl> {
 
 sealed class VariableItem<E extends PropertyInducingElementImpl>
     extends ManifestItem<E> {
-  final bool hasInitializer;
-  final bool hasImplicitType;
-  final bool isConst;
-  final bool isFinal;
-  final bool isLate;
-  final bool isStatic;
-  final bool shouldUseTypeForInitializerInference;
   final ManifestType type;
   final ManifestNode? constInitializer;
 
   VariableItem({
     required super.id,
-    required super.isSynthetic,
+    required _VariableItemFlags super.flags,
     required super.metadata,
-    required this.hasInitializer,
-    required this.hasImplicitType,
-    required this.isConst,
-    required this.isFinal,
-    required this.isLate,
-    required this.isStatic,
-    required this.shouldUseTypeForInitializerInference,
     required this.type,
     required this.constInitializer,
   });
 
   @override
+  _VariableItemFlags get flags => super.flags as _VariableItemFlags;
+
+  @override
   bool match(MatchContext context, E element) {
     return super.match(context, element) &&
-        hasInitializer == element.hasInitializer &&
-        hasImplicitType == element.hasImplicitType &&
-        isConst == element.isConst &&
-        isFinal == element.isFinal &&
-        isLate == element.isLate &&
-        isStatic == element.isStatic &&
-        shouldUseTypeForInitializerInference ==
+        flags.hasInitializer == element.hasInitializer &&
+        flags.hasImplicitType == element.hasImplicitType &&
+        flags.isConst == element.isConst &&
+        flags.isFinal == element.isFinal &&
+        flags.isLate == element.isLate &&
+        flags.isStatic == element.isStatic &&
+        flags.shouldUseTypeForInitializerInference ==
             element.shouldUseTypeForInitializerInference &&
         type.match(context, element.type) &&
         constInitializer.match(context, element.constantInitializer);
@@ -1740,15 +1427,648 @@ sealed class VariableItem<E extends PropertyInducingElementImpl>
   @override
   void write(BufferedSink sink) {
     super.write(sink);
-    sink.writeBool(hasInitializer);
-    sink.writeBool(hasImplicitType);
-    sink.writeBool(isConst);
-    sink.writeBool(isFinal);
-    sink.writeBool(isLate);
-    sink.writeBool(isStatic);
-    sink.writeBool(shouldUseTypeForInitializerInference);
     type.write(sink);
     constInitializer.writeOptional(sink);
+  }
+}
+
+enum _ClassItemFlag {
+  isAbstract,
+  isBase,
+  isFinal,
+  isInterface,
+  isMixinApplication,
+  isMixinClass,
+  isSealed,
+}
+
+enum _ConstructorItemFlag { isConst, isFactory }
+
+enum _ExecutableItemFlag {
+  hasEnclosingTypeParameterReference,
+  hasImplicitReturnType,
+  invokesSuperSelf,
+  isAbstract,
+  isExtensionTypeMember,
+  isExternal,
+  isSimplyBounded,
+  isStatic,
+}
+
+enum _ExtensionTypeItemFlag {
+  hasImplementsSelfReference,
+  hasRepresentationSelfReference,
+}
+
+enum _FieldItemFlag {
+  hasEnclosingTypeParameterReference,
+  isAbstract,
+  isCovariant,
+  isEnumConstant,
+  isExternal,
+  isPromotable,
+}
+
+enum _InstanceItemFlag { isSimplyBounded }
+
+enum _InterfaceItemFlag { reserved }
+
+enum _ManifestItemFlag { isSynthetic }
+
+enum _MethodItemFlag { isOperatorEqualWithParameterTypeFromObject }
+
+enum _MixinItemFlag { isBase }
+
+enum _TopLevelVariableItemFlag { isExternal }
+
+enum _VariableItemFlag {
+  hasInitializer,
+  hasImplicitType,
+  isConst,
+  isFinal,
+  isLate,
+  isStatic,
+  shouldUseTypeForInitializerInference,
+}
+
+extension type _ClassItemFlags._(int _bits) implements _InterfaceItemFlags {
+  static final int _base = _InterfaceItemFlags._next;
+
+  factory _ClassItemFlags.encode(ClassElementImpl element) {
+    var bits = _InterfaceItemFlags.encode(element)._bits;
+    if (element.isAbstract) {
+      bits |= _maskFor(_ClassItemFlag.isAbstract);
+    }
+    if (element.isBase) {
+      bits |= _maskFor(_ClassItemFlag.isBase);
+    }
+    if (element.isFinal) {
+      bits |= _maskFor(_ClassItemFlag.isFinal);
+    }
+    if (element.isInterface) {
+      bits |= _maskFor(_ClassItemFlag.isInterface);
+    }
+    if (element.isMixinApplication) {
+      bits |= _maskFor(_ClassItemFlag.isMixinApplication);
+    }
+    if (element.isMixinClass) {
+      bits |= _maskFor(_ClassItemFlag.isMixinClass);
+    }
+    if (element.isSealed) {
+      bits |= _maskFor(_ClassItemFlag.isSealed);
+    }
+    return _ClassItemFlags._(bits);
+  }
+
+  factory _ClassItemFlags.read(SummaryDataReader reader) {
+    return _ClassItemFlags._(reader.readUInt30());
+  }
+
+  bool get isAbstract {
+    return _has(_ClassItemFlag.isAbstract);
+  }
+
+  bool get isBase {
+    return _has(_ClassItemFlag.isBase);
+  }
+
+  bool get isFinal {
+    return _has(_ClassItemFlag.isFinal);
+  }
+
+  bool get isInterface {
+    return _has(_ClassItemFlag.isInterface);
+  }
+
+  bool get isMixinApplication {
+    return _has(_ClassItemFlag.isMixinApplication);
+  }
+
+  bool get isMixinClass {
+    return _has(_ClassItemFlag.isMixinClass);
+  }
+
+  bool get isSealed {
+    return _has(_ClassItemFlag.isSealed);
+  }
+
+  void write(BufferedSink sink) {
+    sink.writeUInt30(_bits);
+  }
+
+  bool _has(_ClassItemFlag flag) {
+    return (_bits & _maskFor(flag)) != 0;
+  }
+
+  static int _maskFor(_ClassItemFlag flag) {
+    var bit = _base + flag.index;
+    assert(bit < 30);
+    return 1 << bit;
+  }
+}
+
+extension type _ConstructorItemFlags._(int _bits)
+    implements _ExecutableItemFlags {
+  static final int _base = _ExecutableItemFlags._next;
+
+  factory _ConstructorItemFlags.encode(ConstructorElementImpl element) {
+    var bits = _ExecutableItemFlags.encode(element)._bits;
+    if (element.isConst) {
+      bits |= _maskFor(_ConstructorItemFlag.isConst);
+    }
+    if (element.isFactory) {
+      bits |= _maskFor(_ConstructorItemFlag.isFactory);
+    }
+    return _ConstructorItemFlags._(bits);
+  }
+
+  factory _ConstructorItemFlags.read(SummaryDataReader reader) {
+    return _ConstructorItemFlags._(reader.readUInt30());
+  }
+
+  bool get isConst {
+    return _has(_ConstructorItemFlag.isConst);
+  }
+
+  bool get isFactory {
+    return _has(_ConstructorItemFlag.isFactory);
+  }
+
+  void write(BufferedSink sink) {
+    sink.writeUInt30(_bits);
+  }
+
+  bool _has(_ConstructorItemFlag flag) {
+    return (_bits & _maskFor(flag)) != 0;
+  }
+
+  static int _maskFor(_ConstructorItemFlag flag) {
+    var bit = _base + flag.index;
+    assert(bit < 30);
+    return 1 << bit;
+  }
+}
+
+extension type _ExecutableItemFlags._(int _bits) implements _ManifestItemFlags {
+  static final int _base = _ManifestItemFlags._next;
+  static final int _next = _base + _ExecutableItemFlag.values.length;
+
+  factory _ExecutableItemFlags.encode(ExecutableElementImpl element) {
+    var bits = _ManifestItemFlags.encode(element)._bits;
+    if (element.hasEnclosingTypeParameterReference) {
+      bits |= _maskFor(_ExecutableItemFlag.hasEnclosingTypeParameterReference);
+    }
+    if (element.hasImplicitReturnType) {
+      bits |= _maskFor(_ExecutableItemFlag.hasImplicitReturnType);
+    }
+    if (element.invokesSuperSelf) {
+      bits |= _maskFor(_ExecutableItemFlag.invokesSuperSelf);
+    }
+    if (element.isAbstract) {
+      bits |= _maskFor(_ExecutableItemFlag.isAbstract);
+    }
+    if (element.isExtensionTypeMember) {
+      bits |= _maskFor(_ExecutableItemFlag.isExtensionTypeMember);
+    }
+    if (element.isExternal) {
+      bits |= _maskFor(_ExecutableItemFlag.isExternal);
+    }
+    if (element.isSimplyBounded) {
+      bits |= _maskFor(_ExecutableItemFlag.isSimplyBounded);
+    }
+    if (element.isStatic) {
+      bits |= _maskFor(_ExecutableItemFlag.isStatic);
+    }
+    return _ExecutableItemFlags._(bits);
+  }
+
+  factory _ExecutableItemFlags.read(SummaryDataReader reader) {
+    return _ExecutableItemFlags._(reader.readUInt30());
+  }
+
+  bool get hasEnclosingTypeParameterReference {
+    return _has(_ExecutableItemFlag.hasEnclosingTypeParameterReference);
+  }
+
+  bool get hasImplicitReturnType {
+    return _has(_ExecutableItemFlag.hasImplicitReturnType);
+  }
+
+  bool get invokesSuperSelf {
+    return _has(_ExecutableItemFlag.invokesSuperSelf);
+  }
+
+  bool get isAbstract {
+    return _has(_ExecutableItemFlag.isAbstract);
+  }
+
+  bool get isExtensionTypeMember {
+    return _has(_ExecutableItemFlag.isExtensionTypeMember);
+  }
+
+  bool get isExternal {
+    return _has(_ExecutableItemFlag.isExternal);
+  }
+
+  bool get isSimplyBounded {
+    return _has(_ExecutableItemFlag.isSimplyBounded);
+  }
+
+  bool get isStatic {
+    return _has(_ExecutableItemFlag.isStatic);
+  }
+
+  void write(BufferedSink sink) {
+    sink.writeUInt30(_bits);
+  }
+
+  bool _has(_ExecutableItemFlag flag) {
+    return (_bits & _maskFor(flag)) != 0;
+  }
+
+  static int _maskFor(_ExecutableItemFlag flag) {
+    var bit = _base + flag.index;
+    assert(bit < 30);
+    return 1 << bit;
+  }
+}
+
+extension type _ExtensionTypeItemFlags._(int _bits)
+    implements _InterfaceItemFlags {
+  static final int _base = _InterfaceItemFlags._next;
+
+  factory _ExtensionTypeItemFlags.encode(ExtensionTypeElementImpl element) {
+    var bits = _InterfaceItemFlags.encode(element)._bits;
+    if (element.hasImplementsSelfReference) {
+      bits |= _maskFor(_ExtensionTypeItemFlag.hasImplementsSelfReference);
+    }
+    if (element.hasRepresentationSelfReference) {
+      bits |= _maskFor(_ExtensionTypeItemFlag.hasRepresentationSelfReference);
+    }
+    return _ExtensionTypeItemFlags._(bits);
+  }
+
+  factory _ExtensionTypeItemFlags.read(SummaryDataReader reader) {
+    return _ExtensionTypeItemFlags._(reader.readUInt30());
+  }
+
+  bool get hasImplementsSelfReference {
+    return _has(_ExtensionTypeItemFlag.hasImplementsSelfReference);
+  }
+
+  bool get hasRepresentationSelfReference {
+    return _has(_ExtensionTypeItemFlag.hasRepresentationSelfReference);
+  }
+
+  void write(BufferedSink sink) {
+    sink.writeUInt30(_bits);
+  }
+
+  bool _has(_ExtensionTypeItemFlag flag) {
+    return (_bits & _maskFor(flag)) != 0;
+  }
+
+  static int _maskFor(_ExtensionTypeItemFlag flag) {
+    var bit = _base + flag.index;
+    assert(bit < 30);
+    return 1 << bit;
+  }
+}
+
+extension type _FieldItemFlags._(int _bits) implements _VariableItemFlags {
+  static final int _base = _VariableItemFlags._next;
+
+  factory _FieldItemFlags.encode(FieldElementImpl element) {
+    var bits = _VariableItemFlags.encode(element)._bits;
+    if (element.hasEnclosingTypeParameterReference) {
+      bits |= _maskFor(_FieldItemFlag.hasEnclosingTypeParameterReference);
+    }
+    if (element.isAbstract) {
+      bits |= _maskFor(_FieldItemFlag.isAbstract);
+    }
+    if (element.isCovariant) {
+      bits |= _maskFor(_FieldItemFlag.isCovariant);
+    }
+    if (element.isEnumConstant) {
+      bits |= _maskFor(_FieldItemFlag.isEnumConstant);
+    }
+    if (element.isExternal) {
+      bits |= _maskFor(_FieldItemFlag.isExternal);
+    }
+    if (element.isPromotable) {
+      bits |= _maskFor(_FieldItemFlag.isPromotable);
+    }
+    return _FieldItemFlags._(bits);
+  }
+
+  factory _FieldItemFlags.read(SummaryDataReader reader) {
+    return _FieldItemFlags._(reader.readUInt30());
+  }
+
+  bool get hasEnclosingTypeParameterReference {
+    return _has(_FieldItemFlag.hasEnclosingTypeParameterReference);
+  }
+
+  bool get isAbstract {
+    return _has(_FieldItemFlag.isAbstract);
+  }
+
+  bool get isCovariant {
+    return _has(_FieldItemFlag.isCovariant);
+  }
+
+  bool get isEnumConstant {
+    return _has(_FieldItemFlag.isEnumConstant);
+  }
+
+  bool get isExternal {
+    return _has(_FieldItemFlag.isExternal);
+  }
+
+  bool get isPromotable {
+    return _has(_FieldItemFlag.isPromotable);
+  }
+
+  void write(BufferedSink sink) {
+    sink.writeUInt30(_bits);
+  }
+
+  bool _has(_FieldItemFlag flag) {
+    return (_bits & _maskFor(flag)) != 0;
+  }
+
+  static int _maskFor(_FieldItemFlag flag) {
+    var bit = _base + flag.index;
+    assert(bit < 30);
+    return 1 << bit;
+  }
+}
+
+extension type _InstanceItemFlags._(int _bits) implements _ManifestItemFlags {
+  static final int _base = _ManifestItemFlags._next;
+  static final int _next = _base + _InstanceItemFlag.values.length;
+
+  factory _InstanceItemFlags.encode(InstanceElementImpl element) {
+    var bits = _ManifestItemFlags.encode(element)._bits;
+    if (element.isSimplyBounded) {
+      bits |= _maskFor(_InstanceItemFlag.isSimplyBounded);
+    }
+    return _InstanceItemFlags._(bits);
+  }
+
+  factory _InstanceItemFlags.read(SummaryDataReader reader) {
+    return _InstanceItemFlags._(reader.readUInt30());
+  }
+
+  bool get isSimplyBounded {
+    return _has(_InstanceItemFlag.isSimplyBounded);
+  }
+
+  void write(BufferedSink sink) {
+    sink.writeUInt30(_bits);
+  }
+
+  bool _has(_InstanceItemFlag flag) {
+    return (_bits & _maskFor(flag)) != 0;
+  }
+
+  static int _maskFor(_InstanceItemFlag flag) {
+    var bit = _base + flag.index;
+    assert(bit < 30);
+    return 1 << bit;
+  }
+}
+
+extension type _InterfaceItemFlags._(int _bits) implements _InstanceItemFlags {
+  static final int _base = _InstanceItemFlags._next;
+  static final int _next = _base + _InterfaceItemFlag.values.length;
+
+  factory _InterfaceItemFlags.encode(InterfaceElementImpl element) {
+    var bits = _InstanceItemFlags.encode(element)._bits;
+    return _InterfaceItemFlags._(bits);
+  }
+
+  factory _InterfaceItemFlags.read(SummaryDataReader reader) {
+    return _InterfaceItemFlags._(reader.readUInt30());
+  }
+
+  void write(BufferedSink sink) {
+    sink.writeUInt30(_bits);
+  }
+}
+
+extension type _ManifestItemFlags._(int _bits) {
+  static final int _base = 0;
+  static final int _next = _base + _ManifestItemFlag.values.length;
+
+  factory _ManifestItemFlags.encode(ElementImpl element) {
+    var bits = 0;
+    if (element.isSynthetic) {
+      bits |= _maskFor(_ManifestItemFlag.isSynthetic);
+    }
+    return _ManifestItemFlags._(bits);
+  }
+
+  factory _ManifestItemFlags.read(SummaryDataReader reader) {
+    return _ManifestItemFlags._(reader.readUInt30());
+  }
+
+  bool get isSynthetic {
+    return _has(_ManifestItemFlag.isSynthetic);
+  }
+
+  void write(BufferedSink sink) {
+    sink.writeUInt30(_bits);
+  }
+
+  bool _has(_ManifestItemFlag flag) {
+    return (_bits & _maskFor(flag)) != 0;
+  }
+
+  static int _maskFor(_ManifestItemFlag flag) {
+    var bit = _base + flag.index;
+    assert(bit < 30);
+    return 1 << bit;
+  }
+}
+
+extension type _MethodItemFlags._(int _bits) implements _ExecutableItemFlags {
+  static final int _base = _ExecutableItemFlags._next;
+
+  factory _MethodItemFlags.encode(MethodElementImpl element) {
+    var bits = _ExecutableItemFlags.encode(element)._bits;
+    if (element.isOperatorEqualWithParameterTypeFromObject) {
+      bits |= _maskFor(
+        _MethodItemFlag.isOperatorEqualWithParameterTypeFromObject,
+      );
+    }
+    return _MethodItemFlags._(bits);
+  }
+
+  factory _MethodItemFlags.read(SummaryDataReader reader) {
+    return _MethodItemFlags._(reader.readUInt30());
+  }
+
+  bool get isOperatorEqualWithParameterTypeFromObject {
+    return _has(_MethodItemFlag.isOperatorEqualWithParameterTypeFromObject);
+  }
+
+  void write(BufferedSink sink) {
+    sink.writeUInt30(_bits);
+  }
+
+  bool _has(_MethodItemFlag flag) {
+    return (_bits & _maskFor(flag)) != 0;
+  }
+
+  static int _maskFor(_MethodItemFlag flag) {
+    var bit = _base + flag.index;
+    assert(bit < 30);
+    return 1 << bit;
+  }
+}
+
+extension type _MixinItemFlags._(int _bits) implements _InterfaceItemFlags {
+  static final int _base = _InterfaceItemFlags._next;
+
+  factory _MixinItemFlags.encode(MixinElementImpl element) {
+    var bits = _InterfaceItemFlags.encode(element)._bits;
+    if (element.isBase) {
+      bits |= _maskFor(_MixinItemFlag.isBase);
+    }
+    return _MixinItemFlags._(bits);
+  }
+
+  factory _MixinItemFlags.read(SummaryDataReader reader) {
+    return _MixinItemFlags._(reader.readUInt30());
+  }
+
+  bool get isBase {
+    return _has(_MixinItemFlag.isBase);
+  }
+
+  void write(BufferedSink sink) {
+    sink.writeUInt30(_bits);
+  }
+
+  bool _has(_MixinItemFlag flag) {
+    return (_bits & _maskFor(flag)) != 0;
+  }
+
+  static int _maskFor(_MixinItemFlag flag) {
+    var bit = _base + flag.index;
+    assert(bit < 30);
+    return 1 << bit;
+  }
+}
+
+extension type _TopLevelVariableItemFlags._(int _bits)
+    implements _VariableItemFlags {
+  static final int _base = _VariableItemFlags._next;
+
+  factory _TopLevelVariableItemFlags.encode(
+    TopLevelVariableElementImpl element,
+  ) {
+    var bits = _VariableItemFlags.encode(element)._bits;
+    if (element.isExternal) {
+      bits |= _maskFor(_TopLevelVariableItemFlag.isExternal);
+    }
+    return _TopLevelVariableItemFlags._(bits);
+  }
+
+  factory _TopLevelVariableItemFlags.read(SummaryDataReader reader) {
+    return _TopLevelVariableItemFlags._(reader.readUInt30());
+  }
+
+  bool get isExternal {
+    return _has(_TopLevelVariableItemFlag.isExternal);
+  }
+
+  void write(BufferedSink sink) {
+    sink.writeUInt30(_bits);
+  }
+
+  bool _has(_TopLevelVariableItemFlag flag) {
+    return (_bits & _maskFor(flag)) != 0;
+  }
+
+  static int _maskFor(_TopLevelVariableItemFlag flag) {
+    var bit = _base + flag.index;
+    assert(bit < 30);
+    return 1 << bit;
+  }
+}
+
+extension type _VariableItemFlags._(int _bits) implements _ManifestItemFlags {
+  static final int _base = _ManifestItemFlags._next;
+  static final int _next = _base + _VariableItemFlag.values.length;
+
+  factory _VariableItemFlags.encode(PropertyInducingElementImpl element) {
+    var bits = _ManifestItemFlags.encode(element)._bits;
+    if (element.hasInitializer) {
+      bits |= _maskFor(_VariableItemFlag.hasInitializer);
+    }
+    if (element.hasImplicitType) {
+      bits |= _maskFor(_VariableItemFlag.hasImplicitType);
+    }
+    if (element.isConst) {
+      bits |= _maskFor(_VariableItemFlag.isConst);
+    }
+    if (element.isFinal) {
+      bits |= _maskFor(_VariableItemFlag.isFinal);
+    }
+    if (element.isLate) {
+      bits |= _maskFor(_VariableItemFlag.isLate);
+    }
+    if (element.isStatic) {
+      bits |= _maskFor(_VariableItemFlag.isStatic);
+    }
+    if (element.shouldUseTypeForInitializerInference) {
+      bits |= _maskFor(_VariableItemFlag.shouldUseTypeForInitializerInference);
+    }
+    return _VariableItemFlags._(bits);
+  }
+
+  bool get hasImplicitType {
+    return _has(_VariableItemFlag.hasImplicitType);
+  }
+
+  bool get hasInitializer {
+    return _has(_VariableItemFlag.hasInitializer);
+  }
+
+  bool get isConst {
+    return _has(_VariableItemFlag.isConst);
+  }
+
+  bool get isFinal {
+    return _has(_VariableItemFlag.isFinal);
+  }
+
+  bool get isLate {
+    return _has(_VariableItemFlag.isLate);
+  }
+
+  bool get isStatic {
+    return _has(_VariableItemFlag.isStatic);
+  }
+
+  bool get shouldUseTypeForInitializerInference {
+    return _has(_VariableItemFlag.shouldUseTypeForInitializerInference);
+  }
+
+  void write(BufferedSink sink) {
+    sink.writeUInt30(_bits);
+  }
+
+  bool _has(_VariableItemFlag flag) {
+    return (_bits & _maskFor(flag)) != 0;
+  }
+
+  static int _maskFor(_VariableItemFlag flag) {
+    var bit = _base + flag.index;
+    assert(bit < 30);
+    return 1 << bit;
   }
 }
 

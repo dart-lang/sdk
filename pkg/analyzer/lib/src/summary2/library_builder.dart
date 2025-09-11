@@ -114,7 +114,7 @@ class LibraryBuilder {
           continue;
         }
 
-        var exportedUri = exportedLibrary.source.uri;
+        var exportedUri = exportedLibrary.uri;
         var exportedBuilder = linker.builders[exportedUri];
         var combinators = exportElement.combinators.build();
 
@@ -174,10 +174,7 @@ class LibraryBuilder {
   /// Build elements for declarations in the library units, add top-level
   /// declarations to the local scope, for combining into export scopes.
   void buildElements() {
-    _buildDirectives(
-      kind: kind,
-      containerUnit: element.definingCompilationUnit,
-    );
+    _buildDirectives(kind: kind, containerUnit: element.firstFragment);
 
     for (var linkingUnit in units) {
       var elementBuilder = FragmentBuilder(
@@ -800,7 +797,7 @@ class LibraryBuilder {
         DefiningLinkingUnit(node: libraryUnitNode, element: unitElement),
       );
 
-      libraryElement.definingCompilationUnit = unitElement;
+      libraryElement.firstFragment = unitElement;
     }
 
     var builder = LibraryBuilder._(

@@ -163,7 +163,7 @@ class _LibraryBuilder {
         source: librarySource,
         lineInfo: LineInfo([0]),
       );
-      libraryElement.definingCompilationUnit = libraryFragment;
+      libraryElement.firstFragment = libraryFragment;
       _libraryElements[libraryUriStr] = libraryElement;
       _libraryFragments[libraryUriStr] = libraryFragment;
 

@@ -5897,8 +5897,9 @@ class LibraryElementImpl extends ElementImpl
   @override
   AnalysisSessionImpl session;
 
-  /// The compilation unit that defines this library.
-  late LibraryFragmentImpl definingCompilationUnit;
+  /// The first (defining) fragment of this library.
+  @override
+  late LibraryFragmentImpl _firstFragment;
 
   /// The language version for the library.
   LibraryLanguageVersion? _languageVersion;
@@ -6106,11 +6107,15 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
-  LibraryFragmentImpl get firstFragment => definingCompilationUnit;
+  LibraryFragmentImpl get firstFragment => _firstFragment;
+
+  set firstFragment(LibraryFragmentImpl value) {
+    _firstFragment = value;
+  }
 
   @override
   List<LibraryFragmentImpl> get fragments {
-    return [definingCompilationUnit, ..._partUnits];
+    return [_firstFragment, ..._partUnits];
   }
 
   bool get hasPartOfDirective {
@@ -6132,7 +6137,6 @@ class LibraryElementImpl extends ElementImpl
 
   @override
   bool get isInSdk {
-    var uri = definingCompilationUnit.source.uri;
     return DartUriResolver.isDartUri(uri);
   }
 
@@ -6216,9 +6220,9 @@ class LibraryElementImpl extends ElementImpl
     _publicNamespace = publicNamespace;
   }
 
-  // TODO(scheglov): replace with `firstFragment.source`
+  // TODO(scheglov): prefer `firstFragment.source`
   Source get source {
-    return definingCompilationUnit.source;
+    return _firstFragment.source;
   }
 
   Iterable<FragmentImpl> get topLevelElements sync* {
@@ -6240,14 +6244,11 @@ class LibraryElementImpl extends ElementImpl
   /// This includes the defining compilation unit and units included using the
   /// `part` directive.
   List<LibraryFragmentImpl> get units {
-    return [definingCompilationUnit, ..._partUnits];
+    return [_firstFragment, ..._partUnits];
   }
 
   @override
   Uri get uri => _firstFragment.source.uri;
-
-  @override
-  LibraryFragmentImpl get _firstFragment => definingCompilationUnit;
 
   List<LibraryFragmentImpl> get _partUnits {
     var result = <LibraryFragmentImpl>[];
@@ -6262,7 +6263,7 @@ class LibraryElementImpl extends ElementImpl
       }
     }
 
-    visitParts(definingCompilationUnit);
+    visitParts(_firstFragment);
     return result;
   }
 
@@ -6805,7 +6806,7 @@ class LibraryFragmentImpl extends FragmentImpl
 
   @override
   int get offset {
-    if (!identical(this, library.definingCompilationUnit)) {
+    if (!identical(this, library.firstFragment)) {
       // Not the first fragment, so there is no name; return an offset of 0
       return 0;
     }
@@ -7134,7 +7135,7 @@ final class LoadLibraryFunctionProvider {
     var fragment = TopLevelFunctionFragmentImpl(name: name);
     fragment.isSynthetic = true;
     fragment.isStatic = true;
-    fragment.enclosingFragment = library.definingCompilationUnit;
+    fragment.enclosingFragment = library.firstFragment;
 
     return TopLevelFunctionElementImpl(elementReference, fragment)
       ..returnType = library.typeProvider.futureDynamicType;
@@ -9986,10 +9987,12 @@ class TopLevelVariableFragmentImpl extends PropertyInducingFragmentImpl
   }
 }
 
+@elementClass
 class TypeAliasElementImpl extends ElementImpl
     with DeferredResolutionReadingMixin
     implements TypeAliasElement {
   @override
+  @trackedIncludedInId
   final Reference reference;
 
   @override
@@ -10003,6 +10006,7 @@ class TypeAliasElementImpl extends ElementImpl
   }
 
   @override
+  @trackedIncludedInId
   ElementImpl? get aliasedElement {
     switch (_firstFragment.aliasedElement) {
       case InstanceFragmentImpl instance:
@@ -10015,11 +10019,13 @@ class TypeAliasElementImpl extends ElementImpl
 
   @Deprecated('Use aliasedElement instead')
   @override
+  @trackedIndirectly
   Element? get aliasedElement2 {
     return aliasedElement;
   }
 
   @override
+  @trackedIncludedInId
   TypeImpl get aliasedType {
     _ensureReadResolution();
     return _aliasedType!;
@@ -10032,39 +10038,44 @@ class TypeAliasElementImpl extends ElementImpl
   }
 
   /// The aliased type, might be `null` if not yet linked.
+  @trackedInternal
   TypeImpl? get aliasedTypeRaw => _aliasedType;
 
   @override
+  @trackedIncludedInId
   TypeAliasElementImpl get baseElement => this;
 
   @override
+  @trackedIncludedInId
   LibraryElementImpl get enclosingElement => library;
 
   @Deprecated('Use enclosingElement instead')
   @override
+  @trackedIndirectly
   LibraryElement get enclosingElement2 => enclosingElement;
 
   @override
-  TypeAliasFragmentImpl get firstFragment => _firstFragment;
-
-  @override
-  List<TypeAliasFragmentImpl> get fragments {
-    return [
-      for (
-        TypeAliasFragmentImpl? fragment = _firstFragment;
-        fragment != null;
-        fragment = fragment.nextFragment
-      )
-        fragment,
-    ];
+  @trackedDirectlyOpaque
+  TypeAliasFragmentImpl get firstFragment {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'firstFragment');
+    return _firstFragment;
   }
 
+  @override
+  @trackedDirectlyOpaque
+  List<TypeAliasFragmentImpl> get fragments {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'fragments');
+    return _fragments;
+  }
+
+  @trackedIncludedInId
   bool get isNonFunctionTypeAliasesEnabled {
     return library.featureSet.isEnabled(Feature.nonfunction_type_aliases);
   }
 
   /// Whether this alias is a "proper rename" of [aliasedType], as defined in
   /// the constructor-tearoffs specification.
+  @trackedIndirectly
   bool get isProperRename {
     var aliasedType_ = aliasedType;
     if (aliasedType_ is! InterfaceTypeImpl) {
@@ -10106,21 +10117,26 @@ class TypeAliasElementImpl extends ElementImpl
   }
 
   @override
+  @trackedIncludedInId
   bool get isSynthetic {
     return _firstFragment.isSynthetic;
   }
 
   @override
+  @trackedIncludedInId
   ElementKind get kind => ElementKind.TYPE_ALIAS;
 
   @override
+  @trackedIncludedInId
   LibraryElementImpl get library => super.library!;
 
   @Deprecated('Use library instead')
   @override
+  @trackedIndirectly
   LibraryElementImpl get library2 => library;
 
   @override
+  @trackedIncludedInId
   MetadataImpl get metadata {
     var annotations = <ElementAnnotationImpl>[];
     for (var fragment in _fragments) {
@@ -10131,16 +10147,20 @@ class TypeAliasElementImpl extends ElementImpl
 
   @Deprecated('Use metadata instead')
   @override
+  @trackedIndirectly
   MetadataImpl get metadata2 => metadata;
 
   @override
+  @trackedIncludedInId
   String? get name => _firstFragment.name;
 
   @Deprecated('Use name instead')
   @override
+  @trackedIndirectly
   String? get name3 => name;
 
   @override
+  @trackedIncludedInId
   List<TypeParameterElementImpl> get typeParameters {
     return _firstFragment.typeParameters
         .map((fragment) => fragment.element)
@@ -10149,34 +10169,40 @@ class TypeAliasElementImpl extends ElementImpl
 
   @Deprecated('Use typeParameters instead')
   @override
+  @trackedIndirectly
   List<TypeParameterElementImpl> get typeParameters2 => typeParameters;
 
-  /// A list of all of the fragments from which this element is composed.
   List<TypeAliasFragmentImpl> get _fragments {
-    var result = <TypeAliasFragmentImpl>[];
-    TypeAliasFragmentImpl? current = _firstFragment;
-    while (current != null) {
-      result.add(current);
-      current = current.nextFragment;
-    }
-    return result;
+    return [
+      for (
+        TypeAliasFragmentImpl? fragment = _firstFragment;
+        fragment != null;
+        fragment = fragment.nextFragment
+      )
+        fragment,
+    ];
   }
 
   @override
+  @trackedDirectlyOpaque
   T? accept<T>(ElementVisitor2<T> visitor) {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'accept');
     return visitor.visitTypeAliasElement(this);
   }
 
   @Deprecated('Use accept instead')
   @override
+  @trackedIndirectly
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @override
+  @trackedIndirectly
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeTypeAliasElement(this);
   }
 
   @override
+  @trackedIndirectly
   TypeImpl instantiate({
     required List<DartType> typeArguments,
     required NullabilitySuffix nullabilitySuffix,
@@ -10187,6 +10213,7 @@ class TypeAliasElementImpl extends ElementImpl
     );
   }
 
+  @trackedIndirectly
   TypeImpl instantiateImpl({
     required List<TypeImpl> typeArguments,
     required NullabilitySuffix nullabilitySuffix,

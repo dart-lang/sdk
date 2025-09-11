@@ -62,7 +62,7 @@ class InformativeDataApplier {
 
   void _applyFromInfo(LibraryFragmentImpl unitElement, _InfoUnit unitInfo) {
     var libraryElement = unitElement.library;
-    if (identical(libraryElement.definingCompilationUnit, unitElement)) {
+    if (identical(libraryElement.firstFragment, unitElement)) {
       _applyToLibrary(libraryElement, unitInfo);
     }
 

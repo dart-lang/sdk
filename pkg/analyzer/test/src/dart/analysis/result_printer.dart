@@ -1098,29 +1098,29 @@ class LibraryManifestPrinter {
   Map<String, bool> _executableItemFlags(ExecutableItem item) {
     return {
       'hasEnclosingTypeParameterReference':
-          item.hasEnclosingTypeParameterReference,
-      'hasImplicitReturnType': item.hasImplicitReturnType,
-      'invokesSuperSelf': item.invokesSuperSelf,
-      'isAbstract': item.isAbstract,
-      'isExtensionTypeMember': item.isExtensionTypeMember,
-      'isExternal': item.isExternal,
-      'isSimplyBounded': item.isSimplyBounded,
-      'isStatic': item.isStatic,
-      'isSynthetic': item.isSynthetic,
+          item.flags.hasEnclosingTypeParameterReference,
+      'hasImplicitReturnType': item.flags.hasImplicitReturnType,
+      'invokesSuperSelf': item.flags.invokesSuperSelf,
+      'isAbstract': item.flags.isAbstract,
+      'isExtensionTypeMember': item.flags.isExtensionTypeMember,
+      'isExternal': item.flags.isExternal,
+      'isSimplyBounded': item.flags.isSimplyBounded,
+      'isStatic': item.flags.isStatic,
+      'isSynthetic': item.flags.isSynthetic,
     };
   }
 
   Map<String, bool> _variableItemFlags(VariableItem item) {
     return {
-      'hasInitializer': item.hasInitializer,
-      'hasImplicitType': item.hasImplicitType,
-      'isConst': item.isConst,
-      'isFinal': item.isFinal,
-      'isLate': item.isLate,
-      'isStatic': item.isStatic,
-      'isSynthetic': item.isSynthetic,
+      'hasInitializer': item.flags.hasInitializer,
+      'hasImplicitType': item.flags.hasImplicitType,
+      'isConst': item.flags.isConst,
+      'isFinal': item.flags.isFinal,
+      'isLate': item.flags.isLate,
+      'isStatic': item.flags.isStatic,
+      'isSynthetic': item.flags.isSynthetic,
       'shouldUseTypeForInitializerInference':
-          item.shouldUseTypeForInitializerInference,
+          item.flags.shouldUseTypeForInitializerInference,
     };
   }
 
@@ -1129,13 +1129,13 @@ class LibraryManifestPrinter {
       sink.withIndent(() {
         sink.writeFlags({
           'hasNonFinalField': item.hasNonFinalField,
-          'isAbstract': item.isAbstract,
-          'isBase': item.isBase,
-          'isFinal': item.isFinal,
-          'isInterface': item.isInterface,
-          'isMixinApplication': item.isMixinApplication,
-          'isMixinClass': item.isMixinClass,
-          'isSealed': item.isSealed,
+          'isAbstract': item.flags.isAbstract,
+          'isBase': item.flags.isBase,
+          'isFinal': item.flags.isFinal,
+          'isInterface': item.flags.isInterface,
+          'isMixinApplication': item.flags.isMixinApplication,
+          'isMixinClass': item.flags.isMixinClass,
+          'isSealed': item.flags.isSealed,
         });
         _writeMetadata(item);
         _writeTypeParameters(item.typeParameters);
@@ -1186,9 +1186,10 @@ class LibraryManifestPrinter {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
         sink.writeFlags({
-          'hasImplementsSelfReference': item.hasImplementsSelfReference,
+          'hasImplementsSelfReference': item.flags.hasImplementsSelfReference,
           'hasNonFinalField': item.hasNonFinalField,
-          'hasRepresentationSelfReference': item.hasRepresentationSelfReference,
+          'hasRepresentationSelfReference':
+              item.flags.hasRepresentationSelfReference,
         });
         _writeMetadata(item);
         _writeTypeParameters(item.typeParameters);
@@ -1249,12 +1250,12 @@ class LibraryManifestPrinter {
                 sink.writeFlags({
                   ..._variableItemFlags(item),
                   'hasEnclosingTypeParameterReference':
-                      item.hasEnclosingTypeParameterReference,
-                  'isAbstract': item.isAbstract,
-                  'isCovariant': item.isCovariant,
-                  'isEnumConstant': item.isEnumConstant,
-                  'isExternal': item.isExternal,
-                  'isPromotable': item.isPromotable,
+                      item.flags.hasEnclosingTypeParameterReference,
+                  'isAbstract': item.flags.isAbstract,
+                  'isCovariant': item.flags.isCovariant,
+                  'isEnumConstant': item.flags.isEnumConstant,
+                  'isExternal': item.flags.isExternal,
+                  'isPromotable': item.flags.isPromotable,
                 });
                 _writeMetadata(item);
                 _writeNamedType('type', item.type);
@@ -1334,7 +1335,7 @@ class LibraryManifestPrinter {
                 sink.writeFlags({
                   ..._executableItemFlags(item),
                   'isOperatorEqualWithParameterTypeFromObject':
-                      item.isOperatorEqualWithParameterTypeFromObject,
+                      item.flags.isOperatorEqualWithParameterTypeFromObject,
                 });
                 _writeMetadata(item);
                 _writeNamedType('functionType', item.functionType);
@@ -1369,8 +1370,8 @@ class LibraryManifestPrinter {
                 sink.withIndent(() {
                   sink.writeFlags({
                     ..._executableItemFlags(item),
-                    'isConst': item.isConst,
-                    'isFactory': item.isFactory,
+                    'isConst': item.flags.isConst,
+                    'isFactory': item.flags.isFactory,
                   });
                   _writeMetadata(item);
                   _writeNamedType('functionType', item.functionType);
@@ -1541,7 +1542,7 @@ class LibraryManifestPrinter {
       sink.withIndent(() {
         sink.writeFlags({
           'hasNonFinalField': item.hasNonFinalField,
-          'isBase': item.isBase,
+          'isBase': item.flags.isBase,
         });
         _writeMetadata(item);
         _writeTypeParameters(item.typeParameters);
@@ -1653,7 +1654,7 @@ class LibraryManifestPrinter {
       sink.withIndent(() {
         sink.writeFlags({
           ..._variableItemFlags(item),
-          'isExternal': item.isExternal,
+          'isExternal': item.flags.isExternal,
         });
         _writeMetadata(item);
         _writeNamedType('type', item.type);
