@@ -145,7 +145,7 @@ vars = {
   "pub_rev": "469eb6193c0a49495ea2ce7432cf749f077ad596", # rolled manually
   "shelf_rev": "de91a5b8c1de05f622c0c6f1eab38d5f31e0113f",
   "sync_http_rev": "6666fff944221891182e1f80bf56569338164d72",
-  "tar_rev": "d511a1dc4f197a29bc06479f4614135abb168b6e",
+  "tar_rev": "13479f7c2a18f499e840ad470cfcca8c579f6909",
   "test_rev": "5aef9719ad9b598260c062b2a90a50d2f50a78f3", # https://dart-review.googlesource.com/c/sdk/+/444360
   "tools_rev": "24707e094cd761178eb76e725ce17f51e22fd442",
   "vector_math_rev": "3939545edc38ed657381381d33acde02c49ff827",
