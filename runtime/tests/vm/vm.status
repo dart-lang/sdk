@@ -165,6 +165,7 @@ dart/gc/fragmentation*: Skip # Uses too much memory with TSAN overhead and kills
 dart/gc/out_of_memory*: Skip # Uses too much memory with TSAN overhead and kills bot
 dart/gc/scavenger_abort_test: Skip # Uses too much memory with TSAN overhead and kills bot
 dart/hash_map_probes_limit_test: SkipSlow # Test includes large program compilation.
+dart/regress47472_test: Pass, Slow # Slow due to throwing 1 million exceptions.
 dart/regress_40753_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatedly fails to locate its coredump.
 dart/trigger_gc_in_native_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatedly fails to locate its coredump.
 dart/unobfuscated_static_symbols_test: Pass, Slow # Test includes creating several snapshots in both ELF and assembly modes.

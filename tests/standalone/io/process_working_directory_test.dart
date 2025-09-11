@@ -32,7 +32,7 @@ class ProcessWorkingDirectoryTest {
         ], workingDirectory: directory.path)
         .then((process) {
           process.exitCode.then((int exitCode) {
-            Expect.equals(exitCode, 99);
+            Expect.equals(99, exitCode);
             directory.deleteSync();
           });
           process.stdout.listen((_) {});
