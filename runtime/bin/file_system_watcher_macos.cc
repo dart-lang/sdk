@@ -132,7 +132,7 @@ class FSEventsWatcher {
     DISALLOW_COPY_AND_ASSIGN(Node);
   };
 
-  FSEventsWatcher() : run_loop_(0) { Start(); }
+  FSEventsWatcher() : monitor_(), run_loop_(nullptr), owner_() { Start(); }
 
   void Start() {
     Thread::Start("dart:io FileWatcher", Run, reinterpret_cast<uword>(this));
@@ -147,11 +147,12 @@ class FSEventsWatcher {
     FSEventsWatcher* watcher = reinterpret_cast<FSEventsWatcher*>(arg);
     // Only checked in debug mode.
     watcher->owner_.Acquire();
-    watcher->run_loop_ = CFRunLoopGetCurrent();
-    CFRetain(watcher->run_loop_);
+    CFRunLoopRef loop = CFRunLoopGetCurrent();
+    CFRetain(loop);
 
     // Notify, as the run-loop is set.
     watcher->monitor().Enter();
+    watcher->run_loop_ = loop;
     watcher->monitor().Notify();
     watcher->monitor().Exit();
 
