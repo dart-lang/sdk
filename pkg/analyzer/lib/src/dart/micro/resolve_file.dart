@@ -828,7 +828,10 @@ class FileResolver {
         performance.run('getOptionsFromFile', (_) {
           try {
             var optionsProvider = AnalysisOptionsProvider(sourceFactory);
-            optionMap = optionsProvider.getOptionsFromSource(source);
+            optionMap = optionsProvider.getOptionsFromSource(
+              source,
+              resourceProvider.pathContext,
+            );
           } catch (_) {}
         });
       }

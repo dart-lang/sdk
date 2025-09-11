@@ -9,6 +9,7 @@ import 'package:analyzer/src/analysis_options/analysis_options_file.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/yaml.dart';
+import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
@@ -59,7 +60,7 @@ class AnalysisOptionsProvider {
   /// Returns an empty options map if the file does not exist or cannot be
   /// parsed.
   YamlMap getOptionsFromFile(File file) {
-    return getOptionsFromSource(FileSource(file));
+    return getOptionsFromSource(FileSource(file), file.provider.pathContext);
   }
 
   /// Provides the options found in [source].
@@ -67,7 +68,11 @@ class AnalysisOptionsProvider {
   /// Recursively merges options referenced by any `include` directives and
   /// removes any `include` directives from the resulting options map. Returns
   /// an empty options map if the file does not exist or cannot be parsed.
-  YamlMap getOptionsFromSource(Source source, {Set<Source>? handled}) {
+  YamlMap getOptionsFromSource(
+    Source source,
+    path.Context pathContext, {
+    Set<Source>? handled,
+  }) {
     handled ??= {};
     try {
       var options = getOptionsFromString(_readAnalysisOptions(source));
@@ -85,16 +90,23 @@ class AnalysisOptionsProvider {
               .toList(),
         _ => <String>[],
       };
-      var includeOptions = includes.fold(YamlMap(), (options, path) {
-        var includeUri = _sourceFactory.resolveUri(source, path);
-        if (includeUri == null || !handled!.add(includeUri)) {
+      var includeOptions = includes.fold(YamlMap(), (currentOptions, path) {
+        var includeSource = _sourceFactory.resolveUri(source, path);
+        if (includeSource == null || !handled!.add(includeSource)) {
           // Return the existing options, unchanged.
-          return options;
+          return currentOptions;
         }
-        return merge(
-          options,
-          getOptionsFromSource(includeUri, handled: handled),
+        var includedOptions = getOptionsFromSource(
+          includeSource,
+          pathContext,
+          handled: handled,
         );
+        includedOptions = _rewriteRelativePaths(
+          includedOptions,
+          pathContext.dirname(includeSource.fullName),
+          pathContext,
+        );
+        return merge(currentOptions, includedOptions);
       });
       options = merge(includeOptions, options);
       return options;
@@ -146,6 +158,39 @@ class AnalysisOptionsProvider {
       // Source can't be read.
       return null;
     }
+  }
+
+  /// Walks [options] with semantic knowledge about where paths may appear in an
+  /// analysis options file, rewriting relative paths (relative to [directory])
+  /// as absolute paths.
+  ///
+  /// Namely: paths to plugins which are specified by path.
+  // TODO(srawlins): I think 'exclude' paths should be made absolute too; I
+  // believe there is an existing bug about 'include'd 'exclude' paths.
+  YamlMap _rewriteRelativePaths(
+    YamlMap options,
+    String directory,
+    path.Context pathContext,
+  ) {
+    var pluginsSection = options.valueAt('plugins');
+    if (pluginsSection is! YamlMap) return options;
+    var plugins = <String, Object>{};
+    pluginsSection.nodes.forEach((key, value) {
+      if (key is YamlScalar && value is YamlMap) {
+        var pathValue = value.valueAt('path')?.value;
+        if (pathValue is String) {
+          if (pathContext.isRelative(pathValue)) {
+            // We need to store the absolute path, before this value is used in
+            // a synthetic pub package.
+            pathValue = pathContext.join(directory, pathValue);
+            pathValue = pathContext.normalize(pathValue);
+          }
+
+          plugins[key.value as String] = {'path': pathValue};
+        }
+      }
+    });
+    return merge(options, YamlMap.wrap({'plugins': plugins}));
   }
 }
 
