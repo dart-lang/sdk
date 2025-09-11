@@ -5507,10 +5507,7 @@ part 'b.dart';
 
     // The difference with the test above is that we ask the part first.
     // There was a bug that we were not loading library directives.
-    expect(
-      library.definingCompilationUnit.parts[0].metadata.annotations,
-      isEmpty,
-    );
+    expect(library.firstFragment.parts[0].metadata.annotations, isEmpty);
   }
 
   test_metadata_partOf_class() async {

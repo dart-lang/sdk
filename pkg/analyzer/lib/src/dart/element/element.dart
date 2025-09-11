@@ -5897,8 +5897,9 @@ class LibraryElementImpl extends ElementImpl
   @override
   AnalysisSessionImpl session;
 
-  /// The compilation unit that defines this library.
-  late LibraryFragmentImpl definingCompilationUnit;
+  /// The first (defining) fragment of this library.
+  @override
+  late LibraryFragmentImpl _firstFragment;
 
   /// The language version for the library.
   LibraryLanguageVersion? _languageVersion;
@@ -6106,11 +6107,15 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
-  LibraryFragmentImpl get firstFragment => definingCompilationUnit;
+  LibraryFragmentImpl get firstFragment => _firstFragment;
+
+  set firstFragment(LibraryFragmentImpl value) {
+    _firstFragment = value;
+  }
 
   @override
   List<LibraryFragmentImpl> get fragments {
-    return [definingCompilationUnit, ..._partUnits];
+    return [_firstFragment, ..._partUnits];
   }
 
   bool get hasPartOfDirective {
@@ -6132,7 +6137,7 @@ class LibraryElementImpl extends ElementImpl
 
   @override
   bool get isInSdk {
-    var uri = definingCompilationUnit.source.uri;
+    var uri = _firstFragment.source.uri;
     return DartUriResolver.isDartUri(uri);
   }
 
@@ -6216,9 +6221,9 @@ class LibraryElementImpl extends ElementImpl
     _publicNamespace = publicNamespace;
   }
 
-  // TODO(scheglov): replace with `firstFragment.source`
+  // TODO(scheglov): prefer `firstFragment.source`
   Source get source {
-    return definingCompilationUnit.source;
+    return _firstFragment.source;
   }
 
   Iterable<FragmentImpl> get topLevelElements sync* {
@@ -6240,14 +6245,11 @@ class LibraryElementImpl extends ElementImpl
   /// This includes the defining compilation unit and units included using the
   /// `part` directive.
   List<LibraryFragmentImpl> get units {
-    return [definingCompilationUnit, ..._partUnits];
+    return [_firstFragment, ..._partUnits];
   }
 
   @override
   Uri get uri => _firstFragment.source.uri;
-
-  @override
-  LibraryFragmentImpl get _firstFragment => definingCompilationUnit;
 
   List<LibraryFragmentImpl> get _partUnits {
     var result = <LibraryFragmentImpl>[];
@@ -6262,7 +6264,7 @@ class LibraryElementImpl extends ElementImpl
       }
     }
 
-    visitParts(definingCompilationUnit);
+    visitParts(_firstFragment);
     return result;
   }
 
@@ -6805,7 +6807,7 @@ class LibraryFragmentImpl extends FragmentImpl
 
   @override
   int get offset {
-    if (!identical(this, library.definingCompilationUnit)) {
+    if (!identical(this, library.firstFragment)) {
       // Not the first fragment, so there is no name; return an offset of 0
       return 0;
     }
@@ -7134,7 +7136,7 @@ final class LoadLibraryFunctionProvider {
     var fragment = TopLevelFunctionFragmentImpl(name: name);
     fragment.isSynthetic = true;
     fragment.isStatic = true;
-    fragment.enclosingFragment = library.definingCompilationUnit;
+    fragment.enclosingFragment = library.firstFragment;
 
     return TopLevelFunctionElementImpl(elementReference, fragment)
       ..returnType = library.typeProvider.futureDynamicType;

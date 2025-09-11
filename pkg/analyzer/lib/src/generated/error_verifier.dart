@@ -6167,9 +6167,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var importedLibrary = import.importedLibrary;
       if (importedLibrary != null) {
         if (import.namespace.get2(name) == element) {
-          indirectSources.add(
-            importedLibrary.definingCompilationUnit.source.uri.toString(),
-          );
+          indirectSources.add(importedLibrary.uri.toString());
         }
       }
     }

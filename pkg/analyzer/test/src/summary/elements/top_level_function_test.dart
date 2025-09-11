@@ -197,7 +197,7 @@ library
     var library = await buildLibrary('''
 int f() => 0;
 ''');
-    var f = library.definingCompilationUnit.functions.single;
+    var f = library.firstFragment.functions.single;
     expect(f.hasImplicitReturnType, isFalse);
   }
 
@@ -205,7 +205,7 @@ int f() => 0;
     var library = await buildLibrary('''
 f() => 0;
 ''');
-    var f = library.definingCompilationUnit.functions.single;
+    var f = library.firstFragment.functions.single;
     expect(f.hasImplicitReturnType, isTrue);
   }
 

@@ -109,7 +109,7 @@ class BundleWriter {
 
     // Write the library units.
     // This will write also resolution data, e.g. for classes.
-    _writeUnitElement(libraryElement.definingCompilationUnit);
+    _writeUnitElement(libraryElement.firstFragment);
 
     _writeClassElements(libraryElement.classes);
     _writeEnumElements(libraryElement.enums);

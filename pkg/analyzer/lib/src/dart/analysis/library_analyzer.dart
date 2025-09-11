@@ -382,7 +382,7 @@ class LibraryAnalyzer {
   }
 
   void _computeLints() {
-    var definingUnit = _libraryElement.definingCompilationUnit;
+    var definingUnit = _libraryElement.firstFragment;
     var analysesToContextUnits = <FileAnalysis, RuleContextUnit>{};
     RuleContextUnit? definingContextUnit;
     WorkspacePackageImpl? workspacePackage;
@@ -671,7 +671,7 @@ class LibraryAnalyzer {
     _resolveDirectives(
       enclosingFile: null,
       fileKind: _library,
-      fileElement: _libraryElement.definingCompilationUnit,
+      fileElement: _libraryElement.firstFragment,
     );
 
     for (var fileAnalysis in _libraryFiles.values) {
