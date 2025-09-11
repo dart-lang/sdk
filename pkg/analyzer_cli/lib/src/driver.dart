@@ -262,6 +262,7 @@ class Driver implements CommandLineStarter {
 
       // Analyze the libraries.
       var pathContext = resourceProvider.pathContext;
+      final gotErrorsFor = <String>{};
       for (var path in filesToAnalyze) {
         if (file_paths.isAnalysisOptionsYaml(pathContext, path)) {
           var fileResult = analysisDriver.currentSession.getFile(path);
@@ -397,7 +398,12 @@ class Driver implements CommandLineStarter {
 
           final kind = file.kind;
           if (kind is LibraryFileKind) {
-            var status = await _runAnalyzer(file, options, formatter);
+            var status = await _runAnalyzer(
+              file,
+              options,
+              formatter,
+              gotErrorsFor,
+            );
             allResult = allResult.max(status);
             analyzedFiles.addAll(kind.files);
           } else if (kind is PartFileKind) {
@@ -468,6 +474,7 @@ class Driver implements CommandLineStarter {
     FileState file,
     CommandLineOptions options,
     ErrorFormatter formatter,
+    Set<String> gotErrorsFor,
   ) {
     var startTime = currentTimeMillis;
     final analysisDriver = this.analysisDriver!;
@@ -481,6 +488,7 @@ class Driver implements CommandLineStarter {
       options,
       stats,
       startTime,
+      gotErrorsFor,
     );
     return analyzer.analyze(formatter);
   }
