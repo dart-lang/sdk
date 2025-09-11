@@ -158,7 +158,7 @@ class FunctionReferenceResolver {
       return null;
     }
     var callMethodName = Name(
-      _resolver.definingLibrary.source.uri,
+      _resolver.definingLibrary.uri,
       MethodElement.CALL_METHOD_NAME,
     );
     if (type.nullabilitySuffix == NullabilitySuffix.question) {

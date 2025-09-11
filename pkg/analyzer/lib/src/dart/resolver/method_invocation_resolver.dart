@@ -66,7 +66,7 @@ class MethodInvocationResolver with ScopeHelpers {
   }) : _typeType = _resolver.typeProvider.typeType,
        _inheritance = _resolver.inheritance,
        _definingLibrary = _resolver.definingLibrary,
-       _definingLibraryUri = _resolver.definingLibrary.source.uri,
+       _definingLibraryUri = _resolver.definingLibrary.uri,
        _libraryFragment = _resolver.libraryFragment,
        _localVariableTypeProvider = _resolver.localVariableTypeProvider,
        _extensionResolver = _resolver.extensionResolver,

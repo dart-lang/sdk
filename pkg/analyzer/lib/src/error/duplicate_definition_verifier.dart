@@ -885,7 +885,7 @@ class MemberDuplicateDefinitionVerifier {
     InterfaceElementImpl element,
     String baseName,
   ) {
-    var libraryUri = _currentLibrary.source.uri;
+    var libraryUri = _currentLibrary.uri;
 
     var getterName = Name(libraryUri, baseName);
     var getter = _inheritanceManager.getInherited(element, getterName);
@@ -901,7 +901,7 @@ class MemberDuplicateDefinitionVerifier {
     InterfaceElementImpl element,
     String baseName,
   ) {
-    var libraryUri = _currentLibrary.source.uri;
+    var libraryUri = _currentLibrary.uri;
 
     var getterName = Name(libraryUri, baseName);
     var getter = _inheritanceManager.getMember(element, getterName);

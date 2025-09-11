@@ -185,7 +185,7 @@ class _ClassVerifier {
     this.onClause,
     this.superclass,
     this.withClause,
-  }) : libraryUri = library.source.uri;
+  }) : libraryUri = library.uri;
 
   /// Verify inheritance overrides, and return `true` if an error was
   /// reported which should prevent follow on diagnostics from being reported.
@@ -445,7 +445,7 @@ class _ClassVerifier {
   }) {
     // The SDK implementation may implement disallowed types. For example,
     // JSNumber in dart2js and _Smi in Dart VM both implement int.
-    if (library.source.uri.isScheme('dart')) {
+    if (library.uri.isScheme('dart')) {
       return false;
     }
 

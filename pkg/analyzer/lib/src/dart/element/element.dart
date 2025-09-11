@@ -6137,7 +6137,6 @@ class LibraryElementImpl extends ElementImpl
 
   @override
   bool get isInSdk {
-    var uri = _firstFragment.source.uri;
     return DartUriResolver.isDartUri(uri);
   }
 

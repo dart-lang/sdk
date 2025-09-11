@@ -1130,7 +1130,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     var enclosingElement = element.enclosingElement;
     if (!element.isStatic && enclosingElement is InterfaceElement) {
       var overriddenMembers = enclosingElement.getOverridden(
-        Name(fragment.libraryFragment.source.uri, element.name!),
+        Name(element.library.uri, element.name!),
       );
       if (overriddenMembers != null) {
         // Consider limiting this to the most immediate override. If the

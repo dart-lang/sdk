@@ -208,7 +208,7 @@ class LibraryReader {
       );
 
       _libraryElement.exportNamespace = _elementFactory.buildExportNamespace(
-        _libraryElement.source.uri,
+        _libraryElement.uri,
         _libraryElement.exportedReferences,
       );
     });

@@ -132,7 +132,7 @@ class BundleWriter {
     );
 
     _libraries.add(
-      _Library(uriStr: '${libraryElement.source.uri}', offset: libraryOffset),
+      _Library(uriStr: '${libraryElement.uri}', offset: libraryOffset),
     );
   }
 

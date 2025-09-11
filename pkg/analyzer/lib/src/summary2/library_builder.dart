@@ -114,7 +114,7 @@ class LibraryBuilder {
           continue;
         }
 
-        var exportedUri = exportedLibrary.source.uri;
+        var exportedUri = exportedLibrary.uri;
         var exportedBuilder = linker.builders[exportedUri];
         var combinators = exportElement.combinators.build();
 

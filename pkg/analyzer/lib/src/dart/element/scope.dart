@@ -284,7 +284,7 @@ class LibraryDeclarations with _GettersAndSetters {
     library.classes.forEach(_addGetter);
 
     // Add implicit 'dart:core' declarations.
-    if ('${library.source.uri}' == 'dart:core') {
+    if ('${library.uri}' == 'dart:core') {
       _addGetter(DynamicElementImpl.instance);
       _addGetter(NeverElementImpl.instance);
     }

@@ -317,7 +317,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
          diagnosticReporter,
          libraryContext.duplicationDefinitionContext,
        ) {
-    _isInSystemLibrary = _currentLibrary.source.uri.isScheme('dart');
+    _isInSystemLibrary = _currentLibrary.uri.isScheme('dart');
     _isInStaticVariableDeclaration = false;
     _isInConstructorInitializer = false;
     _intType = _typeProvider.intType;
@@ -2221,7 +2221,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    Uri libraryUri = _currentLibrary.source.uri;
+    Uri libraryUri = _currentLibrary.uri;
     var conflictingDeclaredNames = <String>{};
 
     // method declared in the enclosing class vs. inherited getter/setter
@@ -3235,7 +3235,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
     // The SDK implementation may implement disallowed types. For example,
     // JSNumber in dart2js and _Smi in Dart VM both implement int.
-    if (_currentLibrary.source.uri.isScheme('dart')) {
+    if (_currentLibrary.uri.isScheme('dart')) {
       return false;
     }
     var type = namedType.type;
@@ -6246,7 +6246,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (importedUri != 'dart:_wasm') {
       return false;
     }
-    var importingUri = _currentLibrary.source.uri.toString();
+    var importingUri = _currentLibrary.uri.toString();
     if (importingUri == 'package:js/js.dart') {
       return true;
     } else if (importingUri.startsWith('package:ui/')) {

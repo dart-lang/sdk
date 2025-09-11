@@ -212,7 +212,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
           ? '${element.displayName}.new'
           : element.displayName;
     } else if (element is LibraryElement) {
-      displayName = element.firstFragment.source.uri.toString();
+      displayName = element.uri.toString();
     } else if (node is MethodInvocation &&
         displayName == MethodElement.CALL_METHOD_NAME) {
       var invokeType = node.staticInvokeType as InterfaceType;
