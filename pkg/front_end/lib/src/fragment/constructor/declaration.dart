@@ -27,6 +27,7 @@ import '../../kernel/body_builder.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../kernel/kernel_helper.dart';
 import '../../kernel/type_algorithms.dart';
+import '../../source/check_helper.dart';
 import '../../source/name_scheme.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_constructor_builder.dart';
@@ -85,7 +86,7 @@ abstract class ConstructorDeclaration {
   });
 
   void checkTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     NameSpace nameSpace,
     TypeEnvironment typeEnvironment,
   );
@@ -666,13 +667,13 @@ mixin _ConstructorDeclarationMixin
 
   @override
   void checkTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     NameSpace nameSpace,
     TypeEnvironment typeEnvironment,
   ) {
-    libraryBuilder.checkInitializersInFormals(
-      formals,
-      typeEnvironment,
+    problemReporting.checkInitializersInFormals(
+      formals: formals,
+      typeEnvironment: typeEnvironment,
       isAbstract: false,
       isExternal: isExternal,
     );
@@ -1473,7 +1474,7 @@ mixin _SyntheticConstructorDeclarationMixin implements ConstructorDeclaration {
 
   @override
   void checkTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     NameSpace nameSpace,
     TypeEnvironment typeEnvironment,
   ) {}

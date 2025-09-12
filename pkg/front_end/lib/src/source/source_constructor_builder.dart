@@ -9,6 +9,7 @@ import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../api_prototype/experimental_flags.dart';
 import '../base/messages.dart'
     show
         LocatedMessage,
@@ -19,7 +20,8 @@ import '../base/messages.dart'
         codeRedirectingConstructorWithSuperInitializer,
         codeSuperInitializerNotLast,
         noLength,
-        codeCantInferTypeDueToCircularity;
+        codeCantInferTypeDueToCircularity,
+        ProblemReporting;
 import '../base/name_space.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
@@ -516,14 +518,15 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
 
   @override
   void checkTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
+    LibraryFeatures libraryFeatures,
     NameSpace nameSpace,
     TypeEnvironment typeEnvironment,
   ) {
     _introductory.checkTypes(libraryBuilder, nameSpace, typeEnvironment);
     for (int i = 0; i < _augmentations.length; i++) {
       ConstructorDeclaration augmentation = _augmentations[i];
-      augmentation.checkTypes(libraryBuilder, nameSpace, typeEnvironment);
+      augmentation.checkTypes(problemReporting, nameSpace, typeEnvironment);
     }
   }
 

@@ -61,7 +61,7 @@ abstract class SetterDeclaration {
   });
 
   void checkSetterTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     TypeEnvironment typeEnvironment,
   );
 
@@ -201,11 +201,11 @@ class RegularSetterDeclaration
 
   @override
   void checkSetterTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     TypeEnvironment typeEnvironment,
   ) {
     _encoding.checkTypes(
-      libraryBuilder,
+      problemReporting,
       typeEnvironment,
       isAbstract: _fragment.modifiers.isAbstract,
       isExternal: _fragment.modifiers.isExternal,

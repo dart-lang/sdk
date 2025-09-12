@@ -105,3 +105,35 @@ class LibraryProblemReporting implements ProblemReporting {
   @override
   String toString() => '$runtimeType(fileUri=$_fileUri)';
 }
+
+abstract class ProblemReportingHelper {
+  /// Assert that a compile-time error was reported during [expectedPhase] of
+  /// compilation.
+  ///
+  /// The parameters [location] and [originalStackTrace] are supposed to help to
+  /// locate the place where the expectation was declared.
+  ///
+  /// To avoid spending resources on stack trace computations, it is recommended
+  /// to wrap the calls to [assertProblemReportedElsewhere] into `assert`s.
+  bool assertProblemReportedElsewhere(
+    String location, {
+    required CompilationPhaseForProblemReporting expectedPhase,
+  });
+}
+
+/// This enum is used to mark the expected compilation phase for a compile-time
+/// error to be reported.
+enum CompilationPhaseForProblemReporting {
+  /// The outline building phase.
+  ///
+  /// The outline building phase includes outline expressions, such as default
+  /// values of parameters, annotations, and initializers of top-level constant
+  /// fields.
+  outline,
+
+  /// The body building phase.
+  ///
+  /// The body building phase includes initializers of non-constant fields,
+  /// bodies of method, getters, setters, constructors, etc.
+  bodyBuilding,
+}

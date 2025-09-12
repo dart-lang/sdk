@@ -6,6 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../api_prototype/experimental_flags.dart';
 import '../builder/builder.dart';
 import '../builder/compilation_unit.dart';
 import '../builder/declaration_builders.dart';
@@ -505,7 +506,8 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   void checkTypes(
-    SourceLibraryBuilder library,
+    ProblemReporting problemReporting,
+    LibraryFeatures libraryFeatures,
     NameSpace nameSpace,
     TypeEnvironment typeEnvironment,
   ) {

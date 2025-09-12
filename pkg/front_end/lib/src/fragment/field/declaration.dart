@@ -9,6 +9,7 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../../api_prototype/experimental_flags.dart';
 import '../../base/constant_context.dart';
 import '../../base/messages.dart';
 import '../../base/problems.dart';
@@ -21,6 +22,7 @@ import '../../builder/property_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../kernel/body_builder.dart';
 import '../../kernel/body_builder_context.dart';
+import '../../source/check_helper.dart';
 import '../../kernel/hierarchy/class_member.dart';
 import '../../kernel/hierarchy/members_builder.dart';
 import '../../kernel/implicit_field_type.dart';
@@ -73,7 +75,7 @@ abstract class FieldDeclaration {
   void createFieldEncoding(SourcePropertyBuilder builder);
 
   void checkFieldTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     TypeEnvironment typeEnvironment,
     SourcePropertyBuilder? setterBuilder,
   );
@@ -437,12 +439,12 @@ class RegularFieldDeclaration
 
   @override
   void checkFieldTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     TypeEnvironment typeEnvironment,
     SourcePropertyBuilder? setterBuilder,
   ) {
-    libraryBuilder.checkTypesInField(
-      typeEnvironment,
+    problemReporting.checkTypesInField(
+      typeEnvironment: typeEnvironment,
       isInstanceMember: builder.isDeclarationInstanceMember,
       isLate: isLate,
       isExternal: _fragment.modifiers.isExternal,
@@ -745,7 +747,8 @@ class RegularFieldDeclaration
 
   @override
   void checkGetterTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
+    LibraryFeatures libraryFeatures,
     TypeEnvironment typeEnvironment,
     SourcePropertyBuilder? setterBuilder,
   ) {}
@@ -758,7 +761,7 @@ class RegularFieldDeclaration
 
   @override
   void checkSetterTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     TypeEnvironment typeEnvironment,
   ) {}
 

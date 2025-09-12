@@ -40,6 +40,7 @@ import '../base/instrumentation.dart' show Instrumentation;
 import '../base/loader.dart' show Loader, untranslatableUriScheme;
 import '../base/local_scope.dart';
 import '../base/lookup_result.dart';
+import '../base/messages.dart';
 import '../base/problems.dart' show internalProblem;
 import '../base/scope.dart';
 import '../base/ticker.dart' show Ticker;
@@ -53,7 +54,6 @@ import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
-import '../codes/cfe_codes.dart';
 import '../codes/denylisted_classes.dart'
     show denylistedCoreClasses, denylistedTypedDataClasses;
 import '../dill/dill_library_builder.dart';
@@ -94,7 +94,7 @@ import 'source_library_builder.dart'
 import 'stack_listener_impl.dart' show offsetForToken;
 import 'type_parameter_factory.dart';
 
-class SourceLoader extends Loader {
+class SourceLoader extends Loader implements ProblemReportingHelper {
   /// The [FileSystem] which should be used to access files.
   final FileSystem fileSystem;
 
@@ -262,14 +262,7 @@ class SourceLoader extends Loader {
     allComponentProblems.clear();
   }
 
-  /// Assert that a compile-time error was reported during [expectedPhase] of
-  /// compilation.
-  ///
-  /// The parameters [location] and [originalStackTrace] are supposed to help to
-  /// locate the place where the expectation was declared.
-  ///
-  /// To avoid spending resources on stack trace computations, it is recommended
-  /// to wrap the calls to [assertProblemReportedElsewhere] into `assert`s.
+  @override
   bool assertProblemReportedElsewhere(
     String location, {
     required CompilationPhaseForProblemReporting expectedPhase,
@@ -3697,21 +3690,4 @@ class _SuperMemberCache {
     }
     return null;
   }
-}
-
-/// This enum is used to mark the expected compilation phase for a compile-time
-/// error to be reported.
-enum CompilationPhaseForProblemReporting {
-  /// The outline building phase.
-  ///
-  /// The outline building phase includes outline expressions, such as default
-  /// values of parameters, annotations, and initializers of top-level constant
-  /// fields.
-  outline,
-
-  /// The body building phase.
-  ///
-  /// The body building phase includes initializers of non-constant fields,
-  /// bodies of method, getters, setters, constructors, etc.
-  bodyBuilding,
 }

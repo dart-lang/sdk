@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/messages/severity.dart'
-    show CfeSeverity;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show
         Assert,
@@ -60,6 +58,7 @@ import '../base/identifiers.dart'
 import '../base/label_scope.dart';
 import '../base/local_scope.dart';
 import '../base/lookup_result.dart';
+import '../base/messages.dart';
 import '../base/modifiers.dart' show Modifiers;
 import '../base/problems.dart' show internalProblem, unhandled, unsupported;
 import '../base/scope.dart';
@@ -82,22 +81,11 @@ import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/variable_builder.dart';
 import '../builder/void_type_builder.dart';
-import '../codes/cfe_codes.dart'
-    show
-        LocatedMessage,
-        Message,
-        Template,
-        codeNamedFieldClashesWithPositionalFieldInRecord,
-        noLength,
-        codeDuplicatedRecordLiteralFieldName,
-        codeDuplicatedRecordLiteralFieldNameContext,
-        codeExperimentNotEnabledOffByDefault,
-        codeLocalVariableUsedBeforeDeclared,
-        codeLocalVariableUsedBeforeDeclaredContext;
 import '../codes/cfe_codes.dart' as cfe;
 import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
 import '../dill/dill_type_parameter_builder.dart';
 import '../fragment/fragment.dart';
+import '../source/check_helper.dart';
 import '../source/diet_parser.dart';
 import '../source/offset_map.dart';
 import '../source/source_constructor_builder.dart';
@@ -395,6 +383,8 @@ class BodyBuilder extends StackListenerImpl
                null,
              ),
        );
+
+  ProblemReporting get problemReporting => libraryBuilder;
 
   LocalScope get _localScope => _localScopes.current;
 
@@ -7253,7 +7243,8 @@ class BodyBuilder extends StackListenerImpl
           arguments,
           isConst: isConst,
         )..fileOffset = fileOffset;
-        libraryBuilder.checkBoundsInConstructorInvocation(
+        problemReporting.checkBoundsInConstructorInvocation(
+          libraryFeatures: libraryFeatures,
           constructor: target,
           typeArguments: arguments.types,
           typeEnvironment: typeEnvironment,
@@ -7301,7 +7292,8 @@ class BodyBuilder extends StackListenerImpl
               arguments,
               isConst: isConst,
             )..fileOffset = fileOffset;
-        libraryBuilder.checkBoundsInFactoryInvocation(
+        problemReporting.checkBoundsInFactoryInvocation(
+          libraryFeatures: libraryFeatures,
           factory: target,
           typeArguments: arguments.types,
           typeEnvironment: typeEnvironment,
@@ -7962,11 +7954,12 @@ class BodyBuilder extends StackListenerImpl
         Nullability.nonNullable,
         typeArgumentsToCheck,
       );
-      libraryBuilder.checkBoundsInType(
-        typeToCheck,
-        typeEnvironment,
-        uri,
-        charOffset,
+      problemReporting.checkBoundsInType(
+        libraryFeatures: libraryFeatures,
+        type: typeToCheck,
+        typeEnvironment: typeEnvironment,
+        fileUri: uri,
+        fileOffset: charOffset,
         allowSuperBounded: false,
       );
 

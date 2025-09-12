@@ -47,6 +47,7 @@ import '../kernel/hierarchy/hierarchy_node.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/utils.dart' show compareProcedures;
 import 'builder_factory.dart';
+import 'check_helper.dart';
 import 'name_scheme.dart';
 import 'name_space_builder.dart';
 import 'nominal_parameter_name_space.dart';
@@ -1362,7 +1363,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     int fileOffset, {
     bool isReturnType = false,
   }) {
-    SourceLibraryBuilder library = this.libraryBuilder;
+    ProblemReporting problemReporting = libraryBuilder;
     if (!typeParameter.isLegacyCovariant &&
         !variance.greaterThanOrEqual(typeParameter.variance)) {
       Message message;
@@ -1380,10 +1381,10 @@ class SourceClassBuilder extends ClassBuilderImpl
           variance.keyword,
         );
       }
-      library.reportTypeArgumentIssue(
-        message,
-        fileUri,
-        fileOffset,
+      problemReporting.reportTypeArgumentIssue(
+        message: message,
+        fileUri: fileUri,
+        fileOffset: fileOffset,
         typeParameter: typeParameter,
       );
     }

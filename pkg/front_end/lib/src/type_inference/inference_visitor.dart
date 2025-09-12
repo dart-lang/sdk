@@ -18,8 +18,8 @@ import 'package:_fe_analyzer_shared/src/util/stack_checker.dart';
 import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/names.dart';
-import 'package:kernel/type_algebra.dart';
 import 'package:kernel/src/non_null.dart';
+import 'package:kernel/type_algebra.dart';
 
 import '../api_prototype/experimental_flags.dart';
 import '../base/constant_context.dart';
@@ -28,11 +28,11 @@ import '../base/instrumentation.dart'
         InstrumentationValueForMember,
         InstrumentationValueForType,
         InstrumentationValueForTypeArgs;
+import '../base/messages.dart';
 import '../base/problems.dart'
     as problems
     show internalProblem, unhandled, unsupported;
 import '../base/uri_offset.dart';
-import '../codes/cfe_codes.dart';
 import '../kernel/body_builder.dart' show combineStatements;
 import '../kernel/collections.dart'
     show
@@ -60,9 +60,9 @@ import '../kernel/hierarchy/class_member.dart';
 import '../kernel/implicit_type_argument.dart' show ImplicitTypeArgument;
 import '../kernel/internal_ast.dart';
 import '../kernel/late_lowering.dart' as late_lowering;
+import '../source/check_helper.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart';
-import '../source/source_loader.dart';
 import 'closure_context.dart';
 import 'external_ast_helper.dart';
 import 'for_in.dart';
@@ -1421,9 +1421,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       isConst: node.isConst,
       staticTarget: node.target,
     );
-    SourceLibraryBuilder library = libraryBuilder;
     if (!hadExplicitTypeArguments) {
-      library.checkBoundsInConstructorInvocation(
+      problemReporting.checkBoundsInConstructorInvocation(
+        libraryFeatures: libraryFeatures,
         constructor: node.target,
         typeArguments: node.arguments.types,
         typeEnvironment: typeSchemaEnvironment,
@@ -1440,9 +1440,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
     return new ExpressionInferenceResult(
       result.inferredType,
-      result.applyResult(
-        replacement
-      ),
+      result.applyResult(replacement),
     );
   }
 
@@ -1488,7 +1486,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType,
       treeNodeForTesting: node,
     );
-    libraryBuilder.checkBoundsInStaticInvocation(
+    problemReporting.checkBoundsInStaticInvocation(
+      problemReportingHelper: problemReportingHelper,
+      libraryFeatures: libraryFeatures,
       targetName: node.extension.name,
       typeEnvironment: typeSchemaEnvironment,
       fileUri: helper.uri,
@@ -1561,7 +1561,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType,
       treeNodeForTesting: node,
     );
-    libraryBuilder.checkBoundsInStaticInvocation(
+    problemReporting.checkBoundsInStaticInvocation(
+      problemReportingHelper: problemReportingHelper,
+      libraryFeatures: libraryFeatures,
       targetName: node.extension.name,
       typeEnvironment: typeSchemaEnvironment,
       fileUri: helper.uri,
@@ -1632,7 +1634,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType,
       treeNodeForTesting: node,
     );
-    libraryBuilder.checkBoundsInStaticInvocation(
+    problemReporting.checkBoundsInStaticInvocation(
+      problemReportingHelper: problemReportingHelper,
+      libraryFeatures: libraryFeatures,
       targetName: node.extension.name,
       typeEnvironment: typeSchemaEnvironment,
       fileUri: helper.uri,
@@ -1747,7 +1751,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType,
       treeNodeForTesting: node,
     );
-    libraryBuilder.checkBoundsInStaticInvocation(
+    problemReporting.checkBoundsInStaticInvocation(
+      problemReportingHelper: problemReportingHelper,
+      libraryFeatures: libraryFeatures,
       targetName: node.extension.name,
       typeEnvironment: typeSchemaEnvironment,
       fileUri: helper.uri,
@@ -1915,7 +1921,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType,
       treeNodeForTesting: node,
     );
-    libraryBuilder.checkBoundsInStaticInvocation(
+    problemReporting.checkBoundsInStaticInvocation(
+      problemReportingHelper: problemReportingHelper,
+      libraryFeatures: libraryFeatures,
       targetName: node.extension.name,
       typeEnvironment: typeSchemaEnvironment,
       fileUri: helper.uri,
@@ -1996,7 +2004,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType,
       treeNodeForTesting: node,
     );
-    libraryBuilder.checkBoundsInStaticInvocation(
+    problemReporting.checkBoundsInStaticInvocation(
+      problemReportingHelper: problemReportingHelper,
+      libraryFeatures: libraryFeatures,
       targetName: node.extension.name,
       typeEnvironment: typeSchemaEnvironment,
       fileUri: helper.uri,
@@ -2036,7 +2046,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (!node.extension.isUnnamedExtension) {
       targetName = '${node.extension.name}.${targetName}';
     }
-    libraryBuilder.checkBoundsInStaticInvocation(
+    problemReporting.checkBoundsInStaticInvocation(
+      problemReportingHelper: problemReportingHelper,
+      libraryFeatures: libraryFeatures,
       targetName: targetName,
       typeEnvironment: typeSchemaEnvironment,
       fileUri: helper.uri,
@@ -2093,7 +2105,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType,
       treeNodeForTesting: node,
     );
-    libraryBuilder.checkBoundsInStaticInvocation(
+    problemReporting.checkBoundsInStaticInvocation(
+      problemReportingHelper: problemReportingHelper,
+      libraryFeatures: libraryFeatures,
       targetName: node.extension.name,
       typeEnvironment: typeSchemaEnvironment,
       fileUri: helper.uri,
@@ -2277,7 +2291,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType,
       treeNodeForTesting: node,
     );
-    libraryBuilder.checkBoundsInStaticInvocation(
+    problemReporting.checkBoundsInStaticInvocation(
+      problemReportingHelper: problemReportingHelper,
+      libraryFeatures: libraryFeatures,
       targetName: node.extension.name,
       typeEnvironment: typeSchemaEnvironment,
       fileUri: helper.uri,
@@ -2481,9 +2497,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       staticTarget: node.target,
     );
     node.hasBeenInferred = true;
-    SourceLibraryBuilder library = libraryBuilder;
     if (!hadExplicitTypeArguments) {
-      library.checkBoundsInFactoryInvocation(
+      problemReporting.checkBoundsInFactoryInvocation(
+        libraryFeatures: libraryFeatures,
         factory: node.target,
         typeArguments: node.arguments.types,
         typeEnvironment: typeSchemaEnvironment,
@@ -2592,7 +2608,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           noLength,
         );
       }
-      libraryBuilder.checkBoundsInConstructorInvocation(
+      problemReporting.checkBoundsInConstructorInvocation(
+        libraryFeatures: libraryFeatures,
         constructor: target,
         typeArguments: arguments.types,
         typeEnvironment: typeSchemaEnvironment,
@@ -2617,7 +2634,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           return helper.buildProblem(codeNonConstFactory, fileOffset, noLength);
         }
       }
-      libraryBuilder.checkBoundsInFactoryInvocation(
+      problemReporting.checkBoundsInFactoryInvocation(
+        libraryFeatures: libraryFeatures,
         factory: target,
         typeArguments: arguments.types,
         typeEnvironment: typeSchemaEnvironment,
@@ -2773,11 +2791,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Nullability.nonNullable,
       invocation.arguments.types,
     );
-    libraryBuilder.checkBoundsInType(
-      aliasedType,
-      typeSchemaEnvironment,
-      helper.uri,
-      invocation.fileOffset,
+    problemReporting.checkBoundsInType(
+      libraryFeatures: libraryFeatures,
+      type: aliasedType,
+      typeEnvironment: typeSchemaEnvironment,
+      fileUri: helper.uri,
+      fileOffset: invocation.fileOffset,
       allowSuperBounded: false,
       inferred: inferred,
     );
@@ -2901,11 +2920,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Nullability.nonNullable,
       invocation.arguments.types,
     );
-    libraryBuilder.checkBoundsInType(
-      aliasedType,
-      typeSchemaEnvironment,
-      helper.uri,
-      invocation.fileOffset,
+    problemReporting.checkBoundsInType(
+      libraryFeatures: libraryFeatures,
+      type: aliasedType,
+      typeEnvironment: typeSchemaEnvironment,
+      fileUri: helper.uri,
+      fileOffset: invocation.fileOffset,
       allowSuperBounded: false,
       inferred: inferred,
     );
@@ -8130,7 +8150,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (member.enclosingClass != null) {
         targetName = '${member.enclosingClass!.name}.$targetName';
       }
-      libraryBuilder.checkBoundsInStaticInvocation(
+      problemReporting.checkBoundsInStaticInvocation(
+        problemReportingHelper: problemReportingHelper,
+        libraryFeatures: libraryFeatures,
         targetName: targetName,
         typeEnvironment: typeSchemaEnvironment,
         fileUri: helper.uri,
@@ -9227,7 +9249,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType,
       treeNodeForTesting: node,
     );
-    libraryBuilder.checkBoundsInStaticInvocation(
+    problemReporting.checkBoundsInStaticInvocation(
+      problemReportingHelper: problemReportingHelper,
+      libraryFeatures: libraryFeatures,
       targetName: node.extension.name,
       typeEnvironment: typeSchemaEnvironment,
       fileUri: helper.uri,
@@ -9312,7 +9336,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType,
       treeNodeForTesting: node,
     );
-    libraryBuilder.checkBoundsInStaticInvocation(
+    problemReporting.checkBoundsInStaticInvocation(
+      problemReportingHelper: problemReportingHelper,
+      libraryFeatures: libraryFeatures,
       targetName: node.extension.name,
       typeEnvironment: typeSchemaEnvironment,
       fileUri: helper.uri,
@@ -9834,7 +9860,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverResult.inferredType,
       treeNodeForTesting: node,
     );
-    libraryBuilder.checkBoundsInStaticInvocation(
+    problemReporting.checkBoundsInStaticInvocation(
+      problemReportingHelper: problemReportingHelper,
+      libraryFeatures: libraryFeatures,
       targetName: node.extension.name,
       typeEnvironment: typeSchemaEnvironment,
       fileUri: helper.uri,
@@ -11550,7 +11578,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       receiverType,
       treeNodeForTesting: node,
     );
-    libraryBuilder.checkBoundsInStaticInvocation(
+    problemReporting.checkBoundsInStaticInvocation(
+      problemReportingHelper: problemReportingHelper,
+      libraryFeatures: libraryFeatures,
       targetName: node.extension.name,
       typeEnvironment: typeSchemaEnvironment,
       fileUri: helper.uri,
@@ -12492,7 +12522,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (node.target.enclosingClass != null) {
       targetName = '${node.target.enclosingClass!.name}.$targetName';
     }
-    libraryBuilder.checkBoundsInStaticInvocation(
+    problemReporting.checkBoundsInStaticInvocation(
+      problemReportingHelper: problemReportingHelper,
+      libraryFeatures: libraryFeatures,
       targetName: targetName,
       typeEnvironment: typeSchemaEnvironment,
       fileUri: helper.uri,

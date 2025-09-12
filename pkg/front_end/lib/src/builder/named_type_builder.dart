@@ -34,7 +34,8 @@ import '../base/messages.dart'
         codeSupertypeIsTypeParameter,
         codeTypeArgumentMismatch,
         codeTypeArgumentsOnTypeVariable,
-        codeTypeNotFound;
+        codeTypeNotFound,
+        CompilationPhaseForProblemReporting;
 import '../base/scope.dart';
 import '../base/uris.dart';
 import '../dill/dill_class_builder.dart';

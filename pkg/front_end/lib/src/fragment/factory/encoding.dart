@@ -9,6 +9,7 @@ import 'package:kernel/type_environment.dart';
 
 import '../../base/identifiers.dart';
 import '../../base/lookup_result.dart';
+import '../../base/messages.dart';
 import '../../base/problems.dart' show unexpected, unhandled;
 import '../../builder/builder.dart';
 import '../../builder/constructor_builder.dart';
@@ -21,7 +22,6 @@ import '../../builder/named_type_builder.dart';
 import '../../builder/nullability_builder.dart';
 import '../../builder/omitted_type_builder.dart';
 import '../../builder/type_builder.dart';
-import '../../codes/cfe_codes.dart';
 import '../../dill/dill_extension_type_member_builder.dart';
 import '../../dill/dill_member_builder.dart';
 import '../../fragment/fragment.dart';
@@ -33,8 +33,7 @@ import '../../source/redirecting_factory_body.dart';
 import '../../source/source_factory_builder.dart';
 import '../../source/source_function_builder.dart';
 import '../../source/source_library_builder.dart' show SourceLibraryBuilder;
-import '../../source/source_loader.dart'
-    show CompilationPhaseForProblemReporting, SourceLoader;
+import '../../source/source_loader.dart' show SourceLoader;
 import '../../source/source_member_builder.dart';
 import '../../source/source_type_parameter_builder.dart';
 import '../../source/type_parameter_factory.dart';
