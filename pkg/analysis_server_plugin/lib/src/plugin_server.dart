@@ -542,7 +542,6 @@ class PluginServer {
   Future<Response?> _getResponse(Request request, int requestTime) async {
     ResponseResult? result;
     switch (request.method) {
-      case protocol.ANALYSIS_REQUEST_GET_NAVIGATION:
       case protocol.ANALYSIS_REQUEST_HANDLE_WATCH_EVENTS:
         var params = protocol.AnalysisHandleWatchEventsParams.fromRequest(
           request,
@@ -556,27 +555,20 @@ class PluginServer {
         result = await _handleAnalysisSetContextRoots(params);
 
       case protocol.ANALYSIS_REQUEST_SET_PRIORITY_FILES:
-      case protocol.ANALYSIS_REQUEST_SET_SUBSCRIPTIONS:
+        // TODO(srawlins): Support!
+        result = null;
+
       case protocol.ANALYSIS_REQUEST_UPDATE_CONTENT:
         var params = protocol.AnalysisUpdateContentParams.fromRequest(request);
         result = await _handleAnalysisUpdateContent(params);
-
-      case protocol.COMPLETION_REQUEST_GET_SUGGESTIONS:
-        result = null;
 
       case protocol.EDIT_REQUEST_GET_ASSISTS:
         var params = protocol.EditGetAssistsParams.fromRequest(request);
         result = await handleEditGetAssists(params);
 
-      case protocol.EDIT_REQUEST_GET_AVAILABLE_REFACTORINGS:
-        result = null;
-
       case protocol.EDIT_REQUEST_GET_FIXES:
         var params = protocol.EditGetFixesParams.fromRequest(request);
         result = await handleEditGetFixes(params);
-
-      case protocol.EDIT_REQUEST_GET_REFACTORING:
-        result = null;
 
       case protocol.PLUGIN_REQUEST_DETAILS:
         var details = <protocol.PluginDetails>[];
@@ -612,6 +604,10 @@ class PluginServer {
       case protocol.PLUGIN_REQUEST_VERSION_CHECK:
         var params = protocol.PluginVersionCheckParams.fromRequest(request);
         result = await handlePluginVersionCheck(params);
+
+      default:
+        // Anything else is unsupported.
+        result = null;
     }
     if (result == null) {
       return Response(
