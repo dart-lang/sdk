@@ -35,8 +35,16 @@
 namespace dart {
 
 DEFINE_FLAG(bool, dump_kernel_bytecode, false, "Dump kernel bytecode");
+DEFINE_FLAG(charp,
+            dump_kernel_bytecode_filter,
+            nullptr,
+            "Dump only kernel bytecode of functions with matching names");
 
 namespace bytecode {
+
+static bool ShouldPrint(const Function& function) {
+  return function.NamePassesFilter(FLAG_dump_kernel_bytecode_filter);
+}
 
 class BytecodeOffsetsMapTraits {
  public:
@@ -256,7 +264,9 @@ void BytecodeReaderHelper::ReadCode(const Function& function,
   ReadLocalVariables(bytecode, has_local_variables);
 
   if (FLAG_dump_kernel_bytecode) {
-    KernelBytecodeDisassembler::Disassemble(function);
+    if (ShouldPrint(function)) {
+      KernelBytecodeDisassembler::Disassemble(function);
+    }
   }
 
   // Initialization of fields with null literal is elided from bytecode.
@@ -303,7 +313,9 @@ void BytecodeReaderHelper::ReadCode(const Function& function,
       ReadLocalVariables(closure_bytecode, has_local_variables);
 
       if (FLAG_dump_kernel_bytecode) {
-        KernelBytecodeDisassembler::Disassemble(closure);
+        if (ShouldPrint(closure)) {
+          KernelBytecodeDisassembler::Disassemble(closure);
+        }
       }
     }
   }

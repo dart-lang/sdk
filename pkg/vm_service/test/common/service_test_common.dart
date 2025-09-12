@@ -471,14 +471,22 @@ Future<String> _locationToString(
   IsolateRef isolateRef,
   Frame frame,
 ) async {
+  final buffer = StringBuffer();
   final location = frame.location!;
-  final Script script =
+  final script =
       await service.getObject(isolateRef.id!, location.script!.id!) as Script;
   final scriptName = p.basename(script.uri!);
+  buffer.write(scriptName);
   final tokenPos = location.tokenPos!;
   final line = script.getLineNumberFromTokenPos(tokenPos);
-  final column = script.getColumnNumberFromTokenPos(tokenPos);
-  return '$scriptName:$line:$column';
+  if (line != null) {
+    buffer.write(':$line');
+    final column = script.getColumnNumberFromTokenPos(tokenPos);
+    if (column != null) {
+      buffer.write(':$column');
+    }
+  }
+  return buffer.toString();
 }
 
 IsolateTest runStepThroughProgramRecordingStops(List<String> recordStops) {

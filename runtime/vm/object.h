@@ -3049,6 +3049,10 @@ class Function : public Object {
 
   virtual StringPtr DictionaryName() const { return name(); }
 
+  // Returns whether either the fully qualified name or qualified scrubbed name
+  // matches the given name filter, or true if the filter is nullptr.
+  bool NamePassesFilter(const char* name_filter) const;
+
   StringPtr GetSource() const;
 
   // Set the "C signature" for an FFI trampoline.
@@ -7564,14 +7568,9 @@ class Bytecode : public Object {
   TokenPosition GetTokenIndexOfPC(uword return_address) const;
   intptr_t GetTryIndexAtPc(uword return_address) const;
 
-  // Return the pc of the first 'DebugCheck' opcode of the bytecode.
-  // Return 0 if none is found.
-  uword GetFirstDebugCheckOpcodePc() const;
-
-  // Return the pc after the first 'debug checked' opcode in the range.
-  // Return 0 if none is found.
-  uword GetDebugCheckedOpcodeReturnAddress(uword from_offset,
-                                           uword to_offset) const;
+  // Returns the address of the previous instruction when given
+  // a valid return address for the given bytecode or 0 otherwise.
+  uword GetInstructionBefore(uword return_address) const;
 
   intptr_t instructions_binary_offset() const {
     return untag()->instructions_binary_offset_;
@@ -7617,7 +7616,6 @@ class Bytecode : public Object {
   // Will compute local var descriptors if necessary.
   LocalVarDescriptorsPtr GetLocalVarDescriptors() const;
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-
   const char* Name() const;
   const char* QualifiedName() const;
   const char* FullyQualifiedName() const;

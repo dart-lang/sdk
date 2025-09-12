@@ -11657,6 +11657,43 @@ void Function::PrintName(const NameFormattingParams& params,
   FunctionPrintNameHelper(fun, params, printer);
 }
 
+bool Function::NamePassesFilter(const char* name_filter) const {
+  if (name_filter == nullptr) return true;
+
+  char* save_ptr;  // Needed for strtok_r.
+  const char* scrubbed_name = QualifiedScrubbedNameCString();
+  const char* function_name = ToFullyQualifiedCString();
+  intptr_t function_name_len = strlen(function_name);
+
+  intptr_t len = strlen(name_filter) + 1;  // Length with \0.
+  char* filter_buffer = new char[len];
+  strncpy(filter_buffer, name_filter, len);  // strtok modifies arg 1.
+  char* token = strtok_r(filter_buffer, ",", &save_ptr);
+  bool found = false;
+  while (token != nullptr) {
+    if ((strstr(function_name, token) != nullptr) ||
+        (strstr(scrubbed_name, token) != nullptr)) {
+      found = true;
+      break;
+    }
+    const intptr_t token_len = strlen(token);
+    if (token[token_len - 1] == '%') {
+      if (function_name_len > token_len) {
+        const char* suffix =
+            function_name + (function_name_len - token_len + 1);
+        if (strncmp(suffix, token, token_len - 1) == 0) {
+          found = true;
+          break;
+        }
+      }
+    }
+    token = strtok_r(nullptr, ",", &save_ptr);
+  }
+  delete[] filter_buffer;
+
+  return found;
+}
+
 StringPtr Function::GetSource() const {
   if (IsImplicitConstructor() || is_synthetic()) {
     // We may need to handle more cases when the restrictions on mixins are
@@ -19312,40 +19349,25 @@ intptr_t Bytecode::GetTryIndexAtPc(uword return_address) const {
 #endif
 }
 
-uword Bytecode::GetFirstDebugCheckOpcodePc() const {
+uword Bytecode::GetInstructionBefore(uword return_address) const {
 #if defined(DART_DYNAMIC_MODULES)
-  uword pc = PayloadStart();
-  const uword end_pc = pc + Size();
-  while (pc < end_pc) {
-    if (KernelBytecode::IsDebugCheckOpcode(
-            reinterpret_cast<const KBCInstr*>(pc))) {
-      return pc;
-    }
-    pc = KernelBytecode::Next(pc);
+  const uword start = PayloadStart();
+  // return_address could be the end of the bytecode instructions
+  // if the last instruction is Throw.
+  if (return_address <= start || return_address > start + Size()) {
+    return 0;
   }
-  return 0;
+  uword prev = start;
+  uword current = KernelBytecode::Next(start);
+  while (current < return_address) {
+    prev = current;
+    current = KernelBytecode::Next(prev);
+  }
+  // Any valid return address should be on an instruction boundary.
+  return current == return_address ? prev : 0;
 #else
   UNREACHABLE();
-#endif
-}
-
-uword Bytecode::GetDebugCheckedOpcodeReturnAddress(uword from_offset,
-                                                   uword to_offset) const {
-#if defined(DART_DYNAMIC_MODULES)
-  uword pc = PayloadStart() + from_offset;
-  const uword end_pc = pc + (to_offset - from_offset);
-  while (pc < end_pc) {
-    uword next_pc = KernelBytecode::Next(pc);
-    if (KernelBytecode::IsDebugCheckedOpcode(
-            reinterpret_cast<const KBCInstr*>(pc))) {
-      // Return the pc after the opcode, i.e. its 'return address'.
-      return next_pc;
-    }
-    pc = next_pc;
-  }
   return 0;
-#else
-  UNREACHABLE();
 #endif
 }
 

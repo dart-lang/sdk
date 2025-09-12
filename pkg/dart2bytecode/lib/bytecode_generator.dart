@@ -1479,12 +1479,8 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
     if (condition is EqualsNull) {
       _generateNode(condition.expression);
-      if (options.emitDebuggerStops &&
-          condition.fileOffset != TreeNode.noOffset) {
-        final savedSourcePosition = asm.currentSourcePosition;
-        _recordSourcePosition(condition.fileOffset);
-        asm.emitDebugCheck();
-        asm.currentSourcePosition = savedSourcePosition;
+      if (condition.fileOffset != TreeNode.noOffset) {
+        _emitLocalSourcePosition(condition.fileOffset);
       }
       if (value) {
         asm.emitJumpIfNull(dest);
@@ -1631,23 +1627,20 @@ class BytecodeGenerator extends RecursiveVisitor {
     savedAssemblers = null;
     currentLoopDepth = 0;
     savedMaxSourcePositions = <int>[];
-    maxSourcePosition = node.fileOffset;
+    if (node is Procedure) {
+      maxSourcePosition = node.fileStartOffset;
+    } else if (node is Constructor) {
+      maxSourcePosition = node.startFileOffset;
+    } else {
+      maxSourcePosition = node.fileOffset;
+    }
 
     locals = new LocalVariables(node, options, staticTypeContext);
     locals.enterScope(node);
 
-    int position;
-    if (node is Procedure) {
-      position = node.fileStartOffset;
-    } else if (node is Constructor) {
-      position = node.startFileOffset;
-    } else {
-      position = node.fileOffset;
-    }
-    _recordSourcePosition(position);
     _genPrologue(node, node.function);
     _setupInitialContext(node.function);
-    _emitFirstDebugCheck(node.function);
+    _emitFirstDebugCheck(node, node.function);
     _genEqualsOperatorNullHandling(node);
     if (node is Procedure && node.isInstanceMember) {
       _checkArguments(node.function);
@@ -1864,7 +1857,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     return localVariables;
   }
 
-  void _genPrologue(Node node, FunctionNode? function) {
+  void _genPrologue(TreeNode node, FunctionNode? function) {
     if (locals.makesCopyOfParameters) {
       final int numOptionalPositional = function!.positionalParameters.length -
           function.requiredParameterCount;
@@ -1957,6 +1950,7 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     // CheckStack must see a properly initialized context when stress-testing
     // stack trace collection.
+    _recordInitialSourcePositionForFunction(node, function);
     asm.emitCheckStack(0);
 
     if (locals.hasFunctionTypeArgsVar && isClosure) {
@@ -2047,25 +2041,31 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
   }
 
-  void _emitFirstDebugCheck(FunctionNode? function) {
+  int _initialSourcePositionForFunction(TreeNode node, FunctionNode? function) {
+    // The debugger expects the initial source position to correspond to the
+    // declaration position of the last parameter, if any, or of the function.
+    if (function?.namedParameters.isNotEmpty ?? false) {
+      return function!.namedParameters.last.fileOffset;
+    } else if (function?.positionalParameters.isNotEmpty ?? false) {
+      return function!.positionalParameters.last.fileOffset;
+    } else if (function != null) {
+      return function.fileOffset;
+    } else {
+      return node.fileOffset;
+    }
+  }
+
+  void _recordInitialSourcePositionForFunction(
+      TreeNode node, FunctionNode? function) {
+    _recordSourcePosition(_initialSourcePositionForFunction(node, function));
+  }
+
+  void _emitFirstDebugCheck(TreeNode node, FunctionNode? function) {
     if (options.emitDebuggerStops) {
       // DebugCheck instruction should be emitted after parameter variables
       // are declared and copied into context.
-      // The debugger expects the source position to correspond to the
-      // declaration position of the last parameter, if any, or of the function.
       // The DebugCheck must be encountered each time an async op is reentered.
-      if (options.emitSourcePositions && function != null) {
-        var pos = TreeNode.noOffset;
-        if (function.namedParameters.isNotEmpty) {
-          pos = function.namedParameters.last.fileOffset;
-        } else if (function.positionalParameters.isNotEmpty) {
-          pos = function.positionalParameters.last.fileOffset;
-        }
-        if (pos == TreeNode.noOffset) {
-          pos = function.fileOffset;
-        }
-        _recordSourcePosition(pos);
-      }
+      _recordInitialSourcePositionForFunction(node, function);
       asm.emitDebugCheck();
     }
   }
@@ -2411,11 +2411,10 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     final int closureFunctionIndex = cp.addClosureFunction(closureIndex);
 
-    _recordSourcePosition(function.fileOffset);
+    maxSourcePosition = math.max(maxSourcePosition, function.fileOffset);
     _genPrologue(node, function);
-
     _setupInitialContext(function);
-    _emitFirstDebugCheck(function);
+    _emitFirstDebugCheck(node, function);
     _checkArguments(function);
     _initSuspendableFunction(function);
 
@@ -2685,6 +2684,26 @@ class BytecodeGenerator extends RecursiveVisitor {
     continuation();
   }
 
+  // Emits a source position entry and/or debugger stop as appropriate.
+  void _emitSourcePosition() {
+    if (options.emitSourcePositions) {
+      asm.emitSourcePosition();
+    }
+    if (options.emitDebuggerStops) {
+      asm.emitDebugCheck();
+    }
+  }
+
+  // Records the given file offset as the current source position and
+  // emits a source position entry and/or debugger stop as appropriate,
+  // restoring the current source position afterwards.
+  void _emitLocalSourcePosition(int fileOffset) {
+    final savedSourcePosition = asm.currentSourcePosition;
+    _recordSourcePosition(fileOffset);
+    _emitSourcePosition();
+    asm.currentSourcePosition = savedSourcePosition;
+  }
+
   /// Generates non-local transfer from inner node [from] into the outer
   /// node, executing finally blocks on the way out. [to] can be null,
   /// in such case all enclosing finally blocks are executed.
@@ -2692,9 +2711,7 @@ class BytecodeGenerator extends RecursiveVisitor {
   /// the last finally block.
   void _generateNonLocalControlTransfer(
       TreeNode from, TreeNode to, GenerateContinuation continuation) {
-    if (options.emitDebuggerStops && from.fileOffset != TreeNode.noOffset) {
-      asm.emitDebugCheck(); // Before context is unwound.
-    }
+    _emitLocalSourcePosition(from.fileOffset);
     List<TryFinally> tryFinallyBlocks = _getEnclosingTryFinallyBlocks(from, to);
     _addFinallyBlocks(tryFinallyBlocks, continuation);
   }
@@ -3389,9 +3406,8 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
     tryCatches![tryCatch]!.needsStackTrace = true;
 
-    if (options.emitDebuggerStops) {
-      asm.emitDebugCheck(); // Allow breakpoint on explicit rethrow statement.
-    }
+    // Allow breakpoint on explicit rethrow statement.
+    _emitSourcePosition();
     _genRethrow(tryCatch);
   }
 
@@ -3505,9 +3521,8 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     final target = node.target;
     if (target is Field && !_needsSetter(target)) {
-      if (options.emitDebuggerStops &&
-          _variableSetNeedsDebugCheck(node.value)) {
-        asm.emitDebugCheck();
+      if (_variableSetNeedsDebugCheck(node.value)) {
+        _emitSourcePosition();
       }
       int cpIndex = cp.addStaticField(target);
       asm.emitStoreStaticTOS(cpIndex);
@@ -3562,9 +3577,7 @@ class BytecodeGenerator extends RecursiveVisitor {
   void visitThrow(Throw node) {
     _generateNode(node.expression);
 
-    if (options.emitDebuggerStops) {
-      asm.emitDebugCheck();
-    }
+    _emitSourcePosition();
     asm.emitThrow(0);
   }
 
@@ -3649,8 +3662,8 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     _generateNode(node.value);
 
-    if (options.emitDebuggerStops && _variableSetNeedsDebugCheck(node.value)) {
-      asm.emitDebugCheck();
+    if (_variableSetNeedsDebugCheck(node.value)) {
+      _emitSourcePosition();
     }
 
     if (isLateFinal) {
@@ -3902,9 +3915,7 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   @override
   void visitFunctionDeclaration(ast.FunctionDeclaration node) {
-    if (options.emitDebuggerStops) {
-      asm.emitDebugCheck();
-    }
+    _emitSourcePosition();
     _genPushContextIfCaptured(node.variable);
     _genClosure(node, node.variable.name!, node.function);
     _genStoreVar(node.variable);
@@ -4311,14 +4322,12 @@ class BytecodeGenerator extends RecursiveVisitor {
         }
       }
 
-      if (options.emitDebuggerStops &&
-          (initializer == null || _variableSetNeedsDebugCheck(initializer))) {
-        final savedSourcePosition = asm.currentSourcePosition;
-        if (node.fileEqualsOffset != TreeNode.noOffset) {
-          _recordSourcePosition(node.fileEqualsOffset);
-        }
-        asm.emitDebugCheck();
-        asm.currentSourcePosition = savedSourcePosition;
+      // Emit a source position only as part of a DebugCheck instruction or
+      // if there's a store instruction to be emitted for the current PC offset.
+      if ((initializer == null || _variableSetNeedsDebugCheck(initializer)) &&
+          (options.emitDebuggerStops || emitStore)) {
+        _recordSourcePosition(node.fileEqualsOffset);
+        _emitSourcePosition();
       }
 
       if (options.emitLocalVarInfo && !asm.isUnreachable && node.name != null) {
