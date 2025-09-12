@@ -59,7 +59,7 @@ ModuleFormat parseModuleFormat(String s) {
 
 /// Parse the module format option added by [addModuleFormatOptions].
 List<ModuleFormat> parseModuleFormatOption(ArgResults args) {
-  return (args['modules'] as List<String>).map(parseModuleFormat).toList();
+  return args.multiOption('modules').map(parseModuleFormat).toList();
 }
 
 /// Adds an option to the [argParser] for choosing the module format, optionally
