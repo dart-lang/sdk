@@ -535,24 +535,24 @@ void ActivationFrame::GetPcDescriptors() {
 // if not IsInterpreted(), also compute deopt_id_.
 TokenPosition ActivationFrame::TokenPos() {
   if (!token_pos_initialized_) {
-    token_pos_initialized_ = true;
+    token_pos_ = TokenPosition::kNoSource;
     if (IsInterpreted()) {
       token_pos_ = bytecode().GetTokenIndexOfPC(pc_);
       try_index_ = bytecode().GetTryIndexAtPc(pc_);
-      return token_pos_;
-    }
-    token_pos_ = TokenPosition::kNoSource;
-    GetPcDescriptors();
-    PcDescriptors::Iterator iter(pc_desc_, UntaggedPcDescriptors::kAnyKind);
-    const uword pc_offset = pc_ - code().PayloadStart();
-    while (iter.MoveNext()) {
-      if (iter.PcOffset() == pc_offset) {
-        try_index_ = iter.TryIndex();
-        token_pos_ = iter.TokenPos();
-        deopt_id_ = iter.DeoptId();
-        break;
+    } else {
+      GetPcDescriptors();
+      PcDescriptors::Iterator iter(pc_desc_, UntaggedPcDescriptors::kAnyKind);
+      const uword pc_offset = pc_ - code().PayloadStart();
+      while (iter.MoveNext()) {
+        if (iter.PcOffset() == pc_offset) {
+          try_index_ = iter.TryIndex();
+          token_pos_ = iter.TokenPos();
+          deopt_id_ = iter.DeoptId();
+          break;
+        }
       }
     }
+    token_pos_initialized_ = true;
   }
   return token_pos_;
 }
@@ -2257,21 +2257,18 @@ static TokenPosition ResolveBreakpointPos(const Function& func,
 
   if (func.HasBytecode()) {
 #if defined(DART_DYNAMIC_MODULES)
+    // Only compiled code has synthetic token positions.
+    ASSERT(!requested_token_pos.IsSynthetic());
     bytecode::BytecodeSourcePositionsIterator iter(zone, bytecode);
     while (iter.MoveNext()) {
       const TokenPosition& pos = iter.TokenPos();
-      if (pos.IsSynthetic() && pos == requested_token_pos) {
-        // if there's a safepoint for a synthetic function start and the start
-        // was requested, we're done.
-        return pos;
-      }
       if (!pos.IsWithin(requested_token_pos, last_token_pos)) {
         // Token is not in the target range.
         continue;
       }
       TokenPosition next_closest_token_position = TokenPosition::kMaxSource;
       if (requested_column >= 0) {
-        // Find next closest safepoint
+        // Find next closest emitted source position.
         bytecode::BytecodeSourcePositionsIterator iter2(zone, bytecode);
         while (iter2.MoveNext()) {
           const TokenPosition& next = iter2.TokenPos();
@@ -2352,11 +2349,6 @@ static TokenPosition ResolveBreakpointPos(const Function& func,
           // Token is not on same line as best fit.
           continue;
         }
-        // To match the PCDescriptors version, adjust the offset to be
-        // the "return address" (e.g., the next instuction).
-        auto* const pc = reinterpret_cast<const KBCInstr*>(
-            pc_offset + bytecode.PayloadStart());
-        pc_offset += KernelBytecode::kInstructionSize[*pc];
         // Prefer the lowest pc offset.
         if (pc_offset < lowest_pc_offset) {
           lowest_pc_offset = pc_offset;
@@ -2457,12 +2449,11 @@ void GroupDebugger::MakeCodeBreakpointAtUnsafe(Thread* thread,
     bytecode::BytecodeSourcePositionsIterator iter(zone, bytecode);
     while (iter.MoveNext()) {
       if (iter.TokenPos() == loc->token_pos_) {
-        // To match the PCDescriptors version, adjust the offset to be
-        // the "return address" (e.g., the next instuction).
-        uword pc_offset = iter.PcOffset();
-        auto* const pc = reinterpret_cast<const KBCInstr*>(
-            pc_offset + bytecode.PayloadStart());
-        pc_offset += KernelBytecode::kInstructionSize[*pc];
+        // Breakpoints are set and located using the address of the instruction
+        // following the breakpoint instruction, since frames contain
+        // return addresses.
+        const uword pc_offset =
+            KernelBytecode::Next(start + iter.PcOffset()) - start;
         if (pc_offset < lowest_pc_offset) {
           lowest_pc_offset = pc_offset;
         }
@@ -3844,25 +3835,105 @@ void Debugger::SignalPausedEvent(ActivationFrame* top_frame, Breakpoint* bpt) {
 }
 
 static bool IsAtAsyncJump(ActivationFrame* top_frame) {
-  Zone* zone = Thread::Current()->zone();
+  Thread* const thread = Thread::Current();
+  Zone* const zone = thread->zone();
   if (!top_frame->function().IsAsyncFunction() &&
       !top_frame->function().IsAsyncGenerator()) {
     return false;
   }
-  const auto& pc_descriptors =
-      PcDescriptors::Handle(zone, top_frame->code().pc_descriptors());
-  if (pc_descriptors.IsNull()) {
-    return false;
-  }
-  const TokenPosition looking_for = top_frame->TokenPos();
-  PcDescriptors::Iterator it(pc_descriptors, UntaggedPcDescriptors::kOther);
-  while (it.MoveNext()) {
-    if (it.TokenPos() == looking_for &&
-        it.YieldIndex() != UntaggedPcDescriptors::kInvalidYieldIndex) {
-      return true;
+  if (top_frame->IsInterpreted()) {
+#if defined(DART_DYNAMIC_MODULES)
+    const auto& bytecode = top_frame->bytecode();
+    const uword prev = bytecode.GetInstructionBefore(top_frame->pc());
+    if (prev == 0) {
+      // Async awaiter frames have an PC offset of 0 or 1.
+      ASSERT(top_frame->pc() == bytecode.PayloadStart() ||
+             top_frame->pc() == bytecode.PayloadStart() +
+                                    StackTraceUtils::kFutureListenerPcOffset);
+      return false;
+    }
+    auto* const instr = reinterpret_cast<const KBCInstr*>(prev);
+    // Async jumps in bytecode are implemented via direct calls to the
+    // appropriate Dart method.
+    if (!KernelBytecode::IsDirectCallOpcode(instr)) {
+      return false;
+    }
+    const auto& object_pool = ObjectPool::Handle(zone, bytecode.object_pool());
+    auto const index = KernelBytecode::DecodeD(instr);
+    const auto& obj = Object::Handle(zone, object_pool.ObjectAt(index));
+    if (obj.IsNull() || !obj.IsFunction()) {
+      return false;
+    }
+    const auto& target = Function::Cast(obj);
+    auto* const object_store = thread->isolate_group()->object_store();
+    return target.ptr() == object_store->suspend_state_await() ||
+           target.ptr() ==
+               object_store->suspend_state_await_with_type_check() ||
+           target.ptr() == object_store->suspend_state_yield_async_star() ||
+           target.ptr() ==
+               object_store->suspend_state_suspend_sync_star_at_start();
+#else
+    UNREACHABLE();
+#endif
+  } else {
+    const TokenPosition looking_for = top_frame->TokenPos();
+    const auto& pc_descriptors =
+        PcDescriptors::Handle(zone, top_frame->code().pc_descriptors());
+    if (!pc_descriptors.IsNull()) {
+      PcDescriptors::Iterator it(pc_descriptors, UntaggedPcDescriptors::kOther);
+      while (it.MoveNext()) {
+        if (it.TokenPos() == looking_for &&
+            it.YieldIndex() != UntaggedPcDescriptors::kInvalidYieldIndex) {
+          return true;
+        }
+      }
     }
   }
   return false;
+}
+
+static bool IsAtBytecodeAsyncReturn(ActivationFrame* top_frame) {
+#if defined(DART_DYNAMIC_MODULES)
+  if (!top_frame->IsInterpreted()) return false;
+
+  Thread* const thread = Thread::Current();
+  Zone* const zone = thread->zone();
+  const auto& bytecode = top_frame->bytecode();
+  uword prev = bytecode.GetInstructionBefore(top_frame->pc());
+  if (prev == 0) {
+    // Async awaiter frames have an PC offset of 0 or 1.
+    ASSERT(top_frame->pc() == bytecode.PayloadStart() ||
+           top_frame->pc() == bytecode.PayloadStart() +
+                                  StackTraceUtils::kFutureListenerPcOffset);
+    return false;
+  }
+  auto* instr = reinterpret_cast<const KBCInstr*>(prev);
+  // Async returns in bytecode are implemented via direct calls to
+  // the appropriate Dart async return method followed by a return
+  // instruction.
+  if (KernelBytecode::IsReturnOpcode(instr)) {
+    prev = bytecode.GetInstructionBefore(prev);
+    ASSERT(prev != 0);
+    instr = reinterpret_cast<const KBCInstr*>(prev);
+  }
+  if (!KernelBytecode::IsDirectCallOpcode(instr)) {
+    return false;
+  }
+  const auto& object_pool = ObjectPool::Handle(zone, bytecode.object_pool());
+  auto const index = KernelBytecode::DecodeD(instr);
+  const auto& obj = Object::Handle(zone, object_pool.ObjectAt(index));
+  if (obj.IsNull() || !obj.IsFunction()) {
+    return false;
+  }
+  const auto& target = Function::Cast(obj);
+  auto* const object_store = thread->isolate_group()->object_store();
+  return target.ptr() == object_store->suspend_state_return_async() ||
+         target.ptr() ==
+             object_store->suspend_state_return_async_not_future() ||
+         target.ptr() == object_store->suspend_state_return_async_star();
+#else
+  return false;
+#endif
 }
 
 #if defined(DART_DYNAMIC_MODULES)
@@ -3876,7 +3947,15 @@ static ActivationFrame::Relation CompareTopDartFrameTo(uword other_fp,
     if (frame->IsDartFrame() && (frame->is_interpreted() == is_interpreted)) {
       // The current frame's FP can be directly compared to the provided FP to
       // provide an answer, since they're using the same stack.
-      return ActivationFrame::CompareTo(is_interpreted, frame->fp(), other_fp);
+      //
+      // Since this function is only called if the top Dart frame is interpreted
+      // but the stepping frame is not or vice versa, the current frame is not
+      // the top Dart frame, so a result of kSelf means the top Dart frame
+      // is a callee.
+      return ActivationFrame::CompareTo(is_interpreted, frame->fp(),
+                                        other_fp) == ActivationFrame::kCaller
+                 ? ActivationFrame::kCaller
+                 : ActivationFrame::kCallee;
     }
   }
   // If there were no frames of the same type on the stack, this must have been
@@ -3949,7 +4028,10 @@ ErrorPtr Debugger::PauseStepping() {
   // with regular function wrt the first stop in the function prologue.
   if ((frame->function().IsAsyncFunction() ||
        frame->function().IsAsyncGenerator()) &&
-      frame->GetSuspendStateVar() == Object::null()) {
+      frame->GetSuspendStateVar() == Object::null() &&
+      // The bytecode generator sets the suspend state var to null prior
+      // to returning.
+      !IsAtBytecodeAsyncReturn(frame)) {
     return Error::null();
   }
 

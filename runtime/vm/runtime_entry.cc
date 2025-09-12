@@ -2178,6 +2178,14 @@ DEFINE_RUNTIME_ENTRY(SingleStepHandler, 0) {
 #endif
 }
 
+DEFINE_RUNTIME_ENTRY(ResumptionBreakpointHandler, 0) {
+#if defined(DART_DYNAMIC_MODULES) && !defined(PRODUCT)
+  isolate->debugger()->ResumptionBreakpoint();
+#else
+  UNREACHABLE();
+#endif
+}
+
 // An instance call of the form o.f(...) could not be resolved.  Check if
 // there is a getter with the same name.  If so, invoke it.  If the value is
 // a closure, invoke it with the given arguments.  If the value is a

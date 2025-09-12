@@ -24,10 +24,15 @@ class SourcePositions extends BytecodeDeclaration {
 
   SourcePositions();
 
+  // Maps the given PC to the given file offset.
   void add(int pc, int fileOffset) {
-    assert(pc > _lastPc);
     assert((fileOffset >= 0) || (fileOffset == syntheticCodeMarker));
     if (fileOffset != _lastOffset) {
+      if (pc <= _lastPc) {
+        throw ArgumentError(
+            '$pc <= $_lastPc for change in source position $fileOffset != $_lastOffset',
+            'pc');
+      }
       _positions.add(pc);
       _positions.add(fileOffset);
       _lastPc = pc;

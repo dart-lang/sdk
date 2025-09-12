@@ -47,38 +47,7 @@ static bool PassesFilter(const char* filter,
   }
 #endif
 
-  char* save_ptr;  // Needed for strtok_r.
-  const char* scrubbed_name = function.QualifiedScrubbedNameCString();
-  const char* function_name = function.ToFullyQualifiedCString();
-  intptr_t function_name_len = strlen(function_name);
-
-  intptr_t len = strlen(filter) + 1;  // Length with \0.
-  char* filter_buffer = new char[len];
-  strncpy(filter_buffer, filter, len);  // strtok modifies arg 1.
-  char* token = strtok_r(filter_buffer, ",", &save_ptr);
-  bool found = false;
-  while (token != nullptr) {
-    if ((strstr(function_name, token) != nullptr) ||
-        (strstr(scrubbed_name, token) != nullptr)) {
-      found = true;
-      break;
-    }
-    const intptr_t token_len = strlen(token);
-    if (token[token_len - 1] == '%') {
-      if (function_name_len > token_len) {
-        const char* suffix =
-            function_name + (function_name_len - token_len + 1);
-        if (strncmp(suffix, token, token_len - 1) == 0) {
-          found = true;
-          break;
-        }
-      }
-    }
-    token = strtok_r(nullptr, ",", &save_ptr);
-  }
-  delete[] filter_buffer;
-
-  return found;
+  return function.NamePassesFilter(filter);
 }
 
 bool PrintFilter::ShouldPrint(const Function& function,

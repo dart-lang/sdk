@@ -87,24 +87,12 @@ void BytecodePatcher::RemoveBreakpointAt(uword return_address,
   });
 }
 
-KBCInstr* GetInstructionBefore(const Bytecode& bytecode, uword return_address) {
-  ASSERT(bytecode.ContainsInstructionAt(return_address));
-  ASSERT(return_address != bytecode.PayloadStart());
-  uword prev = bytecode.PayloadStart();
-  uword current = KernelBytecode::Next(prev);
-  while (current < return_address) {
-    prev = current;
-    current = KernelBytecode::Next(prev);
-  }
-  ASSERT_EQUAL(current, return_address);
-  return reinterpret_cast<KBCInstr*>(prev);
-}
-
 uint32_t BytecodePatcher::AddBreakpointAtWithMutatorsStopped(
     Thread* thread,
     uword return_address,
     const Bytecode& bytecode) {
-  auto* const instr = GetInstructionBefore(bytecode, return_address);
+  auto* const instr = reinterpret_cast<KBCInstr*>(
+      bytecode.GetInstructionBefore(return_address));
   uint32_t old_opcode = *instr;
   *instr = KernelBytecode::BreakpointOpcode(instr);
   return old_opcode;
@@ -115,7 +103,8 @@ void BytecodePatcher::RemoveBreakpointAtWithMutatorsStopped(
     uword return_address,
     const Bytecode& bytecode,
     uint32_t opcode) {
-  auto* const instr = GetInstructionBefore(bytecode, return_address);
+  auto* const instr = reinterpret_cast<KBCInstr*>(
+      bytecode.GetInstructionBefore(return_address));
   // Must be previously enabled and not yet removed.
   ASSERT(*instr == KernelBytecode::BreakpointOpcode(
                        static_cast<KernelBytecode::Opcode>(opcode)));
