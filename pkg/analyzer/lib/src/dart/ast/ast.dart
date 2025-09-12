@@ -1497,19 +1497,25 @@ sealed class AstNodeImpl implements AstNode {
     return offset <= rangeOffset && end >= rangeEnd;
   }
 
-  static void linkNodeTokens(AstNode parent) {
+  static void linkNodeTokens(AstNodeImpl root) {
     Token? lastToken;
-    for (var entity in parent.childEntities) {
+    var stack = <Object>[root];
+    while (stack.isNotEmpty) {
+      var entity = stack.removeLast();
       switch (entity) {
         case Token token:
           lastToken?.next = token;
           token.previous = lastToken;
           lastToken = token;
-        case AstNode node:
-          linkNodeTokens(node);
-          lastToken?.next = node.beginToken;
-          node.beginToken.previous = lastToken;
-          lastToken = node.endToken;
+        case NodeListImpl nodeList:
+          // Push in reverse order, so process in source order.
+          stack.addAll(nodeList.reversed);
+        case AstNodeImpl node:
+          // Push in reverse order, so process in source order.
+          var entities = node._childEntities.entities;
+          stack.addAll(entities.reversed.map((e) => e.value));
+        default:
+          throw UnimplementedError('${entity.runtimeType}');
       }
     }
   }

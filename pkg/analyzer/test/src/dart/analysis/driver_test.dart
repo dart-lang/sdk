@@ -59934,6 +59934,70 @@ const d = b;
     );
   }
 
+  test_manifest_enum_constants_reorder() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+enum A {
+  c1, c2
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          c1: #M1
+          c2: #M2
+          values: #M3
+        declaredGetters
+          c1: #M4
+          c2: #M5
+          values: #M6
+        interface: #M7
+          map
+            index: #M8
+          implemented
+            index: #M8
+          superImplemented
+            [0]
+              index: #M8
+          inherited
+            index: #M8
+''',
+      updatedCode: r'''
+enum A {
+  c2, c1
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          c1: #M1
+          c2: #M2
+          values: #M9
+        declaredGetters
+          c1: #M4
+          c2: #M5
+          values: #M6
+        interface: #M7
+          map
+            index: #M8
+          implemented
+            index: #M8
+          superImplemented
+            [0]
+              index: #M8
+          inherited
+            index: #M8
+''',
+    );
+  }
+
   test_manifest_enum_constants_replace() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
