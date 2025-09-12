@@ -1208,6 +1208,36 @@ extern "C" void FfiCallTrampoline(FfiCallArguments* args);
 extern "C" typedef void (*ffiCallTrampoline)(FfiCallArguments* args);
 #endif
 
+static int64_t TruncateFfiInt(int64_t value,
+                              compiler::ffi::PrimitiveType type,
+                              bool is_return) {
+#if defined(HOST_ARCH_RISCV64)
+  // 64-bit RISC-V represents C uint32 as sign-extended to 64 bits.
+  if (!is_return && (type == compiler::ffi::kUint32)) {
+    return static_cast<int32_t>(static_cast<uint32_t>(value));
+  }
+#endif
+  switch (type) {
+    case compiler::ffi::kInt8:
+      return static_cast<int8_t>(value);
+    case compiler::ffi::kUint8:
+      return static_cast<uint8_t>(value);
+    case compiler::ffi::kInt16:
+      return static_cast<int16_t>(value);
+    case compiler::ffi::kUint16:
+      return static_cast<uint16_t>(value);
+    case compiler::ffi::kInt32:
+      return static_cast<int32_t>(value);
+    case compiler::ffi::kUint32:
+      return static_cast<uint32_t>(value);
+    case compiler::ffi::kInt64:
+    case compiler::ffi::kUint64:
+      return value;
+    default:
+      UNREACHABLE();
+  }
+}
+
 static void PassFfiCallArguments(
     Thread* thread,
     const compiler::ffi::CallMarshaller& marshaller,
@@ -1238,7 +1268,12 @@ static void PassFfiCallArguments(
         ASSERT(!marshaller.IsVoid(i));
         const auto rep = marshaller.RepInDart(i);
         if (RepresentationUtils::IsUnboxedInteger(rep)) {
-          value = Integer::Cast(arg).Value();
+          value = TruncateFfiInt(Integer::Cast(arg).Value(),
+                                 marshaller.Location(i)
+                                     .payload_type()
+                                     .AsPrimitive()
+                                     .representation(),
+                                 /*is_return=*/false);
         } else if (rep == kUnboxedDouble) {
           value = bit_cast<uint64_t, double>(Double::Cast(arg).value());
         } else if (rep == kUnboxedFloat) {
@@ -1294,20 +1329,32 @@ static ObjectPtr ReceiveFfiCallResult(
   } else if (marshaller.IsVoid(arg_index)) {
     return Object::null();
   } else if (marshaller.IsBool(arg_index)) {
-    uword value = args->cpu_registers[CallingConventions::kReturnReg];
+    int64_t value =
+        TruncateFfiInt(args->cpu_registers[CallingConventions::kReturnReg],
+                       marshaller.Location(arg_index)
+                           .payload_type()
+                           .AsPrimitive()
+                           .representation(),
+                       /*is_return=*/true);
     return Bool::Get(value != 0).ptr();
   } else {
     const auto rep = marshaller.RepInDart(arg_index);
     if (RepresentationUtils::IsUnboxedInteger(rep)) {
-      uword value = args->cpu_registers[CallingConventions::kReturnReg];
+      const int64_t value =
+          TruncateFfiInt(args->cpu_registers[CallingConventions::kReturnReg],
+                         marshaller.Location(arg_index)
+                             .payload_type()
+                             .AsPrimitive()
+                             .representation(),
+                         /*is_return=*/true);
       return Integer::New(value);
     } else if (rep == kUnboxedDouble) {
-      double value = args->fpu_registers[CallingConventions::kReturnFpuReg];
+      double value = bit_cast<double, uint64_t>(
+          args->fpu_registers[CallingConventions::kReturnFpuReg]);
       return Double::New(value);
     } else if (rep == kUnboxedFloat) {
-      float value = bit_cast<float, uint32_t>(
-          static_cast<uint32_t>(bit_cast<uint64_t, double>(
-              args->fpu_registers[CallingConventions::kReturnFpuReg])));
+      float value = bit_cast<float, uint32_t>(static_cast<uint32_t>(
+          args->fpu_registers[CallingConventions::kReturnFpuReg]));
       return Double::New(static_cast<double>(value));
     } else {
       UNREACHABLE();
