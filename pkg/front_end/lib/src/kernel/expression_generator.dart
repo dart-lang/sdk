@@ -719,10 +719,10 @@ class PropertyAccessGenerator extends Generator {
     bool isPostIncDec = false,
   }) {
     return new CompoundPropertySet(
-      receiver,
-      name,
-      binaryOperator,
-      value,
+      receiver: receiver,
+      propertyName: name,
+      binaryName: binaryOperator,
+      value: value,
       forEffect: voidContext,
       readOffset: fileOffset,
       binaryOffset: operatorOffset,
@@ -1106,10 +1106,10 @@ class NullAwarePropertyAccessGenerator extends Generator {
     bool isPostIncDec = false,
   }) {
     return new CompoundPropertySet(
-      receiver,
-      name,
-      binaryOperator,
-      value,
+      receiver: receiver,
+      propertyName: name,
+      binaryName: binaryOperator,
+      value: value,
       forEffect: voidContext,
       readOffset: fileOffset,
       binaryOffset: operatorOffset,
@@ -1471,9 +1471,9 @@ class IndexedAccessGenerator extends Generator {
     bool voidContext = false,
   }) {
     return new IfNullIndexSet(
-      receiver,
-      index,
-      value,
+      receiver: receiver,
+      index: index,
+      value: value,
       readOffset: fileOffset,
       testOffset: offset,
       writeOffset: fileOffset,
@@ -1492,10 +1492,10 @@ class IndexedAccessGenerator extends Generator {
     bool isPostIncDec = false,
   }) {
     return new CompoundIndexSet(
-      receiver,
-      index,
-      binaryOperator,
-      value,
+      receiver: receiver,
+      index: index,
+      binaryName: binaryOperator,
+      value: value,
       readOffset: fileOffset,
       binaryOffset: operatorOffset,
       writeOffset: fileOffset,
@@ -1647,9 +1647,9 @@ class ThisIndexedAccessGenerator extends Generator {
   }) {
     Expression receiver = _helper.forest.createThisExpression(fileOffset);
     return new IfNullIndexSet(
-      receiver,
-      index,
-      value,
+      receiver: receiver,
+      index: index,
+      value: value,
       readOffset: fileOffset,
       testOffset: offset,
       writeOffset: fileOffset,
@@ -1669,10 +1669,10 @@ class ThisIndexedAccessGenerator extends Generator {
   }) {
     Expression receiver = _helper.forest.createThisExpression(fileOffset);
     return new CompoundIndexSet(
-      receiver,
-      index,
-      binaryOperator,
-      value,
+      receiver: receiver,
+      index: index,
+      binaryName: binaryOperator,
+      value: value,
       readOffset: fileOffset,
       binaryOffset: operatorOffset,
       writeOffset: fileOffset,
@@ -1818,10 +1818,10 @@ class SuperIndexedAccessGenerator extends Generator {
     bool voidContext = false,
   }) {
     return new IfNullSuperIndexSet(
-      getter,
-      setter,
-      index,
-      value,
+      getter: getter,
+      setter: setter,
+      index: index,
+      value: value,
       readOffset: fileOffset,
       testOffset: offset,
       writeOffset: fileOffset,
@@ -1846,11 +1846,11 @@ class SuperIndexedAccessGenerator extends Generator {
       );
     } else {
       return new CompoundSuperIndexSet(
-        getter,
-        setter,
-        index,
-        binaryOperator,
-        value,
+        getter: getter,
+        setter: setter,
+        index: index,
+        binaryName: binaryOperator,
+        value: value,
         readOffset: fileOffset,
         binaryOffset: operatorOffset,
         writeOffset: fileOffset,
@@ -3216,13 +3216,13 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
     }
 
     return new ExtensionIfNullIndexSet(
-      extension,
-      explicitTypeArguments,
-      receiver,
-      getter,
-      setter,
-      index,
-      value,
+      extension: extension,
+      knownTypeArguments: explicitTypeArguments,
+      receiver: receiver,
+      getter: getter,
+      setter: setter,
+      index: index,
+      value: value,
       readOffset: fileOffset,
       testOffset: offset,
       writeOffset: fileOffset,

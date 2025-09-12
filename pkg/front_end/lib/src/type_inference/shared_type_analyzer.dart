@@ -8,8 +8,7 @@ import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 
-import '../codes/cfe_codes.dart';
-import '../source/source_loader.dart';
+import '../base/messages.dart';
 import 'inference_helper.dart';
 import 'inference_visitor.dart';
 

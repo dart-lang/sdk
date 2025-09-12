@@ -66,7 +66,7 @@ abstract class MethodDeclaration {
   });
 
   void checkTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     TypeEnvironment typeEnvironment,
   );
 
@@ -184,10 +184,10 @@ class MethodDeclarationImpl
 
   @override
   void checkTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     TypeEnvironment typeEnvironment,
   ) {
-    _encoding.checkTypes(libraryBuilder, typeEnvironment);
+    _encoding.checkTypes(problemReporting, typeEnvironment);
   }
 
   @override

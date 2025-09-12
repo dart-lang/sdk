@@ -260,11 +260,6 @@ abstract class InternalExpression extends AuxiliaryExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   );
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    // TODO(johnniwinther): Implement this.
-  }
 }
 
 // Coverage-ignore(suite): Not run.
@@ -1574,11 +1569,11 @@ class CompoundPropertySet extends InternalExpression {
   /// The name of the property accessed by the read/write operations.
   final Name propertyName;
 
-  /// The binary operation performed on the getter result and [rhs].
+  /// The binary operation performed on the getter result and [value].
   final Name binaryName;
 
   /// The right-hand side of the binary operation.
-  Expression rhs;
+  Expression value;
 
   /// If `true`, the expression is only need for effect and not for its value.
   final bool forEffect;
@@ -1595,11 +1590,11 @@ class CompoundPropertySet extends InternalExpression {
   /// `true` if the access is null-aware, i.e. of the form `o?.a += b`.
   final bool isNullAware;
 
-  CompoundPropertySet(
-    this.receiver,
-    this.propertyName,
-    this.binaryName,
-    this.rhs, {
+  CompoundPropertySet({
+    required this.receiver,
+    required this.propertyName,
+    required this.binaryName,
+    required this.value,
     required this.forEffect,
     required this.readOffset,
     required this.binaryOffset,
@@ -1607,7 +1602,7 @@ class CompoundPropertySet extends InternalExpression {
     required this.isNullAware,
   }) {
     receiver.parent = this;
-    rhs.parent = this;
+    value.parent = this;
   }
 
   @override
@@ -1635,7 +1630,7 @@ class CompoundPropertySet extends InternalExpression {
     printer.write(' ');
     printer.writeName(binaryName);
     printer.write('= ');
-    printer.writeExpression(rhs);
+    printer.writeExpression(value);
   }
 }
 
@@ -2284,6 +2279,15 @@ class SuperIndexSet extends InternalExpression {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('super[');
+    index.toTextInternal(printer);
+    printer.write('] = ');
+    value.toTextInternal(printer);
+  }
+
+  @override
   String toString() {
     return "SuperIndexSet(${toStringInternal()})";
   }
@@ -2516,10 +2520,10 @@ class IfNullIndexSet extends InternalExpression {
   /// `true` if the access is null-aware, i.e. of the form `o?[a] ??= b`.
   final bool isNullAware;
 
-  IfNullIndexSet(
-    this.receiver,
-    this.index,
-    this.value, {
+  IfNullIndexSet({
+    required this.receiver,
+    required this.index,
+    required this.value,
     required this.readOffset,
     required this.testOffset,
     required this.writeOffset,
@@ -2537,6 +2541,19 @@ class IfNullIndexSet extends InternalExpression {
     DartType typeContext,
   ) {
     return visitor.visitIfNullIndexSet(this, typeContext);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    receiver.toTextInternal(printer);
+    if (isNullAware) {
+      printer.write('?');
+    }
+    printer.write('[');
+    index.toTextInternal(printer);
+    printer.write('] ??= ');
+    value.toTextInternal(printer);
   }
 
   @override
@@ -2589,11 +2606,11 @@ class IfNullSuperIndexSet extends InternalExpression {
   /// If `true`, the expression is only need for effect and not for its value.
   final bool forEffect;
 
-  IfNullSuperIndexSet(
-    this.getter,
-    this.setter,
-    this.index,
-    this.value, {
+  IfNullSuperIndexSet({
+    required this.getter,
+    required this.setter,
+    required this.index,
+    required this.value,
     required this.readOffset,
     required this.testOffset,
     required this.writeOffset,
@@ -2609,6 +2626,15 @@ class IfNullSuperIndexSet extends InternalExpression {
     DartType typeContext,
   ) {
     return visitor.visitIfNullSuperIndexSet(this, typeContext);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('super[');
+    index.toTextInternal(printer);
+    printer.write('] ??= ');
+    value.toTextInternal(printer);
   }
 
   @override
@@ -2679,14 +2705,14 @@ class ExtensionIfNullIndexSet extends InternalExpression {
   /// File offset of the explicit extension type arguments, if provided.
   final int? extensionTypeArgumentOffset;
 
-  ExtensionIfNullIndexSet(
-    this.extension,
-    this.knownTypeArguments,
-    this.receiver,
-    this.getter,
-    this.setter,
-    this.index,
-    this.value, {
+  ExtensionIfNullIndexSet({
+    required this.extension,
+    required this.knownTypeArguments,
+    required this.receiver,
+    required this.getter,
+    required this.setter,
+    required this.index,
+    required this.value,
     required this.readOffset,
     required this.testOffset,
     required this.writeOffset,
@@ -2708,6 +2734,26 @@ class ExtensionIfNullIndexSet extends InternalExpression {
     DartType typeContext,
   ) {
     return visitor.visitExtensionIfNullIndexSet(this, typeContext);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write(extension.name);
+    if (knownTypeArguments != null) {
+      printer.writeTypeArguments(knownTypeArguments!);
+    }
+    printer.write('(');
+    printer.writeExpression(receiver);
+    printer.write(')');
+    if (isNullAware) {
+      printer.write('?');
+    }
+    printer.write('[');
+    printer.writeExpression(index);
+    printer.write(']');
+    printer.write(' ??= ');
+    printer.writeExpression(value);
   }
 
   @override
@@ -2741,7 +2787,7 @@ class CompoundIndexSet extends InternalExpression {
   Name binaryName;
 
   /// The right-hand side of the binary expression.
-  Expression rhs;
+  Expression value;
 
   /// The file offset for the [] operation.
   final int readOffset;
@@ -2761,11 +2807,11 @@ class CompoundIndexSet extends InternalExpression {
   /// `true` if the access is null-aware, i.e. of the form `o?[a] += b`.
   final bool isNullAware;
 
-  CompoundIndexSet(
-    this.receiver,
-    this.index,
-    this.binaryName,
-    this.rhs, {
+  CompoundIndexSet({
+    required this.receiver,
+    required this.index,
+    required this.binaryName,
+    required this.value,
     required this.readOffset,
     required this.binaryOffset,
     required this.writeOffset,
@@ -2775,7 +2821,7 @@ class CompoundIndexSet extends InternalExpression {
   }) {
     receiver.parent = this;
     index.parent = this;
-    rhs.parent = this;
+    value.parent = this;
     fileOffset = binaryOffset;
   }
 
@@ -2804,8 +2850,8 @@ class CompoundIndexSet extends InternalExpression {
     printer.write(']');
     if (forPostIncDec &&
         (binaryName.text == '+' || binaryName.text == '-') &&
-        rhs is IntLiteral &&
-        (rhs as IntLiteral).value == 1) {
+        value is IntLiteral &&
+        (value as IntLiteral).value == 1) {
       if (binaryName.text == '+') {
         printer.write('++');
       } else {
@@ -2815,7 +2861,7 @@ class CompoundIndexSet extends InternalExpression {
       printer.write(' ');
       printer.write(binaryName.text);
       printer.write('= ');
-      printer.writeExpression(rhs);
+      printer.writeExpression(value);
     }
   }
 }
@@ -2847,7 +2893,7 @@ class CompoundSuperIndexSet extends InternalExpression {
   Name binaryName;
 
   /// The right-hand side of the binary expression.
-  Expression rhs;
+  Expression value;
 
   /// The file offset for the [] operation.
   final int readOffset;
@@ -2864,12 +2910,12 @@ class CompoundSuperIndexSet extends InternalExpression {
   /// If `true`, the expression is a post-fix inc/dec expression.
   final bool forPostIncDec;
 
-  CompoundSuperIndexSet(
-    this.getter,
-    this.setter,
-    this.index,
-    this.binaryName,
-    this.rhs, {
+  CompoundSuperIndexSet({
+    required this.getter,
+    required this.setter,
+    required this.index,
+    required this.binaryName,
+    required this.value,
     required this.readOffset,
     required this.binaryOffset,
     required this.writeOffset,
@@ -2877,7 +2923,7 @@ class CompoundSuperIndexSet extends InternalExpression {
     required this.forPostIncDec,
   }) {
     index.parent = this;
-    rhs.parent = this;
+    value.parent = this;
     fileOffset = binaryOffset;
   }
 
@@ -2887,6 +2933,29 @@ class CompoundSuperIndexSet extends InternalExpression {
     DartType typeContext,
   ) {
     return visitor.visitCompoundSuperIndexSet(this, typeContext);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('super[');
+    printer.writeExpression(index);
+    printer.write(']');
+    if (forPostIncDec &&
+        (binaryName.text == '+' || binaryName.text == '-') &&
+        value is IntLiteral &&
+        (value as IntLiteral).value == 1) {
+      if (binaryName.text == '+') {
+        printer.write('++');
+      } else {
+        printer.write('--');
+      }
+    } else {
+      printer.write(' ');
+      printer.write(binaryName.text);
+      printer.write('= ');
+      printer.writeExpression(value);
+    }
   }
 
   @override

@@ -7,6 +7,7 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../../base/local_scope.dart';
+import '../../base/messages.dart';
 import '../../base/scope.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
@@ -16,6 +17,7 @@ import '../../builder/variable_builder.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../kernel/internal_ast.dart';
 import '../../kernel/type_algorithms.dart';
+import '../../source/check_helper.dart';
 import '../../source/name_scheme.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_function_builder.dart';
@@ -165,7 +167,7 @@ sealed class SetterEncoding {
   });
 
   void checkTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     TypeEnvironment typeEnvironment, {
     required bool isAbstract,
     required bool isExternal,
@@ -336,7 +338,7 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
 
   @override
   void checkTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     TypeEnvironment typeEnvironment, {
     required bool isAbstract,
     required bool isExternal,
@@ -347,11 +349,11 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
         ?.builders;
     // Coverage-ignore(suite): Not run.
     if (typeParameters != null && typeParameters.isNotEmpty) {
-      checkTypeParameterDependencies(libraryBuilder, typeParameters);
+      checkTypeParameterDependencies(problemReporting, typeParameters);
     }
-    libraryBuilder.checkInitializersInFormals(
-      _fragment.declaredFormals,
-      typeEnvironment,
+    problemReporting.checkInitializersInFormals(
+      formals: _fragment.declaredFormals,
+      typeEnvironment: typeEnvironment,
       isAbstract: isAbstract,
       isExternal: isExternal,
     );
@@ -644,7 +646,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
 
   @override
   void checkTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     TypeEnvironment typeEnvironment, {
     required bool isAbstract,
     required bool isExternal,
@@ -655,11 +657,11 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
         ?.builders;
     // Coverage-ignore(suite): Not run.
     if (typeParameters != null && typeParameters.isNotEmpty) {
-      checkTypeParameterDependencies(libraryBuilder, typeParameters);
+      checkTypeParameterDependencies(problemReporting, typeParameters);
     }
-    libraryBuilder.checkInitializersInFormals(
-      _fragment.declaredFormals,
-      typeEnvironment,
+    problemReporting.checkInitializersInFormals(
+      formals: _fragment.declaredFormals,
+      typeEnvironment: typeEnvironment,
       isAbstract: isAbstract,
       isExternal: isExternal,
     );

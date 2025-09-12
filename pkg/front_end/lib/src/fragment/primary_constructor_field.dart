@@ -232,12 +232,12 @@ class PrimaryConstructorFieldDeclaration
 
   @override
   void checkFieldTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     TypeEnvironment typeEnvironment,
     SourcePropertyBuilder? setterBuilder,
   ) {
-    libraryBuilder.checkTypesInField(
-      typeEnvironment,
+    problemReporting.checkTypesInField(
+      typeEnvironment: typeEnvironment,
       isInstanceMember: builder.isDeclarationInstanceMember,
       isLate: isLate,
       isExternal: false,
@@ -269,7 +269,8 @@ class PrimaryConstructorFieldDeclaration
 
   @override
   void checkGetterTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
+    LibraryFeatures libraryFeatures,
     TypeEnvironment typeEnvironment,
     SourcePropertyBuilder? setterBuilder,
   ) {}

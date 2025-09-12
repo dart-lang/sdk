@@ -8,6 +8,7 @@ import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../../base/local_scope.dart';
+import '../../base/messages.dart';
 import '../../base/scope.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
@@ -16,6 +17,7 @@ import '../../builder/type_builder.dart';
 import '../../builder/variable_builder.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../kernel/type_algorithms.dart';
+import '../../source/check_helper.dart';
 import '../../source/fragment_factory.dart';
 import '../../source/name_scheme.dart';
 import '../../source/source_class_builder.dart';
@@ -63,7 +65,7 @@ sealed class MethodEncoding implements InferredTypeListener {
   });
 
   void checkTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     TypeEnvironment typeEnvironment,
   );
 
@@ -250,17 +252,17 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
 
   @override
   void checkTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     TypeEnvironment typeEnvironment,
   ) {
     List<SourceNominalParameterBuilder>? typeParameters =
         _fragment.declaredTypeParameters?.builders;
     if (typeParameters != null && typeParameters.isNotEmpty) {
-      checkTypeParameterDependencies(libraryBuilder, typeParameters);
+      checkTypeParameterDependencies(problemReporting, typeParameters);
     }
-    libraryBuilder.checkInitializersInFormals(
-      _fragment.declaredFormals,
-      typeEnvironment,
+    problemReporting.checkInitializersInFormals(
+      formals: _fragment.declaredFormals,
+      typeEnvironment: typeEnvironment,
       isAbstract: _fragment.modifiers.isAbstract,
       isExternal: _fragment.modifiers.isExternal,
     );
@@ -588,17 +590,17 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
 
   @override
   void checkTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     TypeEnvironment typeEnvironment,
   ) {
     List<SourceNominalParameterBuilder>? typeParameters =
         _fragment.declaredTypeParameters?.builders;
     if (typeParameters != null && typeParameters.isNotEmpty) {
-      checkTypeParameterDependencies(libraryBuilder, typeParameters);
+      checkTypeParameterDependencies(problemReporting, typeParameters);
     }
-    libraryBuilder.checkInitializersInFormals(
-      _fragment.declaredFormals,
-      typeEnvironment,
+    problemReporting.checkInitializersInFormals(
+      formals: _fragment.declaredFormals,
+      typeEnvironment: typeEnvironment,
       isAbstract: _fragment.modifiers.isAbstract,
       isExternal: _fragment.modifiers.isExternal,
     );

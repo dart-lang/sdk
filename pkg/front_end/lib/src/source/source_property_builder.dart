@@ -9,6 +9,8 @@ import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../api_prototype/experimental_flags.dart';
+import '../base/messages.dart';
 import '../base/name_space.dart';
 import '../base/uri_offset.dart';
 import '../builder/builder.dart';
@@ -253,7 +255,8 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
 
   @override
   void checkTypes(
-    SourceLibraryBuilder library,
+    ProblemReporting problemReporting,
+    LibraryFeatures libraryFeatures,
     NameSpace nameSpace,
     TypeEnvironment typeEnvironment,
   ) {
@@ -264,27 +267,33 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
       setterBuilder = nameSpace.lookup(name)?.setable as SourcePropertyBuilder?;
     }
     _introductoryField?.checkFieldTypes(
-      library,
+      problemReporting,
       typeEnvironment,
       setterBuilder,
     );
 
     _introductoryGetable?.checkGetterTypes(
-      library,
+      problemReporting,
+      libraryFeatures,
       typeEnvironment,
       setterBuilder,
     );
     List<GetterDeclaration>? getterAugmentations = _getterAugmentations;
     if (getterAugmentations != null) {
       for (GetterDeclaration augmentation in getterAugmentations) {
-        augmentation.checkGetterTypes(library, typeEnvironment, setterBuilder);
+        augmentation.checkGetterTypes(
+          problemReporting,
+          libraryFeatures,
+          typeEnvironment,
+          setterBuilder,
+        );
       }
     }
-    _introductorySetable?.checkSetterTypes(library, typeEnvironment);
+    _introductorySetable?.checkSetterTypes(problemReporting, typeEnvironment);
     List<SetterDeclaration>? setterAugmentations = _setterAugmentations;
     if (setterAugmentations != null) {
       for (SetterDeclaration augmentation in setterAugmentations) {
-        augmentation.checkSetterTypes(library, typeEnvironment);
+        augmentation.checkSetterTypes(problemReporting, typeEnvironment);
       }
     }
   }

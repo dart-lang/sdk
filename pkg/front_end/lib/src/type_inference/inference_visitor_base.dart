@@ -29,17 +29,18 @@ import '../base/instrumentation.dart'
         InstrumentationValueForType,
         InstrumentationValueForTypeArgs;
 import '../base/lookup_result.dart';
+import '../base/messages.dart';
 import '../base/problems.dart' show internalProblem, unhandled;
 import '../base/scope.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/member_builder.dart';
 import '../builder/property_builder.dart';
-import '../codes/cfe_codes.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/type_algorithms.dart' show hasAnyTypeParameters;
+import '../source/check_helper.dart';
 import '../source/source_library_builder.dart'
     show FieldNonPromotabilityInfo, SourceLibraryBuilder;
 import '../source/source_member_builder.dart';
@@ -191,6 +192,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   @pragma("vm:prefer-inline")
   SourceLibraryBuilder get libraryBuilder => _inferrer.libraryBuilder;
+
+  @pragma("vm:prefer-inline")
+  ProblemReporting get problemReporting => _inferrer.libraryBuilder;
+
+  ProblemReportingHelper get problemReportingHelper => libraryBuilder.loader;
 
   LookupScope get extensionScope => _inferrer.extensionScope;
 
@@ -2850,7 +2856,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         receiverType: receiverType,
         isImplicitCall: isImplicitCall,
       );
-      libraryBuilder.checkBoundsInStaticInvocation(
+      problemReporting.checkBoundsInStaticInvocation(
+        problemReportingHelper: problemReportingHelper,
+        libraryFeatures: libraryFeatures,
         targetName: name.text,
         typeEnvironment: typeSchemaEnvironment,
         fileUri: helper.uri,
@@ -4052,16 +4060,18 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           : null;
       actualMethodName = methodName;
     }
-    libraryBuilder.checkBoundsInMethodInvocation(
-      actualReceiverType,
-      typeSchemaEnvironment,
-      hierarchyBuilder,
-      membersBuilder,
-      actualMethodName,
-      interfaceTarget,
-      arguments,
-      helper.uri,
-      fileOffset,
+    problemReporting.checkBoundsInMethodInvocation(
+      problemReportingHelper: problemReportingHelper,
+      libraryFeatures: libraryFeatures,
+      receiverType: actualReceiverType,
+      typeEnvironment: typeSchemaEnvironment,
+      classHierarchy: hierarchyBuilder,
+      membersHierarchy: membersBuilder,
+      name: actualMethodName,
+      interfaceTarget: interfaceTarget,
+      arguments: arguments,
+      fileUri: helper.uri,
+      fileOffset: fileOffset,
     );
   }
 
@@ -4073,12 +4083,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   }) {
     // If [arguments] were inferred, check them.
 
-    libraryBuilder.checkBoundsInInstantiation(
-      typeSchemaEnvironment,
-      functionType,
-      arguments,
-      helper.uri,
-      fileOffset,
+    problemReporting.checkBoundsInInstantiation(
+      problemReportingHelper: problemReportingHelper,
+      libraryFeatures: libraryFeatures,
+      typeEnvironment: typeSchemaEnvironment,
+      functionType: functionType,
+      typeArguments: arguments,
+      fileUri: helper.uri,
+      fileOffset: fileOffset,
       inferred: inferred,
     );
   }
@@ -4090,13 +4102,15 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     int fileOffset,
   ) {
     // If [arguments] were inferred, check them.
-    libraryBuilder.checkBoundsInFunctionInvocation(
-      typeSchemaEnvironment,
-      functionType,
-      localName,
-      arguments,
-      helper.uri,
-      fileOffset,
+    problemReporting.checkBoundsInFunctionInvocation(
+      problemReportingHelper: problemReportingHelper,
+      libraryFeatures: libraryFeatures,
+      typeEnvironment: typeSchemaEnvironment,
+      functionType: functionType,
+      localName: localName,
+      arguments: arguments,
+      fileUri: helper.uri,
+      fileOffset: fileOffset,
     );
   }
 

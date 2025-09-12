@@ -6,7 +6,9 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../api_prototype/experimental_flags.dart';
 import '../base/common.dart';
+import '../base/messages.dart';
 import '../base/name_space.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
@@ -74,7 +76,8 @@ abstract class SourceMemberBuilder implements MemberBuilder {
 
   /// Checks the signature types of this member.
   void checkTypes(
-    SourceLibraryBuilder library,
+    ProblemReporting problemReporting,
+    LibraryFeatures libraryFeatures,
     NameSpace nameSpace,
     TypeEnvironment typeEnvironment,
   );

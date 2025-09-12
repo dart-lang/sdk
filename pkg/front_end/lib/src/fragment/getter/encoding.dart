@@ -7,7 +7,9 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../../api_prototype/experimental_flags.dart';
 import '../../base/local_scope.dart';
+import '../../base/messages.dart';
 import '../../base/scope.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
@@ -16,6 +18,7 @@ import '../../builder/type_builder.dart';
 import '../../builder/variable_builder.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../kernel/type_algorithms.dart';
+import '../../source/check_helper.dart';
 import '../../source/name_scheme.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_function_builder.dart';
@@ -148,7 +151,8 @@ sealed class GetterEncoding implements InferredTypeListener {
   });
 
   void checkTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
+    LibraryFeatures libraryFeatures,
     TypeEnvironment typeEnvironment,
     SourcePropertyBuilder? setterBuilder, {
     required bool isAbstract,
@@ -325,7 +329,8 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
 
   @override
   void checkTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
+    LibraryFeatures libraryFeatures,
     TypeEnvironment typeEnvironment,
     SourcePropertyBuilder? setterBuilder, {
     required bool isAbstract,
@@ -337,11 +342,11 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
         ?.builders;
     // Coverage-ignore(suite): Not run.
     if (typeParameters != null && typeParameters.isNotEmpty) {
-      checkTypeParameterDependencies(libraryBuilder, typeParameters);
+      checkTypeParameterDependencies(problemReporting, typeParameters);
     }
-    libraryBuilder.checkInitializersInFormals(
-      _fragment.declaredFormals,
-      typeEnvironment,
+    problemReporting.checkInitializersInFormals(
+      formals: _fragment.declaredFormals,
+      typeEnvironment: typeEnvironment,
       isAbstract: isAbstract,
       isExternal: isExternal,
     );
@@ -351,8 +356,9 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
         setterBuilder,
         getterExtensionTypeParameters: null,
       );
-      libraryBuilder.checkGetterSetterTypes(
-        typeEnvironment,
+      problemReporting.checkGetterSetterTypes(
+        libraryFeatures: libraryFeatures,
+        typeEnvironment: typeEnvironment,
         getterType: getterType,
         getterName: _fragment.name,
         getterUriOffset: new UriOffsetLength(
@@ -622,7 +628,8 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
 
   @override
   void checkTypes(
-    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
+    LibraryFeatures libraryFeatures,
     TypeEnvironment typeEnvironment,
     SourcePropertyBuilder? setterBuilder, {
     required bool isAbstract,
@@ -634,11 +641,11 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
         ?.builders;
     // Coverage-ignore(suite): Not run.
     if (typeParameters != null && typeParameters.isNotEmpty) {
-      checkTypeParameterDependencies(libraryBuilder, typeParameters);
+      checkTypeParameterDependencies(problemReporting, typeParameters);
     }
-    libraryBuilder.checkInitializersInFormals(
-      _fragment.declaredFormals,
-      typeEnvironment,
+    problemReporting.checkInitializersInFormals(
+      formals: _fragment.declaredFormals,
+      typeEnvironment: typeEnvironment,
       isAbstract: isAbstract,
       isExternal: isExternal,
     );
@@ -648,8 +655,9 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
         setterBuilder,
         getterExtensionTypeParameters: function.typeParameters,
       );
-      libraryBuilder.checkGetterSetterTypes(
-        typeEnvironment,
+      problemReporting.checkGetterSetterTypes(
+        libraryFeatures: libraryFeatures,
+        typeEnvironment: typeEnvironment,
         getterType: getterType,
         getterName: _fragment.name,
         getterUriOffset: new UriOffsetLength(

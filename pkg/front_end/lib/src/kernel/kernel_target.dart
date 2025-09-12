@@ -41,7 +41,8 @@ import '../base/messages.dart'
         codeFinalFieldNotInitialized,
         codeFinalFieldNotInitializedByConstructor,
         codeMissingImplementationCause,
-        codeSuperclassHasNoDefaultConstructor;
+        codeSuperclassHasNoDefaultConstructor,
+        CompilationPhaseForProblemReporting;
 import '../base/processed_options.dart' show ProcessedOptions;
 import '../base/ticker.dart' show Ticker;
 import '../base/uri_offset.dart';
@@ -64,8 +65,7 @@ import '../source/source_constructor_builder.dart';
 import '../source/source_declaration_builder.dart';
 import '../source/source_extension_type_declaration_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
-import '../source/source_loader.dart'
-    show CompilationPhaseForProblemReporting, SourceLoader;
+import '../source/source_loader.dart' show SourceLoader;
 import '../source/source_property_builder.dart';
 import '../type_inference/type_schema.dart';
 import 'benchmarker.dart' show BenchmarkPhases, Benchmarker;

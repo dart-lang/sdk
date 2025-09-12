@@ -12,6 +12,7 @@ import 'package:kernel/transformations/flags.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../api_prototype/experimental_flags.dart';
 import '../api_prototype/lowering_predicates.dart';
 import '../base/constant_context.dart';
 import '../base/local_scope.dart';
@@ -33,6 +34,7 @@ import '../builder/type_builder.dart';
 import '../builder/variable_builder.dart';
 import '../kernel/body_builder.dart';
 import '../kernel/body_builder_context.dart';
+import '../source/check_helper.dart';
 import '../kernel/constness.dart';
 import '../kernel/expression_generator_helper.dart';
 import '../kernel/hierarchy/class_member.dart';
