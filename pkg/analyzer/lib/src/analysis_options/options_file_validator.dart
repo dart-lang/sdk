@@ -47,9 +47,9 @@ List<Diagnostic> analyzeAnalysisOptions(
   void addDirectErrorOrIncludedError(
     List<Diagnostic> validationErrors,
     Source source, {
-    required bool sourceIsOptionsForContextRoot,
+    required bool isSourcePrimary,
   }) {
-    if (!sourceIsOptionsForContextRoot) {
+    if (!isSourcePrimary) {
       // [source] is an included file, and we should only report errors in
       // [initialSource], noting that the included file has warnings.
       for (Diagnostic error in validationErrors) {
@@ -78,18 +78,18 @@ List<Diagnostic> analyzeAnalysisOptions(
 
   // Validates the specified options and any included option files.
   void validate(Source source, YamlMap options) {
-    var sourceIsOptionsForContextRoot = initialIncludeSpan == null;
+    var isSourcePrimary = initialIncludeSpan == null;
     var validationErrors = OptionsFileValidator(
       source,
       sdkVersionConstraint: sdkVersionConstraint,
-      sourceIsOptionsForContextRoot: sourceIsOptionsForContextRoot,
+      isPrimarySource: isSourcePrimary,
       optionsProvider: optionsProvider,
       resourceProvider: resourceProvider,
     ).validate(options);
     addDirectErrorOrIncludedError(
       validationErrors,
       source,
-      sourceIsOptionsForContextRoot: sourceIsOptionsForContextRoot,
+      isSourcePrimary: isSourcePrimary,
     );
 
     var includeNode = options.valueAt(AnalysisOptionsFile.include);
@@ -99,7 +99,7 @@ List<Diagnostic> analyzeAnalysisOptions(
       addDirectErrorOrIncludedError(
         _validateLegacyPluginsOption(source, options: options),
         source,
-        sourceIsOptionsForContextRoot: sourceIsOptionsForContextRoot,
+        isSourcePrimary: isSourcePrimary,
       );
       return;
     }
@@ -178,7 +178,7 @@ List<Diagnostic> analyzeAnalysisOptions(
             firstEnabledPluginName: firstPluginName,
           ),
           source,
-          sourceIsOptionsForContextRoot: sourceIsOptionsForContextRoot,
+          isSourcePrimary: isSourcePrimary,
         );
       } on OptionsFormatException catch (e) {
         var args = [
@@ -208,7 +208,7 @@ List<Diagnostic> analyzeAnalysisOptions(
     };
 
     for (var includeValue in includes) {
-      if (sourceIsOptionsForContextRoot) {
+      if (isSourcePrimary) {
         initialIncludeSpan = null;
         includeChain.clear();
       }
@@ -296,7 +296,7 @@ class OptionsFileValidator {
   OptionsFileValidator(
     this._source, {
     VersionConstraint? sdkVersionConstraint,
-    required bool sourceIsOptionsForContextRoot,
+    required bool isPrimarySource,
     required AnalysisOptionsProvider optionsProvider,
     required ResourceProvider resourceProvider,
   }) : _validators = [
@@ -308,7 +308,7 @@ class OptionsFileValidator {
            resourceProvider: resourceProvider,
            optionsProvider: optionsProvider,
            sdkVersionConstraint: sdkVersionConstraint,
-           sourceIsOptionsForContextRoot: sourceIsOptionsForContextRoot,
+           isPrimarySource: isPrimarySource,
          ),
          _PluginsOptionsValidator(),
        ];
@@ -1077,12 +1077,12 @@ class _StrongModeOptionValueValidator extends OptionsValidator {
 ///   - lib/generated/
 /// ```
 class _TopLevelOptionValidator extends OptionsValidator {
-  final String pluginName;
+  final String sectionName;
   final Set<String> supportedOptions;
   final String _valueProposal;
   final AnalysisOptionsWarningCode _warningCode;
 
-  _TopLevelOptionValidator(this.pluginName, this.supportedOptions)
+  _TopLevelOptionValidator(this.sectionName, this.supportedOptions)
     : assert(supportedOptions.isNotEmpty),
       _valueProposal = supportedOptions.quotedAndCommaSeparatedWithAnd,
       _warningCode = supportedOptions.length == 1
@@ -1091,7 +1091,7 @@ class _TopLevelOptionValidator extends OptionsValidator {
 
   @override
   void validate(DiagnosticReporter reporter, YamlMap options) {
-    var node = options.valueAt(pluginName);
+    var node = options.valueAt(sectionName);
     if (node == null) return;
     if (node is YamlScalar && node.value == null) return;
 
@@ -1109,7 +1109,7 @@ class _TopLevelOptionValidator extends OptionsValidator {
           reporter.atSourceSpan(
             k.span,
             _warningCode,
-            arguments: [pluginName, k.valueOrThrow, _valueProposal],
+            arguments: [sectionName, k.valueOrThrow, _valueProposal],
           );
         }
       }
