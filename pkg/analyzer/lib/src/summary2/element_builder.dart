@@ -1826,14 +1826,11 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
     _addChildFragment(fieldFragment);
 
-    var formalParameterElement =
-        FieldFormalParameterFragmentImpl(
-            name: _getFragmentName(fieldNameToken),
-            nameOffset: null,
-            parameterKind: ParameterKind.REQUIRED,
-          )
-          ..field = fieldFragment
-          ..hasImplicitType = true;
+    var formalParameterFragment = FieldFormalParameterFragmentImpl(
+      name: _getFragmentName(fieldNameToken),
+      nameOffset: null,
+      parameterKind: ParameterKind.REQUIRED,
+    )..hasImplicitType = true;
 
     {
       var constructorFragment =
@@ -1842,7 +1839,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
             )
             ..isAugmentation = extensionNode.augmentKeyword != null
             ..isConst = extensionNode.constKeyword != null
-            ..formalParameters = [formalParameterElement];
+            ..formalParameters = [formalParameterFragment];
       constructorFragment.typeName = extensionFragment.name;
 
       representation.constructorFragment = constructorFragment;

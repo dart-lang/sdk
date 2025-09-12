@@ -592,7 +592,7 @@ final class ManifestTypeParameterType extends ManifestType {
 
   factory ManifestTypeParameterType.read(SummaryDataReader reader) {
     return ManifestTypeParameterType._(
-      index: reader.readUInt30(),
+      index: reader.readUint30(),
       nullabilitySuffix: reader.readEnum(NullabilitySuffix.values),
     );
   }
@@ -623,7 +623,7 @@ final class ManifestTypeParameterType extends ManifestType {
   @override
   void write(BufferedSink sink) {
     sink.writeEnum(_ManifestTypeKind.typeParameter);
-    sink.writeUInt30(index);
+    sink.writeUint30(index);
     sink.writeEnum(nullabilitySuffix);
   }
 }

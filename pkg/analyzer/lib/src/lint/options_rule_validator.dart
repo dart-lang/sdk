@@ -47,7 +47,11 @@ class LinterRuleOptionsValidator extends OptionsValidator {
   ];
 
   final VersionConstraint? sdkVersionConstraint;
-  final bool sourceIsOptionsForContextRoot;
+
+  /// Whether the linter section being validated as a "primary source;" that is,
+  /// whether it is not being analyzed as part of a chain of 'include's.
+  final bool isPrimarySource;
+
   final AnalysisOptionsProvider optionsProvider;
   final ResourceProvider resourceProvider;
 
@@ -55,7 +59,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
     required this.resourceProvider,
     required this.optionsProvider,
     this.sdkVersionConstraint,
-    this.sourceIsOptionsForContextRoot = true,
+    this.isPrimarySource = true,
   });
 
   bool currentSdkAllows(Version? since) {
@@ -400,7 +404,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
 
       // Report removed or deprecated lint warnings defined directly (and not in
       // includes).
-      if (sourceIsOptionsForContextRoot) {
+      if (isPrimarySource) {
         var state = rule.state;
         if (state.isDeprecated && isDeprecatedInCurrentSdk(state)) {
           var replacedBy = state.replacedBy;

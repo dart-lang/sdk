@@ -2970,13 +2970,10 @@ class FieldElementImpl extends PropertyInducingElementImpl
 
 class FieldFormalParameterElementImpl extends FormalParameterElementImpl
     implements FieldFormalParameterElement {
-  FieldFormalParameterElementImpl(super.firstFragment);
-
   @override
-  FieldElementImpl? get field => switch (_firstFragment) {
-    FieldFormalParameterFragmentImpl(:FieldFragmentImpl field) => field.element,
-    _ => null,
-  };
+  FieldElementImpl? field;
+
+  FieldFormalParameterElementImpl(super.firstFragment);
 
   @Deprecated('Use field instead')
   @override
@@ -3004,11 +3001,6 @@ class FieldFormalParameterElementImpl extends FormalParameterElementImpl
 
 class FieldFormalParameterFragmentImpl extends FormalParameterFragmentImpl
     implements FieldFormalParameterFragment {
-  /// The field element associated with this field formal parameter, or `null`
-  /// if the parameter references a field that doesn't exist.
-  // TODO(scheglov): move to element
-  FieldFragmentImpl? field;
-
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
   FieldFormalParameterFragmentImpl({
@@ -5887,6 +5879,7 @@ class LibraryElementImpl extends ElementImpl
   final AnalysisContext context;
 
   @override
+  @trackedIncludedInId
   Reference? reference;
 
   MetadataImpl _metadata = MetadataImpl(const []);
@@ -5938,35 +5931,16 @@ class LibraryElementImpl extends ElementImpl
   // TODO(scheglov): replace with `LibraryName` or something.
   int nameLength;
 
-  @override
-  List<ClassElementImpl> classes = [];
-
-  @override
-  List<EnumElementImpl> enums = [];
-
-  @override
-  List<ExtensionElementImpl> extensions = [];
-
-  @override
-  List<ExtensionTypeElementImpl> extensionTypes = [];
-
-  @override
-  List<GetterElementImpl> getters = [];
-
-  @override
-  List<SetterElementImpl> setters = [];
-
-  @override
-  List<MixinElementImpl> mixins = [];
-
-  @override
-  List<TopLevelFunctionElementImpl> topLevelFunctions = [];
-
-  @override
-  List<TopLevelVariableElementImpl> topLevelVariables = [];
-
-  @override
-  List<TypeAliasElementImpl> typeAliases = [];
+  List<ClassElementImpl> _classes = [];
+  List<EnumElementImpl> _enums = [];
+  List<ExtensionElementImpl> _extensions = [];
+  List<ExtensionTypeElementImpl> _extensionTypes = [];
+  List<GetterElementImpl> _getters = [];
+  List<SetterElementImpl> _setters = [];
+  List<MixinElementImpl> _mixins = [];
+  List<TopLevelFunctionElementImpl> _topLevelFunctions = [];
+  List<TopLevelVariableElementImpl> _topLevelVariables = [];
+  List<TypeAliasElementImpl> _typeAliases = [];
 
   /// The export [Namespace] of this library, `null` if it has not been
   /// computed yet.
@@ -6000,9 +5974,11 @@ class LibraryElementImpl extends ElementImpl
   );
 
   @override
+  @trackedIncludedInId
   LibraryElementImpl get baseElement => this;
 
   @override
+  @trackedIndirectly
   List<Element> get children {
     return [
       ...classes,
@@ -6020,15 +5996,29 @@ class LibraryElementImpl extends ElementImpl
 
   @Deprecated('Use children instead')
   @override
+  @trackedIndirectly
   List<Element> get children2 {
     return children;
   }
 
   @override
+  @trackedDirectlyExpensive
+  List<ClassElementImpl> get classes {
+    globalResultRequirements?.record_library_allClasses(element: this);
+    return _classes;
+  }
+
+  set classes(List<ClassElementImpl> value) {
+    _classes = value;
+  }
+
+  @override
+  @trackedIncludedInId
   Null get enclosingElement => null;
 
   @Deprecated('Use enclosingElement instead')
   @override
+  @trackedIndirectly
   Null get enclosingElement2 => enclosingElement;
 
   @override
@@ -6043,8 +6033,20 @@ class LibraryElementImpl extends ElementImpl
 
   @Deprecated('Use entryPoint instead')
   @override
+  @trackedIndirectly
   TopLevelFunctionElementImpl? get entryPoint2 {
     return entryPoint;
+  }
+
+  @override
+  @trackedDirectlyExpensive
+  List<EnumElementImpl> get enums {
+    globalResultRequirements?.record_library_allEnums(element: this);
+    return _enums;
+  }
+
+  set enums(List<EnumElementImpl> value) {
+    _enums = value;
   }
 
   @override
@@ -6071,6 +6073,28 @@ class LibraryElementImpl extends ElementImpl
 
   set exportNamespace(Namespace exportNamespace) {
     _exportNamespace = exportNamespace;
+  }
+
+  @override
+  @trackedDirectlyExpensive
+  List<ExtensionElementImpl> get extensions {
+    globalResultRequirements?.record_library_allExtensions(element: this);
+    return _extensions;
+  }
+
+  set extensions(List<ExtensionElementImpl> value) {
+    _extensions = value;
+  }
+
+  @override
+  @trackedDirectlyExpensive
+  List<ExtensionTypeElementImpl> get extensionTypes {
+    globalResultRequirements?.record_library_allExtensionTypes(element: this);
+    return _extensionTypes;
+  }
+
+  set extensionTypes(List<ExtensionTypeElementImpl> value) {
+    _extensionTypes = value;
   }
 
   /// Information about why non-promotable private fields in the library are not
@@ -6118,6 +6142,17 @@ class LibraryElementImpl extends ElementImpl
     return [_firstFragment, ..._partUnits];
   }
 
+  @override
+  @trackedDirectlyExpensive
+  List<GetterElementImpl> get getters {
+    globalResultRequirements?.record_library_allGetters(element: this);
+    return _getters;
+  }
+
+  set getters(List<GetterElementImpl> value) {
+    _getters = value;
+  }
+
   bool get hasPartOfDirective {
     return hasModifier(Modifier.HAS_PART_OF_DIRECTIVE);
   }
@@ -6127,15 +6162,19 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
+  @trackedIndirectly
   String get identifier => '$uri';
 
   @override
+  @trackedIndirectly
   bool get isDartAsync => name == "dart.async";
 
   @override
+  @trackedIndirectly
   bool get isDartCore => name == "dart.core";
 
   @override
+  @trackedIndirectly
   bool get isInSdk {
     return DartUriResolver.isDartUri(uri);
   }
@@ -6150,6 +6189,7 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
+  @trackedIncludedInId
   ElementKind get kind => ElementKind.LIBRARY;
 
   @override
@@ -6165,12 +6205,15 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
+  @trackedIncludedInId
   LibraryElementImpl get library => this;
 
   @Deprecated('Use library instead')
   @override
+  @trackedIndirectly
   LibraryElementImpl get library2 => library;
 
+  @trackedInternal
   LibraryDeclarations get libraryDeclarations {
     return _libraryDeclarations ??= LibraryDeclarations(this);
   }
@@ -6182,11 +6225,13 @@ class LibraryElementImpl extends ElementImpl
 
   @Deprecated('Use loadLibraryFunction instead')
   @override
+  @trackedIndirectly
   TopLevelFunctionElementImpl get loadLibraryFunction2 {
     return loadLibraryFunction;
   }
 
   @override
+  @trackedIncludedInId
   String? get lookupName => null;
 
   @override
@@ -6201,13 +6246,27 @@ class LibraryElementImpl extends ElementImpl
 
   @Deprecated('Use metadata instead')
   @override
+  @trackedIndirectly
   MetadataImpl get metadata2 => metadata;
+
+  @override
+  @trackedDirectlyExpensive
+  List<MixinElementImpl> get mixins {
+    globalResultRequirements?.record_library_allMixins(element: this);
+    return _mixins;
+  }
+
+  set mixins(List<MixinElementImpl> value) {
+    _mixins = value;
+  }
 
   @Deprecated('Use name instead')
   @override
+  @trackedIndirectly
   String? get name3 => name;
 
   @override
+  @trackedIncludedInId
   LibraryElementImpl get nonSynthetic => this;
 
   @override
@@ -6220,7 +6279,19 @@ class LibraryElementImpl extends ElementImpl
     _publicNamespace = publicNamespace;
   }
 
+  @override
+  @trackedDirectlyExpensive
+  List<SetterElementImpl> get setters {
+    globalResultRequirements?.record_library_allSetters(element: this);
+    return _setters;
+  }
+
+  set setters(List<SetterElementImpl> value) {
+    _setters = value;
+  }
+
   // TODO(scheglov): prefer `firstFragment.source`
+  @trackedIncludedInId
   Source get source {
     return _firstFragment.source;
   }
@@ -6239,6 +6310,43 @@ class LibraryElementImpl extends ElementImpl
     }
   }
 
+  @override
+  @trackedDirectlyExpensive
+  List<TopLevelFunctionElementImpl> get topLevelFunctions {
+    globalResultRequirements?.record_library_allTopLevelFunctions(
+      element: this,
+    );
+    return _topLevelFunctions;
+  }
+
+  set topLevelFunctions(List<TopLevelFunctionElementImpl> value) {
+    _topLevelFunctions = value;
+  }
+
+  @override
+  @trackedDirectlyExpensive
+  List<TopLevelVariableElementImpl> get topLevelVariables {
+    globalResultRequirements?.record_library_allTopLevelVariables(
+      element: this,
+    );
+    return _topLevelVariables;
+  }
+
+  set topLevelVariables(List<TopLevelVariableElementImpl> value) {
+    _topLevelVariables = value;
+  }
+
+  @override
+  @trackedDirectlyExpensive
+  List<TypeAliasElementImpl> get typeAliases {
+    globalResultRequirements?.record_library_allTypeAliases(element: this);
+    return _typeAliases;
+  }
+
+  set typeAliases(List<TypeAliasElementImpl> value) {
+    _typeAliases = value;
+  }
+
   /// The compilation units this library consists of.
   ///
   /// This includes the defining compilation unit and units included using the
@@ -6248,6 +6356,7 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
+  @trackedIncludedInId
   Uri get uri => _firstFragment.source.uri;
 
   List<LibraryFragmentImpl> get _partUnits {
@@ -6276,49 +6385,60 @@ class LibraryElementImpl extends ElementImpl
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
+  @trackedInternal
   void addClass(ClassElementImpl element) {
-    classes.add(element);
+    _classes.add(element);
   }
 
+  @trackedInternal
   void addEnum(EnumElementImpl element) {
-    enums.add(element);
+    _enums.add(element);
   }
 
+  @trackedInternal
   void addExtension(ExtensionElementImpl element) {
-    extensions.add(element);
+    _extensions.add(element);
   }
 
+  @trackedInternal
   void addExtensionType(ExtensionTypeElementImpl element) {
-    extensionTypes.add(element);
+    _extensionTypes.add(element);
   }
 
+  @trackedInternal
   void addGetter(GetterElementImpl element) {
-    getters.add(element);
+    _getters.add(element);
   }
 
+  @trackedInternal
   void addMixin(MixinElementImpl element) {
-    mixins.add(element);
+    _mixins.add(element);
   }
 
+  @trackedInternal
   void addSetter(SetterElementImpl element) {
-    setters.add(element);
+    _setters.add(element);
   }
 
+  @trackedInternal
   void addTopLevelFunction(TopLevelFunctionElementImpl element) {
-    topLevelFunctions.add(element);
+    _topLevelFunctions.add(element);
   }
 
+  @trackedInternal
   void addTopLevelVariable(TopLevelVariableElementImpl element) {
-    topLevelVariables.add(element);
+    _topLevelVariables.add(element);
   }
 
   @override
+  @trackedIndirectly
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeLibraryElement(this);
   }
 
   @Deprecated('Use displayString instead')
   @override
+  @trackedIndirectly
   String displayString2({
     bool multiline = false,
     bool preferTypeAlias = false,
@@ -6330,8 +6450,16 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
+  @trackedDirectly
   ClassElementImpl? getClass(String name) {
-    return _getElementByName(classes, name);
+    globalResultRequirements?.record_library_getClass(
+      element: this,
+      name: name,
+    );
+
+    return globalResultRequirements.alreadyRecorded(() {
+      return _getElementByName(classes, name);
+    });
   }
 
   @Deprecated('Use getClass instead')
@@ -6341,17 +6469,24 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
+  @trackedDirectly
   EnumElement? getEnum(String name) {
-    return _getElementByName(enums, name);
+    globalResultRequirements?.record_library_getEnum(element: this, name: name);
+
+    return globalResultRequirements.alreadyRecorded(() {
+      return _getElementByName(enums, name);
+    });
   }
 
   @Deprecated('Use getEnum instead')
   @override
+  @trackedIndirectly
   EnumElement? getEnum2(String name) {
     return getEnum(name);
   }
 
   @override
+  @trackedIndirectly
   String getExtendedDisplayName({String? shortName}) {
     shortName ??= displayName;
     var source = this.source;
@@ -6360,63 +6495,131 @@ class LibraryElementImpl extends ElementImpl
 
   @Deprecated('Use getExtendedDisplayName instead')
   @override
+  @trackedIndirectly
   String getExtendedDisplayName2({String? shortName}) {
     return getExtendedDisplayName(shortName: shortName);
   }
 
   @override
+  @trackedDirectly
   ExtensionElement? getExtension(String name) {
-    return _getElementByName(extensions, name);
+    globalResultRequirements?.record_library_getExtension(
+      element: this,
+      name: name,
+    );
+
+    return globalResultRequirements.alreadyRecorded(() {
+      return _getElementByName(extensions, name);
+    });
   }
 
   @override
+  @trackedDirectly
   ExtensionTypeElementImpl? getExtensionType(String name) {
-    return _getElementByName(extensionTypes, name);
+    globalResultRequirements?.record_library_getExtensionType(
+      element: this,
+      name: name,
+    );
+
+    return globalResultRequirements.alreadyRecorded(() {
+      return _getElementByName(extensionTypes, name);
+    });
   }
 
   @override
+  @trackedDirectly
   GetterElement? getGetter(String name) {
-    return _getElementByName(getters, name);
+    globalResultRequirements?.record_library_getGetter(
+      element: this,
+      name: name,
+    );
+
+    return globalResultRequirements.alreadyRecorded(() {
+      return _getElementByName(getters, name);
+    });
   }
 
   @override
+  @trackedDirectly
   MixinElement? getMixin(String name) {
-    return _getElementByName(mixins, name);
+    globalResultRequirements?.record_library_getMixin(
+      element: this,
+      name: name,
+    );
+
+    return globalResultRequirements.alreadyRecorded(() {
+      return _getElementByName(mixins, name);
+    });
   }
 
   @Deprecated('Use getMixin instead')
   @override
+  @trackedIndirectly
   MixinElement? getMixin2(String name) {
     return getMixin(name);
   }
 
   @override
+  @trackedDirectly
   SetterElement? getSetter(String name) {
-    return _getElementByName(setters, name);
+    globalResultRequirements?.record_library_getSetter(
+      element: this,
+      name: name,
+    );
+
+    return globalResultRequirements.alreadyRecorded(() {
+      return _getElementByName(setters, name);
+    });
   }
 
   @override
+  @trackedDirectly
   TopLevelFunctionElement? getTopLevelFunction(String name) {
-    return _getElementByName(topLevelFunctions, name);
+    globalResultRequirements?.record_library_getTopLevelFunction(
+      element: this,
+      name: name,
+    );
+
+    return globalResultRequirements.alreadyRecorded(() {
+      return _getElementByName(topLevelFunctions, name);
+    });
   }
 
   @override
+  @trackedDirectly
   TopLevelVariableElement? getTopLevelVariable(String name) {
-    return _getElementByName(topLevelVariables, name);
+    globalResultRequirements?.record_library_getTopLevelVariable(
+      element: this,
+      name: name,
+    );
+
+    return globalResultRequirements.alreadyRecorded(() {
+      return _getElementByName(topLevelVariables, name);
+    });
   }
 
   @override
+  @trackedDirectly
   TypeAliasElement? getTypeAlias(String name) {
-    return _getElementByName(typeAliases, name);
+    globalResultRequirements?.record_library_getTypeAlias(
+      element: this,
+      name: name,
+    );
+
+    return globalResultRequirements.alreadyRecorded(() {
+      return _getElementByName(typeAliases, name);
+    });
   }
 
   @override
+  @trackedIncludedInId
   bool isAccessibleIn(LibraryElement library) {
     return true;
   }
 
   @Deprecated('Use isAccessibleIn instead')
   @override
+  @trackedIndirectly
   bool isAccessibleIn2(LibraryElement library) {
     return isAccessibleIn(library);
   }
@@ -6435,6 +6638,7 @@ class LibraryElementImpl extends ElementImpl
     return false;
   }
 
+  @trackedInternal
   void resetScope() {
     _libraryDeclarations = null;
     for (var fragment in units) {
@@ -6443,12 +6647,14 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
+  @trackedIncludedInId
   LibraryElementImpl? thisOrAncestorMatching(bool Function(Element) predicate) {
     return predicate(this) ? this : null;
   }
 
   @Deprecated('Use thisOrAncestorMatching instead')
   @override
+  @trackedIndirectly
   LibraryElementImpl? thisOrAncestorMatching2(
     bool Function(Element) predicate,
   ) {
@@ -6456,18 +6662,22 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
+  @trackedIncludedInId
   E? thisOrAncestorOfType<E extends Element>() {
     return E is LibraryElement ? this as E : null;
   }
 
   @Deprecated('Use thisOrAncestorOfType instead')
   @override
+  @trackedIndirectly
   E? thisOrAncestorOfType2<E extends Element>() {
     return thisOrAncestorOfType();
   }
 
   @override
+  @trackedDirectlyOpaque
   void visitChildren<T>(ElementVisitor2<T> visitor) {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'visitChildren');
     for (var child in children) {
       child.accept(visitor);
     }

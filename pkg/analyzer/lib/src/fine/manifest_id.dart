@@ -35,7 +35,7 @@ class ManifestItemId implements Comparable<ManifestItemId> {
   }
 
   factory ManifestItemId.read(SummaryDataReader reader) {
-    return ManifestItemId._(reader.readUInt32(), reader.readUInt32());
+    return ManifestItemId._(reader.readUint32(), reader.readUint32());
   }
 
   ManifestItemId._(this.hi32, this.lo32)
@@ -61,8 +61,8 @@ class ManifestItemId implements Comparable<ManifestItemId> {
   String toString() => '($hi32, $lo32)';
 
   void write(BufferedSink sink) {
-    sink.writeUInt32(hi32);
-    sink.writeUInt32(lo32);
+    sink.writeUint32(hi32);
+    sink.writeUint32(lo32);
   }
 
   static List<ManifestItemId> readList(SummaryDataReader reader) {

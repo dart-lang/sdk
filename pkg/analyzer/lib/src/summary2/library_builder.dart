@@ -323,21 +323,20 @@ class LibraryBuilder {
   }
 
   void resolveConstructorFieldFormals() {
-    for (var interfaceFragment in element.topLevelElements) {
-      if (interfaceFragment is! InterfaceFragmentImpl) {
+    for (var interfaceElement in element.children) {
+      if (interfaceElement is! InterfaceElementImpl) {
         continue;
       }
 
-      if (interfaceFragment is ClassFragmentImpl &&
-          interfaceFragment.isMixinApplication) {
+      if (interfaceElement is ClassElementImpl &&
+          interfaceElement.isMixinApplication) {
         continue;
       }
 
-      var element = interfaceFragment.element;
-      for (var constructor in interfaceFragment.constructors) {
+      for (var constructor in interfaceElement.constructors) {
         for (var parameter in constructor.formalParameters) {
-          if (parameter is FieldFormalParameterFragmentImpl) {
-            parameter.field = element.getField(parameter.name ?? '')?.asElement;
+          if (parameter is FieldFormalParameterElementImpl) {
+            parameter.field = interfaceElement.getField(parameter.name ?? '');
           }
         }
       }

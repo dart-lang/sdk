@@ -119,7 +119,7 @@ extension type LookupName(String _it) {
 
 extension BufferedSinkExtension on BufferedSink {
   void writeBaseNameIterable(Iterable<BaseName> names) {
-    writeUInt30(names.length);
+    writeUint30(names.length);
     for (var baseName in names) {
       baseName.write(this);
     }
@@ -154,7 +154,7 @@ extension StringExtension on String {
 
 extension SummaryDataReaderExtension on SummaryDataReader {
   Set<BaseName> readBaseNameSet() {
-    var length = readUInt30();
+    var length = readUint30();
     var result = <BaseName>{};
     for (var i = 0; i < length; i++) {
       var baseName = BaseName.read(this);
@@ -168,7 +168,7 @@ extension SummaryDataReaderExtension on SummaryDataReader {
   }
 
   Set<LookupName> readLookupNameSet() {
-    var length = readUInt30();
+    var length = readUint30();
     var result = <LookupName>{};
     for (var i = 0; i < length; i++) {
       var lookupName = LookupName.read(this);

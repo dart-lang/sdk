@@ -68,10 +68,10 @@ class PackageBundleReader {
       _sdk = PackageBundleSdk._fromReader(reader);
     }
 
-    var librariesLength = reader.readUInt30();
+    var librariesLength = reader.readUint30();
     for (var i = 0; i < librariesLength; i++) {
       var uriStr = reader.readStringUtf8();
-      var unitsLength = reader.readUInt30();
+      var unitsLength = reader.readUint30();
       var units = List.generate(unitsLength, (_) {
         var uriStr = reader.readStringUtf8();
         return PackageBundleUnit(uriStr);
@@ -102,15 +102,15 @@ class PackageBundleSdk {
 
   factory PackageBundleSdk._fromReader(SummaryDataReader reader) {
     return PackageBundleSdk(
-      languageVersionMajor: reader.readUInt30(),
-      languageVersionMinor: reader.readUInt30(),
+      languageVersionMajor: reader.readUint30(),
+      languageVersionMinor: reader.readUint30(),
       allowedExperimentsJson: reader.readStringUtf8(),
     );
   }
 
   void _write(BufferedSink sink) {
-    sink.writeUInt30(languageVersionMajor);
-    sink.writeUInt30(languageVersionMinor);
+    sink.writeUint30(languageVersionMajor);
+    sink.writeUint30(languageVersionMinor);
     sink.writeStringUtf8(allowedExperimentsJson);
   }
 }

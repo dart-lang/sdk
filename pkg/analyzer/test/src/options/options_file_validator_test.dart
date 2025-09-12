@@ -77,7 +77,7 @@ class OptionsFileValidatorTest
     with LintRegistrationMixin, ResourceProviderMixin {
   late final OptionsFileValidator validator = OptionsFileValidator(
     TestSource(),
-    sourceIsOptionsForContextRoot: true,
+    isPrimarySource: true,
     optionsProvider: optionsProvider,
     resourceProvider: resourceProvider,
   );

@@ -77,16 +77,16 @@ class UnlinkedCombinator {
 
   factory UnlinkedCombinator.read(SummaryDataReader reader) {
     return UnlinkedCombinator(
-      keywordOffset: reader.readUInt30(),
-      endOffset: reader.readUInt30(),
+      keywordOffset: reader.readUint30(),
+      endOffset: reader.readUint30(),
       isShow: reader.readBool(),
       names: reader.readStringUtf8List(),
     );
   }
 
   void write(BufferedSink sink) {
-    sink.writeUInt30(keywordOffset);
-    sink.writeUInt30(endOffset);
+    sink.writeUint30(keywordOffset);
+    sink.writeUint30(endOffset);
     sink.writeBool(isShow);
     sink.writeStringUtf8Iterable(names);
   }
@@ -163,7 +163,7 @@ class UnlinkedLibraryExportDirective extends UnlinkedNamespaceDirective {
       configurations: reader.readTypedList(
         () => UnlinkedNamespaceDirectiveConfiguration.read(reader),
       ),
-      exportKeywordOffset: reader.readUInt30(),
+      exportKeywordOffset: reader.readUint30(),
       uri: reader.readOptionalStringUtf8(),
     );
   }
@@ -175,7 +175,7 @@ class UnlinkedLibraryExportDirective extends UnlinkedNamespaceDirective {
     ) {
       x.write(sink);
     });
-    sink.writeUInt30(exportKeywordOffset);
+    sink.writeUint30(exportKeywordOffset);
     sink.writeOptionalStringUtf8(uri);
   }
 }
@@ -203,7 +203,7 @@ class UnlinkedLibraryImportDirective extends UnlinkedNamespaceDirective {
       configurations: reader.readTypedList(
         () => UnlinkedNamespaceDirectiveConfiguration.read(reader),
       ),
-      importKeywordOffset: reader.readUInt30() - 1,
+      importKeywordOffset: reader.readUint30() - 1,
       isDocImport: reader.readBool(),
       isSyntheticDartCore: reader.readBool(),
       prefix: reader.readOptionalObject(
@@ -220,7 +220,7 @@ class UnlinkedLibraryImportDirective extends UnlinkedNamespaceDirective {
     ) {
       x.write(sink);
     });
-    sink.writeUInt30(1 + importKeywordOffset);
+    sink.writeUint30(1 + importKeywordOffset);
     sink.writeBool(isDocImport);
     sink.writeBool(isSyntheticDartCore);
     sink.writeOptionalObject<UnlinkedLibraryImportPrefix>(
@@ -246,9 +246,9 @@ class UnlinkedLibraryImportPrefix {
 
   factory UnlinkedLibraryImportPrefix.read(SummaryDataReader reader) {
     return UnlinkedLibraryImportPrefix(
-      deferredOffset: reader.readOptionalUInt30(),
-      asOffset: reader.readUInt30(),
-      nameOffset: reader.readUInt30(),
+      deferredOffset: reader.readOptionalUint30(),
+      asOffset: reader.readUint30(),
+      nameOffset: reader.readUint30(),
       name: reader.readOptionalObject(
         () => UnlinkedLibraryImportPrefixName.read(reader),
       ),
@@ -256,9 +256,9 @@ class UnlinkedLibraryImportPrefix {
   }
 
   void write(BufferedSink sink) {
-    sink.writeOptionalUInt30(deferredOffset);
-    sink.writeUInt30(asOffset);
-    sink.writeUInt30(nameOffset);
+    sink.writeOptionalUint30(deferredOffset);
+    sink.writeUint30(asOffset);
+    sink.writeUint30(nameOffset);
     sink.writeOptionalObject(name, (name) {
       name.write(sink);
     });
@@ -277,13 +277,13 @@ class UnlinkedLibraryImportPrefixName {
   factory UnlinkedLibraryImportPrefixName.read(SummaryDataReader reader) {
     return UnlinkedLibraryImportPrefixName(
       name: reader.readStringUtf8(),
-      nameOffset: reader.readUInt30(),
+      nameOffset: reader.readUint30(),
     );
   }
 
   void write(BufferedSink sink) {
     sink.writeStringUtf8(name);
-    sink.writeUInt30(nameOffset);
+    sink.writeUint30(nameOffset);
   }
 }
 
@@ -355,7 +355,7 @@ class UnlinkedPartDirective extends UnlinkedConfigurableUriDirective {
       configurations: reader.readTypedList(
         () => UnlinkedNamespaceDirectiveConfiguration.read(reader),
       ),
-      partKeywordOffset: reader.readUInt30(),
+      partKeywordOffset: reader.readUint30(),
       uri: reader.readOptionalStringUtf8(),
     );
   }
@@ -366,7 +366,7 @@ class UnlinkedPartDirective extends UnlinkedConfigurableUriDirective {
     ) {
       x.write(sink);
     });
-    sink.writeUInt30(partKeywordOffset);
+    sink.writeUint30(partKeywordOffset);
     sink.writeOptionalStringUtf8(uri);
   }
 }
@@ -446,14 +446,14 @@ class UnlinkedSourceRange {
 
   factory UnlinkedSourceRange.read(SummaryDataReader reader) {
     return UnlinkedSourceRange(
-      offset: reader.readUInt30(),
-      length: reader.readUInt30(),
+      offset: reader.readUint30(),
+      length: reader.readUint30(),
     );
   }
 
   void write(BufferedSink sink) {
-    sink.writeUInt30(offset);
-    sink.writeUInt30(length);
+    sink.writeUint30(offset);
+    sink.writeUint30(length);
   }
 }
 
@@ -531,7 +531,7 @@ class UnlinkedUnit {
       libraryDirective: reader.readOptionalObject(
         () => UnlinkedLibraryDirective.read(reader),
       ),
-      lineStarts: reader.readUInt30List(),
+      lineStarts: reader.readUint30List(),
       parts: reader.readTypedList(() => UnlinkedPartDirective.read(reader)),
       partOfNameDirective: reader.readOptionalObject(
         () => UnlinkedPartOfNameDirective.read(reader),

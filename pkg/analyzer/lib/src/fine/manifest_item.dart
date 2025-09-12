@@ -1521,7 +1521,7 @@ extension type _ClassItemFlags._(int _bits) implements _InterfaceItemFlags {
   }
 
   factory _ClassItemFlags.read(SummaryDataReader reader) {
-    return _ClassItemFlags._(reader.readUInt30());
+    return _ClassItemFlags._(reader.readUint30());
   }
 
   bool get isAbstract {
@@ -1553,7 +1553,7 @@ extension type _ClassItemFlags._(int _bits) implements _InterfaceItemFlags {
   }
 
   void write(BufferedSink sink) {
-    sink.writeUInt30(_bits);
+    sink.writeUint30(_bits);
   }
 
   bool _has(_ClassItemFlag flag) {
@@ -1583,7 +1583,7 @@ extension type _ConstructorItemFlags._(int _bits)
   }
 
   factory _ConstructorItemFlags.read(SummaryDataReader reader) {
-    return _ConstructorItemFlags._(reader.readUInt30());
+    return _ConstructorItemFlags._(reader.readUint30());
   }
 
   bool get isConst {
@@ -1595,7 +1595,7 @@ extension type _ConstructorItemFlags._(int _bits)
   }
 
   void write(BufferedSink sink) {
-    sink.writeUInt30(_bits);
+    sink.writeUint30(_bits);
   }
 
   bool _has(_ConstructorItemFlag flag) {
@@ -1643,7 +1643,7 @@ extension type _ExecutableItemFlags._(int _bits) implements _ManifestItemFlags {
   }
 
   factory _ExecutableItemFlags.read(SummaryDataReader reader) {
-    return _ExecutableItemFlags._(reader.readUInt30());
+    return _ExecutableItemFlags._(reader.readUint30());
   }
 
   bool get hasEnclosingTypeParameterReference {
@@ -1679,7 +1679,7 @@ extension type _ExecutableItemFlags._(int _bits) implements _ManifestItemFlags {
   }
 
   void write(BufferedSink sink) {
-    sink.writeUInt30(_bits);
+    sink.writeUint30(_bits);
   }
 
   bool _has(_ExecutableItemFlag flag) {
@@ -1709,7 +1709,7 @@ extension type _ExtensionTypeItemFlags._(int _bits)
   }
 
   factory _ExtensionTypeItemFlags.read(SummaryDataReader reader) {
-    return _ExtensionTypeItemFlags._(reader.readUInt30());
+    return _ExtensionTypeItemFlags._(reader.readUint30());
   }
 
   bool get hasImplementsSelfReference {
@@ -1721,7 +1721,7 @@ extension type _ExtensionTypeItemFlags._(int _bits)
   }
 
   void write(BufferedSink sink) {
-    sink.writeUInt30(_bits);
+    sink.writeUint30(_bits);
   }
 
   bool _has(_ExtensionTypeItemFlag flag) {
@@ -1762,7 +1762,7 @@ extension type _FieldItemFlags._(int _bits) implements _VariableItemFlags {
   }
 
   factory _FieldItemFlags.read(SummaryDataReader reader) {
-    return _FieldItemFlags._(reader.readUInt30());
+    return _FieldItemFlags._(reader.readUint30());
   }
 
   bool get hasEnclosingTypeParameterReference {
@@ -1790,7 +1790,7 @@ extension type _FieldItemFlags._(int _bits) implements _VariableItemFlags {
   }
 
   void write(BufferedSink sink) {
-    sink.writeUInt30(_bits);
+    sink.writeUint30(_bits);
   }
 
   bool _has(_FieldItemFlag flag) {
@@ -1817,7 +1817,7 @@ extension type _InstanceItemFlags._(int _bits) implements _ManifestItemFlags {
   }
 
   factory _InstanceItemFlags.read(SummaryDataReader reader) {
-    return _InstanceItemFlags._(reader.readUInt30());
+    return _InstanceItemFlags._(reader.readUint30());
   }
 
   bool get isSimplyBounded {
@@ -1825,7 +1825,7 @@ extension type _InstanceItemFlags._(int _bits) implements _ManifestItemFlags {
   }
 
   void write(BufferedSink sink) {
-    sink.writeUInt30(_bits);
+    sink.writeUint30(_bits);
   }
 
   bool _has(_InstanceItemFlag flag) {
@@ -1849,11 +1849,11 @@ extension type _InterfaceItemFlags._(int _bits) implements _InstanceItemFlags {
   }
 
   factory _InterfaceItemFlags.read(SummaryDataReader reader) {
-    return _InterfaceItemFlags._(reader.readUInt30());
+    return _InterfaceItemFlags._(reader.readUint30());
   }
 
   void write(BufferedSink sink) {
-    sink.writeUInt30(_bits);
+    sink.writeUint30(_bits);
   }
 }
 
@@ -1870,7 +1870,7 @@ extension type _ManifestItemFlags._(int _bits) {
   }
 
   factory _ManifestItemFlags.read(SummaryDataReader reader) {
-    return _ManifestItemFlags._(reader.readUInt30());
+    return _ManifestItemFlags._(reader.readUint30());
   }
 
   bool get isSynthetic {
@@ -1878,7 +1878,7 @@ extension type _ManifestItemFlags._(int _bits) {
   }
 
   void write(BufferedSink sink) {
-    sink.writeUInt30(_bits);
+    sink.writeUint30(_bits);
   }
 
   bool _has(_ManifestItemFlag flag) {
@@ -1906,7 +1906,7 @@ extension type _MethodItemFlags._(int _bits) implements _ExecutableItemFlags {
   }
 
   factory _MethodItemFlags.read(SummaryDataReader reader) {
-    return _MethodItemFlags._(reader.readUInt30());
+    return _MethodItemFlags._(reader.readUint30());
   }
 
   bool get isOperatorEqualWithParameterTypeFromObject {
@@ -1914,7 +1914,7 @@ extension type _MethodItemFlags._(int _bits) implements _ExecutableItemFlags {
   }
 
   void write(BufferedSink sink) {
-    sink.writeUInt30(_bits);
+    sink.writeUint30(_bits);
   }
 
   bool _has(_MethodItemFlag flag) {
@@ -1940,7 +1940,7 @@ extension type _MixinItemFlags._(int _bits) implements _InterfaceItemFlags {
   }
 
   factory _MixinItemFlags.read(SummaryDataReader reader) {
-    return _MixinItemFlags._(reader.readUInt30());
+    return _MixinItemFlags._(reader.readUint30());
   }
 
   bool get isBase {
@@ -1948,7 +1948,7 @@ extension type _MixinItemFlags._(int _bits) implements _InterfaceItemFlags {
   }
 
   void write(BufferedSink sink) {
-    sink.writeUInt30(_bits);
+    sink.writeUint30(_bits);
   }
 
   bool _has(_MixinItemFlag flag) {
@@ -1977,7 +1977,7 @@ extension type _TopLevelVariableItemFlags._(int _bits)
   }
 
   factory _TopLevelVariableItemFlags.read(SummaryDataReader reader) {
-    return _TopLevelVariableItemFlags._(reader.readUInt30());
+    return _TopLevelVariableItemFlags._(reader.readUint30());
   }
 
   bool get isExternal {
@@ -1985,7 +1985,7 @@ extension type _TopLevelVariableItemFlags._(int _bits)
   }
 
   void write(BufferedSink sink) {
-    sink.writeUInt30(_bits);
+    sink.writeUint30(_bits);
   }
 
   bool _has(_TopLevelVariableItemFlag flag) {
@@ -2058,7 +2058,7 @@ extension type _VariableItemFlags._(int _bits) implements _ManifestItemFlags {
   }
 
   void write(BufferedSink sink) {
-    sink.writeUInt30(_bits);
+    sink.writeUint30(_bits);
   }
 
   bool _has(_VariableItemFlag flag) {

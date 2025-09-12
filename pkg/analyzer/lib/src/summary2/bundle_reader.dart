@@ -49,10 +49,10 @@ class BundleReader {
     const bytesOfU32 = 4;
     const countOfU32 = 4;
     _reader.offset = _reader.bytes.length - bytesOfU32 * countOfU32;
-    var baseResolutionOffset = _reader.readUInt32();
-    var librariesOffset = _reader.readUInt32();
-    var referencesOffset = _reader.readUInt32();
-    var stringsOffset = _reader.readUInt32();
+    var baseResolutionOffset = _reader.readUint32();
+    var librariesOffset = _reader.readUint32();
+    var referencesOffset = _reader.readUint32();
+    var stringsOffset = _reader.readUint32();
     _reader.createStringTable(stringsOffset);
 
     var referenceReader = _ReferenceReader(
@@ -65,7 +65,7 @@ class BundleReader {
     var libraryHeaderList = _reader.readTypedList(() {
       return _LibraryHeader(
         uri: uriCache.parse(_reader.readStringReference()),
-        offset: _reader.readUInt30(),
+        offset: _reader.readUint30(),
       );
     });
 
@@ -151,7 +151,7 @@ class LibraryReader {
       _readExportedReference,
     );
 
-    _libraryElement.nameUnion = ElementNameUnion.read(_reader.readUInt30List());
+    _libraryElement.nameUnion = ElementNameUnion.read(_reader.readUint30List());
 
     _libraryElement.manifest = manifest;
 
@@ -177,7 +177,7 @@ class LibraryReader {
     _libraryElement.setters = _readSetterElements();
     _readVariableGetterSetterLinking();
 
-    var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
+    var resolutionOffset = _baseResolutionOffset + _reader.readUint30();
     _libraryElement.deferReadResolution(() {
       var unitElement = _libraryElement.firstFragment;
       var reader = ResolutionReader(
@@ -227,7 +227,7 @@ class LibraryReader {
   void Function() _createDeferredReadResolutionCallback(
     void Function(ResolutionReader reader) callback,
   ) {
-    var offset = _baseResolutionOffset + _reader.readUInt30();
+    var offset = _baseResolutionOffset + _reader.readUint30();
     return () {
       var reader = ResolutionReader(
         _elementFactory,
@@ -253,7 +253,7 @@ class LibraryReader {
   ///   - data to read lazily
   ///   - data to continue reading eagerly
   void _lazyRead(void Function(int offset) operation) {
-    var length = _reader.readUInt30();
+    var length = _reader.readUint30();
     var offset = _reader.offset;
     _reader.offset += length;
     operation(offset);
@@ -536,11 +536,11 @@ class LibraryReader {
   ExportedReference _readExportedReference() {
     var kind = _reader.readByte();
     if (kind == 0) {
-      var index = _reader.readUInt30();
+      var index = _reader.readUint30();
       var reference = _referenceReader.referenceOfIndex(index);
       return ExportedReferenceDeclared(reference: reference);
     } else if (kind == 1) {
-      var index = _reader.readUInt30();
+      var index = _reader.readUint30();
       var reference = _referenceReader.referenceOfIndex(index);
       return ExportedReferenceExported(
         reference: reference,
@@ -553,8 +553,8 @@ class LibraryReader {
 
   ExportLocation _readExportLocation() {
     return ExportLocation(
-      fragmentIndex: _reader.readUInt30(),
-      exportIndex: _reader.readUInt30(),
+      fragmentIndex: _reader.readUint30(),
+      exportIndex: _reader.readUint30(),
     );
   }
 
@@ -742,10 +742,7 @@ class LibraryReader {
       parameter.element.type = type;
       parameter.constantInitializer = reader.readOptionalExpression();
       if (parameter is FieldFormalParameterFragmentImpl) {
-        // TODO(scheglov): use element
-        parameter.field =
-            (reader.readElement() as FieldElementImpl?)?.firstFragment;
-        // parameter.field = reader.readFragmentOrMember() as FieldFragmentImpl?;
+        parameter.element.field = reader.readElement() as FieldElementImpl?;
       }
     }
   }
@@ -756,7 +753,7 @@ class LibraryReader {
   }
 
   int _readFragmentId() {
-    return _reader.readUInt30();
+    return _reader.readUint30();
   }
 
   String? _readFragmentName() {
@@ -824,14 +821,14 @@ class LibraryReader {
   }
 
   LibraryLanguageVersion _readLanguageVersion() {
-    var packageMajor = _reader.readUInt30();
-    var packageMinor = _reader.readUInt30();
+    var packageMajor = _reader.readUint30();
+    var packageMinor = _reader.readUint30();
     var package = Version(packageMajor, packageMinor, 0);
 
     Version? override;
     if (_reader.readBool()) {
-      var overrideMajor = _reader.readUInt30();
-      var overrideMinor = _reader.readUInt30();
+      var overrideMajor = _reader.readUint30();
+      var overrideMinor = _reader.readUint30();
       override = Version(overrideMajor, overrideMinor, 0);
     }
 
@@ -1086,7 +1083,7 @@ class LibraryReader {
 
   /// Read the reference of a non-local element.
   Reference _readReference() {
-    var referenceIndex = _reader.readUInt30();
+    var referenceIndex = _reader.readUint30();
     return _referenceReader.referenceOfIndex(referenceIndex);
   }
 
@@ -1150,7 +1147,7 @@ class LibraryReader {
   }) {
     var id = _readFragmentId();
     var name = _readFragmentName();
-    var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
+    var resolutionOffset = _baseResolutionOffset + _reader.readUint30();
     var fragment = create(name);
     idFragmentMap[id] = fragment;
 
@@ -1346,7 +1343,7 @@ class LibraryReader {
     required LibraryFragmentImpl? containerUnit,
     required Source unitSource,
   }) {
-    var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
+    var resolutionOffset = _baseResolutionOffset + _reader.readUint30();
 
     var unitElement = LibraryFragmentImpl(
       library: _libraryElement,
@@ -1518,15 +1515,15 @@ class ResolutionReader {
           return SubstitutedFieldElementImpl.from(elementImpl, substitution);
         }
       case ElementTag.elementImpl:
-        var referenceIndex = _reader.readUInt30();
+        var referenceIndex = _reader.readUint30();
         var reference = _referenceReader.referenceOfIndex(referenceIndex);
         return _elementFactory.elementOfReference3(reference);
       case ElementTag.typeParameter:
-        var index = _reader.readUInt30();
+        var index = _reader.readUint30();
         return _localElements[index] as TypeParameterElementImpl;
       case ElementTag.formalParameter:
         var enclosing = readElement() as FunctionTypedElementImpl;
-        var index = _reader.readUInt30();
+        var index = _reader.readUint30();
         return enclosing.formalParameters[index];
     }
   }
@@ -1588,8 +1585,8 @@ class ResolutionReader {
   }
 
   SourceRange readSourceRange() {
-    var offset = readUInt30();
-    var length = readUInt30();
+    var offset = readUint30();
+    var length = readUint30();
     return SourceRange(offset, length);
   }
 
@@ -1660,12 +1657,12 @@ class ResolutionReader {
     return _reader.readTypedList(read);
   }
 
-  int readUInt30() {
-    return _reader.readUInt30();
+  int readUint30() {
+    return _reader.readUint30();
   }
 
-  int readUInt32() {
-    return _reader.readUInt32();
+  int readUint32() {
+    return _reader.readUint32();
   }
 
   void setOffset(int offset) {
@@ -1951,8 +1948,8 @@ class _ReferenceReader {
 
   _ReferenceReader(this.elementFactory, this._reader, int offset) {
     _reader.offset = offset;
-    _parents = _reader.readUInt30List();
-    _names = _reader.readUInt30List();
+    _parents = _reader.readUint30List();
+    _names = _reader.readUint30List();
     assert(_parents.length == _names.length);
 
     _references = List.filled(_names.length, null);

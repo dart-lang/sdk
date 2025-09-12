@@ -274,6 +274,27 @@ class InterfaceIdMismatch extends RequirementFailure {
   }
 }
 
+class LibraryChildrenIdsMismatch extends RequirementFailure {
+  final Uri libraryUri;
+  final String childrenPropertyName;
+  final ManifestItemIdList expectedIds;
+  final ManifestItemIdList actualIds;
+
+  LibraryChildrenIdsMismatch({
+    required this.libraryUri,
+    required this.childrenPropertyName,
+    required this.expectedIds,
+    required this.actualIds,
+  });
+
+  @override
+  String toString() {
+    return 'LibraryChildrenIdsMismatch(libraryUri: $libraryUri, '
+        'childrenPropertyName: $childrenPropertyName, '
+        'expectedIds: $expectedIds, actualIds: $actualIds)';
+  }
+}
+
 class LibraryMissing extends RequirementFailure {
   final Uri uri;
 

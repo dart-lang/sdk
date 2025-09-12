@@ -36,7 +36,7 @@ class StringIndexer {
     var resultOffset = sink.offset;
 
     var lengthOfBytes = sink.offset - bytesOffset;
-    sink.writeUInt30(lengthOfBytes);
+    sink.writeUint30(lengthOfBytes);
     sink.writeUint30List(lengths);
 
     return resultOffset;
@@ -96,12 +96,12 @@ class StringTable {
   StringTable({required Uint8List bytes, required int startOffset})
     : _bytes = bytes,
       _byteOffset = startOffset {
-    var offset = startOffset - _readUInt30();
-    var length = _readUInt30();
+    var offset = startOffset - _readUint30();
+    var length = _readUint30();
 
     _offsets = Uint32List(length + 1);
     for (var i = 0; i < length; i++) {
-      var stringLength = _readUInt30();
+      var stringLength = _readUint30();
       _offsets[i] = offset;
       offset += stringLength;
     }
@@ -139,7 +139,7 @@ class StringTable {
     return String.fromCharCodes(_bytes, start, end);
   }
 
-  int _readUInt30() {
+  int _readUint30() {
     var byte = _readByte();
     if (byte & 0x80 == 0) {
       // 0xxxxxxx
