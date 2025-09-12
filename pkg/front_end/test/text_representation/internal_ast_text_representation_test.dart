@@ -17,6 +17,7 @@ import 'package:front_end/src/kernel/collections.dart';
 import 'package:front_end/src/kernel/forest.dart';
 import 'package:front_end/src/kernel/internal_ast.dart';
 import 'package:kernel/ast.dart';
+import 'package:kernel/names.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:package_config/package_config.dart';
 
@@ -162,7 +163,7 @@ void main() {
     _testExtensionIndexSet();
     _testIfNullIndexSet();
     _testIfNullSuperIndexSet();
-    _testIfNullExtensionIndexSet();
+    _testExtensionIfNullIndexSet();
     _testCompoundIndexSet();
     _testCompoundSuperIndexSet();
     _testExtensionCompoundIndexSet();
@@ -1352,10 +1353,10 @@ Extension<void>(0)?.foo -= 1''',
 void _testCompoundPropertySet() {
   testExpression(
     new CompoundPropertySet(
-      new IntLiteral(0),
-      new Name('foo'),
-      new Name('+'),
-      new IntLiteral(1),
+      receiver: new IntLiteral(0),
+      propertyName: new Name('foo'),
+      binaryName: new Name('+'),
+      value: new IntLiteral(1),
       readOffset: TreeNode.noOffset,
       binaryOffset: TreeNode.noOffset,
       writeOffset: TreeNode.noOffset,
@@ -1368,10 +1369,10 @@ void _testCompoundPropertySet() {
 
   testExpression(
     new CompoundPropertySet(
-      new IntLiteral(0),
-      new Name('foo'),
-      new Name('+'),
-      new IntLiteral(1),
+      receiver: new IntLiteral(0),
+      propertyName: new Name('foo'),
+      binaryName: new Name('+'),
+      value: new IntLiteral(1),
       readOffset: TreeNode.noOffset,
       binaryOffset: TreeNode.noOffset,
       writeOffset: TreeNode.noOffset,
@@ -1737,7 +1738,24 @@ void _testIndexSet() {
   );
 }
 
-void _testSuperIndexSet() {}
+void _testSuperIndexSet() {
+  Library library = new Library(dummyUri, fileUri: dummyUri);
+  Class cls = new Class(name: 'Super', fileUri: dummyUri);
+  library.addClass(cls);
+  Procedure setter = new Procedure(
+    new Name('[]='),
+    ProcedureKind.Method,
+    new FunctionNode(null),
+    fileUri: dummyUri,
+  );
+  cls.addProcedure(setter);
+
+  testExpression(
+    new SuperIndexSet(setter, new IntLiteral(0), new IntLiteral(1)),
+    '''
+super[0] = 1''',
+  );
+}
 
 void _testExtensionIndexGet() {
   Library library = new Library(dummyUri, fileUri: dummyUri);
@@ -1893,19 +1911,184 @@ Extension<void>(0)?[1] = 2''',
   );
 }
 
-void _testIfNullIndexSet() {}
+void _testIfNullIndexSet() {
+  testExpression(
+    new IfNullIndexSet(
+      receiver: new IntLiteral(0),
+      index: new IntLiteral(1),
+      value: new IntLiteral(2),
+      readOffset: -1,
+      testOffset: -1,
+      writeOffset: -1,
+      forEffect: false,
+      isNullAware: false,
+    ),
+    '''
+0[1] ??= 2''',
+  );
 
-void _testIfNullSuperIndexSet() {}
+  testExpression(
+    new IfNullIndexSet(
+      receiver: new IntLiteral(0),
+      index: new IntLiteral(1),
+      value: new IntLiteral(2),
+      readOffset: -1,
+      testOffset: -1,
+      writeOffset: -1,
+      forEffect: false,
+      isNullAware: true,
+    ),
+    '''
+0?[1] ??= 2''',
+  );
+}
 
-void _testIfNullExtensionIndexSet() {}
+void _testIfNullSuperIndexSet() {
+  Library library = new Library(dummyUri, fileUri: dummyUri);
+  Class cls = new Class(name: 'Super', fileUri: dummyUri);
+  library.addClass(cls);
+  Procedure getter = new Procedure(
+    new Name('[]'),
+    ProcedureKind.Method,
+    new FunctionNode(null),
+    fileUri: dummyUri,
+  );
+  cls.addProcedure(getter);
+  Procedure setter = new Procedure(
+    new Name('[]='),
+    ProcedureKind.Method,
+    new FunctionNode(null),
+    fileUri: dummyUri,
+  );
+  cls.addProcedure(setter);
+
+  testExpression(
+    new IfNullSuperIndexSet(
+      getter: getter,
+      setter: setter,
+      index: new IntLiteral(0),
+      value: new IntLiteral(1),
+      readOffset: -1,
+      testOffset: -1,
+      writeOffset: -1,
+      forEffect: false,
+    ),
+    '''
+super[0] ??= 1''',
+  );
+}
+
+void _testExtensionIfNullIndexSet() {
+  Library library = new Library(dummyUri, fileUri: dummyUri);
+  Extension extension = new Extension(
+    name: 'Extension',
+    typeParameters: [new TypeParameter('T')],
+    fileUri: dummyUri,
+  );
+  library.addExtension(extension);
+  Procedure getter = new Procedure(
+    new Name('Extension|[]'),
+    ProcedureKind.Method,
+    new FunctionNode(null),
+    fileUri: dummyUri,
+  );
+  Procedure setter = new Procedure(
+    new Name('Extension|[]='),
+    ProcedureKind.Method,
+    new FunctionNode(null),
+    fileUri: dummyUri,
+  );
+  library.addProcedure(getter);
+  library.addProcedure(setter);
+
+  testExpression(
+    new ExtensionIfNullIndexSet(
+      extension: extension,
+      knownTypeArguments: null,
+      receiver: new IntLiteral(0),
+      getter: getter,
+      setter: setter,
+      index: new IntLiteral(1),
+      value: new IntLiteral(2),
+      readOffset: -1,
+      testOffset: -1,
+      writeOffset: -1,
+      forEffect: false,
+      isNullAware: false,
+      extensionTypeArgumentOffset: -1,
+    ),
+    '''
+Extension(0)[1] ??= 2''',
+  );
+
+  testExpression(
+    new ExtensionIfNullIndexSet(
+      extension: extension,
+      knownTypeArguments: null,
+      receiver: new IntLiteral(0),
+      getter: getter,
+      setter: setter,
+      index: new IntLiteral(1),
+      value: new IntLiteral(2),
+      readOffset: -1,
+      testOffset: -1,
+      writeOffset: -1,
+      forEffect: false,
+      isNullAware: true,
+      extensionTypeArgumentOffset: -1,
+    ),
+    '''
+Extension(0)?[1] ??= 2''',
+  );
+
+  testExpression(
+    new ExtensionIfNullIndexSet(
+      extension: extension,
+      knownTypeArguments: [const VoidType()],
+      receiver: new IntLiteral(0),
+      getter: getter,
+      setter: setter,
+      index: new IntLiteral(1),
+      value: new IntLiteral(2),
+      readOffset: -1,
+      testOffset: -1,
+      writeOffset: -1,
+      forEffect: false,
+      isNullAware: false,
+      extensionTypeArgumentOffset: -1,
+    ),
+    '''
+Extension<void>(0)[1] ??= 2''',
+  );
+
+  testExpression(
+    new ExtensionIfNullIndexSet(
+      extension: extension,
+      knownTypeArguments: [const VoidType()],
+      receiver: new IntLiteral(0),
+      getter: getter,
+      setter: setter,
+      index: new IntLiteral(1),
+      value: new IntLiteral(2),
+      readOffset: -1,
+      testOffset: -1,
+      writeOffset: -1,
+      forEffect: false,
+      isNullAware: true,
+      extensionTypeArgumentOffset: -1,
+    ),
+    '''
+Extension<void>(0)?[1] ??= 2''',
+  );
+}
 
 void _testCompoundIndexSet() {
   testExpression(
     new CompoundIndexSet(
-      new IntLiteral(0),
-      new IntLiteral(1),
-      new Name('+'),
-      new IntLiteral(2),
+      receiver: new IntLiteral(0),
+      index: new IntLiteral(1),
+      binaryName: new Name('+'),
+      value: new IntLiteral(2),
       readOffset: -1,
       binaryOffset: -1,
       writeOffset: -1,
@@ -1918,10 +2101,10 @@ void _testCompoundIndexSet() {
   );
   testExpression(
     new CompoundIndexSet(
-      new IntLiteral(0),
-      new IntLiteral(1),
-      new Name('+'),
-      new IntLiteral(1),
+      receiver: new IntLiteral(0),
+      index: new IntLiteral(1),
+      binaryName: new Name('+'),
+      value: new IntLiteral(1),
       readOffset: -1,
       binaryOffset: -1,
       writeOffset: -1,
@@ -1934,10 +2117,10 @@ void _testCompoundIndexSet() {
   );
   testExpression(
     new CompoundIndexSet(
-      new IntLiteral(0),
-      new IntLiteral(1),
-      new Name('-'),
-      new IntLiteral(1),
+      receiver: new IntLiteral(0),
+      index: new IntLiteral(1),
+      binaryName: new Name('-'),
+      value: new IntLiteral(1),
       readOffset: -1,
       binaryOffset: -1,
       writeOffset: -1,
@@ -1950,10 +2133,10 @@ void _testCompoundIndexSet() {
   );
   testExpression(
     new CompoundIndexSet(
-      new IntLiteral(0),
-      new IntLiteral(1),
-      new Name('*'),
-      new IntLiteral(1),
+      receiver: new IntLiteral(0),
+      index: new IntLiteral(1),
+      binaryName: new Name('*'),
+      value: new IntLiteral(1),
       readOffset: -1,
       binaryOffset: -1,
       writeOffset: -1,
@@ -1966,10 +2149,10 @@ void _testCompoundIndexSet() {
   );
   testExpression(
     new CompoundIndexSet(
-      new IntLiteral(0),
-      new IntLiteral(1),
-      new Name('+'),
-      new IntLiteral(2),
+      receiver: new IntLiteral(0),
+      index: new IntLiteral(1),
+      binaryName: new Name('+'),
+      value: new IntLiteral(2),
       readOffset: -1,
       binaryOffset: -1,
       writeOffset: -1,
@@ -1982,10 +2165,10 @@ void _testCompoundIndexSet() {
   );
   testExpression(
     new CompoundIndexSet(
-      new IntLiteral(0),
-      new IntLiteral(1),
-      new Name('+'),
-      new IntLiteral(2),
+      receiver: new IntLiteral(0),
+      index: new IntLiteral(1),
+      binaryName: new Name('+'),
+      value: new IntLiteral(2),
       readOffset: -1,
       binaryOffset: -1,
       writeOffset: -1,
@@ -1998,10 +2181,10 @@ void _testCompoundIndexSet() {
   );
   testExpression(
     new CompoundIndexSet(
-      new IntLiteral(0),
-      new IntLiteral(1),
-      new Name('+'),
-      new IntLiteral(1),
+      receiver: new IntLiteral(0),
+      index: new IntLiteral(1),
+      binaryName: new Name('+'),
+      value: new IntLiteral(1),
       readOffset: -1,
       binaryOffset: -1,
       writeOffset: -1,
@@ -2014,10 +2197,10 @@ void _testCompoundIndexSet() {
   );
   testExpression(
     new CompoundIndexSet(
-      new IntLiteral(0),
-      new IntLiteral(1),
-      new Name('-'),
-      new IntLiteral(1),
+      receiver: new IntLiteral(0),
+      index: new IntLiteral(1),
+      binaryName: new Name('-'),
+      value: new IntLiteral(1),
       readOffset: -1,
       binaryOffset: -1,
       writeOffset: -1,
@@ -2030,7 +2213,91 @@ void _testCompoundIndexSet() {
   );
 }
 
-void _testCompoundSuperIndexSet() {}
+void _testCompoundSuperIndexSet() {
+  Library library = new Library(dummyUri, fileUri: dummyUri);
+  Class cls = new Class(name: 'Super', fileUri: dummyUri);
+  library.addClass(cls);
+  Procedure getter = new Procedure(
+    new Name('[]'),
+    ProcedureKind.Method,
+    new FunctionNode(null),
+    fileUri: dummyUri,
+  );
+  cls.addProcedure(getter);
+  Procedure setter = new Procedure(
+    new Name('[]='),
+    ProcedureKind.Method,
+    new FunctionNode(null),
+    fileUri: dummyUri,
+  );
+  cls.addProcedure(setter);
+
+  testExpression(
+    new CompoundSuperIndexSet(
+      getter: getter,
+      setter: setter,
+      index: new IntLiteral(0),
+      value: new IntLiteral(1),
+      binaryName: plusName,
+      readOffset: -1,
+      binaryOffset: -1,
+      writeOffset: -1,
+      forEffect: false,
+      forPostIncDec: false,
+    ),
+    '''
+super[0] += 1''',
+  );
+  testExpression(
+    new CompoundSuperIndexSet(
+      getter: getter,
+      setter: setter,
+      index: new IntLiteral(0),
+      value: new IntLiteral(1),
+      binaryName: minusName,
+      readOffset: -1,
+      binaryOffset: -1,
+      writeOffset: -1,
+      forEffect: false,
+      forPostIncDec: false,
+    ),
+    '''
+super[0] -= 1''',
+  );
+
+  testExpression(
+    new CompoundSuperIndexSet(
+      getter: getter,
+      setter: setter,
+      index: new IntLiteral(0),
+      value: new IntLiteral(1),
+      binaryName: plusName,
+      readOffset: -1,
+      binaryOffset: -1,
+      writeOffset: -1,
+      forEffect: false,
+      forPostIncDec: true,
+    ),
+    '''
+super[0]++''',
+  );
+  testExpression(
+    new CompoundSuperIndexSet(
+      getter: getter,
+      setter: setter,
+      index: new IntLiteral(0),
+      value: new IntLiteral(1),
+      binaryName: minusName,
+      readOffset: -1,
+      binaryOffset: -1,
+      writeOffset: -1,
+      forEffect: false,
+      forPostIncDec: true,
+    ),
+    '''
+super[0]--''',
+  );
+}
 
 void _testExtensionCompoundIndexSet() {
   Library library = new Library(dummyUri, fileUri: dummyUri);

@@ -8636,7 +8636,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       read,
       readType,
       node.binaryName,
-      node.rhs,
+      node.value,
       null,
     );
 
@@ -11236,7 +11236,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       left,
       readType,
       node.binaryName,
-      node.rhs,
+      node.value,
       null,
     );
 
@@ -11419,7 +11419,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       left,
       readType,
       node.binaryName,
-      node.rhs,
+      node.value,
       null,
     );
 
