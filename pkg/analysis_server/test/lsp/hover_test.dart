@@ -628,6 +628,26 @@ print();
     String [!a^bc!] = '';
     ''', contains('This is a string.'));
 
+  Future<void> test_method_callMethod() async {
+    var content = '''
+/// f doc.
+void f(int i) {
+  f.[!call^!](1);
+}
+''';
+    var expected = '''
+```dart
+void f(int i)
+```
+Type: `void Function(int)`
+
+Declared in _package:test/main.dart_.
+
+---
+f doc.''';
+    await assertStringContents(content, equals(expected));
+  }
+
   Future<void> test_method_mixin_onImplementation() async {
     var content = '''
 abstract class A {
