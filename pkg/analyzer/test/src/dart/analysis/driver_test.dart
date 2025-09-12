@@ -26887,6 +26887,2516 @@ extension type A(double it) {
     );
   }
 
+  test_dependency_libraryElement_allClasses_change() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.classes;
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {}
+class B {}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        allDeclaredClasses: #M0 #M2
+[status] idle
+''',
+      updatedA: r'''
+class A {}
+class C {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      C: #M4
+        interface: #M5
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  libraryChildrenIdsMismatch
+    libraryUri: package:test/a.dart
+    childrenPropertyName: classes
+    expectedIds: #M0 #M2
+    actualIds: #M0 #M4
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        allDeclaredClasses: #M0 #M4
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_libraryElement_allEnums_change() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.enums;
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+enum A { a }
+enum B { b }
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          a: #M1
+          values: #M2
+        declaredGetters
+          a: #M3
+          values: #M4
+        interface: #M5
+          map
+            index: #M6
+          implemented
+            index: #M6
+          superImplemented
+            [0]
+              index: #M6
+          inherited
+            index: #M6
+      B: #M7
+        declaredFields
+          b: #M8
+          values: #M9
+        declaredGetters
+          b: #M10
+          values: #M11
+        interface: #M12
+          map
+            index: #M6
+          implemented
+            index: #M6
+          superImplemented
+            [0]
+              index: #M6
+          inherited
+            index: #M6
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        allDeclaredEnums: #M0 #M7
+[status] idle
+''',
+      updatedA: r'''
+enum A { a }
+enum C { c }
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          a: #M1
+          values: #M2
+        declaredGetters
+          a: #M3
+          values: #M4
+        interface: #M5
+          map
+            index: #M6
+          implemented
+            index: #M6
+          superImplemented
+            [0]
+              index: #M6
+          inherited
+            index: #M6
+      C: #M13
+        declaredFields
+          c: #M14
+          values: #M15
+        declaredGetters
+          c: #M16
+          values: #M17
+        interface: #M18
+          map
+            index: #M6
+          implemented
+            index: #M6
+          superImplemented
+            [0]
+              index: #M6
+          inherited
+            index: #M6
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  libraryChildrenIdsMismatch
+    libraryUri: package:test/a.dart
+    childrenPropertyName: enums
+    expectedIds: #M0 #M7
+    actualIds: #M0 #M13
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        allDeclaredEnums: #M0 #M13
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_libraryElement_allExtensions_change() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.extensions;
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+extension A on int {}
+extension B on int {}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensions
+      A: #M0
+      B: #M1
+    exportedExtensions: #M0 #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        allDeclaredExtensions: #M0 #M1
+[status] idle
+''',
+      updatedA: r'''
+extension A on int {}
+extension C on int {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensions
+      A: #M0
+      C: #M2
+    exportedExtensions: #M0 #M2
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  libraryChildrenIdsMismatch
+    libraryUri: package:test/a.dart
+    childrenPropertyName: extensions
+    expectedIds: #M0 #M1
+    actualIds: #M0 #M2
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        allDeclaredExtensions: #M0 #M2
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_libraryElement_allExtensionTypes_change() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.extensionTypes;
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+extension type A(int it) {}
+extension type B(int it) {}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        interface: #M3
+          map
+            it: #M2
+          implemented
+            it: #M2
+      B: #M4
+        declaredFields
+          it: #M5
+        declaredGetters
+          it: #M6
+        interface: #M7
+          map
+            it: #M6
+          implemented
+            it: #M6
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        allDeclaredExtensionTypes: #M0 #M4
+[status] idle
+''',
+      updatedA: r'''
+extension type A(int it) {}
+extension type C(int it) {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        interface: #M3
+          map
+            it: #M2
+          implemented
+            it: #M2
+      C: #M8
+        declaredFields
+          it: #M9
+        declaredGetters
+          it: #M10
+        interface: #M11
+          map
+            it: #M10
+          implemented
+            it: #M10
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  libraryChildrenIdsMismatch
+    libraryUri: package:test/a.dart
+    childrenPropertyName: extensionTypes
+    expectedIds: #M0 #M4
+    actualIds: #M0 #M8
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        allDeclaredExtensionTypes: #M0 #M8
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_libraryElement_allGetters_change() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.getters;
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+int get foo => 0;
+int get bar => 1;
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredGetters
+      bar: #M0
+      foo: #M1
+    declaredVariables
+      bar: #M2
+      foo: #M3
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        allDeclaredGetters: #M1 #M0
+[status] idle
+''',
+      updatedA: r'''
+int get foo => 0;
+int get baz => 1;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredGetters
+      baz: #M4
+      foo: #M1
+    declaredVariables
+      baz: #M5
+      foo: #M3
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  libraryChildrenIdsMismatch
+    libraryUri: package:test/a.dart
+    childrenPropertyName: getters
+    expectedIds: #M1 #M0
+    actualIds: #M1 #M4
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        allDeclaredGetters: #M1 #M4
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_libraryElement_allMixins_change() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.mixins;
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+mixin A {}
+mixin B {}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredMixins
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        allDeclaredMixins: #M0 #M2
+[status] idle
+''',
+      updatedA: r'''
+mixin A {}
+mixin C {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredMixins
+      A: #M0
+        interface: #M1
+      C: #M4
+        interface: #M5
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  libraryChildrenIdsMismatch
+    libraryUri: package:test/a.dart
+    childrenPropertyName: mixins
+    expectedIds: #M0 #M2
+    actualIds: #M0 #M4
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        allDeclaredMixins: #M0 #M4
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_libraryElement_allSetters_change() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.setters;
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+set foo(int _) {}
+set bar(int _) {}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredSetters
+      bar=: #M0
+      foo=: #M1
+    declaredVariables
+      bar: #M2
+      foo: #M3
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        allDeclaredSetters: #M1 #M0
+[status] idle
+''',
+      updatedA: r'''
+set foo(int _) {}
+set baz(int _) {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredSetters
+      baz=: #M4
+      foo=: #M1
+    declaredVariables
+      baz: #M5
+      foo: #M3
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  libraryChildrenIdsMismatch
+    libraryUri: package:test/a.dart
+    childrenPropertyName: setters
+    expectedIds: #M1 #M0
+    actualIds: #M1 #M4
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        allDeclaredSetters: #M1 #M4
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_libraryElement_allTopLevelFunctions_change() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.topLevelFunctions;
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+void foo() {}
+void bar() {}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredFunctions
+      bar: #M0
+      foo: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        allDeclaredFunctions: #M1 #M0
+[status] idle
+''',
+      updatedA: r'''
+void foo() {}
+void baz() {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredFunctions
+      baz: #M2
+      foo: #M1
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  libraryChildrenIdsMismatch
+    libraryUri: package:test/a.dart
+    childrenPropertyName: topLevelFunctions
+    expectedIds: #M1 #M0
+    actualIds: #M1 #M2
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        allDeclaredFunctions: #M1 #M2
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_libraryElement_allTopLevelVariables_change() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.topLevelVariables;
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+var foo = 0;
+var bar = 1;
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredGetters
+      bar: #M0
+      foo: #M1
+    declaredSetters
+      bar=: #M2
+      foo=: #M3
+    declaredVariables
+      bar: #M4
+      foo: #M5
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        allDeclaredVariables: #M5 #M4
+[status] idle
+''',
+      updatedA: r'''
+var foo = 0;
+var baz = 1;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredGetters
+      baz: #M6
+      foo: #M1
+    declaredSetters
+      baz=: #M7
+      foo=: #M3
+    declaredVariables
+      baz: #M8
+      foo: #M5
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  libraryChildrenIdsMismatch
+    libraryUri: package:test/a.dart
+    childrenPropertyName: topLevelVariables
+    expectedIds: #M5 #M4
+    actualIds: #M5 #M8
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        allDeclaredVariables: #M5 #M8
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_libraryElement_allTypeAliases_change() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.typeAliases;
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+typedef A = int;
+typedef B = int;
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredTypeAliases
+      A: #M0
+      B: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        allDeclaredTypeAliases: #M0 #M1
+[status] idle
+''',
+      updatedA: r'''
+typedef A = int;
+typedef C = int;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredTypeAliases
+      A: #M0
+      C: #M2
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  libraryChildrenIdsMismatch
+    libraryUri: package:test/a.dart
+    childrenPropertyName: typeAliases
+    expectedIds: #M0 #M1
+    actualIds: #M0 #M2
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        allDeclaredTypeAliases: #M0 #M2
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_libraryElement_getClass_change() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.getClass('A');
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        requestedDeclaredClasses
+          A: #M0
+[status] idle
+''',
+      updatedA: r'''
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      B: #M2
+        interface: #M3
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: A
+    expectedId: #M0
+    actualId: <null>
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        requestedDeclaredClasses
+          A: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_libraryElement_getClass_change_other() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.getClass('A');
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {}
+class B {}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        requestedDeclaredClasses
+          A: #M0
+[status] idle
+''',
+      updatedA: r'''
+class A {}
+class C {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      C: #M4
+        interface: #M5
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_libraryElement_getEnum_change() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.getEnum('A');
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+enum A { a }
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          a: #M1
+          values: #M2
+        declaredGetters
+          a: #M3
+          values: #M4
+        interface: #M5
+          map
+            index: #M6
+          implemented
+            index: #M6
+          superImplemented
+            [0]
+              index: #M6
+          inherited
+            index: #M6
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        requestedDeclaredEnums
+          A: #M0
+[status] idle
+''',
+      updatedA: r'''
+enum B { b }
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      B: #M7
+        declaredFields
+          b: #M8
+          values: #M9
+        declaredGetters
+          b: #M10
+          values: #M11
+        interface: #M12
+          map
+            index: #M6
+          implemented
+            index: #M6
+          superImplemented
+            [0]
+              index: #M6
+          inherited
+            index: #M6
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: A
+    expectedId: #M0
+    actualId: <null>
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        requestedDeclaredEnums
+          A: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_libraryElement_getEnum_change_other() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.getEnum('A');
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+enum A { a }
+enum B { b }
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          a: #M1
+          values: #M2
+        declaredGetters
+          a: #M3
+          values: #M4
+        interface: #M5
+          map
+            index: #M6
+          implemented
+            index: #M6
+          superImplemented
+            [0]
+              index: #M6
+          inherited
+            index: #M6
+      B: #M7
+        declaredFields
+          b: #M8
+          values: #M9
+        declaredGetters
+          b: #M10
+          values: #M11
+        interface: #M12
+          map
+            index: #M6
+          implemented
+            index: #M6
+          superImplemented
+            [0]
+              index: #M6
+          inherited
+            index: #M6
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        requestedDeclaredEnums
+          A: #M0
+[status] idle
+''',
+      updatedA: r'''
+enum A { a }
+enum C { c }
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          a: #M1
+          values: #M2
+        declaredGetters
+          a: #M3
+          values: #M4
+        interface: #M5
+          map
+            index: #M6
+          implemented
+            index: #M6
+          superImplemented
+            [0]
+              index: #M6
+          inherited
+            index: #M6
+      C: #M13
+        declaredFields
+          c: #M14
+          values: #M15
+        declaredGetters
+          c: #M16
+          values: #M17
+        interface: #M18
+          map
+            index: #M6
+          implemented
+            index: #M6
+          superImplemented
+            [0]
+              index: #M6
+          inherited
+            index: #M6
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_libraryElement_getExtension_change() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.getExtension('A');
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+extension A on int {}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensions
+      A: #M0
+    exportedExtensions: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        requestedDeclaredExtensions
+          A: #M0
+[status] idle
+''',
+      updatedA: r'''
+extension B on int {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensions
+      B: #M1
+    exportedExtensions: #M1
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: A
+    expectedId: #M0
+    actualId: <null>
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        requestedDeclaredExtensions
+          A: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_libraryElement_getExtension_change_other() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.getExtension('A');
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+extension A on int {}
+extension B on int {}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensions
+      A: #M0
+      B: #M1
+    exportedExtensions: #M0 #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        requestedDeclaredExtensions
+          A: #M0
+[status] idle
+''',
+      updatedA: r'''
+extension A on int {}
+extension C on int {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensions
+      A: #M0
+      C: #M2
+    exportedExtensions: #M0 #M2
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_libraryElement_getExtensionType_change() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.getExtensionType('A');
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+extension type A(int it) {}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        interface: #M3
+          map
+            it: #M2
+          implemented
+            it: #M2
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        requestedDeclaredExtensionTypes
+          A: #M0
+[status] idle
+''',
+      updatedA: r'''
+extension type B(int it) {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      B: #M4
+        declaredFields
+          it: #M5
+        declaredGetters
+          it: #M6
+        interface: #M7
+          map
+            it: #M6
+          implemented
+            it: #M6
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: A
+    expectedId: #M0
+    actualId: <null>
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        requestedDeclaredExtensionTypes
+          A: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_libraryElement_getExtensionType_change_other() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.getExtensionType('A');
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+extension type A(int it) {}
+extension type B(int it) {}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        interface: #M3
+          map
+            it: #M2
+          implemented
+            it: #M2
+      B: #M4
+        declaredFields
+          it: #M5
+        declaredGetters
+          it: #M6
+        interface: #M7
+          map
+            it: #M6
+          implemented
+            it: #M6
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        requestedDeclaredExtensionTypes
+          A: #M0
+[status] idle
+''',
+      updatedA: r'''
+extension type A(int it) {}
+extension type C(int it) {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        interface: #M3
+          map
+            it: #M2
+          implemented
+            it: #M2
+      C: #M8
+        declaredFields
+          it: #M9
+        declaredGetters
+          it: #M10
+        interface: #M11
+          map
+            it: #M10
+          implemented
+            it: #M10
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_libraryElement_getGetter_change() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.getGetter('foo');
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+int get foo => 0;
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredGetters
+      foo: #M0
+    declaredVariables
+      foo: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        requestedDeclaredGetters
+          foo: #M0
+[status] idle
+''',
+      updatedA: r'''
+int get bar => 0;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredGetters
+      bar: #M2
+    declaredVariables
+      bar: #M3
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: foo
+    expectedId: #M0
+    actualId: <null>
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        requestedDeclaredGetters
+          foo: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_libraryElement_getGetter_change_other() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.getGetter('foo');
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+int get foo => 0;
+int get bar => 1;
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredGetters
+      bar: #M0
+      foo: #M1
+    declaredVariables
+      bar: #M2
+      foo: #M3
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        requestedDeclaredGetters
+          foo: #M1
+[status] idle
+''',
+      updatedA: r'''
+int get foo => 0;
+int get baz => 1;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredGetters
+      baz: #M4
+      foo: #M1
+    declaredVariables
+      baz: #M5
+      foo: #M3
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_libraryElement_getMixin_change() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.getMixin('A');
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+mixin A {}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredMixins
+      A: #M0
+        interface: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        requestedDeclaredMixins
+          A: #M0
+[status] idle
+''',
+      updatedA: r'''
+mixin B {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredMixins
+      B: #M2
+        interface: #M3
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: A
+    expectedId: #M0
+    actualId: <null>
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        requestedDeclaredMixins
+          A: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_libraryElement_getMixin_change_other() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.getMixin('A');
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+mixin A {}
+mixin B {}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredMixins
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        requestedDeclaredMixins
+          A: #M0
+[status] idle
+''',
+      updatedA: r'''
+mixin A {}
+mixin C {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredMixins
+      A: #M0
+        interface: #M1
+      C: #M4
+        interface: #M5
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_libraryElement_getSetter_change() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.getSetter('foo');
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+set foo(int _) {}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredSetters
+      foo=: #M0
+    declaredVariables
+      foo: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        requestedDeclaredSetters
+          foo=: #M0
+[status] idle
+''',
+      updatedA: r'''
+set bar(int _) {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredSetters
+      bar=: #M2
+    declaredVariables
+      bar: #M3
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: foo=
+    expectedId: #M0
+    actualId: <null>
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        requestedDeclaredSetters
+          foo=: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_libraryElement_getSetter_change_other() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.getSetter('foo');
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+set foo(int _) {}
+set bar(int _) {}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredSetters
+      bar=: #M0
+      foo=: #M1
+    declaredVariables
+      bar: #M2
+      foo: #M3
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        requestedDeclaredSetters
+          foo=: #M1
+[status] idle
+''',
+      updatedA: r'''
+set foo(int _) {}
+set baz(int _) {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredSetters
+      baz=: #M4
+      foo=: #M1
+    declaredVariables
+      baz: #M5
+      foo: #M3
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_libraryElement_getTopLevelFunction_change() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.getTopLevelFunction('foo');
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+void foo() {}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredFunctions
+      foo: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        requestedDeclaredFunctions
+          foo: #M0
+[status] idle
+''',
+      updatedA: r'''
+void bar() {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredFunctions
+      bar: #M1
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: foo
+    expectedId: #M0
+    actualId: <null>
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        requestedDeclaredFunctions
+          foo: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_libraryElement_getTopLevelFunction_change_other() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.getTopLevelFunction('foo');
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+void foo() {}
+void bar() {}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredFunctions
+      bar: #M0
+      foo: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        requestedDeclaredFunctions
+          foo: #M1
+[status] idle
+''',
+      updatedA: r'''
+void foo() {}
+void baz() {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredFunctions
+      baz: #M2
+      foo: #M1
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_libraryElement_getTopLevelVariable_change() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.getTopLevelVariable('foo');
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+var foo = 0;
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredGetters
+      foo: #M0
+    declaredSetters
+      foo=: #M1
+    declaredVariables
+      foo: #M2
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        requestedDeclaredVariables
+          foo: #M2
+[status] idle
+''',
+      updatedA: r'''
+var bar = 0;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredGetters
+      bar: #M3
+    declaredSetters
+      bar=: #M4
+    declaredVariables
+      bar: #M5
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: foo
+    expectedId: #M2
+    actualId: <null>
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        requestedDeclaredVariables
+          foo: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_libraryElement_getTopLevelVariable_change_other() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.getTopLevelVariable('foo');
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+var foo = 0;
+var bar = 1;
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredGetters
+      bar: #M0
+      foo: #M1
+    declaredSetters
+      bar=: #M2
+      foo=: #M3
+    declaredVariables
+      bar: #M4
+      foo: #M5
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        requestedDeclaredVariables
+          foo: #M5
+[status] idle
+''',
+      updatedA: r'''
+var foo = 0;
+var baz = 1;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredGetters
+      baz: #M6
+      foo: #M1
+    declaredSetters
+      baz=: #M7
+      foo=: #M3
+    declaredVariables
+      baz: #M8
+      foo: #M5
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_libraryElement_getTypeAlias_change() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.getTypeAlias('A');
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+typedef A = int;
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredTypeAliases
+      A: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        requestedDeclaredTypeAliases
+          A: #M0
+[status] idle
+''',
+      updatedA: r'''
+typedef B = int;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredTypeAliases
+      B: #M1
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: A
+    expectedId: #M0
+    actualId: <null>
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        requestedDeclaredTypeAliases
+          A: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_libraryElement_getTypeAlias_change_other() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.getTypeAlias('A');
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+typedef A = int;
+typedef B = int;
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredTypeAliases
+      A: #M0
+      B: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        requestedDeclaredTypeAliases
+          A: #M0
+[status] idle
+''',
+      updatedA: r'''
+typedef A = int;
+typedef C = int;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredTypeAliases
+      A: #M0
+      C: #M2
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
   test_dependency_mixin_instanceField_add_hasNonFinalField() async {
     configuration
       ..withGetErrorsEvents = false
@@ -77610,6 +80120,17 @@ class _ManualRequirementsUnit {
   final CompilationUnitImpl unit;
 
   _ManualRequirementsUnit(this.unit);
+
+  List<LibraryElementImpl> get importedLibraries {
+    var result = <LibraryElementImpl>[];
+    for (var import in libraryFragment.libraryImports) {
+      var library = import.importedLibrary;
+      if (library != null) {
+        result.add(library);
+      }
+    }
+    return result;
+  }
 
   LibraryElementImpl get libraryElement {
     return libraryFragment.element;

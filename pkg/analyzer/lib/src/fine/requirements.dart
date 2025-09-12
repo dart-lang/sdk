@@ -383,11 +383,53 @@ class LibraryRequirements {
   /// All extensions exported from the library (including re-exports).
   ManifestItemIdList? exportedExtensions;
 
+  final Map<LookupName, ManifestItemId?> requestedDeclaredClasses;
+  final Map<LookupName, ManifestItemId?> requestedDeclaredEnums;
+  final Map<LookupName, ManifestItemId?> requestedDeclaredExtensions;
+  final Map<LookupName, ManifestItemId?> requestedDeclaredExtensionTypes;
+  final Map<LookupName, ManifestItemId?> requestedDeclaredMixins;
+  final Map<LookupName, ManifestItemId?> requestedDeclaredTypeAliases;
+  final Map<LookupName, ManifestItemId?> requestedDeclaredFunctions;
+  final Map<LookupName, ManifestItemId?> requestedDeclaredVariables;
+  final Map<LookupName, ManifestItemId?> requestedDeclaredGetters;
+  final Map<LookupName, ManifestItemId?> requestedDeclaredSetters;
+
+  ManifestItemIdList? allDeclaredClasses;
+  ManifestItemIdList? allDeclaredEnums;
+  ManifestItemIdList? allDeclaredExtensions;
+  ManifestItemIdList? allDeclaredExtensionTypes;
+  ManifestItemIdList? allDeclaredMixins;
+  ManifestItemIdList? allDeclaredTypeAliases;
+  ManifestItemIdList? allDeclaredFunctions;
+  ManifestItemIdList? allDeclaredVariables;
+  ManifestItemIdList? allDeclaredGetters;
+  ManifestItemIdList? allDeclaredSetters;
+
   LibraryRequirements({
     required this.exportedTopLevels,
     required this.instances,
     required this.interfaces,
     required this.exportedExtensions,
+    required this.requestedDeclaredClasses,
+    required this.requestedDeclaredEnums,
+    required this.requestedDeclaredExtensions,
+    required this.requestedDeclaredExtensionTypes,
+    required this.requestedDeclaredMixins,
+    required this.requestedDeclaredTypeAliases,
+    required this.requestedDeclaredFunctions,
+    required this.requestedDeclaredVariables,
+    required this.requestedDeclaredGetters,
+    required this.requestedDeclaredSetters,
+    required this.allDeclaredClasses,
+    required this.allDeclaredEnums,
+    required this.allDeclaredExtensions,
+    required this.allDeclaredExtensionTypes,
+    required this.allDeclaredMixins,
+    required this.allDeclaredTypeAliases,
+    required this.allDeclaredFunctions,
+    required this.allDeclaredVariables,
+    required this.allDeclaredGetters,
+    required this.allDeclaredSetters,
   });
 
   factory LibraryRequirements.empty() {
@@ -396,6 +438,26 @@ class LibraryRequirements {
       instances: {},
       interfaces: {},
       exportedExtensions: null,
+      requestedDeclaredClasses: {},
+      requestedDeclaredEnums: {},
+      requestedDeclaredExtensions: {},
+      requestedDeclaredExtensionTypes: {},
+      requestedDeclaredMixins: {},
+      requestedDeclaredTypeAliases: {},
+      requestedDeclaredFunctions: {},
+      requestedDeclaredVariables: {},
+      requestedDeclaredGetters: {},
+      requestedDeclaredSetters: {},
+      allDeclaredClasses: null,
+      allDeclaredEnums: null,
+      allDeclaredExtensions: null,
+      allDeclaredExtensionTypes: null,
+      allDeclaredMixins: null,
+      allDeclaredTypeAliases: null,
+      allDeclaredFunctions: null,
+      allDeclaredVariables: null,
+      allDeclaredGetters: null,
+      allDeclaredSetters: null,
     );
   }
 
@@ -411,6 +473,26 @@ class LibraryRequirements {
         readValue: () => InterfaceItemRequirements.read(reader),
       ),
       exportedExtensions: ManifestItemIdList.readOptional(reader),
+      requestedDeclaredClasses: reader.readNameToOptionalIdMap(),
+      requestedDeclaredEnums: reader.readNameToOptionalIdMap(),
+      requestedDeclaredExtensions: reader.readNameToOptionalIdMap(),
+      requestedDeclaredExtensionTypes: reader.readNameToOptionalIdMap(),
+      requestedDeclaredMixins: reader.readNameToOptionalIdMap(),
+      requestedDeclaredTypeAliases: reader.readNameToOptionalIdMap(),
+      requestedDeclaredFunctions: reader.readNameToOptionalIdMap(),
+      requestedDeclaredVariables: reader.readNameToOptionalIdMap(),
+      requestedDeclaredGetters: reader.readNameToOptionalIdMap(),
+      requestedDeclaredSetters: reader.readNameToOptionalIdMap(),
+      allDeclaredClasses: ManifestItemIdList.readOptional(reader),
+      allDeclaredEnums: ManifestItemIdList.readOptional(reader),
+      allDeclaredExtensions: ManifestItemIdList.readOptional(reader),
+      allDeclaredExtensionTypes: ManifestItemIdList.readOptional(reader),
+      allDeclaredMixins: ManifestItemIdList.readOptional(reader),
+      allDeclaredTypeAliases: ManifestItemIdList.readOptional(reader),
+      allDeclaredFunctions: ManifestItemIdList.readOptional(reader),
+      allDeclaredVariables: ManifestItemIdList.readOptional(reader),
+      allDeclaredGetters: ManifestItemIdList.readOptional(reader),
+      allDeclaredSetters: ManifestItemIdList.readOptional(reader),
     );
   }
 
@@ -430,6 +512,28 @@ class LibraryRequirements {
     );
 
     exportedExtensions.writeOptional(sink);
+
+    sink.writeNameToIdMap(requestedDeclaredClasses);
+    sink.writeNameToIdMap(requestedDeclaredEnums);
+    sink.writeNameToIdMap(requestedDeclaredExtensions);
+    sink.writeNameToIdMap(requestedDeclaredExtensionTypes);
+    sink.writeNameToIdMap(requestedDeclaredMixins);
+    sink.writeNameToIdMap(requestedDeclaredTypeAliases);
+    sink.writeNameToIdMap(requestedDeclaredFunctions);
+    sink.writeNameToIdMap(requestedDeclaredVariables);
+    sink.writeNameToIdMap(requestedDeclaredGetters);
+    sink.writeNameToIdMap(requestedDeclaredSetters);
+
+    allDeclaredClasses.writeOptional(sink);
+    allDeclaredEnums.writeOptional(sink);
+    allDeclaredExtensions.writeOptional(sink);
+    allDeclaredExtensionTypes.writeOptional(sink);
+    allDeclaredMixins.writeOptional(sink);
+    allDeclaredTypeAliases.writeOptional(sink);
+    allDeclaredFunctions.writeOptional(sink);
+    allDeclaredVariables.writeOptional(sink);
+    allDeclaredGetters.writeOptional(sink);
+    allDeclaredSetters.writeOptional(sink);
   }
 }
 
@@ -578,6 +682,281 @@ class RequirementsManifest {
             name: name,
             expectedId: topLevelEntry.value,
             actualId: actualId,
+          );
+        }
+      }
+
+      for (var entry in libraryRequirements.requestedDeclaredClasses.entries) {
+        var name = entry.key;
+        var expectedId = entry.value;
+        var actualId = libraryManifest.declaredClasses[name]?.id;
+        if (expectedId != actualId) {
+          return TopLevelIdMismatch(
+            libraryUri: libraryUri,
+            name: name,
+            expectedId: expectedId,
+            actualId: actualId,
+          );
+        }
+      }
+
+      for (var entry in libraryRequirements.requestedDeclaredEnums.entries) {
+        var name = entry.key;
+        var expectedId = entry.value;
+        var actualId = libraryManifest.declaredEnums[name]?.id;
+        if (expectedId != actualId) {
+          return TopLevelIdMismatch(
+            libraryUri: libraryUri,
+            name: name,
+            expectedId: expectedId,
+            actualId: actualId,
+          );
+        }
+      }
+
+      for (var entry
+          in libraryRequirements.requestedDeclaredExtensions.entries) {
+        var name = entry.key;
+        var expectedId = entry.value;
+        var actualId = libraryManifest.declaredExtensions[name]?.id;
+        if (expectedId != actualId) {
+          return TopLevelIdMismatch(
+            libraryUri: libraryUri,
+            name: name,
+            expectedId: expectedId,
+            actualId: actualId,
+          );
+        }
+      }
+
+      for (var entry
+          in libraryRequirements.requestedDeclaredExtensionTypes.entries) {
+        var name = entry.key;
+        var expectedId = entry.value;
+        var actualId = libraryManifest.declaredExtensionTypes[name]?.id;
+        if (expectedId != actualId) {
+          return TopLevelIdMismatch(
+            libraryUri: libraryUri,
+            name: name,
+            expectedId: expectedId,
+            actualId: actualId,
+          );
+        }
+      }
+
+      for (var entry in libraryRequirements.requestedDeclaredMixins.entries) {
+        var name = entry.key;
+        var expectedId = entry.value;
+        var actualId = libraryManifest.declaredMixins[name]?.id;
+        if (expectedId != actualId) {
+          return TopLevelIdMismatch(
+            libraryUri: libraryUri,
+            name: name,
+            expectedId: expectedId,
+            actualId: actualId,
+          );
+        }
+      }
+
+      for (var entry
+          in libraryRequirements.requestedDeclaredTypeAliases.entries) {
+        var name = entry.key;
+        var expectedId = entry.value;
+        var actualId = libraryManifest.declaredTypeAliases[name]?.id;
+        if (expectedId != actualId) {
+          return TopLevelIdMismatch(
+            libraryUri: libraryUri,
+            name: name,
+            expectedId: expectedId,
+            actualId: actualId,
+          );
+        }
+      }
+
+      for (var entry
+          in libraryRequirements.requestedDeclaredFunctions.entries) {
+        var name = entry.key;
+        var expectedId = entry.value;
+        var actualId = libraryManifest.declaredFunctions[name]?.id;
+        if (expectedId != actualId) {
+          return TopLevelIdMismatch(
+            libraryUri: libraryUri,
+            name: name,
+            expectedId: expectedId,
+            actualId: actualId,
+          );
+        }
+      }
+
+      for (var entry
+          in libraryRequirements.requestedDeclaredVariables.entries) {
+        var name = entry.key;
+        var expectedId = entry.value;
+        var actualId = libraryManifest.declaredVariables[name]?.id;
+        if (expectedId != actualId) {
+          return TopLevelIdMismatch(
+            libraryUri: libraryUri,
+            name: name,
+            expectedId: expectedId,
+            actualId: actualId,
+          );
+        }
+      }
+
+      for (var entry in libraryRequirements.requestedDeclaredGetters.entries) {
+        var name = entry.key;
+        var expectedId = entry.value;
+        var actualId = libraryManifest.declaredGetters[name]?.id;
+        if (expectedId != actualId) {
+          return TopLevelIdMismatch(
+            libraryUri: libraryUri,
+            name: name,
+            expectedId: expectedId,
+            actualId: actualId,
+          );
+        }
+      }
+
+      for (var entry in libraryRequirements.requestedDeclaredSetters.entries) {
+        var name = entry.key;
+        var expectedId = entry.value;
+        var actualId = libraryManifest.declaredSetters[name]?.id;
+        if (expectedId != actualId) {
+          return TopLevelIdMismatch(
+            libraryUri: libraryUri,
+            name: name,
+            expectedId: expectedId,
+            actualId: actualId,
+          );
+        }
+      }
+
+      if (libraryRequirements.allDeclaredClasses case var required?) {
+        var actualItems = libraryManifest.declaredClasses.values;
+        var actualIds = actualItems.map((item) => item.id);
+        if (!required.equalToIterable(actualIds)) {
+          return LibraryChildrenIdsMismatch(
+            libraryUri: libraryUri,
+            childrenPropertyName: 'classes',
+            expectedIds: required,
+            actualIds: ManifestItemIdList(actualIds.toList()),
+          );
+        }
+      }
+
+      if (libraryRequirements.allDeclaredEnums case var required?) {
+        var actualItems = libraryManifest.declaredEnums.values;
+        var actualIds = actualItems.map((item) => item.id);
+        if (!required.equalToIterable(actualIds)) {
+          return LibraryChildrenIdsMismatch(
+            libraryUri: libraryUri,
+            childrenPropertyName: 'enums',
+            expectedIds: required,
+            actualIds: ManifestItemIdList(actualIds.toList()),
+          );
+        }
+      }
+
+      if (libraryRequirements.allDeclaredExtensions case var required?) {
+        var actualItems = libraryManifest.declaredExtensions.values;
+        var actualIds = actualItems.map((item) => item.id);
+        if (!required.equalToIterable(actualIds)) {
+          return LibraryChildrenIdsMismatch(
+            libraryUri: libraryUri,
+            childrenPropertyName: 'extensions',
+            expectedIds: required,
+            actualIds: ManifestItemIdList(actualIds.toList()),
+          );
+        }
+      }
+
+      if (libraryRequirements.allDeclaredExtensionTypes case var required?) {
+        var actualItems = libraryManifest.declaredExtensionTypes.values;
+        var actualIds = actualItems.map((item) => item.id);
+        if (!required.equalToIterable(actualIds)) {
+          return LibraryChildrenIdsMismatch(
+            libraryUri: libraryUri,
+            childrenPropertyName: 'extensionTypes',
+            expectedIds: required,
+            actualIds: ManifestItemIdList(actualIds.toList()),
+          );
+        }
+      }
+
+      if (libraryRequirements.allDeclaredMixins case var required?) {
+        var actualItems = libraryManifest.declaredMixins.values;
+        var actualIds = actualItems.map((item) => item.id);
+        if (!required.equalToIterable(actualIds)) {
+          return LibraryChildrenIdsMismatch(
+            libraryUri: libraryUri,
+            childrenPropertyName: 'mixins',
+            expectedIds: required,
+            actualIds: ManifestItemIdList(actualIds.toList()),
+          );
+        }
+      }
+
+      if (libraryRequirements.allDeclaredTypeAliases case var required?) {
+        var actualItems = libraryManifest.declaredTypeAliases.values;
+        var actualIds = actualItems.map((item) => item.id);
+        if (!required.equalToIterable(actualIds)) {
+          return LibraryChildrenIdsMismatch(
+            libraryUri: libraryUri,
+            childrenPropertyName: 'typeAliases',
+            expectedIds: required,
+            actualIds: ManifestItemIdList(actualIds.toList()),
+          );
+        }
+      }
+
+      if (libraryRequirements.allDeclaredFunctions case var required?) {
+        var actualItems = libraryManifest.declaredFunctions.values;
+        var actualIds = actualItems.map((item) => item.id);
+        if (!required.equalToIterable(actualIds)) {
+          return LibraryChildrenIdsMismatch(
+            libraryUri: libraryUri,
+            childrenPropertyName: 'topLevelFunctions',
+            expectedIds: required,
+            actualIds: ManifestItemIdList(actualIds.toList()),
+          );
+        }
+      }
+
+      if (libraryRequirements.allDeclaredVariables case var required?) {
+        var actualItems = libraryManifest.declaredVariables.values;
+        var actualIds = actualItems.map((item) => item.id);
+        if (!required.equalToIterable(actualIds)) {
+          return LibraryChildrenIdsMismatch(
+            libraryUri: libraryUri,
+            childrenPropertyName: 'topLevelVariables',
+            expectedIds: required,
+            actualIds: ManifestItemIdList(actualIds.toList()),
+          );
+        }
+      }
+
+      if (libraryRequirements.allDeclaredGetters case var required?) {
+        var actualItems = libraryManifest.declaredGetters.values;
+        var actualIds = actualItems.map((item) => item.id);
+        if (!required.equalToIterable(actualIds)) {
+          return LibraryChildrenIdsMismatch(
+            libraryUri: libraryUri,
+            childrenPropertyName: 'getters',
+            expectedIds: required,
+            actualIds: ManifestItemIdList(actualIds.toList()),
+          );
+        }
+      }
+
+      if (libraryRequirements.allDeclaredSetters case var required?) {
+        var actualItems = libraryManifest.declaredSetters.values;
+        var actualIds = actualItems.map((item) => item.id);
+        if (!required.equalToIterable(actualIds)) {
+          return LibraryChildrenIdsMismatch(
+            libraryUri: libraryUri,
+            childrenPropertyName: 'setters',
+            expectedIds: required,
+            actualIds: ManifestItemIdList(actualIds.toList()),
           );
         }
       }
@@ -1169,6 +1548,322 @@ class RequirementsManifest {
     var requirements = itemRequirements.requirements;
 
     requirements.hasNonFinalField = item.hasNonFinalField;
+  }
+
+  void record_library_allClasses({required LibraryElementImpl element}) {
+    if (_recordingLockLevel != 0) {
+      return;
+    }
+
+    var manifest = element.manifest;
+    if (manifest == null) {
+      return;
+    }
+
+    var requirements = _getLibraryRequirements(element);
+    requirements.allDeclaredClasses ??= ManifestItemIdList(
+      manifest.declaredClasses.values.map((item) => item.id).toList(),
+    );
+  }
+
+  void record_library_allEnums({required LibraryElementImpl element}) {
+    if (_recordingLockLevel != 0) {
+      return;
+    }
+
+    var manifest = element.manifest;
+    if (manifest == null) {
+      return;
+    }
+
+    var requirements = _getLibraryRequirements(element);
+    requirements.allDeclaredEnums ??= ManifestItemIdList(
+      manifest.declaredEnums.values.map((item) => item.id).toList(),
+    );
+  }
+
+  void record_library_allExtensions({required LibraryElementImpl element}) {
+    if (_recordingLockLevel != 0) {
+      return;
+    }
+
+    var manifest = element.manifest;
+    if (manifest == null) {
+      return;
+    }
+
+    var requirements = _getLibraryRequirements(element);
+    requirements.allDeclaredExtensions ??= ManifestItemIdList(
+      manifest.declaredExtensions.values.map((item) => item.id).toList(),
+    );
+  }
+
+  void record_library_allExtensionTypes({required LibraryElementImpl element}) {
+    if (_recordingLockLevel != 0) {
+      return;
+    }
+
+    var manifest = element.manifest;
+    if (manifest == null) {
+      return;
+    }
+
+    var requirements = _getLibraryRequirements(element);
+    requirements.allDeclaredExtensionTypes ??= ManifestItemIdList(
+      manifest.declaredExtensionTypes.values.map((item) => item.id).toList(),
+    );
+  }
+
+  void record_library_allGetters({required LibraryElementImpl element}) {
+    if (_recordingLockLevel != 0) {
+      return;
+    }
+
+    var manifest = element.manifest;
+    if (manifest == null) {
+      return;
+    }
+
+    var requirements = _getLibraryRequirements(element);
+    requirements.allDeclaredGetters ??= ManifestItemIdList(
+      manifest.declaredGetters.values.map((item) => item.id).toList(),
+    );
+  }
+
+  void record_library_allMixins({required LibraryElementImpl element}) {
+    if (_recordingLockLevel != 0) {
+      return;
+    }
+
+    var manifest = element.manifest;
+    if (manifest == null) {
+      return;
+    }
+
+    var requirements = _getLibraryRequirements(element);
+    requirements.allDeclaredMixins ??= ManifestItemIdList(
+      manifest.declaredMixins.values.map((item) => item.id).toList(),
+    );
+  }
+
+  void record_library_allSetters({required LibraryElementImpl element}) {
+    if (_recordingLockLevel != 0) {
+      return;
+    }
+
+    var manifest = element.manifest;
+    if (manifest == null) {
+      return;
+    }
+
+    var requirements = _getLibraryRequirements(element);
+    requirements.allDeclaredSetters ??= ManifestItemIdList(
+      manifest.declaredSetters.values.map((item) => item.id).toList(),
+    );
+  }
+
+  void record_library_allTopLevelFunctions({
+    required LibraryElementImpl element,
+  }) {
+    if (_recordingLockLevel != 0) {
+      return;
+    }
+
+    var manifest = element.manifest;
+    if (manifest == null) {
+      return;
+    }
+
+    var requirements = _getLibraryRequirements(element);
+    requirements.allDeclaredFunctions ??= ManifestItemIdList(
+      manifest.declaredFunctions.values.map((item) => item.id).toList(),
+    );
+  }
+
+  void record_library_allTopLevelVariables({
+    required LibraryElementImpl element,
+  }) {
+    if (_recordingLockLevel != 0) {
+      return;
+    }
+
+    var manifest = element.manifest;
+    if (manifest == null) {
+      return;
+    }
+
+    var requirements = _getLibraryRequirements(element);
+    requirements.allDeclaredVariables ??= ManifestItemIdList(
+      manifest.declaredVariables.values.map((item) => item.id).toList(),
+    );
+  }
+
+  void record_library_allTypeAliases({required LibraryElementImpl element}) {
+    if (_recordingLockLevel != 0) {
+      return;
+    }
+
+    var manifest = element.manifest;
+    if (manifest == null) {
+      return;
+    }
+
+    var requirements = _getLibraryRequirements(element);
+    requirements.allDeclaredTypeAliases ??= ManifestItemIdList(
+      manifest.declaredTypeAliases.values.map((item) => item.id).toList(),
+    );
+  }
+
+  void record_library_getClass({
+    required LibraryElementImpl element,
+    required String name,
+  }) {
+    var manifest = element.manifest;
+    if (manifest == null) {
+      return;
+    }
+
+    var requirements = _getLibraryRequirements(element);
+    var lookupName = name.asLookupName;
+    var id = manifest.declaredClasses[lookupName]?.id;
+    requirements.requestedDeclaredClasses[lookupName] = id;
+  }
+
+  void record_library_getEnum({
+    required LibraryElementImpl element,
+    required String name,
+  }) {
+    var manifest = element.manifest;
+    if (manifest == null) {
+      return;
+    }
+
+    var requirements = _getLibraryRequirements(element);
+    var lookupName = name.asLookupName;
+    var id = manifest.declaredEnums[lookupName]?.id;
+    requirements.requestedDeclaredEnums[lookupName] = id;
+  }
+
+  void record_library_getExtension({
+    required LibraryElementImpl element,
+    required String name,
+  }) {
+    var manifest = element.manifest;
+    if (manifest == null) {
+      return;
+    }
+
+    var requirements = _getLibraryRequirements(element);
+    var lookupName = name.asLookupName;
+    var id = manifest.declaredExtensions[lookupName]?.id;
+    requirements.requestedDeclaredExtensions[lookupName] = id;
+  }
+
+  void record_library_getExtensionType({
+    required LibraryElementImpl element,
+    required String name,
+  }) {
+    var manifest = element.manifest;
+    if (manifest == null) {
+      return;
+    }
+
+    var requirements = _getLibraryRequirements(element);
+    var lookupName = name.asLookupName;
+    var id = manifest.declaredExtensionTypes[lookupName]?.id;
+    requirements.requestedDeclaredExtensionTypes[lookupName] = id;
+  }
+
+  void record_library_getGetter({
+    required LibraryElementImpl element,
+    required String name,
+  }) {
+    var manifest = element.manifest;
+    if (manifest == null) {
+      return;
+    }
+
+    var requirements = _getLibraryRequirements(element);
+    var lookupName = name.asLookupName;
+    var id = manifest.declaredGetters[lookupName]?.id;
+    requirements.requestedDeclaredGetters[lookupName] = id;
+  }
+
+  void record_library_getMixin({
+    required LibraryElementImpl element,
+    required String name,
+  }) {
+    var manifest = element.manifest;
+    if (manifest == null) {
+      return;
+    }
+
+    var requirements = _getLibraryRequirements(element);
+    var lookupName = name.asLookupName;
+    var id = manifest.declaredMixins[lookupName]?.id;
+    requirements.requestedDeclaredMixins[lookupName] = id;
+  }
+
+  void record_library_getSetter({
+    required LibraryElementImpl element,
+    required String name,
+  }) {
+    assert(!name.endsWith('='));
+
+    var manifest = element.manifest;
+    if (manifest == null) {
+      return;
+    }
+
+    var requirements = _getLibraryRequirements(element);
+    var lookupName = '$name='.asLookupName;
+    var id = manifest.declaredSetters[lookupName]?.id;
+    requirements.requestedDeclaredSetters[lookupName] = id;
+  }
+
+  void record_library_getTopLevelFunction({
+    required LibraryElementImpl element,
+    required String name,
+  }) {
+    var manifest = element.manifest;
+    if (manifest == null) {
+      return;
+    }
+
+    var requirements = _getLibraryRequirements(element);
+    var lookupName = name.asLookupName;
+    var id = manifest.declaredFunctions[lookupName]?.id;
+    requirements.requestedDeclaredFunctions[lookupName] = id;
+  }
+
+  void record_library_getTopLevelVariable({
+    required LibraryElementImpl element,
+    required String name,
+  }) {
+    var manifest = element.manifest;
+    if (manifest == null) {
+      return;
+    }
+
+    var requirements = _getLibraryRequirements(element);
+    var lookupName = name.asLookupName;
+    var id = manifest.declaredVariables[lookupName]?.id;
+    requirements.requestedDeclaredVariables[lookupName] = id;
+  }
+
+  void record_library_getTypeAlias({
+    required LibraryElementImpl element,
+    required String name,
+  }) {
+    var manifest = element.manifest;
+    if (manifest == null) {
+      return;
+    }
+
+    var requirements = _getLibraryRequirements(element);
+    var lookupName = name.asLookupName;
+    var id = manifest.declaredTypeAliases[lookupName]?.id;
+    requirements.requestedDeclaredTypeAliases[lookupName] = id;
   }
 
   /// Record that all accessible extensions inside a [LibraryFragmentImpl]

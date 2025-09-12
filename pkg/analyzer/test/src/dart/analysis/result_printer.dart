@@ -60,6 +60,7 @@ class BundleRequirementsPrinter {
         sink.writelnWithIndent('$libraryUri');
         sink.withIndent(() {
           _writeExportedTopLevels(libraryRequirements);
+          _writeLibraryDeclaredItems(libraryRequirements);
           _writeInstanceItems(libraryRequirements);
           _writeInterfaceItems(libraryRequirements);
           _writeExportedExtensions(libraryRequirements);
@@ -228,6 +229,71 @@ class BundleRequirementsPrinter {
         );
       });
     });
+  }
+
+  void _writeLibraryDeclaredItems(LibraryRequirements requirements) {
+    void writeRequested(String name, Map<LookupName, ManifestItemId?> map) {
+      if (map.isEmpty) return;
+      sink.writeElements(name, map.sorted, _writeNamedId);
+    }
+
+    writeRequested(
+      'requestedDeclaredClasses',
+      requirements.requestedDeclaredClasses,
+    );
+    writeRequested(
+      'requestedDeclaredEnums',
+      requirements.requestedDeclaredEnums,
+    );
+    writeRequested(
+      'requestedDeclaredExtensions',
+      requirements.requestedDeclaredExtensions,
+    );
+    writeRequested(
+      'requestedDeclaredExtensionTypes',
+      requirements.requestedDeclaredExtensionTypes,
+    );
+    writeRequested(
+      'requestedDeclaredMixins',
+      requirements.requestedDeclaredMixins,
+    );
+    writeRequested(
+      'requestedDeclaredTypeAliases',
+      requirements.requestedDeclaredTypeAliases,
+    );
+    writeRequested(
+      'requestedDeclaredFunctions',
+      requirements.requestedDeclaredFunctions,
+    );
+    writeRequested(
+      'requestedDeclaredVariables',
+      requirements.requestedDeclaredVariables,
+    );
+    writeRequested(
+      'requestedDeclaredGetters',
+      requirements.requestedDeclaredGetters,
+    );
+    writeRequested(
+      'requestedDeclaredSetters',
+      requirements.requestedDeclaredSetters,
+    );
+
+    _writelnIdList('allDeclaredClasses', requirements.allDeclaredClasses);
+    _writelnIdList('allDeclaredEnums', requirements.allDeclaredEnums);
+    _writelnIdList('allDeclaredExtensions', requirements.allDeclaredExtensions);
+    _writelnIdList(
+      'allDeclaredExtensionTypes',
+      requirements.allDeclaredExtensionTypes,
+    );
+    _writelnIdList('allDeclaredMixins', requirements.allDeclaredMixins);
+    _writelnIdList(
+      'allDeclaredTypeAliases',
+      requirements.allDeclaredTypeAliases,
+    );
+    _writelnIdList('allDeclaredFunctions', requirements.allDeclaredFunctions);
+    _writelnIdList('allDeclaredVariables', requirements.allDeclaredVariables);
+    _writelnIdList('allDeclaredGetters', requirements.allDeclaredGetters);
+    _writelnIdList('allDeclaredSetters', requirements.allDeclaredSetters);
   }
 
   void _writelnIdList(String name, ManifestItemIdList? idList) {
@@ -628,6 +694,14 @@ class DriverEventsPrinter {
         sink.writeProperties({
           'libraryUri': failure.libraryUri,
           'instanceName': failure.instanceName.asString,
+          'childrenPropertyName': failure.childrenPropertyName,
+          'expectedIds': failure.expectedIds.asString(idProvider),
+          'actualIds': failure.actualIds.asString(idProvider),
+        });
+      case LibraryChildrenIdsMismatch():
+        sink.writelnWithIndent('libraryChildrenIdsMismatch');
+        sink.writeProperties({
+          'libraryUri': failure.libraryUri,
           'childrenPropertyName': failure.childrenPropertyName,
           'expectedIds': failure.expectedIds.asString(idProvider),
           'actualIds': failure.actualIds.asString(idProvider),
