@@ -79,7 +79,7 @@ class SummaryDataReader {
     required K Function() readKey,
     required V Function() readValue,
   }) {
-    var length = readUInt30();
+    var length = readUint30();
     if (length == 0) {
       return const {};
     }
@@ -119,16 +119,16 @@ class SummaryDataReader {
     }
   }
 
-  int? readOptionalUInt30() {
+  int? readOptionalUint30() {
     if (readBool()) {
-      return readUInt30();
+      return readUint30();
     } else {
       return null;
     }
   }
 
   String readStringReference() {
-    var index = readUInt30();
+    var index = readUint30();
     return stringOfIndex(index);
   }
 
@@ -146,7 +146,7 @@ class SummaryDataReader {
   }
 
   Set<String> readStringUtf8Set() {
-    var length = readUInt30();
+    var length = readUint30();
     var result = <String>{};
     for (var i = 0; i < length; i++) {
       var item = readStringUtf8();
@@ -156,7 +156,7 @@ class SummaryDataReader {
   }
 
   List<T> readTypedList<T>(T Function() read) {
-    var length = readUInt30();
+    var length = readUint30();
     if (length == 0) {
       return const <Never>[];
     }
@@ -166,7 +166,7 @@ class SummaryDataReader {
   }
 
   List<T> readTypedListCast<T>(Object? Function() read) {
-    var length = readUInt30();
+    var length = readUint30();
     if (length == 0) {
       return const <Never>[];
     }
@@ -175,7 +175,7 @@ class SummaryDataReader {
     }, growable: false);
   }
 
-  int readUInt30() {
+  int readUint30() {
     var byte = readByte();
     if (byte & 0x80 == 0) {
       // 0xxxxxxx
@@ -192,33 +192,33 @@ class SummaryDataReader {
     }
   }
 
-  Uint32List readUInt30List() {
-    var length = readUInt30();
+  Uint32List readUint30List() {
+    var length = readUint30();
     var result = Uint32List(length);
     for (var i = 0; i < length; ++i) {
-      result[i] = readUInt30();
+      result[i] = readUint30();
     }
     return result;
   }
 
-  int readUInt32() {
+  int readUint32() {
     return (readByte() << 24) |
         (readByte() << 16) |
         (readByte() << 8) |
         readByte();
   }
 
-  Uint32List readUInt32List() {
-    var length = readUInt32();
+  Uint32List readUint32List() {
+    var length = readUint32();
     var result = Uint32List(length);
     for (var i = 0; i < length; ++i) {
-      result[i] = readUInt32();
+      result[i] = readUint32();
     }
     return result;
   }
 
   Uint8List readUint8List() {
-    var length = readUInt30();
+    var length = readUint30();
     var result = Uint8List.sublistView(bytes, offset, offset + length);
     offset += length;
     return result;

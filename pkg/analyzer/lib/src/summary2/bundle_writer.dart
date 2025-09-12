@@ -75,7 +75,7 @@ class BundleWriter {
     var librariesOffset = _sink.offset;
     _sink.writeList<_Library>(_libraries, (library) {
       _sink._writeStringReference(library.uriStr);
-      _sink.writeUInt30(library.offset);
+      _sink.writeUint30(library.offset);
     });
 
     var referencesOffset = _sink.offset;
@@ -86,10 +86,10 @@ class BundleWriter {
     var stringTableOffset = _stringIndexer.write(_sink);
 
     // Write as Uint32 so that we know where it is.
-    _sink.writeUInt32(baseResolutionOffset);
-    _sink.writeUInt32(librariesOffset);
-    _sink.writeUInt32(referencesOffset);
-    _sink.writeUInt32(stringTableOffset);
+    _sink.writeUint32(baseResolutionOffset);
+    _sink.writeUint32(librariesOffset);
+    _sink.writeUint32(referencesOffset);
+    _sink.writeUint32(stringTableOffset);
 
     var bytes = _sink.takeBytes();
     return BundleWriterResult(resolutionBytes: bytes);
@@ -305,10 +305,10 @@ class BundleWriter {
       var index = _references._indexOfReference(exported.reference);
       if (exported is ExportedReferenceDeclared) {
         _sink.writeByte(0);
-        _sink.writeUInt30(index);
+        _sink.writeUint30(index);
       } else if (exported is ExportedReferenceExported) {
         _sink.writeByte(1);
-        _sink.writeUInt30(index);
+        _sink.writeUint30(index);
         _sink.writeList(exported.locations, _writeExportLocation);
       } else {
         throw UnimplementedError('(${exported.runtimeType}) $exported');
@@ -317,8 +317,8 @@ class BundleWriter {
   }
 
   void _writeExportLocation(ExportLocation location) {
-    _sink.writeUInt30(location.fragmentIndex);
-    _sink.writeUInt30(location.exportIndex);
+    _sink.writeUint30(location.fragmentIndex);
+    _sink.writeUint30(location.exportIndex);
   }
 
   void _writeExtensionElements(List<ExtensionElementImpl> elements) {
@@ -459,13 +459,13 @@ class BundleWriter {
     _sink = savedSink;
 
     var bytes = newSink.takeBytes();
-    _sink.writeUInt30(bytes.length);
+    _sink.writeUint30(bytes.length);
     _sink.writeBytes(bytes);
   }
 
   void _writeFragmentId(FragmentImpl fragment) {
     var id = _fragmentIds.getId(fragment);
-    _sink.writeUInt30(id);
+    _sink.writeUint30(id);
   }
 
   void _writeFragmentName(Fragment fragment) {
@@ -498,14 +498,14 @@ class BundleWriter {
   }
 
   void _writeLanguageVersion(LibraryLanguageVersion version) {
-    _sink.writeUInt30(version.package.major);
-    _sink.writeUInt30(version.package.minor);
+    _sink.writeUint30(version.package.major);
+    _sink.writeUint30(version.package.minor);
 
     var override = version.override;
     if (override != null) {
       _sink.writeBool(true);
-      _sink.writeUInt30(override.major);
-      _sink.writeUInt30(override.minor);
+      _sink.writeUint30(override.major);
+      _sink.writeUint30(override.minor);
     } else {
       _sink.writeBool(false);
     }
@@ -667,13 +667,13 @@ class BundleWriter {
 
   void _writeReference(Reference reference) {
     var index = _references._indexOfReference(reference);
-    _sink.writeUInt30(index);
+    _sink.writeUint30(index);
   }
 
   /// Invoke this after writing enough information to create an element, but
   /// before writing any resolution data.
   void _writeResolutionOffset() {
-    _sink.writeUInt30(_resolutionSink.offset);
+    _sink.writeUint30(_resolutionSink.offset);
   }
 
   void _writeSetterElements(List<SetterElementImpl> elements) {
@@ -910,7 +910,7 @@ class ResolutionSink extends _SummaryDataWriter {
       case TypeParameterElementImpl():
         writeEnum(ElementTag.typeParameter);
         var localIndex = localElements[element];
-        writeUInt30(localIndex);
+        writeUint30(localIndex);
       case FormalParameterElementImpl():
         writeEnum(ElementTag.formalParameter);
         var enclosingElement = element.enclosingElement;
@@ -918,12 +918,12 @@ class ResolutionSink extends _SummaryDataWriter {
         writeElement(enclosingElement);
         var index = enclosingElement.formalParameters.indexOf(element);
         assert(index >= 0);
-        writeUInt30(index);
+        writeUint30(index);
       case ElementImpl():
         writeEnum(ElementTag.elementImpl);
         var reference = element.reference!;
         var referenceIndex = _references._indexOfReference(reference);
-        writeUInt30(referenceIndex);
+        writeUint30(referenceIndex);
       default:
         throw StateError('${element.runtimeType}');
     }
@@ -1321,7 +1321,7 @@ class _SummaryDataWriter extends BufferedSink {
 
   void _writeStringReference(String string) {
     var index = _stringIndexer[string];
-    writeUInt30(index);
+    writeUint30(index);
   }
 
   void _writeTopLevelInferenceError(TopLevelInferenceError? error) {

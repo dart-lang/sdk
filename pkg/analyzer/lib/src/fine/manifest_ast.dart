@@ -118,9 +118,9 @@ class ManifestNode {
     return ManifestNode._(
       isValid: reader.readBool(),
       tokenBuffer: reader.readStringUtf8(),
-      tokenLengthList: reader.readUInt30List(),
+      tokenLengthList: reader.readUint30List(),
       elements: ManifestElement.readList(reader),
-      elementIndexList: reader.readUInt30List(),
+      elementIndexList: reader.readUint30List(),
     );
   }
 

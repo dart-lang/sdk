@@ -126,7 +126,7 @@ class BufferedSink {
   }
 
   void writeList<T>(List<T> items, void Function(T x) writeItem) {
-    writeUInt30(items.length);
+    writeUint30(items.length);
     for (var i = 0; i < items.length; i++) {
       writeItem(items[i]);
     }
@@ -137,7 +137,7 @@ class BufferedSink {
     required void Function(K key) writeKey,
     required void Function(V value) writeValue,
   }) {
-    writeUInt30(map.length);
+    writeUint30(map.length);
     for (var entry in map.entries) {
       writeKey(entry.key);
       writeValue(entry.value);
@@ -171,10 +171,10 @@ class BufferedSink {
     }
   }
 
-  void writeOptionalUInt30(int? value) {
+  void writeOptionalUint30(int? value) {
     if (value != null) {
       writeBool(true);
-      writeUInt30(value);
+      writeUint30(value);
     } else {
       writeBool(false);
     }
@@ -187,14 +187,14 @@ class BufferedSink {
   }
 
   void writeStringUtf8Iterable(Iterable<String> items) {
-    writeUInt30(items.length);
+    writeUint30(items.length);
     for (var item in items) {
       writeStringUtf8(item);
     }
   }
 
   @pragma("vm:prefer-inline")
-  void writeUInt30(int value) {
+  void writeUint30(int value) {
     assert(value >= 0 && value >> 30 == 0);
     if (value < 0x80) {
       _addByte(value);
@@ -212,13 +212,13 @@ class BufferedSink {
 
   void writeUint30List(List<int> values) {
     var length = values.length;
-    writeUInt30(length);
+    writeUint30(length);
     for (var i = 0; i < length; i++) {
-      writeUInt30(values[i]);
+      writeUint30(values[i]);
     }
   }
 
-  void writeUInt32(int value) {
+  void writeUint32(int value) {
     _addByte4(
       (value >> 24) & 0xFF,
       (value >> 16) & 0xFF,
@@ -228,7 +228,7 @@ class BufferedSink {
   }
 
   void writeUint8List(Uint8List bytes) {
-    writeUInt30(bytes.length);
+    writeUint30(bytes.length);
     writeBytes(bytes);
   }
 
