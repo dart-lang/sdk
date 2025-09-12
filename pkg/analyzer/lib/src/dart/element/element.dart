@@ -2970,13 +2970,10 @@ class FieldElementImpl extends PropertyInducingElementImpl
 
 class FieldFormalParameterElementImpl extends FormalParameterElementImpl
     implements FieldFormalParameterElement {
-  FieldFormalParameterElementImpl(super.firstFragment);
-
   @override
-  FieldElementImpl? get field => switch (_firstFragment) {
-    FieldFormalParameterFragmentImpl(:FieldFragmentImpl field) => field.element,
-    _ => null,
-  };
+  FieldElementImpl? field;
+
+  FieldFormalParameterElementImpl(super.firstFragment);
 
   @Deprecated('Use field instead')
   @override
@@ -3004,11 +3001,6 @@ class FieldFormalParameterElementImpl extends FormalParameterElementImpl
 
 class FieldFormalParameterFragmentImpl extends FormalParameterFragmentImpl
     implements FieldFormalParameterFragment {
-  /// The field element associated with this field formal parameter, or `null`
-  /// if the parameter references a field that doesn't exist.
-  // TODO(scheglov): move to element
-  FieldFragmentImpl? field;
-
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
   FieldFormalParameterFragmentImpl({

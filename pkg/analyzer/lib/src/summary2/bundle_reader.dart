@@ -742,10 +742,7 @@ class LibraryReader {
       parameter.element.type = type;
       parameter.constantInitializer = reader.readOptionalExpression();
       if (parameter is FieldFormalParameterFragmentImpl) {
-        // TODO(scheglov): use element
-        parameter.field =
-            (reader.readElement() as FieldElementImpl?)?.firstFragment;
-        // parameter.field = reader.readFragmentOrMember() as FieldFragmentImpl?;
+        parameter.element.field = reader.readElement() as FieldElementImpl?;
       }
     }
   }
