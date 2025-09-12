@@ -17214,7 +17214,7 @@ abstract final class NodeList<E extends AstNode> implements List<E> {
   E removeAt(int index);
 }
 
-final class NodeListImpl<E extends AstNode>
+final class NodeListImpl<E extends AstNodeImpl>
     with ListMixin<E>
     implements NodeList<E> {
   late final AstNodeImpl _owner;
