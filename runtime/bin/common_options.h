@@ -20,7 +20,7 @@ static void _PrintVersion() {
 // clang-format off
 static void _PrintUsage() {
   Syslog::Print(
-      "Usage: dart [<vm-flags>] <dart-script-file> [<script-arguments>]\n"
+      "Usage: dartvm [<vm-flags>] <dart-script-file> [<script-arguments>]\n"
       "\n"
       "Executes the Dart script <dart-script-file> with "
       "the given list of <script-arguments>.\n"
