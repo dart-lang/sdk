@@ -19,7 +19,7 @@ class FlutterStyleTodos extends LintRule {
   static final _todoRegExp = RegExp(r'//+\s*TODO\b', caseSensitive: false);
 
   static final RegExp _todoExpectedRegExp = RegExp(
-    r'// TODO\([a-zA-Z0-9][-a-zA-Z0-9\.]*\): ',
+    r'//\s*TODO\([a-zA-Z0-9][-a-zA-Z0-9\.]*\): ',
   );
 
   FlutterStyleTodos()
