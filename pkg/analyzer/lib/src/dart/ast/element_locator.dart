@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 
 /// An object used to locate the [Element] associated with a given [AstNode].
@@ -192,6 +193,14 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
         return grandParent.element;
       }
       return null;
+    } else if (parent is MethodInvocation &&
+        parent.methodName == node &&
+        parent.methodName.name == MethodElement.CALL_METHOD_NAME) {
+      // Handle .call() invocations on functions.
+      var method = parent.realTarget;
+      if (method is Identifier && method.staticType is FunctionType) {
+        return method.element;
+      }
     }
     return node.writeOrReadElement;
   }
