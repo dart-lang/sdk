@@ -1012,7 +1012,7 @@ extension FutureExtensions<T> on Future<T> {
   /// If [test] is supplied, only catches errors of type [E]
   /// where [test] returns `true`.
   /// If [E] is [Object], then all errors are potentially caught,
-  /// depending only on a supplied [test].toString()
+  /// depending only on a supplied [test].
   ///
   /// If the error is caught,
   /// the returned future completes with the result of calling [handleError]
