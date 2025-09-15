@@ -1345,7 +1345,7 @@ class TypeAliasItem extends ManifestItem<TypeAliasElementImpl> {
 
   TypeAliasItem({
     required super.id,
-    required super.flags,
+    required _TypeAliasItemFlags super.flags,
     required super.metadata,
     required this.typeParameters,
     required this.aliasedType,
@@ -1359,7 +1359,7 @@ class TypeAliasItem extends ManifestItem<TypeAliasElementImpl> {
     return context.withTypeParameters(element.typeParameters, (typeParameters) {
       return TypeAliasItem(
         id: id,
-        flags: _ManifestItemFlags.encode(element),
+        flags: _TypeAliasItemFlags.encode(element),
         metadata: ManifestMetadata.encode(context, element.metadata),
         typeParameters: typeParameters,
         aliasedType: element.aliasedType.encode(context),
@@ -1370,7 +1370,7 @@ class TypeAliasItem extends ManifestItem<TypeAliasElementImpl> {
   factory TypeAliasItem.read(SummaryDataReader reader) {
     return TypeAliasItem(
       id: ManifestItemId.read(reader),
-      flags: _ManifestItemFlags.read(reader),
+      flags: _TypeAliasItemFlags.read(reader),
       metadata: ManifestMetadata.read(reader),
       typeParameters: ManifestTypeParameter.readList(reader),
       aliasedType: ManifestType.read(reader),
@@ -1378,9 +1378,14 @@ class TypeAliasItem extends ManifestItem<TypeAliasElementImpl> {
   }
 
   @override
+  _TypeAliasItemFlags get flags => super.flags as _TypeAliasItemFlags;
+
+  @override
   bool match(MatchContext context, TypeAliasElementImpl element) {
     context.addTypeParameters(element.typeParameters);
     return super.match(context, element) &&
+        flags.isSimplyBounded == element.isSimplyBounded &&
+        flags.isProperRename == element.isProperRename &&
         typeParameters.match(context, element.typeParameters) &&
         aliasedType.match(context, element.aliasedType);
   }
@@ -1480,6 +1485,8 @@ enum _MethodItemFlag { isOperatorEqualWithParameterTypeFromObject }
 enum _MixinItemFlag { isBase }
 
 enum _TopLevelVariableItemFlag { isExternal }
+
+enum _TypeAliasItemFlag { isProperRename, isSimplyBounded }
 
 enum _VariableItemFlag {
   hasInitializer,
@@ -1869,10 +1876,6 @@ extension type _ManifestItemFlags._(int _bits) {
     return _ManifestItemFlags._(bits);
   }
 
-  factory _ManifestItemFlags.read(SummaryDataReader reader) {
-    return _ManifestItemFlags._(reader.readUint30());
-  }
-
   bool get isSynthetic {
     return _has(_ManifestItemFlag.isSynthetic);
   }
@@ -1993,6 +1996,47 @@ extension type _TopLevelVariableItemFlags._(int _bits)
   }
 
   static int _maskFor(_TopLevelVariableItemFlag flag) {
+    var bit = _base + flag.index;
+    assert(bit < 30);
+    return 1 << bit;
+  }
+}
+
+extension type _TypeAliasItemFlags._(int _bits) implements _ManifestItemFlags {
+  static final int _base = _ManifestItemFlags._next;
+
+  factory _TypeAliasItemFlags.encode(TypeAliasElementImpl element) {
+    var bits = _ManifestItemFlags.encode(element)._bits;
+    if (element.isProperRename) {
+      bits |= _maskFor(_TypeAliasItemFlag.isProperRename);
+    }
+    if (element.isSimplyBounded) {
+      bits |= _maskFor(_TypeAliasItemFlag.isSimplyBounded);
+    }
+    return _TypeAliasItemFlags._(bits);
+  }
+
+  factory _TypeAliasItemFlags.read(SummaryDataReader reader) {
+    return _TypeAliasItemFlags._(reader.readUint30());
+  }
+
+  bool get isProperRename {
+    return _has(_TypeAliasItemFlag.isProperRename);
+  }
+
+  bool get isSimplyBounded {
+    return _has(_TypeAliasItemFlag.isSimplyBounded);
+  }
+
+  void write(BufferedSink sink) {
+    sink.writeUint30(_bits);
+  }
+
+  bool _has(_TypeAliasItemFlag flag) {
+    return (_bits & _maskFor(flag)) != 0;
+  }
+
+  static int _maskFor(_TypeAliasItemFlag flag) {
     var bit = _base + flag.index;
     assert(bit < 30);
     return 1 << bit;

@@ -62636,6 +62636,7 @@ const x = A;
   package:test/a.dart
     declaredTypeAliases
       A: #M0
+        flags: isProperRename isSimplyBounded
         aliasedType: int @ dart:core
 [operation] linkLibraryCycle
   package:test/test.dart
@@ -78236,6 +78237,168 @@ typedef B = int;
     );
   }
 
+  test_manifest_typeAlias_modifier_isProperRename() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+typedef A<T> = List<T>;
+typedef B<T extends num> = List<T>;
+typedef C<T> = List<T>;
+typedef D<T extends num> = List<T>;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredTypeAliases
+      A: #M0
+        flags: isProperRename isSimplyBounded
+        typeParameters
+          #0 covariant
+            bound: <null>
+        aliasedType: List @ dart:core
+          typeParameter#0
+      B: #M1
+        flags: isSimplyBounded
+        typeParameters
+          #0 covariant
+            bound: num @ dart:core
+        aliasedType: List @ dart:core
+          typeParameter#0
+      C: #M2
+        flags: isProperRename isSimplyBounded
+        typeParameters
+          #0 covariant
+            bound: <null>
+        aliasedType: List @ dart:core
+          typeParameter#0
+      D: #M3
+        flags: isSimplyBounded
+        typeParameters
+          #0 covariant
+            bound: num @ dart:core
+        aliasedType: List @ dart:core
+          typeParameter#0
+''',
+      updatedCode: r'''
+typedef A<T> = List<T>;
+typedef B<T extends num> = List<T>;
+typedef C<T extends num> = List<T>;
+typedef D<T> = List<T>;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredTypeAliases
+      A: #M0
+        flags: isProperRename isSimplyBounded
+        typeParameters
+          #0 covariant
+            bound: <null>
+        aliasedType: List @ dart:core
+          typeParameter#0
+      B: #M1
+        flags: isSimplyBounded
+        typeParameters
+          #0 covariant
+            bound: num @ dart:core
+        aliasedType: List @ dart:core
+          typeParameter#0
+      C: #M4
+        flags: isSimplyBounded
+        typeParameters
+          #0 covariant
+            bound: num @ dart:core
+        aliasedType: List @ dart:core
+          typeParameter#0
+      D: #M5
+        flags: isProperRename isSimplyBounded
+        typeParameters
+          #0 covariant
+            bound: <null>
+        aliasedType: List @ dart:core
+          typeParameter#0
+''',
+    );
+  }
+
+  test_manifest_typeAlias_modifier_isSimplyBounded() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+typedef A<T> = int;
+typedef B<T extends List<T>> = int;
+typedef C<T> = int;
+typedef D<T extends List<T>> = int;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredTypeAliases
+      A: #M0
+        flags: isSimplyBounded
+        typeParameters
+          #0 unrelated
+            bound: <null>
+        aliasedType: int @ dart:core
+      B: #M1
+        typeParameters
+          #0 unrelated
+            bound: List @ dart:core
+              typeParameter#0
+        aliasedType: int @ dart:core
+      C: #M2
+        flags: isSimplyBounded
+        typeParameters
+          #0 unrelated
+            bound: <null>
+        aliasedType: int @ dart:core
+      D: #M3
+        typeParameters
+          #0 unrelated
+            bound: List @ dart:core
+              typeParameter#0
+        aliasedType: int @ dart:core
+''',
+      updatedCode: r'''
+typedef A<T> = int;
+typedef B<T extends List<T>> = int;
+typedef C<T extends List<T>> = int;
+typedef D<T> = int;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredTypeAliases
+      A: #M0
+        flags: isSimplyBounded
+        typeParameters
+          #0 unrelated
+            bound: <null>
+        aliasedType: int @ dart:core
+      B: #M1
+        typeParameters
+          #0 unrelated
+            bound: List @ dart:core
+              typeParameter#0
+        aliasedType: int @ dart:core
+      C: #M4
+        typeParameters
+          #0 unrelated
+            bound: List @ dart:core
+              typeParameter#0
+        aliasedType: int @ dart:core
+      D: #M5
+        flags: isSimplyBounded
+        typeParameters
+          #0 unrelated
+            bound: <null>
+        aliasedType: int @ dart:core
+''',
+    );
+  }
+
   test_manifest_typeAlias_typeParameters_bound() async {
     configuration.withElementManifests = true;
     await _runLibraryManifestScenario(
@@ -78248,6 +78411,7 @@ typedef F<X extends num> = List<X>;
   package:test/test.dart
     declaredTypeAliases
       F: #M0
+        flags: isSimplyBounded
         typeParameters
           #0 covariant
             bound: num @ dart:core
@@ -78262,6 +78426,7 @@ typedef F<X extends int> = List<X>;
   package:test/test.dart
     declaredTypeAliases
       F: #M1
+        flags: isSimplyBounded
         typeParameters
           #0 covariant
             bound: int @ dart:core

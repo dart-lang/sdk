@@ -1820,6 +1820,10 @@ class LibraryManifestPrinter {
   void _writeTypeAliasItem(TypeAliasItem item) {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
+        sink.writeFlags({
+          'isProperRename': item.flags.isProperRename,
+          'isSimplyBounded': item.flags.isSimplyBounded,
+        });
         _writeMetadata(item);
         _writeTypeParameters(item.typeParameters);
         _writeNamedType('aliasedType', item.aliasedType);
