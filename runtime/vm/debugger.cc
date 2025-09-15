@@ -3091,6 +3091,16 @@ void Debugger::ResumptionBreakpoint() {
             "ResumptionBreakpoint - hit a breakpoint, continue single "
             "stepping\n");
       }
+#if defined(DART_DYNAMIC_MODULES)
+      if (top_frame->IsInterpreted()) {
+        // The interpreter calls the single step handler on every instruction,
+        // so set the last stepping fp/position to the current fp/position when
+        // stepping over so the debugger doesn't pause until it reaches
+        // a _new_ source position.
+        last_stepping_fp_ = top_frame->fp();
+        last_stepping_pos_ = top_frame->TokenPos();
+      }
+#endif
       EnterSingleStepMode();
       return;
     }
@@ -3416,6 +3426,12 @@ void Debugger::SetSyncSteppingFramePointer(DebuggerStackTrace* stack_trace) {
     stepping_fp_ = frame->fp();
 #if defined(DART_DYNAMIC_MODULES)
     stepping_fp_from_interpreted_frame_ = frame->IsInterpreted();
+    // The interpreter calls the single step handler on every instruction,
+    // so set the last stepping fp/position to the current fp/position when
+    // stepping over so the debugger doesn't pause until it reaches
+    // a _new_ source position.
+    last_stepping_fp_ = frame->fp();
+    last_stepping_pos_ = frame->TokenPos();
 #endif
   } else {
     stepping_fp_ = 0;
