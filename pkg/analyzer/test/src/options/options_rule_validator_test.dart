@@ -271,6 +271,25 @@ linter:
 ''');
   }
 
+  void test_incompatible_trigger_invalidMap() {
+    newFile('/included.yaml', '''
+linter:
+  rules:
+    rule_neg: true
+''');
+    assertErrors(
+      '''
+include: included.yaml
+
+linter:
+  rules:
+    rule_neg:
+    rule_pos: true
+''',
+      [AnalysisOptionsWarningCode.incompatibleLintFiles],
+    );
+  }
+
   void test_incompatible_unsuportedValue_invalidMap() {
     newFile('/included.yaml', '''
 linter:
