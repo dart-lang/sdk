@@ -324,19 +324,20 @@ lsp.CompletionItem? toLspCompletionItem(
   }
 
   var completion = suggestion.completion;
-  var selectionOffset = (suggestion is KeywordSuggestion)
-      ? suggestion.selectionOffset
-      : completion.length;
-  var selectionLength = 0;
 
-  if (suggestion is SuggestionData) {
-    selectionOffset = (suggestion as SuggestionData).selectionOffset;
-  } else if (suggestion case TypedSuggestion(
-    data: TypeImportData(:var selectionOffset?, :var selectionLength?),
-  )) {
-    selectionOffset = selectionOffset;
-    selectionLength = selectionLength;
-  }
+  var (selectionOffset, selectionLength) = switch (suggestion) {
+    KeywordSuggestion(:var selectionOffset) => (selectionOffset, 0),
+    SuggestionData(:var selectionOffset) => (selectionOffset, 0),
+    TypedSuggestion(
+      data: TypeImportData(:var selectionOffset?, :var selectionLength?),
+    ) =>
+      (selectionOffset, selectionLength),
+    OverrideSuggestion(
+      data: TypeImportData(:var selectionOffset?, :var selectionLength?),
+    ) =>
+      (selectionOffset, selectionLength),
+    _ => (completion.length, 0),
+  };
 
   var insertTextInfo = buildInsertText(
     supportsSnippets: supportsSnippets,

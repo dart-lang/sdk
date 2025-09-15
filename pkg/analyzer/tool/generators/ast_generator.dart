@@ -86,6 +86,9 @@ class _Generator {
           var propertyName = entity.getField('name')!.toStringValue()!;
           var isSuper = entity.getField('isSuper')!.toBoolValue()!;
           var withOverride = entity.getField('withOverride')!.toBoolValue()!;
+          var isNodeListFinal = entity
+              .getField('isNodeListFinal')!
+              .toBoolValue()!;
           var isTokenFinal = entity.getField('isTokenFinal')!.toBoolValue()!;
           var superNullAssertOverride = entity
               .getField('superNullAssertOverride')!
@@ -107,6 +110,9 @@ class _Generator {
           type as InterfaceType;
 
           var kind = _PropertyTypeKind.fromType(type);
+          if (kind is _PropertyTypeKindNodeList) {
+            kind.isWritable = !isNodeListFinal;
+          }
           if (kind is _PropertyTypeKindToken) {
             kind.isWritable = !isTokenFinal;
             kind.groupId = tokenGroupId;
@@ -538,11 +544,12 @@ final ${property.typeCode} $propertyName;
 \n@generated
 $typeCode _$propertyName;
 ''');
-        case _PropertyTypeKindNodeList():
+        case _PropertyTypeKindNodeList kind:
+          var finalKeyword = kind.isWritable ? '' : 'final ';
           buffer.write('''
 \n@generated
 @override
-final ${property.typeCode} $propertyName = NodeListImpl._();
+$finalKeyword ${property.typeCode} $propertyName = NodeListImpl._();
 ''');
         case _PropertyTypeKindOther():
           buffer.write('''
@@ -893,6 +900,7 @@ class _PropertyTypeKindNode extends _PropertyTypeKind {}
 
 class _PropertyTypeKindNodeList extends _PropertyTypeKind {
   final InterfaceType elementType;
+  bool isWritable = false;
 
   _PropertyTypeKindNodeList({required this.elementType});
 

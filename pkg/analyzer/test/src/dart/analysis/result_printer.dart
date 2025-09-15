@@ -59,6 +59,15 @@ class BundleRequirementsPrinter {
         var libraryRequirements = libEntry.value;
         sink.writelnWithIndent('$libraryUri');
         sink.withIndent(() {
+          if (libraryRequirements.name case var name?) {
+            sink.writelnWithIndent('name: $name');
+          }
+          if (libraryRequirements.featureSet != null) {
+            sink.writelnWithIndent('featureSet: <not-null>');
+          }
+          if (libraryRequirements.languageVersion != null) {
+            sink.writelnWithIndent('languageVersion: <not-null>');
+          }
           _writeExportedTopLevels(libraryRequirements);
           _writeLibraryDeclaredItems(libraryRequirements);
           _writeInstanceItems(libraryRequirements);
@@ -94,6 +103,14 @@ class BundleRequirementsPrinter {
     sink.writeElements('exportedTopLevels', entries, (entry) {
       _writeNamedId(entry);
     });
+
+    sink.writeElements(
+      'reExportDeprecatedOnly',
+      requirements.reExportDeprecatedOnly.sorted,
+      (entry) {
+        sink.writelnWithIndent('${entry.key}: ${entry.value}');
+      },
+    );
   }
 
   void _writeExportRequirements(RequirementsManifest requirements) {
@@ -623,8 +640,18 @@ class DriverEventsPrinter {
   void _writeRequirementFailure(RequirementFailure failure) {
     switch (failure) {
       case LibraryMissing():
-        // TODO(scheglov): Handle this case.
-        throw UnimplementedError();
+        sink.writelnWithIndent('libraryMissing');
+        sink.writeProperties({'uri': failure.uri});
+      case LibraryNameMismatch():
+        sink.writelnWithIndent('libraryNameMismatch');
+        sink.writeProperties({
+          'libraryUri': failure.libraryUri,
+          'expected': failure.expected ?? '<null>',
+          'actual': failure.actual ?? '<null>',
+        });
+      case LibraryFeatureSetMismatch():
+        sink.writelnWithIndent('libraryFeatureSetMismatch');
+        sink.writeProperties({'libraryUri': failure.libraryUri});
       case ExportCountMismatch():
         sink.writelnWithIndent('exportCountMismatch');
         sink.writeProperties({
@@ -771,6 +798,17 @@ class DriverEventsPrinter {
               sink.writelnWithIndent('targetElementName: $elementName');
             }
           });
+        });
+      case LibraryLanguageVersionMismatch():
+        sink.writelnWithIndent('libraryLanguageVersionMismatch');
+        sink.writeProperties({'libraryUri': failure.libraryUri});
+      case ReExportDeprecatedOnlyMismatch():
+        sink.writelnWithIndent('reExportDeprecatedOnlyMismatch');
+        sink.writeProperties({
+          'libraryUri': failure.libraryUri,
+          'name': failure.name.asString,
+          'expected': failure.expected,
+          'actual': failure.actual,
         });
     }
   }
@@ -1082,6 +1120,10 @@ class LibraryManifestPrinter {
   });
 
   void write(LibraryManifest manifest) {
+    if (manifest.name case var name?) {
+      sink.writelnWithIndent('name: $name');
+    }
+
     var classEntries = manifest.declaredClasses.sorted;
     sink.writeElements('declaredClasses', classEntries, (entry) {
       var item = entry.value;
@@ -1160,6 +1202,14 @@ class LibraryManifestPrinter {
           _writeNamedId(entry.key, entry.value);
         }
       });
+    }
+
+    if (manifest.reExportDeprecatedOnly.isNotEmpty) {
+      var namesStr = manifest.reExportDeprecatedOnly
+          .sorted(LookupName.compare)
+          .map((e) => e.asString)
+          .join(' ');
+      sink.writelnWithIndent('reExportDeprecatedOnly: $namesStr');
     }
 
     var exportedExtensionIds = manifest.exportedExtensions;
@@ -1673,6 +1723,8 @@ class LibraryManifestPrinter {
                   sink.writelnWithIndent('$index = null');
                 case ManifestAstElementKind.dynamic_:
                   sink.writelnWithIndent('$index = dynamic');
+                case ManifestAstElementKind.never_:
+                  sink.writelnWithIndent('$index = Never');
                 case ManifestAstElementKind.multiplyDefined:
                   sink.writelnWithIndent('$index = multiplyDefined');
                 case ManifestAstElementKind.formalParameter:
@@ -1753,17 +1805,23 @@ class LibraryManifestPrinter {
           _writeTypeParameters(type.typeParameters);
           sink.writeElements('positional', type.positional, (field) {
             sink.writeIndent();
-            if (field.isRequired) {
-              sink.write('required ');
-            }
+            sink.writeIf(field.isRequired, 'required ');
+            sink.writeIf(field.isInitializingFormal, 'this ');
+            sink.writeIf(field.isSuperFormal, 'super ');
             _writeType(field.type);
+            sink.withIndent(() {
+              _writeNode('defaultValue', field.defaultValue);
+            });
           });
           sink.writeElements('named', type.named, (field) {
             sink.writeWithIndent('${field.name}: ');
-            if (field.isRequired) {
-              sink.write('required ');
-            }
+            sink.writeIf(field.isRequired, 'required ');
+            sink.writeIf(field.isInitializingFormal, 'this ');
+            sink.writeIf(field.isSuperFormal, 'super ');
             _writeType(field.type);
+            sink.withIndent(() {
+              _writeNode('defaultValue', field.defaultValue);
+            });
           });
           _writeNamedType('returnType', type.returnType);
         });
@@ -1812,6 +1870,10 @@ class LibraryManifestPrinter {
   void _writeTypeAliasItem(TypeAliasItem item) {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
+        sink.writeFlags({
+          'isProperRename': item.flags.isProperRename,
+          'isSimplyBounded': item.flags.isSimplyBounded,
+        });
         _writeMetadata(item);
         _writeTypeParameters(item.typeParameters);
         _writeNamedType('aliasedType', item.aliasedType);

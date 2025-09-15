@@ -153,13 +153,6 @@ class NamespaceBuilder {
     return Namespace(exportedNames);
   }
 
-  /// Create a namespace representing the export namespace of the given
-  /// [library].
-  Namespace createExportNamespaceForLibrary(LibraryElementImpl library) {
-    var exportedNames = _getExportMapping(library);
-    return Namespace(exportedNames);
-  }
-
   /// Create a namespace representing the import namespace of the given
   /// [importedLibrary].
   Namespace createImportNamespaceForDirective({

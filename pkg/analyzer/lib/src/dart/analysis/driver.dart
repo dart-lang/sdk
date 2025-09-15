@@ -106,7 +106,7 @@ testFineAfterLibraryAnalyzerHook;
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 550;
+  static const int DATA_VERSION = 555;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -629,7 +629,7 @@ class AnalysisDriver {
 
         packageBundleBuilder.addLibrary(
           uriStr,
-          libraryElement.units.map((e) {
+          libraryElement.fragments.map((e) {
             return e.source.uri.toString();
           }).toList(),
         );

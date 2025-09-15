@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:analyzer/src/fine/lookup_name.dart';
 import 'package:analyzer/src/fine/manifest_id.dart';
+import 'package:analyzer/src/fine/manifest_item.dart';
 import 'package:analyzer/src/fine/requirements.dart';
 
 final class ExportCountMismatch extends ExportFailure {
@@ -295,6 +298,36 @@ class LibraryChildrenIdsMismatch extends RequirementFailure {
   }
 }
 
+class LibraryFeatureSetMismatch extends RequirementFailure {
+  final Uri libraryUri;
+  final Uint8List? expected;
+  final Uint8List? actual;
+
+  LibraryFeatureSetMismatch({
+    required this.libraryUri,
+    required this.expected,
+    required this.actual,
+  });
+
+  @override
+  String toString() {
+    return 'LibraryFeatureSetMismatch(libraryUri: $libraryUri, '
+        'expected: $expected, actual: $actual)';
+  }
+}
+
+class LibraryLanguageVersionMismatch extends RequirementFailure {
+  final Uri libraryUri;
+  final ManifestLibraryLanguageVersion expected;
+  final ManifestLibraryLanguageVersion actual;
+
+  LibraryLanguageVersionMismatch({
+    required this.libraryUri,
+    required this.expected,
+    required this.actual,
+  });
+}
+
 class LibraryMissing extends RequirementFailure {
   final Uri uri;
 
@@ -306,6 +339,24 @@ class LibraryMissing extends RequirementFailure {
   }
 }
 
+class LibraryNameMismatch extends RequirementFailure {
+  final Uri libraryUri;
+  final String? expected;
+  final String? actual;
+
+  LibraryNameMismatch({
+    required this.libraryUri,
+    required this.expected,
+    required this.actual,
+  });
+
+  @override
+  String toString() {
+    return 'LibraryNameMismatch(libraryUri: $libraryUri, '
+        'expected: $expected, actual: $actual)';
+  }
+}
+
 final class OpaqueApiUseFailure extends RequirementFailure {
   final List<OpaqueApiUse> uses;
 
@@ -314,6 +365,26 @@ final class OpaqueApiUseFailure extends RequirementFailure {
   @override
   String toString() {
     return 'OpaqueApiUseFailure(uses: $uses)';
+  }
+}
+
+class ReExportDeprecatedOnlyMismatch extends RequirementFailure {
+  final Uri libraryUri;
+  final LookupName name;
+  final bool expected;
+  final bool actual;
+
+  ReExportDeprecatedOnlyMismatch({
+    required this.libraryUri,
+    required this.name,
+    required this.expected,
+    required this.actual,
+  });
+
+  @override
+  String toString() {
+    return 'ReExportDeprecatedOnlyMismatch(libraryUri: $libraryUri, '
+        'name: ${name.asString}, expected: $expected, actual: $actual)';
   }
 }
 

@@ -22,6 +22,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/fine/library_manifest.dart';
+import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 import 'package:analyzer/src/summary2/ast_binary_tag.dart';
@@ -179,7 +180,7 @@ class LibraryReader {
 
     var resolutionOffset = _baseResolutionOffset + _reader.readUint30();
     _libraryElement.deferReadResolution(() {
-      var unitElement = _libraryElement.firstFragment;
+      var unitElement = _libraryElement.internal.firstFragment;
       var reader = ResolutionReader(
         _elementFactory,
         _referenceReader,
@@ -480,9 +481,14 @@ class LibraryReader {
       element.readModifiers(_reader);
 
       // TODO(scheglov): consider reading lazily
-      for (var fragment in element.fragments) {
-        fragment.ensureReadMembers();
-      }
+      globalResultRequirements.untracked(
+        reason: 'elementModelReading',
+        operation: () {
+          for (var fragment in element.fragments) {
+            fragment.ensureReadMembers();
+          }
+        },
+      );
 
       element.fields = _readFieldElements();
       element.getters = _readGetterElements();
@@ -566,9 +572,14 @@ class LibraryReader {
       element.linkFragments(fragments);
       element.readModifiers(_reader);
 
-      for (var fragment in element.fragments) {
-        fragment.ensureReadMembers();
-      }
+      globalResultRequirements.untracked(
+        reason: 'elementModelReading',
+        operation: () {
+          for (var fragment in element.fragments) {
+            fragment.ensureReadMembers();
+          }
+        },
+      );
 
       // TODO(scheglov): consider reading lazily
       element.fields = _readFieldElements();
@@ -626,9 +637,14 @@ class LibraryReader {
       element.hasImplementsSelfReference = _reader.readBool();
 
       // TODO(scheglov): consider reading lazily
-      for (var fragment in element.fragments) {
-        fragment.ensureReadMembers();
-      }
+      globalResultRequirements.untracked(
+        reason: 'elementModelReading',
+        operation: () {
+          for (var fragment in element.fragments) {
+            fragment.ensureReadMembers();
+          }
+        },
+      );
 
       element.fields = _readFieldElements();
       element.getters = _readGetterElements();
@@ -961,9 +977,14 @@ class LibraryReader {
       element.hasNonFinalField = _reader.readBool();
 
       // TODO(scheglov): consider reading lazily
-      for (var fragment in element.fragments) {
-        fragment.ensureReadMembers();
-      }
+      globalResultRequirements.untracked(
+        reason: 'elementModelReading',
+        operation: () {
+          for (var fragment in element.fragments) {
+            fragment.ensureReadMembers();
+          }
+        },
+      );
 
       element.fields = _readFieldElements();
       element.getters = _readGetterElements();

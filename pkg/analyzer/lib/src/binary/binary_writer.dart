@@ -180,6 +180,15 @@ class BufferedSink {
     }
   }
 
+  void writeOptionalUint8List(Uint8List? value) {
+    if (value != null) {
+      writeBool(true);
+      writeUint8List(value);
+    } else {
+      writeBool(false);
+    }
+  }
+
   /// Write the [value] as UTF8 encoded byte array.
   void writeStringUtf8(String value) {
     var bytes = const Utf8Encoder().convert(value);

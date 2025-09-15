@@ -366,6 +366,9 @@ void Thread::AssertEmptyThreadInvariants() {
   ASSERT(stack_limit_.load() == 0);
   ASSERT(safepoint_state_ == 0);
 
+  ASSERT(default_tag_ == UserTag::null());
+  ASSERT(current_tag_ == UserTag::null());
+
   // Avoid running these asserts for `vm-isolate`.
   if (active_stacktrace_.untag() != 0) {
     ASSERT(field_table_values_ == nullptr);
@@ -432,6 +435,13 @@ void Thread::EnterIsolate(Isolate* isolate) {
     // Descheduled isolates are reloadable (if nothing else prevents it).
     RawReloadParticipationScope enable_reload(thread);
     thread->ExitSafepoint();
+  }
+
+  StackZone zone(thread);
+  HANDLESCOPE(thread);
+  if (group->tag_table() != GrowableObjectArray::null()) {
+    const UserTag& default_tag = UserTag::Handle(UserTag::DefaultTag(thread));
+    thread->set_current_tag(default_tag);
   }
 
   ASSERT(!thread->IsAtSafepoint());
@@ -764,6 +774,8 @@ void Thread::FreeActiveThread(Thread* thread,
   thread->stack_limit_.store(0);
   thread->safepoint_state_ = 0;
   thread->ResetStateLocked();
+  thread->current_tag_ = UserTag::null();
+  thread->default_tag_ = UserTag::null();
 
   thread->AssertEmptyThreadInvariants();
   thread_registry->ReturnThreadLocked(thread);

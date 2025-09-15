@@ -84,7 +84,10 @@ static void MatchCallPattern(uword* pc) {
 static void MatchDataLoadFromPool(uword* pc, intptr_t* data_index) {
   // movq RBX, [PP + offset]
   static int16_t load_data_disp8[] = {
-      0x49, 0x8b, 0x5f, -1,  //
+      0x49,
+      0x8b,
+      0x5f,
+      -1,  //
   };
   static int16_t load_data_disp32[] = {
       0x49, 0x8b, 0x9f, -1, -1, -1, -1,
@@ -334,7 +337,10 @@ class SwitchableCall : public SwitchableCallBase {
 
     // movq CODE_REG, [PP + offset]
     static int16_t load_code_disp8[] = {
-        0x4d, 0x8b, 0x67, -1,  //
+        0x4d,
+        0x8b,
+        0x67,
+        -1,  //
     };
     static int16_t load_code_disp32[] = {
         0x4d, 0x8b, 0xa7, -1, -1, -1, -1,
@@ -374,7 +380,8 @@ class BareSwitchableCall : public SwitchableCallBase {
 
     // callq RCX
     static int16_t call_pattern[] = {
-        0xff, 0xd1,  //
+        0xff,
+        0xd1,  //
     };
     if (MatchesPattern(pc, call_pattern, ARRAY_SIZE(call_pattern))) {
       pc -= ARRAY_SIZE(call_pattern);
@@ -384,7 +391,10 @@ class BareSwitchableCall : public SwitchableCallBase {
 
     // movq RBX, [PP + offset]
     static int16_t load_data_disp8[] = {
-        0x49, 0x8b, 0x5f, -1,  //
+        0x49,
+        0x8b,
+        0x5f,
+        -1,  //
     };
     static int16_t load_data_disp32[] = {
         0x49, 0x8b, 0x9f, -1, -1, -1, -1,
@@ -403,7 +413,10 @@ class BareSwitchableCall : public SwitchableCallBase {
 
     // movq RCX, [PP + offset]
     static int16_t load_code_disp8[] = {
-        0x49, 0x8b, 0x4f, -1,  //
+        0x49,
+        0x8b,
+        0x4f,
+        -1,  //
     };
     static int16_t load_code_disp32[] = {
         0x49, 0x8b, 0x8f, -1, -1, -1, -1,

@@ -456,9 +456,7 @@ class ElementResolver {
       //
       return;
     }
-    Namespace namespace = NamespaceBuilder().createExportNamespaceForLibrary(
-      library,
-    );
+    Namespace namespace = library.exportNamespace;
     for (Combinator combinator in combinators) {
       NodeList<SimpleIdentifier> names;
       if (combinator is HideCombinator) {

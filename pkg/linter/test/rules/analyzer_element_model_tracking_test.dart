@@ -161,6 +161,18 @@ class A {
     );
   }
 
+  test_public_instancePublic_field_trackedIndirectly() async {
+    await assertNoDiagnostics(r'''
+import 'package:analyzer/src/fine/annotations.dart';
+
+@elementClass
+class A {
+  @trackedIndirectly
+  final int foo = 0;
+}
+''');
+  }
+
   test_public_instancePublic_field_trackedInternal() async {
     await assertNoDiagnostics(r'''
 import 'package:analyzer/src/fine/annotations.dart';

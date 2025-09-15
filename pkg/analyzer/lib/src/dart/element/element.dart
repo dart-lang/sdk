@@ -10,6 +10,7 @@ import 'package:_fe_analyzer_shared/src/types/shared_type.dart'
     as shared
     show Variance;
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart' hide Variance;
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -29,6 +30,7 @@ import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
+import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
@@ -51,6 +53,7 @@ import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/export.dart';
+import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -831,7 +834,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   void computeConstantDependencies() {
     if (!isConstantEvaluated) {
       computeConstants(
-        declaredVariables: library.context.declaredVariables,
+        declaredVariables: library.declaredVariables,
         constants: [this],
         featureSet: library.featureSet,
         configuration: ConstantEvaluationConfiguration(),
@@ -1612,7 +1615,7 @@ class ElementAnnotationImpl
     if (evaluationResult == null) {
       var library = libraryFragment.element;
       computeConstants(
-        declaredVariables: library.context.declaredVariables,
+        declaredVariables: library.declaredVariables,
         constants: [this],
         featureSet: library.featureSet,
         configuration: ConstantEvaluationConfiguration(),
@@ -2093,6 +2096,10 @@ class EnumElementImpl extends InterfaceElementImpl implements EnumElement {
       previous.addFragment(current);
       return current;
     });
+    TypeParameterFragmentImpl._linkFragments(
+      fragments,
+      getFragments: (f) => f.typeParameters,
+    );
   }
 }
 
@@ -4890,7 +4897,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   @override
   @trackedIncludedInId
   List<InterfaceTypeImpl> get allSupertypes {
-    return _allSupertypes ??= library.session.classHierarchy
+    return _allSupertypes ??= library.internal.classHierarchy
         .implementedInterfaces(this);
   }
 
@@ -4965,7 +4972,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   @trackedIndirectly
   InheritanceManager3 get inheritanceManager {
-    return library.session.inheritanceManager;
+    return library.internal.inheritanceManager;
   }
 
   @override
@@ -5876,7 +5883,7 @@ class LabelFragmentImpl extends FragmentImpl implements LabelFragment {
 class LibraryElementImpl extends ElementImpl
     with DeferredResolutionReadingMixin
     implements LibraryElement {
-  final AnalysisContext context;
+  final AnalysisContext _context;
 
   @override
   @trackedIncludedInId
@@ -5884,11 +5891,9 @@ class LibraryElementImpl extends ElementImpl
 
   MetadataImpl _metadata = MetadataImpl(const []);
 
-  @override
-  String? documentationComment;
+  String? _documentationComment;
 
-  @override
-  AnalysisSessionImpl session;
+  AnalysisSessionImpl _session;
 
   /// The first (defining) fragment of this library.
   @override
@@ -5897,21 +5902,25 @@ class LibraryElementImpl extends ElementImpl
   /// The language version for the library.
   LibraryLanguageVersion? _languageVersion;
 
+  @trackedInternal
   bool hasTypeProviderSystemSet = false;
 
   @override
+  @trackedIndirectly
   late TypeProviderImpl typeProvider;
 
   @override
+  @trackedIndirectly
   late TypeSystemImpl typeSystem;
 
+  @trackedInternal
   late List<ExportedReference> exportedReferences;
 
   /// The union of names for all searchable elements in this library.
+  @trackedInternal
   ElementNameUnion nameUnion = ElementNameUnion.empty();
 
-  @override
-  final FeatureSet featureSet;
+  final FeatureSet _featureSet;
 
   /// The entry point for this library, or `null` if this library does not have
   /// an entry point.
@@ -5919,17 +5928,12 @@ class LibraryElementImpl extends ElementImpl
 
   /// The provider for the synthetic function `loadLibrary` that is defined
   /// for this library.
+  @trackedInternal
   late final LoadLibraryFunctionProvider loadLibraryProvider;
 
-  // TODO(scheglov): replace with `LibraryName` or something.
-  @override
-  String name;
-
-  // TODO(scheglov): replace with `LibraryName` or something.
-  int nameOffset;
-
-  // TODO(scheglov): replace with `LibraryName` or something.
-  int nameLength;
+  String _name;
+  int _nameOffset;
+  int _nameLength;
 
   List<ClassElementImpl> _classes = [];
   List<EnumElementImpl> _enums = [];
@@ -5960,17 +5964,23 @@ class LibraryElementImpl extends ElementImpl
   LibraryDeclarations? _libraryDeclarations;
 
   /// With fine-grained dependencies, the manifest of the library.
+  @trackedInternal
   LibraryManifest? manifest;
+
+  @trackedInternal
+  late final LibraryElementImplInternal internal = LibraryElementImplInternal(
+    this,
+  );
 
   /// Initialize a newly created library element in the given [context] to have
   /// the given [name] and [offset].
   LibraryElementImpl(
-    this.context,
-    this.session,
-    this.name,
-    this.nameOffset,
-    this.nameLength,
-    this.featureSet,
+    this._context,
+    this._session,
+    this._name,
+    this._nameOffset,
+    this._nameLength,
+    this._featureSet,
   );
 
   @override
@@ -6012,6 +6022,28 @@ class LibraryElementImpl extends ElementImpl
     _classes = value;
   }
 
+  @trackedDirectlyOpaque
+  AnalysisContext get context {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'context');
+    return _context;
+  }
+
+  @trackedIncludedInId
+  DeclaredVariables get declaredVariables {
+    return _context.declaredVariables;
+  }
+
+  @override
+  @trackedDirectlyOpaque
+  String? get documentationComment {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'documentationComment');
+    return _documentationComment;
+  }
+
+  set documentationComment(String? value) {
+    _documentationComment = value;
+  }
+
   @override
   @trackedIncludedInId
   Null get enclosingElement => null;
@@ -6022,8 +6054,10 @@ class LibraryElementImpl extends ElementImpl
   Null get enclosingElement2 => enclosingElement;
 
   @override
+  @trackedDirectly
   TopLevelFunctionElementImpl? get entryPoint {
     _ensureReadResolution();
+    globalResultRequirements?.record_library_entryPoint(element: this);
     return _entryPoint;
   }
 
@@ -6061,6 +6095,7 @@ class LibraryElementImpl extends ElementImpl
 
   @Deprecated('Use exportedLibraries instead')
   @override
+  @trackedIndirectly
   List<LibraryElementImpl> get exportedLibraries2 {
     return exportedLibraries;
   }
@@ -6097,6 +6132,13 @@ class LibraryElementImpl extends ElementImpl
     _extensionTypes = value;
   }
 
+  @override
+  @trackedDirectly
+  FeatureSet get featureSet {
+    globalResultRequirements?.record_library_featureSet(element: this);
+    return _featureSet;
+  }
+
   /// Information about why non-promotable private fields in the library are not
   /// promotable.
   ///
@@ -6131,15 +6173,21 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
-  LibraryFragmentImpl get firstFragment => _firstFragment;
+  @trackedDirectlyOpaque
+  LibraryFragmentImpl get firstFragment {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'firstFragment');
+    return _firstFragment;
+  }
 
   set firstFragment(LibraryFragmentImpl value) {
     _firstFragment = value;
   }
 
   @override
+  @trackedDirectlyOpaque
   List<LibraryFragmentImpl> get fragments {
-    return [_firstFragment, ..._partUnits];
+    globalResultRequirements?.recordOpaqueApiUse(this, 'fragments');
+    return _fragments;
   }
 
   @override
@@ -6179,6 +6227,11 @@ class LibraryElementImpl extends ElementImpl
     return DartUriResolver.isDartUri(uri);
   }
 
+  @trackedIndirectly
+  bool get isInternalSdkLibrary {
+    return '$uri'.startsWith('dart:_');
+  }
+
   @override
   bool get isSynthetic {
     return hasModifier(Modifier.SYNTHETIC);
@@ -6193,7 +6246,9 @@ class LibraryElementImpl extends ElementImpl
   ElementKind get kind => ElementKind.LIBRARY;
 
   @override
+  @trackedDirectly
   LibraryLanguageVersion get languageVersion {
+    globalResultRequirements?.record_library_languageVersion(element: this);
     return _languageVersion ??= LibraryLanguageVersion(
       package: ExperimentStatus.currentVersion,
       override: null,
@@ -6219,6 +6274,7 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
+  @trackedIndirectly
   TopLevelFunctionElementImpl get loadLibraryFunction {
     return loadLibraryProvider.getElement(this);
   }
@@ -6260,10 +6316,41 @@ class LibraryElementImpl extends ElementImpl
     _mixins = value;
   }
 
+  @override
+  @trackedDirectly
+  String get name {
+    globalResultRequirements?.record_library_getName(element: this);
+    return _name;
+  }
+
+  set name(String name) {
+    _name = name;
+  }
+
   @Deprecated('Use name instead')
   @override
   @trackedIndirectly
   String? get name3 => name;
+
+  @trackedDirectlyOpaque
+  int get nameLength {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'nameLength');
+    return _nameLength;
+  }
+
+  set nameLength(int nameLength) {
+    _nameLength = nameLength;
+  }
+
+  @trackedDirectlyOpaque
+  int get nameOffset {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'nameOffset');
+    return _nameOffset;
+  }
+
+  set nameOffset(int nameOffset) {
+    _nameOffset = nameOffset;
+  }
 
   @override
   @trackedIncludedInId
@@ -6277,6 +6364,17 @@ class LibraryElementImpl extends ElementImpl
 
   set publicNamespace(Namespace publicNamespace) {
     _publicNamespace = publicNamespace;
+  }
+
+  @override
+  @trackedDirectlyOpaque
+  AnalysisSessionImpl get session {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'session');
+    return _session;
+  }
+
+  set session(AnalysisSessionImpl value) {
+    _session = value;
   }
 
   @override
@@ -6294,20 +6392,6 @@ class LibraryElementImpl extends ElementImpl
   @trackedIncludedInId
   Source get source {
     return _firstFragment.source;
-  }
-
-  Iterable<FragmentImpl> get topLevelElements sync* {
-    for (var unit in units) {
-      yield* unit.accessors;
-      yield* unit.classes;
-      yield* unit.enums;
-      yield* unit.extensions;
-      yield* unit.extensionTypes;
-      yield* unit.functions;
-      yield* unit.mixins;
-      yield* unit.topLevelVariables;
-      yield* unit.typeAliases;
-    }
   }
 
   @override
@@ -6347,17 +6431,13 @@ class LibraryElementImpl extends ElementImpl
     _typeAliases = value;
   }
 
-  /// The compilation units this library consists of.
-  ///
-  /// This includes the defining compilation unit and units included using the
-  /// `part` directive.
-  List<LibraryFragmentImpl> get units {
-    return [_firstFragment, ..._partUnits];
-  }
-
   @override
   @trackedIncludedInId
   Uri get uri => _firstFragment.source.uri;
+
+  List<LibraryFragmentImpl> get _fragments {
+    return [_firstFragment, ..._partUnits];
+  }
 
   List<LibraryFragmentImpl> get _partUnits {
     var result = <LibraryFragmentImpl>[];
@@ -6377,12 +6457,15 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
+  @trackedDirectlyOpaque
   T? accept<T>(ElementVisitor2<T> visitor) {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'accept');
     return visitor.visitLibraryElement(this);
   }
 
   @Deprecated('Use accept instead')
   @override
+  @trackedIndirectly
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @trackedInternal
@@ -6464,6 +6547,7 @@ class LibraryElementImpl extends ElementImpl
 
   @Deprecated('Use getClass instead')
   @override
+  @trackedIndirectly
   ClassElementImpl? getClass2(String name) {
     return getClass(name);
   }
@@ -6625,10 +6709,12 @@ class LibraryElementImpl extends ElementImpl
   }
 
   /// Return `true` if [reference] comes only from deprecated exports.
+  @trackedInternal
   bool isFromDeprecatedExport(ExportedReference reference) {
     if (reference is ExportedReferenceExported) {
       for (var location in reference.locations) {
-        var export = location.exportOf(this);
+        var fragment = _fragments[location.fragmentIndex];
+        var export = fragment.libraryExports[location.exportIndex];
         if (!export.metadata.hasDeprecated) {
           return false;
         }
@@ -6639,9 +6725,17 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @trackedInternal
+  void recordGetDeclaredClass(String name) {
+    globalResultRequirements?.record_library_getClass(
+      element: this,
+      name: name,
+    );
+  }
+
+  @trackedInternal
   void resetScope() {
     _libraryDeclarations = null;
-    for (var fragment in units) {
+    for (var fragment in fragments) {
       fragment._scope = null;
     }
   }
@@ -6688,6 +6782,31 @@ class LibraryElementImpl extends ElementImpl
     String name,
   ) {
     return elements.firstWhereOrNull((e) => e.name == name);
+  }
+}
+
+/// Exposes [LibraryElementImpl] properties that normally are not intended
+/// to be used during resolution, and would cause opaque API requirement
+/// recorded, but necessary during the element model building or loading.
+class LibraryElementImplInternal {
+  final LibraryElementImpl _library;
+
+  LibraryElementImplInternal(this._library);
+
+  ClassHierarchy get classHierarchy {
+    return _library._session.classHierarchy;
+  }
+
+  LinkedElementFactory get elementFactory {
+    return _library._session.elementFactory;
+  }
+
+  LibraryFragmentImpl get firstFragment => _library._firstFragment;
+
+  List<LibraryFragmentImpl> get fragments => _library._fragments;
+
+  InheritanceManager3 get inheritanceManager {
+    return _library._session.inheritanceManager;
   }
 }
 
@@ -7009,9 +7128,9 @@ class LibraryFragmentImpl extends FragmentImpl
 
   @override
   LibraryFragment? get nextFragment {
-    var units = library.units;
-    var index = units.indexOf(this);
-    return units.elementAtOrNull(index + 1);
+    var fragments = library.fragments;
+    var index = fragments.indexOf(this);
+    return fragments.elementAtOrNull(index + 1);
   }
 
   @override
@@ -7050,10 +7169,10 @@ class LibraryFragmentImpl extends FragmentImpl
 
   @override
   LibraryFragment? get previousFragment {
-    var units = library.units;
-    var index = units.indexOf(this);
+    var fragments = library.fragments;
+    var index = fragments.indexOf(this);
     if (index >= 1) {
-      return units[index - 1];
+      return fragments[index - 1];
     }
     return null;
   }
@@ -10950,7 +11069,7 @@ abstract class VariableElementImpl extends ElementImpl
         return null;
       }
       computeConstants(
-        declaredVariables: library.context.declaredVariables,
+        declaredVariables: library.declaredVariables,
         constants: [this],
         featureSet: library.featureSet,
         configuration: ConstantEvaluationConfiguration(),

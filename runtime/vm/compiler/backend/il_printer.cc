@@ -199,11 +199,17 @@ class IlTestPrinter : public AllStatic {
 #undef DECLARE_VISIT_INSTRUCTION
 
    private:
-    void WriteAttribute(const char* value) { writer_->PrintValue(value); }
+    void WriteAttribute(const char* value) {
+      writer_->PrintValue(value);
+    }
 
-    void WriteAttribute(intptr_t value) { writer_->PrintValue(value); }
+    void WriteAttribute(intptr_t value) {
+      writer_->PrintValue(value);
+    }
 
-    void WriteAttribute(bool value) { writer_->PrintValueBool(value); }
+    void WriteAttribute(bool value) {
+      writer_->PrintValueBool(value);
+    }
 
     void WriteAttribute(Token::Kind kind) {
       writer_->PrintValue(Token::Str(kind));
@@ -245,7 +251,9 @@ class IlTestPrinter : public AllStatic {
       writer_->PrintValue(LocationKindAsString(loc));
     }
 
-    void WriteAttribute(const Slot* slot) { writer_->PrintValue(slot->Name()); }
+    void WriteAttribute(const Slot* slot) {
+      writer_->PrintValue(slot->Name());
+    }
 
     void WriteAttribute(const Function* function) {
       writer_->PrintValue(function->QualifiedUserVisibleNameCString());
@@ -1237,6 +1245,14 @@ void InvokeMathCFunctionInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   Definition::PrintOperandsTo(f);
 }
 
+void TsanFuncEntryExitInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+  if (kind_ == kEntry) {
+    f->AddString("entry");
+  } else {
+    f->AddString("exit");
+  }
+}
+
 void TsanReadWriteInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   instance()->PrintTo(f);
   f->Printf(" . %s", slot().Name());
@@ -1247,11 +1263,14 @@ void TsanReadWriteInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   }
 }
 
-void TsanFuncEntryExitInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  if (kind_ == kEntry) {
-    f->AddString("entry");
+void TsanReadWriteIndexedInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+  array()->PrintTo(f);
+  f->AddString(", ");
+  index()->PrintTo(f);
+  if (kind_ == kRead) {
+    f->AddString(", read");
   } else {
-    f->AddString("exit");
+    f->AddString(", write");
   }
 }
 

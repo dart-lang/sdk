@@ -1509,7 +1509,7 @@ package:test/a.dart
     for (var fragmentUri in fragmentUris) {
       sink.writelnWithIndent(fragmentUri);
       sink.withIndent(() {
-        var fragment = library.units.singleWhere((fragment) {
+        var fragment = library.fragments.singleWhere((fragment) {
           return fragment.source.uri == fragmentUri;
         });
 

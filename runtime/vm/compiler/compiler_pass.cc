@@ -30,9 +30,7 @@
    public:                                                                     \
     CompilerPass_##Name() : CompilerPass(k##Name, #Name) {}                    \
                                                                                \
-    static bool Register() {                                                   \
-      return true;                                                             \
-    }                                                                          \
+    static bool Register() { return true; }                                    \
                                                                                \
    protected:                                                                  \
     virtual bool DoBody(CompilerPassState* state) const {                      \

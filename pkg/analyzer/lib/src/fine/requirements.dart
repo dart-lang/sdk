@@ -371,8 +371,15 @@ class LibraryExportRequirements {
 }
 
 class LibraryRequirements {
+  String? name;
+  Uint8List? featureSet;
+  ManifestLibraryLanguageVersion? languageVersion;
+
   /// TopName => ID
   final Map<LookupName, ManifestItemId?> exportedTopLevels;
+
+  /// Names that must be in [LibraryManifest.reExportDeprecatedOnly].
+  final Map<LookupName, bool> reExportDeprecatedOnly;
 
   /// TopName => InstanceItemRequirements
   final Map<LookupName, InstanceItemRequirements> instances;
@@ -406,6 +413,9 @@ class LibraryRequirements {
   ManifestItemIdList? allDeclaredSetters;
 
   LibraryRequirements({
+    required this.name,
+    required this.featureSet,
+    required this.languageVersion,
     required this.exportedTopLevels,
     required this.instances,
     required this.interfaces,
@@ -420,6 +430,7 @@ class LibraryRequirements {
     required this.requestedDeclaredVariables,
     required this.requestedDeclaredGetters,
     required this.requestedDeclaredSetters,
+    required this.reExportDeprecatedOnly,
     required this.allDeclaredClasses,
     required this.allDeclaredEnums,
     required this.allDeclaredExtensions,
@@ -434,6 +445,9 @@ class LibraryRequirements {
 
   factory LibraryRequirements.empty() {
     return LibraryRequirements(
+      name: null,
+      featureSet: null,
+      languageVersion: null,
       exportedTopLevels: {},
       instances: {},
       interfaces: {},
@@ -448,6 +462,7 @@ class LibraryRequirements {
       requestedDeclaredVariables: {},
       requestedDeclaredGetters: {},
       requestedDeclaredSetters: {},
+      reExportDeprecatedOnly: {},
       allDeclaredClasses: null,
       allDeclaredEnums: null,
       allDeclaredExtensions: null,
@@ -463,6 +478,9 @@ class LibraryRequirements {
 
   factory LibraryRequirements.read(SummaryDataReader reader) {
     return LibraryRequirements(
+      name: reader.readOptionalStringUtf8(),
+      featureSet: reader.readOptionalUint8List(),
+      languageVersion: ManifestLibraryLanguageVersion.readOptional(reader),
       exportedTopLevels: reader.readNameToOptionalIdMap(),
       instances: reader.readMap(
         readKey: () => LookupName.read(reader),
@@ -483,6 +501,10 @@ class LibraryRequirements {
       requestedDeclaredVariables: reader.readNameToOptionalIdMap(),
       requestedDeclaredGetters: reader.readNameToOptionalIdMap(),
       requestedDeclaredSetters: reader.readNameToOptionalIdMap(),
+      reExportDeprecatedOnly: reader.readMap(
+        readKey: () => LookupName.read(reader),
+        readValue: () => reader.readBool(),
+      ),
       allDeclaredClasses: ManifestItemIdList.readOptional(reader),
       allDeclaredEnums: ManifestItemIdList.readOptional(reader),
       allDeclaredExtensions: ManifestItemIdList.readOptional(reader),
@@ -497,6 +519,9 @@ class LibraryRequirements {
   }
 
   void write(BufferedSink sink) {
+    sink.writeOptionalStringUtf8(name);
+    sink.writeOptionalUint8List(featureSet);
+    sink.writeOptionalObject(languageVersion, (it) => it.write(sink));
     sink.writeNameToIdMap(exportedTopLevels);
 
     sink.writeMap(
@@ -523,6 +548,12 @@ class LibraryRequirements {
     sink.writeNameToIdMap(requestedDeclaredVariables);
     sink.writeNameToIdMap(requestedDeclaredGetters);
     sink.writeNameToIdMap(requestedDeclaredSetters);
+
+    sink.writeMap(
+      reExportDeprecatedOnly,
+      writeKey: (name) => name.write(sink),
+      writeValue: (value) => sink.writeBool(value),
+    );
 
     allDeclaredClasses.writeOptional(sink);
     allDeclaredEnums.writeOptional(sink);
@@ -673,6 +704,39 @@ class RequirementsManifest {
         return LibraryMissing(uri: libraryUri);
       }
 
+      if (libraryRequirements.name case var expected?) {
+        var actual = libraryManifest.name;
+        if (expected != actual) {
+          return LibraryNameMismatch(
+            libraryUri: libraryUri,
+            expected: expected,
+            actual: actual,
+          );
+        }
+      }
+
+      if (libraryRequirements.featureSet case var expected?) {
+        var actual = libraryManifest.featureSet;
+        if (!const ListEquality<int>().equals(expected, actual)) {
+          return LibraryFeatureSetMismatch(
+            libraryUri: libraryUri,
+            expected: expected,
+            actual: actual,
+          );
+        }
+      }
+
+      if (libraryRequirements.languageVersion case var expected?) {
+        var actual = libraryManifest.languageVersion;
+        if (expected != actual) {
+          return LibraryLanguageVersionMismatch(
+            libraryUri: libraryUri,
+            expected: expected,
+            actual: actual,
+          );
+        }
+      }
+
       for (var topLevelEntry in libraryRequirements.exportedTopLevels.entries) {
         var name = topLevelEntry.key;
         var actualId = libraryManifest.getExportedId(name);
@@ -682,6 +746,20 @@ class RequirementsManifest {
             name: name,
             expectedId: topLevelEntry.value,
             actualId: actualId,
+          );
+        }
+      }
+
+      for (var entry in libraryRequirements.reExportDeprecatedOnly.entries) {
+        var name = entry.key;
+        var expected = entry.value;
+        var actual = libraryManifest.reExportDeprecatedOnly.contains(name);
+        if (expected != actual) {
+          return ReExportDeprecatedOnlyMismatch(
+            libraryUri: libraryUri,
+            name: name,
+            expected: expected,
+            actual: actual,
           );
         }
       }
@@ -1284,12 +1362,27 @@ class RequirementsManifest {
     required List<LibraryElementImpl> importedLibraries,
     required String id,
   }) {
-    var lookupName = id.asLookupName;
+    assert(!id.endsWith('='));
+    var getterLookupName = id.asLookupName;
+    var setterLookupName = '$id='.asLookupName;
+
     for (var importedLibrary in importedLibraries) {
       if (importedLibrary.manifest case var manifest?) {
         var libraryRequirements = _getLibraryRequirements(importedLibrary);
-        var nameToId = libraryRequirements.exportedTopLevels;
-        nameToId[lookupName] = manifest.getExportedId(lookupName);
+
+        var getterId = manifest.getExportedId(getterLookupName);
+        libraryRequirements.exportedTopLevels[getterLookupName] = getterId;
+        if (getterId != null) {
+          libraryRequirements.reExportDeprecatedOnly[getterLookupName] =
+              manifest.reExportDeprecatedOnly.contains(getterLookupName);
+        }
+
+        var setterId = manifest.getExportedId(setterLookupName);
+        libraryRequirements.exportedTopLevels[setterLookupName] = setterId;
+        if (setterId != null) {
+          libraryRequirements.reExportDeprecatedOnly[setterLookupName] =
+              manifest.reExportDeprecatedOnly.contains(setterLookupName);
+        }
       }
     }
   }
@@ -1714,6 +1807,36 @@ class RequirementsManifest {
     );
   }
 
+  void record_library_entryPoint({required LibraryElementImpl element}) {
+    if (_recordingLockLevel != 0) {
+      return;
+    }
+
+    var manifest = element.manifest;
+    if (manifest == null) {
+      return;
+    }
+
+    var requirements = _getLibraryRequirements(element);
+    var mainName = TopLevelFunctionElement.MAIN_FUNCTION_NAME.asLookupName;
+    var id = manifest.getExportedId(mainName);
+    requirements.exportedTopLevels[mainName] = id;
+  }
+
+  void record_library_featureSet({required LibraryElementImpl element}) {
+    if (_recordingLockLevel != 0) {
+      return;
+    }
+
+    var manifest = element.manifest;
+    if (manifest == null) {
+      return;
+    }
+
+    var requirements = _getLibraryRequirements(element);
+    requirements.featureSet = manifest.featureSet;
+  }
+
   void record_library_getClass({
     required LibraryElementImpl element,
     required String name,
@@ -1804,6 +1927,20 @@ class RequirementsManifest {
     requirements.requestedDeclaredMixins[lookupName] = id;
   }
 
+  void record_library_getName({required LibraryElementImpl element}) {
+    if (_recordingLockLevel != 0) {
+      return;
+    }
+
+    var manifest = element.manifest;
+    if (manifest == null) {
+      return;
+    }
+
+    var requirements = _getLibraryRequirements(element);
+    requirements.name = manifest.name;
+  }
+
   void record_library_getSetter({
     required LibraryElementImpl element,
     required String name,
@@ -1864,6 +2001,20 @@ class RequirementsManifest {
     var lookupName = name.asLookupName;
     var id = manifest.declaredTypeAliases[lookupName]?.id;
     requirements.requestedDeclaredTypeAliases[lookupName] = id;
+  }
+
+  void record_library_languageVersion({required LibraryElementImpl element}) {
+    if (_recordingLockLevel != 0) {
+      return;
+    }
+
+    var manifest = element.manifest;
+    if (manifest == null) {
+      return;
+    }
+
+    var requirements = _getLibraryRequirements(element);
+    requirements.languageVersion = manifest.languageVersion;
   }
 
   /// Record that all accessible extensions inside a [LibraryFragmentImpl]
@@ -1938,16 +2089,18 @@ class RequirementsManifest {
   /// requirements to the libraries of this same library cycle. We already
   /// link these libraries together, so only requirements to the previous
   /// libraries are interesting.
-  void removeReqForLibs(Set<Uri> bundleLibraryUriList) {
-    var uriSet = bundleLibraryUriList.toSet();
-
+  void removeReqForLibs(Set<Uri> bundleLibraryUriSet) {
     for (var exportRequirement in exportRequirements) {
       exportRequirement.exports.removeWhere((export) {
-        return uriSet.contains(export.exportedUri);
+        return bundleLibraryUriSet.contains(export.exportedUri);
       });
     }
 
-    for (var libUri in bundleLibraryUriList) {
+    exportRequirements.removeWhere(
+      (exportRequirement) => exportRequirement.exports.isEmpty,
+    );
+
+    for (var libUri in bundleLibraryUriSet) {
       libraries.remove(libUri);
     }
   }

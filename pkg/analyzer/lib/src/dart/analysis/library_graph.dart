@@ -7,7 +7,6 @@ import 'dart:typed_data';
 import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart'
     as graph
     show DependencyWalker, Node;
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -211,7 +210,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
     {
       var manifestBuilder = ApiSignature();
       var apiSignatureBuilder = ApiSignature();
-      manifestBuilder.addInt(AnalysisDriver.DATA_VERSION);
+      manifestBuilder.addUint32List(_salt);
       var sortedFiles = libraries
           .expand((library) => library.files)
           .sortedBy((file) => file.path);

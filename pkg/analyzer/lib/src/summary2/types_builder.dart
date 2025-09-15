@@ -213,9 +213,10 @@ class TypesBuilder {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
-    element.interfaces = _toInterfaceTypeList(
-      node.implementsClause?.interfaces,
-    );
+    element.interfaces = [
+      ...element.interfaces,
+      ..._toInterfaceTypeList(node.implementsClause?.interfaces),
+    ];
 
     _addFragmentWithClause(fragment, node.withClause);
   }

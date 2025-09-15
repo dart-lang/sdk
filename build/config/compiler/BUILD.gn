@@ -145,7 +145,7 @@ config("compiler") {
     if (is_mac && (is_asan || is_lsan || is_tsan || is_ubsan)) {
       ldflags += [
         "-rpath",
-        "buildtools/mac-$host_cpu/clang/lib/clang/21/lib/darwin",
+        "buildtools/mac-$host_cpu/clang/lib/clang/22/lib/darwin",
       ]
     }
 

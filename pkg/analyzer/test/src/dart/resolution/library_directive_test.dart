@@ -23,7 +23,7 @@ library foo.bar;
     assertResolvedNodeText(node, r'''
 LibraryDirective
   libraryKeyword: library
-  name2: LibraryIdentifier
+  name: LibraryIdentifier
     components
       SimpleIdentifier
         token: foo

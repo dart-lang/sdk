@@ -2116,7 +2116,8 @@ class _InvalidAccessVerifier {
       // if we were unable to determine what package [_currentLibrary] is in.
       return false;
     }
-    return _workspacePackage.contains(library.firstFragment.source);
+    library as LibraryElementImpl;
+    return _workspacePackage.contains(library.internal.firstFragment.source);
   }
 
   /// Check if @visibleForTemplate is applied to the given [Element].

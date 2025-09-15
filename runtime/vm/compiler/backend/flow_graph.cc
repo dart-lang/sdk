@@ -2686,9 +2686,9 @@ void FlowGraph::AddTsanInstrumentation() {
       if (LoadFieldInstr* load = current->AsLoadField()) {
         if (!load->slot().is_no_sanitize_thread() &&
             load->memory_order() == compiler::Assembler::kRelaxedNonAtomic) {
-          auto* tsan_read = new (Z) TsanReadWriteInstr(
-              TsanReadWriteInstr::Kind::kRead, load->slot(),
-              new (Z) Value(load->instance()->definition()), load->source());
+          auto* tsan_read = new (Z)
+              TsanReadWriteInstr(TsanReadWriteInstr::Kind::kRead, load->slot(),
+                                 load->instance()->Copy(Z), load->source());
           InsertBefore(load, tsan_read, /*env=*/nullptr, kEffect);
           needs_entry_exit = true;
         }
@@ -2697,10 +2697,25 @@ void FlowGraph::AddTsanInstrumentation() {
             store->memory_order() == compiler::Assembler::kRelaxedNonAtomic) {
           auto* tsan_write = new (Z) TsanReadWriteInstr(
               TsanReadWriteInstr::Kind::kWrite, store->slot(),
-              new (Z) Value(store->instance()->definition()), store->source());
+              store->instance()->Copy(Z), store->source());
           InsertBefore(store, tsan_write, /*env=*/nullptr, kEffect);
           needs_entry_exit = true;
         }
+
+      } else if (LoadIndexedInstr* load = current->AsLoadIndexed()) {
+        auto* tsan_read = new (Z) TsanReadWriteIndexedInstr(
+            TsanReadWriteIndexedInstr::Kind::kRead, load->array()->Copy(Z),
+            load->index()->Copy(Z), load->index_unboxed(), load->index_scale(),
+            load->class_id(), load->source());
+        InsertBefore(load, tsan_read, /*env=*/nullptr, kEffect);
+        needs_entry_exit = true;
+      } else if (StoreIndexedInstr* store = current->AsStoreIndexed()) {
+        auto* tsan_write = new (Z) TsanReadWriteIndexedInstr(
+            TsanReadWriteIndexedInstr::Kind::kWrite, store->array()->Copy(Z),
+            store->index()->Copy(Z), store->index_unboxed(),
+            store->index_scale(), store->class_id(), store->source());
+        InsertBefore(store, tsan_write, /*env=*/nullptr, kEffect);
+        needs_entry_exit = true;
       } else if (current->CanCallDart() || current->MayThrow()) {
         needs_entry_exit = true;
       }

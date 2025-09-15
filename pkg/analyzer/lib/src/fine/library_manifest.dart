@@ -7,22 +7,32 @@ import 'dart:typed_data';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/binary/binary_reader.dart';
 import 'package:analyzer/src/binary/binary_writer.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/fine/lookup_name.dart';
 import 'package:analyzer/src/fine/manifest_context.dart';
 import 'package:analyzer/src/fine/manifest_id.dart';
 import 'package:analyzer/src/fine/manifest_item.dart';
+import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 
 /// The manifest of a single library.
 class LibraryManifest {
+  final String? name;
+  final Uint8List featureSet;
+  final ManifestLibraryLanguageVersion languageVersion;
+
   /// The names that are re-exported by this library.
   /// This does not include names that are declared in this library.
   final Map<LookupName, ManifestItemId> reExportMap;
+
+  /// The names that re-exported exclusively via deprecated exports.
+  final Set<LookupName> reExportDeprecatedOnly;
 
   final Map<LookupName, ClassItem> declaredClasses;
   final Map<LookupName, EnumItem> declaredEnums;
@@ -39,7 +49,11 @@ class LibraryManifest {
   ManifestItemIdList exportedExtensions;
 
   LibraryManifest({
+    required this.name,
+    required this.featureSet,
+    required this.languageVersion,
     required this.reExportMap,
+    required this.reExportDeprecatedOnly,
     required this.declaredClasses,
     required this.declaredEnums,
     required this.declaredExtensions,
@@ -55,7 +69,11 @@ class LibraryManifest {
 
   factory LibraryManifest.read(SummaryDataReader reader) {
     return LibraryManifest(
+      name: reader.readOptionalStringUtf8(),
+      featureSet: reader.readUint8List(),
+      languageVersion: ManifestLibraryLanguageVersion.read(reader),
       reExportMap: reader.readLookupNameToIdMap(),
+      reExportDeprecatedOnly: reader.readLookupNameSet(),
       declaredClasses: reader.readLookupNameMap(
         readValue: () => ClassItem.read(reader),
       ),
@@ -131,7 +149,11 @@ class LibraryManifest {
   }
 
   void write(BufferedSink sink) {
+    sink.writeOptionalStringUtf8(name);
+    sink.writeUint8List(featureSet);
+    languageVersion.write(sink);
     reExportMap.write(sink);
+    reExportDeprecatedOnly.write(sink);
     declaredClasses.write(sink);
     declaredEnums.write(sink);
     declaredExtensions.write(sink);
@@ -600,41 +622,37 @@ class LibraryManifestBuilder {
       var libraryUri = libraryElement.uri;
       var manifest = newManifests[libraryUri]!;
 
-      for (var entry in libraryElement.exportNamespace.definedNames2.entries) {
-        var name = entry.key.asLookupName;
-        var element = entry.value;
+      for (var exported in libraryElement.exportedReferences) {
+        // We want only re-exports, skip declared.
+        if (exported is! ExportedReferenceExported) {
+          continue;
+        }
+
+        var reference = exported.reference;
+        var lookupName = reference.isSetter
+            ? '${reference.name}='.asLookupName
+            : reference.name.asLookupName;
+
+        var element = elementFactory.elementOfReference3(reference);
 
         // Skip elements that exist in nowhere.
-        var elementLibraryUri = element.library?.uri;
-        if (elementLibraryUri == null) {
+        var elementLibrary = element.library;
+        if (elementLibrary == null) {
           continue;
         }
 
-        // Skip elements declared in this library.
-        if (elementLibraryUri == libraryUri) {
-          continue;
-        }
+        // Every library has a manifest at this point.
+        // We already set manifests for the current cycle.
+        var elementLibraryManifest = elementLibrary.manifest!;
 
-        // Skip if the element is declared in this library.
-        if (element.library == libraryElement) {
-          continue;
-        }
+        // We use the manifest of the library that declares this element.
+        // So, the element must be declared in the manifest.
+        var id = elementLibraryManifest.getDeclaredId(lookupName)!;
+        manifest.reExportMap[lookupName] = id;
 
-        // Maybe exported from a library outside the current cycle.
-        var id = elementFactory.getElementId(element);
-
-        // If not, then look into new manifest.
-        if (id == null) {
-          var newManifest = newManifests[elementLibraryUri];
-          id ??= newManifest?.getExportedId(name);
-          // TODO(scheglov): repeat for re-re-exports
+        if (libraryElement.isFromDeprecatedExport(exported)) {
+          manifest.reExportDeprecatedOnly.add(lookupName);
         }
-
-        if (id == null) {
-          // TODO(scheglov): complete
-          continue;
-        }
-        manifest.reExportMap[name] = id;
       }
     }
   }
@@ -842,7 +860,13 @@ class LibraryManifestBuilder {
       }
 
       var newManifest = LibraryManifest(
+        name: libraryElement.name.nullIfEmpty,
+        featureSet: (libraryElement.featureSet as ExperimentStatus).toStorage(),
+        languageVersion: ManifestLibraryLanguageVersion.encode(
+          libraryElement.languageVersion,
+        ),
         reExportMap: {},
+        reExportDeprecatedOnly: <LookupName>{},
         declaredClasses: newClassItems,
         declaredEnums: newEnumItems,
         declaredExtensions: newExtensionItems,
@@ -1058,7 +1082,11 @@ class LibraryManifestBuilder {
   LibraryManifest _getInputManifest(Uri uri) {
     return inputManifests[uri] ??
         LibraryManifest(
+          name: null,
+          featureSet: Uint8List(0),
+          languageVersion: ManifestLibraryLanguageVersion.empty(),
           reExportMap: {},
+          reExportDeprecatedOnly: <LookupName>{},
           declaredClasses: {},
           declaredEnums: {},
           declaredExtensions: {},

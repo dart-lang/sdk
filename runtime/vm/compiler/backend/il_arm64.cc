@@ -1916,20 +1916,6 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Location index = locs()->in(kIndexPos);
   auto const rep =
       RepresentationUtils::RepresentationOfArrayElement(class_id());
-
-  if (FLAG_target_thread_sanitizer) {
-    if (index.IsRegister()) {
-      __ ComputeElementAddressForRegIndex(TMP, IsUntagged(), class_id(),
-                                          index_scale(), index_unboxed_, array,
-                                          index.reg());
-    } else {
-      __ ComputeElementAddressForIntIndex(TMP, IsUntagged(), class_id(),
-                                          index_scale(), array,
-                                          Smi::Cast(index.constant()).Value());
-    }
-    __ TsanRead(TMP, RepresentationUtils::ValueSize(rep));
-  }
-
   compiler::Address element_address(TMP);  // Bad address.
   element_address = index.IsRegister()
                         ? __ ElementAddressForRegIndex(
@@ -2092,19 +2078,6 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   auto const rep =
       RepresentationUtils::RepresentationOfArrayElement(class_id());
   ASSERT(RequiredInputRepresentation(2) == Boxing::NativeRepresentation(rep));
-
-  if (FLAG_target_thread_sanitizer) {
-    if (index.IsRegister()) {
-      __ ComputeElementAddressForRegIndex(TMP, IsUntagged(), class_id(),
-                                          index_scale(), index_unboxed_, array,
-                                          index.reg());
-    } else {
-      __ ComputeElementAddressForIntIndex(TMP, IsUntagged(), class_id(),
-                                          index_scale(), array,
-                                          Smi::Cast(index.constant()).Value());
-    }
-    __ TsanWrite(TMP, RepresentationUtils::ValueSize(rep));
-  }
 
   // Deal with a special case separately.
   if (class_id() == kArrayCid && ShouldEmitStoreBarrier()) {

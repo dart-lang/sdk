@@ -3147,14 +3147,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     // should be private
-    var sdk = _currentLibrary.context.sourceFactory.dartSdk!;
-    var uri = exportedLibrary.uri.toString();
-
-    var sdkLibrary = sdk.getSdkLibrary(uri);
-    if (sdkLibrary == null) {
-      return;
-    }
-    if (!sdkLibrary.isInternal) {
+    if (!(exportedLibrary as LibraryElementImpl).isInternalSdkLibrary) {
       return;
     }
 
@@ -3704,10 +3697,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     // should be private
-    var sdk = _currentLibrary.context.sourceFactory.dartSdk!;
-    var uri = importedLibrary.uri.toString();
-    var sdkLibrary = sdk.getSdkLibrary(uri);
-    if (sdkLibrary == null || !sdkLibrary.isInternal) {
+    if (!(importedLibrary as LibraryElementImpl).isInternalSdkLibrary) {
       return;
     }
     // The only way an import URI's `stringValue` can be `null` is if the string

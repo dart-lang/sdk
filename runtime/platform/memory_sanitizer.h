@@ -47,6 +47,7 @@ extern "C" void __msan_check_mem_is_initialized(const volatile void*, size_t);
 #define MSAN_CHECK_INITIALIZED(ptr, len)                                       \
   do {                                                                         \
   } while (false && (ptr) == nullptr && (len) == 0)
+#define NO_SANITIZE_MEMORY
 #endif  // defined(USING_MEMORY_SANITIZER)
 
 #endif  // RUNTIME_PLATFORM_MEMORY_SANITIZER_H_

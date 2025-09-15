@@ -378,7 +378,7 @@ class Search {
     Element element,
   ) async {
     var prefixes = <String>{};
-    for (var unit in library.units) {
+    for (var unit in library.fragments) {
       var index = await _driver.getIndex(unit.source.fullName);
       if (index != null) {
         _IndexRequest request = _IndexRequest(index);
@@ -846,7 +846,7 @@ class Search {
 
     List<SearchResult> results = <SearchResult>[];
     LibraryElementImpl libraryElement = element.libraryFragment.element;
-    for (var unitElement in libraryElement.units) {
+    for (var unitElement in libraryElement.fragments) {
       String unitPath = unitElement.source.fullName;
       var unitResult = await _driver.getResolvedUnit(unitPath);
       if (unitResult is ResolvedUnitResult) {
@@ -868,7 +868,7 @@ class Search {
     }
 
     List<SearchResult> results = <SearchResult>[];
-    for (var unitElement in element.units) {
+    for (var unitElement in element.fragments) {
       String unitPath = unitElement.source.fullName;
       var unitResult = await _driver.getResolvedUnit(unitPath);
       if (unitResult is ResolvedUnitResultImpl) {
@@ -1005,7 +1005,7 @@ class Search {
 
     List<SearchResult> results = <SearchResult>[];
     var libraryElement = element.library;
-    for (var unitElement in libraryElement.units) {
+    for (var unitElement in libraryElement.fragments) {
       String unitPath = unitElement.source.fullName;
       var unitResult = await _driver.getResolvedUnit(unitPath);
       if (unitResult is ResolvedUnitResult) {

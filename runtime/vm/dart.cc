@@ -431,6 +431,8 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
     StackZone zone(T);
     HandleScope handle_scope(T);
     Object::InitNullAndBool(vm_isolate_->group());
+    // Now that null is initialized properly.
+    group->tag_table_ = GrowableObjectArray::null();
     vm_isolate_->isolate_group_->set_object_store(new ObjectStore());
     vm_isolate_->isolate_object_store()->Init();
     vm_isolate_->finalizers_ = GrowableObjectArray::null();
@@ -1037,8 +1039,13 @@ ErrorPtr Dart::InitializeIsolate(Thread* T,
   I->debugger()->NotifyIsolateCreated();
 #endif
 
-  const UserTag& default_tag = UserTag::Handle(UserTag::DefaultTag(T));
-  T->set_current_tag(default_tag);
+  if (is_first_isolate_in_group) {
+    // IsolateGroup tag_table was not available when isolate was first
+    // created, but now it is.
+    ASSERT(T->current_tag() == UserTag::null());
+    const UserTag& default_tag = UserTag::Handle(UserTag::DefaultTag(T));
+    T->set_current_tag(default_tag);
+  }
 
   I->init_loaded_prefixes_set_storage();
 

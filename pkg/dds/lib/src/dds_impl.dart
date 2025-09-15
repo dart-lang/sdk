@@ -413,9 +413,6 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
           devtoolsExtensionsManager: ExtensionsManager(),
         ) as FutureOr<Response> Function(Request);
       }
-      // Otherwise, set the DevTools URI to point to the externally hosted
-      // DevTools instance.
-      _devToolsUri = existingDevToolsAddress;
     }
 
     // Otherwise, DevTools may be served externally, or not at all.
@@ -454,35 +451,35 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
     return pathSegments;
   }
 
-  Uri? _toWebSocket(Uri? uri) {
-    if (uri == null) {
+  Uri? _toWebSocket(Uri? hostedUri) {
+    if (hostedUri == null) {
       return null;
     }
-    final pathSegments = _cleanupPathSegments(uri);
+    final pathSegments = _cleanupPathSegments(hostedUri);
     pathSegments.add('ws');
-    return uri.replace(scheme: 'ws', pathSegments: pathSegments);
+    return hostedUri.replace(scheme: 'ws', pathSegments: pathSegments);
   }
 
-  Uri? _toSse(Uri? uri) {
-    if (uri == null) {
+  Uri? _toSse(Uri? hostedUri) {
+    if (hostedUri == null) {
       return null;
     }
-    final pathSegments = _cleanupPathSegments(uri);
+    final pathSegments = _cleanupPathSegments(hostedUri);
     pathSegments.add(kSseHandlerPath);
-    return uri.replace(scheme: 'sse', pathSegments: pathSegments);
+    return hostedUri.replace(scheme: 'sse', pathSegments: pathSegments);
   }
 
   @visibleForTesting
-  Uri? toDevTools(Uri? uri) {
+  Uri? toDevTools(Uri? hostedUri, {bool externallyServed = false}) {
     return Uri(
       scheme: 'http',
-      host: uri!.host,
-      port: uri.port,
+      host: hostedUri!.host,
+      port: hostedUri.port,
       pathSegments: [
-        ...uri.pathSegments.where(
+        ...hostedUri.pathSegments.where(
           (e) => e.isNotEmpty,
         ),
-        'devtools',
+        if (!externallyServed) 'devtools',
         // Includes a trailing slash by adding an empty string to the end of the
         // path segments list.
         '',
@@ -522,8 +519,12 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
 
   @override
   Uri? get devToolsUri {
-    _devToolsUri ??=
-        _devToolsConfiguration?.enable ?? false ? toDevTools(_uri) : null;
+    if (_devToolsUri == null && (_devToolsConfiguration?.enable ?? false)) {
+      Uri? existingDevToolsUri = _devToolsConfiguration!.devToolsServerAddress;
+      _devToolsUri = existingDevToolsUri != null
+          ? toDevTools(existingDevToolsUri, externallyServed: true)
+          : toDevTools(_uri);
+    }
     return _devToolsUri;
   }
 

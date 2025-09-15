@@ -312,6 +312,9 @@ void ConstantPropagator::VisitTsanFuncEntryExit(TsanFuncEntryExitInstr* instr) {
 
 void ConstantPropagator::VisitTsanReadWrite(TsanReadWriteInstr* instr) {}
 
+void ConstantPropagator::VisitTsanReadWriteIndexed(
+    TsanReadWriteIndexedInstr* instr) {}
+
 Definition* ConstantPropagator::UnwrapPhi(Definition* defn) {
   if (defn->IsPhi()) {
     JoinEntryInstr* block = defn->AsPhi()->block();

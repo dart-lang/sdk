@@ -44,7 +44,7 @@ def BuildOptions():
     other_group.add_argument("-j",
                              type=int,
                              help='Ninja -j option for RBE builds.',
-                             default=200 if sys.platform == 'win32' else 500)
+                             default=200 if sys.platform == 'win32' else 400)
     other_group.add_argument("-l",
                              type=int,
                              help='Ninja -l option for RBE builds.',

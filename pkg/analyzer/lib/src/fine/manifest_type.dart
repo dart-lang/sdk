@@ -9,8 +9,10 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/binary/binary_reader.dart';
 import 'package:analyzer/src/binary/binary_writer.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/fine/manifest_ast.dart';
 import 'package:analyzer/src/fine/manifest_context.dart';
 import 'package:analyzer/src/fine/manifest_item.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -35,14 +37,40 @@ sealed class ManifestFunctionFormalParameter {
   final ManifestMetadata metadata;
   final bool isRequired;
   final bool isCovariant;
+  final bool isInitializingFormal;
+  final bool isSuperFormal;
   final ManifestType type;
+  final ManifestNode? defaultValue;
 
   ManifestFunctionFormalParameter({
     required this.metadata,
     required this.isRequired,
     required this.isCovariant,
+    required this.isInitializingFormal,
+    required this.isSuperFormal,
     required this.type,
+    required this.defaultValue,
   });
+
+  bool match(MatchContext context, InternalFormalParameterElement element) {
+    return metadata.match(context, element.metadata) &&
+        element.isRequired == isRequired &&
+        element.isCovariant == isCovariant &&
+        element.isInitializingFormal == isInitializingFormal &&
+        element.isSuperFormal == isSuperFormal &&
+        type.match(context, element.type) &&
+        defaultValue.match(context, element.constantInitializer);
+  }
+
+  void write(BufferedSink sink) {
+    metadata.write(sink);
+    sink.writeBool(isRequired);
+    sink.writeBool(isCovariant);
+    sink.writeBool(isInitializingFormal);
+    sink.writeBool(isSuperFormal);
+    type.write(sink);
+    defaultValue.writeOptional(sink);
+  }
 }
 
 class ManifestFunctionNamedFormalParameter
@@ -57,7 +85,10 @@ class ManifestFunctionNamedFormalParameter
       metadata: ManifestMetadata.encode(context, element.metadata),
       isRequired: element.isRequired,
       isCovariant: element.isCovariant,
+      isInitializingFormal: element.isInitializingFormal,
+      isSuperFormal: element.isSuperFormal,
       type: element.type.encode(context),
+      defaultValue: element.constantInitializer?.encode(context),
       name: element.name ?? '',
     );
   }
@@ -67,7 +98,10 @@ class ManifestFunctionNamedFormalParameter
       metadata: ManifestMetadata.read(reader),
       isRequired: reader.readBool(),
       isCovariant: reader.readBool(),
+      isInitializingFormal: reader.readBool(),
+      isSuperFormal: reader.readBool(),
       type: ManifestType.read(reader),
+      defaultValue: ManifestNode.readOptional(reader),
       name: reader.readStringUtf8(),
     );
   }
@@ -76,24 +110,23 @@ class ManifestFunctionNamedFormalParameter
     required super.metadata,
     required super.isRequired,
     required super.isCovariant,
+    required super.isInitializingFormal,
+    required super.isSuperFormal,
     required super.type,
+    required super.defaultValue,
     required this.name,
   });
 
+  @override
   bool match(MatchContext context, InternalFormalParameterElement element) {
     return element.isNamed &&
-        metadata.match(context, element.metadata) &&
-        element.isRequired == isRequired &&
-        element.isCovariant == isCovariant &&
-        type.match(context, element.type) &&
+        super.match(context, element) &&
         element.name == name;
   }
 
+  @override
   void write(BufferedSink sink) {
-    metadata.write(sink);
-    sink.writeBool(isRequired);
-    sink.writeBool(isCovariant);
-    type.write(sink);
+    super.write(sink);
     sink.writeStringUtf8(name);
   }
 }
@@ -108,7 +141,10 @@ class ManifestFunctionPositionalFormalParameter
       metadata: ManifestMetadata.encode(context, element.metadata),
       isRequired: element.isRequiredPositional,
       isCovariant: element.isCovariant,
+      isInitializingFormal: element.isInitializingFormal,
+      isSuperFormal: element.isSuperFormal,
       type: element.type.encode(context),
+      defaultValue: element.constantInitializer?.encode(context),
     );
   }
 
@@ -119,7 +155,10 @@ class ManifestFunctionPositionalFormalParameter
       metadata: ManifestMetadata.read(reader),
       isRequired: reader.readBool(),
       isCovariant: reader.readBool(),
+      isInitializingFormal: reader.readBool(),
+      isSuperFormal: reader.readBool(),
       type: ManifestType.read(reader),
+      defaultValue: ManifestNode.readOptional(reader),
     );
   }
 
@@ -127,22 +166,15 @@ class ManifestFunctionPositionalFormalParameter
     required super.metadata,
     required super.isRequired,
     required super.isCovariant,
+    required super.isInitializingFormal,
+    required super.isSuperFormal,
     required super.type,
+    required super.defaultValue,
   });
 
+  @override
   bool match(MatchContext context, InternalFormalParameterElement element) {
-    return element.isPositional &&
-        metadata.match(context, element.metadata) &&
-        element.isRequired == isRequired &&
-        element.isCovariant == isCovariant &&
-        type.match(context, element.type);
-  }
-
-  void write(BufferedSink sink) {
-    metadata.write(sink);
-    sink.writeBool(isRequired);
-    sink.writeBool(isCovariant);
-    type.write(sink);
+    return element.isPositional && super.match(context, element);
   }
 }
 
@@ -740,5 +772,11 @@ extension ManifestTypeOrNullExtension on ManifestType? {
 
   void writeOptional(BufferedSink sink) {
     sink.writeOptionalObject(this, (x) => x.write(sink));
+  }
+}
+
+extension _AstNodeExtension on AstNode {
+  ManifestNode encode(EncodeContext context) {
+    return ManifestNode.encode(context, this);
   }
 }

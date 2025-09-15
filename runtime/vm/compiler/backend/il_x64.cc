@@ -1840,12 +1840,6 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   auto const rep =
       RepresentationUtils::RepresentationOfArrayElement(class_id());
   ASSERT(representation() == Boxing::NativeRepresentation(rep));
-
-  if (FLAG_target_thread_sanitizer) {
-    __ leaq(TMP, element_address);
-    __ TsanRead(TMP, RepresentationUtils::ValueSize(rep));
-  }
-
   if (RepresentationUtils::IsUnboxedInteger(rep)) {
     Register result = locs()->out(0).reg();
     __ Load(result, element_address, RepresentationUtils::OperandSize(rep));
@@ -2032,12 +2026,6 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   auto const rep =
       RepresentationUtils::RepresentationOfArrayElement(class_id());
   ASSERT(RequiredInputRepresentation(2) == Boxing::NativeRepresentation(rep));
-
-  if (FLAG_target_thread_sanitizer) {
-    __ leaq(TMP, element_address);
-    __ TsanWrite(TMP, RepresentationUtils::ValueSize(rep));
-  }
-
   if (IsClampedTypedDataBaseClassId(class_id())) {
     ASSERT(rep == kUnboxedUint8);
     if (locs()->in(2).IsConstant()) {

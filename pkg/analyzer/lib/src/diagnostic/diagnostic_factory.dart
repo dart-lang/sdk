@@ -431,7 +431,8 @@ class DiagnosticFactory {
     // Elements enclosing members that can participate in overrides are always
     // named, so we can safely assume `_thisMember.enclosingElement3.name` and
     // `superMember.enclosingElement3.name` are non-`null`.
-    var superFragment = superMember.nonSynthetic.firstFragment;
+    var superElement = superMember.nonSynthetic.baseElement as ElementImpl;
+    var superLocation = superElement.firstFragmentLocation;
     return Diagnostic.tmp(
       source: source,
       offset: errorNode.offset,
@@ -452,18 +453,18 @@ class DiagnosticFactory {
         // concrete).
         if (code == CompileTimeErrorCode.invalidOverride)
           DiagnosticMessageImpl(
-            filePath: superFragment.libraryFragment!.source.fullName,
+            filePath: superLocation.libraryFragment!.source.fullName,
             message: "The member being overridden.",
-            offset: superFragment.nameOffset ?? -1,
-            length: superFragment.name!.length,
+            offset: superLocation.nameOffset ?? -1,
+            length: superLocation.name!.length,
             url: null,
           ),
         if (code == CompileTimeErrorCode.invalidOverrideSetter)
           DiagnosticMessageImpl(
-            filePath: superFragment.libraryFragment!.source.fullName,
+            filePath: superLocation.libraryFragment!.source.fullName,
             message: "The setter being overridden.",
-            offset: superFragment.nameOffset ?? -1,
-            length: superFragment.name!.length,
+            offset: superLocation.nameOffset ?? -1,
+            length: superLocation.name!.length,
             url: null,
           ),
       ],
