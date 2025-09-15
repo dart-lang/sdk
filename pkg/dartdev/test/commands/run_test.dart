@@ -55,6 +55,9 @@ void main() {
 }
 ''';
 
+/// The expected EOL from [print] statements.
+final eol = Platform.lineTerminator;
+
 void Function(String) onVmServicesData(
   TestProject p, {
   bool expectDevtoolsMsg = true,
@@ -232,7 +235,7 @@ void run() {
     ]);
 
     // --enable-experiment and main.dart should not be passed.
-    expect(result.stdout, equals('[argument1, argument2]\n'));
+    expect(result.stdout, equals('[argument1, argument2]$eol'));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
   });
@@ -281,7 +284,7 @@ void main(List<String> args) => print("$b $args");
 
     // --enable-experiment and main.dart should not be passed.
     expect(result.stderr, isEmpty);
-    expect(result.stdout, equals('[--argument1, argument2]\n'));
+    expect(result.stdout, equals('[--argument1, argument2]$eol'));
     expect(result.exitCode, 0);
   });
 
@@ -299,7 +302,7 @@ void main(List<String> args) => print("$b $args");
 
     // --enable-experiment and main.dart should not be passed.
     expect(result.stderr, isEmpty);
-    expect(result.stdout, equals('[--argument1, argument2]\n'));
+    expect(result.stdout, equals('[--argument1, argument2]$eol'));
     expect(result.exitCode, 0);
   });
 
@@ -661,25 +664,25 @@ main() => print('b:b');
             .run(['run', 'a'], workingDir: path.join(p.dirPath, 'pkgs', 'a')),
         isA<ProcessResult>()
             .having((r) => r.exitCode, 'exitCode', 0)
-            .having((r) => r.stdout, 'stdout', 'a:a\n'));
+            .having((r) => r.stdout, 'stdout', 'a:a$eol'));
     expect(
         await p
             .run(['run', 'a:a'], workingDir: path.join(p.dirPath, 'pkgs', 'a')),
         isA<ProcessResult>()
             .having((r) => r.exitCode, 'exitCode', 0)
-            .having((r) => r.stdout, 'stdout', 'a:a\n'));
+            .having((r) => r.stdout, 'stdout', 'a:a$eol'));
     expect(
         await p.run(['run', ':tool'],
             workingDir: path.join(p.dirPath, 'pkgs', 'a')),
         isA<ProcessResult>()
             .having((r) => r.exitCode, 'exitCode', 0)
-            .having((r) => r.stdout, 'stdout', 'a:tool\n'));
+            .having((r) => r.stdout, 'stdout', 'a:tool$eol'));
     expect(
         await p
             .run(['run', 'b'], workingDir: path.join(p.dirPath, 'pkgs', 'a')),
         isA<ProcessResult>()
             .having((r) => r.exitCode, 'exitCode', 0)
-            .having((r) => r.stdout, 'stdout', 'b:b\n'));
+            .having((r) => r.stdout, 'stdout', 'b:b$eol'));
   });
 
   group('DDS', () {
