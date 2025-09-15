@@ -20,7 +20,5 @@ dependencies:
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
-  analyzer_plugin: any
   lints: any
-  source_span: any
   test_reflective_loader: any
