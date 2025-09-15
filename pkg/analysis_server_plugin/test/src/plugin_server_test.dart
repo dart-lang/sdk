@@ -36,6 +36,8 @@ class PluginServerTest extends PluginServerTestBase {
 
   String get file2Path => join(packagePath, 'lib', 'test2.dart');
 
+  String get testFilePath => join(packagePath, 'test', 'test.dart');
+
   String get packagePath => convertPath('/package1');
 
   StreamQueue<protocol.AnalysisErrorsParams> get _analysisErrorsParams {
@@ -43,7 +45,12 @@ class PluginServerTest extends PluginServerTestBase {
       channel.notifications
           .where((n) => n.event == protocol.ANALYSIS_NOTIFICATION_ERRORS)
           .map((n) => protocol.AnalysisErrorsParams.fromNotification(n))
-          .where((p) => p.file == filePath || p.file == file2Path),
+          .where(
+            (p) =>
+                p.file == filePath ||
+                p.file == file2Path ||
+                p.file == testFilePath,
+          ),
     );
   }
 
@@ -260,6 +267,7 @@ bool b = false;
     expect(
       details.lintRules,
       unorderedEquals([
+        'needs_package',
         'no_doubles',
         'no_doubles_custom_severity',
         'no_references_to_strings',
@@ -275,6 +283,27 @@ bool b = false;
     var assist = details.assists.single;
     expect(assist.id, 'dart.fix.invertBoolean');
     expect(assist.message, 'Invert Boolean value');
+  }
+
+  Future<void> test_rulesHaveAccessToPackage() async {
+    writeAnalysisOptionsWithPlugin({'needs_package': 'enable'});
+    newFile(filePath, 'var x = 1;');
+    newFile(testFilePath, 'var x = 1;');
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
+    var paramsQueue = _analysisErrorsParams;
+    var params = await paramsQueue.next;
+    expect(params.file, filePath);
+    expect(params.errors, hasLength(1));
+    _expectAnalysisError(
+      params.errors.single,
+      message: 'Needs Package at "$packagePath"',
+    );
+
+    params = await paramsQueue.next;
+    expect(params.file, testFilePath);
+    expect(params.errors, isEmpty);
   }
 
   Future<void> test_unsupportedRequest() async {
@@ -626,6 +655,7 @@ class _NoLiteralsPlugin extends Plugin {
 
   @override
   void register(PluginRegistry registry) {
+    registry.registerLintRule(NeedsPackageRule());
     registry.registerWarningRule(NoBoolsRule());
     registry.registerLintRule(NoDoublesRule());
     registry.registerLintRule(NoDoublesCustomSeverityRule());
