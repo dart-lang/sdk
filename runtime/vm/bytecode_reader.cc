@@ -2902,6 +2902,13 @@ void BytecodeReader::CollectScriptTokenPositionsFromBytecode(
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
+const char* BytecodeLocalVariablesIterator::kKindNames[] = {
+    "Invalid",
+    "Scope",
+    "VariableDeclaration",
+    "ContextVariable",
+};
+
 LocalVarDescriptorsPtr BytecodeReader::ComputeLocalVarDescriptors(
     Zone* zone,
     const Function& function,

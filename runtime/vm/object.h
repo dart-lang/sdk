@@ -7601,9 +7601,6 @@ class Bytecode : public Object {
   void set_local_variables_binary_offset(intptr_t value) const {
     StoreNonPointer(&untag()->local_variables_binary_offset_, value);
   }
-  bool HasLocalVariablesInfo() const {
-    return (local_variables_binary_offset() != 0);
-  }
 
   LocalVarDescriptorsPtr var_descriptors() const {
     return untag()->var_descriptors<std::memory_order_acquire>();
@@ -7616,6 +7613,15 @@ class Bytecode : public Object {
   // Will compute local var descriptors if necessary.
   LocalVarDescriptorsPtr GetLocalVarDescriptors() const;
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+
+  bool HasLocalVariablesInfo() const {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+    return (local_variables_binary_offset() != 0);
+#else
+    return false;
+#endif
+  }
+
   const char* Name() const;
   const char* QualifiedName() const;
   const char* FullyQualifiedName() const;

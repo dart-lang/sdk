@@ -594,6 +594,7 @@ class BytecodeLocalVariablesIterator : ValueObject {
     kContextVariable,
   };
 
+  static const char* kKindNames[];
   static const intptr_t kKindMask = 0xF;
   static const intptr_t kIsCapturedFlag = 1 << 4;
 
@@ -641,6 +642,7 @@ class BytecodeLocalVariablesIterator : ValueObject {
   bool IsDone() const { return entries_remaining_ < 0; }
 
   intptr_t Kind() const { return cur_kind_and_flags_ & kKindMask; }
+  const char* KindName() const { return kKindNames[Kind()]; }
   bool IsScope() const { return Kind() == kScope; }
   bool IsVariableDeclaration() const { return Kind() == kVariableDeclaration; }
   bool IsContextVariable() const { return Kind() == kContextVariable; }

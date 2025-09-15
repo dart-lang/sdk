@@ -636,7 +636,15 @@ void ActivationFrame::PrintDescriptorsError(const char* message) {
   OS::PrintErr("deopt_id_ %" Px "\n", deopt_id_);
   OS::PrintErr("context_level_ %" Px "\n", context_level_);
   OS::PrintErr("token_pos_ %s\n", token_pos_.ToCString());
-  {
+  if (IsInterpreted()) {
+#if defined(DART_DYNAMIC_MODULES)
+    DisassembleToStdout formatter;
+    bytecode().Disassemble(&formatter);
+    OS::PrintErr("%s\n", var_descriptors_.ToCString());
+#else
+    UNREACHABLE();
+#endif
+  } else {
     DisassembleToStdout formatter;
     code().Disassemble(&formatter);
     PcDescriptors::Handle(code().pc_descriptors()).Print();
@@ -658,24 +666,51 @@ intptr_t ActivationFrame::ContextLevel() {
   const Context& ctx = GetSavedCurrentContext();
   if (context_level_ < 0 && !ctx.IsNull()) {
     ASSERT(IsInterpreted() || !code().is_optimized());
-    GetVarDescriptors();
-    intptr_t deopt_id = DeoptId();
-    if (deopt_id == DeoptId::kNone) {
-      PrintDescriptorsError("Missing deopt id");
-    }
-    intptr_t var_desc_len = var_descriptors_.Length();
     bool found = false;
-    // We store the deopt ids as real token positions.
-    const auto to_compare = TokenPosition::Deserialize(deopt_id);
-    for (intptr_t cur_idx = 0; cur_idx < var_desc_len; cur_idx++) {
-      UntaggedLocalVarDescriptors::VarInfo var_info;
-      var_descriptors_.GetInfo(cur_idx, &var_info);
-      const int8_t kind = var_info.kind();
-      if ((kind == UntaggedLocalVarDescriptors::kContextLevel) &&
-          to_compare.IsWithin(var_info.begin_pos, var_info.end_pos)) {
-        context_level_ = var_info.index();
-        found = true;
-        break;
+    if (IsInterpreted()) {
+#if defined(DART_DYNAMIC_MODULES) && !defined(PRODUCT) &&                      \
+    !defined(DART_PRECOMPILED_RUNTIME)
+      const intptr_t pc_offset = pc() - PayloadStart();
+      DEBUG_ONLY(intptr_t closest_start = 0);
+      bytecode::BytecodeLocalVariablesIterator local_vars(
+          Thread::Current()->zone(), bytecode());
+      while (local_vars.MoveNext()) {
+        if (local_vars.IsScope()) {
+          if (local_vars.StartPC() <= pc_offset &&
+              pc_offset < local_vars.EndPC()) {
+            DEBUG_ASSERT(!found || local_vars.StartPC() > closest_start);
+            found = true;
+            context_level_ = local_vars.ContextLevel();
+            DEBUG_ONLY(closest_start = local_vars.StartPC());
+          } else if (local_vars.StartPC() > pc_offset) {
+            // The scopes in the local variables info are ordered by starting
+            // PC offset, so no need to search further.
+            break;
+          }
+        }
+      }
+#else
+      UNREACHABLE();
+#endif
+    } else {
+      GetVarDescriptors();
+      intptr_t var_desc_len = var_descriptors_.Length();
+      // We store the deopt ids as real token positions.
+      intptr_t deopt_id = DeoptId();
+      if (deopt_id == DeoptId::kNone) {
+        PrintDescriptorsError("Missing deopt id");
+      }
+      const TokenPosition to_compare = TokenPosition::Deserialize(deopt_id);
+      for (intptr_t cur_idx = 0; cur_idx < var_desc_len; cur_idx++) {
+        UntaggedLocalVarDescriptors::VarInfo var_info;
+        var_descriptors_.GetInfo(cur_idx, &var_info);
+        const int8_t kind = var_info.kind();
+        if ((kind == UntaggedLocalVarDescriptors::kContextLevel) &&
+            to_compare.IsWithin(var_info.begin_pos, var_info.end_pos)) {
+          context_level_ = var_info.index();
+          found = true;
+          break;
+        }
       }
     }
     if (!found) {
