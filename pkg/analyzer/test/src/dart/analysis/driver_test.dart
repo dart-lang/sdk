@@ -46151,6 +46151,272 @@ class A {
     );
   }
 
+  test_manifest_class_constructor_formalParameter_isInitializingFormal() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  final int x;
+  A.foo1(this.x);
+  A.foo2(int x): this.x = x;
+  A.foo3(this.x);
+  A.foo4(int x): this.x = x;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          x: #M1
+        declaredGetters
+          x: #M2
+        declaredConstructors
+          foo1: #M3
+          foo2: #M4
+          foo3: #M5
+          foo4: #M6
+        interface: #M7
+          map
+            x: #M2
+          implemented
+            x: #M2
+''',
+      updatedCode: r'''
+class A {
+  final int x;
+  A.foo1(this.x);
+  A.foo2(int x): this.x = x;
+  A.foo3(int x): this.x = x;
+  A.foo4(this.x);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          x: #M1
+        declaredGetters
+          x: #M2
+        declaredConstructors
+          foo1: #M3
+          foo2: #M4
+          foo3: #M8
+          foo4: #M9
+        interface: #M7
+          map
+            x: #M2
+          implemented
+            x: #M2
+''',
+    );
+  }
+
+  test_manifest_class_constructor_formalParameter_isSuperFormal() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A(int x);
+}
+
+class B extends A {
+  B.foo1(super.x);
+  B.foo2(int x) : super(x);
+  B.foo3(super.x);
+  B.foo4(int x) : super(x);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        declaredConstructors
+          foo1: #M3
+          foo2: #M4
+          foo3: #M5
+          foo4: #M6
+        interface: #M7
+''',
+      updatedCode: r'''
+class A {
+  A(int x);
+}
+
+class B extends A {
+  B.foo1(super.x);
+  B.foo2(int x) : super(x);
+  B.foo3(int x) : super(x);
+  B.foo4(super.x);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        declaredConstructors
+          foo1: #M3
+          foo2: #M4
+          foo3: #M8
+          foo4: #M9
+        interface: #M7
+''',
+    );
+  }
+
+  test_manifest_class_constructor_formalParameter_optionalNamed_defaultValue() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.foo({int a = 0});
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredConstructors
+          foo: #M1
+        interface: #M2
+''',
+      updatedCode: r'''
+class A {
+  A.foo({int a = 0});
+  A.bar();
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredConstructors
+          bar: #M3
+          foo: #M1
+        interface: #M2
+''',
+    );
+  }
+
+  test_manifest_class_constructor_formalParameter_optionalNamed_defaultValue_change() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.foo({int a = 0});
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredConstructors
+          foo: #M1
+        interface: #M2
+''',
+      updatedCode: r'''
+class A {
+  A.foo({int a = 1});
+  A.bar();
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredConstructors
+          bar: #M3
+          foo: #M4
+        interface: #M2
+''',
+    );
+  }
+
+  test_manifest_class_constructor_formalParameter_optionalPositional_defaultValue() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.foo([int a = 0]);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredConstructors
+          foo: #M1
+        interface: #M2
+''',
+      updatedCode: r'''
+class A {
+  A.foo([int a = 0]);
+  A.bar();
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredConstructors
+          bar: #M3
+          foo: #M1
+        interface: #M2
+''',
+    );
+  }
+
+  test_manifest_class_constructor_formalParameter_optionalPositional_defaultValue_change() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A.foo([int a = 0]);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredConstructors
+          foo: #M1
+        interface: #M2
+''',
+      updatedCode: r'''
+class A {
+  A.foo([int a = 1]);
+  A.bar();
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        declaredConstructors
+          bar: #M3
+          foo: #M4
+        interface: #M2
+''',
+    );
+  }
+
   test_manifest_class_constructor_formalParameter_requiredPositional() async {
     configuration.includeDefaultConstructors();
     await _runLibraryManifestScenario(
@@ -47399,7 +47665,7 @@ class A {
     );
   }
 
-  test_manifest_class_constructor_redirectingConstructor() async {
+  test_manifest_class_constructor_redirectedConstructor() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
 class A {
@@ -47445,7 +47711,7 @@ class A {
     );
   }
 
-  test_manifest_class_constructor_redirectingConstructor_factory() async {
+  test_manifest_class_constructor_redirectedConstructor_factory() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
 class A {
@@ -60323,7 +60589,7 @@ const b = 0 + a;
             [0] (dart:core, instanceMethod, num, +) #M2
           elementIndexList
             0 = null
-            5 = element 0
+            6 = element 0
 ''',
       updatedCode: r'''
 const a = 1;
@@ -60357,9 +60623,9 @@ const b = 0 + a;
             [1] (package:test/test.dart, topLevelVariable, a) <null>
             [2] (dart:core, instanceMethod, num, +) #M2
           elementIndexList
-            5 = element 0
-            13 = element 1
-            21 = element 2
+            6 = element 0
+            22 = element 1
+            38 = element 2
 ''',
     );
   }
@@ -60400,9 +60666,9 @@ const b = 1 + a;
             [1] (package:test/test.dart, topLevelVariable, a) <null>
             [2] (dart:core, instanceMethod, num, +) #M4
           elementIndexList
-            5 = element 0
-            13 = element 1
-            21 = element 2
+            6 = element 0
+            22 = element 1
+            38 = element 2
 ''',
       updatedCode: r'''
 const b = 1 + a;
@@ -60425,7 +60691,7 @@ const b = 1 + a;
             [0] (dart:core, instanceMethod, num, +) #M4
           elementIndexList
             0 = null
-            5 = element 0
+            6 = element 0
 ''',
     );
   }
@@ -60851,7 +61117,7 @@ const a = 0 as core.int;
             [0] (dart:core, class_, int) #M2
           elementIndexList
             3 = importPrefix
-            5 = element 0
+            6 = element 0
 ''',
       updatedCode: r'''
 import 'dart:core' as core;
@@ -60879,7 +61145,7 @@ const b = 0;
             [0] (dart:core, class_, int) #M2
           elementIndexList
             3 = importPrefix
-            5 = element 0
+            6 = element 0
       b: #M4
         flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
@@ -61271,7 +61537,7 @@ const a = identical(0, 1);
           elements
             [0] (dart:core, topLevelFunction, identical) #M2
           elementIndexList
-            5 = element 0
+            6 = element 0
 ''',
       updatedCode: r'''
 const a = identical(0, 1);
@@ -61297,7 +61563,7 @@ const b = 0;
           elements
             [0] (dart:core, topLevelFunction, identical) #M2
           elementIndexList
-            5 = element 0
+            6 = element 0
       b: #M4
         flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
@@ -61366,7 +61632,7 @@ const x = foo;
           tokenBuffer: foo
           tokenLengthList: [3]
           elementIndexList
-            6 = multiplyDefined
+            7 = multiplyDefined
 ''',
       updatedCode: r'''
 import 'a.dart';
@@ -61393,7 +61659,7 @@ class A {}
           tokenBuffer: foo
           tokenLengthList: [3]
           elementIndexList
-            6 = multiplyDefined
+            7 = multiplyDefined
 ''',
     );
   }
@@ -61442,6 +61708,37 @@ const b = B;
     declaredVariables
       a: #M6
       b: #M10
+''',
+    );
+  }
+
+  test_manifest_constInitializer_neverType() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = <Never>[];
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+''',
+      updatedCode: r'''
+const a = <Never>[];
+const b = 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
 ''',
     );
   }
@@ -61758,9 +62055,9 @@ const d = prefix.A.b;
             [2] (package:test/a.dart, instanceField, A, a) #M1
           elementIndexList
             3 = importPrefix
-            5 = element 0
-            13 = element 1
-            21 = element 2
+            6 = element 0
+            22 = element 1
+            38 = element 2
       d: #M9
         flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
@@ -61773,9 +62070,9 @@ const d = prefix.A.b;
             [2] (package:test/a.dart, instanceField, A, b) #M2
           elementIndexList
             3 = importPrefix
-            5 = element 0
-            13 = element 1
-            21 = element 2
+            6 = element 0
+            22 = element 1
+            38 = element 2
 ''',
       updatedCodeFile: a,
       updatedCode: r'''
@@ -61841,9 +62138,9 @@ class A {
             [2] (package:test/a.dart, instanceField, A, a) #M1
           elementIndexList
             3 = importPrefix
-            5 = element 0
-            13 = element 1
-            21 = element 2
+            6 = element 0
+            22 = element 1
+            38 = element 2
       d: #M11
         flags: hasImplicitType hasInitializer isConst isStatic
         type: int @ dart:core
@@ -61856,9 +62153,9 @@ class A {
             [2] (package:test/a.dart, instanceField, A, b) #M10
           elementIndexList
             3 = importPrefix
-            5 = element 0
-            13 = element 1
-            21 = element 2
+            6 = element 0
+            22 = element 1
+            38 = element 2
 ''',
     );
   }
@@ -62356,7 +62653,7 @@ const x = A;
           elements
             [0] (package:test/a.dart, typeAlias, A) #M0
           elementIndexList
-            5 = element 0
+            6 = element 0
 ''',
       updatedCode: r'''
 import 'a.dart';
@@ -62383,7 +62680,7 @@ const y = double;
           elements
             [0] (package:test/a.dart, typeAlias, A) #M0
           elementIndexList
-            5 = element 0
+            6 = element 0
       y: #M4
         flags: hasImplicitType hasInitializer isConst isStatic
         type: Type @ dart:core
@@ -62393,7 +62690,7 @@ const y = double;
           elements
             [0] (dart:core, class_, double) #M5
           elementIndexList
-            5 = element 0
+            6 = element 0
 ''',
     );
   }
@@ -65431,25 +65728,25 @@ extension type E(int it) {
               flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
               functionType: FunctionType
                 positional
-                  required int @ dart:core
+                  required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo2: #M4
               flags: hasEnclosingTypeParameterReference isConst isExtensionTypeMember isSimplyBounded
               functionType: FunctionType
                 positional
-                  required int @ dart:core
+                  required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo3: #M5
               flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
               functionType: FunctionType
                 positional
-                  required int @ dart:core
+                  required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo4: #M6
               flags: hasEnclosingTypeParameterReference isConst isExtensionTypeMember isSimplyBounded
               functionType: FunctionType
                 positional
-                  required int @ dart:core
+                  required this int @ dart:core
                 returnType: E @ package:test/test.dart
         interface: #M7
           map
@@ -65485,25 +65782,25 @@ extension type E(int it) {
               flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
               functionType: FunctionType
                 positional
-                  required int @ dart:core
+                  required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo2: #M4
               flags: hasEnclosingTypeParameterReference isConst isExtensionTypeMember isSimplyBounded
               functionType: FunctionType
                 positional
-                  required int @ dart:core
+                  required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo3: #M8
               flags: hasEnclosingTypeParameterReference isConst isExtensionTypeMember isSimplyBounded
               functionType: FunctionType
                 positional
-                  required int @ dart:core
+                  required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo4: #M9
               flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
               functionType: FunctionType
                 positional
-                  required int @ dart:core
+                  required this int @ dart:core
                 returnType: E @ package:test/test.dart
         interface: #M7
           map
@@ -65546,7 +65843,7 @@ extension type E(int it) {
               flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
               functionType: FunctionType
                 positional
-                  required int @ dart:core
+                  required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo2: #M4
               flags: hasEnclosingTypeParameterReference isExtensionTypeMember isExternal isSimplyBounded
@@ -65558,7 +65855,7 @@ extension type E(int it) {
               flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
               functionType: FunctionType
                 positional
-                  required int @ dart:core
+                  required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo4: #M6
               flags: hasEnclosingTypeParameterReference isExtensionTypeMember isExternal isSimplyBounded
@@ -65600,7 +65897,7 @@ extension type E(int it) {
               flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
               functionType: FunctionType
                 positional
-                  required int @ dart:core
+                  required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo2: #M4
               flags: hasEnclosingTypeParameterReference isExtensionTypeMember isExternal isSimplyBounded
@@ -65618,7 +65915,7 @@ extension type E(int it) {
               flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
               functionType: FunctionType
                 positional
-                  required int @ dart:core
+                  required this int @ dart:core
                 returnType: E @ package:test/test.dart
         interface: #M7
           map
@@ -65661,7 +65958,7 @@ extension type E(int it) {
               flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
               functionType: FunctionType
                 positional
-                  required int @ dart:core
+                  required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo2: #M4
               flags: hasEnclosingTypeParameterReference isExtensionTypeMember isFactory isSimplyBounded
@@ -65673,7 +65970,7 @@ extension type E(int it) {
               flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
               functionType: FunctionType
                 positional
-                  required int @ dart:core
+                  required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo4: #M6
               flags: hasEnclosingTypeParameterReference isExtensionTypeMember isFactory isSimplyBounded
@@ -65689,8 +65986,8 @@ extension type E(int it) {
 ''',
       updatedCode: r'''
 extension type E(int it) {
-  E.foo1(int it) => E(it);
-  factory E.foo2(this.it);
+  E.foo1(this.it);
+  factory E.foo2(int it) => E(it);
   factory E.foo3(int it) => E(it);
   E.foo4(this.it);
 }
@@ -65715,7 +66012,7 @@ extension type E(int it) {
               flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
               functionType: FunctionType
                 positional
-                  required int @ dart:core
+                  required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo2: #M4
               flags: hasEnclosingTypeParameterReference isExtensionTypeMember isFactory isSimplyBounded
@@ -65733,7 +66030,7 @@ extension type E(int it) {
               flags: hasEnclosingTypeParameterReference isExtensionTypeMember isSimplyBounded
               functionType: FunctionType
                 positional
-                  required int @ dart:core
+                  required this int @ dart:core
                 returnType: E @ package:test/test.dart
         interface: #M7
           map
@@ -74029,6 +74326,58 @@ void bar() {}
     );
   }
 
+  test_manifest_topLevelFunction_formalParameter_optionalNamed_defaultValue() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+void foo({int a = 0}) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      foo: #M0
+''',
+      updatedCode: r'''
+void foo({int a = 0}) {}
+void bar() {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      bar: #M1
+      foo: #M0
+''',
+    );
+  }
+
+  test_manifest_topLevelFunction_formalParameter_optionalNamed_defaultValue_change() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+void foo({int a = 0}) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      foo: #M0
+''',
+      updatedCode: r'''
+void foo({int a = 1}) {}
+void bar() {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      bar: #M1
+      foo: #M2
+''',
+    );
+  }
+
   test_manifest_topLevelFunction_formalParameter_optionalNamed_name() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -74103,6 +74452,58 @@ void bar() {}
     declaredFunctions
       bar: #M1
       foo: #M0
+''',
+    );
+  }
+
+  test_manifest_topLevelFunction_formalParameter_optionalPositional_defaultValue() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+void foo([int a = 0]) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      foo: #M0
+''',
+      updatedCode: r'''
+void foo([int a = 0]) {}
+void bar() {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      bar: #M1
+      foo: #M0
+''',
+    );
+  }
+
+  test_manifest_topLevelFunction_formalParameter_optionalPositional_defaultValue_change() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+void foo([int a = 0]) {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      foo: #M0
+''',
+      updatedCode: r'''
+void foo([int a = 1]) {}
+void bar() {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      bar: #M1
+      foo: #M2
 ''',
     );
   }

@@ -22,6 +22,7 @@ enum ManifestAstElementKind {
   dynamic_,
   formalParameter,
   importPrefix,
+  never_,
   typeParameter,
   regular,
   multiplyDefined;
@@ -440,6 +441,9 @@ class _ElementCollector extends GeneralizingAstVisitor<void> {
         rawIndex = 0;
       case DynamicElementImpl():
         kind = ManifestAstElementKind.dynamic_;
+        rawIndex = 0;
+      case NeverElementImpl():
+        kind = ManifestAstElementKind.never_;
         rawIndex = 0;
       case MultiplyDefinedElementImpl():
         kind = ManifestAstElementKind.multiplyDefined;

@@ -1673,6 +1673,8 @@ class LibraryManifestPrinter {
                   sink.writelnWithIndent('$index = null');
                 case ManifestAstElementKind.dynamic_:
                   sink.writelnWithIndent('$index = dynamic');
+                case ManifestAstElementKind.never_:
+                  sink.writelnWithIndent('$index = Never');
                 case ManifestAstElementKind.multiplyDefined:
                   sink.writelnWithIndent('$index = multiplyDefined');
                 case ManifestAstElementKind.formalParameter:
@@ -1753,17 +1755,23 @@ class LibraryManifestPrinter {
           _writeTypeParameters(type.typeParameters);
           sink.writeElements('positional', type.positional, (field) {
             sink.writeIndent();
-            if (field.isRequired) {
-              sink.write('required ');
-            }
+            sink.writeIf(field.isRequired, 'required ');
+            sink.writeIf(field.isInitializingFormal, 'this ');
+            sink.writeIf(field.isSuperFormal, 'super ');
             _writeType(field.type);
+            sink.withIndent(() {
+              _writeNode('defaultValue', field.defaultValue);
+            });
           });
           sink.writeElements('named', type.named, (field) {
             sink.writeWithIndent('${field.name}: ');
-            if (field.isRequired) {
-              sink.write('required ');
-            }
+            sink.writeIf(field.isRequired, 'required ');
+            sink.writeIf(field.isInitializingFormal, 'this ');
+            sink.writeIf(field.isSuperFormal, 'super ');
             _writeType(field.type);
+            sink.withIndent(() {
+              _writeNode('defaultValue', field.defaultValue);
+            });
           });
           _writeNamedType('returnType', type.returnType);
         });
