@@ -10,6 +10,7 @@ import 'package:_fe_analyzer_shared/src/types/shared_type.dart'
     as shared
     show Variance;
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart' hide Variance;
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -831,7 +832,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   void computeConstantDependencies() {
     if (!isConstantEvaluated) {
       computeConstants(
-        declaredVariables: library.context.declaredVariables,
+        declaredVariables: library.declaredVariables,
         constants: [this],
         featureSet: library.featureSet,
         configuration: ConstantEvaluationConfiguration(),
@@ -1612,7 +1613,7 @@ class ElementAnnotationImpl
     if (evaluationResult == null) {
       var library = libraryFragment.element;
       computeConstants(
-        declaredVariables: library.context.declaredVariables,
+        declaredVariables: library.declaredVariables,
         constants: [this],
         featureSet: library.featureSet,
         configuration: ConstantEvaluationConfiguration(),
@@ -5880,7 +5881,7 @@ class LabelFragmentImpl extends FragmentImpl implements LabelFragment {
 class LibraryElementImpl extends ElementImpl
     with DeferredResolutionReadingMixin
     implements LibraryElement {
-  final AnalysisContext context;
+  final AnalysisContext _context;
 
   @override
   @trackedIncludedInId
@@ -5977,7 +5978,7 @@ class LibraryElementImpl extends ElementImpl
   /// Initialize a newly created library element in the given [context] to have
   /// the given [name] and [offset].
   LibraryElementImpl(
-    this.context,
+    this._context,
     this.session,
     this.name,
     this.nameOffset,
@@ -6022,6 +6023,17 @@ class LibraryElementImpl extends ElementImpl
 
   set classes(List<ClassElementImpl> value) {
     _classes = value;
+  }
+
+  @trackedDirectlyOpaque
+  AnalysisContext get context {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'context');
+    return _context;
+  }
+
+  @trackedIncludedInId
+  DeclaredVariables get declaredVariables {
+    return _context.declaredVariables;
   }
 
   @override
@@ -6196,6 +6208,11 @@ class LibraryElementImpl extends ElementImpl
   @trackedIndirectly
   bool get isInSdk {
     return DartUriResolver.isDartUri(uri);
+  }
+
+  @trackedIndirectly
+  bool get isInternalSdkLibrary {
+    return '$uri'.startsWith('dart:_');
   }
 
   @override
@@ -10970,7 +10987,7 @@ abstract class VariableElementImpl extends ElementImpl
         return null;
       }
       computeConstants(
-        declaredVariables: library.context.declaredVariables,
+        declaredVariables: library.declaredVariables,
         constants: [this],
         featureSet: library.featureSet,
         configuration: ConstantEvaluationConfiguration(),

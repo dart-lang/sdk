@@ -82435,6 +82435,149 @@ import 'a.dart';
     );
   }
 
+  test_requirements_declaredVariables_change_getErrors() async {
+    newFile(testFile.path, '');
+
+    configuration
+      ..withAnalyzeFileEvents = false
+      ..withGetErrorsEvents = false
+      ..withLinkLibraryCycle = true
+      ..withResultRequirements = true
+      ..withStreamResolvedUnitResults = false;
+
+    // Record the precise accessor use.
+    _ManualRequirements.install((state) {
+      state.singleUnit.libraryElement.declaredVariables.get('X');
+    });
+
+    {
+      await disposeAnalysisContextCollection();
+      declaredVariables = {'X': '1'};
+
+      var driver = driverFor(testFile);
+      var collector = DriverEventCollector(driver, idProvider: idProvider);
+
+      collector.getErrors('E1', testFile);
+      await assertEventsText(collector, r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+[status] idle
+''');
+    }
+
+    {
+      await disposeAnalysisContextCollection();
+      declaredVariables = {'X': '2'};
+
+      var driver = driverFor(testFile);
+      var collector = DriverEventCollector(driver, idProvider: idProvider);
+
+      collector.getErrors('E2', testFile);
+      await assertEventsText(collector, r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+[status] idle
+''');
+    }
+  }
+
+  test_requirements_declaredVariables_change_getLibrary() async {
+    newFile('$testPackageLibPath/foo.dart', 'class A {}');
+    newFile('$testPackageLibPath/bar.dart', 'class A {}');
+
+    newFile(testFile.path, r'''
+import 'foo.dart'
+  if (X) 'bar.dart';
+void f(A _) {}
+''');
+
+    configuration
+      ..withAnalyzeFileEvents = false
+      ..withGetErrorsEvents = false
+      ..withLinkLibraryCycle = true
+      ..withResultRequirements = true
+      ..withStreamResolvedUnitResults = false
+      ..withGetLibraryByUriElement = false;
+
+    {
+      await disposeAnalysisContextCollection();
+      declaredVariables = {'X': 'false'};
+
+      var driver = driverFor(testFile);
+      var collector = DriverEventCollector(driver, idProvider: idProvider);
+
+      collector.getLibraryByUri('E1', 'package:test/test.dart');
+      await assertEventsText(collector, r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/foo.dart
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+    libraries
+      package:test/foo.dart
+        exportedTopLevels
+          A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+[status] idle
+[future] getLibraryByUri E1
+''');
+    }
+
+    {
+      await disposeAnalysisContextCollection();
+      declaredVariables = {'X': 'true'};
+
+      var driver = driverFor(testFile);
+      var collector = DriverEventCollector(driver, idProvider: idProvider);
+
+      collector.getLibraryByUri('E2', 'package:test/foo.dart');
+      collector.getLibraryByUri('E3', 'package:test/bar.dart');
+
+      collector.getLibraryByUri('E4', 'package:test/test.dart');
+      await assertEventsText(collector, r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/foo.dart
+  requirements
+[operation] linkLibraryCycle
+  package:test/bar.dart
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+    libraries
+      package:test/bar.dart
+        exportedTopLevels
+          A: #M1
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+[status] idle
+[future] getLibraryByUri E2
+[future] getLibraryByUri E3
+[future] getLibraryByUri E4
+''');
+    }
+  }
+
   Future<void> _runChangeScenario({
     required _FineOperation operation,
     String? expectedInitialEvents,

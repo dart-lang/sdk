@@ -631,8 +631,8 @@ class DriverEventsPrinter {
   void _writeRequirementFailure(RequirementFailure failure) {
     switch (failure) {
       case LibraryMissing():
-        // TODO(scheglov): Handle this case.
-        throw UnimplementedError();
+        sink.writelnWithIndent('libraryMissing');
+        sink.writeProperties({'uri': failure.uri});
       case ExportCountMismatch():
         sink.writelnWithIndent('exportCountMismatch');
         sink.writeProperties({
