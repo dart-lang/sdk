@@ -5905,6 +5905,7 @@ class LibraryElementImpl extends ElementImpl
   @override
   late TypeSystemImpl typeSystem;
 
+  @trackedInternal
   late List<ExportedReference> exportedReferences;
 
   /// The union of names for all searchable elements in this library.
@@ -6603,6 +6604,7 @@ class LibraryElementImpl extends ElementImpl
   }
 
   /// Return `true` if [reference] comes only from deprecated exports.
+  @trackedInternal
   bool isFromDeprecatedExport(ExportedReference reference) {
     if (reference is ExportedReferenceExported) {
       for (var location in reference.locations) {

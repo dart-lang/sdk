@@ -374,6 +374,9 @@ class LibraryRequirements {
   /// TopName => ID
   final Map<LookupName, ManifestItemId?> exportedTopLevels;
 
+  /// Names that must be in [LibraryManifest.reExportDeprecatedOnly].
+  final Map<LookupName, bool> reExportDeprecatedOnly;
+
   /// TopName => InstanceItemRequirements
   final Map<LookupName, InstanceItemRequirements> instances;
 
@@ -420,6 +423,7 @@ class LibraryRequirements {
     required this.requestedDeclaredVariables,
     required this.requestedDeclaredGetters,
     required this.requestedDeclaredSetters,
+    required this.reExportDeprecatedOnly,
     required this.allDeclaredClasses,
     required this.allDeclaredEnums,
     required this.allDeclaredExtensions,
@@ -448,6 +452,7 @@ class LibraryRequirements {
       requestedDeclaredVariables: {},
       requestedDeclaredGetters: {},
       requestedDeclaredSetters: {},
+      reExportDeprecatedOnly: {},
       allDeclaredClasses: null,
       allDeclaredEnums: null,
       allDeclaredExtensions: null,
@@ -483,6 +488,10 @@ class LibraryRequirements {
       requestedDeclaredVariables: reader.readNameToOptionalIdMap(),
       requestedDeclaredGetters: reader.readNameToOptionalIdMap(),
       requestedDeclaredSetters: reader.readNameToOptionalIdMap(),
+      reExportDeprecatedOnly: reader.readMap(
+        readKey: () => LookupName.read(reader),
+        readValue: () => reader.readBool(),
+      ),
       allDeclaredClasses: ManifestItemIdList.readOptional(reader),
       allDeclaredEnums: ManifestItemIdList.readOptional(reader),
       allDeclaredExtensions: ManifestItemIdList.readOptional(reader),
@@ -523,6 +532,12 @@ class LibraryRequirements {
     sink.writeNameToIdMap(requestedDeclaredVariables);
     sink.writeNameToIdMap(requestedDeclaredGetters);
     sink.writeNameToIdMap(requestedDeclaredSetters);
+
+    sink.writeMap(
+      reExportDeprecatedOnly,
+      writeKey: (name) => name.write(sink),
+      writeValue: (value) => sink.writeBool(value),
+    );
 
     allDeclaredClasses.writeOptional(sink);
     allDeclaredEnums.writeOptional(sink);
@@ -682,6 +697,20 @@ class RequirementsManifest {
             name: name,
             expectedId: topLevelEntry.value,
             actualId: actualId,
+          );
+        }
+      }
+
+      for (var entry in libraryRequirements.reExportDeprecatedOnly.entries) {
+        var name = entry.key;
+        var expected = entry.value;
+        var actual = libraryManifest.reExportDeprecatedOnly.contains(name);
+        if (expected != actual) {
+          return ReExportDeprecatedOnlyMismatch(
+            libraryUri: libraryUri,
+            name: name,
+            expected: expected,
+            actual: actual,
           );
         }
       }
@@ -1284,12 +1313,27 @@ class RequirementsManifest {
     required List<LibraryElementImpl> importedLibraries,
     required String id,
   }) {
-    var lookupName = id.asLookupName;
+    assert(!id.endsWith('='));
+    var getterLookupName = id.asLookupName;
+    var setterLookupName = '$id='.asLookupName;
+
     for (var importedLibrary in importedLibraries) {
       if (importedLibrary.manifest case var manifest?) {
         var libraryRequirements = _getLibraryRequirements(importedLibrary);
-        var nameToId = libraryRequirements.exportedTopLevels;
-        nameToId[lookupName] = manifest.getExportedId(lookupName);
+
+        var getterId = manifest.getExportedId(getterLookupName);
+        libraryRequirements.exportedTopLevels[getterLookupName] = getterId;
+        if (getterId != null) {
+          libraryRequirements.reExportDeprecatedOnly[getterLookupName] =
+              manifest.reExportDeprecatedOnly.contains(getterLookupName);
+        }
+
+        var setterId = manifest.getExportedId(setterLookupName);
+        libraryRequirements.exportedTopLevels[setterLookupName] = setterId;
+        if (setterId != null) {
+          libraryRequirements.reExportDeprecatedOnly[setterLookupName] =
+              manifest.reExportDeprecatedOnly.contains(setterLookupName);
+        }
       }
     }
   }

@@ -27,7 +27,7 @@ class Export {
   }
 }
 
-class ExportedReference {
+sealed class ExportedReference {
   final Reference reference;
 
   ExportedReference({required this.reference});

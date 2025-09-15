@@ -317,6 +317,26 @@ final class OpaqueApiUseFailure extends RequirementFailure {
   }
 }
 
+class ReExportDeprecatedOnlyMismatch extends RequirementFailure {
+  final Uri libraryUri;
+  final LookupName name;
+  final bool expected;
+  final bool actual;
+
+  ReExportDeprecatedOnlyMismatch({
+    required this.libraryUri,
+    required this.name,
+    required this.expected,
+    required this.actual,
+  });
+
+  @override
+  String toString() {
+    return 'ReExportDeprecatedOnlyMismatch(libraryUri: $libraryUri, '
+        'name: ${name.asString}, expected: $expected, actual: $actual)';
+  }
+}
+
 sealed class RequirementFailure {}
 
 class SuperImplementedMethodIdMismatch extends RequirementFailure {

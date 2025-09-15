@@ -303,15 +303,14 @@ class BundleWriter {
   void _writeExportedReferences(List<ExportedReference> elements) {
     _sink.writeList(elements, (exported) {
       var index = _references._indexOfReference(exported.reference);
-      if (exported is ExportedReferenceDeclared) {
-        _sink.writeByte(0);
-        _sink.writeUint30(index);
-      } else if (exported is ExportedReferenceExported) {
-        _sink.writeByte(1);
-        _sink.writeUint30(index);
-        _sink.writeList(exported.locations, _writeExportLocation);
-      } else {
-        throw UnimplementedError('(${exported.runtimeType}) $exported');
+      switch (exported) {
+        case ExportedReferenceDeclared():
+          _sink.writeByte(0);
+          _sink.writeUint30(index);
+        case ExportedReferenceExported():
+          _sink.writeByte(1);
+          _sink.writeUint30(index);
+          _sink.writeList(exported.locations, _writeExportLocation);
       }
     });
   }

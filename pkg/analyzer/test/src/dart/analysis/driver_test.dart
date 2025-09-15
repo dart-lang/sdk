@@ -5790,6 +5790,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             hasNonFinalField: false
@@ -5839,6 +5842,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             hasNonFinalField: true
@@ -5880,6 +5886,9 @@ class B extends A {}
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             interfaceId: #M1
@@ -5896,6 +5905,9 @@ class B extends A {}
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             allDeclaredGetters: []
@@ -5963,6 +5975,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             interfaceId: #M8
@@ -5987,6 +6002,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -6037,6 +6055,9 @@ class B extends A {}
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             interfaceId: #M1
@@ -6053,6 +6074,9 @@ class B extends A {}
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             allDeclaredGetters: []
@@ -6101,6 +6125,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             interfaceId: #M1
@@ -6125,6 +6152,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             allDeclaredGetters: #M6
@@ -6193,6 +6223,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -6254,6 +6287,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -6328,6 +6364,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -6433,6 +6472,9 @@ class B extends A {}
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             interfaceId: #M3
@@ -6504,6 +6546,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             interfaceId: #M9
@@ -6575,6 +6620,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             allDeclaredGetters: #M2
@@ -6640,6 +6688,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             allDeclaredGetters: #M2 #M5
@@ -6714,6 +6765,9 @@ class B extends A {}
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             interfaceId: #M4
@@ -6730,6 +6784,9 @@ class B extends A {}
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -6805,6 +6862,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             interfaceId: #M10
@@ -6829,6 +6889,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -6904,6 +6967,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -6967,6 +7033,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -7038,6 +7107,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredGetters
@@ -7099,6 +7171,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredGetters
@@ -7173,6 +7248,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredGetters
@@ -7269,6 +7347,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -7284,6 +7365,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -7345,6 +7429,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -7420,6 +7507,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -7487,6 +7577,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -7553,6 +7646,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -7568,6 +7664,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -7673,6 +7772,9 @@ void f(B b) {
       package:test/a.dart
         exportedTopLevels
           B: #M4
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -7683,6 +7785,9 @@ void f(B b) {
       package:test/a.dart
         exportedTopLevels
           B: #M4
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
         instances
           A
             requestedDeclaredFields
@@ -7748,6 +7853,9 @@ class B extends A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M7
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
   topLevelIdMismatch
@@ -7765,6 +7873,9 @@ class B extends A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M7
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
         instances
           A
             requestedDeclaredFields
@@ -7832,6 +7943,9 @@ void f(B b) {
       package:test/a.dart
         exportedTopLevels
           B: #M4
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -7842,6 +7956,9 @@ void f(B b) {
       package:test/a.dart
         exportedTopLevels
           B: #M4
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
         instances
           A
             requestedDeclaredFields
@@ -7902,6 +8019,9 @@ class B implements A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M7
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
   topLevelIdMismatch
@@ -7919,6 +8039,9 @@ class B implements A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M7
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
         instances
           A
             requestedDeclaredFields
@@ -7991,6 +8114,9 @@ void f(B b) {
       package:test/a.dart
         exportedTopLevels
           B: #M4
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -8001,6 +8127,9 @@ void f(B b) {
       package:test/a.dart
         exportedTopLevels
           B: #M4
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
         instances
           A
             requestedDeclaredFields
@@ -8066,6 +8195,9 @@ class B with A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M7
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
   topLevelIdMismatch
@@ -8083,6 +8215,9 @@ class B with A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M7
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
         instances
           A
             requestedDeclaredFields
@@ -8247,6 +8382,9 @@ class B extends A {}
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             interfaceId: #M2
@@ -8315,6 +8453,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             interfaceId: #M7
@@ -8384,6 +8525,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             allDeclaredMethods: #M1
@@ -8446,6 +8590,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             allDeclaredMethods: #M1 #M3
@@ -8492,6 +8639,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -8502,6 +8652,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredGetters
@@ -8562,6 +8715,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             methods
@@ -8632,6 +8788,9 @@ class B extends A {}
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             interfaceId: #M3
@@ -8648,6 +8807,9 @@ class B extends A {}
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             allDeclaredGetters: []
@@ -8718,6 +8880,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             interfaceId: #M8
@@ -8742,6 +8907,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             allDeclaredGetters: []
@@ -8837,6 +9005,9 @@ class X extends C {}
       package:test/a.dart
         exportedTopLevels
           C: #M6
+          C=: <null>
+        reExportDeprecatedOnly
+          C: false
         interfaces
           C
             interfaceId: #M7
@@ -8853,6 +9024,9 @@ class X extends C {}
       package:test/a.dart
         exportedTopLevels
           C: #M6
+          C=: <null>
+        reExportDeprecatedOnly
+          C: false
         instances
           A
             allDeclaredGetters: []
@@ -8950,6 +9124,9 @@ class C extends A implements B {}
       package:test/a.dart
         exportedTopLevels
           C: #M6
+          C=: <null>
+        reExportDeprecatedOnly
+          C: false
         interfaces
           C
             interfaceId: #M14
@@ -8974,6 +9151,9 @@ class C extends A implements B {}
       package:test/a.dart
         exportedTopLevels
           C: #M6
+          C=: <null>
+        reExportDeprecatedOnly
+          C: false
         instances
           A
             allDeclaredGetters: []
@@ -9053,6 +9233,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredMethods
@@ -9112,6 +9295,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredMethods
@@ -9183,6 +9369,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredMethods
@@ -9294,6 +9483,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           B: #M3
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
         interfaces
           B
             interfaceId: #M5
@@ -9347,6 +9539,9 @@ abstract class B extends A {
       package:test/a.dart
         exportedTopLevels
           B: #M3
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
         interfaces
           B
             interfaceId: #M8
@@ -9421,6 +9616,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           C: #M6
+          C=: <null>
+        reExportDeprecatedOnly
+          C: false
         interfaces
           C
             interfaceId: #M7
@@ -9511,6 +9709,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -9526,6 +9727,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             methods
@@ -9581,6 +9785,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             methods
@@ -9643,6 +9850,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             requestedConstructors
@@ -9698,6 +9908,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             requestedConstructors
@@ -9865,6 +10078,9 @@ void f(B b) {
       package:test/a.dart
         exportedTopLevels
           B: #M0
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
 [status] idle
 [future] getErrors T1
   ErrorsResult #0
@@ -9912,6 +10128,9 @@ void f(B b) {
       package:test/a.dart
         exportedTopLevels
           B: #M0
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
         instances
           B
             requestedDeclaredGetters
@@ -9978,6 +10197,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             methods
@@ -10021,6 +10243,9 @@ abstract class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             methods
@@ -10078,6 +10303,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             implementedMethods
@@ -10123,6 +10351,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             implementedMethods
@@ -10180,6 +10411,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             implementedMethods
@@ -10223,6 +10457,9 @@ abstract class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             implementedMethods
@@ -10278,6 +10515,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             implementedMethods
@@ -10323,6 +10563,9 @@ abstract class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             implementedMethods
@@ -10380,6 +10623,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             implementedMethods
@@ -10484,6 +10730,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           B: #M3
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
         interfaces
           B
             superMethods
@@ -10543,6 +10792,9 @@ class B extends A {}
       package:test/a.dart
         exportedTopLevels
           B: #M3
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
         interfaces
           B
             superMethods
@@ -10618,6 +10870,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           B: #M3
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
         interfaces
           B
             superMethods
@@ -10720,6 +10975,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             methods
@@ -10798,6 +11056,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -10813,6 +11074,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             methods
@@ -10927,6 +11191,9 @@ void f(C c) {
       package:test/a.dart
         exportedTopLevels
           C: #M5
+          C=: <null>
+        reExportDeprecatedOnly
+          C: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -10937,6 +11204,9 @@ void f(C c) {
       package:test/a.dart
         exportedTopLevels
           C: #M5
+          C=: <null>
+        reExportDeprecatedOnly
+          C: false
         interfaces
           C
             methods
@@ -11009,6 +11279,9 @@ class C extends B {}
       package:test/a.dart
         exportedTopLevels
           C: #M10
+          C=: <null>
+        reExportDeprecatedOnly
+          C: false
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
   topLevelIdMismatch
@@ -11026,6 +11299,9 @@ class C extends B {}
       package:test/a.dart
         exportedTopLevels
           C: #M10
+          C=: <null>
+        reExportDeprecatedOnly
+          C: false
         interfaces
           C
             methods
@@ -11092,6 +11368,9 @@ void f(B b) {
       package:test/a.dart
         exportedTopLevels
           B: #M3
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -11102,6 +11381,9 @@ void f(B b) {
       package:test/a.dart
         exportedTopLevels
           B: #M3
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
         interfaces
           B
             methods
@@ -11161,6 +11443,9 @@ class B extends A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M6
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
   topLevelIdMismatch
@@ -11178,6 +11463,9 @@ class B extends A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M6
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
         interfaces
           B
             methods
@@ -11239,6 +11527,9 @@ void f(B b) {
       package:test/a.dart
         exportedTopLevels
           B: #M3
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -11249,6 +11540,9 @@ void f(B b) {
       package:test/a.dart
         exportedTopLevels
           B: #M3
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
         interfaces
           B
             methods
@@ -11303,6 +11597,9 @@ class B implements A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M6
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
   topLevelIdMismatch
@@ -11320,6 +11617,9 @@ class B implements A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M6
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
         interfaces
           B
             methods
@@ -11386,6 +11686,9 @@ void f(B b) {
       package:test/a.dart
         exportedTopLevels
           B: #M3
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -11396,6 +11699,9 @@ void f(B b) {
       package:test/a.dart
         exportedTopLevels
           B: #M3
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
         interfaces
           B
             methods
@@ -11455,6 +11761,9 @@ class B with A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M6
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
   topLevelIdMismatch
@@ -11472,6 +11781,9 @@ class B with A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M6
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
         interfaces
           B
             methods
@@ -11620,6 +11932,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -11630,6 +11945,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             methods
@@ -11672,6 +11990,9 @@ class A {}
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredGetters
@@ -11726,6 +12047,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -11743,6 +12067,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredGetters
@@ -11812,6 +12139,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -11888,6 +12218,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -11956,6 +12289,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -12027,6 +12363,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredSetters
@@ -12088,6 +12427,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredSetters
@@ -12162,6 +12504,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredSetters
@@ -12258,6 +12603,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -12273,6 +12621,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -12334,6 +12685,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -12409,6 +12763,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -12476,6 +12833,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -12542,6 +12902,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -12557,6 +12920,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -12667,6 +13033,9 @@ void f(B b) {
       package:test/a.dart
         exportedTopLevels
           B: #M4
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -12677,6 +13046,9 @@ void f(B b) {
       package:test/a.dart
         exportedTopLevels
           B: #M4
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
         instances
           A
             requestedDeclaredFields
@@ -12742,6 +13114,9 @@ class B extends A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M7
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
   topLevelIdMismatch
@@ -12759,6 +13134,9 @@ class B extends A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M7
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
         instances
           A
             requestedDeclaredFields
@@ -12826,6 +13204,9 @@ void f(B b) {
       package:test/a.dart
         exportedTopLevels
           B: #M4
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -12836,6 +13217,9 @@ void f(B b) {
       package:test/a.dart
         exportedTopLevels
           B: #M4
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
         instances
           A
             requestedDeclaredFields
@@ -12896,6 +13280,9 @@ class B implements A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M7
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
   topLevelIdMismatch
@@ -12913,6 +13300,9 @@ class B implements A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M7
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
         instances
           A
             requestedDeclaredFields
@@ -12985,6 +13375,9 @@ void f(B b) {
       package:test/a.dart
         exportedTopLevels
           B: #M4
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -12995,6 +13388,9 @@ void f(B b) {
       package:test/a.dart
         exportedTopLevels
           B: #M4
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
         instances
           A
             requestedDeclaredFields
@@ -13060,6 +13456,9 @@ class B with A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M7
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
   topLevelIdMismatch
@@ -13077,6 +13476,9 @@ class B with A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M7
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
         instances
           A
             requestedDeclaredFields
@@ -13234,6 +13636,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -13249,6 +13654,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -13302,6 +13710,9 @@ class A {}
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredGetters
@@ -13381,6 +13792,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             allDeclaredSetters: #M2
@@ -13446,6 +13860,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             allDeclaredSetters: #M2 #M5
@@ -13484,6 +13901,7 @@ A foo() {}
       package:test/a.dart
         exportedTopLevels
           A: <null>
+          A=: <null>
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -13501,6 +13919,7 @@ A foo() {}
       package:test/a.dart
         exportedTopLevels
           A: <null>
+          A=: <null>
 [status] idle
 [future] getErrors T1
   ErrorsResult #1
@@ -13537,6 +13956,9 @@ class A {}
       package:test/a.dart
         exportedTopLevels
           A: #M1
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
   topLevelIdMismatch
@@ -13561,6 +13983,9 @@ class A {}
       package:test/a.dart
         exportedTopLevels
           A: #M1
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -13601,6 +14026,9 @@ A foo() {}
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -13618,6 +14046,9 @@ A foo() {}
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [status] idle
 [future] getErrors T1
   ErrorsResult #1
@@ -13689,6 +14120,9 @@ A foo() {}
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -13706,6 +14140,9 @@ A foo() {}
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [status] idle
 [future] getErrors T1
   ErrorsResult #1
@@ -13745,6 +14182,9 @@ class B {}
       package:test/a.dart
         exportedTopLevels
           A: #M5
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
   topLevelIdMismatch
@@ -13769,6 +14209,9 @@ class B {}
       package:test/a.dart
         exportedTopLevels
           A: #M5
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -13815,6 +14258,9 @@ A foo() {}
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -13832,6 +14278,9 @@ A foo() {}
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [status] idle
 [future] getErrors T1
   ErrorsResult #1
@@ -13903,6 +14352,9 @@ A foo() => throw 0;
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -13918,6 +14370,9 @@ A foo() => throw 0;
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [status] idle
 [future] getErrors T1
   ErrorsResult #1
@@ -13947,6 +14402,7 @@ A foo() => throw 0;
       package:test/a.dart
         exportedTopLevels
           A: <null>
+          A=: <null>
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
   topLevelIdMismatch
@@ -13971,6 +14427,7 @@ A foo() => throw 0;
       package:test/a.dart
         exportedTopLevels
           A: <null>
+          A=: <null>
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -14014,6 +14471,9 @@ A foo() => throw 0;
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -14029,6 +14489,9 @@ A foo() => throw 0;
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [status] idle
 [future] getErrors T1
   ErrorsResult #1
@@ -14103,6 +14566,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredGetters
@@ -14159,6 +14625,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             requestedConstructors
@@ -14210,6 +14679,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             allConstructors: #M2
@@ -14257,6 +14729,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             allConstructors: #M3
@@ -14323,6 +14798,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             allConstructors: #M2 #M1
@@ -14379,6 +14857,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             allConstructors: #M2 #M4
@@ -14441,6 +14922,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             requestedConstructors
@@ -14496,6 +14980,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             requestedConstructors
@@ -14561,6 +15048,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             requestedConstructors
@@ -14659,6 +15149,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             requestedConstructors
@@ -14747,6 +15240,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             requestedConstructors
@@ -14793,6 +15289,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             requestedConstructors
@@ -14865,6 +15364,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -14932,6 +15434,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -15001,6 +15506,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             requestedConstructors
@@ -15056,6 +15564,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             requestedConstructors
@@ -15110,7 +15621,11 @@ class B extends A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
           named: <null>
+          named=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             interfaceId: #M2
@@ -15127,7 +15642,11 @@ class B extends A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
           named: <null>
+          named=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             allDeclaredGetters: []
@@ -15180,7 +15699,11 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
           named: <null>
+          named=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             interfaceId: #M2
@@ -15205,7 +15728,11 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
           named: <null>
+          named=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             allDeclaredGetters: []
@@ -15269,6 +15796,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             requestedConstructors
@@ -15355,6 +15885,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             requestedConstructors
@@ -15401,6 +15934,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredGetters
@@ -15472,6 +16008,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             allDeclaredFields: #M1
@@ -15531,6 +16070,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             allDeclaredFields: #M1 #M4
@@ -15593,6 +16135,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -15652,6 +16197,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -15722,6 +16270,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -15819,6 +16370,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredGetters
@@ -15876,6 +16430,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredGetters
@@ -15943,6 +16500,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredGetters
@@ -16039,6 +16599,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -16094,6 +16657,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -16160,6 +16726,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -16259,6 +16828,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             allConstructors: #M2 #M1
@@ -16315,6 +16887,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             allConstructors: #M4 #M1
@@ -16379,6 +16954,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             requestedConstructors
@@ -16461,6 +17039,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             requestedConstructors
@@ -16507,6 +17088,9 @@ class A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             requestedConstructors
@@ -16566,6 +17150,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             requestedConstructors
@@ -16659,6 +17246,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           B: #M3
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
         interfaces
           B
             requestedConstructors
@@ -16714,6 +17304,9 @@ class B = A with M;
       package:test/a.dart
         exportedTopLevels
           B: #M3
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
         interfaces
           B
             requestedConstructors
@@ -16787,6 +17380,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -16858,6 +17454,9 @@ enum A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -16930,6 +17529,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -16945,6 +17547,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -17018,6 +17623,9 @@ enum A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -17093,6 +17701,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -17108,6 +17719,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -17228,6 +17842,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -17243,6 +17860,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             methods
@@ -17312,6 +17932,9 @@ enum A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             methods
@@ -17382,6 +18005,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -17397,6 +18023,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             methods
@@ -17513,6 +18142,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -17528,6 +18160,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -17602,6 +18237,9 @@ enum A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -17678,6 +18316,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -17693,6 +18334,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -17823,6 +18467,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -17896,6 +18543,9 @@ enum A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -17980,6 +18630,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -18107,6 +18760,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredGetters
@@ -18180,6 +18836,9 @@ enum A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredGetters
@@ -18263,6 +18922,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredGetters
@@ -18390,6 +19052,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -18460,6 +19125,9 @@ enum A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -18541,6 +19209,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -21691,6 +22362,9 @@ final x = a;
       package:test/b.dart
         exportedTopLevels
           a: #M0
+          a=: <null>
+        reExportDeprecatedOnly
+          a: false
 [status] idle
 [future] getLibraryByUri T1
   library
@@ -21755,6 +22429,9 @@ final a = 1.2;
       package:test/b.dart
         exportedTopLevels
           a: #M4
+          a=: <null>
+        reExportDeprecatedOnly
+          a: false
 [status] idle
 [future] getLibraryByUri T2
   library
@@ -22400,7 +23077,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           Object: <null>
+          Object=: <null>
           int: <null>
+          int=: <null>
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -22418,7 +23097,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           Object: <null>
+          Object=: <null>
           int: <null>
+          int=: <null>
         exportedExtensions: #M0
 [status] idle
 [future] getErrors T1
@@ -24252,6 +24933,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -24307,6 +24991,9 @@ extension A on int {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -24373,6 +25060,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -24466,6 +25156,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredGetters
@@ -24519,6 +25212,9 @@ extension A on int {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredGetters
@@ -24582,6 +25278,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredGetters
@@ -24674,6 +25373,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -24729,6 +25431,9 @@ extension A on int {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -24795,6 +25500,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -24887,6 +25595,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -24902,6 +25613,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -24967,6 +25681,9 @@ extension type A(int it) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -25034,6 +25751,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -25049,6 +25769,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -25153,6 +25876,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -25168,6 +25894,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             methods
@@ -25229,6 +25958,9 @@ extension type A(int it) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             methods
@@ -25291,6 +26023,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -25306,6 +26041,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             methods
@@ -25406,6 +26144,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -25421,6 +26162,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -25487,6 +26231,9 @@ extension type A(int it) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -25555,6 +26302,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -25570,6 +26320,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -25689,6 +26442,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             allConstructors: #M4 #M3
@@ -25752,6 +26508,9 @@ extension type A(int it) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             allConstructors: #M4 #M6
@@ -25822,6 +26581,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             requestedConstructors
@@ -25882,6 +26644,9 @@ extension type A(int it) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             requestedConstructors
@@ -25951,6 +26716,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             requestedConstructors
@@ -26054,6 +26822,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -26119,6 +26890,9 @@ extension type A(int it) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -26195,6 +26969,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -26306,6 +27083,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredGetters
@@ -26371,6 +27151,9 @@ extension type A(int it) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredGetters
@@ -26446,6 +27229,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredGetters
@@ -26557,6 +27343,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -26619,6 +27408,9 @@ extension type A(int it) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -26692,6 +27484,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -26805,6 +27600,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             allConstructors: #M4 #M3
@@ -26867,6 +27665,9 @@ extension type A(double it) {
       package:test/a.dart
         exportedTopLevels
           A: #M6
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             allConstructors: #M10 #M9
@@ -26934,6 +27735,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             requestedConstructors
@@ -26990,6 +27794,9 @@ extension type A(double it) {}
       package:test/a.dart
         exportedTopLevels
           A: #M6
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             requestedConstructors
@@ -27059,6 +27866,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             requestedConstructors
@@ -27118,6 +27928,9 @@ extension type A(double it) {
       package:test/a.dart
         exportedTopLevels
           A: #M7
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             requestedConstructors
@@ -27128,6 +27941,622 @@ extension type A(double it) {
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: isLibrary
+''',
+    );
+  }
+
+  test_dependency_library_exportedDeprecated_class_falseToTrue() async {
+    configuration
+      ..withStreamResolvedUnitResults = false
+      ..withElementManifests = true;
+
+    newFile('$testPackageLibPath/x.dart', r'''
+class A {}
+''');
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+library;
+export 'x.dart';
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/x.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        interface: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/a.dart
+    reExportMap
+      A: #M0
+  requirements
+    exportRequirements
+      package:test/a.dart
+        exports
+          package:test/x.dart
+            A: #M0
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M2
+        flags: hasEnclosingTypeParameterReference isSimplyBounded isStatic
+        functionType: FunctionType
+          returnType: void
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+[status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+''',
+      updatedA: r'''
+library;
+@deprecated
+export 'x.dart';
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    reExportMap
+      A: #M0
+    reExportDeprecatedOnly: A
+  requirements
+    exportRequirements
+      package:test/a.dart
+        exports
+          package:test/x.dart
+            A: #M0
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  reExportDeprecatedOnlyMismatch
+    libraryUri: package:test/a.dart
+    name: A
+    expected: false
+    actual: true
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: true
+[status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      30 +1 DEPRECATED_EXPORT_USE
+''',
+    );
+  }
+
+  test_dependency_library_exportedDeprecated_class_trueToFalse() async {
+    configuration
+      ..withStreamResolvedUnitResults = false
+      ..withElementManifests = true;
+
+    newFile('$testPackageLibPath/x.dart', r'''
+class A {}
+''');
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+library;
+@deprecated
+export 'x.dart';
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/x.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        interface: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/a.dart
+    reExportMap
+      A: #M0
+    reExportDeprecatedOnly: A
+  requirements
+    exportRequirements
+      package:test/a.dart
+        exports
+          package:test/x.dart
+            A: #M0
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M2
+        flags: hasEnclosingTypeParameterReference isSimplyBounded isStatic
+        functionType: FunctionType
+          returnType: void
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: true
+[status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      30 +1 DEPRECATED_EXPORT_USE
+''',
+      updatedA: r'''
+library;
+@deprecated
+export 'x.dart';
+export 'x.dart';
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    reExportMap
+      A: #M0
+  requirements
+    exportRequirements
+      package:test/a.dart
+        exports
+          package:test/x.dart
+            A: #M0
+          package:test/x.dart
+            A: #M0
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  reExportDeprecatedOnlyMismatch
+    libraryUri: package:test/a.dart
+    name: A
+    expected: true
+    actual: false
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+[status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+''',
+    );
+  }
+
+  test_dependency_library_exportedDeprecated_setter_falseToTrue() async {
+    configuration
+      ..withStreamResolvedUnitResults = false
+      ..withElementManifests = true;
+
+    newFile('$testPackageLibPath/x.dart', r'''
+set foo(int _) {}
+''');
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+library;
+export 'x.dart';
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  foo = 0;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/x.dart
+    declaredSetters
+      foo=: #M0
+        flags: hasImplicitReturnType isSimplyBounded isStatic
+        functionType: FunctionType
+          positional
+            required int @ dart:core
+          returnType: void
+    declaredVariables
+      foo: #M1
+        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        type: int @ dart:core
+  requirements
+[operation] linkLibraryCycle
+  package:test/a.dart
+    reExportMap
+      foo=: #M0
+  requirements
+    exportRequirements
+      package:test/a.dart
+        exports
+          package:test/x.dart
+            foo=: #M0
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M2
+        flags: hasEnclosingTypeParameterReference isSimplyBounded isStatic
+        functionType: FunctionType
+          returnType: void
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          foo: <null>
+          foo=: #M0
+        reExportDeprecatedOnly
+          foo=: false
+[status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+''',
+      updatedA: r'''
+library;
+@deprecated
+export 'x.dart';
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    reExportMap
+      foo=: #M0
+    reExportDeprecatedOnly: foo=
+  requirements
+    exportRequirements
+      package:test/a.dart
+        exports
+          package:test/x.dart
+            foo=: #M0
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  reExportDeprecatedOnlyMismatch
+    libraryUri: package:test/a.dart
+    name: foo=
+    expected: false
+    actual: true
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          foo: <null>
+          foo=: #M0
+        reExportDeprecatedOnly
+          foo=: true
+[status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      30 +3 DEPRECATED_EXPORT_USE
+''',
+    );
+  }
+
+  test_dependency_library_exportedDeprecated_setter_trueToFalse() async {
+    configuration
+      ..withStreamResolvedUnitResults = false
+      ..withElementManifests = true;
+
+    newFile('$testPackageLibPath/x.dart', r'''
+set foo(int _) {}
+''');
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+library;
+@deprecated
+export 'x.dart';
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  foo = 0;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/x.dart
+    declaredSetters
+      foo=: #M0
+        flags: hasImplicitReturnType isSimplyBounded isStatic
+        functionType: FunctionType
+          positional
+            required int @ dart:core
+          returnType: void
+    declaredVariables
+      foo: #M1
+        flags: isStatic isSynthetic shouldUseTypeForInitializerInference
+        type: int @ dart:core
+  requirements
+[operation] linkLibraryCycle
+  package:test/a.dart
+    reExportMap
+      foo=: #M0
+    reExportDeprecatedOnly: foo=
+  requirements
+    exportRequirements
+      package:test/a.dart
+        exports
+          package:test/x.dart
+            foo=: #M0
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M2
+        flags: hasEnclosingTypeParameterReference isSimplyBounded isStatic
+        functionType: FunctionType
+          returnType: void
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          foo: <null>
+          foo=: #M0
+        reExportDeprecatedOnly
+          foo=: true
+[status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      30 +3 DEPRECATED_EXPORT_USE
+''',
+      updatedA: r'''
+library;
+@deprecated
+export 'x.dart';
+export 'x.dart';
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    reExportMap
+      foo=: #M0
+  requirements
+    exportRequirements
+      package:test/a.dart
+        exports
+          package:test/x.dart
+            foo=: #M0
+          package:test/x.dart
+            foo=: #M0
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  reExportDeprecatedOnlyMismatch
+    libraryUri: package:test/a.dart
+    name: foo=
+    expected: true
+    actual: false
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          foo: <null>
+          foo=: #M0
+        reExportDeprecatedOnly
+          foo=: false
+[status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+''',
+    );
+  }
+
+  test_dependency_library_exportedTopLevels_class_remove() async {
+    configuration
+      ..withStreamResolvedUnitResults = false
+      ..withElementManifests = true;
+
+    newFile('$testPackageLibPath/x.dart', r'''
+class A {}
+''');
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+library;
+export 'x.dart';
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/x.dart
+    declaredClasses
+      A: #M0
+        supertype: Object @ dart:core
+        interface: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/a.dart
+    reExportMap
+      A: #M0
+  requirements
+    exportRequirements
+      package:test/a.dart
+        exports
+          package:test/x.dart
+            A: #M0
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M2
+        flags: hasEnclosingTypeParameterReference isSimplyBounded isStatic
+        functionType: FunctionType
+          returnType: void
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+[status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+''',
+      updatedA: r'''
+library;
+// export 'x.dart';
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: A
+    expectedId: #M0
+    actualId: <null>
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          A: <null>
+          A=: <null>
+[status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      30 +1 UNDEFINED_IDENTIFIER
 ''',
     );
   }
@@ -29682,6 +31111,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             hasNonFinalField: false
@@ -29731,6 +31163,9 @@ mixin A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             hasNonFinalField: true
@@ -29779,6 +31214,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -29794,6 +31232,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -29855,6 +31296,9 @@ mixin A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -29918,6 +31362,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -29933,6 +31380,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -30036,6 +31486,9 @@ void f(B b) {
       package:test/a.dart
         exportedTopLevels
           B: #M4
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -30046,6 +31499,9 @@ void f(B b) {
       package:test/a.dart
         exportedTopLevels
           B: #M4
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
         instances
           A
             requestedDeclaredFields
@@ -30109,6 +31565,9 @@ mixin B on A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M7
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
   topLevelIdMismatch
@@ -30126,6 +31585,9 @@ mixin B on A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M7
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
         instances
           A
             requestedDeclaredFields
@@ -30175,6 +31637,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -30185,6 +31650,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredGetters
@@ -30245,6 +31713,9 @@ mixin A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             methods
@@ -30297,6 +31768,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -30312,6 +31786,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             methods
@@ -30367,6 +31844,9 @@ mixin A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             methods
@@ -30423,6 +31903,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -30438,6 +31921,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             methods
@@ -30534,6 +32020,9 @@ void f(B b) {
       package:test/a.dart
         exportedTopLevels
           B: #M3
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -30544,6 +32033,9 @@ void f(B b) {
       package:test/a.dart
         exportedTopLevels
           B: #M3
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
         interfaces
           B
             methods
@@ -30598,6 +32090,9 @@ mixin B implements A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M6
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
   topLevelIdMismatch
@@ -30615,6 +32110,9 @@ mixin B implements A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M6
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
         interfaces
           B
             methods
@@ -30679,6 +32177,9 @@ void f(B b) {
       package:test/a.dart
         exportedTopLevels
           B: #M3
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -30689,6 +32190,9 @@ void f(B b) {
       package:test/a.dart
         exportedTopLevels
           B: #M3
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
         interfaces
           B
             methods
@@ -30746,6 +32250,9 @@ mixin B on A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M6
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
   topLevelIdMismatch
@@ -30763,6 +32270,9 @@ mixin B on A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M6
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
         interfaces
           B
             methods
@@ -30816,6 +32326,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -30826,6 +32339,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             methods
@@ -30868,6 +32384,9 @@ mixin A {}
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredGetters
@@ -30922,6 +32441,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -30939,6 +32461,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredGetters
@@ -31008,6 +32533,9 @@ mixin A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -31066,6 +32594,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -31081,6 +32612,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -31142,6 +32676,9 @@ mixin A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -31205,6 +32742,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -31220,6 +32760,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -31328,6 +32871,9 @@ void f(B b) {
       package:test/a.dart
         exportedTopLevels
           B: #M4
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -31338,6 +32884,9 @@ void f(B b) {
       package:test/a.dart
         exportedTopLevels
           B: #M4
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
         instances
           A
             requestedDeclaredFields
@@ -31401,6 +32950,9 @@ mixin B on A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M7
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
   topLevelIdMismatch
@@ -31418,6 +32970,9 @@ mixin B on A<double> {}
       package:test/a.dart
         exportedTopLevels
           B: #M7
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
         instances
           A
             requestedDeclaredFields
@@ -31476,6 +33031,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -31491,6 +33049,9 @@ void f(A a) {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -31544,6 +33105,9 @@ mixin A {}
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredGetters
@@ -31593,6 +33157,7 @@ A foo() {}
       package:test/a.dart
         exportedTopLevels
           A: <null>
+          A=: <null>
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -31610,6 +33175,7 @@ A foo() {}
       package:test/a.dart
         exportedTopLevels
           A: <null>
+          A=: <null>
 [status] idle
 [future] getErrors T1
   ErrorsResult #1
@@ -31646,6 +33212,9 @@ mixin A {}
       package:test/a.dart
         exportedTopLevels
           A: #M1
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
   topLevelIdMismatch
@@ -31670,6 +33239,9 @@ mixin A {}
       package:test/a.dart
         exportedTopLevels
           A: #M1
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -31710,6 +33282,9 @@ A foo() {}
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -31727,6 +33302,9 @@ A foo() {}
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [status] idle
 [future] getErrors T1
   ErrorsResult #1
@@ -31798,6 +33376,9 @@ A foo() {}
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -31815,6 +33396,9 @@ A foo() {}
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [status] idle
 [future] getErrors T1
   ErrorsResult #1
@@ -31854,6 +33438,9 @@ mixin B {}
       package:test/a.dart
         exportedTopLevels
           A: #M5
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
   topLevelIdMismatch
@@ -31878,6 +33465,9 @@ mixin B {}
       package:test/a.dart
         exportedTopLevels
           A: #M5
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -31924,6 +33514,9 @@ A foo() {}
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -31941,6 +33534,9 @@ A foo() {}
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [status] idle
 [future] getErrors T1
   ErrorsResult #1
@@ -32012,6 +33608,9 @@ A foo() => throw 0;
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -32027,6 +33626,9 @@ A foo() => throw 0;
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [status] idle
 [future] getErrors T1
   ErrorsResult #1
@@ -32056,6 +33658,7 @@ A foo() => throw 0;
       package:test/a.dart
         exportedTopLevels
           A: <null>
+          A=: <null>
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
   topLevelIdMismatch
@@ -32080,6 +33683,7 @@ A foo() => throw 0;
       package:test/a.dart
         exportedTopLevels
           A: <null>
+          A=: <null>
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -32123,6 +33727,9 @@ A foo() => throw 0;
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -32138,6 +33745,9 @@ A foo() => throw 0;
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [status] idle
 [future] getErrors T1
   ErrorsResult #1
@@ -32218,6 +33828,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -32277,6 +33890,9 @@ mixin A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -32347,6 +33963,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -32444,6 +34063,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredGetters
@@ -32501,6 +34123,9 @@ mixin A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredGetters
@@ -32568,6 +34193,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredGetters
@@ -32664,6 +34292,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -32719,6 +34350,9 @@ mixin A {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -32785,6 +34419,9 @@ void f() {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -32863,6 +34500,9 @@ base class X implements A {}
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             interfaceId: #M1
@@ -32876,6 +34516,9 @@ base class X implements A {}
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             allDeclaredGetters: []
@@ -32964,6 +34607,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
     opaqueApiUses
       ClassElementImpl.firstFragment
         targetElementLibraryUri: package:test/a.dart
@@ -33016,6 +34662,9 @@ class B {}
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
     opaqueApiUses
       ClassElementImpl.firstFragment
         targetElementLibraryUri: package:test/a.dart
@@ -33061,6 +34710,9 @@ final x = foo();
       package:test/a.dart
         exportedTopLevels
           foo: #M0
+          foo=: <null>
+        reExportDeprecatedOnly
+          foo: false
 [status] idle
 [future] getLibraryByUri T1
   library
@@ -33096,6 +34748,9 @@ double foo() {}
       package:test/a.dart
         exportedTopLevels
           foo: #M3
+          foo=: <null>
+        reExportDeprecatedOnly
+          foo: false
 [status] idle
 [future] getLibraryByUri T2
   library
@@ -33137,6 +34792,9 @@ final x = foo();
       package:test/a.dart
         exportedTopLevels
           foo: #M1
+          foo=: <null>
+        reExportDeprecatedOnly
+          foo: false
 [status] idle
 [future] getLibraryByUri T1
   library
@@ -33199,6 +34857,9 @@ final x = a;
       package:test/a.dart
         exportedTopLevels
           a: #M0
+          a=: <null>
+        reExportDeprecatedOnly
+          a: false
 [status] idle
 [future] getLibraryByUri T1
   library
@@ -33236,6 +34897,9 @@ double get a => 1.2;
       package:test/a.dart
         exportedTopLevels
           a: #M4
+          a=: <null>
+        reExportDeprecatedOnly
+          a: false
 [status] idle
 [future] getLibraryByUri T2
   library
@@ -33280,6 +34944,9 @@ final x = a;
       package:test/a.dart
         exportedTopLevels
           a: #M0
+          a=: <null>
+        reExportDeprecatedOnly
+          a: false
 [status] idle
 [future] getLibraryByUri T1
   library
@@ -33362,6 +35029,9 @@ final x = a;
       package:test/b.dart
         exportedTopLevels
           a: #M0
+          a=: <null>
+        reExportDeprecatedOnly
+          a: false
 [status] idle
 [future] getLibraryByUri T1
   library
@@ -33422,6 +35092,9 @@ final a = 1.2;
       package:test/b.dart
         exportedTopLevels
           a: #M4
+          a=: <null>
+        reExportDeprecatedOnly
+          a: false
 [status] idle
 [future] getLibraryByUri T2
   library
@@ -33463,6 +35136,9 @@ final x = a;
       package:test/a.dart
         exportedTopLevels
           a: #M0
+          a=: <null>
+        reExportDeprecatedOnly
+          a: false
 [status] idle
 [future] getLibraryByUri T1
   library
@@ -33502,6 +35178,9 @@ final a = 1.2;
       package:test/a.dart
         exportedTopLevels
           a: #M4
+          a=: <null>
+        reExportDeprecatedOnly
+          a: false
 [status] idle
 [future] getLibraryByUri T2
   library
@@ -33541,6 +35220,9 @@ void foo(A _) {}
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -33556,6 +35238,9 @@ void foo(A _) {}
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [status] idle
 [future] getErrors T1
   ErrorsResult #1
@@ -33617,6 +35302,9 @@ void foo(A _) {}
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -33632,6 +35320,9 @@ void foo(A _) {}
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [status] idle
 [future] getErrors T1
   ErrorsResult #1
@@ -33665,6 +35356,9 @@ typedef A = double;
       package:test/a.dart
         exportedTopLevels
           A: #M2
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
   topLevelIdMismatch
@@ -33687,6 +35381,9 @@ typedef A = double;
       package:test/a.dart
         exportedTopLevels
           A: #M2
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -33745,6 +35442,9 @@ void foo() {
       package:test/a.dart
         exportedTopLevels
           B: #M3
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
         interfaces
           A
             requestedConstructors
@@ -33799,6 +35499,9 @@ typedef B = A;
       package:test/a.dart
         exportedTopLevels
           B: #M3
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
         interfaces
           A
             requestedConstructors
@@ -79178,6 +80881,9 @@ final x = a;
       package:test/a.dart
         exportedTopLevels
           a: #M0
+          a=: <null>
+        reExportDeprecatedOnly
+          a: false
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -79193,6 +80899,9 @@ final x = a;
       package:test/a.dart
         exportedTopLevels
           a: #M0
+          a=: <null>
+        reExportDeprecatedOnly
+          a: false
 [status] idle
 [future] getErrors T1
   ErrorsResult #1
@@ -79261,6 +80970,9 @@ final x = a;
       package:test/a.dart
         exportedTopLevels
           a: #M0
+          a=: <null>
+        reExportDeprecatedOnly
+          a: false
 [status] idle
 [future] getLibraryByUri T1
   library
@@ -79298,6 +81010,9 @@ double get a => 1.2;
       package:test/a.dart
         exportedTopLevels
           a: #M4
+          a=: <null>
+        reExportDeprecatedOnly
+          a: false
 [status] idle
 [future] getLibraryByUri T2
   library
@@ -79393,6 +81108,9 @@ final x = a;
       package:test/a.dart
         exportedTopLevels
           a: #M0
+          a=: <null>
+        reExportDeprecatedOnly
+          a: false
 [status] idle
 [future] getLibraryByUri T1
   library
@@ -79474,7 +81192,11 @@ class B {
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
           Object: <null>
+          Object=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             requestedConstructors
@@ -79519,6 +81241,9 @@ final v = B();
       package:test/b.dart
         exportedTopLevels
           B: #M2
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
         interfaces
           B
             requestedConstructors
@@ -79626,6 +81351,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -79685,6 +81413,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -79736,6 +81467,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             allDeclaredFields: #M1
@@ -79788,6 +81522,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -79837,6 +81574,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredGetters
@@ -79884,6 +81624,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredMethods
@@ -79927,6 +81670,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredMethods
@@ -79976,6 +81722,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredSetters
@@ -80033,6 +81782,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -80094,6 +81846,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -80153,6 +81908,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -80208,6 +81966,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -80263,6 +82024,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             allDeclaredGetters: #M2
@@ -80309,6 +82073,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             allDeclaredMethods: #M1
@@ -80365,6 +82132,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -80426,6 +82196,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -80485,6 +82258,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -80540,6 +82316,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             requestedDeclaredFields
@@ -80595,6 +82374,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         instances
           A
             allDeclaredSetters: #M2
@@ -80641,6 +82423,9 @@ import 'a.dart';
       package:test/a.dart
         exportedTopLevels
           A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
         interfaces
           A
             requestedConstructors

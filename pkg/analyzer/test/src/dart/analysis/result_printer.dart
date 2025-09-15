@@ -94,6 +94,14 @@ class BundleRequirementsPrinter {
     sink.writeElements('exportedTopLevels', entries, (entry) {
       _writeNamedId(entry);
     });
+
+    sink.writeElements(
+      'reExportDeprecatedOnly',
+      requirements.reExportDeprecatedOnly.sorted,
+      (entry) {
+        sink.writelnWithIndent('${entry.key}: ${entry.value}');
+      },
+    );
   }
 
   void _writeExportRequirements(RequirementsManifest requirements) {
@@ -772,6 +780,14 @@ class DriverEventsPrinter {
             }
           });
         });
+      case ReExportDeprecatedOnlyMismatch():
+        sink.writelnWithIndent('reExportDeprecatedOnlyMismatch');
+        sink.writeProperties({
+          'libraryUri': failure.libraryUri,
+          'name': failure.name.asString,
+          'expected': failure.expected,
+          'actual': failure.actual,
+        });
     }
   }
 
@@ -1160,6 +1176,14 @@ class LibraryManifestPrinter {
           _writeNamedId(entry.key, entry.value);
         }
       });
+    }
+
+    if (manifest.reExportDeprecatedOnly.isNotEmpty) {
+      var namesStr = manifest.reExportDeprecatedOnly
+          .sorted(LookupName.compare)
+          .map((e) => e.asString)
+          .join(' ');
+      sink.writelnWithIndent('reExportDeprecatedOnly: $namesStr');
     }
 
     var exportedExtensionIds = manifest.exportedExtensions;
