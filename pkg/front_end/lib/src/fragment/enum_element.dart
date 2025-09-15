@@ -364,6 +364,7 @@ class EnumElementDeclaration
       // aren't provided, but required, we'll use it to infer them, and
       // 3) in case of erroneous code the constructor invocation should
       // be built via a body builder to detect potential errors.
+      ConstantContext constantContext = ConstantContext.inferred;
       BodyBuilder bodyBuilder = libraryBuilder.loader
           .createBodyBuilderForOutlineExpression(
             libraryBuilder,
@@ -371,7 +372,7 @@ class EnumElementDeclaration
             _fragment.enclosingScope,
             fileUri,
           );
-      bodyBuilder.constantContext = ConstantContext.inferred;
+      bodyBuilder.constantContext = constantContext;
 
       ArgumentsImpl arguments;
       if (token != null) {
@@ -420,9 +421,10 @@ class EnumElementDeclaration
         );
         ExpressionInferenceResult inferenceResult = bodyBuilder.typeInferrer
             .inferFieldInitializer(
-              bodyBuilder,
-              const UnknownType(),
-              initializer,
+              fileUri: fileUri,
+              constantContext: constantContext,
+              declaredType: const UnknownType(),
+              initializer: initializer,
             );
         initializer = inferenceResult.expression;
         inferredFieldType = inferenceResult.inferredType;

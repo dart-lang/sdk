@@ -16,6 +16,7 @@ import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
 import '../api_prototype/experimental_flags.dart';
+import '../base/compiler_context.dart';
 import '../base/messages.dart';
 import '../base/uri_offset.dart';
 import '../builder/formal_parameter_builder.dart';
@@ -618,5 +619,302 @@ extension CheckHelper on ProblemReporting {
             : issue.invertedType,
       );
     }
+  }
+
+  LocatedMessage? checkArgumentsForType({
+    required FunctionType function,
+    required Arguments arguments,
+    required Uri fileUri,
+    required int fileOffset,
+  }) {
+    int requiredPositionalParameterCountToReport =
+        function.requiredParameterCount;
+    int positionalParameterCountToReport = function.positionalParameters.length;
+    int positionalArgumentCountToReport = arguments.positional.length;
+    if (arguments.positional.length < function.requiredParameterCount) {
+      return codeTooFewArguments
+          .withArgumentsOld(
+            requiredPositionalParameterCountToReport,
+            positionalArgumentCountToReport,
+          )
+          .withLocation(fileUri, arguments.fileOffset, noLength);
+    }
+    if (arguments.positional.length > function.positionalParameters.length) {
+      return codeTooManyArguments
+          .withArgumentsOld(
+            positionalParameterCountToReport,
+            positionalArgumentCountToReport,
+          )
+          .withLocation(fileUri, arguments.fileOffset, noLength);
+    }
+    List<NamedExpression> named = arguments.named;
+    if (named.isNotEmpty) {
+      Set<String> names = new Set.of(
+        function.namedParameters.map((a) => a.name),
+      );
+      for (int i = 0; i < named.length; i++) {
+        NamedExpression argument = named[i];
+        if (!names.contains(argument.name)) {
+          return codeNoSuchNamedParameter
+              .withArgumentsOld(argument.name)
+              .withLocation(fileUri, argument.fileOffset, argument.name.length);
+        }
+      }
+    }
+    if (function.namedParameters.isNotEmpty) {
+      Set<String> argumentNames = new Set.of(named.map((a) => a.name));
+      for (int i = 0; i < function.namedParameters.length; i++) {
+        NamedType parameter = function.namedParameters[i];
+        if (parameter.isRequired && !argumentNames.contains(parameter.name)) {
+          return codeValueForRequiredParameterNotProvidedError
+              .withArgumentsOld(parameter.name)
+              .withLocation(fileUri, arguments.fileOffset, noLength);
+        }
+      }
+    }
+    List<Object> types = arguments.types;
+    List<StructuralParameter> typeParameters = function.typeParameters;
+    if (typeParameters.length != types.length && types.length != 0) {
+      // A wrong (non-zero) amount of type arguments given. That's an error.
+      // TODO(jensj): Position should be on type arguments instead.
+      return codeTypeArgumentMismatch
+          .withArgumentsOld(typeParameters.length)
+          .withLocation(fileUri, fileOffset, noLength);
+    }
+
+    return null;
+  }
+
+  Expression buildProblemWithContextFromMember({
+    required CompilerContext compilerContext,
+    required String name,
+    required Member member,
+    required LocatedMessage message,
+    required Uri fileUri,
+  }) {
+    List<LocatedMessage>? context;
+    Location? location = member.location;
+    if (location != null) {
+      Uri uri = location.file;
+      int offset = member.fileOffset;
+      Message contextMessage;
+      int length = noLength;
+      if (member is Constructor && member.isSynthetic) {
+        offset = member.enclosingClass.fileOffset;
+        contextMessage = codeCandidateFoundIsDefaultConstructor
+            .withArgumentsOld(member.enclosingClass.name);
+      } else {
+        if (member is Constructor) {
+          if (member.name.text == '') {
+            length = member.enclosingClass.name.length;
+          } else {
+            // Assume no spaces around the dot. Not perfect, but probably the
+            // best we can do with the information available.
+            length = member.enclosingClass.name.length + 1 + name.length;
+          }
+        } else {
+          length = name.length;
+        }
+        contextMessage = codeCandidateFound;
+      }
+      context = [contextMessage.withLocation(uri, offset, length)];
+    }
+    return buildProblem(
+      compilerContext: compilerContext,
+      message: message.messageObject,
+      fileUri: fileUri,
+      fileOffset: message.charOffset,
+      length: message.length,
+      context: context,
+    );
+  }
+
+  InvalidExpression buildProblem({
+    required CompilerContext compilerContext,
+    required Message message,
+    required Uri fileUri,
+    required int fileOffset,
+    required int length,
+    List<LocatedMessage>? context,
+    bool errorHasBeenReported = false,
+    Expression? expression,
+  }) {
+    if (!errorHasBeenReported) {
+      addProblem(
+        message,
+        fileOffset,
+        length,
+        fileUri,
+        wasHandled: true,
+        context: context,
+      );
+    }
+    String text = compilerContext
+        .format(
+          message.withLocation(fileUri, fileOffset, length),
+          CfeSeverity.error,
+        )
+        .plain;
+    return new InvalidExpression(text, expression)..fileOffset = fileOffset;
+  }
+
+  LocatedMessage? checkArgumentsForFunction({
+    required FunctionNode function,
+    required Arguments arguments,
+    required int fileOffset,
+    required Uri fileUri,
+    required List<TypeParameter> typeParameters,
+    Extension? extension,
+  }) {
+    int typeParameterCount = typeParameters.length;
+    int requiredParameterCount = function.requiredParameterCount;
+    int positionalParameterCount = function.positionalParameters.length;
+    int positionalArgumentsCount = arguments.positional.length;
+    if (extension != null) {
+      // Extension member invocations have additional synthetic parameter for
+      // `this`.
+      --requiredParameterCount;
+      --positionalParameterCount;
+      typeParameterCount -= extension.typeParameters.length;
+    }
+    if (positionalArgumentsCount < requiredParameterCount) {
+      return codeTooFewArguments
+          .withArgumentsOld(requiredParameterCount, positionalArgumentsCount)
+          .withLocation(fileUri, arguments.fileOffset, noLength);
+    }
+    if (positionalArgumentsCount > positionalParameterCount) {
+      return codeTooManyArguments
+          .withArgumentsOld(positionalParameterCount, positionalArgumentsCount)
+          .withLocation(fileUri, arguments.fileOffset, noLength);
+    }
+    List<NamedExpression> named = arguments.named;
+    if (named.isNotEmpty) {
+      Set<String?> parameterNames = new Set.of(
+        function.namedParameters.map((a) => a.name),
+      );
+      for (int i = 0; i < named.length; i++) {
+        NamedExpression argument = named[i];
+        if (!parameterNames.contains(argument.name)) {
+          return codeNoSuchNamedParameter
+              .withArgumentsOld(argument.name)
+              .withLocation(fileUri, argument.fileOffset, argument.name.length);
+        }
+      }
+    }
+    if (function.namedParameters.isNotEmpty) {
+      Set<String> argumentNames = new Set.of(named.map((a) => a.name));
+      for (int i = 0; i < function.namedParameters.length; i++) {
+        VariableDeclaration parameter = function.namedParameters[i];
+        if (parameter.isRequired && !argumentNames.contains(parameter.name)) {
+          return codeValueForRequiredParameterNotProvidedError
+              .withArgumentsOld(parameter.name!)
+              .withLocation(fileUri, arguments.fileOffset, noLength);
+        }
+      }
+    }
+
+    List<DartType> types = arguments.types;
+    if (typeParameterCount != types.length) {
+      if (types.length == 0) {
+        // Expected `typeParameters.length` type arguments, but none given, so
+        // we use type inference.
+      } else {
+        // A wrong (non-zero) amount of type arguments given. That's an error.
+        // TODO(jensj): Position should be on type arguments instead.
+        return codeTypeArgumentMismatch
+            .withArgumentsOld(typeParameterCount)
+            .withLocation(fileUri, fileOffset, noLength);
+      }
+    }
+
+    return null;
+  }
+
+  Expression? checkStaticArguments({
+    required CompilerContext compilerContext,
+    required Member target,
+    required Arguments arguments,
+    required int fileOffset,
+    required Uri fileUri,
+  }) {
+    List<TypeParameter> typeParameters = target.function!.typeParameters;
+    if (target is Constructor) {
+      assert(!target.enclosingClass.isAbstract);
+      typeParameters = target.enclosingClass.typeParameters;
+    }
+    LocatedMessage? argMessage = checkArgumentsForFunction(
+      function: target.function!,
+      arguments: arguments,
+      fileOffset: fileOffset,
+      fileUri: fileUri,
+      typeParameters: typeParameters,
+    );
+    if (argMessage != null) {
+      return buildProblemWithContextFromMember(
+        compilerContext: compilerContext,
+        name: target.name.text,
+        member: target,
+        message: argMessage,
+        fileUri: fileUri,
+      );
+    }
+    return null;
+  }
+
+  Expression wrapInProblem({
+    required CompilerContext compilerContext,
+    required Expression expression,
+    required Message message,
+    required Uri fileUri,
+    required int fileOffset,
+    required int length,
+    List<LocatedMessage>? context,
+    bool? errorHasBeenReported,
+    bool includeExpression = true,
+  }) {
+    CfeSeverity severity = message.code.severity;
+    if (severity == CfeSeverity.error) {
+      return wrapInLocatedProblem(
+        compilerContext: compilerContext,
+        expression: expression,
+        message: message.withLocation(fileUri, fileOffset, length),
+        context: context,
+        errorHasBeenReported:
+            errorHasBeenReported ?? expression is InvalidExpression,
+        includeExpression: includeExpression,
+      );
+    } else {
+      // Coverage-ignore-block(suite): Not run.
+      if (expression is! InvalidExpression) {
+        addProblem(message, fileOffset, length, fileUri, context: context);
+      }
+      return expression;
+    }
+  }
+
+  Expression wrapInLocatedProblem({
+    required CompilerContext compilerContext,
+    required Expression expression,
+    required LocatedMessage message,
+    List<LocatedMessage>? context,
+    bool errorHasBeenReported = false,
+    bool includeExpression = true,
+  }) {
+    // TODO(askesc): Produce explicit error expression wrapping the original.
+    // See [issue 29717](https://github.com/dart-lang/sdk/issues/29717)
+    int offset = expression.fileOffset;
+    if (offset == -1) {
+      offset = message.charOffset;
+    }
+    return buildProblem(
+      compilerContext: compilerContext,
+      message: message.messageObject,
+      fileUri: message.uri!,
+      fileOffset: message.charOffset,
+      length: message.length,
+      context: context,
+      expression: includeExpression ? expression : null,
+      errorHasBeenReported: errorHasBeenReported,
+    );
   }
 }

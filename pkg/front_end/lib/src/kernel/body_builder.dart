@@ -45,6 +45,7 @@ import 'package:kernel/type_environment.dart';
 
 import '../api_prototype/experimental_flags.dart';
 import '../api_prototype/lowering_predicates.dart';
+import '../base/compiler_context.dart';
 import '../base/constant_context.dart' show ConstantContext;
 import '../base/identifiers.dart'
     show
@@ -82,7 +83,6 @@ import '../builder/type_builder.dart';
 import '../builder/variable_builder.dart';
 import '../builder/void_type_builder.dart';
 import '../codes/cfe_codes.dart' as cfe;
-import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
 import '../dill/dill_type_parameter_builder.dart';
 import '../fragment/fragment.dart';
 import '../source/check_helper.dart';
@@ -384,7 +384,11 @@ class BodyBuilder extends StackListenerImpl
              ),
        );
 
+  @override
   ProblemReporting get problemReporting => libraryBuilder;
+
+  @override
+  CompilerContext get compilerContext => libraryBuilder.loader.target.context;
 
   LocalScope get _localScope => _localScopes.current;
 
@@ -665,7 +669,12 @@ class BodyBuilder extends StackListenerImpl
     } else if (node is Expression) {
       return node;
     } else if (node is SuperInitializer) {
-      return buildProblem(cfe.codeSuperAsExpression, node.fileOffset, noLength);
+      return buildProblem(
+        message: cfe.codeSuperAsExpression,
+        fileUri: uri,
+        fileOffset: node.fileOffset,
+        length: noLength,
+      );
     } else {
       return unhandled("${node.runtimeType}", "toValue", -1, uri);
     }
@@ -819,15 +828,17 @@ class BodyBuilder extends StackListenerImpl
     Message message = template.withArgumentsOld(name);
     if (variable.initializer == null) {
       variable.initializer = buildProblem(
-        message,
-        offset,
-        name.length,
+        message: message,
+        fileUri: uri,
+        fileOffset: offset,
+        length: name.length,
         context: context,
       )..parent = variable;
     } else {
-      variable.initializer = wrapInLocatedProblem(
-        variable.initializer!,
-        message.withLocation(uri, offset, name.length),
+      variable.initializer = problemReporting.wrapInLocatedProblem(
+        compilerContext: compilerContext,
+        expression: variable.initializer!,
+        message: message.withLocation(uri, offset, name.length),
         context: context,
       )..parent = variable;
     }
@@ -892,7 +903,13 @@ class BodyBuilder extends StackListenerImpl
     List<int>? indices,
   }) {
     if (annotations != null) {
-      typeInferrer.inferMetadata(this, parent, annotations, indices);
+      typeInferrer.inferMetadata(
+        fileUri: uri,
+        parent: parent,
+        annotations: annotations,
+        indices: indices,
+        constantContext: constantContext,
+      );
     }
   }
 
@@ -990,11 +1007,13 @@ class BodyBuilder extends StackListenerImpl
               expression is ParenthesizedExpressionGenerator)) {
         Expression value = toValue(expression);
         push(
-          wrapInProblem(
-            value,
-            cfe.codeExpressionNotMetadata,
-            value.fileOffset,
-            noLength,
+          problemReporting.wrapInProblem(
+            compilerContext: compilerContext,
+            expression: value,
+            message: cfe.codeExpressionNotMetadata,
+            fileUri: uri,
+            fileOffset: value.fileOffset,
+            length: noLength,
           ),
         );
       } else {
@@ -1074,10 +1093,11 @@ class BodyBuilder extends StackListenerImpl
       Identifier identifier = pop() as Identifier;
       FieldFragment fieldFragment = offsetMap.lookupField(identifier);
       fieldFragment.declaration.buildFieldInitializer(
-        this,
-        typeInferrer,
-        coreTypes,
-        initializer,
+        typeInferrer: typeInferrer,
+        coreTypes: coreTypes,
+        fileUri: uri,
+        constantContext: constantContext,
+        initializer: initializer,
       );
     }
     assert(
@@ -1156,9 +1176,10 @@ class BodyBuilder extends StackListenerImpl
               initializers = <Initializer>[
                 buildInvalidInitializer(
                   buildProblem(
-                    cfe.codeExternalConstructorWithFieldInitializers,
-                    formal.fileOffset,
-                    formal.name.length,
+                    message: cfe.codeExternalConstructorWithFieldInitializers,
+                    fileUri: uri,
+                    fileOffset: formal.fileOffset,
+                    length: formal.name.length,
                   ),
                   formal.fileOffset,
                 ),
@@ -1270,11 +1291,13 @@ class BodyBuilder extends StackListenerImpl
         // and not the [value].  For instance this occurs for `super()?.foo()`
         // in an initializer list, pointing to `foo` as expecting an
         // initializer.
-        value = wrapInProblem(
-          value,
-          cfe.codeExpectedAnInitializer,
-          value.fileOffset,
-          noLength,
+        value = problemReporting.wrapInProblem(
+          compilerContext: compilerContext,
+          expression: value,
+          message: cfe.codeExpectedAnInitializer,
+          fileUri: uri,
+          fileOffset: value.fileOffset,
+          length: noLength,
         );
       }
       initializers = <Initializer>[
@@ -1362,10 +1385,11 @@ class BodyBuilder extends StackListenerImpl
               i,
             );
             initializer = typeInferrer.inferParameterInitializer(
-              this,
-              initializer,
-              originParameter.type,
-              parameter.hasDeclaredInitializer,
+              fileUri: uri,
+              initializer: initializer,
+              declaredType: originParameter.type,
+              hasDeclaredInitializer: parameter.hasDeclaredInitializer,
+              constantContext: constantContext,
             );
             originParameter.initializer = initializer..parent = originParameter;
             if (initializer is InvalidExpression) {
@@ -1402,12 +1426,12 @@ class BodyBuilder extends StackListenerImpl
     InferredFunctionBody? inferredFunctionBody;
     if (body != null) {
       inferredFunctionBody = typeInferrer.inferFunctionBody(
-        this,
-        _context.memberNameOffset,
-        _context.returnTypeContext,
-        asyncModifier,
-        body,
-        null,
+        fileUri: uri,
+        fileOffset: _context.memberNameOffset,
+        returnType: _context.returnTypeContext,
+        constantContext: constantContext,
+        asyncMarker: asyncModifier,
+        body: body,
       );
       body = inferredFunctionBody.body;
       function.emittedValueType = inferredFunctionBody.emittedValueType;
@@ -1462,9 +1486,10 @@ class BodyBuilder extends StackListenerImpl
             // This error is added after type inference is done, so we
             // don't need to wrap errors in SyntheticExpressionJudgment.
             buildProblem(
-              cfe.codeSetterWithWrongNumberOfFormals,
-              charOffset,
-              noLength,
+              message: cfe.codeSetterWithWrongNumberOfFormals,
+              fileUri: uri,
+              fileOffset: charOffset,
+              length: noLength,
             ),
           ),
           body,
@@ -1481,9 +1506,10 @@ class BodyBuilder extends StackListenerImpl
         body = new Block(<Statement>[
           new ExpressionStatement(
             buildProblem(
-              cfe.codeExternalMethodWithBody,
-              body.fileOffset,
-              noLength,
+              message: cfe.codeExternalMethodWithBody,
+              fileUri: uri,
+              fileOffset: body.fileOffset,
+              length: noLength,
             ),
           )..fileOffset = body.fileOffset,
           body,
@@ -1549,58 +1575,6 @@ class BodyBuilder extends StackListenerImpl
       // using the offset of [returnType] (and the length of its name).
       addProblem(problem, charOffset, length);
     }
-  }
-
-  /// Ensure that the containing library of the [member] has been loaded.
-  ///
-  /// This is for instance important for lazy dill library builders where this
-  /// method has to be called to ensure that
-  /// a) The library has been fully loaded (and for instance any internal
-  ///    transformation needed has been performed); and
-  /// b) The library is correctly marked as being used to allow for proper
-  ///    'dependency pruning'.
-  @override
-  void ensureLoaded(Member? member) {
-    if (member == null) return;
-    Library ensureLibraryLoaded = member.enclosingLibrary;
-    LibraryBuilder? builder =
-        libraryBuilder.loader.lookupLoadedLibraryBuilder(
-          ensureLibraryLoaded.importUri,
-        ) ??
-        // Coverage-ignore(suite): Not run.
-        libraryBuilder.loader.target.dillTarget.loader.lookupLibraryBuilder(
-          ensureLibraryLoaded.importUri,
-        );
-    if (builder is DillLibraryBuilder) {
-      builder.ensureLoaded();
-    }
-  }
-
-  @override
-  Expression? checkStaticArguments({
-    required Member target,
-    required Arguments arguments,
-    required int fileOffset,
-  }) {
-    List<TypeParameter> typeParameters = target.function!.typeParameters;
-    if (target is Constructor) {
-      assert(!target.enclosingClass.isAbstract);
-      typeParameters = target.enclosingClass.typeParameters;
-    }
-    LocatedMessage? argMessage = checkArgumentsForFunction(
-      target.function!,
-      arguments,
-      fileOffset,
-      typeParameters,
-    );
-    if (argMessage != null) {
-      return buildProblemWithContextFromMember(
-        name: target.name.text,
-        member: target,
-        message: argMessage,
-      );
-    }
-    return null;
   }
 
   void _finishVariableMetadata() {
@@ -1750,9 +1724,10 @@ class BodyBuilder extends StackListenerImpl
     Token eof = endToken.next!;
 
     if (!eof.isEof) {
-      expression = wrapInLocatedProblem(
-        expression,
-        cfe.codeExpectedOneExpression.withLocation(
+      expression = problemReporting.wrapInLocatedProblem(
+        compilerContext: compilerContext,
+        expression: expression,
+        message: cfe.codeExpectedOneExpression.withLocation(
           uri,
           eof.charOffset,
           eof.length,
@@ -1780,12 +1755,13 @@ class BodyBuilder extends StackListenerImpl
     }
 
     InferredFunctionBody inferredFunctionBody = typeInferrer.inferFunctionBody(
-      this,
-      fileOffset,
-      const DynamicType(),
-      AsyncMarker.Sync,
-      fakeReturn,
-      expressionEvaluationHelper,
+      fileUri: uri,
+      fileOffset: fileOffset,
+      returnType: const DynamicType(),
+      constantContext: constantContext,
+      asyncMarker: AsyncMarker.Sync,
+      body: fakeReturn,
+      expressionEvaluationHelper: expressionEvaluationHelper,
     );
     assert(
       fakeReturn == inferredFunctionBody.body,
@@ -2012,11 +1988,12 @@ class BodyBuilder extends StackListenerImpl
         // Report an error if a mixin class has a constructor with an
         // initializer.
         buildProblem(
-          cfe.codeIllegalMixinDueToConstructors.withArgumentsOld(
+          message: cfe.codeIllegalMixinDueToConstructors.withArgumentsOld(
             _context.className,
           ),
-          _context.memberNameOffset,
-          noLength,
+          fileUri: uri,
+          fileOffset: _context.memberNameOffset,
+          length: noLength,
         );
       }
       Initializer last = initializers.last;
@@ -2024,9 +2001,10 @@ class BodyBuilder extends StackListenerImpl
         if (_context.isEnumClass) {
           initializers[initializers.length - 1] = buildInvalidInitializer(
             buildProblem(
-              cfe.codeEnumConstructorSuperInitializer,
-              last.fileOffset,
-              noLength,
+              message: cfe.codeEnumConstructorSuperInitializer,
+              fileUri: uri,
+              fileOffset: last.fileOffset,
+              length: noLength,
             ),
           )..parent = last.parent;
         } else if (libraryFeatures.superParameters.isEnabled) {
@@ -2088,9 +2066,10 @@ class BodyBuilder extends StackListenerImpl
           new List<InitializerInferenceResult>.generate(
             initializers.length,
             (index) => _context.inferInitializer(
-              initializers[index],
-              this,
-              typeInferrer,
+              typeInferrer: typeInferrer,
+              constantContext: constantContext,
+              fileUri: uri,
+              initializer: initializers[index],
             ),
             growable: false,
           );
@@ -2105,7 +2084,12 @@ class BodyBuilder extends StackListenerImpl
     if (asyncModifier != AsyncMarker.Sync) {
       _context.addInitializer(
         buildInvalidInitializer(
-          buildProblem(cfe.codeConstructorNotSync, body!.fileOffset, noLength),
+          buildProblem(
+            message: cfe.codeConstructorNotSync,
+            fileUri: uri,
+            fileOffset: body!.fileOffset,
+            length: noLength,
+          ),
         ),
         this,
       );
@@ -2214,19 +2198,20 @@ class BodyBuilder extends StackListenerImpl
           }
           initializer = buildInvalidInitializer(
             buildProblem(
-              cfe.codeSuperclassHasNoDefaultConstructor.withArgumentsOld(
-                superclass,
-              ),
-              _context.memberNameOffset,
-              length,
+              message: cfe.codeSuperclassHasNoDefaultConstructor
+                  .withArgumentsOld(superclass),
+              fileUri: uri,
+              fileOffset: _context.memberNameOffset,
+              length: length,
             ),
             _context.memberNameOffset,
           );
-        } else if (checkArgumentsForFunction(
-              superTarget.function,
-              arguments,
-              _context.memberNameOffset,
-              const <TypeParameter>[],
+        } else if (problemReporting.checkArgumentsForFunction(
+              function: superTarget.function,
+              arguments: arguments,
+              fileOffset: _context.memberNameOffset,
+              fileUri: uri,
+              typeParameters: const <TypeParameter>[],
             )
             case LocatedMessage argumentIssue) {
           List<int>? positionalSuperParametersIssueOffsets;
@@ -2273,9 +2258,10 @@ class BodyBuilder extends StackListenerImpl
           if (positionalSuperParametersIssueOffsets != null) {
             for (int issueOffset in positionalSuperParametersIssueOffsets) {
               Expression errorMessageExpression = buildProblem(
-                cfe.codeMissingPositionalSuperConstructorParameter,
-                issueOffset,
-                noLength,
+                message: cfe.codeMissingPositionalSuperConstructorParameter,
+                fileUri: uri,
+                fileOffset: issueOffset,
+                length: noLength,
               );
               errorMessageInitializer ??= buildInvalidInitializer(
                 errorMessageExpression,
@@ -2285,9 +2271,10 @@ class BodyBuilder extends StackListenerImpl
           if (namedSuperParametersIssueOffsets != null) {
             for (int issueOffset in namedSuperParametersIssueOffsets) {
               Expression errorMessageExpression = buildProblem(
-                cfe.codeMissingNamedSuperConstructorParameter,
-                issueOffset,
-                noLength,
+                message: cfe.codeMissingNamedSuperConstructorParameter,
+                fileUri: uri,
+                fileOffset: issueOffset,
+                length: noLength,
               );
               errorMessageInitializer ??= buildInvalidInitializer(
                 errorMessageExpression,
@@ -2297,19 +2284,21 @@ class BodyBuilder extends StackListenerImpl
           if (explicitSuperInitializer == null) {
             errorMessageInitializer ??= buildInvalidInitializer(
               buildProblem(
-                cfe.codeImplicitSuperInitializerMissingArguments
+                message: cfe.codeImplicitSuperInitializerMissingArguments
                     .withArgumentsOld(superTarget.enclosingClass.name),
-                argumentIssue.charOffset,
-                argumentIssue.length,
+                fileUri: uri,
+                fileOffset: argumentIssue.charOffset,
+                length: argumentIssue.length,
               ),
             );
           }
           // Coverage-ignore-block(suite): Not run.
           errorMessageInitializer ??= buildInvalidInitializer(
             buildProblem(
-              argumentIssue.messageObject,
-              argumentIssue.charOffset,
-              argumentIssue.length,
+              message: argumentIssue.messageObject,
+              fileUri: uri,
+              fileOffset: argumentIssue.charOffset,
+              length: argumentIssue.length,
             ),
           );
           initializer = errorMessageInitializer;
@@ -2324,9 +2313,10 @@ class BodyBuilder extends StackListenerImpl
       }
       if (libraryFeatures.superParameters.isEnabled) {
         InitializerInferenceResult inferenceResult = _context.inferInitializer(
-          initializer,
-          this,
-          typeInferrer,
+          typeInferrer: typeInferrer,
+          fileUri: uri,
+          constantContext: constantContext,
+          initializer: initializer,
         );
         _context.addInferredInitializer(inferenceResult, this);
       } else {
@@ -2342,11 +2332,12 @@ class BodyBuilder extends StackListenerImpl
       // Report an error if a mixin class has a non-factory constructor with a
       // body.
       buildProblem(
-        cfe.codeIllegalMixinDueToConstructors.withArgumentsOld(
+        message: cfe.codeIllegalMixinDueToConstructors.withArgumentsOld(
           _context.className,
         ),
-        _context.memberNameOffset,
-        noLength,
+        fileUri: uri,
+        fileOffset: _context.memberNameOffset,
+        length: noLength,
       );
     }
   }
@@ -2401,9 +2392,10 @@ class BodyBuilder extends StackListenerImpl
             arguments[i] = new NamedExpression(
               "#$i",
               buildProblem(
-                cfe.codeExpectedNamedArgument,
-                argument.fileOffset,
-                noLength,
+                message: cfe.codeExpectedNamedArgument,
+                fileUri: uri,
+                fileOffset: argument.fileOffset,
+                length: noLength,
               ),
             )..fileOffset = beginToken.charOffset;
           }
@@ -3139,17 +3131,19 @@ class BodyBuilder extends StackListenerImpl
         if (isUserDefinableOperator(operator)) {
           push(
             buildProblem(
-              cfe.codeNotBinaryOperator.withArgumentsOld(token),
-              token.charOffset,
-              token.length,
+              message: cfe.codeNotBinaryOperator.withArgumentsOld(token),
+              fileUri: uri,
+              fileOffset: token.charOffset,
+              length: token.length,
             ),
           );
         } else {
           push(
             buildProblem(
-              cfe.codeInvalidOperator.withArgumentsOld(token),
-              token.charOffset,
-              token.length,
+              message: cfe.codeInvalidOperator.withArgumentsOld(token),
+              fileUri: uri,
+              fileOffset: token.charOffset,
+              length: token.length,
             ),
           );
         }
@@ -3226,9 +3220,10 @@ class BodyBuilder extends StackListenerImpl
       token = token.next!;
       push(
         buildProblem(
-          cfe.codeExpectedIdentifier.withArgumentsOld(token),
-          offsetForToken(token),
-          lengthForToken(token),
+          message: cfe.codeExpectedIdentifier.withArgumentsOld(token),
+          fileUri: uri,
+          fileOffset: offsetForToken(token),
+          length: lengthForToken(token),
         ),
       );
     }
@@ -3272,9 +3267,10 @@ class BodyBuilder extends StackListenerImpl
       token = token.next!;
       push(
         buildProblem(
-          cfe.codeExpectedIdentifier.withArgumentsOld(token),
-          offsetForToken(token),
-          lengthForToken(token),
+          message: cfe.codeExpectedIdentifier.withArgumentsOld(token),
+          fileUri: uri,
+          fileOffset: offsetForToken(token),
+          length: lengthForToken(token),
         ),
       );
     }
@@ -3320,9 +3316,10 @@ class BodyBuilder extends StackListenerImpl
       token = token.next!;
       push(
         buildProblem(
-          cfe.codeExpectedIdentifier.withArgumentsOld(token),
-          offsetForToken(token),
-          lengthForToken(token),
+          message: cfe.codeExpectedIdentifier.withArgumentsOld(token),
+          fileUri: uri,
+          fileOffset: offsetForToken(token),
+          length: lengthForToken(token),
         ),
       );
     }
@@ -3404,60 +3401,21 @@ class BodyBuilder extends StackListenerImpl
         break;
     }
     return buildProblem(
-      message.messageObject,
-      message.charOffset,
-      message.length,
+      message: message.messageObject,
+      fileUri: uri,
+      fileOffset: message.charOffset,
+      length: message.length,
       errorHasBeenReported: errorHasBeenReported,
-    );
-  }
-
-  @override
-  Expression buildProblemWithContextFromMember({
-    required String name,
-    required Member member,
-    required LocatedMessage message,
-  }) {
-    List<LocatedMessage>? context;
-    Location? location = member.location;
-    if (location != null) {
-      Uri uri = location.file;
-      int offset = member.fileOffset;
-      Message contextMessage;
-      int length = noLength;
-      if (member is Constructor && member.isSynthetic) {
-        offset = member.enclosingClass.fileOffset;
-        contextMessage = cfe.codeCandidateFoundIsDefaultConstructor
-            .withArgumentsOld(member.enclosingClass.name);
-      } else {
-        if (member is Constructor) {
-          if (member.name.text == '') {
-            length = member.enclosingClass.name.length;
-          } else {
-            // Assume no spaces around the dot. Not perfect, but probably the
-            // best we can do with the information available.
-            length = member.enclosingClass.name.length + 1 + name.length;
-          }
-        } else {
-          length = name.length;
-        }
-        contextMessage = cfe.codeCandidateFound;
-      }
-      context = [contextMessage.withLocation(uri, offset, length)];
-    }
-    return buildProblem(
-      message.messageObject,
-      message.charOffset,
-      message.length,
-      context: context,
     );
   }
 
   @override
   Expression buildProblemFromLocatedMessage(LocatedMessage message) {
     return buildProblem(
-      message.messageObject,
-      message.charOffset,
-      message.length,
+      message: message.messageObject,
+      fileUri: uri,
+      fileOffset: message.charOffset,
+      length: message.length,
     );
   }
 
@@ -4476,9 +4434,12 @@ class BodyBuilder extends StackListenerImpl
         // If [token] is synthetic it is created from error recovery.
         if (isConst) {
           initializer = buildProblem(
-            cfe.codeConstFieldWithoutInitializer.withArgumentsOld(token.lexeme),
-            token.charOffset,
-            token.length,
+            message: cfe.codeConstFieldWithoutInitializer.withArgumentsOld(
+              token.lexeme,
+            ),
+            fileUri: uri,
+            fileOffset: token.charOffset,
+            length: token.length,
           );
         }
       }
@@ -4729,9 +4690,10 @@ class BodyBuilder extends StackListenerImpl
     if (generator is! Generator) {
       push(
         buildProblem(
-          cfe.codeNotAnLvalue,
-          offsetForToken(token),
-          lengthForToken(token),
+          message: cfe.codeNotAnLvalue,
+          fileUri: uri,
+          fileOffset: offsetForToken(token),
+          length: lengthForToken(token),
           errorHasBeenReported: generator is InvalidExpression,
         ),
       );
@@ -4984,11 +4946,11 @@ class BodyBuilder extends StackListenerImpl
 
       push(
         buildProblem(
-          cfe.codeCantUseControlFlowOrSpreadAsConstant.withArgumentsOld(
-            forToken,
-          ),
-          forToken.charOffset,
-          forToken.charCount,
+          message: cfe.codeCantUseControlFlowOrSpreadAsConstant
+              .withArgumentsOld(forToken),
+          fileUri: uri,
+          fileOffset: forToken.charOffset,
+          length: forToken.charCount,
         ),
       );
       return;
@@ -5197,9 +5159,10 @@ class BodyBuilder extends StackListenerImpl
     if (inLateLocalInitializer) {
       push(
         buildProblem(
-          cfe.codeAwaitInLateLocalInitializer,
-          fileOffset,
-          keyword.charCount,
+          message: cfe.codeAwaitInLateLocalInitializer,
+          fileUri: uri,
+          fileOffset: fileOffset,
+          length: keyword.charCount,
         ),
       );
     } else {
@@ -5215,7 +5178,14 @@ class BodyBuilder extends StackListenerImpl
   ) {
     debugEvent("AwaitExpression");
     popForValue();
-    push(buildProblem(errorCode, keyword.offset, keyword.length));
+    push(
+      buildProblem(
+        message: errorCode,
+        fileUri: uri,
+        fileOffset: keyword.offset,
+        length: keyword.length,
+      ),
+    );
   }
 
   @override
@@ -5418,11 +5388,12 @@ class BodyBuilder extends StackListenerImpl
           NamedExpression? existingExpression = namedElements[element.name];
           if (existingExpression != null) {
             existingExpression.value = buildProblem(
-              codeDuplicatedRecordLiteralFieldName.withArgumentsOld(
+              message: codeDuplicatedRecordLiteralFieldName.withArgumentsOld(
                 element.name,
               ),
-              element.fileOffset,
-              element.name.length,
+              fileUri: uri,
+              fileOffset: element.fileOffset,
+              length: element.name.length,
               context: [
                 codeDuplicatedRecordLiteralFieldNameContext
                     .withArgumentsOld(element.name)
@@ -5642,7 +5613,9 @@ class BodyBuilder extends StackListenerImpl
         } else {
           mapEntries[i] = convertToMapEntry(
             setOrMapEntries[i],
-            this,
+            problemReporting,
+            libraryBuilder.loader.target.context,
+            uri,
             typeInferrer.assignedVariables.reassignInfo,
           );
         }
@@ -6358,9 +6331,10 @@ class BodyBuilder extends StackListenerImpl
     if (constantContext != ConstantContext.none) {
       push(
         buildProblem(
-          cfe.codeNotConstantExpression.withArgumentsOld('Throw'),
-          throwToken.offset,
-          throwToken.length,
+          message: cfe.codeNotConstantExpression.withArgumentsOld('Throw'),
+          fileUri: uri,
+          fileOffset: throwToken.offset,
+          length: throwToken.length,
         ),
       );
     } else {
@@ -7018,7 +6992,14 @@ class BodyBuilder extends StackListenerImpl
     } else {
       Expression value = toValue(generator);
       push(
-        wrapInProblem(value, cfe.codeNotAnLvalue, value.fileOffset, noLength),
+        problemReporting.wrapInProblem(
+          compilerContext: compilerContext,
+          expression: value,
+          message: cfe.codeNotAnLvalue,
+          fileUri: uri,
+          fileOffset: value.fileOffset,
+          length: noLength,
+        ),
       );
     }
   }
@@ -7039,7 +7020,14 @@ class BodyBuilder extends StackListenerImpl
     } else {
       Expression value = toValue(generator);
       push(
-        wrapInProblem(value, cfe.codeNotAnLvalue, value.fileOffset, noLength),
+        problemReporting.wrapInProblem(
+          compilerContext: compilerContext,
+          expression: value,
+          message: cfe.codeNotAnLvalue,
+          fileUri: uri,
+          fileOffset: value.fileOffset,
+          length: noLength,
+        ),
       );
     }
   }
@@ -7212,10 +7200,12 @@ class BodyBuilder extends StackListenerImpl
     int fileOffset = -1,
     int charLength = noLength,
   }) {
-    Expression? result = checkStaticArguments(
+    Expression? result = problemReporting.checkStaticArguments(
+      compilerContext: compilerContext,
       target: target,
       arguments: arguments,
       fileOffset: fileOffset,
+      fileUri: uri,
     );
     if (result != null) {
       return result;
@@ -7231,9 +7221,10 @@ class BodyBuilder extends StackListenerImpl
       }
       if (isConst && !target.isConst) {
         return buildProblem(
-          cfe.codeNonConstConstructor,
-          fileOffset,
-          charLength,
+          message: cfe.codeNonConstConstructor,
+          fileUri: uri,
+          fileOffset: fileOffset,
+          length: charLength,
         );
       }
       Expression node;
@@ -7276,12 +7267,18 @@ class BodyBuilder extends StackListenerImpl
           // extension type declarations are encoded as procedures so we use
           // the message for non-const constructors here.
           return buildProblem(
-            cfe.codeNonConstConstructor,
-            fileOffset,
-            charLength,
+            message: cfe.codeNonConstConstructor,
+            fileUri: uri,
+            fileOffset: fileOffset,
+            length: charLength,
           );
         } else {
-          return buildProblem(cfe.codeNonConstFactory, fileOffset, charLength);
+          return buildProblem(
+            message: cfe.codeNonConstFactory,
+            fileUri: uri,
+            fileOffset: fileOffset,
+            length: charLength,
+          );
         }
       }
       Expression node;
@@ -7324,10 +7321,12 @@ class BodyBuilder extends StackListenerImpl
     required ArgumentsImpl arguments,
     required int fileOffset,
   }) {
-    Expression? result = checkStaticArguments(
+    Expression? result = problemReporting.checkStaticArguments(
+      compilerContext: compilerContext,
       target: target,
       arguments: arguments,
       fileOffset: fileOffset,
+      fileUri: uri,
     );
     if (result != null) {
       return result;
@@ -7335,142 +7334,6 @@ class BodyBuilder extends StackListenerImpl
 
     return new InternalStaticInvocation(target.name, target, arguments)
       ..fileOffset = fileOffset;
-  }
-
-  @override
-  LocatedMessage? checkArgumentsForFunction(
-    FunctionNode function,
-    Arguments arguments,
-    int offset,
-    List<TypeParameter> typeParameters, {
-    Extension? extension,
-  }) {
-    int typeParameterCount = typeParameters.length;
-    int requiredParameterCount = function.requiredParameterCount;
-    int positionalParameterCount = function.positionalParameters.length;
-    int positionalArgumentsCount = arguments.positional.length;
-    if (extension != null) {
-      // Extension member invocations have additional synthetic parameter for
-      // `this`.
-      --requiredParameterCount;
-      --positionalParameterCount;
-      typeParameterCount -= extension.typeParameters.length;
-    }
-    if (positionalArgumentsCount < requiredParameterCount) {
-      return cfe.codeTooFewArguments
-          .withArgumentsOld(requiredParameterCount, positionalArgumentsCount)
-          .withLocation(uri, arguments.fileOffset, noLength);
-    }
-    if (positionalArgumentsCount > positionalParameterCount) {
-      return cfe.codeTooManyArguments
-          .withArgumentsOld(positionalParameterCount, positionalArgumentsCount)
-          .withLocation(uri, arguments.fileOffset, noLength);
-    }
-    List<NamedExpression> named = arguments.named;
-    if (named.isNotEmpty) {
-      Set<String?> parameterNames = new Set.of(
-        function.namedParameters.map((a) => a.name),
-      );
-      for (int i = 0; i < named.length; i++) {
-        NamedExpression argument = named[i];
-        if (!parameterNames.contains(argument.name)) {
-          return cfe.codeNoSuchNamedParameter
-              .withArgumentsOld(argument.name)
-              .withLocation(uri, argument.fileOffset, argument.name.length);
-        }
-      }
-    }
-    if (function.namedParameters.isNotEmpty) {
-      Set<String> argumentNames = new Set.of(named.map((a) => a.name));
-      for (int i = 0; i < function.namedParameters.length; i++) {
-        VariableDeclaration parameter = function.namedParameters[i];
-        if (parameter.isRequired && !argumentNames.contains(parameter.name)) {
-          return cfe.codeValueForRequiredParameterNotProvidedError
-              .withArgumentsOld(parameter.name!)
-              .withLocation(uri, arguments.fileOffset, cfe.noLength);
-        }
-      }
-    }
-
-    List<DartType> types = arguments.types;
-    if (typeParameterCount != types.length) {
-      if (types.length == 0) {
-        // Expected `typeParameters.length` type arguments, but none given, so
-        // we use type inference.
-      } else {
-        // A wrong (non-zero) amount of type arguments given. That's an error.
-        // TODO(jensj): Position should be on type arguments instead.
-        return cfe.codeTypeArgumentMismatch
-            .withArgumentsOld(typeParameterCount)
-            .withLocation(uri, offset, noLength);
-      }
-    }
-
-    return null;
-  }
-
-  @override
-  LocatedMessage? checkArgumentsForType(
-    FunctionType function,
-    Arguments arguments,
-    int offset,
-  ) {
-    int requiredPositionalParameterCountToReport =
-        function.requiredParameterCount;
-    int positionalParameterCountToReport = function.positionalParameters.length;
-    int positionalArgumentCountToReport = arguments.positional.length;
-    if (arguments.positional.length < function.requiredParameterCount) {
-      return cfe.codeTooFewArguments
-          .withArgumentsOld(
-            requiredPositionalParameterCountToReport,
-            positionalArgumentCountToReport,
-          )
-          .withLocation(uri, arguments.fileOffset, noLength);
-    }
-    if (arguments.positional.length > function.positionalParameters.length) {
-      return cfe.codeTooManyArguments
-          .withArgumentsOld(
-            positionalParameterCountToReport,
-            positionalArgumentCountToReport,
-          )
-          .withLocation(uri, arguments.fileOffset, noLength);
-    }
-    List<NamedExpression> named = arguments.named;
-    if (named.isNotEmpty) {
-      Set<String> names = new Set.of(
-        function.namedParameters.map((a) => a.name),
-      );
-      for (int i = 0; i < named.length; i++) {
-        NamedExpression argument = named[i];
-        if (!names.contains(argument.name)) {
-          return cfe.codeNoSuchNamedParameter
-              .withArgumentsOld(argument.name)
-              .withLocation(uri, argument.fileOffset, argument.name.length);
-        }
-      }
-    }
-    if (function.namedParameters.isNotEmpty) {
-      Set<String> argumentNames = new Set.of(named.map((a) => a.name));
-      for (int i = 0; i < function.namedParameters.length; i++) {
-        NamedType parameter = function.namedParameters[i];
-        if (parameter.isRequired && !argumentNames.contains(parameter.name)) {
-          return cfe.codeValueForRequiredParameterNotProvidedError
-              .withArgumentsOld(parameter.name)
-              .withLocation(uri, arguments.fileOffset, cfe.noLength);
-        }
-      }
-    }
-    List<Object> types = arguments.types;
-    List<StructuralParameter> typeParameters = function.typeParameters;
-    if (typeParameters.length != types.length && types.length != 0) {
-      // A wrong (non-zero) amount of type arguments given. That's an error.
-      // TODO(jensj): Position should be on type arguments instead.
-      return cfe.codeTypeArgumentMismatch
-          .withArgumentsOld(typeParameters.length)
-          .withLocation(uri, offset, noLength);
-    }
-
-    return null;
   }
 
   @override
@@ -7643,9 +7506,10 @@ class BodyBuilder extends StackListenerImpl
             receiver is ConstructorTearOff ||
             receiver is RedirectingFactoryTearOff) {
           return buildProblem(
-            cfe.codeConstructorTearOffWithTypeArguments,
-            instantiationOffset,
-            noLength,
+            message: cfe.codeConstructorTearOffWithTypeArguments,
+            fileUri: uri,
+            fileOffset: instantiationOffset,
+            length: noLength,
           );
         }
         receiver = forest.createInstantiation(
@@ -7733,11 +7597,12 @@ class BodyBuilder extends StackListenerImpl
         return evaluateArgumentsBefore(
           arguments,
           buildProblem(
-            cfe.codeTypeArgumentMismatch.withArgumentsOld(
+            message: cfe.codeTypeArgumentMismatch.withArgumentsOld(
               numberOfTypeParameters,
             ),
-            charOffset,
-            noLength,
+            fileUri: uri,
+            fileOffset: charOffset,
+            length: noLength,
           ),
         );
       }
@@ -7863,9 +7728,10 @@ class BodyBuilder extends StackListenerImpl
               return evaluateArgumentsBefore(
                 arguments,
                 buildProblem(
-                  message.messageObject,
-                  nameToken.charOffset,
-                  nameToken.lexeme.length,
+                  message: message.messageObject,
+                  fileUri: uri,
+                  fileOffset: nameToken.charOffset,
+                  length: nameToken.lexeme.length,
                 ),
               );
             case TypeAliasBuilder():
@@ -7899,11 +7765,12 @@ class BodyBuilder extends StackListenerImpl
                 return evaluateArgumentsBefore(
                   arguments,
                   buildProblem(
-                    cfe.codeTypeArgumentMismatch.withArgumentsOld(
+                    message: cfe.codeTypeArgumentMismatch.withArgumentsOld(
                       numberOfTypeParameters,
                     ),
-                    nameToken.charOffset,
-                    nameToken.length,
+                    fileUri: uri,
+                    fileOffset: nameToken.charOffset,
+                    length: nameToken.length,
                     errorHasBeenReported: true,
                   ),
                 );
@@ -7975,11 +7842,12 @@ class BodyBuilder extends StackListenerImpl
               return evaluateArgumentsBefore(
                 arguments,
                 buildProblem(
-                  cfe.codeTypeArgumentMismatch.withArgumentsOld(
+                  message: cfe.codeTypeArgumentMismatch.withArgumentsOld(
                     numberOfTypeParameters,
                   ),
-                  nameToken.charOffset,
-                  nameToken.length,
+                  fileUri: uri,
+                  fileOffset: nameToken.charOffset,
+                  length: nameToken.length,
                 ),
               );
             }
@@ -7992,11 +7860,12 @@ class BodyBuilder extends StackListenerImpl
               return evaluateArgumentsBefore(
                 arguments,
                 buildProblem(
-                  cfe.codeTypeArgumentMismatch.withArgumentsOld(
+                  message: cfe.codeTypeArgumentMismatch.withArgumentsOld(
                     numberOfTypeParameters,
                   ),
-                  nameToken.charOffset,
-                  nameToken.length,
+                  fileUri: uri,
+                  fileOffset: nameToken.charOffset,
+                  length: nameToken.length,
                   errorHasBeenReported: true,
                 ),
               );
@@ -8103,9 +7972,10 @@ class BodyBuilder extends StackListenerImpl
                 target is Procedure &&
                 target.kind == ProcedureKind.Factory)) {
           return buildProblem(
-            cfe.codeEnumInstantiation,
-            nameToken.charOffset,
-            nameToken.length,
+            message: cfe.codeEnumInstantiation,
+            fileUri: uri,
+            fileOffset: nameToken.charOffset,
+            length: nameToken.length,
           );
         }
         if (target is Constructor ||
@@ -8161,9 +8031,10 @@ class BodyBuilder extends StackListenerImpl
         return evaluateArgumentsBefore(
           arguments,
           buildProblem(
-            message.messageObject,
-            nameToken.charOffset,
-            nameToken.lexeme.length,
+            message: message.messageObject,
+            fileUri: uri,
+            fileOffset: nameToken.charOffset,
+            length: nameToken.lexeme.length,
           ),
         );
       case TypeAliasBuilder():
@@ -8425,9 +8296,10 @@ class BodyBuilder extends StackListenerImpl
           int offset = elseEntry.fileOffset;
           node = new MapLiteralEntry(
             buildProblem(
-              cfe.codeCantDisambiguateAmbiguousInformation,
-              offset,
-              1,
+              message: cfe.codeCantDisambiguateAmbiguousInformation,
+              fileUri: uri,
+              fileOffset: offset,
+              length: 1,
             ),
             new NullLiteral(),
           )..fileOffset = offsetForToken(ifToken);
@@ -8440,9 +8312,10 @@ class BodyBuilder extends StackListenerImpl
               offsetForToken(ifToken);
         node = new MapLiteralEntry(
           buildProblem(
-            cfe.codeExpectedAfterButGot.withArgumentsOld(':'),
-            offset,
-            1,
+            message: cfe.codeExpectedAfterButGot.withArgumentsOld(':'),
+            fileUri: uri,
+            fileOffset: offset,
+            length: 1,
           ),
           new NullLiteral(),
         )..fileOffset = offsetForToken(ifToken);
@@ -8475,9 +8348,10 @@ class BodyBuilder extends StackListenerImpl
           int offset = thenEntry.fileOffset;
           node = new MapLiteralEntry(
             buildProblem(
-              cfe.codeCantDisambiguateAmbiguousInformation,
-              offset,
-              1,
+              message: cfe.codeCantDisambiguateAmbiguousInformation,
+              fileUri: uri,
+              fileOffset: offset,
+              length: 1,
             ),
             new NullLiteral(),
           )..fileOffset = offsetForToken(ifToken);
@@ -8490,9 +8364,10 @@ class BodyBuilder extends StackListenerImpl
               offsetForToken(ifToken);
         node = new MapLiteralEntry(
           buildProblem(
-            cfe.codeExpectedAfterButGot.withArgumentsOld(':'),
-            offset,
-            1,
+            message: cfe.codeExpectedAfterButGot.withArgumentsOld(':'),
+            fileUri: uri,
+            fileOffset: offset,
+            length: 1,
           ),
           new NullLiteral(),
         )..fileOffset = offsetForToken(ifToken);
@@ -8880,9 +8755,10 @@ class BodyBuilder extends StackListenerImpl
           new BlockExpression(
             forest.createBlock(declaration.fileOffset, noLocation, [statement]),
             buildProblem(
-              cfe.codeNamedFunctionExpression,
-              declaration.fileOffset,
-              noLength,
+              message: cfe.codeNamedFunctionExpression,
+              fileUri: uri,
+              fileOffset: declaration.fileOffset,
+              length: noLength,
               // Error has already been reported by the parser.
               errorHasBeenReported: true,
             ),
@@ -8950,9 +8826,10 @@ class BodyBuilder extends StackListenerImpl
     Expression result;
     if (constantContext != ConstantContext.none) {
       result = buildProblem(
-        cfe.codeNotAConstantExpression,
-        formals.charOffset,
-        formals.length,
+        message: cfe.codeNotAConstantExpression,
+        fileUri: uri,
+        fileOffset: formals.charOffset,
+        length: formals.length,
       );
     } else {
       result = new FunctionExpression(function)
@@ -9113,11 +8990,11 @@ class BodyBuilder extends StackListenerImpl
 
       push(
         buildProblem(
-          cfe.codeCantUseControlFlowOrSpreadAsConstant.withArgumentsOld(
-            forToken,
-          ),
-          forToken.charOffset,
-          forToken.charCount,
+          message: cfe.codeCantUseControlFlowOrSpreadAsConstant
+              .withArgumentsOld(forToken),
+          fileUri: uri,
+          fileOffset: forToken.charOffset,
+          length: forToken.charCount,
         ),
       );
       return;
@@ -9184,9 +9061,10 @@ class BodyBuilder extends StackListenerImpl
       elements.explicitVariableDeclaration = lvalue;
       if (lvalue.isConst) {
         elements.expressionProblem = buildProblem(
-          cfe.codeForInLoopWithConstVariable,
-          lvalue.fileOffset,
-          lvalue.name!.length,
+          message: cfe.codeForInLoopWithConstVariable,
+          fileUri: uri,
+          fileOffset: lvalue.fileOffset,
+          length: lvalue.name!.length,
         );
         // As a recovery step, remove the const flag, to not confuse the
         // constant evaluator further in the pipeline.
@@ -9238,9 +9116,10 @@ class BodyBuilder extends StackListenerImpl
         elements.expressionProblem = lvalue;
       } else if (lvalue is ParserRecovery) {
         elements.expressionProblem = buildProblem(
-          cfe.codeSyntheticToken,
-          lvalue.charOffset,
-          noLength,
+          message: cfe.codeSyntheticToken,
+          fileUri: uri,
+          fileOffset: lvalue.charOffset,
+          length: noLength,
         );
       } else {
         Message message = forest.isVariablesDeclaration(lvalue)
@@ -9248,9 +9127,10 @@ class BodyBuilder extends StackListenerImpl
             : cfe.codeForInLoopNotAssignable;
         Token token = forToken.next!.next!;
         elements.expressionProblem = buildProblem(
-          message,
-          offsetForToken(token),
-          lengthForToken(token),
+          message: message,
+          fileUri: uri,
+          fileOffset: offsetForToken(token),
+          length: lengthForToken(token),
         );
         Statement effects;
         if (forest.isVariablesDeclaration(lvalue)) {
@@ -9271,7 +9151,12 @@ class BodyBuilder extends StackListenerImpl
         elements.expressionEffects = combineStatements(
           forest.createExpressionStatement(
             noLocation,
-            buildProblem(message, offsetForToken(token), lengthForToken(token)),
+            buildProblem(
+              message: message,
+              fileUri: uri,
+              fileOffset: offsetForToken(token),
+              length: lengthForToken(token),
+            ),
           ),
           effects,
         );
@@ -9480,9 +9365,10 @@ class BodyBuilder extends StackListenerImpl
       push(
         new ExpressionStatement(
           buildProblem(
-            cfe.codeRethrowNotCatch,
-            offsetForToken(rethrowToken),
-            lengthForToken(rethrowToken),
+            message: cfe.codeRethrowNotCatch,
+            fileUri: uri,
+            fileOffset: offsetForToken(rethrowToken),
+            length: lengthForToken(rethrowToken),
           ),
         )..fileOffset = offsetForToken(rethrowToken),
       );
@@ -9639,9 +9525,10 @@ class BodyBuilder extends StackListenerImpl
         // cannot be used in an expression.
         push(
           buildProblem(
-            cfe.codeAssertAsExpression,
-            fileOffset,
-            assertKeyword.length,
+            message: cfe.codeAssertAsExpression,
+            fileUri: uri,
+            fileOffset: fileOffset,
+            length: assertKeyword.length,
           ),
         );
         break;
@@ -10758,16 +10645,22 @@ class BodyBuilder extends StackListenerImpl
     Statement statement = pop() as Statement;
     push(
       new ExpressionStatement(
-        buildProblem(message, statement.fileOffset, noLength),
+        buildProblem(
+          message: message,
+          fileUri: uri,
+          fileOffset: statement.fileOffset,
+          length: noLength,
+        ),
       ),
     );
   }
 
   @override
-  InvalidExpression buildProblem(
-    Message message,
-    int charOffset,
-    int length, {
+  InvalidExpression buildProblem({
+    required Message message,
+    required Uri fileUri,
+    required int fileOffset,
+    required int length,
     List<LocatedMessage>? context,
     bool errorHasBeenReported = false,
     Expression? expression,
@@ -10775,7 +10668,7 @@ class BodyBuilder extends StackListenerImpl
     if (!errorHasBeenReported) {
       addProblem(
         message,
-        charOffset,
+        fileOffset,
         length,
         wasHandled: true,
         context: context,
@@ -10783,64 +10676,11 @@ class BodyBuilder extends StackListenerImpl
     }
     String text = libraryBuilder.loader.target.context
         .format(
-          message.withLocation(uri, charOffset, length),
+          message.withLocation(fileUri, fileOffset, length),
           CfeSeverity.error,
         )
         .plain;
-    return new InvalidExpression(text, expression)..fileOffset = charOffset;
-  }
-
-  @override
-  Expression wrapInProblem(
-    Expression expression,
-    Message message,
-    int fileOffset,
-    int length, {
-    List<LocatedMessage>? context,
-    bool? errorHasBeenReported,
-    bool includeExpression = true,
-  }) {
-    CfeSeverity severity = message.code.severity;
-    if (severity == CfeSeverity.error) {
-      return wrapInLocatedProblem(
-        expression,
-        message.withLocation(uri, fileOffset, length),
-        context: context,
-        errorHasBeenReported:
-            errorHasBeenReported ?? expression is InvalidExpression,
-        includeExpression: includeExpression,
-      );
-    } else {
-      // Coverage-ignore-block(suite): Not run.
-      if (expression is! InvalidExpression) {
-        addProblem(message, fileOffset, length, context: context);
-      }
-      return expression;
-    }
-  }
-
-  @override
-  Expression wrapInLocatedProblem(
-    Expression expression,
-    LocatedMessage message, {
-    List<LocatedMessage>? context,
-    bool errorHasBeenReported = false,
-    bool includeExpression = true,
-  }) {
-    // TODO(askesc): Produce explicit error expression wrapping the original.
-    // See [issue 29717](https://github.com/dart-lang/sdk/issues/29717)
-    int offset = expression.fileOffset;
-    if (offset == -1) {
-      offset = message.charOffset;
-    }
-    return buildProblem(
-      message.messageObject,
-      message.charOffset,
-      message.length,
-      context: context,
-      expression: includeExpression ? expression : null,
-      errorHasBeenReported: errorHasBeenReported,
-    );
+    return new InvalidExpression(text, expression)..fileOffset = fileOffset;
   }
 
   Expression buildAbstractClassInstantiationError(
@@ -10862,9 +10702,10 @@ class BodyBuilder extends StackListenerImpl
     length ??= noLength;
     return new ExpressionStatement(
       buildProblem(
-        message,
-        charOffset,
-        length,
+        message: message,
+        fileUri: uri,
+        fileOffset: charOffset,
+        length: length,
         context: context,
         errorHasBeenReported: errorHasBeenReported,
       ),
@@ -10897,10 +10738,11 @@ class BodyBuilder extends StackListenerImpl
   ) {
     return fieldBuilder.buildErroneousInitializer(
       buildProblem(
-        cfe.codeConstructorInitializeSameInstanceVariableSeveralTimes
+        message: cfe.codeConstructorInitializeSameInstanceVariableSeveralTimes
             .withArgumentsOld(name),
-        offset,
-        noLength,
+        fileUri: uri,
+        fileOffset: offset,
+        length: noLength,
       ),
       value,
       fileOffset: offset,
@@ -10977,9 +10819,10 @@ class BodyBuilder extends StackListenerImpl
         return <Initializer>[
           buildInvalidInitializer(
             buildProblem(
-              cfe.codeAbstractFieldConstructorInitializer,
-              fieldNameOffset,
-              name.length,
+              message: cfe.codeAbstractFieldConstructorInitializer,
+              fileUri: uri,
+              fileOffset: fieldNameOffset,
+              length: name.length,
             ),
             fieldNameOffset,
           ),
@@ -10988,9 +10831,10 @@ class BodyBuilder extends StackListenerImpl
         return <Initializer>[
           buildInvalidInitializer(
             buildProblem(
-              cfe.codeExternalFieldConstructorInitializer,
-              fieldNameOffset,
-              name.length,
+              message: cfe.codeExternalFieldConstructorInitializer,
+              fileUri: uri,
+              fileOffset: fieldNameOffset,
+              length: name.length,
             ),
             fieldNameOffset,
           ),
@@ -11056,9 +10900,10 @@ class BodyBuilder extends StackListenerImpl
       return <Initializer>[
         buildInvalidInitializer(
           buildProblem(
-            cfe.codeInitializerForStaticField.withArgumentsOld(name),
-            fieldNameOffset,
-            name.length,
+            message: cfe.codeInitializerForStaticField.withArgumentsOld(name),
+            fileUri: uri,
+            fileOffset: fieldNameOffset,
+            length: name.length,
           ),
           fieldNameOffset,
         ),
@@ -11195,9 +11040,10 @@ class BodyBuilder extends StackListenerImpl
           operand is RedirectingFactoryTearOff) {
         push(
           buildProblem(
-            cfe.codeConstructorTearOffWithTypeArguments,
-            openAngleBracket.charOffset,
-            noLength,
+            message: cfe.codeConstructorTearOffWithTypeArguments,
+            fileUri: uri,
+            fileOffset: openAngleBracket.charOffset,
+            length: noLength,
           ),
         );
       } else {
@@ -11379,9 +11225,12 @@ class BodyBuilder extends StackListenerImpl
         !isConstantExpression &&
         !libraryFeatures.constFunctions.isEnabled) {
       return buildProblem(
-        cfe.codeNotConstantExpression.withArgumentsOld('Method invocation'),
-        offset,
-        name.text.length,
+        message: cfe.codeNotConstantExpression.withArgumentsOld(
+          'Method invocation',
+        ),
+        fileUri: uri,
+        fileOffset: offset,
+        length: name.text.length,
       );
     }
     return forest.createMethodInvocation(
@@ -11406,9 +11255,12 @@ class BodyBuilder extends StackListenerImpl
         !isConstantExpression &&
         !libraryFeatures.constFunctions.isEnabled) {
       return buildProblem(
-        cfe.codeNotConstantExpression.withArgumentsOld('Method invocation'),
-        offset,
-        name.text.length,
+        message: cfe.codeNotConstantExpression.withArgumentsOld(
+          'Method invocation',
+        ),
+        fileUri: uri,
+        fileOffset: offset,
+        length: name.text.length,
       );
     }
     Member? target = lookupSuperMember(name);
@@ -11426,9 +11278,10 @@ class BodyBuilder extends StackListenerImpl
     }
     if (isImplicitCall) {
       return buildProblem(
-        cfe.codeImplicitSuperCallOfNonMethod,
-        offset,
-        noLength,
+        message: cfe.codeImplicitSuperCallOfNonMethod,
+        fileUri: uri,
+        fileOffset: offset,
+        length: noLength,
       );
     } else {
       Expression receiver = new SuperPropertyGet(name, target)
@@ -11977,9 +11830,10 @@ class BodyBuilder extends StackListenerImpl
           push(
             forest.createInvalidPattern(
               buildProblem(
-                cfe.codeUnspecifiedGetterNameInObjectPattern,
-                colon.charOffset,
-                noLength,
+                message: cfe.codeUnspecifiedGetterNameInObjectPattern,
+                fileUri: uri,
+                fileOffset: colon.charOffset,
+                length: noLength,
               ),
               declaredVariables: const [],
             ),
@@ -12117,9 +11971,10 @@ class BodyBuilder extends StackListenerImpl
       token = token.next!;
       push(
         buildProblem(
-          cfe.codeExpectedIdentifier.withArgumentsOld(token),
-          offsetForToken(token),
-          lengthForToken(token),
+          message: cfe.codeExpectedIdentifier.withArgumentsOld(token),
+          fileUri: uri,
+          fileOffset: offsetForToken(token),
+          length: lengthForToken(token),
         ),
       );
     }

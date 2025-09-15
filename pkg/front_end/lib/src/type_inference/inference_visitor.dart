@@ -22,6 +22,7 @@ import 'package:kernel/src/non_null.dart';
 import 'package:kernel/type_algebra.dart';
 
 import '../api_prototype/experimental_flags.dart';
+import '../base/compiler_context.dart';
 import '../base/constant_context.dart';
 import '../base/instrumentation.dart'
     show
@@ -33,6 +34,8 @@ import '../base/problems.dart'
     as problems
     show internalProblem, unhandled, unsupported;
 import '../base/uri_offset.dart';
+import '../builder/library_builder.dart';
+import '../dill/dill_library_builder.dart';
 import '../kernel/body_builder.dart' show combineStatements;
 import '../kernel/collections.dart'
     show
@@ -53,9 +56,7 @@ import '../kernel/collections.dart'
         PatternForElement,
         PatternForMapEntry,
         SpreadElement,
-        SpreadMapEntry,
-        convertToElement;
-//import '../kernel/forest.dart';
+        SpreadMapEntry;
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/implicit_type_argument.dart' show ImplicitTypeArgument;
 import '../kernel/internal_ast.dart';
@@ -66,7 +67,6 @@ import '../source/source_library_builder.dart';
 import 'closure_context.dart';
 import 'external_ast_helper.dart';
 import 'for_in.dart';
-import 'inference_helper.dart';
 import 'inference_results.dart';
 import 'inference_visitor_base.dart';
 import 'object_access_target.dart';
@@ -174,8 +174,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   late final SharedTypeAnalyzerErrors errors = new SharedTypeAnalyzerErrors(
     visitor: this,
-    helper: helper,
-    uri: uriForInstrumentation,
+    problemReporting: problemReporting,
+    compilerContext: compilerContext,
+    uri: fileUri,
     coreTypes: coreTypes,
   );
 
@@ -195,7 +196,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   InferenceVisitorImpl(
     super.inferrer,
-    super.helper,
+    super.fileUri,
+    super.constantContext,
     this._constructorBuilder,
     this.operations,
     this.typeAnalyzerOptions,
@@ -241,7 +243,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ///      assert(checkStack(node, [ValuesKind.Expression]));
   ///
   bool checkStackBase(TreeNode? node, int base) {
-    return checkStackBaseStateForAssert(helper.uri, node?.fileOffset, base);
+    return checkStackBaseStateForAssert(fileUri, node?.fileOffset, base);
   }
 
   /// Checks the top of the current stack against [kinds]. If a mismatch is
@@ -262,7 +264,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   /// content.
   bool checkStack(TreeNode? node, int? base, List<ValueKind> kinds) {
     return checkStackStateForAssert(
-      helper.uri,
+      fileUri,
       node?.fileOffset,
       kinds,
       base: base,
@@ -364,7 +366,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType inferredType = result.inferredType;
     if (inferredType is VoidType && !isVoidAllowed) {
       if (expression.parent is! ArgumentsImpl) {
-        helper.addProblem(codeVoidExpression, expression.fileOffset, noLength);
+        problemReporting.addProblem(
+          codeVoidExpression,
+          expression.fileOffset,
+          noLength,
+          fileUri,
+        );
       }
     }
     if (coreTypes.isBottom(result.inferredType)) {
@@ -437,7 +444,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   /// Computes uri and offset for [node] for internal errors in a way that is
   /// safe for both top-level and full inference.
   UriOffset _computeUriOffset(TreeNode node) {
-    Uri uri = helper.uri;
+    Uri uri = fileUri;
     int fileOffset = node.fileOffset;
     return new UriOffset(uri, fileOffset);
   }
@@ -941,12 +948,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           inferred: false,
         );
         if (operandType.isPotentiallyNullable) {
-          result = helper.buildProblem(
-            codeInstantiationNullableGenericFunctionType.withArgumentsOld(
-              operandType,
-            ),
-            node.fileOffset,
-            noLength,
+          result = problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: codeInstantiationNullableGenericFunctionType
+                .withArgumentsOld(operandType),
+            fileUri: fileUri,
+            fileOffset: node.fileOffset,
+            length: noLength,
           );
         } else {
           resultType = FunctionTypeInstantiator.instantiate(
@@ -956,40 +964,50 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         }
       } else {
         if (operandType.typeParameters.isEmpty) {
-          result = helper.buildProblem(
-            codeInstantiationNonGenericFunctionType.withArgumentsOld(
+          result = problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: codeInstantiationNonGenericFunctionType.withArgumentsOld(
               operandType,
             ),
-            node.fileOffset,
-            noLength,
+            fileUri: fileUri,
+            fileOffset: node.fileOffset,
+            length: noLength,
           );
         } else if (operandType.typeParameters.length >
             node.typeArguments.length) {
-          result = helper.buildProblem(
-            codeInstantiationTooFewArguments.withArgumentsOld(
+          result = problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: codeInstantiationTooFewArguments.withArgumentsOld(
               operandType.typeParameters.length,
               node.typeArguments.length,
             ),
-            node.fileOffset,
-            noLength,
+            fileUri: fileUri,
+            fileOffset: node.fileOffset,
+            length: noLength,
           );
         } else if (operandType.typeParameters.length <
             node.typeArguments.length) {
-          result = helper.buildProblem(
-            codeInstantiationTooManyArguments.withArgumentsOld(
+          result = problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: codeInstantiationTooManyArguments.withArgumentsOld(
               operandType.typeParameters.length,
               node.typeArguments.length,
             ),
-            node.fileOffset,
-            noLength,
+            fileUri: fileUri,
+            fileOffset: node.fileOffset,
+            length: noLength,
           );
         }
       }
     } else if (operandType is! InvalidType) {
-      result = helper.buildProblem(
-        codeInstantiationNonGenericFunctionType.withArgumentsOld(operandType),
-        node.fileOffset,
-        noLength,
+      result = problemReporting.buildProblem(
+        compilerContext: compilerContext,
+        message: codeInstantiationNonGenericFunctionType.withArgumentsOld(
+          operandType,
+        ),
+        fileUri: fileUri,
+        fileOffset: node.fileOffset,
+        length: noLength,
       );
     }
     return new ExpressionInferenceResult(resultType, result);
@@ -1118,11 +1136,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType flattenType = typeSchemaEnvironment.flatten(operandType);
     if (_isIncompatibleWithAwait(operandType)) {
       Expression wrapped = operandResult.expression;
-      node.operand = helper.wrapInProblem(
-        wrapped,
-        codeAwaitOfExtensionTypeNotFuture,
-        wrapped.fileOffset,
-        1,
+      node.operand = problemReporting.wrapInProblem(
+        compilerContext: compilerContext,
+        expression: wrapped,
+        message: codeAwaitOfExtensionTypeNotFuture,
+        fileUri: fileUri,
+        fileOffset: wrapped.fileOffset,
+        length: 1,
       );
       wrapped.parent = node.operand;
     } else {
@@ -1427,7 +1447,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         constructor: node.target,
         typeArguments: node.arguments.types,
         typeEnvironment: typeSchemaEnvironment,
-        fileUri: helper.uri,
+        fileUri: fileUri,
         fileOffset: node.fileOffset,
         inferred: true,
       );
@@ -1491,7 +1511,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       libraryFeatures: libraryFeatures,
       targetName: node.extension.name,
       typeEnvironment: typeSchemaEnvironment,
-      fileUri: helper.uri,
+      fileUri: fileUri,
       fileOffset: node.extensionTypeArgumentOffset ?? node.fileOffset,
       explicitTypeArguments: node.knownTypeArguments != null,
       typeParameters: node.extension.typeParameters,
@@ -1566,7 +1586,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       libraryFeatures: libraryFeatures,
       targetName: node.extension.name,
       typeEnvironment: typeSchemaEnvironment,
-      fileUri: helper.uri,
+      fileUri: fileUri,
       fileOffset: node.extensionTypeArgumentOffset ?? node.fileOffset,
       explicitTypeArguments: node.knownTypeArguments != null,
       typeParameters: node.extension.typeParameters,
@@ -1639,7 +1659,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       libraryFeatures: libraryFeatures,
       targetName: node.extension.name,
       typeEnvironment: typeSchemaEnvironment,
-      fileUri: helper.uri,
+      fileUri: fileUri,
       fileOffset: node.extensionTypeArgumentOffset ?? node.fileOffset,
       explicitTypeArguments: node.knownTypeArguments != null,
       typeParameters: node.extension.typeParameters,
@@ -1756,7 +1776,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       libraryFeatures: libraryFeatures,
       targetName: node.extension.name,
       typeEnvironment: typeSchemaEnvironment,
-      fileUri: helper.uri,
+      fileUri: fileUri,
       fileOffset: node.extensionTypeArgumentOffset ?? node.fileOffset,
       explicitTypeArguments: node.knownTypeArguments != null,
       typeParameters: node.extension.typeParameters,
@@ -1926,7 +1946,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       libraryFeatures: libraryFeatures,
       targetName: node.extension.name,
       typeEnvironment: typeSchemaEnvironment,
-      fileUri: helper.uri,
+      fileUri: fileUri,
       fileOffset: node.extensionTypeArgumentOffset ?? node.fileOffset,
       explicitTypeArguments: node.knownTypeArguments != null,
       typeParameters: node.extension.typeParameters,
@@ -2009,7 +2029,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       libraryFeatures: libraryFeatures,
       targetName: node.extension.name,
       typeEnvironment: typeSchemaEnvironment,
-      fileUri: helper.uri,
+      fileUri: fileUri,
       fileOffset: node.extensionTypeArgumentOffset ?? node.fileOffset,
       explicitTypeArguments: node.knownTypeArguments != null,
       typeParameters: node.extension.typeParameters,
@@ -2051,7 +2071,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       libraryFeatures: libraryFeatures,
       targetName: targetName,
       typeEnvironment: typeSchemaEnvironment,
-      fileUri: helper.uri,
+      fileUri: fileUri,
       fileOffset: node.fileOffset,
       explicitTypeArguments: node.arguments.hasExplicitTypeArguments,
       typeParameters: target.getTypeParameters(),
@@ -2110,7 +2130,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       libraryFeatures: libraryFeatures,
       targetName: node.extension.name,
       typeEnvironment: typeSchemaEnvironment,
-      fileUri: helper.uri,
+      fileUri: fileUri,
       fileOffset: node.extensionTypeArgumentOffset ?? node.fileOffset,
       explicitTypeArguments: node.knownTypeArguments != null,
       typeParameters: node.extension.typeParameters,
@@ -2296,7 +2316,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       libraryFeatures: libraryFeatures,
       targetName: node.extension.name,
       typeEnvironment: typeSchemaEnvironment,
-      fileUri: helper.uri,
+      fileUri: fileUri,
       fileOffset: node.extensionTypeArgumentOffset ?? node.fileOffset,
       explicitTypeArguments: node.knownTypeArguments != null,
       typeParameters: node.extension.typeParameters,
@@ -2503,7 +2523,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         factory: node.target,
         typeArguments: node.arguments.types,
         typeEnvironment: typeSchemaEnvironment,
-        fileUri: helper.uri,
+        fileUri: fileUri,
         fileOffset: node.fileOffset,
         inferred: true,
       );
@@ -2590,22 +2610,26 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     required int fileOffset,
     required bool hasInferredTypeArguments,
   }) {
-    Expression? result = helper.checkStaticArguments(
+    Expression? result = problemReporting.checkStaticArguments(
+      compilerContext: compilerContext,
       target: target,
       arguments: arguments,
       fileOffset: fileOffset,
+      fileUri: fileUri,
     );
     if (result != null) {
       return result;
     }
-    isConst |= helper.constantContext != ConstantContext.none;
+    isConst |= constantContext != ConstantContext.none;
     if (target is Constructor) {
       if (isConst && !target.isConst) {
         // Coverage-ignore-block(suite): Not run.
-        return helper.buildProblem(
-          codeNonConstConstructor,
-          fileOffset,
-          noLength,
+        return problemReporting.buildProblem(
+          compilerContext: compilerContext,
+          message: codeNonConstConstructor,
+          fileUri: fileUri,
+          fileOffset: fileOffset,
+          length: noLength,
         );
       }
       problemReporting.checkBoundsInConstructorInvocation(
@@ -2613,7 +2637,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         constructor: target,
         typeArguments: arguments.types,
         typeEnvironment: typeSchemaEnvironment,
-        fileUri: helper.uri,
+        fileUri: fileUri,
         fileOffset: fileOffset,
       );
       return new ConstructorInvocation(target, arguments, isConst: isConst)
@@ -2625,13 +2649,21 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           // Both generative constructors and factory constructors from
           // extension type declarations are encoded as procedures so we use
           // the message for non-const constructors here.
-          return helper.buildProblem(
-            codeNonConstConstructor,
-            fileOffset,
-            noLength,
+          return problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: codeNonConstConstructor,
+            fileUri: fileUri,
+            fileOffset: fileOffset,
+            length: noLength,
           );
         } else {
-          return helper.buildProblem(codeNonConstFactory, fileOffset, noLength);
+          return problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: codeNonConstFactory,
+            fileUri: fileUri,
+            fileOffset: fileOffset,
+            length: noLength,
+          );
         }
       }
       problemReporting.checkBoundsInFactoryInvocation(
@@ -2639,12 +2671,36 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         factory: target,
         typeArguments: arguments.types,
         typeEnvironment: typeSchemaEnvironment,
-        fileUri: helper.uri,
+        fileUri: fileUri,
         fileOffset: fileOffset,
         inferred: hasInferredTypeArguments,
       );
       return new StaticInvocation(target, arguments, isConst: isConst)
         ..fileOffset = fileOffset;
+    }
+  }
+
+  /// Ensure that the containing library of the [member] has been loaded.
+  ///
+  /// This is for instance important for lazy dill library builders where this
+  /// method has to be called to ensure that
+  /// a) The library has been fully loaded (and for instance any internal
+  ///    transformation needed has been performed); and
+  /// b) The library is correctly marked as being used to allow for proper
+  ///    'dependency pruning'.
+  void _ensureLoaded(Member? member) {
+    if (member == null) return;
+    Library ensureLibraryLoaded = member.enclosingLibrary;
+    LibraryBuilder? builder =
+        libraryBuilder.loader.lookupLoadedLibraryBuilder(
+          ensureLibraryLoaded.importUri,
+        ) ??
+        // Coverage-ignore(suite): Not run.
+        libraryBuilder.loader.target.dillTarget.loader.lookupLibraryBuilder(
+          ensureLibraryLoaded.importUri,
+        );
+    if (builder is DillLibraryBuilder) {
+      builder.ensureLoaded();
     }
   }
 
@@ -2670,7 +2726,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         return new _RedirectionTarget(target, typeArguments);
       }
       Member nextMember = redirectingFactoryTarget.target!;
-      helper.ensureLoaded(nextMember);
+      _ensureLoaded(nextMember);
       List<DartType>? nextTypeArguments =
           redirectingFactoryTarget.typeArguments;
       if (nextTypeArguments != null) {
@@ -2795,7 +2851,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       libraryFeatures: libraryFeatures,
       type: aliasedType,
       typeEnvironment: typeSchemaEnvironment,
-      fileUri: helper.uri,
+      fileUri: fileUri,
       fileOffset: invocation.fileOffset,
       allowSuperBounded: false,
       inferred: inferred,
@@ -2924,7 +2980,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       libraryFeatures: libraryFeatures,
       type: aliasedType,
       typeEnvironment: typeSchemaEnvironment,
-      fileUri: helper.uri,
+      fileUri: fileUri,
       fileOffset: invocation.fileOffset,
       allowSuperBounded: false,
       inferred: inferred,
@@ -3772,10 +3828,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     int? intValue = node.asInt64();
     if (intValue == null) {
-      Expression replacement = helper.buildProblem(
-        codeIntegerLiteralIsOutOfRange.withArgumentsOld(node.literal),
-        node.fileOffset,
-        node.literal.length,
+      Expression replacement = problemReporting.buildProblem(
+        compilerContext: compilerContext,
+        message: codeIntegerLiteralIsOutOfRange.withArgumentsOld(node.literal),
+        fileUri: fileUri,
+        fileOffset: node.fileOffset,
+        length: node.literal.length,
       );
       return new ExpressionInferenceResult(const DynamicType(), replacement);
     }
@@ -3906,10 +3964,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
     if (spreadElementType == null) {
       if (coreTypes.isNull(spreadTypeBound) && !element.isNullAware) {
-        replacement = helper.buildProblem(
-          codeNonNullAwareSpreadIsNull.withArgumentsOld(spreadType),
-          element.expression.fileOffset,
-          1,
+        replacement = problemReporting.buildProblem(
+          compilerContext: compilerContext,
+          message: codeNonNullAwareSpreadIsNull.withArgumentsOld(spreadType),
+          fileUri: fileUri,
+          fileOffset: element.expression.fileOffset,
+          length: 1,
         );
       } else {
         if (spreadType.isPotentiallyNullable &&
@@ -3917,10 +3977,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             spreadType is! NullType &&
             !element.isNullAware) {
           Expression receiver = element.expression;
-          replacement = helper.buildProblem(
-            codeNullableSpreadError,
-            receiver.fileOffset,
-            1,
+          replacement = problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: codeNullableSpreadError,
+            fileUri: fileUri,
+            fileOffset: receiver.fileOffset,
+            length: 1,
             context: getWhyNotPromotedContext(
               flowAnalysis.whyNotPromoted(receiver)(),
               element,
@@ -3930,22 +3992,26 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           );
         }
 
-        replacement = helper.buildProblem(
-          codeSpreadTypeMismatch.withArgumentsOld(spreadType),
-          element.expression.fileOffset,
-          1,
+        replacement = problemReporting.buildProblem(
+          compilerContext: compilerContext,
+          message: codeSpreadTypeMismatch.withArgumentsOld(spreadType),
+          fileUri: fileUri,
+          fileOffset: element.expression.fileOffset,
+          length: 1,
         );
         _copyNonPromotionReasonToReplacement(element, replacement);
       }
     } else if (spreadTypeBound is InterfaceType) {
       if (!isAssignable(inferredTypeArgument, spreadElementType)) {
-        replacement = helper.buildProblem(
-          codeSpreadElementTypeMismatch.withArgumentsOld(
+        replacement = problemReporting.buildProblem(
+          compilerContext: compilerContext,
+          message: codeSpreadElementTypeMismatch.withArgumentsOld(
             spreadElementType,
             inferredTypeArgument,
           ),
-          element.expression.fileOffset,
-          1,
+          fileUri: fileUri,
+          fileOffset: element.expression.fileOffset,
+          length: 1,
         );
       }
       if (spreadType.isPotentiallyNullable &&
@@ -3953,10 +4019,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           spreadType is! NullType &&
           !element.isNullAware) {
         Expression receiver = element.expression;
-        replacement = helper.buildProblem(
-          codeNullableSpreadError,
-          receiver.fileOffset,
-          1,
+        replacement = problemReporting.buildProblem(
+          compilerContext: compilerContext,
+          message: codeNullableSpreadError,
+          fileUri: fileUri,
+          fileOffset: receiver.fileOffset,
+          length: 1,
           context: getWhyNotPromotedContext(
             flowAnalysis.whyNotPromoted(receiver)(),
             element,
@@ -6200,7 +6268,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               "${element.runtimeType}",
               "_translateConstListOrSet",
               element.fileOffset,
-              helper.uri,
+              fileUri,
             );
         }
       } else {
@@ -6396,7 +6464,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               "${entry.runtimeType}",
               "_translateConstMap",
               entry.fileOffset,
-              helper.uri,
+              fileUri,
             );
         }
       } else {
@@ -6815,10 +6883,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (actualKeyType == noInferredType) {
       if (coreTypes.isNull(spreadTypeBound) && !entry.isNullAware) {
         replacement = new MapLiteralEntry(
-          helper.buildProblem(
-            codeNonNullAwareSpreadIsNull.withArgumentsOld(spreadType),
-            entry.expression.fileOffset,
-            1,
+          problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: codeNonNullAwareSpreadIsNull.withArgumentsOld(spreadType),
+            fileUri: fileUri,
+            fileOffset: entry.expression.fileOffset,
+            length: 1,
           ),
           new NullLiteral(),
         )..fileOffset = entry.fileOffset;
@@ -6828,10 +6898,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             spreadType is! NullType &&
             !entry.isNullAware) {
           Expression receiver = entry.expression;
-          Expression problem = helper.buildProblem(
-            codeNullableSpreadError,
-            receiver.fileOffset,
-            1,
+          Expression problem = problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: codeNullableSpreadError,
+            fileUri: fileUri,
+            fileOffset: receiver.fileOffset,
+            length: 1,
             context: getWhyNotPromotedContext(
               flowAnalysis.whyNotPromoted(receiver)(),
               entry,
@@ -6849,10 +6921,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         offsets.iterableSpreadType = spreadType;
       } else {
         Expression receiver = entry.expression;
-        Expression problem = helper.buildProblem(
-          codeSpreadMapEntryTypeMismatch.withArgumentsOld(spreadType),
-          receiver.fileOffset,
-          1,
+        Expression problem = problemReporting.buildProblem(
+          compilerContext: compilerContext,
+          message: codeSpreadMapEntryTypeMismatch.withArgumentsOld(spreadType),
+          fileUri: fileUri,
+          fileOffset: receiver.fileOffset,
+          length: 1,
           context: getWhyNotPromotedContext(
             flowAnalysis.whyNotPromoted(receiver)(),
             entry,
@@ -6868,23 +6942,27 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Expression? keyError;
       Expression? valueError;
       if (!isAssignable(inferredKeyType, actualKeyType)) {
-        keyError = helper.buildProblem(
-          codeSpreadMapEntryElementKeyTypeMismatch.withArgumentsOld(
+        keyError = problemReporting.buildProblem(
+          compilerContext: compilerContext,
+          message: codeSpreadMapEntryElementKeyTypeMismatch.withArgumentsOld(
             actualKeyType,
             inferredKeyType,
           ),
-          entry.expression.fileOffset,
-          1,
+          fileUri: fileUri,
+          fileOffset: entry.expression.fileOffset,
+          length: 1,
         );
       }
       if (!isAssignable(inferredValueType, actualValueType)) {
-        valueError = helper.buildProblem(
-          codeSpreadMapEntryElementValueTypeMismatch.withArgumentsOld(
+        valueError = problemReporting.buildProblem(
+          compilerContext: compilerContext,
+          message: codeSpreadMapEntryElementValueTypeMismatch.withArgumentsOld(
             actualValueType,
             inferredValueType,
           ),
-          entry.expression.fileOffset,
-          1,
+          fileUri: fileUri,
+          fileOffset: entry.expression.fileOffset,
+          length: 1,
         );
       }
       if (spreadType.isPotentiallyNullable &&
@@ -6892,10 +6970,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           spreadType is! NullType &&
           !entry.isNullAware) {
         Expression receiver = entry.expression;
-        keyError = helper.buildProblem(
-          codeNullableSpreadError,
-          receiver.fileOffset,
-          1,
+        keyError = problemReporting.buildProblem(
+          compilerContext: compilerContext,
+          message: codeNullableSpreadError,
+          fileUri: fileUri,
+          fileOffset: receiver.fileOffset,
+          length: 1,
           context: getWhyNotPromotedContext(
             flowAnalysis.whyNotPromoted(receiver)(),
             entry,
@@ -7640,12 +7720,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     MapLiteralEntry replacement = entry;
     if (offsets.iterableSpreadOffset != null) {
       replacement = new MapLiteralEntry(
-        helper.buildProblem(
-          codeSpreadMapEntryTypeMismatch.withArgumentsOld(
+        problemReporting.buildProblem(
+          compilerContext: compilerContext,
+          message: codeSpreadMapEntryTypeMismatch.withArgumentsOld(
             offsets.iterableSpreadType!,
           ),
-          offsets.iterableSpreadOffset!,
-          1,
+          fileUri: fileUri,
+          fileOffset: offsets.iterableSpreadOffset!,
+          length: 1,
         ),
         new NullLiteral(),
       )..fileOffset = offsets.iterableSpreadOffset!;
@@ -7898,7 +7980,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           setElements.add(
             convertToElement(
               node.entries[i],
-              helper,
               assignedVariables.reassignInfo,
               actualType: actualTypesForSet[i],
             ),
@@ -7983,10 +8064,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         return new ExpressionInferenceResult(inferredType, result);
       }
       if (canBeSet && canBeMap && node.entries.isNotEmpty) {
-        Expression replacement = helper.buildProblem(
-          codeCantDisambiguateNotEnoughInformation,
-          node.fileOffset,
-          1,
+        Expression replacement = problemReporting.buildProblem(
+          compilerContext: compilerContext,
+          message: codeCantDisambiguateNotEnoughInformation,
+          fileUri: fileUri,
+          fileOffset: node.fileOffset,
+          length: 1,
         );
         return new ExpressionInferenceResult(
           NeverType.fromNullability(Nullability.nonNullable),
@@ -7994,10 +8077,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         );
       }
       if (!canBeSet && !canBeMap) {
-        Expression replacement = helper.buildProblem(
-          codeCantDisambiguateAmbiguousInformation,
-          node.fileOffset,
-          1,
+        Expression replacement = problemReporting.buildProblem(
+          compilerContext: compilerContext,
+          message: codeCantDisambiguateAmbiguousInformation,
+          fileUri: fileUri,
+          fileOffset: node.fileOffset,
+          length: 1,
         );
         return new ExpressionInferenceResult(
           NeverType.fromNullability(Nullability.nonNullable),
@@ -8066,6 +8151,118 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     Expression result = _translateMapLiteral(node);
     return new ExpressionInferenceResult(inferredType, result);
+  }
+
+  /// Convert [entry] to an [Expression], if possible. If [entry] cannot be
+  /// converted an error reported through [helper] and an invalid expression is
+  /// returned.
+  ///
+  /// [onConvertMapEntry] is called when a [ForMapEntry], [ForInMapEntry], or
+  /// [IfMapEntry] is converted to a [ForElement], [ForInElement], or
+  /// [IfElement], respectively.
+  Expression convertToElement(
+    MapLiteralEntry entry,
+    void Function(TreeNode from, TreeNode to) onConvertMapEntry, {
+    DartType? actualType,
+  }) {
+    if (entry is ControlFlowMapEntry) {
+      switch (entry) {
+        case SpreadMapEntry():
+          return new SpreadElement(
+              entry.expression,
+              isNullAware: entry.isNullAware,
+            )
+            ..elementType = actualType
+            ..fileOffset = entry.expression.fileOffset;
+        case IfMapEntry():
+          IfElement result = new IfElement(
+            entry.condition,
+            convertToElement(entry.then, onConvertMapEntry),
+            entry.otherwise == null
+                ? null
+                :
+                  // Coverage-ignore(suite): Not run.
+                  convertToElement(entry.otherwise!, onConvertMapEntry),
+          )..fileOffset = entry.fileOffset;
+          onConvertMapEntry(entry, result);
+          return result;
+        case NullAwareMapEntry():
+          // Coverage-ignore(suite): Not run.
+          return _convertToErroneousElement(entry);
+        case IfCaseMapEntry():
+          IfCaseElement result =
+              new IfCaseElement(
+                  prelude: entry.prelude,
+                  expression: entry.expression,
+                  patternGuard: entry.patternGuard,
+                  then: convertToElement(entry.then, onConvertMapEntry),
+                  otherwise: entry.otherwise == null
+                      ? null
+                      :
+                        // Coverage-ignore(suite): Not run.
+                        convertToElement(entry.otherwise!, onConvertMapEntry),
+                )
+                ..matchedValueType = entry.matchedValueType
+                ..fileOffset = entry.fileOffset;
+          onConvertMapEntry(entry, result);
+          return result;
+        case PatternForMapEntry():
+          PatternForElement result = new PatternForElement(
+            patternVariableDeclaration: entry.patternVariableDeclaration,
+            intermediateVariables: entry.intermediateVariables,
+            variables: entry.variables,
+            condition: entry.condition,
+            updates: entry.updates,
+            body: convertToElement(entry.body, onConvertMapEntry),
+          )..fileOffset = entry.fileOffset;
+          onConvertMapEntry(entry, result);
+          return result;
+        case ForMapEntry():
+          ForElement result = new ForElement(
+            entry.variables,
+            entry.condition,
+            entry.updates,
+            convertToElement(entry.body, onConvertMapEntry),
+          )..fileOffset = entry.fileOffset;
+          onConvertMapEntry(entry, result);
+          return result;
+        case ForInMapEntry():
+          ForInElement result = new ForInElement(
+            entry.variable,
+            entry.iterable,
+            entry.syntheticAssignment,
+            entry.expressionEffects,
+            convertToElement(entry.body, onConvertMapEntry),
+            entry.problem,
+            isAsync: entry.isAsync,
+          )..fileOffset = entry.fileOffset;
+          onConvertMapEntry(entry, result);
+          return result;
+      }
+    } else {
+      return _convertToErroneousElement(entry);
+    }
+  }
+
+  Expression _convertToErroneousElement(MapLiteralEntry entry) {
+    Expression key = entry.key;
+    if (key is InvalidExpression) {
+      Expression value = entry.value;
+      if (value is NullLiteral && value.fileOffset == TreeNode.noOffset) {
+        // entry arose from an error.  Don't build another error.
+        return key;
+      }
+    }
+    // Coverage-ignore(suite): Not run.
+    // TODO(johnniwinther): How can this be triggered? This will fail if
+    // encountered in top level inference.
+    return problemReporting.buildProblem(
+      compilerContext: compilerContext,
+      message: codeExpectedButGot.withArgumentsOld(','),
+      fileUri: fileUri,
+      fileOffset: entry.fileOffset,
+      length: 1,
+    );
   }
 
   ExpressionInferenceResult visitMethodInvocation(
@@ -8155,7 +8352,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         libraryFeatures: libraryFeatures,
         targetName: targetName,
         typeEnvironment: typeSchemaEnvironment,
-        fileUri: helper.uri,
+        fileUri: fileUri,
         fileOffset: node.fileOffset,
         explicitTypeArguments: node.arguments.hasExplicitTypeArguments,
         typeParameters: invocation.target.typeParameters,
@@ -9254,7 +9451,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       libraryFeatures: libraryFeatures,
       targetName: node.extension.name,
       typeEnvironment: typeSchemaEnvironment,
-      fileUri: helper.uri,
+      fileUri: fileUri,
       fileOffset: node.extensionTypeArgumentOffset ?? node.fileOffset,
       explicitTypeArguments: node.explicitTypeArguments != null,
       typeParameters: node.extension.typeParameters,
@@ -9341,7 +9538,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       libraryFeatures: libraryFeatures,
       targetName: node.extension.name,
       typeEnvironment: typeSchemaEnvironment,
-      fileUri: helper.uri,
+      fileUri: fileUri,
       fileOffset: node.extensionTypeArgumentOffset ?? node.fileOffset,
       explicitTypeArguments: node.explicitTypeArguments != null,
       typeParameters: node.extension.typeParameters,
@@ -9865,7 +10062,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       libraryFeatures: libraryFeatures,
       targetName: node.extension.name,
       typeEnvironment: typeSchemaEnvironment,
-      fileUri: helper.uri,
+      fileUri: fileUri,
       fileOffset: node.extensionTypeArgumentOffset ?? node.fileOffset,
       explicitTypeArguments: node.knownTypeArguments != null,
       typeParameters: node.extension.typeParameters,
@@ -10405,14 +10602,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       );
       return new ExpressionInferenceResult(
         binaryType,
-        helper.wrapInProblem(
-          binary,
-          codeNullableOperatorCallError.withArgumentsOld(
+        problemReporting.wrapInProblem(
+          compilerContext: compilerContext,
+          expression: binary,
+          message: codeNullableOperatorCallError.withArgumentsOld(
             binaryName.text,
             leftType,
           ),
-          binary.fileOffset,
-          binaryName.text.length,
+          fileUri: fileUri,
+          fileOffset: binary.fileOffset,
+          length: binaryName.text.length,
           context: context,
         ),
       );
@@ -10585,14 +10784,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // probably be referred to as "Unary operator '-' ...".
       return new ExpressionInferenceResult(
         unaryType,
-        helper.wrapInProblem(
-          unary,
-          codeNullableOperatorCallError.withArgumentsOld(
+        problemReporting.wrapInProblem(
+          compilerContext: compilerContext,
+          expression: unary,
+          message: codeNullableOperatorCallError.withArgumentsOld(
             unaryName.text,
             expressionType,
           ),
-          unary.fileOffset,
-          unaryName == unaryMinusName
+          fileUri: fileUri,
+          fileOffset: unary.fileOffset,
+          length: unaryName == unaryMinusName
               ? 1
               :
                 // Coverage-ignore(suite): Not run.
@@ -10750,14 +10951,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (readTarget.isNullable) {
       return new ExpressionInferenceResult(
         readType,
-        helper.wrapInProblem(
-          read,
-          codeNullableOperatorCallError.withArgumentsOld(
+        problemReporting.wrapInProblem(
+          compilerContext: compilerContext,
+          expression: read,
+          message: codeNullableOperatorCallError.withArgumentsOld(
             indexGetName.text,
             receiverType,
           ),
-          read.fileOffset,
-          noLength,
+          fileUri: fileUri,
+          fileOffset: read.fileOffset,
+          length: noLength,
         ),
       );
     }
@@ -10901,14 +11104,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         );
     }
     if (writeTarget.isNullable) {
-      return helper.wrapInProblem(
-        write,
-        codeNullableOperatorCallError.withArgumentsOld(
+      return problemReporting.wrapInProblem(
+        compilerContext: compilerContext,
+        expression: write,
+        message: codeNullableOperatorCallError.withArgumentsOld(
           indexSetName.text,
           receiverType,
         ),
-        write.fileOffset,
-        noLength,
+        fileUri: fileUri,
+        fileOffset: write.fileOffset,
+        length: noLength,
       );
     }
     return write;
@@ -11130,14 +11335,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     Expression result;
     if (writeTarget.isNullable) {
-      result = helper.wrapInProblem(
-        write,
-        codeNullablePropertyAccessError.withArgumentsOld(
+      result = problemReporting.wrapInProblem(
+        compilerContext: compilerContext,
+        expression: write,
+        message: codeNullablePropertyAccessError.withArgumentsOld(
           propertyName.text,
           receiverType,
         ),
-        write.fileOffset,
-        propertyName.text.length,
+        fileUri: fileUri,
+        fileOffset: write.fileOffset,
+        length: propertyName.text.length,
       );
     } else {
       result = write;
@@ -11583,7 +11790,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       libraryFeatures: libraryFeatures,
       targetName: node.extension.name,
       typeEnvironment: typeSchemaEnvironment,
-      fileUri: helper.uri,
+      fileUri: fileUri,
       fileOffset: node.extensionTypeArgumentOffset ?? node.fileOffset,
       explicitTypeArguments: node.explicitTypeArguments != null,
       typeParameters: node.extension.typeParameters,
@@ -12527,7 +12734,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       libraryFeatures: libraryFeatures,
       targetName: targetName,
       typeEnvironment: typeSchemaEnvironment,
-      fileUri: helper.uri,
+      fileUri: fileUri,
       fileOffset: node.fileOffset,
       explicitTypeArguments: arguments.hasExplicitTypeArguments,
       typeParameters: node.target.typeParameters,
@@ -13005,14 +13212,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             if (!jointVariablesNotInAll.contains(jointVariable) &&
                 inferredType != null &&
                 jointVariable.type != inferredType) {
-              jointVariable.initializer = helper.buildProblem(
-                codeJointPatternVariablesMismatch.withArgumentsOld(
+              jointVariable.initializer = problemReporting.buildProblem(
+                compilerContext: compilerContext,
+                message: codeJointPatternVariablesMismatch.withArgumentsOld(
                   jointVariable.name!,
                 ),
-                switchCase.jointVariableFirstUseOffsets?[i] ??
+                fileUri: fileUri,
+                fileOffset:
+                    switchCase.jointVariableFirstUseOffsets?[i] ??
                     // Coverage-ignore(suite): Not run.
                     jointVariable.fileOffset,
-                noLength,
+                length: noLength,
               )..parent = jointVariable;
             }
           }
@@ -13060,12 +13270,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     )) {
       return new ExpressionInferenceResult(
         const DynamicType(),
-        helper.buildProblem(
-          codeThrowingNotAssignableToObjectError.withArgumentsOld(
+        problemReporting.buildProblem(
+          compilerContext: compilerContext,
+          message: codeThrowingNotAssignableToObjectError.withArgumentsOld(
             expressionResult.inferredType,
           ),
-          node.expression.fileOffset,
-          noLength,
+          fileUri: fileUri,
+          fileOffset: node.expression.fileOffset,
+          length: noLength,
         ),
       );
     }
@@ -13166,7 +13378,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (expressionEvaluationHelper != null) {
       // Coverage-ignore-block(suite): Not run.
       ExpressionInferenceResult? result = expressionEvaluationHelper
-          ?.visitVariableSet(node, typeContext, helper);
+          ?.visitVariableSet(
+            node,
+            typeContext,
+            problemReporting,
+            compilerContext,
+            fileUri,
+          );
       if (result != null) {
         return result;
       }
@@ -13494,7 +13712,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (expressionEvaluationHelper != null) {
       // Coverage-ignore-block(suite): Not run.
       ExpressionInferenceResult? result = expressionEvaluationHelper
-          ?.visitVariableGet(node, typeContext, helper);
+          ?.visitVariableGet(
+            node,
+            typeContext,
+            problemReporting,
+            compilerContext,
+            fileUri,
+          );
       if (result != null) {
         return result;
       }
@@ -13701,10 +13925,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           }
           int? intValue = receiver.asInt64(negated: true);
           if (intValue == null) {
-            Expression error = helper.buildProblem(
-              codeIntegerLiteralIsOutOfRange.withArgumentsOld(receiver.literal),
-              receiver.fileOffset,
-              receiver.literal.length,
+            Expression error = problemReporting.buildProblem(
+              compilerContext: compilerContext,
+              message: codeIntegerLiteralIsOutOfRange.withArgumentsOld(
+                receiver.literal,
+              ),
+              fileUri: fileUri,
+              fileOffset: receiver.fileOffset,
+              length: receiver.literal.length,
             );
             return new ExpressionInferenceResult(const DynamicType(), error);
           }
@@ -14184,7 +14412,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         "${node.runtimeType}",
         "dispatchPatternSchema",
         node is TreeNode ? node.fileOffset : TreeNode.noOffset,
-        helper.uri,
+        fileUri,
       );
     }
   }
@@ -14832,12 +15060,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (leftVariable != null && jointVariable != null) {
         if (leftVariable.type != rightVariable.type ||
             leftVariable.isFinal != rightVariable.isFinal) {
-          helper.addProblem(
+          problemReporting.addProblem(
             codeJointPatternVariablesMismatch.withArgumentsOld(
               rightVariableName,
             ),
             leftVariable.fileOffset,
             rightVariableName.length,
+            fileUri,
           );
         } else {
           jointVariable.isFinal = rightVariable.isFinal;
@@ -15316,7 +15545,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           problems.unsupported(
             'Object field target $fieldTarget',
             node.fileOffset,
-            helper.uri,
+            fileUri,
           );
         case ObjectAccessTargetKind.extensionMember:
           field.accessKind = ObjectAccessKind.Extension;
@@ -15513,7 +15742,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             problems.unsupported(
               'Relational pattern target $invokeTarget',
               node.fileOffset,
-              helper.uri,
+              fileUri,
             );
           case ObjectAccessTargetKind.extensionMember:
           case ObjectAccessTargetKind.extensionTypeMember:
@@ -15842,12 +16071,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         variable.isLateFinalWithoutInitializer) {
       if (isDefinitelyAssigned) {
         replacement = new InvalidPattern(
-          helper.buildProblem(
-            codeLateDefinitelyAssignedError.withArgumentsOld(
+          problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: codeLateDefinitelyAssignedError.withArgumentsOld(
               node.variable.name!,
             ),
-            node.fileOffset,
-            node.variable.name!.length,
+            fileUri: fileUri,
+            fileOffset: node.fileOffset,
+            length: node.variable.name!.length,
           ),
           declaredVariables: node.declaredVariables,
         )..fileOffset = node.fileOffset;
@@ -15855,22 +16086,28 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else if (variable.isStaticLate) {
       if (!isDefinitelyUnassigned) {
         replacement = new InvalidPattern(
-          helper.buildProblem(
-            codeFinalPossiblyAssignedError.withArgumentsOld(
+          problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: codeFinalPossiblyAssignedError.withArgumentsOld(
               node.variable.name!,
             ),
-            node.fileOffset,
-            node.variable.name!.length,
+            fileUri: fileUri,
+            fileOffset: node.fileOffset,
+            length: node.variable.name!.length,
           ),
           declaredVariables: node.declaredVariables,
         )..fileOffset = node.fileOffset;
       }
     } else if (variable.isFinal && variable.hasDeclaredInitializer) {
       replacement = new InvalidPattern(
-        helper.buildProblem(
-          codeCannotAssignToFinalVariable.withArgumentsOld(node.variable.name!),
-          node.fileOffset,
-          node.variable.name!.length,
+        problemReporting.buildProblem(
+          compilerContext: compilerContext,
+          message: codeCannotAssignToFinalVariable.withArgumentsOld(
+            node.variable.name!,
+          ),
+          fileUri: fileUri,
+          fileOffset: node.fileOffset,
+          length: node.variable.name!.length,
         ),
         declaredVariables: node.declaredVariables,
       )..fileOffset = node.fileOffset;
@@ -16077,7 +16314,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       problems.unsupported(
         "${element.runtimeType}",
         element.fileOffset,
-        helper.uri,
+        fileUri,
       );
     }
   }
@@ -16355,10 +16592,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (constructor != null && node.arguments.types.isNotEmpty) {
         return new ExpressionInferenceResult(
           const DynamicType(),
-          helper.buildProblem(
-            codeDotShorthandsConstructorInvocationWithTypeArguments,
-            node.nameOffset,
-            node.name.text.length,
+          problemReporting.buildProblem(
+            compilerContext: compilerContext,
+            message: codeDotShorthandsConstructorInvocationWithTypeArguments,
+            fileUri: fileUri,
+            fileOffset: node.nameOffset,
+            length: node.name.text.length,
           ),
         );
       }
@@ -16367,10 +16606,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         if (!constructor.isConst && node.isConst) {
           return new ExpressionInferenceResult(
             const DynamicType(),
-            helper.buildProblem(
-              codeNonConstConstructor,
-              node.nameOffset,
-              node.name.text.length,
+            problemReporting.buildProblem(
+              compilerContext: compilerContext,
+              message: codeNonConstConstructor,
+              fileUri: fileUri,
+              fileOffset: node.nameOffset,
+              length: node.name.text.length,
             ),
           );
         }
@@ -16379,12 +16620,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         if (typeDeclaration is Class && typeDeclaration.isAbstract) {
           return new ExpressionInferenceResult(
             const DynamicType(),
-            helper.buildProblem(
-              codeAbstractClassInstantiation.withArgumentsOld(
+            problemReporting.buildProblem(
+              compilerContext: compilerContext,
+              message: codeAbstractClassInstantiation.withArgumentsOld(
                 typeDeclaration.name,
               ),
-              node.nameOffset,
-              node.name.text.length,
+              fileUri: fileUri,
+              fileOffset: node.nameOffset,
+              length: node.name.text.length,
             ),
           );
         }
@@ -16418,10 +16661,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           // Coverage-ignore-block(suite): Not run.
           return new ExpressionInferenceResult(
             const DynamicType(),
-            helper.buildProblem(
-              codeNonConstConstructor,
-              node.nameOffset,
-              node.name.text.length,
+            problemReporting.buildProblem(
+              compilerContext: compilerContext,
+              message: codeNonConstConstructor,
+              fileUri: fileUri,
+              fileOffset: node.nameOffset,
+              length: node.name.text.length,
             ),
           );
         }
@@ -16485,23 +16730,29 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (isKnown(cachedContext)) {
       // Error when we can't find the static member or constructor named
       // [node.name] in the declaration of [cachedContext].
-      replacement = helper.buildProblem(
-        codeDotShorthandsUndefinedInvocation.withArgumentsOld(
+      replacement = problemReporting.buildProblem(
+        compilerContext: compilerContext,
+        message: codeDotShorthandsUndefinedInvocation.withArgumentsOld(
           node.name.text,
           cachedContext,
         ),
-        node.nameOffset,
-        node.name.text.length,
+        fileUri: fileUri,
+        fileOffset: node.nameOffset,
+        length: node.name.text.length,
       );
     } else {
       // Error when no context type or an invalid context type is given to
       // resolve the dot shorthand.
       //
       // e.g. `var x = .one;`
-      replacement = helper.buildProblem(
-        codeDotShorthandsInvalidContext.withArgumentsOld(node.name.text),
-        node.nameOffset,
-        node.name.text.length,
+      replacement = problemReporting.buildProblem(
+        compilerContext: compilerContext,
+        message: codeDotShorthandsInvalidContext.withArgumentsOld(
+          node.name.text,
+        ),
+        fileUri: fileUri,
+        fileOffset: node.nameOffset,
+        length: node.name.text.length,
       );
     }
     return new ExpressionInferenceResult(const DynamicType(), replacement);
@@ -16561,10 +16812,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           if (constructor != null && node.hasTypeParameters) {
             return new ExpressionInferenceResult(
               const DynamicType(),
-              helper.buildProblem(
-                codeDotShorthandsConstructorInvocationWithTypeArguments,
-                node.nameOffset,
-                node.name.text.length,
+              problemReporting.buildProblem(
+                compilerContext: compilerContext,
+                message:
+                    codeDotShorthandsConstructorInvocationWithTypeArguments,
+                fileUri: fileUri,
+                fileOffset: node.nameOffset,
+                length: node.name.text.length,
               ),
             );
           }
@@ -16573,10 +16827,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             if (typeDeclaration is Class && typeDeclaration.isAbstract) {
               return new ExpressionInferenceResult(
                 const DynamicType(),
-                helper.buildProblem(
-                  codeAbstractClassConstructorTearOff,
-                  node.nameOffset,
-                  node.name.text.length,
+                problemReporting.buildProblem(
+                  compilerContext: compilerContext,
+                  message: codeAbstractClassConstructorTearOff,
+                  fileUri: fileUri,
+                  fileOffset: node.nameOffset,
+                  length: node.name.text.length,
                 ),
               );
             }
@@ -16602,13 +16858,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           // the declaration of [cachedContext].
           expressionInferenceResult = new ExpressionInferenceResult(
             const DynamicType(),
-            helper.buildProblem(
-              codeDotShorthandsUndefinedGetter.withArgumentsOld(
+            problemReporting.buildProblem(
+              compilerContext: compilerContext,
+              message: codeDotShorthandsUndefinedGetter.withArgumentsOld(
                 node.name.text,
                 cachedContext,
               ),
-              node.nameOffset,
-              node.name.text.length,
+              fileUri: fileUri,
+              fileOffset: node.nameOffset,
+              length: node.name.text.length,
             ),
           );
         } else {
@@ -16618,10 +16876,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           // e.g. `var x = .one;`
           expressionInferenceResult = new ExpressionInferenceResult(
             const DynamicType(),
-            helper.buildProblem(
-              codeDotShorthandsInvalidContext.withArgumentsOld(node.name.text),
-              node.nameOffset,
-              node.name.text.length,
+            problemReporting.buildProblem(
+              compilerContext: compilerContext,
+              message: codeDotShorthandsInvalidContext.withArgumentsOld(
+                node.name.text,
+              ),
+              fileUri: fileUri,
+              fileOffset: node.nameOffset,
+              length: node.name.text.length,
             ),
           );
         }
@@ -16715,13 +16977,17 @@ abstract class ExpressionEvaluationHelper {
   ExpressionInferenceResult? visitVariableGet(
     VariableGet node,
     DartType typeContext,
-    InferenceHelper helper,
+    ProblemReporting problemReporting,
+    CompilerContext compilerContext,
+    Uri fileUri,
   );
 
   ExpressionInferenceResult? visitVariableSet(
     VariableSet node,
     DartType typeContext,
-    InferenceHelper helper,
+    ProblemReporting problemReporting,
+    CompilerContext compilerContext,
+    Uri fileUri,
   );
 
   OverwrittenInterfaceMember? overwriteFindInterfaceMember({

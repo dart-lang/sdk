@@ -22,6 +22,8 @@ import 'package:kernel/type_environment.dart';
 
 import '../api_prototype/experimental_flags.dart';
 import '../api_prototype/lowering_predicates.dart';
+import '../base/compiler_context.dart';
+import '../base/constant_context.dart';
 import '../base/instrumentation.dart'
     show
         Instrumentation,
@@ -48,7 +50,6 @@ import '../testing/id_extractor.dart';
 import '../util/helpers.dart';
 import 'closure_context.dart';
 import 'external_ast_helper.dart';
-import 'inference_helper.dart' show InferenceHelper;
 import 'inference_results.dart';
 import 'inference_visitor.dart';
 import 'object_access_target.dart';
@@ -141,15 +142,18 @@ enum MethodContravarianceCheckKind {
 abstract class InferenceVisitorBase implements InferenceVisitor {
   final TypeInferrerImpl _inferrer;
 
-  final InferenceHelper _helper;
-
   /// Helper used to issue correct error messages and avoid access to
   /// unavailable variables upon expression evaluation.
   final ExpressionEvaluationHelper? expressionEvaluationHelper;
 
+  final Uri fileUri;
+
+  final ConstantContext constantContext;
+
   InferenceVisitorBase(
     this._inferrer,
-    this._helper,
+    this.fileUri,
+    this.constantContext,
     this.expressionEvaluationHelper,
   );
 
@@ -186,8 +190,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   TypeInferenceEngine get engine => _inferrer.engine;
 
-  InferenceHelper get helper => _helper;
-
   CoreTypes get coreTypes => engine.coreTypes;
 
   @pragma("vm:prefer-inline")
@@ -195,6 +197,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   @pragma("vm:prefer-inline")
   ProblemReporting get problemReporting => _inferrer.libraryBuilder;
+
+  @pragma("vm:prefer-inline")
+  CompilerContext get compilerContext =>
+      _inferrer.libraryBuilder.loader.target.context;
 
   ProblemReportingHelper get problemReportingHelper => libraryBuilder.loader;
 
@@ -577,25 +583,29 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         break;
       case AssignabilityKind.unassignableVoid:
         // Error: not assignable.  Perform error recovery.
-        result = helper.wrapInProblem(
-          expression,
-          codeVoidExpression,
-          expression.fileOffset,
-          noLength,
+        result = problemReporting.wrapInProblem(
+          compilerContext: compilerContext,
+          expression: expression,
+          message: codeVoidExpression,
+          fileUri: fileUri,
+          fileOffset: expression.fileOffset,
+          length: noLength,
         );
         break;
       case AssignabilityKind.unassignablePrecise:
         // Coverage-ignore(suite): Not run.
         // The type of the expression is known precisely, so an implicit
         // downcast is guaranteed to fail.  Insert a compile-time error.
-        result = helper.wrapInProblem(
-          expression,
-          preciseTypeErrorTemplate!.withArgumentsOld(
+        result = problemReporting.wrapInProblem(
+          compilerContext: compilerContext,
+          expression: expression,
+          message: preciseTypeErrorTemplate!.withArgumentsOld(
             expressionType,
             contextType,
           ),
-          expression.fileOffset,
-          noLength,
+          fileUri: fileUri,
+          fileOffset: expression.fileOffset,
+          length: noLength,
         );
         break;
       case AssignabilityKind.unassignableCantTearoff:
@@ -717,11 +727,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           ..isTypeError = true
           ..fileOffset = expression.fileOffset;
     if (contextType is! InvalidType) {
-      errorNode = helper.wrapInProblem(
-        errorNode,
-        template.withArgumentsOld(callName.text),
-        errorNode.fileOffset,
-        noLength,
+      errorNode = problemReporting.wrapInProblem(
+        compilerContext: compilerContext,
+        expression: errorNode,
+        message: template.withArgumentsOld(callName.text),
+        fileUri: fileUri,
+        fileOffset: errorNode.fileOffset,
+        length: noLength,
       );
     }
     return errorNode;
@@ -749,11 +761,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           ..isTypeError = true
           ..fileOffset = expression.fileOffset;
     if (contextType is! InvalidType && expressionType is! InvalidType) {
-      errorNode = helper.wrapInProblem(
-        errorNode,
-        message,
-        errorNode.fileOffset,
-        noLength,
+      errorNode = problemReporting.wrapInProblem(
+        compilerContext: compilerContext,
+        expression: errorNode,
+        message: message,
+        fileUri: fileUri,
+        fileOffset: errorNode.fileOffset,
+        length: noLength,
         context: context,
       );
     }
@@ -1530,13 +1544,15 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           identical(name.text, unaryMinusName.text)) {
         length = 1;
       }
-      return helper.buildProblem(
-        errorTemplate.withArgumentsOld(
+      return problemReporting.buildProblem(
+        compilerContext: compilerContext,
+        message: errorTemplate.withArgumentsOld(
           name.text,
           receiverType.nonTypeParameterBound,
         ),
-        fileOffset,
-        length,
+        fileUri: fileUri,
+        fileOffset: fileOffset,
+        length: length,
       );
     }
     return null;
@@ -1687,11 +1703,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   }) {
     return new ExpressionInferenceResult(
       result.inferredType,
-      helper.wrapInProblem(
-        result.expression,
-        message,
-        fileOffset,
-        length,
+      problemReporting.wrapInProblem(
+        compilerContext: compilerContext,
+        expression: result.expression,
+        message: message,
+        fileUri: fileUri,
+        fileOffset: fileOffset,
+        length: length,
         context: context,
       ),
     );
@@ -2080,19 +2098,19 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     );
 
     if (isSpecialCasedBinaryOperator || isSpecialCasedTernaryOperator) {
-      LocatedMessage? argMessage = helper.checkArgumentsForType(
-        calleeType,
-        arguments,
-        offset,
+      LocatedMessage? argMessage = problemReporting.checkArgumentsForType(
+        function: calleeType,
+        arguments: arguments,
+        fileUri: fileUri,
+        fileOffset: offset,
       );
       if (argMessage != null) {
         return new WrapInProblemInferenceResult(
           const InvalidType(),
           const InvalidType(),
-          argMessage.messageObject,
-          argMessage.charOffset,
-          argMessage.length,
-          helper,
+          argMessage,
+          problemReporting,
+          compilerContext,
           isInapplicable: true,
           hoistedArguments: localHoistedExpressions,
         );
@@ -2129,15 +2147,17 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       if (seenNames.containsKey(name)) {
         hasProblem = true;
         NamedExpression prevNamedExpression = seenNames[name]!;
-        prevNamedExpression.value = helper.wrapInProblem(
-          _createDuplicateExpression(
+        prevNamedExpression.value = problemReporting.wrapInProblem(
+          compilerContext: compilerContext,
+          expression: _createDuplicateExpression(
             prevNamedExpression.fileOffset,
             prevNamedExpression.value,
             expression.value,
           ),
-          codeDuplicatedNamedArgument.withArgumentsOld(name),
-          expression.fileOffset,
-          name.length,
+          message: codeDuplicatedNamedArgument.withArgumentsOld(name),
+          fileUri: fileUri,
+          fileOffset: expression.fileOffset,
+          length: name.length,
         )..parent = prevNamedExpression;
         formalTypes.removeAt(namedTypeIndex);
         actualTypes.removeAt(namedTypeIndex);
@@ -2298,19 +2318,19 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
     }
 
-    LocatedMessage? argMessage = helper.checkArgumentsForType(
-      calleeType,
-      arguments,
-      offset,
+    LocatedMessage? argMessage = problemReporting.checkArgumentsForType(
+      function: calleeType,
+      arguments: arguments,
+      fileUri: fileUri,
+      fileOffset: offset,
     );
     if (argMessage != null) {
       return new WrapInProblemInferenceResult(
         const InvalidType(),
         const InvalidType(),
-        argMessage.messageObject,
-        argMessage.charOffset,
-        argMessage.length,
-        helper,
+        argMessage,
+        problemReporting,
+        compilerContext,
         isInapplicable: true,
         hoistedArguments: localHoistedExpressions,
       );
@@ -2493,7 +2513,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           ),
           formal.fileOffset,
           formal.name!.length,
-          helper.uri,
+          fileUri,
         );
         formal.isErroneouslyInitialized = true;
       }
@@ -2545,7 +2565,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           ),
           formal.fileOffset,
           formal.name!.length,
-          helper.uri,
+          fileUri,
         );
       }
     }
@@ -2861,7 +2881,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         libraryFeatures: libraryFeatures,
         targetName: name.text,
         typeEnvironment: typeSchemaEnvironment,
-        fileUri: helper.uri,
+        fileUri: fileUri,
         fileOffset: fileOffset,
         explicitTypeArguments: arguments.hasExplicitTypeArguments,
         typeParameters: target.getTypeParameters(),
@@ -2894,11 +2914,15 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           //   extension on int {
           //     void call() {}
           //   }
-          replacement = helper.wrapInProblem(
-            replacement,
-            codeNullableExpressionCallError.withArgumentsOld(receiverType),
-            fileOffset,
-            noLength,
+          replacement = problemReporting.wrapInProblem(
+            compilerContext: compilerContext,
+            expression: replacement,
+            message: codeNullableExpressionCallError.withArgumentsOld(
+              receiverType,
+            ),
+            fileUri: fileUri,
+            fileOffset: fileOffset,
+            length: noLength,
             context: context,
           );
         } else {
@@ -2909,14 +2933,16 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           //   extension on int {
           //     void methodOnNonNullInt() {}
           //   }
-          replacement = helper.wrapInProblem(
-            replacement,
-            codeNullableMethodCallError.withArgumentsOld(
+          replacement = problemReporting.wrapInProblem(
+            compilerContext: compilerContext,
+            expression: replacement,
+            message: codeNullableMethodCallError.withArgumentsOld(
               name.text,
               receiverType,
             ),
-            fileOffset,
-            name.text.length,
+            fileUri: fileUri,
+            fileOffset: fileOffset,
+            length: name.text.length,
             context: context,
           );
         }
@@ -3008,25 +3034,31 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         // Handles cases like:
         //   void Function()? f;
         //   f();
-        replacement = helper.wrapInProblem(
-          replacement,
-          codeNullableExpressionCallError.withArgumentsOld(receiverType),
-          fileOffset,
-          noLength,
+        replacement = problemReporting.wrapInProblem(
+          compilerContext: compilerContext,
+          expression: replacement,
+          message: codeNullableExpressionCallError.withArgumentsOld(
+            receiverType,
+          ),
+          fileUri: fileUri,
+          fileOffset: fileOffset,
+          length: noLength,
           context: context,
         );
       } else {
         // Handles cases like:
         //   void Function()? f;
         //   f.call();
-        replacement = helper.wrapInProblem(
-          replacement,
-          codeNullableMethodCallError.withArgumentsOld(
+        replacement = problemReporting.wrapInProblem(
+          compilerContext: compilerContext,
+          expression: replacement,
+          message: codeNullableMethodCallError.withArgumentsOld(
             callName.text,
             receiverType,
           ),
-          fileOffset,
-          callName.text.length,
+          fileUri: fileUri,
+          fileOffset: fileOffset,
+          length: callName.text.length,
           context: context,
         );
       }
@@ -3234,25 +3266,31 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         //   class C {
         //     void call();
         //   }
-        replacement = helper.wrapInProblem(
-          replacement,
-          codeNullableExpressionCallError.withArgumentsOld(receiverType),
-          fileOffset,
-          noLength,
+        replacement = problemReporting.wrapInProblem(
+          compilerContext: compilerContext,
+          expression: replacement,
+          message: codeNullableExpressionCallError.withArgumentsOld(
+            receiverType,
+          ),
+          fileUri: fileUri,
+          fileOffset: fileOffset,
+          length: noLength,
           context: context,
         );
       } else {
         // Handles cases like:
         //   int? i;
         //   i.abs();
-        replacement = helper.wrapInProblem(
-          replacement,
-          codeNullableMethodCallError.withArgumentsOld(
+        replacement = problemReporting.wrapInProblem(
+          compilerContext: compilerContext,
+          expression: replacement,
+          message: codeNullableMethodCallError.withArgumentsOld(
             methodName.text,
             receiverType,
           ),
-          fileOffset,
-          methodName.text.length,
+          fileUri: fileUri,
+          fileOffset: fileOffset,
+          length: methodName.text.length,
           context: context,
         );
       }
@@ -3369,10 +3407,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
 
     if (isExpressionInvocation) {
-      Expression error = helper.buildProblem(
-        codeImplicitCallOfNonMethod.withArgumentsOld(receiverType),
-        fileOffset,
-        noLength,
+      Expression error = problemReporting.buildProblem(
+        compilerContext: compilerContext,
+        message: codeImplicitCallOfNonMethod.withArgumentsOld(receiverType),
+        fileUri: fileUri,
+        fileOffset: fileOffset,
+        length: noLength,
       );
       return new ExpressionInferenceResult(const InvalidType(), error);
     }
@@ -3608,10 +3648,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
 
     if (isExpressionInvocation) {
-      Expression error = helper.buildProblem(
-        codeImplicitCallOfNonMethod.withArgumentsOld(receiverType),
-        fileOffset,
-        noLength,
+      Expression error = problemReporting.buildProblem(
+        compilerContext: compilerContext,
+        message: codeImplicitCallOfNonMethod.withArgumentsOld(receiverType),
+        fileUri: fileUri,
+        fileOffset: fileOffset,
+        length: noLength,
       );
       return new ExpressionInferenceResult(const InvalidType(), error);
     }
@@ -3927,7 +3969,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             codeRecordUsedAsCallable,
             receiver.fileOffset,
             noLength,
-            helper.uri,
+            fileUri,
           );
         }
         DartType type = target.getGetterType(this);
@@ -4070,7 +4112,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       name: actualMethodName,
       interfaceTarget: interfaceTarget,
       arguments: arguments,
-      fileUri: helper.uri,
+      fileUri: fileUri,
       fileOffset: fileOffset,
     );
   }
@@ -4089,7 +4131,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       typeEnvironment: typeSchemaEnvironment,
       functionType: functionType,
       typeArguments: arguments,
-      fileUri: helper.uri,
+      fileUri: fileUri,
       fileOffset: fileOffset,
       inferred: inferred,
     );
@@ -4109,7 +4151,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       functionType: functionType,
       localName: localName,
       arguments: arguments,
-      fileUri: helper.uri,
+      fileUri: fileUri,
       fileOffset: fileOffset,
     );
   }
@@ -4428,11 +4470,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           String name = variable.lateName ?? variable.name!;
           return new ExpressionInferenceResult(
             resultType,
-            helper.wrapInProblem(
-              resultExpression,
-              codeLateDefinitelyUnassignedError.withArgumentsOld(name),
-              node.fileOffset,
-              name.length,
+            problemReporting.wrapInProblem(
+              compilerContext: compilerContext,
+              expression: resultExpression,
+              message: codeLateDefinitelyUnassignedError.withArgumentsOld(name),
+              fileUri: fileUri,
+              fileOffset: node.fileOffset,
+              length: name.length,
             ),
           );
         }
@@ -4441,23 +4485,29 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           if (variable.isFinal) {
             return new ExpressionInferenceResult(
               resultType,
-              helper.wrapInProblem(
-                resultExpression,
-                codeFinalNotAssignedError.withArgumentsOld(node.variable.name!),
-                node.fileOffset,
-                node.variable.name!.length,
+              problemReporting.wrapInProblem(
+                compilerContext: compilerContext,
+                expression: resultExpression,
+                message: codeFinalNotAssignedError.withArgumentsOld(
+                  node.variable.name!,
+                ),
+                fileUri: fileUri,
+                fileOffset: node.fileOffset,
+                length: node.variable.name!.length,
               ),
             );
           } else if (declaredOrInferredType.isPotentiallyNonNullable) {
             return new ExpressionInferenceResult(
               resultType,
-              helper.wrapInProblem(
-                resultExpression,
-                codeNonNullableNotAssignedError.withArgumentsOld(
+              problemReporting.wrapInProblem(
+                compilerContext: compilerContext,
+                expression: resultExpression,
+                message: codeNonNullableNotAssignedError.withArgumentsOld(
                   node.variable.name!,
                 ),
-                node.fileOffset,
-                node.variable.name!.length,
+                fileUri: fileUri,
+                fileOffset: node.fileOffset,
+                length: node.variable.name!.length,
               ),
             );
           }
@@ -4534,13 +4584,15 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         if (isDefinitelyAssigned) {
           return new ExpressionInferenceResult(
             resultType,
-            helper.wrapInProblem(
-              resultExpression,
-              codeLateDefinitelyAssignedError.withArgumentsOld(
+            problemReporting.wrapInProblem(
+              compilerContext: compilerContext,
+              expression: resultExpression,
+              message: codeLateDefinitelyAssignedError.withArgumentsOld(
                 node.variable.name!,
               ),
-              node.fileOffset,
-              node.variable.name!.length,
+              fileUri: fileUri,
+              fileOffset: node.fileOffset,
+              length: node.variable.name!.length,
             ),
           );
         }
@@ -4548,13 +4600,15 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         if (!isDefinitelyUnassigned) {
           return new ExpressionInferenceResult(
             resultType,
-            helper.wrapInProblem(
-              resultExpression,
-              codeFinalPossiblyAssignedError.withArgumentsOld(
+            problemReporting.wrapInProblem(
+              compilerContext: compilerContext,
+              expression: resultExpression,
+              message: codeFinalPossiblyAssignedError.withArgumentsOld(
                 node.variable.name!,
               ),
-              node.fileOffset,
-              node.variable.name!.length,
+              fileUri: fileUri,
+              fileOffset: node.fileOffset,
+              length: node.variable.name!.length,
             ),
           );
         }
@@ -5056,24 +5110,28 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       template = ambiguousTemplate;
     }
     if (wrappedExpression != null) {
-      return helper.wrapInProblem(
-        wrappedExpression,
-        template.withArgumentsOld(
+      return problemReporting.wrapInProblem(
+        compilerContext: compilerContext,
+        expression: wrappedExpression,
+        message: template.withArgumentsOld(
           name.text,
           receiverType.nonTypeParameterBound,
         ),
-        fileOffset,
-        length,
+        fileUri: fileUri,
+        fileOffset: fileOffset,
+        length: length,
         context: context,
       );
     } else {
-      return helper.buildProblem(
-        template.withArgumentsOld(
+      return problemReporting.buildProblem(
+        compilerContext: compilerContext,
+        message: template.withArgumentsOld(
           name.text,
           receiverType.nonTypeParameterBound,
         ),
-        fileOffset,
-        length,
+        fileUri: fileUri,
+        fileOffset: fileOffset,
+        length: length,
         context: context,
       );
     }
@@ -5096,22 +5154,31 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (implicitInvocationPropertyName != null) {
       assert(extensionAccessCandidates == null);
       if (receiver != null) {
-        return helper.wrapInProblem(
-          _createInvalidInvocation(fileOffset, receiver, name, arguments!),
-          codeInvokeNonFunction.withArgumentsOld(
+        return problemReporting.wrapInProblem(
+          compilerContext: compilerContext,
+          expression: _createInvalidInvocation(
+            fileOffset,
+            receiver,
+            name,
+            arguments!,
+          ),
+          message: codeInvokeNonFunction.withArgumentsOld(
             implicitInvocationPropertyName.text,
           ),
-          fileOffset,
-          implicitInvocationPropertyName.text.length,
+          fileUri: fileUri,
+          fileOffset: fileOffset,
+          length: implicitInvocationPropertyName.text.length,
         );
       } else {
         // Coverage-ignore-block(suite): Not run.
-        return helper.buildProblem(
-          codeInvokeNonFunction.withArgumentsOld(
+        return problemReporting.buildProblem(
+          compilerContext: compilerContext,
+          message: codeInvokeNonFunction.withArgumentsOld(
             implicitInvocationPropertyName.text,
           ),
-          fileOffset,
-          implicitInvocationPropertyName.text.length,
+          fileUri: fileUri,
+          fileOffset: fileOffset,
+          length: implicitInvocationPropertyName.text.length,
         );
       }
     } else {
@@ -5555,7 +5622,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         ),
         fileOffset,
         noLength,
-        helper.uri,
+        fileUri,
       );
     }
   }
@@ -5585,10 +5652,15 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         ? '0x${asDouble.toRadixString(16)}'
         : asDouble.toString();
     int length = literal?.length ?? noLength;
-    return helper.buildProblem(
-      codeWebLiteralCannotBeRepresentedExactly.withArgumentsOld(text, nearest),
-      charOffset,
-      length,
+    return problemReporting.buildProblem(
+      compilerContext: compilerContext,
+      message: codeWebLiteralCannotBeRepresentedExactly.withArgumentsOld(
+        text,
+        nearest,
+      ),
+      fileUri: fileUri,
+      fileOffset: charOffset,
+      length: length,
     );
   }
 
@@ -5694,7 +5766,7 @@ class _WhyNotPromotedVisitor
     return [
       codeVariableCouldBeNullDueToWrite
           .withArgumentsOld(reason.variable.name!, reason.documentationLink.url)
-          .withLocation(inferrer.helper.uri, offset, noLength),
+          .withLocation(inferrer.fileUri, offset, noLength),
     ];
   }
 

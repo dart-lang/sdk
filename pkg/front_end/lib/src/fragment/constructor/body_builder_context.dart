@@ -127,12 +127,18 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  InitializerInferenceResult inferInitializer(
-    Initializer initializer,
-    ExpressionGeneratorHelper helper,
-    TypeInferrer typeInferrer,
-  ) {
-    return typeInferrer.inferInitializer(helper, _builder, initializer);
+  InitializerInferenceResult inferInitializer({
+    required TypeInferrer typeInferrer,
+    required Uri fileUri,
+    required ConstantContext constantContext,
+    required Initializer initializer,
+  }) {
+    return typeInferrer.inferInitializer(
+      fileUri: fileUri,
+      constantContext: constantContext,
+      constructorBuilder: _builder,
+      initializer: initializer,
+    );
   }
 
   @override

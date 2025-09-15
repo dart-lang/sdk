@@ -82,7 +82,6 @@ import '../builder/declaration_builders.dart'
     show ClassBuilder, ExtensionBuilder, ExtensionTypeDeclarationBuilder;
 import '../builder/library_builder.dart' show LibraryBuilder;
 import '../builder/member_builder.dart' show MemberBuilder;
-import '../codes/cfe_codes.dart';
 import '../dill/dill_class_builder.dart' show DillClassBuilder;
 import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
 import '../dill/dill_loader.dart' show DillLoader;
@@ -91,11 +90,11 @@ import '../kernel/benchmarker.dart' show BenchmarkPhases, Benchmarker;
 import '../kernel/hierarchy/hierarchy_builder.dart' show ClassHierarchyBuilder;
 import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
 import '../kernel/kernel_target.dart' show BuildResult, KernelTarget;
+import '../source/check_helper.dart';
 import '../source/source_compilation_unit.dart' show SourceCompilationUnitImpl;
 import '../source/source_library_builder.dart'
     show ImplicitLanguageVersion, SourceLibraryBuilder;
 import '../source/source_loader.dart';
-import '../type_inference/inference_helper.dart' show InferenceHelper;
 import '../type_inference/inference_visitor.dart'
     show ExpressionEvaluationHelper, OverwrittenInterfaceMember;
 import '../util/error_reporter_file_copier.dart' show saveAsGzip;
@@ -108,6 +107,7 @@ import 'compiler_context.dart' show CompilerContext;
 import 'hybrid_file_system.dart' show HybridFileSystem;
 import 'incremental_serializer.dart' show IncrementalSerializer;
 import 'library_graph.dart' show LibraryGraph;
+import 'messages.dart';
 import 'ticker.dart' show Ticker;
 import 'uri_translator.dart' show UriTranslator;
 import 'uris.dart' show getPartUri;
@@ -2475,10 +2475,18 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
   ExpressionInferenceResult? visitVariableGet(
     VariableGet node,
     DartType typeContext,
-    InferenceHelper helper,
+    ProblemReporting problemReporting,
+    CompilerContext compilerContext,
+    Uri fileUri,
   ) {
     if (knownButUnavailable.contains(node.variable)) {
-      return _returnKnownVariableUnavailable(node, node.variable, helper);
+      return _returnKnownVariableUnavailable(
+        node,
+        node.variable,
+        problemReporting,
+        compilerContext,
+        fileUri,
+      );
     }
     return null;
   }
@@ -2487,10 +2495,18 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
   ExpressionInferenceResult? visitVariableSet(
     VariableSet node,
     DartType typeContext,
-    InferenceHelper helper,
+    ProblemReporting problemReporting,
+    CompilerContext compilerContext,
+    Uri fileUri,
   ) {
     if (knownButUnavailable.contains(node.variable)) {
-      return _returnKnownVariableUnavailable(node, node.variable, helper);
+      return _returnKnownVariableUnavailable(
+        node,
+        node.variable,
+        problemReporting,
+        compilerContext,
+        fileUri,
+      );
     }
     return null;
   }
@@ -2498,17 +2514,20 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
   ExpressionInferenceResult _returnKnownVariableUnavailable(
     Expression node,
     VariableDeclaration variable,
-    InferenceHelper helper,
+    ProblemReporting problemReporting,
+    CompilerContext compilerContext,
+    Uri fileUri,
   ) {
     return new ExpressionInferenceResult(
       variable.type,
-      helper.wrapInProblem(
-        node,
-        codeExpressionEvaluationKnownVariableUnavailable.withArgumentsOld(
-          variable.name!,
-        ),
-        node.fileOffset,
-        variable.name!.length,
+      problemReporting.wrapInProblem(
+        compilerContext: compilerContext,
+        expression: node,
+        message: codeExpressionEvaluationKnownVariableUnavailable
+            .withArgumentsOld(variable.name!),
+        fileUri: fileUri,
+        fileOffset: node.fileOffset,
+        length: variable.name!.length,
         errorHasBeenReported: false,
         includeExpression: false,
       ),
