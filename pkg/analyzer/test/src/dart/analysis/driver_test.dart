@@ -31215,6 +31215,64 @@ typedef C = int;
     );
   }
 
+  test_dependency_libraryElement_typeProvider_changeDartCore() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.libraryElement;
+      library.typeProvider.intElement;
+    });
+
+    await _runChangeScenario(
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+[status] idle
+''',
+      updateFiles: () {
+        var core = sdkRoot.getChildAssumingFile('lib/core/core.dart');
+        var newCode = core.readAsStringSync().replaceFirst(
+          'abstract final class int extends num {',
+          '@deprecated abstract final class int extends num {',
+        );
+        modifyFile2(core, newCode);
+        return [core];
+      },
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  topLevelIdMismatch
+    libraryUri: dart:core
+    name: int
+    expectedId: #M0
+    actualId: #M1
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+[status] idle
+''',
+    );
+  }
+
   test_dependency_mixin_instanceField_add_hasNonFinalField() async {
     configuration
       ..withGetErrorsEvents = false

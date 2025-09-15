@@ -5906,9 +5906,11 @@ class LibraryElementImpl extends ElementImpl
   bool hasTypeProviderSystemSet = false;
 
   @override
+  @trackedIndirectly
   late TypeProviderImpl typeProvider;
 
   @override
+  @trackedIndirectly
   late TypeSystemImpl typeSystem;
 
   @trackedInternal
@@ -6707,6 +6709,14 @@ class LibraryElementImpl extends ElementImpl
       return true;
     }
     return false;
+  }
+
+  @trackedInternal
+  void recordGetDeclaredClass(String name) {
+    globalResultRequirements?.record_library_getClass(
+      element: this,
+      name: name,
+    );
   }
 
   @trackedInternal

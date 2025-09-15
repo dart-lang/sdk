@@ -76,6 +76,7 @@ class _Visitor extends SimpleAstVisitor<void> {
                 var hasRequired = false;
                 for (var annotation in trackingAnnotations) {
                   if (annotation.element.isTrackedIncludedInId ||
+                      annotation.element.isTrackedIndirectly ||
                       annotation.element.isTrackedInternal) {
                     if (hasRequired) {
                       _reportMoreThanOne(annotation);
