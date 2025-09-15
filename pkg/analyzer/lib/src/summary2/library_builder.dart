@@ -106,7 +106,7 @@ class LibraryBuilder {
   }
 
   void addExporters() {
-    for (var (fragmentIndex, fragment) in element.units.indexed) {
+    for (var (fragmentIndex, fragment) in element.fragments.indexed) {
       for (var (exportIndex, exportElement)
           in fragment.libraryExports.indexed) {
         var exportedLibrary = exportElement.exportedLibrary;
@@ -220,8 +220,8 @@ class LibraryBuilder {
   }
 
   void buildEnumSyntheticConstructors() {
-    bool hasConstructor(EnumFragmentImpl fragment) {
-      for (var constructor in fragment.element.constructors) {
+    bool hasConstructor(EnumElementImpl enumElement) {
+      for (var constructor in enumElement.constructors) {
         if (constructor.isGenerative || constructor.name == 'new') {
           return true;
         }
@@ -229,28 +229,23 @@ class LibraryBuilder {
       return false;
     }
 
-    for (var enumFragment in element.topLevelElements) {
-      if (enumFragment is! EnumFragmentImpl) continue;
-      if (hasConstructor(enumFragment)) continue;
+    for (var enumElement in element.enums) {
+      if (hasConstructor(enumElement)) continue;
 
-      var fragment = ConstructorFragmentImpl(name: 'new')
+      var constructorFragment = ConstructorFragmentImpl(name: 'new')
         ..isConst = true
-        ..isSynthetic = true;
-      fragment.typeName = enumFragment.name;
+        ..isSynthetic = true
+        ..typeName = enumElement.name;
+      enumElement.firstFragment.addConstructor(constructorFragment);
 
-      var element = ConstructorElementImpl(
-        name: fragment.name,
-        reference: enumFragment.element.reference
+      var constructorElement = ConstructorElementImpl(
+        name: constructorFragment.name,
+        reference: enumElement.reference
             .getChild('@constructor')
             .addChild('new'),
-        firstFragment: fragment,
+        firstFragment: constructorFragment,
       );
-      enumFragment.element.addConstructor(element);
-
-      enumFragment.constructors = [
-        ...enumFragment.constructors,
-        fragment,
-      ].toFixedList();
+      enumElement.addConstructor(constructorElement);
     }
   }
 
@@ -373,24 +368,23 @@ class LibraryBuilder {
   void setDefaultSupertypes() {
     var shouldResetClassHierarchies = false;
     var objectType = element.typeProvider.objectType;
-    for (var interfaceFragment in element.topLevelElements) {
-      switch (interfaceFragment) {
-        case ClassFragmentImpl():
-          var element = interfaceFragment.element;
-          if (!element.isDartCoreObject) {
-            if (element.supertype == null) {
-              shouldResetClassHierarchies = true;
-              element.supertype = objectType;
-            }
-          }
-        case MixinFragmentImpl():
-          var element = interfaceFragment.element;
-          if (element.superclassConstraints.isEmpty) {
-            shouldResetClassHierarchies = true;
-            element.superclassConstraints = [objectType];
-          }
+
+    for (var classElement in element.classes) {
+      if (!classElement.isDartCoreObject) {
+        if (classElement.supertype == null) {
+          shouldResetClassHierarchies = true;
+          classElement.supertype = objectType;
+        }
       }
     }
+
+    for (var mixinElement in element.mixins) {
+      if (mixinElement.superclassConstraints.isEmpty) {
+        shouldResetClassHierarchies = true;
+        mixinElement.superclassConstraints = [objectType];
+      }
+    }
+
     if (shouldResetClassHierarchies) {
       element.session.classHierarchy.removeOfLibraries({uri});
     }

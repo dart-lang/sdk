@@ -6296,20 +6296,6 @@ class LibraryElementImpl extends ElementImpl
     return _firstFragment.source;
   }
 
-  Iterable<FragmentImpl> get topLevelElements sync* {
-    for (var unit in units) {
-      yield* unit.accessors;
-      yield* unit.classes;
-      yield* unit.enums;
-      yield* unit.extensions;
-      yield* unit.extensionTypes;
-      yield* unit.functions;
-      yield* unit.mixins;
-      yield* unit.topLevelVariables;
-      yield* unit.typeAliases;
-    }
-  }
-
   @override
   @trackedDirectlyExpensive
   List<TopLevelFunctionElementImpl> get topLevelFunctions {
@@ -6345,14 +6331,6 @@ class LibraryElementImpl extends ElementImpl
 
   set typeAliases(List<TypeAliasElementImpl> value) {
     _typeAliases = value;
-  }
-
-  /// The compilation units this library consists of.
-  ///
-  /// This includes the defining compilation unit and units included using the
-  /// `part` directive.
-  List<LibraryFragmentImpl> get units {
-    return [_firstFragment, ..._partUnits];
   }
 
   @override
@@ -6641,7 +6619,7 @@ class LibraryElementImpl extends ElementImpl
   @trackedInternal
   void resetScope() {
     _libraryDeclarations = null;
-    for (var fragment in units) {
+    for (var fragment in fragments) {
       fragment._scope = null;
     }
   }
@@ -7009,9 +6987,9 @@ class LibraryFragmentImpl extends FragmentImpl
 
   @override
   LibraryFragment? get nextFragment {
-    var units = library.units;
-    var index = units.indexOf(this);
-    return units.elementAtOrNull(index + 1);
+    var fragments = library.fragments;
+    var index = fragments.indexOf(this);
+    return fragments.elementAtOrNull(index + 1);
   }
 
   @override
@@ -7050,10 +7028,10 @@ class LibraryFragmentImpl extends FragmentImpl
 
   @override
   LibraryFragment? get previousFragment {
-    var units = library.units;
-    var index = units.indexOf(this);
+    var fragments = library.fragments;
+    var index = fragments.indexOf(this);
     if (index >= 1) {
-      return units[index - 1];
+      return fragments[index - 1];
     }
     return null;
   }

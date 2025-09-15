@@ -90,7 +90,7 @@ class ExportLocation {
   }
 
   LibraryExportImpl exportOf(LibraryElementImpl library) {
-    var fragment = library.units[fragmentIndex];
+    var fragment = library.fragments[fragmentIndex];
     return fragment.libraryExports[exportIndex];
   }
 

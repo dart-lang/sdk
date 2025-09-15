@@ -629,7 +629,7 @@ class AnalysisDriver {
 
         packageBundleBuilder.addLibrary(
           uriStr,
-          libraryElement.units.map((e) {
+          libraryElement.fragments.map((e) {
             return e.source.uri.toString();
           }).toList(),
         );

@@ -44,7 +44,7 @@ class InformativeDataApplier {
     }
     elementFactory.isApplyingInformativeData = true;
 
-    for (var unitElement in libraryElement.units) {
+    for (var unitElement in libraryElement.fragments) {
       var uri = unitElement.source.uri;
       if (unitsInformativeBytes[uri] case var infoBytes?) {
         _applyFromBytes(unitElement, infoBytes);
