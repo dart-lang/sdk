@@ -1245,6 +1245,14 @@ void InvokeMathCFunctionInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   Definition::PrintOperandsTo(f);
 }
 
+void TsanFuncEntryExitInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+  if (kind_ == kEntry) {
+    f->AddString("entry");
+  } else {
+    f->AddString("exit");
+  }
+}
+
 void TsanReadWriteInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   instance()->PrintTo(f);
   f->Printf(" . %s", slot().Name());
@@ -1255,11 +1263,14 @@ void TsanReadWriteInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   }
 }
 
-void TsanFuncEntryExitInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  if (kind_ == kEntry) {
-    f->AddString("entry");
+void TsanReadWriteIndexedInstr::PrintOperandsTo(BaseTextBuffer* f) const {
+  array()->PrintTo(f);
+  f->AddString(", ");
+  index()->PrintTo(f);
+  if (kind_ == kRead) {
+    f->AddString(", read");
   } else {
-    f->AddString("exit");
+    f->AddString(", write");
   }
 }
 
