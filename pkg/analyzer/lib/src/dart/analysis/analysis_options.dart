@@ -223,7 +223,7 @@ final class AnalysisOptionsBuilder {
     }
 
     var configurations = <PluginConfiguration>[];
-    String? dependencyOverrides;
+    Map<String, PluginSource>? dependencyOverrides;
 
     plugins.nodes.forEach((nameNode, pluginNode) {
       if (nameNode is! YamlScalar) {
@@ -233,63 +233,26 @@ final class AnalysisOptionsBuilder {
       var pluginName = nameNode.toString();
       if (pluginName == 'dependency_overrides') {
         // This is a magic key; not the name of a plugin.
-        var indent = pluginNode.span.start.column;
-        dependencyOverrides = ' ' * indent + pluginNode.span.text;
-      }
+        if (pluginNode is! YamlMap) return;
+        pluginNode.nodes.forEach((nameNode, dependencyOverride) {
+          if (nameNode is! YamlScalar) {
+            return;
+          }
+          var source = _getSource(dependencyOverride, resourceProvider);
+          if (source == null) return;
+          (dependencyOverrides ??= {})[nameNode.toString()] = source;
+        });
 
-      // If the plugin name just maps to a String, then that is the version
-      // constraint; use it and move on.
-      if (pluginNode case YamlScalar(:String value)) {
-        configurations.add(
-          PluginConfiguration(
-            name: pluginName,
-            source: VersionedPluginSource(constraint: value),
-          ),
-        );
         return;
       }
+
+      var source = _getSource(pluginNode, resourceProvider);
+      if (source == null) return;
 
       if (pluginNode is! YamlMap) {
-        return;
-      }
-
-      // Grab either the source value from 'version', 'git', or 'path'. In the
-      // erroneous case that multiple are specified, just take the first. A
-      // warning should be reported by `OptionsFileValidator`.
-      // TODO(srawlins): In adition to 'version' and 'path', try 'git'.
-
-      PluginSource? source;
-      var versionSource = pluginNode.valueAt(AnalysisOptionsFile.version);
-      if (versionSource case YamlScalar(:String value)) {
-        // TODO(srawlins): Handle the 'hosted' key.
-        source = VersionedPluginSource(constraint: value);
-      } else {
-        var pathSource = pluginNode.valueAt(AnalysisOptionsFile.path);
-        if (pathSource case YamlScalar(value: String pathValue)) {
-          var file = this.file;
-          assert(
-            file != null,
-            "AnalysisOptionsImpl must be initialized with a non-null 'file' if "
-            'plugins are specified with path constraints.',
-          );
-          if (file != null &&
-              resourceProvider != null &&
-              resourceProvider.pathContext.isRelative(pathValue)) {
-            // We need to store the absolute path, before this value is used in
-            // a synthetic pub package.
-            pathValue = resourceProvider.pathContext.join(
-              file.parent.path,
-              pathValue,
-            );
-            pathValue = resourceProvider.pathContext.normalize(pathValue);
-          }
-          source = PathPluginSource(path: pathValue);
-        }
-      }
-
-      if (source == null) {
-        // Either the source data is malformed, or neither 'version' nor 'git'
-        // was provided. A warning should be reported by OptionsFileValidator.
+        configurations.add(
+          PluginConfiguration(name: pluginName, source: source),
+        );
         return;
       }
 
@@ -347,6 +310,53 @@ final class AnalysisOptionsBuilder {
     unignorableDiagnosticCodeNames.addAll(
       stringValues.map((name) => name.toUpperCase()),
     );
+  }
+
+  PluginSource? _getSource(
+    YamlNode pluginNode,
+    ResourceProvider? resourceProvider,
+  ) {
+    // If it just maps to a String, then that is the version constraint.
+    if (pluginNode case YamlScalar(:String value)) {
+      return VersionedPluginSource(constraint: value);
+    }
+
+    if (pluginNode is! YamlMap) {
+      return null;
+    }
+
+    // Grab either the source value from 'version', 'git', or 'path'. In the
+    // erroneous case that multiple are specified, just take the first. A
+    // warning should be reported by `OptionsFileValidator`.
+    // TODO(srawlins): In adition to 'version' and 'path', try 'git'.
+
+    var versionSource = pluginNode.valueAt(AnalysisOptionsFile.version);
+    if (versionSource case YamlScalar(:String value)) {
+      // TODO(srawlins): Handle the 'hosted' key.
+      return VersionedPluginSource(constraint: value);
+    }
+    var pathSource = pluginNode.valueAt(AnalysisOptionsFile.path);
+    if (pathSource case YamlScalar(value: String pathValue)) {
+      var file = this.file;
+      assert(
+        file != null,
+        "AnalysisOptionsImpl must be initialized with a non-null 'file' if "
+        'plugins are specified with path constraints.',
+      );
+      if (file != null &&
+          resourceProvider != null &&
+          resourceProvider.pathContext.isRelative(pathValue)) {
+        // We need to store the absolute path, before this value is used in
+        // a synthetic pub package.
+        pathValue = resourceProvider.pathContext.join(
+          file.parent.path,
+          pathValue,
+        );
+        pathValue = resourceProvider.pathContext.normalize(pathValue);
+      }
+      return PathPluginSource(path: pathValue);
+    }
+    return null;
   }
 }
 
@@ -622,7 +632,24 @@ class AnalysisOptionsImpl implements AnalysisOptions {
           buffer.addInt(diagnosticConfig.severity.index);
         }
         if (pluginsOptions.dependencyOverrides case var dependencyOverrides?) {
-          buffer.addString(dependencyOverrides);
+          for (var pluginDependencyOverrideEntry
+              in dependencyOverrides.entries.sortedBy((entry) => entry.key)) {
+            buffer.addString(pluginDependencyOverrideEntry.key);
+            switch (pluginDependencyOverrideEntry.value) {
+              case GitPluginSource source:
+                buffer.addString(source._url);
+                if (source._path case var path?) {
+                  buffer.addString(path);
+                }
+                if (source._ref case var ref?) {
+                  buffer.addString(ref);
+                }
+              case PathPluginSource source:
+                buffer.addString(source._path);
+              case VersionedPluginSource source:
+                buffer.addString(source._constraint);
+            }
+          }
         }
       }
 
@@ -759,7 +786,7 @@ final class PluginsOptions {
   final List<PluginConfiguration> configurations;
 
   /// The dependency overrides, if specified.
-  final String? dependencyOverrides;
+  final Map<String, PluginSource>? dependencyOverrides;
 
   PluginsOptions({
     required this.configurations,
