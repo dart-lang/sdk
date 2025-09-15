@@ -48,7 +48,7 @@ class DocumentationCommentScope with _GettersAndSetters implements Scope {
         // TODO(kallentu): Handle combinators.
         for (var exportedReference in importedLibrary.exportedReferences) {
           var reference = exportedReference.reference;
-          var element = importedLibrary.session.elementFactory
+          var element = importedLibrary.internal.elementFactory
               .elementOfReference3(reference);
           if (element is SetterElement) {
             _addSetter(element);
@@ -179,7 +179,7 @@ class ImportsTrackingOfPrefix {
 
     // SAFETY: the scope adds only imports with libraries.
     var importedLibrary = import.importedLibrary!;
-    var elementFactory = importedLibrary.session.elementFactory;
+    var elementFactory = importedLibrary.internal.elementFactory;
 
     for (var exportedReference in importedLibrary.exportedReferences) {
       var reference = exportedReference.reference;
@@ -246,7 +246,7 @@ class ImportsTrackingOfPrefix {
   void _buildElementToImportsMap() {
     for (var import in scope._importElements) {
       var importedLibrary = import.importedLibrary!;
-      var elementFactory = importedLibrary.session.elementFactory;
+      var elementFactory = importedLibrary.internal.elementFactory;
       var combinators = import.combinators.build();
       for (var exportedReference in importedLibrary.exportedReferences) {
         var reference = exportedReference.reference;

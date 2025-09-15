@@ -30,6 +30,7 @@ import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
+import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
@@ -52,6 +53,7 @@ import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/export.dart';
+import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -4895,7 +4897,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   @override
   @trackedIncludedInId
   List<InterfaceTypeImpl> get allSupertypes {
-    return _allSupertypes ??= library.session.classHierarchy
+    return _allSupertypes ??= library.internal.classHierarchy
         .implementedInterfaces(this);
   }
 
@@ -4970,7 +4972,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   @trackedIndirectly
   InheritanceManager3 get inheritanceManager {
-    return library.session.inheritanceManager;
+    return library.internal.inheritanceManager;
   }
 
   @override
@@ -5889,11 +5891,9 @@ class LibraryElementImpl extends ElementImpl
 
   MetadataImpl _metadata = MetadataImpl(const []);
 
-  @override
-  String? documentationComment;
+  String? _documentationComment;
 
-  @override
-  AnalysisSessionImpl session;
+  AnalysisSessionImpl _session;
 
   /// The first (defining) fragment of this library.
   @override
@@ -5928,15 +5928,9 @@ class LibraryElementImpl extends ElementImpl
   /// for this library.
   late final LoadLibraryFunctionProvider loadLibraryProvider;
 
-  // TODO(scheglov): replace with `LibraryName` or something.
-  @override
-  String name;
-
-  // TODO(scheglov): replace with `LibraryName` or something.
-  int nameOffset;
-
-  // TODO(scheglov): replace with `LibraryName` or something.
-  int nameLength;
+  String _name;
+  int _nameOffset;
+  int _nameLength;
 
   List<ClassElementImpl> _classes = [];
   List<EnumElementImpl> _enums = [];
@@ -5979,10 +5973,10 @@ class LibraryElementImpl extends ElementImpl
   /// the given [name] and [offset].
   LibraryElementImpl(
     this._context,
-    this.session,
-    this.name,
-    this.nameOffset,
-    this.nameLength,
+    this._session,
+    this._name,
+    this._nameOffset,
+    this._nameLength,
     this.featureSet,
   );
 
@@ -6034,6 +6028,17 @@ class LibraryElementImpl extends ElementImpl
   @trackedIncludedInId
   DeclaredVariables get declaredVariables {
     return _context.declaredVariables;
+  }
+
+  @override
+  @trackedDirectlyOpaque
+  String? get documentationComment {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'documentationComment');
+    return _documentationComment;
+  }
+
+  set documentationComment(String? value) {
+    _documentationComment = value;
   }
 
   @override
@@ -6296,10 +6301,41 @@ class LibraryElementImpl extends ElementImpl
     _mixins = value;
   }
 
+  @override
+  @trackedDirectly
+  String get name {
+    globalResultRequirements?.record_library_getName(element: this);
+    return _name;
+  }
+
+  set name(String name) {
+    _name = name;
+  }
+
   @Deprecated('Use name instead')
   @override
   @trackedIndirectly
   String? get name3 => name;
+
+  @trackedDirectlyOpaque
+  int get nameLength {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'nameLength');
+    return _nameLength;
+  }
+
+  set nameLength(int nameLength) {
+    _nameLength = nameLength;
+  }
+
+  @trackedDirectlyOpaque
+  int get nameOffset {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'nameOffset');
+    return _nameOffset;
+  }
+
+  set nameOffset(int nameOffset) {
+    _nameOffset = nameOffset;
+  }
 
   @override
   @trackedIncludedInId
@@ -6313,6 +6349,17 @@ class LibraryElementImpl extends ElementImpl
 
   set publicNamespace(Namespace publicNamespace) {
     _publicNamespace = publicNamespace;
+  }
+
+  @override
+  @trackedDirectlyOpaque
+  AnalysisSessionImpl get session {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'session');
+    return _session;
+  }
+
+  set session(AnalysisSessionImpl value) {
+    _session = value;
   }
 
   @override
@@ -6723,9 +6770,21 @@ class LibraryElementImplInternal {
 
   LibraryElementImplInternal(this._library);
 
+  ClassHierarchy get classHierarchy {
+    return _library._session.classHierarchy;
+  }
+
+  LinkedElementFactory get elementFactory {
+    return _library._session.elementFactory;
+  }
+
   LibraryFragmentImpl get firstFragment => _library._firstFragment;
 
   List<LibraryFragmentImpl> get fragments => _library._fragments;
+
+  InheritanceManager3 get inheritanceManager {
+    return _library._session.inheritanceManager;
+  }
 }
 
 class LibraryExportImpl extends ElementDirectiveImpl implements LibraryExport {

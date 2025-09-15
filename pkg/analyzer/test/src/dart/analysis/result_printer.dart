@@ -59,6 +59,9 @@ class BundleRequirementsPrinter {
         var libraryRequirements = libEntry.value;
         sink.writelnWithIndent('$libraryUri');
         sink.withIndent(() {
+          if (libraryRequirements.name case var name?) {
+            sink.writelnWithIndent('name: $name');
+          }
           _writeExportedTopLevels(libraryRequirements);
           _writeLibraryDeclaredItems(libraryRequirements);
           _writeInstanceItems(libraryRequirements);
@@ -633,6 +636,13 @@ class DriverEventsPrinter {
       case LibraryMissing():
         sink.writelnWithIndent('libraryMissing');
         sink.writeProperties({'uri': failure.uri});
+      case LibraryNameMismatch():
+        sink.writelnWithIndent('libraryNameMismatch');
+        sink.writeProperties({
+          'libraryUri': failure.libraryUri,
+          'expected': failure.expected ?? '<null>',
+          'actual': failure.actual ?? '<null>',
+        });
       case ExportCountMismatch():
         sink.writelnWithIndent('exportCountMismatch');
         sink.writeProperties({
@@ -1098,6 +1108,10 @@ class LibraryManifestPrinter {
   });
 
   void write(LibraryManifest manifest) {
+    if (manifest.name case var name?) {
+      sink.writelnWithIndent('name: $name');
+    }
+
     var classEntries = manifest.declaredClasses.sorted;
     sink.writeElements('declaredClasses', classEntries, (entry) {
       var item = entry.value;

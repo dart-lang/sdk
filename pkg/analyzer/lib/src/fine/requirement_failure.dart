@@ -306,6 +306,24 @@ class LibraryMissing extends RequirementFailure {
   }
 }
 
+class LibraryNameMismatch extends RequirementFailure {
+  final Uri libraryUri;
+  final String? expected;
+  final String? actual;
+
+  LibraryNameMismatch({
+    required this.libraryUri,
+    required this.expected,
+    required this.actual,
+  });
+
+  @override
+  String toString() {
+    return 'LibraryNameMismatch(libraryUri: $libraryUri, '
+        'expected: $expected, actual: $actual)';
+  }
+}
+
 final class OpaqueApiUseFailure extends RequirementFailure {
   final List<OpaqueApiUse> uses;
 

@@ -17,10 +17,13 @@ import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 
 /// The manifest of a single library.
 class LibraryManifest {
+  String? name;
+
   /// The names that are re-exported by this library.
   /// This does not include names that are declared in this library.
   final Map<LookupName, ManifestItemId> reExportMap;
@@ -43,6 +46,7 @@ class LibraryManifest {
   ManifestItemIdList exportedExtensions;
 
   LibraryManifest({
+    required this.name,
     required this.reExportMap,
     required this.reExportDeprecatedOnly,
     required this.declaredClasses,
@@ -60,6 +64,7 @@ class LibraryManifest {
 
   factory LibraryManifest.read(SummaryDataReader reader) {
     return LibraryManifest(
+      name: reader.readOptionalStringUtf8(),
       reExportMap: reader.readLookupNameToIdMap(),
       reExportDeprecatedOnly: reader.readLookupNameSet(),
       declaredClasses: reader.readLookupNameMap(
@@ -137,6 +142,7 @@ class LibraryManifest {
   }
 
   void write(BufferedSink sink) {
+    sink.writeOptionalStringUtf8(name);
     reExportMap.write(sink);
     reExportDeprecatedOnly.write(sink);
     declaredClasses.write(sink);
@@ -845,6 +851,7 @@ class LibraryManifestBuilder {
       }
 
       var newManifest = LibraryManifest(
+        name: libraryElement.name.nullIfEmpty,
         reExportMap: {},
         reExportDeprecatedOnly: <LookupName>{},
         declaredClasses: newClassItems,
@@ -1062,6 +1069,7 @@ class LibraryManifestBuilder {
   LibraryManifest _getInputManifest(Uri uri) {
     return inputManifests[uri] ??
         LibraryManifest(
+          name: null,
           reExportMap: {},
           reExportDeprecatedOnly: <LookupName>{},
           declaredClasses: {},

@@ -371,6 +371,8 @@ class LibraryExportRequirements {
 }
 
 class LibraryRequirements {
+  String? name;
+
   /// TopName => ID
   final Map<LookupName, ManifestItemId?> exportedTopLevels;
 
@@ -409,6 +411,7 @@ class LibraryRequirements {
   ManifestItemIdList? allDeclaredSetters;
 
   LibraryRequirements({
+    this.name,
     required this.exportedTopLevels,
     required this.instances,
     required this.interfaces,
@@ -468,6 +471,7 @@ class LibraryRequirements {
 
   factory LibraryRequirements.read(SummaryDataReader reader) {
     return LibraryRequirements(
+      name: reader.readOptionalStringUtf8(),
       exportedTopLevels: reader.readNameToOptionalIdMap(),
       instances: reader.readMap(
         readKey: () => LookupName.read(reader),
@@ -506,6 +510,7 @@ class LibraryRequirements {
   }
 
   void write(BufferedSink sink) {
+    sink.writeOptionalStringUtf8(name);
     sink.writeNameToIdMap(exportedTopLevels);
 
     sink.writeMap(
@@ -686,6 +691,17 @@ class RequirementsManifest {
       var libraryManifest = libraryElement?.manifest;
       if (libraryManifest == null) {
         return LibraryMissing(uri: libraryUri);
+      }
+
+      if (libraryRequirements.name case var expected?) {
+        var actual = libraryManifest.name;
+        if (expected != actual) {
+          return LibraryNameMismatch(
+            libraryUri: libraryUri,
+            expected: expected,
+            actual: actual,
+          );
+        }
       }
 
       for (var topLevelEntry in libraryRequirements.exportedTopLevels.entries) {
@@ -1846,6 +1862,20 @@ class RequirementsManifest {
     var lookupName = name.asLookupName;
     var id = manifest.declaredMixins[lookupName]?.id;
     requirements.requestedDeclaredMixins[lookupName] = id;
+  }
+
+  void record_library_getName({required LibraryElementImpl element}) {
+    if (_recordingLockLevel != 0) {
+      return;
+    }
+
+    var manifest = element.manifest;
+    if (manifest == null) {
+      return;
+    }
+
+    var requirements = _getLibraryRequirements(element);
+    requirements.name = manifest.name;
   }
 
   void record_library_getSetter({

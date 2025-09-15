@@ -811,8 +811,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
   }
 
-  InheritanceManager3 get _inheritanceManager =>
-      element.library.session.inheritanceManager;
+  InheritanceManager3 get _inheritanceManager {
+    return element.library.internal.inheritanceManager;
+  }
 
   @override
   bool operator ==(Object other) {

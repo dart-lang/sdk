@@ -207,7 +207,7 @@ extension on InterfaceType? {
     var element = self.element;
 
     var library = element.library as LibraryElementImpl;
-    var inheritanceManager = library.session.inheritanceManager;
+    var inheritanceManager = library.internal.inheritanceManager;
 
     var concrete = inheritanceManager.getMember(
       element,
