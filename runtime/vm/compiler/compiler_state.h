@@ -126,15 +126,9 @@ class CompilerState : public ThreadStackResource {
   const Function& TypedListGetFloat64x2();
   const Function& TypedListSetFloat64x2();
 
-  const Class& ArrayClass();
-  const Class& CompoundClass();
   const Class& ErrorClass();
-  const Class& StructClass();
   const Class& TypedDataClass();
-  const Class& UnionClass();
 
-  const Field& CompoundOffsetInBytesField();
-  const Field& CompoundTypedDataBaseField();
   const Field& ErrorStackTraceField();
 
   const Function* function() const { return function_; }

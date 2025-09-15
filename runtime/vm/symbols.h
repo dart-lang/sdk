@@ -47,7 +47,7 @@ class ObjectPointerVisitor;
   V(ConditionVariable, "ConditionVariable")                                    \
   V(_AsyncCompleter, "_AsyncCompleter")                                        \
   V(_SyncCompleter, "_SyncCompleter")                                          \
-  V(Compound, "_Compound")                                                     \
+  V(_Compound, "_Compound")                                                    \
   V(CompressedStackMaps, "CompressedStackMaps")                                \
   V(Context, "Context")                                                        \
   V(ContextScope, "ContextScope")                                              \

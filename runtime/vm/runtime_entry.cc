@@ -1206,6 +1206,15 @@ struct FfiCallArguments {
 extern "C" void FfiCallTrampoline(FfiCallArguments* args);
 #else
 extern "C" typedef void (*ffiCallTrampoline)(FfiCallArguments* args);
+
+void FfiCallTrampoline(FfiCallArguments* args) {
+#if defined(HOST_ARCH_X64)
+  reinterpret_cast<ffiCallTrampoline>(
+      StubCode::FfiCallTrampoline().EntryPoint())(args);
+#else
+  UNIMPLEMENTED();
+#endif
+}
 #endif
 
 static int64_t TruncateFfiInt(int64_t value,
@@ -1261,7 +1270,23 @@ static void PassFfiCallArguments(
       } else if (marshaller.IsTypedDataPointer(i)) {
         value = reinterpret_cast<uword>(TypedDataBase::Cast(arg).DataAddr(0));
       } else if (marshaller.IsCompoundPointer(i)) {
-        UNIMPLEMENTED();
+        ObjectStore* object_store = thread->isolate_group()->object_store();
+        auto& obj = Object::Handle(zone);
+        obj = object_store->compound_offset_in_bytes_field();
+        ASSERT(!obj.IsNull());
+        obj = Instance::Cast(arg).GetField(Field::Cast(obj));
+        const uword offset_in_bytes =
+            static_cast<uword>(Integer::Cast(obj).Value());
+        obj = object_store->compound_typed_data_base_field();
+        ASSERT(!obj.IsNull());
+        obj = Instance::Cast(arg).GetField(Field::Cast(obj));
+        if (obj.IsPointer()) {
+          value = Pointer::Cast(obj).NativeAddress() + offset_in_bytes;
+        } else {
+          ASSERT(obj.IsTypedDataBase());
+          value = reinterpret_cast<uword>(
+              TypedDataBase::Cast(obj).DataAddr(offset_in_bytes));
+        }
       } else if (marshaller.IsBool(i)) {
         value = Bool::Cast(arg).value() ? static_cast<uword>(-1) : 0;
       } else {
@@ -1306,6 +1331,15 @@ static void PassFfiCallArguments(
       }
     }
   }
+
+#if defined(TARGET_ARCH_X64)
+  if (marshaller.contains_varargs() &&
+      CallingConventions::kVarArgFpuRegisterCount != kNoRegister) {
+    // TODO(http://dartbug.com/38578): Use the number of used FPU registers.
+    args->cpu_registers[CallingConventions::kVarArgFpuRegisterCount] =
+        CallingConventions::kFpuArgumentRegisters;
+  }
+#endif  // defined(TARGET_ARCH_X64)
 }
 
 static ObjectPtr ReceiveFfiCallResult(
@@ -1449,6 +1483,7 @@ DEFINE_RUNTIME_ENTRY(FfiCall, 2) {
       function.IsFfiCallClosure() ? 1 : 0;
   const auto& c_signature =
       FunctionType::ZoneHandle(zone, function.FfiCSignature());
+  const bool is_leaf = function.FfiIsLeaf();
 
   // Used by compiler::ffi::CallMarshaller.
   CompilerState compiler_state(thread, /*is_aot=*/FLAG_precompiled_mode,
@@ -1480,27 +1515,17 @@ DEFINE_RUNTIME_ENTRY(FfiCall, 2) {
   Api::Scope api_scope(thread);
 
   argv = argv - first_argument_parameter_offset - marshaller.num_args();
-  PassFfiCallArguments(thread, marshaller, argv, &args);
 
-#if defined(TARGET_ARCH_X64)
-  if (marshaller.contains_varargs() &&
-      CallingConventions::kVarArgFpuRegisterCount != kNoRegister) {
-    // TODO(http://dartbug.com/38578): Use the number of used FPU registers.
-    args.cpu_registers[CallingConventions::kVarArgFpuRegisterCount] =
-        CallingConventions::kFpuArgumentRegisters;
-  }
-#endif  // defined(TARGET_ARCH_X64)
+  if (is_leaf) {
+    NoSafepointScope no_safepoint;
 
-  {
-    TransitionVMToNative transition(thread);
-#if defined(HOST_ARCH_ARM64)
+    PassFfiCallArguments(thread, marshaller, argv, &args);
     FfiCallTrampoline(&args);
-#elif defined(HOST_ARCH_X64)
-    reinterpret_cast<ffiCallTrampoline>(
-        StubCode::FfiCallTrampoline().EntryPoint())(&args);
-#else
-    UNIMPLEMENTED();
-#endif
+  } else {
+    PassFfiCallArguments(thread, marshaller, argv, &args);
+
+    TransitionVMToNative transition(thread);
+    FfiCallTrampoline(&args);
   }
 
   arguments.SetReturn(
