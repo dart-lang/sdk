@@ -18897,6 +18897,251 @@ class C {}
     );
   }
 
+  test_dependency_export_class_reExport_chain_external() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+class A1 {}
+class A2 {}
+class A3 {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+export 'a.dart';
+class B {}
+''');
+
+    newFile('$testPackageLibPath/test.dart', r'''
+export 'b.dart';
+''');
+
+    configuration.elementTextConfiguration.withExportScope = true;
+    await _runChangeScenario(
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A1: #M0
+        interface: #M1
+      A2: #M2
+        interface: #M3
+      A3: #M4
+        interface: #M5
+  requirements
+[operation] linkLibraryCycle
+  package:test/b.dart
+    declaredClasses
+      B: #M6
+        interface: #M7
+    reExportMap
+      A1: #M0
+      A2: #M2
+      A3: #M4
+  requirements
+    exportRequirements
+      package:test/b.dart
+        declaredTopNames: B
+        exports
+          package:test/a.dart
+            A1: #M0
+            A2: #M2
+            A3: #M4
+[operation] linkLibraryCycle
+  package:test/test.dart
+    reExportMap
+      A1: #M0
+      A2: #M2
+      A3: #M4
+      B: #M6
+  requirements
+    exportRequirements
+      package:test/test.dart
+        exports
+          package:test/b.dart
+            A1: #M0
+            A2: #M2
+            A3: #M4
+            B: #M6
+[status] idle
+[future] getLibraryByUri T1
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@class::A1
+      exported[(0, 0)] package:test/a.dart::@class::A2
+      exported[(0, 0)] package:test/a.dart::@class::A3
+      exported[(0, 0)] package:test/b.dart::@class::B
+    exportNamespace
+      A1: package:test/a.dart::@class::A1
+      A2: package:test/a.dart::@class::A2
+      A3: package:test/a.dart::@class::A3
+      B: package:test/b.dart::@class::B
+''',
+      updateFiles: () {
+        modifyFile2(a, r'''
+abstract class A2 {}
+class A3 {}
+''');
+        return [a];
+      },
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A2: #M8
+        interface: #M9
+      A3: #M4
+        interface: #M5
+  requirements
+[operation] checkLinkedBundleRequirements
+  package:test/b.dart
+  exportIdMismatch
+    fragmentUri: package:test/b.dart
+    exportedUri: package:test/a.dart
+    name: A2
+    expectedId: #M2
+    actualId: #M8
+[operation] linkLibraryCycle
+  package:test/b.dart
+    declaredClasses
+      B: #M6
+        interface: #M7
+    reExportMap
+      A2: #M8
+      A3: #M4
+  requirements
+    exportRequirements
+      package:test/b.dart
+        declaredTopNames: B
+        exports
+          package:test/a.dart
+            A2: #M8
+            A3: #M4
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
+  exportIdMismatch
+    fragmentUri: package:test/test.dart
+    exportedUri: package:test/b.dart
+    name: A2
+    expectedId: #M2
+    actualId: #M8
+[operation] linkLibraryCycle
+  package:test/test.dart
+    reExportMap
+      A2: #M8
+      A3: #M4
+      B: #M6
+  requirements
+    exportRequirements
+      package:test/test.dart
+        exports
+          package:test/b.dart
+            A2: #M8
+            A3: #M4
+            B: #M6
+[status] idle
+[future] getLibraryByUri T2
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@class::A2
+      exported[(0, 0)] package:test/a.dart::@class::A3
+      exported[(0, 0)] package:test/b.dart::@class::B
+    exportNamespace
+      A2: package:test/a.dart::@class::A2
+      A3: package:test/a.dart::@class::A3
+      B: package:test/b.dart::@class::B
+''',
+    );
+  }
+
+  test_dependency_export_class_reExport_chain_thisCycle() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+import 'test.dart';
+class A1 {}
+class A2 {}
+class A3 {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+export 'a.dart';
+class B {}
+''');
+
+    newFile('$testPackageLibPath/test.dart', r'''
+export 'b.dart';
+''');
+
+    await _runChangeScenario(
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A1: #M0
+        interface: #M1
+      A2: #M2
+        interface: #M3
+      A3: #M4
+        interface: #M5
+  package:test/b.dart
+    declaredClasses
+      B: #M6
+        interface: #M7
+    reExportMap
+      A1: #M0
+      A2: #M2
+      A3: #M4
+  package:test/test.dart
+    reExportMap
+      A1: #M0
+      A2: #M2
+      A3: #M4
+      B: #M6
+  requirements
+[status] idle
+[future] getLibraryByUri T1
+  library
+''',
+      updateFiles: () {
+        modifyFile2(a, r'''
+import 'test.dart';
+abstract class A2 {}
+class A3 {}
+''');
+        return [a];
+      },
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A2: #M8
+        interface: #M9
+      A3: #M4
+        interface: #M5
+  package:test/b.dart
+    declaredClasses
+      B: #M6
+        interface: #M7
+    reExportMap
+      A2: #M8
+      A3: #M4
+  package:test/test.dart
+    reExportMap
+      A2: #M8
+      A3: #M4
+      B: #M6
+  requirements
+[status] idle
+[future] getLibraryByUri T2
+  library
+''',
+    );
+  }
+
   test_dependency_export_class_reExport_combinatorShow() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 class A {}

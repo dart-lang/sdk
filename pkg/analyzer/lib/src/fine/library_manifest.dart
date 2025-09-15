@@ -605,35 +605,23 @@ class LibraryManifestBuilder {
         var element = entry.value;
 
         // Skip elements that exist in nowhere.
-        var elementLibraryUri = element.library?.uri;
-        if (elementLibraryUri == null) {
-          continue;
-        }
-
-        // Skip elements declared in this library.
-        if (elementLibraryUri == libraryUri) {
+        var elementLibrary = element.library as LibraryElementImpl?;
+        if (elementLibrary == null) {
           continue;
         }
 
         // Skip if the element is declared in this library.
-        if (element.library == libraryElement) {
+        if (identical(elementLibrary, libraryElement)) {
           continue;
         }
 
-        // Maybe exported from a library outside the current cycle.
-        var id = elementFactory.getElementId(element);
+        // Every library has a manifest at this point.
+        // We already set manifests for the current cycle.
+        var elementLibraryManifest = elementLibrary.manifest!;
 
-        // If not, then look into new manifest.
-        if (id == null) {
-          var newManifest = newManifests[elementLibraryUri];
-          id ??= newManifest?.getExportedId(name);
-          // TODO(scheglov): repeat for re-re-exports
-        }
-
-        if (id == null) {
-          // TODO(scheglov): complete
-          continue;
-        }
+        // We use the manifest of the library that declares this element.
+        // So, the element must be declared in the manifest.
+        var id = elementLibraryManifest.getDeclaredId(name)!;
         manifest.reExportMap[name] = id;
       }
     }

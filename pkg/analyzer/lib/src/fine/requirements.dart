@@ -1938,16 +1938,18 @@ class RequirementsManifest {
   /// requirements to the libraries of this same library cycle. We already
   /// link these libraries together, so only requirements to the previous
   /// libraries are interesting.
-  void removeReqForLibs(Set<Uri> bundleLibraryUriList) {
-    var uriSet = bundleLibraryUriList.toSet();
-
+  void removeReqForLibs(Set<Uri> bundleLibraryUriSet) {
     for (var exportRequirement in exportRequirements) {
       exportRequirement.exports.removeWhere((export) {
-        return uriSet.contains(export.exportedUri);
+        return bundleLibraryUriSet.contains(export.exportedUri);
       });
     }
 
-    for (var libUri in bundleLibraryUriList) {
+    exportRequirements.removeWhere(
+      (exportRequirement) => exportRequirement.exports.isEmpty,
+    );
+
+    for (var libUri in bundleLibraryUriSet) {
       libraries.remove(libUri);
     }
   }
