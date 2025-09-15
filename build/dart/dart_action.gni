@@ -143,6 +143,9 @@ template("_prebuilt_tool_action") {
     if (defined(invoker.packages)) {
       inputs += [ invoker.packages ]
     }
+    if (defined(invoker.dfe)) {
+      inputs += [ invoker.dfe ]
+    }
 
     args = [ "compiled_action" ]
 
@@ -379,7 +382,7 @@ template("dart_action") {
       if (!defined(invoker.deps)) {
         deps = []
       }
-      deps += [ "$_dart_root/utils/kernel-service:kernel-service" ]
+      deps += [ "$_dart_root/utils/kernel-service" ]
     }
   }
 }
