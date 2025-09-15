@@ -12,6 +12,7 @@ import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer_testing/utilities/extensions/resource_provider.dart';
+import 'package:collection/collection.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -317,6 +318,56 @@ code-style:
   format: true
 ''');
     expect(analysisOptions.codeStyleOptions.useFormatter, true);
+  }
+
+  test_plugins_dependency_overrides_relative() {
+    var analysisOptions = parseOptions('''
+plugins:
+  plugin_one:
+    path: foo/bar
+  dependency_overrides:
+    some_package1:
+      path: ../some_package1
+    some_package2:
+      path: sub_folder/some_package2
+''');
+
+    var dependencyOverrides =
+        analysisOptions.pluginsOptions.dependencyOverrides;
+    expect(dependencyOverrides, isNotNull);
+    expect(dependencyOverrides, hasLength(2));
+    var package1 = dependencyOverrides!.entries.singleWhereOrNull(
+      (entry) => entry.key == 'some_package1',
+    );
+    var package2 = dependencyOverrides.entries.singleWhereOrNull(
+      (entry) => entry.key == 'some_package2',
+    );
+    expect(package1, isNotNull);
+    expect(package1!.key, 'some_package1');
+    expect(
+      package1.value,
+      isA<PathPluginSource>().having(
+        (e) => e.toYaml(name: 'some_package1'),
+        'toYaml',
+        '''
+  some_package1:
+    path: ${convertPath('/some_package1')}
+''',
+      ),
+    );
+    expect(package2, isNotNull);
+    expect(package2!.key, 'some_package2');
+    expect(
+      package2.value,
+      isA<PathPluginSource>().having(
+        (e) => e.toYaml(name: 'some_package2'),
+        'toYaml',
+        '''
+  some_package2:
+    path: ${convertPath('/project/sub_folder/some_package2')}
+''',
+      ),
+    );
   }
 
   test_plugins_pathConstraint() {

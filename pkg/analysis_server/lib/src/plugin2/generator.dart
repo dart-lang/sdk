@@ -13,11 +13,11 @@ class PluginPackageGenerator {
   /// file.
   final List<PluginConfiguration> _configurations;
 
-  final String? _dependencyOverrides;
+  final Map<String, PluginSource>? _dependencyOverrides;
 
   PluginPackageGenerator({
     required List<PluginConfiguration> configurations,
-    String? dependencyOverrides,
+    Map<String, PluginSource>? dependencyOverrides,
   }) : _configurations = configurations,
        _dependencyOverrides = dependencyOverrides;
 
@@ -79,10 +79,10 @@ dependencies:
     }
 
     if (_dependencyOverrides != null) {
-      buffer.write('''
-dependency_overrides:
-$_dependencyOverrides
-''');
+      buffer.write('dependency_overrides:\n');
+      for (var configuration in _dependencyOverrides.entries) {
+        buffer.write(configuration.value.toYaml(name: configuration.key));
+      }
     }
 
     return buffer.toString();
