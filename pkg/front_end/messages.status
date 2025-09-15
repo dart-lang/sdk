@@ -33,23 +33,23 @@ front_end/DynamicCallsAreNotAllowedInDynamicModule/example: missingExample # Can
 front_end/ExceptionReadingFile/example: missingExample # Requires an exception (generally not a FileSystemException) to occur when reading a file.
 front_end/ExpectedBlockToSkip/example: missingExample # Seemingly only used when skipping a block in a special parser.
 front_end/ExpectedOneExpression/example: missingExample # Used via expression compilation.
-front_end/ExpectedStatement/part_wrapped_statement: hasOnlyUnrelatedMessages # Only issued in Analyzer
-front_end/ExpectedStatement/statement: hasOnlyUnrelatedMessages # Only issued in Analyzer
+_fe_analyzer_shared/ExpectedStatement/part_wrapped_statement: hasOnlyUnrelatedMessages # Only issued in Analyzer
+_fe_analyzer_shared/ExpectedStatement/statement: hasOnlyUnrelatedMessages # Only issued in Analyzer
 front_end/ExperimentDisabled/example: missingExample # Uncovered.
 front_end/ExperimentDisabledInvalidLanguageVersion/example: missingExample # Uncovered.
 front_end/ExperimentExpiredDisabled/example: missingExample # Uncovered.
 front_end/ExperimentExpiredEnabled/example: missingExample # Uncovered.
-front_end/ExperimentNotEnabled/example: missingExample # issued via the parser, but overridden by StackListenerImpl --- so likely not possible via CFE outside of special tests?
+_fe_analyzer_shared/ExperimentNotEnabled/example: missingExample # issued via the parser, but overridden by StackListenerImpl --- so likely not possible via CFE outside of special tests?
 front_end/ExplicitExtensionAsLvalue/example: missingExample # Uncovered.
 front_end/ExpressionEvaluationKnownVariableUnavailable/example: missingExample # Expression compilation.
-front_end/ExtensionAugmentationHasOnClause/part_wrapped_script: hasOnlyUnrelatedMessages # Doesn't seem to be any (direct?) way to get this for now
-front_end/ExtensionAugmentationHasOnClause/script: hasOnlyUnrelatedMessages # Doesn't seem to be any (direct?) way to get this for now
+_fe_analyzer_shared/ExtensionAugmentationHasOnClause/part_wrapped_script: hasOnlyUnrelatedMessages # Doesn't seem to be any (direct?) way to get this for now
+_fe_analyzer_shared/ExtensionAugmentationHasOnClause/script: hasOnlyUnrelatedMessages # Doesn't seem to be any (direct?) way to get this for now
 front_end/ExtensionTypeShouldBeListedAsCallableInDynamicInterface/example: missingExample # Can't do dynamic modules stuff in messages suite.
 front_end/FastaCLIArgumentRequired/example: missingExample # Used in the compile tool
 front_end/FastaUsageLong/example: missingExample # Help for the compile tool
 front_end/FastaUsageShort/example: missingExample # Help for the compile tool
-front_end/IllegalAssignmentToNonAssignable/part_wrapped_script1: hasOnlyUnrelatedMessages # Possibly not reachable in the CFE
-front_end/IllegalAssignmentToNonAssignable/script1: hasOnlyUnrelatedMessages # Possibly not reachable in the CFE
+_fe_analyzer_shared/IllegalAssignmentToNonAssignable/part_wrapped_script1: hasOnlyUnrelatedMessages # Possibly not reachable in the CFE
+_fe_analyzer_shared/IllegalAssignmentToNonAssignable/script1: hasOnlyUnrelatedMessages # Possibly not reachable in the CFE
 front_end/IncrementalCompilerIllegalParameter/example: missingExample # Expression compilation.
 front_end/IncrementalCompilerIllegalTypeParameter/example: missingExample # Expression compilation.
 front_end/IndexOutOfBoundInRecordIndexGet/example: missingExample # Not covered.
@@ -63,8 +63,8 @@ front_end/InvalidCastLocalFunction/example: missingExample # Seemingly not actua
 front_end/InvalidCastNewExpr/example: missingExample # Seemingly not actually issued in any tests.
 front_end/InvalidCastStaticMethod/example: missingExample # Seemingly not actually issued in any tests.
 front_end/InvalidCastTopLevelFunction/example: missingExample # Not covered.
-front_end/InvalidSuperInInitializer/example: missingExample # Only issued in Analyzer
-front_end/InvalidThisInInitializer/example: missingExample # Only issued in Analyzer
+_fe_analyzer_shared/InvalidSuperInInitializer/example: missingExample # Only issued in Analyzer
+_fe_analyzer_shared/InvalidThisInInitializer/example: missingExample # Only issued in Analyzer
 front_end/JsInteropDartClassExtendsJSClass/example: missingExample # Web compiler specific
 front_end/JsInteropDartJsInteropAnnotationForStaticInteropOnly/example: missingExample # Web compiler specific
 front_end/JsInteropDisallowedInteropLibraryInDart2Wasm/example: missingExample # Web compiler specific
@@ -118,12 +118,12 @@ front_end/JsInteropStaticInteropWithNonStaticSupertype/example: missingExample #
 front_end/LanguageVersionMismatchInPatch/example: missingExample # Patching.
 front_end/MemberShouldBeListedAsCallableInDynamicInterface/example: missingExample # Can't do dynamic modules stuff in messages suite.
 front_end/MemberShouldBeListedAsCanBeOverriddenInDynamicInterface/example: missingExample # Can't do dynamic modules stuff in messages suite.
-front_end/MissingAssignableSelector/part_wrapped_script1: hasOnlyUnrelatedMessages # Only issued in Analyzer
-front_end/MissingAssignableSelector/script1: hasOnlyUnrelatedMessages # Only issued in Analyzer
+_fe_analyzer_shared/MissingAssignableSelector/part_wrapped_script1: hasOnlyUnrelatedMessages # Only issued in Analyzer
+_fe_analyzer_shared/MissingAssignableSelector/script1: hasOnlyUnrelatedMessages # Only issued in Analyzer
 front_end/MissingInput/example: missingExample # Issued on what is essentially a wrong setup.
 front_end/MissingMain/example: missingExample # Main is only required in some compilation modes, and not in messages testing.
 front_end/NameNotFoundInRecordNameGet/example: missingExample # Uncovered.
-front_end/NativeClauseShouldBeAnnotation/example: missingExample # Swallowed in StackListener.dart.
+_fe_analyzer_shared/NativeClauseShouldBeAnnotation/example: missingExample # Swallowed in StackListener.dart.
 front_end/NeverReachableSwitchDefaultError/example: missingExample # Probably only added to AST, but never issued.
 front_end/NeverReachableSwitchExpressionError/example: missingExample # No coverage.
 front_end/NeverReachableSwitchStatementError/example: missingExample # No coverage.
@@ -144,7 +144,7 @@ front_end/SdkSpecificationNotFound/example: missingExample # Issued on what is e
 front_end/SdkSummaryNotFound/example: missingExample # Issued on what is essentially a wrong setup.
 front_end/SourceBodySummary/example: missingExample # Used for verbose output.
 front_end/SourceOutlineSummary/example: missingExample # Used for verbose output.
-front_end/StackOverflow/example: missingExample # Requires 500 nested expressions.
+_fe_analyzer_shared/StackOverflow/example: missingExample # Requires 500 nested expressions.
 front_end/SuperclassHasNoMember/example: missingExample # Not covered...
 front_end/SyntheticToken/example: missingExample # Seemingly this is not issued as an error, but ends up in the kernel AST.
 front_end/UnmatchedAugmentationClass/example: missingExample # Doesn't seem to be any (direct?) way to get this for now
@@ -164,10 +164,10 @@ front_end/WasmImportOrExportInUserCode/example: missingExample # only issued by 
 front_end/WebLiteralCannotBeRepresentedExactly/example: missingExample # only issued on web build
 
 # Can we do better?
-front_end/ConstAndFinal/declaration3: hasOnlyUnrelatedMessages # maybe the parser should do better here - it seems it once did?
-front_end/ConstAndFinal/declaration4: hasOnlyUnrelatedMessages # maybe the parser should do better here - it seems it once did?
-front_end/ConstAndFinal/part_wrapped_declaration3: hasOnlyUnrelatedMessages # maybe the parser should do better here - it seems it once did?
-front_end/ConstAndFinal/part_wrapped_declaration4: hasOnlyUnrelatedMessages # maybe the parser should do better here - it seems it once did?
+_fe_analyzer_shared/ConstAndFinal/declaration3: hasOnlyUnrelatedMessages # maybe the parser should do better here - it seems it once did?
+_fe_analyzer_shared/ConstAndFinal/declaration4: hasOnlyUnrelatedMessages # maybe the parser should do better here - it seems it once did?
+_fe_analyzer_shared/ConstAndFinal/part_wrapped_declaration3: hasOnlyUnrelatedMessages # maybe the parser should do better here - it seems it once did?
+_fe_analyzer_shared/ConstAndFinal/part_wrapped_declaration4: hasOnlyUnrelatedMessages # maybe the parser should do better here - it seems it once did?
 
 # Missing analyzer codes.
 front_end/AbstractClassConstructorTearOff/analyzerCode: missingAnalyzerCode
