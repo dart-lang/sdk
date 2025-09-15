@@ -195,9 +195,13 @@ class PluginServer {
       return protocol.EditGetFixesResult(const []);
     }
 
-    var lintAtOffset = errors.where(
-      (error) => error.diagnostic.offset == offset,
-    );
+    var lineInfo = unitResult.lineInfo;
+    var requestLine = lineInfo.getLocation(offset).lineNumber;
+
+    var lintAtOffset = errors.where((error) {
+      var errorLine = lineInfo.getLocation(error.diagnostic.offset).lineNumber;
+      return errorLine == requestLine;
+    });
     if (lintAtOffset.isEmpty) return protocol.EditGetFixesResult(const []);
 
     var errorFixesList = <protocol.AnalysisErrorFixes>[];

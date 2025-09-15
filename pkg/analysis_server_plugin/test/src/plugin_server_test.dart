@@ -149,6 +149,34 @@ bool b = false;
     expect(fixes.fixes, hasLength(4));
   }
 
+  Future<void> test_handleEditGetFixes_afterLine() async {
+    writeAnalysisOptionsWithPlugin();
+    newFile(filePath, 'bool b = false;\n\n');
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
+
+    var result = await pluginServer.handleEditGetFixes(
+      protocol.EditGetFixesParams(filePath, 'bool b = false;\n'.length),
+    );
+    expect(result.fixes, isEmpty);
+  }
+
+  Future<void> test_handleEditGetFixes_onSameLine() async {
+    writeAnalysisOptionsWithPlugin();
+    newFile(filePath, 'bool b = false;');
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
+
+    var result = await pluginServer.handleEditGetFixes(
+      protocol.EditGetFixesParams(filePath, 'bool b = fa'.length),
+    );
+    var fixes = result.fixes.single;
+    // The WrapInQuotes fix plus three "ignore diagnostic" fixes.
+    expect(fixes.fixes, hasLength(4));
+  }
+
   Future<void> test_handleEditGetFixes_viaSendRequest() async {
     writeAnalysisOptionsWithPlugin();
     newFile(filePath, 'bool b = false;');
