@@ -6054,8 +6054,10 @@ class LibraryElementImpl extends ElementImpl
   Null get enclosingElement2 => enclosingElement;
 
   @override
+  @trackedDirectly
   TopLevelFunctionElementImpl? get entryPoint {
     _ensureReadResolution();
+    globalResultRequirements?.record_library_entryPoint(element: this);
     return _entryPoint;
   }
 

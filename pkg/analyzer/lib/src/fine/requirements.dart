@@ -1807,6 +1807,22 @@ class RequirementsManifest {
     );
   }
 
+  void record_library_entryPoint({required LibraryElementImpl element}) {
+    if (_recordingLockLevel != 0) {
+      return;
+    }
+
+    var manifest = element.manifest;
+    if (manifest == null) {
+      return;
+    }
+
+    var requirements = _getLibraryRequirements(element);
+    var mainName = TopLevelFunctionElement.MAIN_FUNCTION_NAME.asLookupName;
+    var id = manifest.getExportedId(mainName);
+    requirements.exportedTopLevels[mainName] = id;
+  }
+
   void record_library_featureSet({required LibraryElementImpl element}) {
     if (_recordingLockLevel != 0) {
       return;
