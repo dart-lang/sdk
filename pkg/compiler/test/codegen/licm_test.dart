@@ -28,7 +28,7 @@ main() {
     await compileAndMatch(
       TEST,
       'main',
-      RegExp('if \\(typeof count !== "number"\\)(.|\\n)*while'),
+      RegExp('if \\(typeof count !== "number"\\)(.|\\n)*(while|for)'),
     );
   }
 

@@ -102,7 +102,7 @@
   "id": "library/memory:sdk/tests/web/native/main.dart::",
   "kind": "library",
   "name": "<unnamed>",
-  "size": 861,
+  "size": 857,
   "children": [
     "function/memory:sdk/tests/web/native/main.dart::main"
   ],
@@ -137,7 +137,7 @@ import 'lib2.dart' as lib2;
   "id": "function/memory:sdk/tests/web/native/main.dart::main",
   "kind": "function",
   "name": "main",
-  "size": 861,
+  "size": 857,
   "outputUnit": "outputUnit/main",
   "parent": "library/memory:sdk/tests/web/native/main.dart::",
   "children": [],
@@ -152,7 +152,7 @@ import 'lib2.dart' as lib2;
   "parameters": [],
   "sideEffects": "SideEffects(reads nothing; writes nothing)",
   "inlinedCount": 0,
-  "code": "main() {\n      var $async$goto = 0,\n        $async$completer = A._makeAsyncAwaitCompleter(type$.dynamic);\n      var $async$main = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {\n        if ($async$errorCode === 1)\n          return A._asyncRethrow($async$result, $async$completer);\n        while (true)\n          switch ($async$goto) {\n            case 0:\n              // Function start\n              $async$goto = 2;\n              return A._asyncAwait(A.loadDeferredLibrary(\"lib1\", \"\"), $async$main);\n            case 2:\n              // returning from await.\n              A.checkDeferredIsLoaded(\"lib1\");\n              A.checkDeferredIsLoaded(\"lib1\");\n              // implicit return\n              return A._asyncReturn(null, $async$completer);\n          }\n      });\n      return A._asyncStartSync($async$main, $async$completer);\n    }",
+  "code": "main() {\n      var $async$goto = 0,\n        $async$completer = A._makeAsyncAwaitCompleter(type$.dynamic);\n      var $async$main = A._wrapJsFunctionForAsync(function($async$errorCode, $async$result) {\n        if ($async$errorCode === 1)\n          return A._asyncRethrow($async$result, $async$completer);\n        for (;;)\n          switch ($async$goto) {\n            case 0:\n              // Function start\n              $async$goto = 2;\n              return A._asyncAwait(A.loadDeferredLibrary(\"lib1\", \"\"), $async$main);\n            case 2:\n              // returning from await.\n              A.checkDeferredIsLoaded(\"lib1\");\n              A.checkDeferredIsLoaded(\"lib1\");\n              // implicit return\n              return A._asyncReturn(null, $async$completer);\n          }\n      });\n      return A._asyncStartSync($async$main, $async$completer);\n    }",
   "type": "dynamic Function()",
   "functionKind": 0
 }],
