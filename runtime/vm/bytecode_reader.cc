@@ -317,6 +317,8 @@ void BytecodeReaderHelper::ReadCode(const Function& function,
           KernelBytecodeDisassembler::Disassemble(closure);
         }
       }
+
+      ClosureFunctionsCache::AddClosureFunctionLocked(closure);
     }
   }
 }
