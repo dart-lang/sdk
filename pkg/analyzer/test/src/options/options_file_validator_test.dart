@@ -80,6 +80,7 @@ class OptionsFileValidatorTest
     isPrimarySource: true,
     optionsProvider: optionsProvider,
     resourceProvider: resourceProvider,
+    sourceFactory: SourceFactory([ResourceUriResolver(resourceProvider)]),
   );
   final AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider();
 

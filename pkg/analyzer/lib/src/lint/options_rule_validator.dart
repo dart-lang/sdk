@@ -11,6 +11,7 @@ import 'package:analyzer/src/analysis_options/error/option_codes.dart';
 import 'package:analyzer/src/analysis_options/options_validator.dart';
 import 'package:analyzer/src/analysis_rule/rule_context.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
@@ -54,10 +55,12 @@ class LinterRuleOptionsValidator extends OptionsValidator {
 
   final AnalysisOptionsProvider optionsProvider;
   final ResourceProvider resourceProvider;
+  final SourceFactory sourceFactory;
 
   LinterRuleOptionsValidator({
     required this.resourceProvider,
     required this.optionsProvider,
+    required this.sourceFactory,
     this.sdkVersionConstraint,
     this.isPrimarySource = true,
   });
@@ -104,6 +107,14 @@ class LinterRuleOptionsValidator extends OptionsValidator {
     }
 
     if (includePath.isEmpty) return null;
+
+    if (sourceUri != null) {
+      var source = FileSource(resourceProvider.getFile(sourceUri.toFilePath()));
+      var resolved = sourceFactory.resolveUri(source, includePath);
+      if (resolved is FileSource) {
+        return resolved.file.toUri();
+      }
+    }
 
     var uri = Uri.parse(includePath);
     if (uri == sourceUri) {
