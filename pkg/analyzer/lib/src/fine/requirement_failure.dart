@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:analyzer/src/fine/lookup_name.dart';
 import 'package:analyzer/src/fine/manifest_id.dart';
+import 'package:analyzer/src/fine/manifest_item.dart';
 import 'package:analyzer/src/fine/requirements.dart';
 
 final class ExportCountMismatch extends ExportFailure {
@@ -293,6 +296,36 @@ class LibraryChildrenIdsMismatch extends RequirementFailure {
         'childrenPropertyName: $childrenPropertyName, '
         'expectedIds: $expectedIds, actualIds: $actualIds)';
   }
+}
+
+class LibraryFeatureSetMismatch extends RequirementFailure {
+  final Uri libraryUri;
+  final Uint8List? expected;
+  final Uint8List? actual;
+
+  LibraryFeatureSetMismatch({
+    required this.libraryUri,
+    required this.expected,
+    required this.actual,
+  });
+
+  @override
+  String toString() {
+    return 'LibraryFeatureSetMismatch(libraryUri: $libraryUri, '
+        'expected: $expected, actual: $actual)';
+  }
+}
+
+class LibraryLanguageVersionMismatch extends RequirementFailure {
+  final Uri libraryUri;
+  final ManifestLibraryLanguageVersion expected;
+  final ManifestLibraryLanguageVersion actual;
+
+  LibraryLanguageVersionMismatch({
+    required this.libraryUri,
+    required this.expected,
+    required this.actual,
+  });
 }
 
 class LibraryMissing extends RequirementFailure {

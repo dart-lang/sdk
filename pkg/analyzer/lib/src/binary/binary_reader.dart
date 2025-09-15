@@ -127,6 +127,14 @@ class SummaryDataReader {
     }
   }
 
+  Uint8List? readOptionalUint8List() {
+    if (readBool()) {
+      return readUint8List();
+    } else {
+      return null;
+    }
+  }
+
   String readStringReference() {
     var index = readUint30();
     return stringOfIndex(index);

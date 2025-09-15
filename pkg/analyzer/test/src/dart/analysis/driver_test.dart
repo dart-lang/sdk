@@ -5903,6 +5903,7 @@ class B extends A {}
   requirements
     libraries
       package:test/a.dart
+        featureSet: <not-null>
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -6000,6 +6001,7 @@ class A {
   requirements
     libraries
       package:test/a.dart
+        featureSet: <not-null>
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -6072,6 +6074,7 @@ class B extends A {}
   requirements
     libraries
       package:test/a.dart
+        featureSet: <not-null>
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -6150,6 +6153,7 @@ class A {
   requirements
     libraries
       package:test/a.dart
+        featureSet: <not-null>
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -6782,6 +6786,7 @@ class B extends A {}
   requirements
     libraries
       package:test/a.dart
+        featureSet: <not-null>
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -6887,6 +6892,7 @@ class A {
   requirements
     libraries
       package:test/a.dart
+        featureSet: <not-null>
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -8805,6 +8811,7 @@ class B extends A {}
   requirements
     libraries
       package:test/a.dart
+        featureSet: <not-null>
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -8905,6 +8912,7 @@ class A {
   requirements
     libraries
       package:test/a.dart
+        featureSet: <not-null>
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -9022,6 +9030,7 @@ class X extends C {}
   requirements
     libraries
       package:test/a.dart
+        featureSet: <not-null>
         exportedTopLevels
           C: #M6
           C=: <null>
@@ -9149,6 +9158,7 @@ class C extends A implements B {}
   requirements
     libraries
       package:test/a.dart
+        featureSet: <not-null>
         exportedTopLevels
           C: #M6
           C=: <null>
@@ -15640,6 +15650,7 @@ class B extends A {
   requirements
     libraries
       package:test/a.dart
+        featureSet: <not-null>
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -15726,6 +15737,7 @@ class A {
   requirements
     libraries
       package:test/a.dart
+        featureSet: <not-null>
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -29465,6 +29477,79 @@ typedef C = int;
     );
   }
 
+  test_dependency_libraryElement_featureSet() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.featureSet;
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        featureSet: <not-null>
+[status] idle
+''',
+      updatedA: r'''
+// @dart = 2.19
+class A {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  libraryFeatureSetMismatch
+    libraryUri: package:test/a.dart
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        featureSet: <not-null>
+[status] idle
+''',
+    );
+  }
+
   test_dependency_libraryElement_getClass_change() async {
     configuration
       ..withGetErrorsEvents = false
@@ -31210,6 +31295,80 @@ typedef C = int;
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_libraryElement_languageVersion() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.languageVersion;
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+// @dart = 3.8
+class A {}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        languageVersion: <not-null>
+[status] idle
+''',
+      updatedA: r'''
+// @dart = 3.9
+class A {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  libraryLanguageVersionMismatch
+    libraryUri: package:test/a.dart
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        languageVersion: <not-null>
 [status] idle
 ''',
     );

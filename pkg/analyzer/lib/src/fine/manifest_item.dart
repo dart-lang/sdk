@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/binary/binary_reader.dart';
 import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -15,6 +16,7 @@ import 'package:analyzer/src/fine/manifest_type.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 class ClassItem extends InterfaceItem<ClassElementImpl> {
   ClassItem({
@@ -1013,6 +1015,82 @@ sealed class ManifestItem<E extends ElementImpl> {
     id.write(sink);
     flags.write(sink);
     metadata.write(sink);
+  }
+}
+
+class ManifestLibraryLanguageVersion {
+  final Version packageVersion;
+  final Version? overrideVersion;
+
+  ManifestLibraryLanguageVersion({
+    required this.packageVersion,
+    required this.overrideVersion,
+  });
+
+  ManifestLibraryLanguageVersion.empty()
+    : packageVersion = Version.none,
+      overrideVersion = null;
+
+  factory ManifestLibraryLanguageVersion.encode(
+    LibraryLanguageVersion languageVersion,
+  ) {
+    return ManifestLibraryLanguageVersion(
+      packageVersion: languageVersion.package,
+      overrideVersion: languageVersion.override,
+    );
+  }
+
+  factory ManifestLibraryLanguageVersion.read(SummaryDataReader reader) {
+    return ManifestLibraryLanguageVersion(
+      packageVersion: _readVersion(reader),
+      overrideVersion: reader.readOptionalObject(() => _readVersion(reader)),
+    );
+  }
+
+  @override
+  int get hashCode {
+    return Object.hash(packageVersion, overrideVersion);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is ManifestLibraryLanguageVersion &&
+        packageVersion == other.packageVersion &&
+        overrideVersion == other.overrideVersion;
+  }
+
+  @override
+  String toString() {
+    var result = '(package: $packageVersion';
+    if (overrideVersion case var overrideVersion?) {
+      result += ', override: $overrideVersion';
+    }
+    result += ')';
+    return result;
+  }
+
+  void write(BufferedSink sink) {
+    _writeVersion(sink, packageVersion);
+    sink.writeOptionalObject(overrideVersion, (it) => _writeVersion(sink, it));
+  }
+
+  static ManifestLibraryLanguageVersion? readOptional(
+    SummaryDataReader reader,
+  ) {
+    return reader.readOptionalObject(
+      () => ManifestLibraryLanguageVersion.read(reader),
+    );
+  }
+
+  static Version _readVersion(SummaryDataReader reader) {
+    var major = reader.readUint30();
+    var minor = reader.readUint30();
+    return Version(major, minor, 0);
+  }
+
+  static void _writeVersion(BufferedSink sink, Version version) {
+    sink.writeUint30(version.major);
+    sink.writeUint30(version.minor);
   }
 }
 

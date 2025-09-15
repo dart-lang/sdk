@@ -62,6 +62,12 @@ class BundleRequirementsPrinter {
           if (libraryRequirements.name case var name?) {
             sink.writelnWithIndent('name: $name');
           }
+          if (libraryRequirements.featureSet != null) {
+            sink.writelnWithIndent('featureSet: <not-null>');
+          }
+          if (libraryRequirements.languageVersion != null) {
+            sink.writelnWithIndent('languageVersion: <not-null>');
+          }
           _writeExportedTopLevels(libraryRequirements);
           _writeLibraryDeclaredItems(libraryRequirements);
           _writeInstanceItems(libraryRequirements);
@@ -643,6 +649,9 @@ class DriverEventsPrinter {
           'expected': failure.expected ?? '<null>',
           'actual': failure.actual ?? '<null>',
         });
+      case LibraryFeatureSetMismatch():
+        sink.writelnWithIndent('libraryFeatureSetMismatch');
+        sink.writeProperties({'libraryUri': failure.libraryUri});
       case ExportCountMismatch():
         sink.writelnWithIndent('exportCountMismatch');
         sink.writeProperties({
@@ -790,6 +799,9 @@ class DriverEventsPrinter {
             }
           });
         });
+      case LibraryLanguageVersionMismatch():
+        sink.writelnWithIndent('libraryLanguageVersionMismatch');
+        sink.writeProperties({'libraryUri': failure.libraryUri});
       case ReExportDeprecatedOnlyMismatch():
         sink.writelnWithIndent('reExportDeprecatedOnlyMismatch');
         sink.writeProperties({

@@ -5917,10 +5917,10 @@ class LibraryElementImpl extends ElementImpl
   late List<ExportedReference> exportedReferences;
 
   /// The union of names for all searchable elements in this library.
+  @trackedInternal
   ElementNameUnion nameUnion = ElementNameUnion.empty();
 
-  @override
-  final FeatureSet featureSet;
+  final FeatureSet _featureSet;
 
   /// The entry point for this library, or `null` if this library does not have
   /// an entry point.
@@ -5979,7 +5979,7 @@ class LibraryElementImpl extends ElementImpl
     this._name,
     this._nameOffset,
     this._nameLength,
-    this.featureSet,
+    this._featureSet,
   );
 
   @override
@@ -6129,6 +6129,13 @@ class LibraryElementImpl extends ElementImpl
     _extensionTypes = value;
   }
 
+  @override
+  @trackedDirectly
+  FeatureSet get featureSet {
+    globalResultRequirements?.record_library_featureSet(element: this);
+    return _featureSet;
+  }
+
   /// Information about why non-promotable private fields in the library are not
   /// promotable.
   ///
@@ -6236,7 +6243,9 @@ class LibraryElementImpl extends ElementImpl
   ElementKind get kind => ElementKind.LIBRARY;
 
   @override
+  @trackedDirectly
   LibraryLanguageVersion get languageVersion {
+    globalResultRequirements?.record_library_languageVersion(element: this);
     return _languageVersion ??= LibraryLanguageVersion(
       package: ExperimentStatus.currentVersion,
       override: null,

@@ -7,6 +7,7 @@ import 'dart:typed_data';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/binary/binary_reader.dart';
 import 'package:analyzer/src/binary/binary_writer.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/fine/lookup_name.dart';
@@ -22,7 +23,9 @@ import 'package:collection/collection.dart';
 
 /// The manifest of a single library.
 class LibraryManifest {
-  String? name;
+  final String? name;
+  final Uint8List featureSet;
+  final ManifestLibraryLanguageVersion languageVersion;
 
   /// The names that are re-exported by this library.
   /// This does not include names that are declared in this library.
@@ -47,6 +50,8 @@ class LibraryManifest {
 
   LibraryManifest({
     required this.name,
+    required this.featureSet,
+    required this.languageVersion,
     required this.reExportMap,
     required this.reExportDeprecatedOnly,
     required this.declaredClasses,
@@ -65,6 +70,8 @@ class LibraryManifest {
   factory LibraryManifest.read(SummaryDataReader reader) {
     return LibraryManifest(
       name: reader.readOptionalStringUtf8(),
+      featureSet: reader.readUint8List(),
+      languageVersion: ManifestLibraryLanguageVersion.read(reader),
       reExportMap: reader.readLookupNameToIdMap(),
       reExportDeprecatedOnly: reader.readLookupNameSet(),
       declaredClasses: reader.readLookupNameMap(
@@ -143,6 +150,8 @@ class LibraryManifest {
 
   void write(BufferedSink sink) {
     sink.writeOptionalStringUtf8(name);
+    sink.writeUint8List(featureSet);
+    languageVersion.write(sink);
     reExportMap.write(sink);
     reExportDeprecatedOnly.write(sink);
     declaredClasses.write(sink);
@@ -852,6 +861,10 @@ class LibraryManifestBuilder {
 
       var newManifest = LibraryManifest(
         name: libraryElement.name.nullIfEmpty,
+        featureSet: (libraryElement.featureSet as ExperimentStatus).toStorage(),
+        languageVersion: ManifestLibraryLanguageVersion.encode(
+          libraryElement.languageVersion,
+        ),
         reExportMap: {},
         reExportDeprecatedOnly: <LookupName>{},
         declaredClasses: newClassItems,
@@ -1070,6 +1083,8 @@ class LibraryManifestBuilder {
     return inputManifests[uri] ??
         LibraryManifest(
           name: null,
+          featureSet: Uint8List(0),
+          languageVersion: ManifestLibraryLanguageVersion.empty(),
           reExportMap: {},
           reExportDeprecatedOnly: <LookupName>{},
           declaredClasses: {},
