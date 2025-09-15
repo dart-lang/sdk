@@ -5928,6 +5928,7 @@ class LibraryElementImpl extends ElementImpl
 
   /// The provider for the synthetic function `loadLibrary` that is defined
   /// for this library.
+  @trackedInternal
   late final LoadLibraryFunctionProvider loadLibraryProvider;
 
   String _name;
@@ -6271,6 +6272,7 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
+  @trackedIndirectly
   TopLevelFunctionElementImpl get loadLibraryFunction {
     return loadLibraryProvider.getElement(this);
   }
