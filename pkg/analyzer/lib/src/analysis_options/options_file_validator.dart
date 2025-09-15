@@ -84,6 +84,7 @@ List<Diagnostic> analyzeAnalysisOptions(
       sdkVersionConstraint: sdkVersionConstraint,
       isPrimarySource: isSourcePrimary,
       optionsProvider: optionsProvider,
+      sourceFactory: sourceFactory,
       resourceProvider: resourceProvider,
     ).validate(options);
     addDirectErrorOrIncludedError(
@@ -299,6 +300,7 @@ class OptionsFileValidator {
     required bool isPrimarySource,
     required AnalysisOptionsProvider optionsProvider,
     required ResourceProvider resourceProvider,
+    required SourceFactory sourceFactory,
   }) : _validators = [
          AnalyzerOptionsValidator(),
          _CodeStyleOptionsValidator(),
@@ -307,6 +309,7 @@ class OptionsFileValidator {
          LinterRuleOptionsValidator(
            resourceProvider: resourceProvider,
            optionsProvider: optionsProvider,
+           sourceFactory: sourceFactory,
            sdkVersionConstraint: sdkVersionConstraint,
            isPrimarySource: isPrimarySource,
          ),
