@@ -6324,7 +6324,7 @@ abstract final class DotShorthandConstructorInvocation
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('constKeyword'),
+    GenerateNodeProperty('constKeyword', isTokenFinal: false),
     GenerateNodeProperty('period'),
     GenerateNodeProperty('constructorName'),
     GenerateNodeProperty('typeArguments', isSuper: true),
@@ -8514,7 +8514,7 @@ abstract final class ExtensionOverride implements Expression {
     GenerateNodeProperty('name'),
     GenerateNodeProperty('typeArguments'),
     GenerateNodeProperty('argumentList'),
-    GenerateNodeProperty('element2', type: ExtensionElementImpl),
+    GenerateNodeProperty('element', type: ExtensionElementImpl),
   ],
 )
 final class ExtensionOverrideImpl extends ExpressionImpl
@@ -11772,6 +11772,9 @@ class GenerateNodeProperty {
   /// and no field or getter is generated, unless [superNullAssertOverride].
   final bool isSuper;
 
+  /// Normally [NodeList] properties are final, but sometimes we mutate nodes.
+  final bool isNodeListFinal;
+
   /// Normally [Token] properties are final, but sometimes we mutate nodes.
   final bool isTokenFinal;
 
@@ -11806,6 +11809,7 @@ class GenerateNodeProperty {
   const GenerateNodeProperty(
     this.name, {
     this.isSuper = false,
+    this.isNodeListFinal = true,
     this.isTokenFinal = true,
     this.withOverride = true,
     this.superNullAssertOverride = false,
@@ -14574,7 +14578,7 @@ abstract final class LibraryDirective implements Directive {
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('libraryKeyword'),
-    GenerateNodeProperty('name2'),
+    GenerateNodeProperty('name'),
     GenerateNodeProperty('semicolon'),
   ],
 )
@@ -14599,10 +14603,10 @@ final class LibraryDirectiveImpl extends DirectiveImpl
     required super.comment,
     required super.metadata,
     required this.libraryKeyword,
-    required LibraryIdentifierImpl? name2,
+    required LibraryIdentifierImpl? name,
     required this.semicolon,
-  }) : _name = name2 {
-    _becomeParentOf(name2);
+  }) : _name = name {
+    _becomeParentOf(name);
   }
 
   @Deprecated('Use element instead')
@@ -14626,8 +14630,8 @@ final class LibraryDirectiveImpl extends DirectiveImpl
   LibraryIdentifierImpl? get name => _name;
 
   @generated
-  set name(LibraryIdentifierImpl? name2) {
-    _name = _becomeParentOf(name2);
+  set name(LibraryIdentifierImpl? name) {
+    _name = _becomeParentOf(name);
   }
 
   @Deprecated('Use name instead')
@@ -14638,7 +14642,7 @@ final class LibraryDirectiveImpl extends DirectiveImpl
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('libraryKeyword', libraryKeyword)
-    ..addNode('name2', name)
+    ..addNode('name', name)
     ..addToken('semicolon', semicolon);
 
   @generated
@@ -14658,9 +14662,9 @@ final class LibraryDirectiveImpl extends DirectiveImpl
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
-    if (name case var name2?) {
-      if (name2._containsOffset(rangeOffset, rangeEnd)) {
-        return name2;
+    if (name case var name?) {
+      if (name._containsOffset(rangeOffset, rangeEnd)) {
+        return name;
       }
     }
     return null;
@@ -14786,7 +14790,7 @@ abstract final class ListLiteral implements TypedLiteral {
     GenerateNodeProperty('constKeyword', isSuper: true),
     GenerateNodeProperty('typeArguments', isSuper: true),
     GenerateNodeProperty('leftBracket'),
-    GenerateNodeProperty('elements'),
+    GenerateNodeProperty('elements', isNodeListFinal: false),
     GenerateNodeProperty('rightBracket'),
   ],
 )
@@ -14797,7 +14801,7 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
 
   @generated
   @override
-  final NodeListImpl<CollectionElementImpl> elements = NodeListImpl._();
+  NodeListImpl<CollectionElementImpl> elements = NodeListImpl._();
 
   @generated
   @override
@@ -14844,6 +14848,12 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
   @generated
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitListLiteral(this);
+
+  void addElements(List<CollectionElementImpl> moreElements) {
+    elements = NodeListImpl._()
+      .._initialize(this, [...elements, ...moreElements]);
+    AstNodeImpl.linkNodeTokens(this);
+  }
 
   @generated
   @override

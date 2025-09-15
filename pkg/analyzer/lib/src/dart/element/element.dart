@@ -2093,6 +2093,10 @@ class EnumElementImpl extends InterfaceElementImpl implements EnumElement {
       previous.addFragment(current);
       return current;
     });
+    TypeParameterFragmentImpl._linkFragments(
+      fragments,
+      getFragments: (f) => f.typeParameters,
+    );
   }
 }
 

@@ -35,18 +35,18 @@ class DefiningLinkingUnit extends LinkingUnit {
 }
 
 class ImplicitEnumNodes {
-  final EnumFragmentImpl element;
+  final EnumFragmentImpl fragment;
   final ast.NamedTypeImpl valuesTypeNode;
   final ast.VariableDeclarationImpl valuesNode;
-  final FieldFragmentImpl valuesElement;
+  final FieldFragmentImpl valuesFragment;
   final Set<String> valuesNames;
   ast.ListLiteralImpl valuesInitializer;
 
   ImplicitEnumNodes({
-    required this.element,
+    required this.fragment,
     required this.valuesTypeNode,
     required this.valuesNode,
-    required this.valuesElement,
+    required this.valuesFragment,
     required this.valuesNames,
     required this.valuesInitializer,
   });
@@ -206,16 +206,16 @@ class LibraryBuilder {
   void buildEnumChildren() {
     var typeProvider = element.typeProvider;
     for (var enum_ in implicitEnumNodes.values) {
-      enum_.element.element.supertype =
+      enum_.fragment.element.supertype =
           typeProvider.enumType ?? typeProvider.objectType;
       var valuesType = typeProvider.listType(
         element.typeSystem.instantiateInterfaceToBounds(
-          element: enum_.element.asElement2,
+          element: enum_.fragment.asElement2,
           nullabilitySuffix: typeProvider.objectType.nullabilitySuffix,
         ),
       );
       enum_.valuesTypeNode.type = valuesType;
-      enum_.valuesElement.element.type = valuesType;
+      enum_.valuesFragment.element.type = valuesType;
     }
   }
 

@@ -226,6 +226,13 @@ class ElementBuilder {
 
     if (fragment.isAugmentation && lastFragment is EnumFragmentImpl) {
       lastFragment.addFragment(fragment);
+
+      _linkTypeParameters(
+        lastFragments: lastFragment.typeParameters,
+        fragments: fragment.typeParameters,
+        add: fragment.addTypeParameter,
+      );
+
       return;
     }
 
@@ -233,6 +240,7 @@ class ElementBuilder {
       _addTopReference('@enum', fragment.name),
       fragment,
     );
+
     libraryElement.addEnum(element);
     libraryBuilder.declare(element, element.reference);
   }
@@ -311,6 +319,21 @@ class ElementBuilder {
     FieldFragmentImpl fieldFragment,
   ) {
     var instanceFragment = fieldFragment.enclosingFragment;
+
+    // Move elements of `values` from augmentation to the first fragment.
+    if (fieldFragment.name == 'values' &&
+        instanceFragment is EnumFragmentImpl &&
+        instanceFragment.previousFragment != null) {
+      var implicitsMap = libraryBuilder.implicitEnumNodes;
+      var augmentationImplicit = implicitsMap.remove(instanceFragment)!;
+      var firstFragment = instanceFragment.element.firstFragment;
+      var firstImplicit = implicitsMap[firstFragment]!;
+      firstImplicit.valuesInitializer.addElements(
+        augmentationImplicit.valuesInitializer.elements,
+      );
+      return;
+    }
+
     instanceFragment.addField(fieldFragment);
 
     var lastFieldElement = _fieldElement(lastFragment);
@@ -1145,10 +1168,10 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       _addChildFragment(valuesField);
 
       _libraryBuilder.implicitEnumNodes[fragment] = ImplicitEnumNodes(
-        element: fragment,
+        fragment: fragment,
         valuesTypeNode: valuesTypeNode,
         valuesNode: variableDeclaration,
-        valuesElement: valuesField,
+        valuesFragment: valuesField,
         valuesNames: valuesNames,
         valuesInitializer: initializer,
       );

@@ -2558,7 +2558,7 @@ class AstBuilder extends StackListener {
         comment: comment,
         metadata: metadata,
         libraryKeyword: libraryKeyword,
-        name2: name,
+        name: name,
         semicolon: semicolon,
       ),
     );
