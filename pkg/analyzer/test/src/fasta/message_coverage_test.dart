@@ -38,7 +38,7 @@ class AbstractRecoveryTest extends FastaParserTestCase {
   /// Return a list of the front end messages that define an 'analyzerCode'.
   List<String> getMappedCodes() {
     Set<String> codes = <String>{};
-    for (var entry in frontEndMessages.entries) {
+    for (var entry in frontEndAndSharedMessages.entries) {
       var name = entry.key;
       var errorCodeInfo = entry.value;
       if (errorCodeInfo.analyzerCode.isNotEmpty) {
@@ -52,7 +52,7 @@ class AbstractRecoveryTest extends FastaParserTestCase {
   /// `messages.yaml` file.
   List<String> getReferencedCodes() {
     Set<String> codes = <String>{};
-    for (var errorCodeInfo in frontEndMessages.values) {
+    for (var errorCodeInfo in frontEndAndSharedMessages.values) {
       codes.addAll(errorCodeInfo.analyzerCode);
     }
     return codes.toList();

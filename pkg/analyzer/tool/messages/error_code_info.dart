@@ -168,7 +168,7 @@ final String analyzerPkgPath = normalize(
 
 /// A set of tables mapping between front end and analyzer error codes.
 final CfeToAnalyzerErrorCodeTables cfeToAnalyzerErrorCodeTables =
-    CfeToAnalyzerErrorCodeTables._(frontEndMessages);
+    CfeToAnalyzerErrorCodeTables._(frontEndAndSharedMessages);
 
 /// The path to the `linter` package.
 final String linterPkgPath = normalize(join(pkg_root.packageRoot, 'linter'));
@@ -334,7 +334,7 @@ class CfeToAnalyzerErrorCodeTables {
   /// automatically generated, and whose values are the front end error name.
   final Map<ErrorCodeInfo, String> infoToFrontEndCode = {};
 
-  CfeToAnalyzerErrorCodeTables._(Map<String, FrontEndErrorCodeInfo> messages) {
+  CfeToAnalyzerErrorCodeTables._(Map<String, CfeStyleErrorCodeInfo> messages) {
     for (var entry in messages.entries) {
       var errorCodeInfo = entry.value;
       var index = errorCodeInfo.index;

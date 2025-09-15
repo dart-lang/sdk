@@ -8,7 +8,11 @@
       "name": "messages",
       "kind": "Chain",
       "source": "test/messages_suite.dart",
-      "root": "./",
+      "root": "../",
+      "subRoots": [
+        "_fe_analyzer_shared/",
+        "front_end/"
+      ],
       "status": "messages.status"
     },
     {

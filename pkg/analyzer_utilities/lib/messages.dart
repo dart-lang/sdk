@@ -20,9 +20,29 @@ const Map<String, String> severityEnumNames = <String, String>{
   'INFO': 'info',
 };
 
+/// Decoded messages from the `_fe_analyzer_shared` package's `messages.yaml`
+/// file.
+final Map<String, CfeStyleErrorCodeInfo> feAnalyzerSharedMessages =
+    _loadCfeStyleMessages(
+      feAnalyzerSharedPkgPath,
+      allowNonExistent: true,
+      isShared: true,
+    );
+
+/// The path to the `fe_analyzer_shared` package.
+final String feAnalyzerSharedPkgPath = normalize(
+  join(pkg_root.packageRoot, '_fe_analyzer_shared'),
+);
+
+/// Decoded messages from the `messages.yaml` files in the front end and
+/// `_fe_analyzer_shared`.
+final Map<String, CfeStyleErrorCodeInfo> frontEndAndSharedMessages = Map.from(
+  frontEndMessages,
+)..addAll(feAnalyzerSharedMessages);
+
 /// Decoded messages from the front end's `messages.yaml` file.
-final Map<String, FrontEndErrorCodeInfo> frontEndMessages =
-    _loadFrontEndMessages();
+final Map<String, CfeStyleErrorCodeInfo> frontEndMessages =
+    _loadCfeStyleMessages(frontEndPkgPath, isShared: false);
 
 /// The path to the `front_end` package.
 final String frontEndPkgPath = normalize(
@@ -51,14 +71,17 @@ String convertTemplate(Map<String, int> placeholderToIndexMap, String entry) {
   );
 }
 
-/// Decodes a YAML object (obtained from `pkg/front_end/messages.yaml`) into a
-/// map from error name to [ErrorCodeInfo].
-Map<String, FrontEndErrorCodeInfo> decodeCfeMessagesYaml(Object? yaml) {
+/// Decodes a YAML object (in CFE style `messages.yaml` format) into a map from
+/// error name to [ErrorCodeInfo].
+Map<String, CfeStyleErrorCodeInfo> decodeCfeStyleMessagesYaml(
+  Object? yaml, {
+  required bool isShared,
+}) {
   Never problem(String message) {
     throw 'Problem in pkg/front_end/messages.yaml: $message';
   }
 
-  var result = <String, FrontEndErrorCodeInfo>{};
+  var result = <String, CfeStyleErrorCodeInfo>{};
   if (yaml is! Map<Object?, Object?>) {
     problem('root node is not a map');
   }
@@ -72,7 +95,10 @@ Map<String, FrontEndErrorCodeInfo> decodeCfeMessagesYaml(Object? yaml) {
       problem('value associated with error $errorName is not a map');
     }
     try {
-      result[errorName] = FrontEndErrorCodeInfo.fromYaml(errorValue);
+      result[errorName] = CfeStyleErrorCodeInfo.fromYaml(
+        errorValue,
+        isShared: isShared,
+      );
     } catch (e, st) {
       Error.throwWithStackTrace('while processing $errorName, $e', st);
     }
@@ -80,14 +106,25 @@ Map<String, FrontEndErrorCodeInfo> decodeCfeMessagesYaml(Object? yaml) {
   return result;
 }
 
-/// Loads front end messages from the front end's `messages.yaml` file.
-Map<String, FrontEndErrorCodeInfo> _loadFrontEndMessages() {
-  var path = join(frontEndPkgPath, 'messages.yaml');
+/// Loads messages in CFE style `messages.yaml` format.
+///
+/// If [allowNonExistent] is `true`, and the `messages.yaml` file does not
+/// exist, an empty map is returned. This is a temporary measure to allow for an
+/// easier transition when the file `pkg/_fe_analyzer_shared/messages.yaml` is
+/// created.
+// TODO(paulberry): remove [allowNonExistent] once it's no longer needed.
+Map<String, CfeStyleErrorCodeInfo> _loadCfeStyleMessages(
+  String packagePath, {
+  bool allowNonExistent = false,
+  required bool isShared,
+}) {
+  var path = join(packagePath, 'messages.yaml');
+  if (allowNonExistent && !File(path).existsSync()) return {};
   Object? messagesYaml = loadYaml(
     File(path).readAsStringSync(),
     sourceUrl: Uri.file(path),
   );
-  return decodeCfeMessagesYaml(messagesYaml);
+  return decodeCfeStyleMessagesYaml(messagesYaml, isShared: isShared);
 }
 
 /// Splits [text] on spaces using the given [maxWidth] (and [firstLineWidth] if
@@ -128,6 +165,86 @@ List<String> _splitText(
     lineMaxEndIndex = lineStartIndex + maxWidth;
   }
   return lines;
+}
+
+/// In-memory representation of error code information obtained from a
+/// `messages.yaml` file in `pkg/front_end` or `pkg/_fe_analyzer_shared`.
+class CfeStyleErrorCodeInfo extends ErrorCodeInfo {
+  /// The set of analyzer error codes that corresponds to this error code, if
+  /// any.
+  final List<String> analyzerCode;
+
+  /// The index of the error in the analyzer's `fastaAnalyzerErrorCodes` table.
+  final int? index;
+
+  /// The name of the [CfeSeverity] constant describing this error code's CFE
+  /// severity.
+  final String? cfeSeverity;
+
+  CfeStyleErrorCodeInfo.fromYaml(YamlMap yaml, {required bool isShared})
+    : analyzerCode = _decodeAnalyzerCode(yaml['analyzerCode']),
+      index = _decodeIndex(yaml['index']),
+      cfeSeverity = _decodeSeverity(yaml['severity']),
+      super.fromYaml(yaml) {
+    if (yaml['problemMessage'] == null) {
+      throw 'Missing problemMessage';
+    }
+    if (isShared && analyzerCode.length != 1) {
+      throw StateError('Shared messages must have exactly one analyzerCode');
+    }
+  }
+
+  @override
+  Map<Object?, Object?> toYaml() => {
+    if (analyzerCode.isNotEmpty)
+      'analyzerCode': _encodeAnalyzerCode(analyzerCode),
+    if (index != null) 'index': index,
+    ...super.toYaml(),
+  };
+
+  static List<String> _decodeAnalyzerCode(Object? value) {
+    if (value == null) {
+      return const [];
+    } else if (value is String) {
+      return [value];
+    } else if (value is List) {
+      return [for (var s in value) s as String];
+    } else {
+      throw 'Unrecognized analyzer code: $value';
+    }
+  }
+
+  static int? _decodeIndex(Object? value) {
+    switch (value) {
+      case null:
+        return null;
+      case int():
+        if (value >= 1) {
+          return value;
+        }
+    }
+    throw 'Expected positive int for "index:", but found $value';
+  }
+
+  static String? _decodeSeverity(Object? yamlEntry) {
+    switch (yamlEntry) {
+      case null:
+        return null;
+      case String():
+        return severityEnumNames[yamlEntry] ??
+            (throw "Unknown severity '$yamlEntry'");
+      default:
+        throw 'Bad severity type: ${yamlEntry.runtimeType}';
+    }
+  }
+
+  static Object _encodeAnalyzerCode(List<String> analyzerCode) {
+    if (analyzerCode.length == 1) {
+      return analyzerCode.single;
+    } else {
+      return analyzerCode;
+    }
+  }
 }
 
 /// Information about how to convert the CFE's internal representation of a
@@ -686,83 +803,6 @@ enum ErrorCodeParameterType {
   /// Whether giatnostic messages using parameters of this type are supported by
   /// the analyzer.
   bool get isSupportedByAnalyzer => _analyzerName != null;
-}
-
-/// In-memory representation of error code information obtained from the front
-/// end's `messages.yaml` file.
-class FrontEndErrorCodeInfo extends ErrorCodeInfo {
-  /// The set of analyzer error codes that corresponds to this error code, if
-  /// any.
-  final List<String> analyzerCode;
-
-  /// The index of the error in the analyzer's `fastaAnalyzerErrorCodes` table.
-  final int? index;
-
-  /// The name of the [CfeSeverity] constant describing this error code's CFE
-  /// severity.
-  final String? cfeSeverity;
-
-  FrontEndErrorCodeInfo.fromYaml(YamlMap yaml)
-    : analyzerCode = _decodeAnalyzerCode(yaml['analyzerCode']),
-      index = _decodeIndex(yaml['index']),
-      cfeSeverity = _decodeSeverity(yaml['severity']),
-      super.fromYaml(yaml) {
-    if (yaml['problemMessage'] == null) {
-      throw 'Missing problemMessage';
-    }
-  }
-
-  @override
-  Map<Object?, Object?> toYaml() => {
-    if (analyzerCode.isNotEmpty)
-      'analyzerCode': _encodeAnalyzerCode(analyzerCode),
-    if (index != null) 'index': index,
-    ...super.toYaml(),
-  };
-
-  static List<String> _decodeAnalyzerCode(Object? value) {
-    if (value == null) {
-      return const [];
-    } else if (value is String) {
-      return [value];
-    } else if (value is List) {
-      return [for (var s in value) s as String];
-    } else {
-      throw 'Unrecognized analyzer code: $value';
-    }
-  }
-
-  static int? _decodeIndex(Object? value) {
-    switch (value) {
-      case null:
-        return null;
-      case int():
-        if (value >= 1) {
-          return value;
-        }
-    }
-    throw 'Expected positive int for "index:", but found $value';
-  }
-
-  static String? _decodeSeverity(Object? yamlEntry) {
-    switch (yamlEntry) {
-      case null:
-        return null;
-      case String():
-        return severityEnumNames[yamlEntry] ??
-            (throw "Unknown severity '$yamlEntry'");
-      default:
-        throw 'Bad severity type: ${yamlEntry.runtimeType}';
-    }
-  }
-
-  static Object _encodeAnalyzerCode(List<String> analyzerCode) {
-    if (analyzerCode.length == 1) {
-      return analyzerCode.single;
-    } else {
-      return analyzerCode;
-    }
-  }
 }
 
 /// Representation of a single file containing generated error codes.

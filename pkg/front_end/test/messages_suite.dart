@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:convert" show utf8;
+import "dart:convert" show utf8, json;
 import 'dart:io' show File, Platform;
 import "dart:typed_data" show Uint8List;
 
@@ -152,8 +152,37 @@ class MessageTestSuite extends ChainContext {
   @override
   Future<List<MessageTestDescription>> list(Chain suite) {
     List<MessageTestDescription> result = [];
-    Uri uri = suite.root.resolve("messages.yaml");
+    var rootString = suite.root.toString();
+    for (var subRoot in suite.subRoots) {
+      var subRootString = subRoot.toString();
+      if (!subRootString.startsWith(rootString)) {
+        throw StateError(
+          'Expected sub-root ${json.encode(subRootString)} to start with '
+          '${json.encode(rootString)}',
+        );
+      }
+      if (!subRootString.endsWith('/')) {
+        throw StateError(
+          'Expected sub-root ${json.encode(subRootString)} to end with "/"',
+        );
+      }
+      var prefix = subRootString.substring(rootString.length);
+      result.addAll(_ListSubRoot(subRoot, prefix: prefix));
+    }
+    return Future.value(result);
+  }
+
+  List<MessageTestDescription> _ListSubRoot(
+    Uri root, {
+    required String prefix,
+  }) {
+    List<MessageTestDescription> result = [];
+    Uri uri = root.resolve("messages.yaml");
     File file = new File.fromUri(uri);
+    // Allow for the possibility that the file might not exist yet.
+    // TODO(paulberry): remove this hack once
+    // `pkg/_fe_analyzer_shared/messages.yaml` exists
+    if (!file.existsSync()) return const [];
     String fileContent = file.readAsStringSync();
     YamlMap messages = loadYamlNode(fileContent, sourceUrl: uri) as YamlMap;
     for (String name in messages.keys) {
@@ -500,7 +529,7 @@ class MessageTestSuite extends ChainContext {
         ({String message, KnownExpectation expectation})? problem, {
         location,
       }) {
-        String shortName = "$name/$subName";
+        String shortName = "$prefix$name/$subName";
         if (problem != null) {
           String filename = relativize(uri);
           location ??= message.span.start;
@@ -634,15 +663,13 @@ class MessageTestSuite extends ChainContext {
           null,
           exampleAndAnalyzerCodeRequired &&
                   externalTest != null &&
-                  !(new File.fromUri(
-                    suite.root.resolve(externalTest),
-                  ).existsSync())
+                  !(new File.fromUri(root.resolve(externalTest)).existsSync())
               ? (
                   expectation: KnownExpectation.missingExternalFile,
                   message:
                       "Given external example for $name points to a "
                       "nonexisting file  "
-                      "(${suite.root.resolve(externalTest)}).",
+                      "(${root.resolve(externalTest)}).",
                 )
               : null,
         ),
@@ -684,7 +711,7 @@ class MessageTestSuite extends ChainContext {
         ),
       );
     }
-    return Future.value(result);
+    return result;
   }
 
   String formatProblems(

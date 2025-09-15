@@ -6,515 +6,515 @@
 # always be fixed by either spelling correctly or updating the dictionary.
 
 # Missing examples, but probably ok - at least for now.
-CannotAssignToSuper/example: missingExample # Not covered.
-CannotReadSdkSpecification/example: missingExample # Issued on what is essentially a wrong setup.
-CantInferPackagesFromManyInputs/example: missingExample # We don't control input uri in messages test.
-CantInferPackagesFromPackageUri/example: missingExample # We don't control input uri in messages test.
-ClassShouldBeListedAsCallableInDynamicInterface/example: missingExample # Can't do dynamic modules stuff in messages suite.
-ClassShouldBeListedAsExtendableInDynamicInterface/example: missingExample # Can't do dynamic modules stuff in messages suite.
-ConstEvalError/example: missingExample # Uncovered, at least outside of constant stress testing.
-ConstEvalGetterNotFound/example: missingExample # Not covered.
-ConstEvalInvalidPropertyGet/example: missingExample # Uncovered, at least outside of constant stress testing.
-ConstEvalInvalidRecordIndexGet/example: missingExample # Uncovered, at least outside of constant stress testing.
-ConstEvalInvalidRecordNameGet/example: missingExample # Uncovered, at least outside of constant stress testing.
-ConstEvalInvalidStaticInvocation/example: missingExample # Happens in some VM tests with @pragma("vm:platform-const") but unclear if it can happen otherwise.
-ConstEvalInvalidSymbolName/example: missingExample # Uncovered. Likely unreachable.
-ConstEvalKeyImplementsEqual/example: missingExample # Uncovered.
-ConstEvalNonConstantVariableGet/example: missingExample # Only covered in constant evaluator stress test. Not clear if it can happen on its own.
-ConstEvalStartingPoint/example: missingExample # This is just used for displaying the starting point.
-ConstEvalUnevaluated/example: missingExample # Unevaluated consts not possible in this suite.
-ConstructorShouldBeListedAsCallableInDynamicInterface/example: missingExample # Can't do dynamic modules stuff in messages suite.
-DartFfiLibraryInDart2Wasm/example: missingExample # Web compiler specific
-DillOutlineSummary/example: missingExample # Used for verbose output.
-DuplicatedDeclarationUse/part_wrapped_script1: hasOnlyUnrelatedMessages # Seemingly this is not issued as an error, but ends up in the kernel AST.
-DuplicatedDeclarationUse/script1: hasOnlyUnrelatedMessages # Seemingly this is not issued as an error, but ends up in the kernel AST.
-DuplicatedDeclarationUse/script2: hasOnlyUnrelatedMessages # Seemingly this is not issued as an error, but ends up in the kernel AST.
-DynamicCallsAreNotAllowedInDynamicModule/example: missingExample # Can't do dynamic modules stuff in messages suite.
-ExceptionReadingFile/example: missingExample # Requires an exception (generally not a FileSystemException) to occur when reading a file.
-ExpectedBlockToSkip/example: missingExample # Seemingly only used when skipping a block in a special parser.
-ExpectedOneExpression/example: missingExample # Used via expression compilation.
-ExpectedStatement/part_wrapped_statement: hasOnlyUnrelatedMessages # Only issued in Analyzer
-ExpectedStatement/statement: hasOnlyUnrelatedMessages # Only issued in Analyzer
-ExperimentDisabled/example: missingExample # Uncovered.
-ExperimentDisabledInvalidLanguageVersion/example: missingExample # Uncovered.
-ExperimentExpiredDisabled/example: missingExample # Uncovered.
-ExperimentExpiredEnabled/example: missingExample # Uncovered.
-ExperimentNotEnabled/example: missingExample # issued via the parser, but overridden by StackListenerImpl --- so likely not possible via CFE outside of special tests?
-ExplicitExtensionAsLvalue/example: missingExample # Uncovered.
-ExpressionEvaluationKnownVariableUnavailable/example: missingExample # Expression compilation.
-ExtensionAugmentationHasOnClause/part_wrapped_script: hasOnlyUnrelatedMessages # Doesn't seem to be any (direct?) way to get this for now
-ExtensionAugmentationHasOnClause/script: hasOnlyUnrelatedMessages # Doesn't seem to be any (direct?) way to get this for now
-ExtensionTypeShouldBeListedAsCallableInDynamicInterface/example: missingExample # Can't do dynamic modules stuff in messages suite.
-FastaCLIArgumentRequired/example: missingExample # Used in the compile tool
-FastaUsageLong/example: missingExample # Help for the compile tool
-FastaUsageShort/example: missingExample # Help for the compile tool
-IllegalAssignmentToNonAssignable/part_wrapped_script1: hasOnlyUnrelatedMessages # Possibly not reachable in the CFE
-IllegalAssignmentToNonAssignable/script1: hasOnlyUnrelatedMessages # Possibly not reachable in the CFE
-IncrementalCompilerIllegalParameter/example: missingExample # Expression compilation.
-IncrementalCompilerIllegalTypeParameter/example: missingExample # Expression compilation.
-IndexOutOfBoundInRecordIndexGet/example: missingExample # Not covered.
-InputFileNotFound/example: missingExample # Issued for additional dills that doesn't exist.
-InvalidAugmentSuper/example: missingExample # Doesn't seem to be any (direct?) way to get this for now
-InvalidCastFunctionExpr/example: missingExample # Seemingly not actually issued in any tests.
-InvalidCastLiteralList/example: missingExample # Seemingly not actually issued in any tests.
-InvalidCastLiteralMap/example: missingExample # Seemingly not actually issued in any tests.
-InvalidCastLiteralSet/example: missingExample # Seemingly not actually issued in any tests.
-InvalidCastLocalFunction/example: missingExample # Seemingly not actually issued in any tests.
-InvalidCastNewExpr/example: missingExample # Seemingly not actually issued in any tests.
-InvalidCastStaticMethod/example: missingExample # Seemingly not actually issued in any tests.
-InvalidCastTopLevelFunction/example: missingExample # Not covered.
-InvalidSuperInInitializer/example: missingExample # Only issued in Analyzer
-InvalidThisInInitializer/example: missingExample # Only issued in Analyzer
-JsInteropDartClassExtendsJSClass/example: missingExample # Web compiler specific
-JsInteropDartJsInteropAnnotationForStaticInteropOnly/example: missingExample # Web compiler specific
-JsInteropDisallowedInteropLibraryInDart2Wasm/example: missingExample # Web compiler specific
-JsInteropEnclosingClassJSAnnotation/example: missingExample # Web compiler specific
-JsInteropExportClassNotMarkedExportable/example: missingExample # Web compiler specific
-JsInteropExportDartInterfaceHasNonEmptyJSExportValue/example: missingExample # Web compiler specific
-JsInteropExportDisallowedMember/example: missingExample # Web compiler specific
-JsInteropExportInvalidInteropTypeArgument/example: missingExample # Web compiler specific
-JsInteropExportInvalidTypeArgument/example: missingExample # Web compiler specific
-JsInteropExportMemberCollision/example: missingExample # Web compiler specific
-JsInteropExportNoExportableMembers/example: missingExample # Web compiler specific
-JsInteropExtensionTypeMemberNotInterop/example: missingExample # Web compiler specific
-JsInteropExtensionTypeNotInterop/example: missingExample # Web compiler specific
-JsInteropExtensionTypeUsedWithWrongJsAnnotation/example: missingExample # Web compiler specific
-JsInteropExternalExtensionMemberOnTypeInvalid/example: missingExample # Web compiler specific
-JsInteropExternalExtensionMemberWithStaticDisallowed/example: missingExample # Web compiler specific
-JsInteropExternalMemberNotJSAnnotated/example: missingExample # Web compiler specific
-JsInteropFunctionToJSNamedParameters/example: missingExample # Web compiler specific
-JsInteropFunctionToJSRequiresStaticType/example: missingExample # Web compiler specific
-JsInteropFunctionToJSTypeParameters/example: missingExample # Web compiler specific
-JsInteropInvalidStaticClassMemberName/example: missingExample # Web compiler specific
-JsInteropIsAInvalidTypeVariable/example: missingExample # Web compiler specific
-JsInteropIsAObjectLiteralType/example: missingExample # Web compiler specific
-JsInteropIsAPrimitiveExtensionType/example: missingExample # Web compiler specific
-JsInteropIsATearoff/example: missingExample # Web compiler specific
-JsInteropJSClassExtendsDartClass/example: missingExample # Web compiler specific
-JsInteropNamedParameters/example: missingExample # Web compiler specific
-JsInteropNativeClassInAnnotation/example: missingExample # Web compiler specific
-JsInteropNonExternalConstructor/example: missingExample # Web compiler specific
-JsInteropNonExternalMember/example: missingExample # Web compiler specific
-JsInteropNonStaticWithStaticInteropSupertype/example: missingExample # Web compiler specific
-JsInteropObjectLiteralConstructorPositionalParameters/example: missingExample # Web compiler specific
-JsInteropOperatorCannotBeRenamed/example: missingExample # Web compiler specific
-JsInteropOperatorsNotSupported/example: missingExample # Web compiler specific
-JsInteropStaticInteropExternalAccessorTypeViolation/example: missingExample # Web compiler specific
-JsInteropStaticInteropExternalFunctionTypeViolation/example: missingExample # Web compiler specific
-JsInteropStaticInteropGenerativeConstructor/example: missingExample # Web compiler specific
-JsInteropStaticInteropMockMissingGetterOrSetter/example: missingExample # Web compiler specific
-JsInteropStaticInteropMockMissingImplements/example: missingExample # Web compiler specific
-JsInteropStaticInteropMockNotStaticInteropType/example: missingExample # Web compiler specific
-JsInteropStaticInteropMockTypeParametersNotAllowed/example: missingExample # Web compiler specific
-JsInteropStaticInteropNoJSAnnotation/example: missingExample # Web compiler specific
-JsInteropStaticInteropParameterInitializersAreIgnored/example: missingExample # Web compiler specific
-JsInteropStaticInteropSyntheticConstructor/example: missingExample # Web compiler specific
-JsInteropStaticInteropTearOffsDisallowed/example: missingExample # Web compiler specific
-JsInteropStaticInteropToJSFunctionTypeViolation/example: missingExample # Web compiler specific
-JsInteropStaticInteropTrustTypesUsageNotAllowed/example: missingExample # Web compiler specific
-JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop/example: missingExample # Web compiler specific
-JsInteropStaticInteropWithInstanceMembers/example: missingExample # Web compiler specific
-JsInteropStaticInteropWithNonStaticSupertype/example: missingExample # Web compiler specific
-LanguageVersionMismatchInPatch/example: missingExample # Patching.
-MemberShouldBeListedAsCallableInDynamicInterface/example: missingExample # Can't do dynamic modules stuff in messages suite.
-MemberShouldBeListedAsCanBeOverriddenInDynamicInterface/example: missingExample # Can't do dynamic modules stuff in messages suite.
-MissingAssignableSelector/part_wrapped_script1: hasOnlyUnrelatedMessages # Only issued in Analyzer
-MissingAssignableSelector/script1: hasOnlyUnrelatedMessages # Only issued in Analyzer
-MissingInput/example: missingExample # Issued on what is essentially a wrong setup.
-MissingMain/example: missingExample # Main is only required in some compilation modes, and not in messages testing.
-NameNotFoundInRecordNameGet/example: missingExample # Uncovered.
-NativeClauseShouldBeAnnotation/example: missingExample # Swallowed in StackListener.dart.
-NeverReachableSwitchDefaultError/example: missingExample # Probably only added to AST, but never issued.
-NeverReachableSwitchExpressionError/example: missingExample # No coverage.
-NeverReachableSwitchStatementError/example: missingExample # No coverage.
-NeverValueError/example: missingExample # No coverage.
-NoAugmentSuperInvokeTarget/example: missingExample # Doesn't seem to be any (direct?) way to get this for now
-NoAugmentSuperReadTarget/example: missingExample # Doesn't seem to be any (direct?) way to get this for now
-NoAugmentSuperWriteTarget/example: missingExample # Doesn't seem to be any (direct?) way to get this for now
-NonPartOfDirectiveInPart/script1: hasOnlyUnrelatedMessages # Specifically ignored in `isIgnoredParserError`?!?
-NoUnnamedConstructorInObject/example: missingExample # No coverage.
-PatchClassTypeParametersMismatch/example: missingExample # Patching.
-PatchExtensionTypeParametersMismatch/example: missingExample # Patching.
-PatchInjectionFailed/example: missingExample # Patching.
-PatternMatchingError/example: missingExample # Seemingly this is not issued as an error, but ends up in the kernel AST.
-PositionalAfterNamedArgument/example: missingExample # Seemingly only issued in Analyzer
-RecordUseCannotBePlacedHere/example: missingExample # No coverage.
-SdkRootNotFound/example: missingExample # Issued on what is essentially a wrong setup.
-SdkSpecificationNotFound/example: missingExample # Issued on what is essentially a wrong setup.
-SdkSummaryNotFound/example: missingExample # Issued on what is essentially a wrong setup.
-SourceBodySummary/example: missingExample # Used for verbose output.
-SourceOutlineSummary/example: missingExample # Used for verbose output.
-StackOverflow/example: missingExample # Requires 500 nested expressions.
-SuperclassHasNoMember/example: missingExample # Not covered...
-SyntheticToken/example: missingExample # Seemingly this is not issued as an error, but ends up in the kernel AST.
-UnmatchedAugmentationClass/example: missingExample # Doesn't seem to be any (direct?) way to get this for now
-UnmatchedAugmentationClassMember/example: missingExample # Doesn't seem to be any (direct?) way to get this for now
-UnmatchedAugmentationConstructor/example: missingExample # Doesn't seem to be any (direct?) way to get this for now
-UnmatchedAugmentationDeclaration/example: missingExample # Doesn't seem to be any (direct?) way to get this for now
-UnmatchedAugmentationLibraryMember/example: missingExample # Doesn't seem to be any (direct?) way to get this for now
-UnmatchedPatchClass/example: missingExample # Patching.
-UnmatchedPatchClassMember/example: missingExample # Patching.
-UnmatchedPatchDeclaration/example: missingExample # Patching.
-UnmatchedPatchLibraryMember/example: missingExample # Patching.
-UnsoundSwitchExpressionError/example: missingExample # Used in throw in code, but not issued as a message.
-UnsoundSwitchStatementError/example: missingExample # Used in throw in code, but not issued as a message.
-Unspecified/example: missingExample # This should generally not be used.
-UnterminatedToken/example: missingExample # This is a fall-back message that shouldn't happen.
-WasmImportOrExportInUserCode/example: missingExample # only issued by wasm build
-WebLiteralCannotBeRepresentedExactly/example: missingExample # only issued on web build
+front_end/CannotAssignToSuper/example: missingExample # Not covered.
+front_end/CannotReadSdkSpecification/example: missingExample # Issued on what is essentially a wrong setup.
+front_end/CantInferPackagesFromManyInputs/example: missingExample # We don't control input uri in messages test.
+front_end/CantInferPackagesFromPackageUri/example: missingExample # We don't control input uri in messages test.
+front_end/ClassShouldBeListedAsCallableInDynamicInterface/example: missingExample # Can't do dynamic modules stuff in messages suite.
+front_end/ClassShouldBeListedAsExtendableInDynamicInterface/example: missingExample # Can't do dynamic modules stuff in messages suite.
+front_end/ConstEvalError/example: missingExample # Uncovered, at least outside of constant stress testing.
+front_end/ConstEvalGetterNotFound/example: missingExample # Not covered.
+front_end/ConstEvalInvalidPropertyGet/example: missingExample # Uncovered, at least outside of constant stress testing.
+front_end/ConstEvalInvalidRecordIndexGet/example: missingExample # Uncovered, at least outside of constant stress testing.
+front_end/ConstEvalInvalidRecordNameGet/example: missingExample # Uncovered, at least outside of constant stress testing.
+front_end/ConstEvalInvalidStaticInvocation/example: missingExample # Happens in some VM tests with @pragma("vm:platform-const") but unclear if it can happen otherwise.
+front_end/ConstEvalInvalidSymbolName/example: missingExample # Uncovered. Likely unreachable.
+front_end/ConstEvalKeyImplementsEqual/example: missingExample # Uncovered.
+front_end/ConstEvalNonConstantVariableGet/example: missingExample # Only covered in constant evaluator stress test. Not clear if it can happen on its own.
+front_end/ConstEvalStartingPoint/example: missingExample # This is just used for displaying the starting point.
+front_end/ConstEvalUnevaluated/example: missingExample # Unevaluated consts not possible in this suite.
+front_end/ConstructorShouldBeListedAsCallableInDynamicInterface/example: missingExample # Can't do dynamic modules stuff in messages suite.
+front_end/DartFfiLibraryInDart2Wasm/example: missingExample # Web compiler specific
+front_end/DillOutlineSummary/example: missingExample # Used for verbose output.
+front_end/DuplicatedDeclarationUse/part_wrapped_script1: hasOnlyUnrelatedMessages # Seemingly this is not issued as an error, but ends up in the kernel AST.
+front_end/DuplicatedDeclarationUse/script1: hasOnlyUnrelatedMessages # Seemingly this is not issued as an error, but ends up in the kernel AST.
+front_end/DuplicatedDeclarationUse/script2: hasOnlyUnrelatedMessages # Seemingly this is not issued as an error, but ends up in the kernel AST.
+front_end/DynamicCallsAreNotAllowedInDynamicModule/example: missingExample # Can't do dynamic modules stuff in messages suite.
+front_end/ExceptionReadingFile/example: missingExample # Requires an exception (generally not a FileSystemException) to occur when reading a file.
+front_end/ExpectedBlockToSkip/example: missingExample # Seemingly only used when skipping a block in a special parser.
+front_end/ExpectedOneExpression/example: missingExample # Used via expression compilation.
+front_end/ExpectedStatement/part_wrapped_statement: hasOnlyUnrelatedMessages # Only issued in Analyzer
+front_end/ExpectedStatement/statement: hasOnlyUnrelatedMessages # Only issued in Analyzer
+front_end/ExperimentDisabled/example: missingExample # Uncovered.
+front_end/ExperimentDisabledInvalidLanguageVersion/example: missingExample # Uncovered.
+front_end/ExperimentExpiredDisabled/example: missingExample # Uncovered.
+front_end/ExperimentExpiredEnabled/example: missingExample # Uncovered.
+front_end/ExperimentNotEnabled/example: missingExample # issued via the parser, but overridden by StackListenerImpl --- so likely not possible via CFE outside of special tests?
+front_end/ExplicitExtensionAsLvalue/example: missingExample # Uncovered.
+front_end/ExpressionEvaluationKnownVariableUnavailable/example: missingExample # Expression compilation.
+front_end/ExtensionAugmentationHasOnClause/part_wrapped_script: hasOnlyUnrelatedMessages # Doesn't seem to be any (direct?) way to get this for now
+front_end/ExtensionAugmentationHasOnClause/script: hasOnlyUnrelatedMessages # Doesn't seem to be any (direct?) way to get this for now
+front_end/ExtensionTypeShouldBeListedAsCallableInDynamicInterface/example: missingExample # Can't do dynamic modules stuff in messages suite.
+front_end/FastaCLIArgumentRequired/example: missingExample # Used in the compile tool
+front_end/FastaUsageLong/example: missingExample # Help for the compile tool
+front_end/FastaUsageShort/example: missingExample # Help for the compile tool
+front_end/IllegalAssignmentToNonAssignable/part_wrapped_script1: hasOnlyUnrelatedMessages # Possibly not reachable in the CFE
+front_end/IllegalAssignmentToNonAssignable/script1: hasOnlyUnrelatedMessages # Possibly not reachable in the CFE
+front_end/IncrementalCompilerIllegalParameter/example: missingExample # Expression compilation.
+front_end/IncrementalCompilerIllegalTypeParameter/example: missingExample # Expression compilation.
+front_end/IndexOutOfBoundInRecordIndexGet/example: missingExample # Not covered.
+front_end/InputFileNotFound/example: missingExample # Issued for additional dills that doesn't exist.
+front_end/InvalidAugmentSuper/example: missingExample # Doesn't seem to be any (direct?) way to get this for now
+front_end/InvalidCastFunctionExpr/example: missingExample # Seemingly not actually issued in any tests.
+front_end/InvalidCastLiteralList/example: missingExample # Seemingly not actually issued in any tests.
+front_end/InvalidCastLiteralMap/example: missingExample # Seemingly not actually issued in any tests.
+front_end/InvalidCastLiteralSet/example: missingExample # Seemingly not actually issued in any tests.
+front_end/InvalidCastLocalFunction/example: missingExample # Seemingly not actually issued in any tests.
+front_end/InvalidCastNewExpr/example: missingExample # Seemingly not actually issued in any tests.
+front_end/InvalidCastStaticMethod/example: missingExample # Seemingly not actually issued in any tests.
+front_end/InvalidCastTopLevelFunction/example: missingExample # Not covered.
+front_end/InvalidSuperInInitializer/example: missingExample # Only issued in Analyzer
+front_end/InvalidThisInInitializer/example: missingExample # Only issued in Analyzer
+front_end/JsInteropDartClassExtendsJSClass/example: missingExample # Web compiler specific
+front_end/JsInteropDartJsInteropAnnotationForStaticInteropOnly/example: missingExample # Web compiler specific
+front_end/JsInteropDisallowedInteropLibraryInDart2Wasm/example: missingExample # Web compiler specific
+front_end/JsInteropEnclosingClassJSAnnotation/example: missingExample # Web compiler specific
+front_end/JsInteropExportClassNotMarkedExportable/example: missingExample # Web compiler specific
+front_end/JsInteropExportDartInterfaceHasNonEmptyJSExportValue/example: missingExample # Web compiler specific
+front_end/JsInteropExportDisallowedMember/example: missingExample # Web compiler specific
+front_end/JsInteropExportInvalidInteropTypeArgument/example: missingExample # Web compiler specific
+front_end/JsInteropExportInvalidTypeArgument/example: missingExample # Web compiler specific
+front_end/JsInteropExportMemberCollision/example: missingExample # Web compiler specific
+front_end/JsInteropExportNoExportableMembers/example: missingExample # Web compiler specific
+front_end/JsInteropExtensionTypeMemberNotInterop/example: missingExample # Web compiler specific
+front_end/JsInteropExtensionTypeNotInterop/example: missingExample # Web compiler specific
+front_end/JsInteropExtensionTypeUsedWithWrongJsAnnotation/example: missingExample # Web compiler specific
+front_end/JsInteropExternalExtensionMemberOnTypeInvalid/example: missingExample # Web compiler specific
+front_end/JsInteropExternalExtensionMemberWithStaticDisallowed/example: missingExample # Web compiler specific
+front_end/JsInteropExternalMemberNotJSAnnotated/example: missingExample # Web compiler specific
+front_end/JsInteropFunctionToJSNamedParameters/example: missingExample # Web compiler specific
+front_end/JsInteropFunctionToJSRequiresStaticType/example: missingExample # Web compiler specific
+front_end/JsInteropFunctionToJSTypeParameters/example: missingExample # Web compiler specific
+front_end/JsInteropInvalidStaticClassMemberName/example: missingExample # Web compiler specific
+front_end/JsInteropIsAInvalidTypeVariable/example: missingExample # Web compiler specific
+front_end/JsInteropIsAObjectLiteralType/example: missingExample # Web compiler specific
+front_end/JsInteropIsAPrimitiveExtensionType/example: missingExample # Web compiler specific
+front_end/JsInteropIsATearoff/example: missingExample # Web compiler specific
+front_end/JsInteropJSClassExtendsDartClass/example: missingExample # Web compiler specific
+front_end/JsInteropNamedParameters/example: missingExample # Web compiler specific
+front_end/JsInteropNativeClassInAnnotation/example: missingExample # Web compiler specific
+front_end/JsInteropNonExternalConstructor/example: missingExample # Web compiler specific
+front_end/JsInteropNonExternalMember/example: missingExample # Web compiler specific
+front_end/JsInteropNonStaticWithStaticInteropSupertype/example: missingExample # Web compiler specific
+front_end/JsInteropObjectLiteralConstructorPositionalParameters/example: missingExample # Web compiler specific
+front_end/JsInteropOperatorCannotBeRenamed/example: missingExample # Web compiler specific
+front_end/JsInteropOperatorsNotSupported/example: missingExample # Web compiler specific
+front_end/JsInteropStaticInteropExternalAccessorTypeViolation/example: missingExample # Web compiler specific
+front_end/JsInteropStaticInteropExternalFunctionTypeViolation/example: missingExample # Web compiler specific
+front_end/JsInteropStaticInteropGenerativeConstructor/example: missingExample # Web compiler specific
+front_end/JsInteropStaticInteropMockMissingGetterOrSetter/example: missingExample # Web compiler specific
+front_end/JsInteropStaticInteropMockMissingImplements/example: missingExample # Web compiler specific
+front_end/JsInteropStaticInteropMockNotStaticInteropType/example: missingExample # Web compiler specific
+front_end/JsInteropStaticInteropMockTypeParametersNotAllowed/example: missingExample # Web compiler specific
+front_end/JsInteropStaticInteropNoJSAnnotation/example: missingExample # Web compiler specific
+front_end/JsInteropStaticInteropParameterInitializersAreIgnored/example: missingExample # Web compiler specific
+front_end/JsInteropStaticInteropSyntheticConstructor/example: missingExample # Web compiler specific
+front_end/JsInteropStaticInteropTearOffsDisallowed/example: missingExample # Web compiler specific
+front_end/JsInteropStaticInteropToJSFunctionTypeViolation/example: missingExample # Web compiler specific
+front_end/JsInteropStaticInteropTrustTypesUsageNotAllowed/example: missingExample # Web compiler specific
+front_end/JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop/example: missingExample # Web compiler specific
+front_end/JsInteropStaticInteropWithInstanceMembers/example: missingExample # Web compiler specific
+front_end/JsInteropStaticInteropWithNonStaticSupertype/example: missingExample # Web compiler specific
+front_end/LanguageVersionMismatchInPatch/example: missingExample # Patching.
+front_end/MemberShouldBeListedAsCallableInDynamicInterface/example: missingExample # Can't do dynamic modules stuff in messages suite.
+front_end/MemberShouldBeListedAsCanBeOverriddenInDynamicInterface/example: missingExample # Can't do dynamic modules stuff in messages suite.
+front_end/MissingAssignableSelector/part_wrapped_script1: hasOnlyUnrelatedMessages # Only issued in Analyzer
+front_end/MissingAssignableSelector/script1: hasOnlyUnrelatedMessages # Only issued in Analyzer
+front_end/MissingInput/example: missingExample # Issued on what is essentially a wrong setup.
+front_end/MissingMain/example: missingExample # Main is only required in some compilation modes, and not in messages testing.
+front_end/NameNotFoundInRecordNameGet/example: missingExample # Uncovered.
+front_end/NativeClauseShouldBeAnnotation/example: missingExample # Swallowed in StackListener.dart.
+front_end/NeverReachableSwitchDefaultError/example: missingExample # Probably only added to AST, but never issued.
+front_end/NeverReachableSwitchExpressionError/example: missingExample # No coverage.
+front_end/NeverReachableSwitchStatementError/example: missingExample # No coverage.
+front_end/NeverValueError/example: missingExample # No coverage.
+front_end/NoAugmentSuperInvokeTarget/example: missingExample # Doesn't seem to be any (direct?) way to get this for now
+front_end/NoAugmentSuperReadTarget/example: missingExample # Doesn't seem to be any (direct?) way to get this for now
+front_end/NoAugmentSuperWriteTarget/example: missingExample # Doesn't seem to be any (direct?) way to get this for now
+front_end/NonPartOfDirectiveInPart/script1: hasOnlyUnrelatedMessages # Specifically ignored in `isIgnoredParserError`?!?
+front_end/NoUnnamedConstructorInObject/example: missingExample # No coverage.
+front_end/PatchClassTypeParametersMismatch/example: missingExample # Patching.
+front_end/PatchExtensionTypeParametersMismatch/example: missingExample # Patching.
+front_end/PatchInjectionFailed/example: missingExample # Patching.
+front_end/PatternMatchingError/example: missingExample # Seemingly this is not issued as an error, but ends up in the kernel AST.
+front_end/PositionalAfterNamedArgument/example: missingExample # Seemingly only issued in Analyzer
+front_end/RecordUseCannotBePlacedHere/example: missingExample # No coverage.
+front_end/SdkRootNotFound/example: missingExample # Issued on what is essentially a wrong setup.
+front_end/SdkSpecificationNotFound/example: missingExample # Issued on what is essentially a wrong setup.
+front_end/SdkSummaryNotFound/example: missingExample # Issued on what is essentially a wrong setup.
+front_end/SourceBodySummary/example: missingExample # Used for verbose output.
+front_end/SourceOutlineSummary/example: missingExample # Used for verbose output.
+front_end/StackOverflow/example: missingExample # Requires 500 nested expressions.
+front_end/SuperclassHasNoMember/example: missingExample # Not covered...
+front_end/SyntheticToken/example: missingExample # Seemingly this is not issued as an error, but ends up in the kernel AST.
+front_end/UnmatchedAugmentationClass/example: missingExample # Doesn't seem to be any (direct?) way to get this for now
+front_end/UnmatchedAugmentationClassMember/example: missingExample # Doesn't seem to be any (direct?) way to get this for now
+front_end/UnmatchedAugmentationConstructor/example: missingExample # Doesn't seem to be any (direct?) way to get this for now
+front_end/UnmatchedAugmentationDeclaration/example: missingExample # Doesn't seem to be any (direct?) way to get this for now
+front_end/UnmatchedAugmentationLibraryMember/example: missingExample # Doesn't seem to be any (direct?) way to get this for now
+front_end/UnmatchedPatchClass/example: missingExample # Patching.
+front_end/UnmatchedPatchClassMember/example: missingExample # Patching.
+front_end/UnmatchedPatchDeclaration/example: missingExample # Patching.
+front_end/UnmatchedPatchLibraryMember/example: missingExample # Patching.
+front_end/UnsoundSwitchExpressionError/example: missingExample # Used in throw in code, but not issued as a message.
+front_end/UnsoundSwitchStatementError/example: missingExample # Used in throw in code, but not issued as a message.
+front_end/Unspecified/example: missingExample # This should generally not be used.
+front_end/UnterminatedToken/example: missingExample # This is a fall-back message that shouldn't happen.
+front_end/WasmImportOrExportInUserCode/example: missingExample # only issued by wasm build
+front_end/WebLiteralCannotBeRepresentedExactly/example: missingExample # only issued on web build
 
 # Can we do better?
-ConstAndFinal/declaration3: hasOnlyUnrelatedMessages # maybe the parser should do better here - it seems it once did?
-ConstAndFinal/declaration4: hasOnlyUnrelatedMessages # maybe the parser should do better here - it seems it once did?
-ConstAndFinal/part_wrapped_declaration3: hasOnlyUnrelatedMessages # maybe the parser should do better here - it seems it once did?
-ConstAndFinal/part_wrapped_declaration4: hasOnlyUnrelatedMessages # maybe the parser should do better here - it seems it once did?
+front_end/ConstAndFinal/declaration3: hasOnlyUnrelatedMessages # maybe the parser should do better here - it seems it once did?
+front_end/ConstAndFinal/declaration4: hasOnlyUnrelatedMessages # maybe the parser should do better here - it seems it once did?
+front_end/ConstAndFinal/part_wrapped_declaration3: hasOnlyUnrelatedMessages # maybe the parser should do better here - it seems it once did?
+front_end/ConstAndFinal/part_wrapped_declaration4: hasOnlyUnrelatedMessages # maybe the parser should do better here - it seems it once did?
 
 # Missing analyzer codes.
-AbstractClassConstructorTearOff/analyzerCode: missingAnalyzerCode
-AbstractFieldConstructorInitializer/analyzerCode: missingAnalyzerCode
-AbstractFieldInitializer/analyzerCode: missingAnalyzerCode
-AmbiguousExtensionMethod/analyzerCode: missingAnalyzerCode
-AmbiguousExtensionOperator/analyzerCode: missingAnalyzerCode
-AmbiguousExtensionProperty/analyzerCode: missingAnalyzerCode
-AnnotationOnFunctionTypeTypeParameter/analyzerCode: missingAnalyzerCode
-AssertAsExpression/analyzerCode: missingAnalyzerCode
-AwaitInLateLocalInitializer/analyzerCode: missingAnalyzerCode
-CannotAssignToConstVariable/analyzerCode: missingAnalyzerCode
-CannotAssignToExtensionThis/analyzerCode: missingAnalyzerCode
-CannotAssignToFinalVariable/analyzerCode: missingAnalyzerCode
-CannotAssignToTypeLiteral/analyzerCode: missingAnalyzerCode
-CannotReadSdkSpecification/analyzerCode: missingAnalyzerCode
-CantDisambiguateAmbiguousInformation/analyzerCode: missingAnalyzerCode # There's no analyzer code for that error yet.
-CantDisambiguateNotEnoughInformation/analyzerCode: missingAnalyzerCode # There's no analyzer code for that error yet.
-CantHaveNamedParameters/analyzerCode: missingAnalyzerCode
-CantHaveOptionalParameters/analyzerCode: missingAnalyzerCode
-CantInferPackagesFromManyInputs/analyzerCode: missingAnalyzerCode
-CantInferPackagesFromPackageUri/analyzerCode: missingAnalyzerCode
-ClassShouldBeListedAsCallableInDynamicInterface/analyzerCode: missingAnalyzerCode
-ClassShouldBeListedAsExtendableInDynamicInterface/analyzerCode: missingAnalyzerCode
-ConstConstructorLateFinalFieldError/analyzerCode: missingAnalyzerCode
-ConstConstructorRedirectionToNonConst/analyzerCode: missingAnalyzerCode # The analyzer doesn't report this error.
-ConstEvalCaseImplementsEqual/analyzerCode: missingAnalyzerCode
-ConstEvalElementNotPrimitiveEquality/analyzerCode: missingAnalyzerCode
-ConstEvalEqualsOperandNotPrimitiveEquality/analyzerCode: missingAnalyzerCode
-ConstEvalError/analyzerCode: missingAnalyzerCode
-ConstEvalExternalConstructor/analyzerCode: missingAnalyzerCode
-ConstEvalExternalFactory/analyzerCode: missingAnalyzerCode
-ConstEvalGetterNotFound/analyzerCode: missingAnalyzerCode
-ConstEvalInvalidBinaryOperandType/analyzerCode: missingAnalyzerCode # CONST_EVAL_TYPE_NUM / CONST_EVAL_TYPE_BOOL
-ConstEvalInvalidEqualsOperandType/analyzerCode: missingAnalyzerCode
-ConstEvalInvalidType/analyzerCode: missingAnalyzerCode # CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH / CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH / CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH / ...
-ConstEvalKeyNotPrimitiveEquality/analyzerCode: missingAnalyzerCode
-ConstEvalNegativeShift/analyzerCode: missingAnalyzerCode
-ConstEvalNonNull/analyzerCode: missingAnalyzerCode
-ConstEvalStartingPoint/analyzerCode: missingAnalyzerCode # This is just used for displaying the starting point.
-ConstEvalTruncateError/analyzerCode: missingAnalyzerCode
-ConstEvalUnevaluated/analyzerCode: missingAnalyzerCode
-ConstEvalUnhandledCoreException/analyzerCode: missingAnalyzerCode
-ConstEvalUnhandledException/analyzerCode: missingAnalyzerCode
-ConstructorShouldBeListedAsCallableInDynamicInterface/analyzerCode: missingAnalyzerCode
-ConstructorTearOffWithTypeArguments/analyzerCode: missingAnalyzerCode
-CouldNotParseUri/analyzerCode: missingAnalyzerCode
-CyclicRepresentationDependency/analyzerCode: missingAnalyzerCode
-DartFfiLibraryInDart2Wasm/analyzerCode: missingAnalyzerCode
-DeferredExtensionImport/analyzerCode: missingAnalyzerCode
-DillOutlineSummary/analyzerCode: missingAnalyzerCode
-DotShorthandsConstructorInvocationWithTypeArguments/analyzerCode: missingAnalyzerCode # TODO(kallentu): https://github.com/dart-lang/sdk/issues/59835
-DotShorthandsInvalidContext/analyzerCode: missingAnalyzerCode # TODO(kallentu): https://github.com/dart-lang/sdk/issues/59835
-DotShorthandsUndefinedGetter/analyzerCode: missingAnalyzerCode # TODO(kallentu): https://github.com/dart-lang/sdk/issues/59835
-DotShorthandsUndefinedInvocation/analyzerCode: missingAnalyzerCode # TODO(kallentu): https://github.com/dart-lang/sdk/issues/59835
-DuplicatedDeclarationUse/analyzerCode: missingAnalyzerCode # No corresponding analyzer code.
-DuplicatedRecordLiteralFieldName/analyzerCode: missingAnalyzerCode
-DuplicatedRecordTypeFieldName/analyzerCode: missingAnalyzerCode
-DynamicCallsAreNotAllowedInDynamicModule/analyzerCode: missingAnalyzerCode
-Encoding/analyzerCode: missingAnalyzerCode
-EnumAbstractMember/analyzerCode: missingAnalyzerCode
-EnumConstructorSuperInitializer/analyzerCode: missingAnalyzerCode
-EnumConstructorTearoff/analyzerCode: missingAnalyzerCode
-EnumContainsRestrictedInstanceDeclaration/analyzerCode: missingAnalyzerCode
-EnumContainsValuesDeclaration/analyzerCode: missingAnalyzerCode
-EnumFactoryRedirectsToConstructor/analyzerCode: missingAnalyzerCode
-EnumImplementerContainsRestrictedInstanceDeclaration/analyzerCode: missingAnalyzerCode
-EnumImplementerContainsValuesDeclaration/analyzerCode: missingAnalyzerCode
-EnumInheritsRestricted/analyzerCode: missingAnalyzerCode
-EnumNonConstConstructor/analyzerCode: missingAnalyzerCode
-EnumSupertypeOfNonAbstractClass/analyzerCode: missingAnalyzerCode
-ExceptionReadingFile/analyzerCode: missingAnalyzerCode
-ExpectedOneExpression/analyzerCode: missingAnalyzerCode
-ExpectedUri/analyzerCode: missingAnalyzerCode
-ExperimentExpiredDisabled/analyzerCode: missingAnalyzerCode
-ExperimentExpiredEnabled/analyzerCode: missingAnalyzerCode
-ExperimentOptOutExplicit/analyzerCode: missingAnalyzerCode
-ExperimentOptOutImplicit/analyzerCode: missingAnalyzerCode
-ExplicitExtensionArgumentMismatch/analyzerCode: missingAnalyzerCode
-ExplicitExtensionAsExpression/analyzerCode: missingAnalyzerCode
-ExplicitExtensionAsLvalue/analyzerCode: missingAnalyzerCode
-ExplicitExtensionTypeArgumentMismatch/analyzerCode: missingAnalyzerCode
-ExpressionEvaluationKnownVariableUnavailable/analyzerCode: missingAnalyzerCode
-ExpressionNotMetadata/analyzerCode: missingAnalyzerCode
-ExtendsNever/analyzerCode: missingAnalyzerCode # Feature not yet in analyzer.
-ExtensionMemberConflictsWithObjectMember/analyzerCode: missingAnalyzerCode
-ExtensionTypePrimaryConstructorFunctionFormalParameterSyntax/analyzerCode: missingAnalyzerCode
-ExtensionTypePrimaryConstructorWithInitializingFormal/analyzerCode: missingAnalyzerCode
-ExtensionTypeShouldBeListedAsCallableInDynamicInterface/analyzerCode: missingAnalyzerCode
-ExternalFieldConstructorInitializer/analyzerCode: missingAnalyzerCode
-ExternalFieldInitializer/analyzerCode: missingAnalyzerCode
-FastaCLIArgumentRequired/analyzerCode: missingAnalyzerCode
-FastaUsageLong/analyzerCode: missingAnalyzerCode
-FastaUsageShort/analyzerCode: missingAnalyzerCode
-FfiAbiSpecificIntegerInvalid/analyzerCode: missingAnalyzerCode
-FfiAbiSpecificIntegerMappingInvalid/analyzerCode: missingAnalyzerCode
-FfiAddressPosition/analyzerCode: missingAnalyzerCode
-FfiAddressReceiver/analyzerCode: missingAnalyzerCode
-FfiCompoundImplementsFinalizable/analyzerCode: missingAnalyzerCode
-FfiCreateOfStructOrUnion/analyzerCode: missingAnalyzerCode
-FfiDartTypeMismatch/analyzerCode: missingAnalyzerCode
-FfiDeeplyImmutableClassesMustBeFinalOrSealed/analyzerCode: missingAnalyzerCode
-FfiDeeplyImmutableFieldsModifiers/analyzerCode: missingAnalyzerCode
-FfiDeeplyImmutableFieldsMustBeDeeplyImmutable/analyzerCode: missingAnalyzerCode
-FfiDeeplyImmutableSubtypesMustBeDeeplyImmutable/analyzerCode: missingAnalyzerCode
-FfiDeeplyImmutableSupertypeMustBeDeeplyImmutable/analyzerCode: missingAnalyzerCode
-FfiEmptyStruct/analyzerCode: missingAnalyzerCode
-FfiExceptionalReturnNull/analyzerCode: missingAnalyzerCode
-FfiExpectedConstant/analyzerCode: missingAnalyzerCode
-FfiExpectedConstantArg/analyzerCode: missingAnalyzerCode
-FfiExpectedExceptionalReturn/analyzerCode: missingAnalyzerCode
-FfiExpectedNoExceptionalReturn/analyzerCode: missingAnalyzerCode
-FfiExtendsOrImplementsSealedClass/analyzerCode: missingAnalyzerCode
-FfiFieldAnnotation/analyzerCode: missingAnalyzerCode
-FfiFieldCyclic/analyzerCode: missingAnalyzerCode
-FfiFieldInitializer/analyzerCode: missingAnalyzerCode
-FfiFieldNoAnnotation/analyzerCode: missingAnalyzerCode
-FfiFieldNull/analyzerCode: missingAnalyzerCode
-FfiLeafCallMustNotReturnHandle/analyzerCode: missingAnalyzerCode
-FfiLeafCallMustNotTakeHandle/analyzerCode: missingAnalyzerCode
-FfiNativeCallableListenerReturnVoid/analyzerCode: missingAnalyzerCode
-FfiNativeMustBeExternal/analyzerCode: missingAnalyzerCode
-FfiNativeOnlyNativeFieldWrapperClassCanBePointer/analyzerCode: missingAnalyzerCode
-FfiNativeUnexpectedNumberOfParameters/analyzerCode: missingAnalyzerCode
-FfiNativeUnexpectedNumberOfParametersWithReceiver/analyzerCode: missingAnalyzerCode
-FfiNotStatic/analyzerCode: missingAnalyzerCode
-FfiPackedAnnotation/analyzerCode: missingAnalyzerCode
-FfiPackedAnnotationAlignment/analyzerCode: missingAnalyzerCode
-FfiSizeAnnotation/analyzerCode: missingAnalyzerCode
-FfiSizeAnnotationDimensions/analyzerCode: missingAnalyzerCode
-FfiStructGeneric/analyzerCode: missingAnalyzerCode
-FfiTypeInvalid/analyzerCode: missingAnalyzerCode
-FfiTypeMismatch/analyzerCode: missingAnalyzerCode
-FfiVariableLengthArrayNotLast/analyzerCode: missingAnalyzerCode
-FieldNonNullableNotInitializedByConstructorError/analyzerCode: missingAnalyzerCode
-FieldNonNullableWithoutInitializerError/analyzerCode: missingAnalyzerCode
-FieldNotPromotedBecauseConflictingField/analyzerCode: missingAnalyzerCode
-FieldNotPromotedBecauseConflictingGetter/analyzerCode: missingAnalyzerCode
-FieldNotPromotedBecauseConflictingNsmForwarder/analyzerCode: missingAnalyzerCode
-FieldNotPromotedBecauseExternal/analyzerCode: missingAnalyzerCode
-FieldNotPromotedBecauseNotEnabled/analyzerCode: missingAnalyzerCode
-FieldNotPromotedBecauseNotField/analyzerCode: missingAnalyzerCode
-FieldNotPromotedBecauseNotFinal/analyzerCode: missingAnalyzerCode
-FieldNotPromotedBecauseNotPrivate/analyzerCode: missingAnalyzerCode
-ForInLoopExactlyOneVariable/analyzerCode: missingAnalyzerCode # The analyzer doesn't recover well.
-ForInLoopNotAssignable/analyzerCode: missingAnalyzerCode # The analyzer reports a different error.
-IllegalAsyncGeneratorVoidReturnType/analyzerCode: missingAnalyzerCode # The analyzer doesn't report this error.
-IllegalSyncGeneratorVoidReturnType/analyzerCode: missingAnalyzerCode # The analyzer doesn't report this error.
-ImplementMultipleExtensionTypeMembers/analyzerCode: missingAnalyzerCode
-ImplementNonExtensionTypeAndExtensionTypeMember/analyzerCode: missingAnalyzerCode
-ImplementsFutureOr/analyzerCode: missingAnalyzerCode # The analyzer doesn't report this error.
-ImplementsNever/analyzerCode: missingAnalyzerCode # Feature not yet in analyzer.
-ImplicitMixinOverride/analyzerCode: missingAnalyzerCode
-ImplicitReturnNull/analyzerCode: missingAnalyzerCode
-IncrementalCompilerIllegalParameter/analyzerCode: missingAnalyzerCode
-IncrementalCompilerIllegalTypeParameter/analyzerCode: missingAnalyzerCode
-IndexOutOfBoundInRecordIndexGet/analyzerCode: missingAnalyzerCode
-InputFileNotFound/analyzerCode: missingAnalyzerCode
-InstantiationNonGenericFunctionType/analyzerCode: missingAnalyzerCode
-InstantiationTooFewArguments/analyzerCode: missingAnalyzerCode
-InstantiationTooManyArguments/analyzerCode: missingAnalyzerCode
-InterfaceCheck/analyzerCode: missingAnalyzerCode
-InvalidAugmentSuper/analyzerCode: missingAnalyzerCode
-InvalidBreakTarget/analyzerCode: missingAnalyzerCode
-InvalidContinueTarget/analyzerCode: missingAnalyzerCode
-InvalidExtensionTypeSuperExtensionType/analyzerCode: missingAnalyzerCode
-InvalidExtensionTypeSuperInterface/analyzerCode: missingAnalyzerCode
-InvalidGetterSetterType/analyzerCode: missingAnalyzerCode
-InvalidGetterSetterTypeBothInheritedField/analyzerCode: missingAnalyzerCode
-InvalidGetterSetterTypeBothInheritedGetter/analyzerCode: missingAnalyzerCode
-InvalidGetterSetterTypeFieldInherited/analyzerCode: missingAnalyzerCode
-InvalidGetterSetterTypeGetterInherited/analyzerCode: missingAnalyzerCode
-InvalidGetterSetterTypeSetterInheritedField/analyzerCode: missingAnalyzerCode
-InvalidGetterSetterTypeSetterInheritedGetter/analyzerCode: missingAnalyzerCode
-InvalidPackageUri/analyzerCode: missingAnalyzerCode
-InvalidReturn/analyzerCode: missingAnalyzerCode
-InvalidReturnAsync/analyzerCode: missingAnalyzerCode
-InvalidTypeParameterInSupertype/analyzerCode: missingAnalyzerCode
-InvalidTypeParameterInSupertypeWithVariance/analyzerCode: missingAnalyzerCode
-InvalidTypeParameterVariancePosition/analyzerCode: missingAnalyzerCode
-InvalidTypeParameterVariancePositionInReturnType/analyzerCode: missingAnalyzerCode
-JointPatternVariablesMismatch/analyzerCode: missingAnalyzerCode
-JsInteropDartClassExtendsJSClass/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropDartJsInteropAnnotationForStaticInteropOnly/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropDisallowedInteropLibraryInDart2Wasm/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropEnclosingClassJSAnnotation/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropExportClassNotMarkedExportable/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropExportDartInterfaceHasNonEmptyJSExportValue/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropExportDisallowedMember/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropExportInvalidInteropTypeArgument/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropExportInvalidTypeArgument/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropExportMemberCollision/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropExportNoExportableMembers/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropExtensionTypeMemberNotInterop/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropExtensionTypeNotInterop/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropExtensionTypeUsedWithWrongJsAnnotation/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropExternalExtensionMemberOnTypeInvalid/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropExternalExtensionMemberWithStaticDisallowed/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropExternalMemberNotJSAnnotated/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropFunctionToJSNamedParameters/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropFunctionToJSRequiresStaticType/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropFunctionToJSTypeParameters/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropInvalidStaticClassMemberName/analyzerCode: missingAnalyzerCode
-JsInteropIsAInvalidTypeVariable/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropIsAObjectLiteralType/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropIsAPrimitiveExtensionType/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropIsATearoff/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropJSClassExtendsDartClass/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropNamedParameters/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropNativeClassInAnnotation/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropNonExternalConstructor/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropNonExternalMember/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropNonStaticWithStaticInteropSupertype/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropObjectLiteralConstructorPositionalParameters/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropOperatorCannotBeRenamed/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropOperatorsNotSupported/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropStaticInteropExternalAccessorTypeViolation/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropStaticInteropExternalFunctionTypeViolation/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropStaticInteropGenerativeConstructor/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropStaticInteropMockMissingGetterOrSetter/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropStaticInteropMockMissingImplements/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropStaticInteropMockNotStaticInteropType/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropStaticInteropMockTypeParametersNotAllowed/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropStaticInteropNoJSAnnotation/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropStaticInteropParameterInitializersAreIgnored/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropStaticInteropSyntheticConstructor/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropStaticInteropTearOffsDisallowed/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropStaticInteropToJSFunctionTypeViolation/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropStaticInteropTrustTypesUsageNotAllowed/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropStaticInteropWithInstanceMembers/analyzerCode: missingAnalyzerCode # Web compiler specific
-JsInteropStaticInteropWithNonStaticSupertype/analyzerCode: missingAnalyzerCode # Web compiler specific
-LanguageVersionInvalidInDotPackages/analyzerCode: missingAnalyzerCode
-LanguageVersionMismatchInPart/analyzerCode: missingAnalyzerCode
-LanguageVersionMismatchInPatch/analyzerCode: missingAnalyzerCode
-LanguageVersionTooHighExplicit/analyzerCode: missingAnalyzerCode
-LanguageVersionTooHighPackage/analyzerCode: missingAnalyzerCode
-LanguageVersionTooLowExplicit/analyzerCode: missingAnalyzerCode
-LanguageVersionTooLowPackage/analyzerCode: missingAnalyzerCode
-LateDefinitelyAssignedError/analyzerCode: missingAnalyzerCode
-LateDefinitelyUnassignedError/analyzerCode: missingAnalyzerCode
-MainNotFunctionDeclaration/analyzerCode: missingAnalyzerCode
-MainNotFunctionDeclarationExported/analyzerCode: missingAnalyzerCode
-MainRequiredNamedParameters/analyzerCode: missingAnalyzerCode
-MainRequiredNamedParametersExported/analyzerCode: missingAnalyzerCode
-MainTooManyRequiredParameters/analyzerCode: missingAnalyzerCode
-MainTooManyRequiredParametersExported/analyzerCode: missingAnalyzerCode
-MainWrongParameterType/analyzerCode: missingAnalyzerCode
-MainWrongParameterTypeExported/analyzerCode: missingAnalyzerCode
-MemberShouldBeListedAsCallableInDynamicInterface/analyzerCode: missingAnalyzerCode
-MemberShouldBeListedAsCanBeOverriddenInDynamicInterface/analyzerCode: missingAnalyzerCode
-MissingInput/analyzerCode: missingAnalyzerCode
-MissingMain/analyzerCode: missingAnalyzerCode
-NamedMixinOverride/analyzerCode: missingAnalyzerCode
-NamedParametersInExtensionTypeDeclaration/analyzerCode: missingAnalyzerCode
-NameNotFoundInRecordNameGet/analyzerCode: missingAnalyzerCode
-NegativeVariableDimension/analyzerCode: missingAnalyzerCode
-NeverReachableSwitchDefaultError/analyzerCode: missingAnalyzerCode
-NeverReachableSwitchExpressionError/analyzerCode: missingAnalyzerCode
-NeverReachableSwitchStatementError/analyzerCode: missingAnalyzerCode
-NeverValueError/analyzerCode: missingAnalyzerCode
-NewAsSelector/analyzerCode: missingAnalyzerCode
-NoAugmentSuperInvokeTarget/analyzerCode: missingAnalyzerCode
-NoAugmentSuperReadTarget/analyzerCode: missingAnalyzerCode
-NoAugmentSuperWriteTarget/analyzerCode: missingAnalyzerCode
-NonCovariantTypeParameterInRepresentationType/analyzerCode: missingAnalyzerCode
-NonNullableNotAssignedError/analyzerCode: missingAnalyzerCode
-NonNullAwareSpreadIsNull/analyzerCode: missingAnalyzerCode # There's no analyzer code for that error yet.
-NonPositiveArrayDimensions/analyzerCode: missingAnalyzerCode
-NotBinaryOperator/analyzerCode: missingAnalyzerCode
-NoUnnamedConstructorInObject/analyzerCode: missingAnalyzerCode
-NullableExpressionCallError/analyzerCode: missingAnalyzerCode
-NullableInterfaceError/analyzerCode: missingAnalyzerCode
-NullableMethodCallError/analyzerCode: missingAnalyzerCode
-NullableMixinError/analyzerCode: missingAnalyzerCode
-NullableOperatorCallError/analyzerCode: missingAnalyzerCode
-NullablePropertyAccessError/analyzerCode: missingAnalyzerCode
-NullableSpreadError/analyzerCode: missingAnalyzerCode
-NullableSuperclassError/analyzerCode: missingAnalyzerCode
-NullableTearoffError/analyzerCode: missingAnalyzerCode
-ObjectMemberNameUsedForRecordField/analyzerCode: missingAnalyzerCode
-ObsoleteColonForDefaultValue/analyzerCode: missingAnalyzerCode
-OperatorParameterMismatch0/analyzerCode: missingAnalyzerCode
-OperatorWithOptionalFormals/analyzerCode: missingAnalyzerCode
-OptionalParametersInExtensionTypeDeclaration/analyzerCode: missingAnalyzerCode
-OptionalSuperParameterWithoutInitializer/analyzerCode: missingAnalyzerCode
-OverrideMismatchRequiredNamedParameter/analyzerCode: missingAnalyzerCode
-OverrideTypeParametersBoundMismatch/analyzerCode: missingAnalyzerCode
-PackageNotFound/analyzerCode: missingAnalyzerCode
-PackagesFileFormat/analyzerCode: missingAnalyzerCode # Analyzer crashes when .packages file has format error
-PartOrphan/analyzerCode: missingAnalyzerCode # Analyzer can't handle this situation
-PatchClassTypeParametersMismatch/analyzerCode: missingAnalyzerCode
-PatchExtensionTypeParametersMismatch/analyzerCode: missingAnalyzerCode
-PatchInjectionFailed/analyzerCode: missingAnalyzerCode
-PatternMatchingError/analyzerCode: missingAnalyzerCode
-PositionalSuperParametersAndArguments/analyzerCode: missingAnalyzerCode
-RecordUseCannotBePlacedHere/analyzerCode: missingAnalyzerCode
-RecordUsedAsCallable/analyzerCode: missingAnalyzerCode
-RequiredNamedParameterHasDefaultValueError/analyzerCode: missingAnalyzerCode
-RestPatternInMapPattern/analyzerCode: missingAnalyzerCode
-ReturnWithoutExpressionAsync/analyzerCode: missingAnalyzerCode
-ReturnWithoutExpressionSync/analyzerCode: missingAnalyzerCode
-ScriptTagInPartFile/analyzerCode: missingAnalyzerCode
-SdkRootNotFound/analyzerCode: missingAnalyzerCode
-SdkSpecificationNotFound/analyzerCode: missingAnalyzerCode
-SdkSummaryNotFound/analyzerCode: missingAnalyzerCode
-SetOrMapLiteralTooManyTypeArguments/analyzerCode: missingAnalyzerCode
-SourceBodySummary/analyzerCode: missingAnalyzerCode
-SourceOutlineSummary/analyzerCode: missingAnalyzerCode
-SpreadMapEntryTypeMismatch/analyzerCode: missingAnalyzerCode # There's no analyzer code for that error yet.
-SpreadTypeMismatch/analyzerCode: missingAnalyzerCode # There's no analyzer code for that error yet.
-StaticTearOffFromInstantiatedClass/analyzerCode: missingAnalyzerCode
-SuperExtensionTypeIsIllegal/analyzerCode: missingAnalyzerCode
-SuperExtensionTypeIsIllegalAliased/analyzerCode: missingAnalyzerCode
-SuperExtensionTypeIsNullableAliased/analyzerCode: missingAnalyzerCode
-SuperExtensionTypeIsTypeParameter/analyzerCode: missingAnalyzerCode
-SuperParameterInitializerOutsideConstructor/analyzerCode: missingAnalyzerCode
-SupertypeIsFunction/analyzerCode: missingAnalyzerCode
-SwitchExpressionNotSubtype/analyzerCode: missingAnalyzerCode
-ThisAccessInFieldInitializer/analyzerCode: missingAnalyzerCode
-ThisNotPromoted/analyzerCode: missingAnalyzerCode
-ThrowingNotAssignableToObjectError/analyzerCode: missingAnalyzerCode
-TypedefNullableType/analyzerCode: missingAnalyzerCode
-TypedefTypeParameterNotConstructor/analyzerCode: missingAnalyzerCode # Feature not yet enabled by default.
-UndefinedExtensionSetter/analyzerCode: missingAnalyzerCode
-UnmatchedAugmentationClass/analyzerCode: missingAnalyzerCode
-UnmatchedAugmentationClassMember/analyzerCode: missingAnalyzerCode
-UnmatchedAugmentationConstructor/analyzerCode: missingAnalyzerCode
-UnmatchedAugmentationDeclaration/analyzerCode: missingAnalyzerCode
-UnmatchedAugmentationLibraryMember/analyzerCode: missingAnalyzerCode
-UnmatchedPatchClass/analyzerCode: missingAnalyzerCode
-UnmatchedPatchClassMember/analyzerCode: missingAnalyzerCode
-UnmatchedPatchDeclaration/analyzerCode: missingAnalyzerCode
-UnmatchedPatchLibraryMember/analyzerCode: missingAnalyzerCode
-UnnamedObjectPatternField/analyzerCode: missingAnalyzerCode
-UnsoundSwitchExpressionError/analyzerCode: missingAnalyzerCode
-UnsoundSwitchStatementError/analyzerCode: missingAnalyzerCode
-Unspecified/analyzerCode: missingAnalyzerCode
-UnsupportedDartExt/analyzerCode: missingAnalyzerCode
-UnterminatedToken/analyzerCode: missingAnalyzerCode # This is a fall-back message that shouldn't happen.
-ValueForRequiredParameterNotProvidedError/analyzerCode: missingAnalyzerCode
-VariableCouldBeNullDueToWrite/analyzerCode: missingAnalyzerCode
-WasmImportOrExportInUserCode/analyzerCode: missingAnalyzerCode
-WeakReferenceMismatchReturnAndArgumentTypes/analyzerCode: missingAnalyzerCode
-WeakReferenceNotOneArgument/analyzerCode: missingAnalyzerCode
-WeakReferenceNotStatic/analyzerCode: missingAnalyzerCode
-WeakReferenceReturnTypeNotNullable/analyzerCode: missingAnalyzerCode
-WeakReferenceTargetHasParameters/analyzerCode: missingAnalyzerCode
-WeakReferenceTargetNotStaticTearoff/analyzerCode: missingAnalyzerCode
-WebLiteralCannotBeRepresentedExactly/analyzerCode: missingAnalyzerCode
+front_end/AbstractClassConstructorTearOff/analyzerCode: missingAnalyzerCode
+front_end/AbstractFieldConstructorInitializer/analyzerCode: missingAnalyzerCode
+front_end/AbstractFieldInitializer/analyzerCode: missingAnalyzerCode
+front_end/AmbiguousExtensionMethod/analyzerCode: missingAnalyzerCode
+front_end/AmbiguousExtensionOperator/analyzerCode: missingAnalyzerCode
+front_end/AmbiguousExtensionProperty/analyzerCode: missingAnalyzerCode
+front_end/AnnotationOnFunctionTypeTypeParameter/analyzerCode: missingAnalyzerCode
+front_end/AssertAsExpression/analyzerCode: missingAnalyzerCode
+front_end/AwaitInLateLocalInitializer/analyzerCode: missingAnalyzerCode
+front_end/CannotAssignToConstVariable/analyzerCode: missingAnalyzerCode
+front_end/CannotAssignToExtensionThis/analyzerCode: missingAnalyzerCode
+front_end/CannotAssignToFinalVariable/analyzerCode: missingAnalyzerCode
+front_end/CannotAssignToTypeLiteral/analyzerCode: missingAnalyzerCode
+front_end/CannotReadSdkSpecification/analyzerCode: missingAnalyzerCode
+front_end/CantDisambiguateAmbiguousInformation/analyzerCode: missingAnalyzerCode # There's no analyzer code for that error yet.
+front_end/CantDisambiguateNotEnoughInformation/analyzerCode: missingAnalyzerCode # There's no analyzer code for that error yet.
+front_end/CantHaveNamedParameters/analyzerCode: missingAnalyzerCode
+front_end/CantHaveOptionalParameters/analyzerCode: missingAnalyzerCode
+front_end/CantInferPackagesFromManyInputs/analyzerCode: missingAnalyzerCode
+front_end/CantInferPackagesFromPackageUri/analyzerCode: missingAnalyzerCode
+front_end/ClassShouldBeListedAsCallableInDynamicInterface/analyzerCode: missingAnalyzerCode
+front_end/ClassShouldBeListedAsExtendableInDynamicInterface/analyzerCode: missingAnalyzerCode
+front_end/ConstConstructorLateFinalFieldError/analyzerCode: missingAnalyzerCode
+front_end/ConstConstructorRedirectionToNonConst/analyzerCode: missingAnalyzerCode # The analyzer doesn't report this error.
+front_end/ConstEvalCaseImplementsEqual/analyzerCode: missingAnalyzerCode
+front_end/ConstEvalElementNotPrimitiveEquality/analyzerCode: missingAnalyzerCode
+front_end/ConstEvalEqualsOperandNotPrimitiveEquality/analyzerCode: missingAnalyzerCode
+front_end/ConstEvalError/analyzerCode: missingAnalyzerCode
+front_end/ConstEvalExternalConstructor/analyzerCode: missingAnalyzerCode
+front_end/ConstEvalExternalFactory/analyzerCode: missingAnalyzerCode
+front_end/ConstEvalGetterNotFound/analyzerCode: missingAnalyzerCode
+front_end/ConstEvalInvalidBinaryOperandType/analyzerCode: missingAnalyzerCode # CONST_EVAL_TYPE_NUM / CONST_EVAL_TYPE_BOOL
+front_end/ConstEvalInvalidEqualsOperandType/analyzerCode: missingAnalyzerCode
+front_end/ConstEvalInvalidType/analyzerCode: missingAnalyzerCode # CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH / CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH / CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH / ...
+front_end/ConstEvalKeyNotPrimitiveEquality/analyzerCode: missingAnalyzerCode
+front_end/ConstEvalNegativeShift/analyzerCode: missingAnalyzerCode
+front_end/ConstEvalNonNull/analyzerCode: missingAnalyzerCode
+front_end/ConstEvalStartingPoint/analyzerCode: missingAnalyzerCode # This is just used for displaying the starting point.
+front_end/ConstEvalTruncateError/analyzerCode: missingAnalyzerCode
+front_end/ConstEvalUnevaluated/analyzerCode: missingAnalyzerCode
+front_end/ConstEvalUnhandledCoreException/analyzerCode: missingAnalyzerCode
+front_end/ConstEvalUnhandledException/analyzerCode: missingAnalyzerCode
+front_end/ConstructorShouldBeListedAsCallableInDynamicInterface/analyzerCode: missingAnalyzerCode
+front_end/ConstructorTearOffWithTypeArguments/analyzerCode: missingAnalyzerCode
+front_end/CouldNotParseUri/analyzerCode: missingAnalyzerCode
+front_end/CyclicRepresentationDependency/analyzerCode: missingAnalyzerCode
+front_end/DartFfiLibraryInDart2Wasm/analyzerCode: missingAnalyzerCode
+front_end/DeferredExtensionImport/analyzerCode: missingAnalyzerCode
+front_end/DillOutlineSummary/analyzerCode: missingAnalyzerCode
+front_end/DotShorthandsConstructorInvocationWithTypeArguments/analyzerCode: missingAnalyzerCode # TODO(kallentu): https://github.com/dart-lang/sdk/issues/59835
+front_end/DotShorthandsInvalidContext/analyzerCode: missingAnalyzerCode # TODO(kallentu): https://github.com/dart-lang/sdk/issues/59835
+front_end/DotShorthandsUndefinedGetter/analyzerCode: missingAnalyzerCode # TODO(kallentu): https://github.com/dart-lang/sdk/issues/59835
+front_end/DotShorthandsUndefinedInvocation/analyzerCode: missingAnalyzerCode # TODO(kallentu): https://github.com/dart-lang/sdk/issues/59835
+front_end/DuplicatedDeclarationUse/analyzerCode: missingAnalyzerCode # No corresponding analyzer code.
+front_end/DuplicatedRecordLiteralFieldName/analyzerCode: missingAnalyzerCode
+front_end/DuplicatedRecordTypeFieldName/analyzerCode: missingAnalyzerCode
+front_end/DynamicCallsAreNotAllowedInDynamicModule/analyzerCode: missingAnalyzerCode
+front_end/Encoding/analyzerCode: missingAnalyzerCode
+front_end/EnumAbstractMember/analyzerCode: missingAnalyzerCode
+front_end/EnumConstructorSuperInitializer/analyzerCode: missingAnalyzerCode
+front_end/EnumConstructorTearoff/analyzerCode: missingAnalyzerCode
+front_end/EnumContainsRestrictedInstanceDeclaration/analyzerCode: missingAnalyzerCode
+front_end/EnumContainsValuesDeclaration/analyzerCode: missingAnalyzerCode
+front_end/EnumFactoryRedirectsToConstructor/analyzerCode: missingAnalyzerCode
+front_end/EnumImplementerContainsRestrictedInstanceDeclaration/analyzerCode: missingAnalyzerCode
+front_end/EnumImplementerContainsValuesDeclaration/analyzerCode: missingAnalyzerCode
+front_end/EnumInheritsRestricted/analyzerCode: missingAnalyzerCode
+front_end/EnumNonConstConstructor/analyzerCode: missingAnalyzerCode
+front_end/EnumSupertypeOfNonAbstractClass/analyzerCode: missingAnalyzerCode
+front_end/ExceptionReadingFile/analyzerCode: missingAnalyzerCode
+front_end/ExpectedOneExpression/analyzerCode: missingAnalyzerCode
+front_end/ExpectedUri/analyzerCode: missingAnalyzerCode
+front_end/ExperimentExpiredDisabled/analyzerCode: missingAnalyzerCode
+front_end/ExperimentExpiredEnabled/analyzerCode: missingAnalyzerCode
+front_end/ExperimentOptOutExplicit/analyzerCode: missingAnalyzerCode
+front_end/ExperimentOptOutImplicit/analyzerCode: missingAnalyzerCode
+front_end/ExplicitExtensionArgumentMismatch/analyzerCode: missingAnalyzerCode
+front_end/ExplicitExtensionAsExpression/analyzerCode: missingAnalyzerCode
+front_end/ExplicitExtensionAsLvalue/analyzerCode: missingAnalyzerCode
+front_end/ExplicitExtensionTypeArgumentMismatch/analyzerCode: missingAnalyzerCode
+front_end/ExpressionEvaluationKnownVariableUnavailable/analyzerCode: missingAnalyzerCode
+front_end/ExpressionNotMetadata/analyzerCode: missingAnalyzerCode
+front_end/ExtendsNever/analyzerCode: missingAnalyzerCode # Feature not yet in analyzer.
+front_end/ExtensionMemberConflictsWithObjectMember/analyzerCode: missingAnalyzerCode
+front_end/ExtensionTypePrimaryConstructorFunctionFormalParameterSyntax/analyzerCode: missingAnalyzerCode
+front_end/ExtensionTypePrimaryConstructorWithInitializingFormal/analyzerCode: missingAnalyzerCode
+front_end/ExtensionTypeShouldBeListedAsCallableInDynamicInterface/analyzerCode: missingAnalyzerCode
+front_end/ExternalFieldConstructorInitializer/analyzerCode: missingAnalyzerCode
+front_end/ExternalFieldInitializer/analyzerCode: missingAnalyzerCode
+front_end/FastaCLIArgumentRequired/analyzerCode: missingAnalyzerCode
+front_end/FastaUsageLong/analyzerCode: missingAnalyzerCode
+front_end/FastaUsageShort/analyzerCode: missingAnalyzerCode
+front_end/FfiAbiSpecificIntegerInvalid/analyzerCode: missingAnalyzerCode
+front_end/FfiAbiSpecificIntegerMappingInvalid/analyzerCode: missingAnalyzerCode
+front_end/FfiAddressPosition/analyzerCode: missingAnalyzerCode
+front_end/FfiAddressReceiver/analyzerCode: missingAnalyzerCode
+front_end/FfiCompoundImplementsFinalizable/analyzerCode: missingAnalyzerCode
+front_end/FfiCreateOfStructOrUnion/analyzerCode: missingAnalyzerCode
+front_end/FfiDartTypeMismatch/analyzerCode: missingAnalyzerCode
+front_end/FfiDeeplyImmutableClassesMustBeFinalOrSealed/analyzerCode: missingAnalyzerCode
+front_end/FfiDeeplyImmutableFieldsModifiers/analyzerCode: missingAnalyzerCode
+front_end/FfiDeeplyImmutableFieldsMustBeDeeplyImmutable/analyzerCode: missingAnalyzerCode
+front_end/FfiDeeplyImmutableSubtypesMustBeDeeplyImmutable/analyzerCode: missingAnalyzerCode
+front_end/FfiDeeplyImmutableSupertypeMustBeDeeplyImmutable/analyzerCode: missingAnalyzerCode
+front_end/FfiEmptyStruct/analyzerCode: missingAnalyzerCode
+front_end/FfiExceptionalReturnNull/analyzerCode: missingAnalyzerCode
+front_end/FfiExpectedConstant/analyzerCode: missingAnalyzerCode
+front_end/FfiExpectedConstantArg/analyzerCode: missingAnalyzerCode
+front_end/FfiExpectedExceptionalReturn/analyzerCode: missingAnalyzerCode
+front_end/FfiExpectedNoExceptionalReturn/analyzerCode: missingAnalyzerCode
+front_end/FfiExtendsOrImplementsSealedClass/analyzerCode: missingAnalyzerCode
+front_end/FfiFieldAnnotation/analyzerCode: missingAnalyzerCode
+front_end/FfiFieldCyclic/analyzerCode: missingAnalyzerCode
+front_end/FfiFieldInitializer/analyzerCode: missingAnalyzerCode
+front_end/FfiFieldNoAnnotation/analyzerCode: missingAnalyzerCode
+front_end/FfiFieldNull/analyzerCode: missingAnalyzerCode
+front_end/FfiLeafCallMustNotReturnHandle/analyzerCode: missingAnalyzerCode
+front_end/FfiLeafCallMustNotTakeHandle/analyzerCode: missingAnalyzerCode
+front_end/FfiNativeCallableListenerReturnVoid/analyzerCode: missingAnalyzerCode
+front_end/FfiNativeMustBeExternal/analyzerCode: missingAnalyzerCode
+front_end/FfiNativeOnlyNativeFieldWrapperClassCanBePointer/analyzerCode: missingAnalyzerCode
+front_end/FfiNativeUnexpectedNumberOfParameters/analyzerCode: missingAnalyzerCode
+front_end/FfiNativeUnexpectedNumberOfParametersWithReceiver/analyzerCode: missingAnalyzerCode
+front_end/FfiNotStatic/analyzerCode: missingAnalyzerCode
+front_end/FfiPackedAnnotation/analyzerCode: missingAnalyzerCode
+front_end/FfiPackedAnnotationAlignment/analyzerCode: missingAnalyzerCode
+front_end/FfiSizeAnnotation/analyzerCode: missingAnalyzerCode
+front_end/FfiSizeAnnotationDimensions/analyzerCode: missingAnalyzerCode
+front_end/FfiStructGeneric/analyzerCode: missingAnalyzerCode
+front_end/FfiTypeInvalid/analyzerCode: missingAnalyzerCode
+front_end/FfiTypeMismatch/analyzerCode: missingAnalyzerCode
+front_end/FfiVariableLengthArrayNotLast/analyzerCode: missingAnalyzerCode
+front_end/FieldNonNullableNotInitializedByConstructorError/analyzerCode: missingAnalyzerCode
+front_end/FieldNonNullableWithoutInitializerError/analyzerCode: missingAnalyzerCode
+front_end/FieldNotPromotedBecauseConflictingField/analyzerCode: missingAnalyzerCode
+front_end/FieldNotPromotedBecauseConflictingGetter/analyzerCode: missingAnalyzerCode
+front_end/FieldNotPromotedBecauseConflictingNsmForwarder/analyzerCode: missingAnalyzerCode
+front_end/FieldNotPromotedBecauseExternal/analyzerCode: missingAnalyzerCode
+front_end/FieldNotPromotedBecauseNotEnabled/analyzerCode: missingAnalyzerCode
+front_end/FieldNotPromotedBecauseNotField/analyzerCode: missingAnalyzerCode
+front_end/FieldNotPromotedBecauseNotFinal/analyzerCode: missingAnalyzerCode
+front_end/FieldNotPromotedBecauseNotPrivate/analyzerCode: missingAnalyzerCode
+front_end/ForInLoopExactlyOneVariable/analyzerCode: missingAnalyzerCode # The analyzer doesn't recover well.
+front_end/ForInLoopNotAssignable/analyzerCode: missingAnalyzerCode # The analyzer reports a different error.
+front_end/IllegalAsyncGeneratorVoidReturnType/analyzerCode: missingAnalyzerCode # The analyzer doesn't report this error.
+front_end/IllegalSyncGeneratorVoidReturnType/analyzerCode: missingAnalyzerCode # The analyzer doesn't report this error.
+front_end/ImplementMultipleExtensionTypeMembers/analyzerCode: missingAnalyzerCode
+front_end/ImplementNonExtensionTypeAndExtensionTypeMember/analyzerCode: missingAnalyzerCode
+front_end/ImplementsFutureOr/analyzerCode: missingAnalyzerCode # The analyzer doesn't report this error.
+front_end/ImplementsNever/analyzerCode: missingAnalyzerCode # Feature not yet in analyzer.
+front_end/ImplicitMixinOverride/analyzerCode: missingAnalyzerCode
+front_end/ImplicitReturnNull/analyzerCode: missingAnalyzerCode
+front_end/IncrementalCompilerIllegalParameter/analyzerCode: missingAnalyzerCode
+front_end/IncrementalCompilerIllegalTypeParameter/analyzerCode: missingAnalyzerCode
+front_end/IndexOutOfBoundInRecordIndexGet/analyzerCode: missingAnalyzerCode
+front_end/InputFileNotFound/analyzerCode: missingAnalyzerCode
+front_end/InstantiationNonGenericFunctionType/analyzerCode: missingAnalyzerCode
+front_end/InstantiationTooFewArguments/analyzerCode: missingAnalyzerCode
+front_end/InstantiationTooManyArguments/analyzerCode: missingAnalyzerCode
+front_end/InterfaceCheck/analyzerCode: missingAnalyzerCode
+front_end/InvalidAugmentSuper/analyzerCode: missingAnalyzerCode
+front_end/InvalidBreakTarget/analyzerCode: missingAnalyzerCode
+front_end/InvalidContinueTarget/analyzerCode: missingAnalyzerCode
+front_end/InvalidExtensionTypeSuperExtensionType/analyzerCode: missingAnalyzerCode
+front_end/InvalidExtensionTypeSuperInterface/analyzerCode: missingAnalyzerCode
+front_end/InvalidGetterSetterType/analyzerCode: missingAnalyzerCode
+front_end/InvalidGetterSetterTypeBothInheritedField/analyzerCode: missingAnalyzerCode
+front_end/InvalidGetterSetterTypeBothInheritedGetter/analyzerCode: missingAnalyzerCode
+front_end/InvalidGetterSetterTypeFieldInherited/analyzerCode: missingAnalyzerCode
+front_end/InvalidGetterSetterTypeGetterInherited/analyzerCode: missingAnalyzerCode
+front_end/InvalidGetterSetterTypeSetterInheritedField/analyzerCode: missingAnalyzerCode
+front_end/InvalidGetterSetterTypeSetterInheritedGetter/analyzerCode: missingAnalyzerCode
+front_end/InvalidPackageUri/analyzerCode: missingAnalyzerCode
+front_end/InvalidReturn/analyzerCode: missingAnalyzerCode
+front_end/InvalidReturnAsync/analyzerCode: missingAnalyzerCode
+front_end/InvalidTypeParameterInSupertype/analyzerCode: missingAnalyzerCode
+front_end/InvalidTypeParameterInSupertypeWithVariance/analyzerCode: missingAnalyzerCode
+front_end/InvalidTypeParameterVariancePosition/analyzerCode: missingAnalyzerCode
+front_end/InvalidTypeParameterVariancePositionInReturnType/analyzerCode: missingAnalyzerCode
+front_end/JointPatternVariablesMismatch/analyzerCode: missingAnalyzerCode
+front_end/JsInteropDartClassExtendsJSClass/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropDartJsInteropAnnotationForStaticInteropOnly/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropDisallowedInteropLibraryInDart2Wasm/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropEnclosingClassJSAnnotation/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropExportClassNotMarkedExportable/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropExportDartInterfaceHasNonEmptyJSExportValue/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropExportDisallowedMember/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropExportInvalidInteropTypeArgument/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropExportInvalidTypeArgument/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropExportMemberCollision/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropExportNoExportableMembers/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropExtensionTypeMemberNotInterop/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropExtensionTypeNotInterop/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropExtensionTypeUsedWithWrongJsAnnotation/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropExternalExtensionMemberOnTypeInvalid/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropExternalExtensionMemberWithStaticDisallowed/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropExternalMemberNotJSAnnotated/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropFunctionToJSNamedParameters/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropFunctionToJSRequiresStaticType/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropFunctionToJSTypeParameters/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropInvalidStaticClassMemberName/analyzerCode: missingAnalyzerCode
+front_end/JsInteropIsAInvalidTypeVariable/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropIsAObjectLiteralType/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropIsAPrimitiveExtensionType/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropIsATearoff/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropJSClassExtendsDartClass/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropNamedParameters/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropNativeClassInAnnotation/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropNonExternalConstructor/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropNonExternalMember/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropNonStaticWithStaticInteropSupertype/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropObjectLiteralConstructorPositionalParameters/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropOperatorCannotBeRenamed/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropOperatorsNotSupported/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropStaticInteropExternalAccessorTypeViolation/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropStaticInteropExternalFunctionTypeViolation/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropStaticInteropGenerativeConstructor/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropStaticInteropMockMissingGetterOrSetter/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropStaticInteropMockMissingImplements/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropStaticInteropMockNotStaticInteropType/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropStaticInteropMockTypeParametersNotAllowed/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropStaticInteropNoJSAnnotation/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropStaticInteropParameterInitializersAreIgnored/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropStaticInteropSyntheticConstructor/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropStaticInteropTearOffsDisallowed/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropStaticInteropToJSFunctionTypeViolation/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropStaticInteropTrustTypesUsageNotAllowed/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropStaticInteropWithInstanceMembers/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropStaticInteropWithNonStaticSupertype/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/LanguageVersionInvalidInDotPackages/analyzerCode: missingAnalyzerCode
+front_end/LanguageVersionMismatchInPart/analyzerCode: missingAnalyzerCode
+front_end/LanguageVersionMismatchInPatch/analyzerCode: missingAnalyzerCode
+front_end/LanguageVersionTooHighExplicit/analyzerCode: missingAnalyzerCode
+front_end/LanguageVersionTooHighPackage/analyzerCode: missingAnalyzerCode
+front_end/LanguageVersionTooLowExplicit/analyzerCode: missingAnalyzerCode
+front_end/LanguageVersionTooLowPackage/analyzerCode: missingAnalyzerCode
+front_end/LateDefinitelyAssignedError/analyzerCode: missingAnalyzerCode
+front_end/LateDefinitelyUnassignedError/analyzerCode: missingAnalyzerCode
+front_end/MainNotFunctionDeclaration/analyzerCode: missingAnalyzerCode
+front_end/MainNotFunctionDeclarationExported/analyzerCode: missingAnalyzerCode
+front_end/MainRequiredNamedParameters/analyzerCode: missingAnalyzerCode
+front_end/MainRequiredNamedParametersExported/analyzerCode: missingAnalyzerCode
+front_end/MainTooManyRequiredParameters/analyzerCode: missingAnalyzerCode
+front_end/MainTooManyRequiredParametersExported/analyzerCode: missingAnalyzerCode
+front_end/MainWrongParameterType/analyzerCode: missingAnalyzerCode
+front_end/MainWrongParameterTypeExported/analyzerCode: missingAnalyzerCode
+front_end/MemberShouldBeListedAsCallableInDynamicInterface/analyzerCode: missingAnalyzerCode
+front_end/MemberShouldBeListedAsCanBeOverriddenInDynamicInterface/analyzerCode: missingAnalyzerCode
+front_end/MissingInput/analyzerCode: missingAnalyzerCode
+front_end/MissingMain/analyzerCode: missingAnalyzerCode
+front_end/NamedMixinOverride/analyzerCode: missingAnalyzerCode
+front_end/NamedParametersInExtensionTypeDeclaration/analyzerCode: missingAnalyzerCode
+front_end/NameNotFoundInRecordNameGet/analyzerCode: missingAnalyzerCode
+front_end/NegativeVariableDimension/analyzerCode: missingAnalyzerCode
+front_end/NeverReachableSwitchDefaultError/analyzerCode: missingAnalyzerCode
+front_end/NeverReachableSwitchExpressionError/analyzerCode: missingAnalyzerCode
+front_end/NeverReachableSwitchStatementError/analyzerCode: missingAnalyzerCode
+front_end/NeverValueError/analyzerCode: missingAnalyzerCode
+front_end/NewAsSelector/analyzerCode: missingAnalyzerCode
+front_end/NoAugmentSuperInvokeTarget/analyzerCode: missingAnalyzerCode
+front_end/NoAugmentSuperReadTarget/analyzerCode: missingAnalyzerCode
+front_end/NoAugmentSuperWriteTarget/analyzerCode: missingAnalyzerCode
+front_end/NonCovariantTypeParameterInRepresentationType/analyzerCode: missingAnalyzerCode
+front_end/NonNullableNotAssignedError/analyzerCode: missingAnalyzerCode
+front_end/NonNullAwareSpreadIsNull/analyzerCode: missingAnalyzerCode # There's no analyzer code for that error yet.
+front_end/NonPositiveArrayDimensions/analyzerCode: missingAnalyzerCode
+front_end/NotBinaryOperator/analyzerCode: missingAnalyzerCode
+front_end/NoUnnamedConstructorInObject/analyzerCode: missingAnalyzerCode
+front_end/NullableExpressionCallError/analyzerCode: missingAnalyzerCode
+front_end/NullableInterfaceError/analyzerCode: missingAnalyzerCode
+front_end/NullableMethodCallError/analyzerCode: missingAnalyzerCode
+front_end/NullableMixinError/analyzerCode: missingAnalyzerCode
+front_end/NullableOperatorCallError/analyzerCode: missingAnalyzerCode
+front_end/NullablePropertyAccessError/analyzerCode: missingAnalyzerCode
+front_end/NullableSpreadError/analyzerCode: missingAnalyzerCode
+front_end/NullableSuperclassError/analyzerCode: missingAnalyzerCode
+front_end/NullableTearoffError/analyzerCode: missingAnalyzerCode
+front_end/ObjectMemberNameUsedForRecordField/analyzerCode: missingAnalyzerCode
+front_end/ObsoleteColonForDefaultValue/analyzerCode: missingAnalyzerCode
+front_end/OperatorParameterMismatch0/analyzerCode: missingAnalyzerCode
+front_end/OperatorWithOptionalFormals/analyzerCode: missingAnalyzerCode
+front_end/OptionalParametersInExtensionTypeDeclaration/analyzerCode: missingAnalyzerCode
+front_end/OptionalSuperParameterWithoutInitializer/analyzerCode: missingAnalyzerCode
+front_end/OverrideMismatchRequiredNamedParameter/analyzerCode: missingAnalyzerCode
+front_end/OverrideTypeParametersBoundMismatch/analyzerCode: missingAnalyzerCode
+front_end/PackageNotFound/analyzerCode: missingAnalyzerCode
+front_end/PackagesFileFormat/analyzerCode: missingAnalyzerCode # Analyzer crashes when .packages file has format error
+front_end/PartOrphan/analyzerCode: missingAnalyzerCode # Analyzer can't handle this situation
+front_end/PatchClassTypeParametersMismatch/analyzerCode: missingAnalyzerCode
+front_end/PatchExtensionTypeParametersMismatch/analyzerCode: missingAnalyzerCode
+front_end/PatchInjectionFailed/analyzerCode: missingAnalyzerCode
+front_end/PatternMatchingError/analyzerCode: missingAnalyzerCode
+front_end/PositionalSuperParametersAndArguments/analyzerCode: missingAnalyzerCode
+front_end/RecordUseCannotBePlacedHere/analyzerCode: missingAnalyzerCode
+front_end/RecordUsedAsCallable/analyzerCode: missingAnalyzerCode
+front_end/RequiredNamedParameterHasDefaultValueError/analyzerCode: missingAnalyzerCode
+front_end/RestPatternInMapPattern/analyzerCode: missingAnalyzerCode
+front_end/ReturnWithoutExpressionAsync/analyzerCode: missingAnalyzerCode
+front_end/ReturnWithoutExpressionSync/analyzerCode: missingAnalyzerCode
+front_end/ScriptTagInPartFile/analyzerCode: missingAnalyzerCode
+front_end/SdkRootNotFound/analyzerCode: missingAnalyzerCode
+front_end/SdkSpecificationNotFound/analyzerCode: missingAnalyzerCode
+front_end/SdkSummaryNotFound/analyzerCode: missingAnalyzerCode
+front_end/SetOrMapLiteralTooManyTypeArguments/analyzerCode: missingAnalyzerCode
+front_end/SourceBodySummary/analyzerCode: missingAnalyzerCode
+front_end/SourceOutlineSummary/analyzerCode: missingAnalyzerCode
+front_end/SpreadMapEntryTypeMismatch/analyzerCode: missingAnalyzerCode # There's no analyzer code for that error yet.
+front_end/SpreadTypeMismatch/analyzerCode: missingAnalyzerCode # There's no analyzer code for that error yet.
+front_end/StaticTearOffFromInstantiatedClass/analyzerCode: missingAnalyzerCode
+front_end/SuperExtensionTypeIsIllegal/analyzerCode: missingAnalyzerCode
+front_end/SuperExtensionTypeIsIllegalAliased/analyzerCode: missingAnalyzerCode
+front_end/SuperExtensionTypeIsNullableAliased/analyzerCode: missingAnalyzerCode
+front_end/SuperExtensionTypeIsTypeParameter/analyzerCode: missingAnalyzerCode
+front_end/SuperParameterInitializerOutsideConstructor/analyzerCode: missingAnalyzerCode
+front_end/SupertypeIsFunction/analyzerCode: missingAnalyzerCode
+front_end/SwitchExpressionNotSubtype/analyzerCode: missingAnalyzerCode
+front_end/ThisAccessInFieldInitializer/analyzerCode: missingAnalyzerCode
+front_end/ThisNotPromoted/analyzerCode: missingAnalyzerCode
+front_end/ThrowingNotAssignableToObjectError/analyzerCode: missingAnalyzerCode
+front_end/TypedefNullableType/analyzerCode: missingAnalyzerCode
+front_end/TypedefTypeParameterNotConstructor/analyzerCode: missingAnalyzerCode # Feature not yet enabled by default.
+front_end/UndefinedExtensionSetter/analyzerCode: missingAnalyzerCode
+front_end/UnmatchedAugmentationClass/analyzerCode: missingAnalyzerCode
+front_end/UnmatchedAugmentationClassMember/analyzerCode: missingAnalyzerCode
+front_end/UnmatchedAugmentationConstructor/analyzerCode: missingAnalyzerCode
+front_end/UnmatchedAugmentationDeclaration/analyzerCode: missingAnalyzerCode
+front_end/UnmatchedAugmentationLibraryMember/analyzerCode: missingAnalyzerCode
+front_end/UnmatchedPatchClass/analyzerCode: missingAnalyzerCode
+front_end/UnmatchedPatchClassMember/analyzerCode: missingAnalyzerCode
+front_end/UnmatchedPatchDeclaration/analyzerCode: missingAnalyzerCode
+front_end/UnmatchedPatchLibraryMember/analyzerCode: missingAnalyzerCode
+front_end/UnnamedObjectPatternField/analyzerCode: missingAnalyzerCode
+front_end/UnsoundSwitchExpressionError/analyzerCode: missingAnalyzerCode
+front_end/UnsoundSwitchStatementError/analyzerCode: missingAnalyzerCode
+front_end/Unspecified/analyzerCode: missingAnalyzerCode
+front_end/UnsupportedDartExt/analyzerCode: missingAnalyzerCode
+front_end/UnterminatedToken/analyzerCode: missingAnalyzerCode # This is a fall-back message that shouldn't happen.
+front_end/ValueForRequiredParameterNotProvidedError/analyzerCode: missingAnalyzerCode
+front_end/VariableCouldBeNullDueToWrite/analyzerCode: missingAnalyzerCode
+front_end/WasmImportOrExportInUserCode/analyzerCode: missingAnalyzerCode
+front_end/WeakReferenceMismatchReturnAndArgumentTypes/analyzerCode: missingAnalyzerCode
+front_end/WeakReferenceNotOneArgument/analyzerCode: missingAnalyzerCode
+front_end/WeakReferenceNotStatic/analyzerCode: missingAnalyzerCode
+front_end/WeakReferenceReturnTypeNotNullable/analyzerCode: missingAnalyzerCode
+front_end/WeakReferenceTargetHasParameters/analyzerCode: missingAnalyzerCode
+front_end/WeakReferenceTargetNotStaticTearoff/analyzerCode: missingAnalyzerCode
+front_end/WebLiteralCannotBeRepresentedExactly/analyzerCode: missingAnalyzerCode
