@@ -7,6 +7,7 @@
 #include "platform/address_sanitizer.h"
 #include "platform/atomic.h"
 #include "platform/memory_sanitizer.h"
+#include "platform/thread_sanitizer.h"
 #include "platform/utils.h"
 #include "vm/allocation.h"
 #include "vm/code_patcher.h"
@@ -196,6 +197,18 @@ class ProfilerStackWalker : public ValueObject {
   intptr_t total_frames_;
 };
 
+// MSAN/ASAN are unaware of frames initialized by generated code.
+NO_SANITIZE_ADDRESS
+NO_SANITIZE_MEMORY
+#if defined(DART_HOST_OS_MACOS)
+// Mac profiling is cross-thread and TSAN doesn't know that thread_suspend
+// establishes synchronization.
+NO_SANITIZE_THREAD
+#endif
+static uword* LoadStackSlot(uword* ptr) {
+  return reinterpret_cast<uword*>(*ptr);
+}
+
 // The layout of C stack frames.
 #if defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64) ||                       \
     defined(HOST_ARCH_ARM) || defined(HOST_ARCH_ARM64)
@@ -300,20 +313,12 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
  private:
   uword* CallerPC(uword* fp) const {
     ASSERT(fp != nullptr);
-    uword* caller_pc_ptr = fp + kHostSavedCallerPcSlotFromFp;
-    // This may actually be uninitialized, by design (see class comment above).
-    MSAN_UNPOISON(caller_pc_ptr, kWordSize);
-    ASAN_UNPOISON(caller_pc_ptr, kWordSize);
-    return reinterpret_cast<uword*>(*caller_pc_ptr);
+    return LoadStackSlot(fp + kHostSavedCallerPcSlotFromFp);
   }
 
   uword* CallerFP(uword* fp) const {
     ASSERT(fp != nullptr);
-    uword* caller_fp_ptr = fp + kHostSavedCallerFpSlotFromFp;
-    // This may actually be uninitialized, by design (see class comment above).
-    MSAN_UNPOISON(caller_fp_ptr, kWordSize);
-    ASAN_UNPOISON(caller_fp_ptr, kWordSize);
-    return reinterpret_cast<uword*>(*caller_fp_ptr);
+    return LoadStackSlot(fp + kHostSavedCallerFpSlotFromFp);
   }
 
   bool ValidFramePointer(uword* fp) const {
@@ -1156,10 +1161,7 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
     uword* caller_pc_ptr =
         fp_ + (IsInterpretedFrame() ? kKBCSavedCallerPcSlotFromFp
                                     : kSavedCallerPcSlotFromFp);
-    // MSan/ASan are unaware of frames initialized by generated code.
-    MSAN_UNPOISON(caller_pc_ptr, kWordSize);
-    ASAN_UNPOISON(caller_pc_ptr, kWordSize);
-    return reinterpret_cast<uword*>(*caller_pc_ptr);
+    return LoadStackSlot(caller_pc_ptr);
   }
 
   uword* CallerFP() const {
@@ -1167,10 +1169,7 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
     uword* caller_fp_ptr =
         fp_ + (IsInterpretedFrame() ? kKBCSavedCallerFpSlotFromFp
                                     : kSavedCallerFpSlotFromFp);
-    // MSan/ASan are unaware of frames initialized by generated code.
-    MSAN_UNPOISON(caller_fp_ptr, kWordSize);
-    ASAN_UNPOISON(caller_fp_ptr, kWordSize);
-    return reinterpret_cast<uword*>(*caller_fp_ptr);
+    return LoadStackSlot(caller_fp_ptr);
   }
 
   uword* ExitLink() const {
@@ -1178,19 +1177,12 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
     uword* exit_link_ptr =
         fp_ + (IsInterpretedFrame() ? kKBCExitLinkSlotFromEntryFp
                                     : kExitLinkSlotFromEntryFp);
-    // MSan/ASan are unaware of frames initialized by generated code.
-    MSAN_UNPOISON(exit_link_ptr, kWordSize);
-    ASAN_UNPOISON(exit_link_ptr, kWordSize);
-    return reinterpret_cast<uword*>(*exit_link_ptr);
+    return LoadStackSlot(exit_link_ptr);
   }
 
   uword Stack(intptr_t index) const {
     ASSERT(sp_ != nullptr);
-    uword* stack_ptr = sp_ + index;
-    // MSan/ASan are unaware of frames initialized by generated code.
-    MSAN_UNPOISON(stack_ptr, kWordSize);
-    ASAN_UNPOISON(stack_ptr, kWordSize);
-    return *stack_ptr;
+    return reinterpret_cast<uword>(LoadStackSlot(sp_ + index));
   }
 
   Thread* const thread_;
@@ -1206,9 +1198,7 @@ static void CopyStackBuffer(Sample* sample, uword sp_addr) {
   uword* buffer = sample->GetStackBuffer();
   if (sp != nullptr) {
     for (intptr_t i = 0; i < Sample::kStackBufferSizeInWords; i++) {
-      MSAN_UNPOISON(sp, kWordSize);
-      ASAN_UNPOISON(sp, kWordSize);
-      buffer[i] = *sp;
+      buffer[i] = reinterpret_cast<uword>(LoadStackSlot(sp));
       sp++;
     }
   }
