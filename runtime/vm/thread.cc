@@ -437,11 +437,14 @@ void Thread::EnterIsolate(Isolate* isolate) {
     thread->ExitSafepoint();
   }
 
-  StackZone zone(thread);
-  HANDLESCOPE(thread);
-  if (group->tag_table() != GrowableObjectArray::null()) {
-    const UserTag& default_tag = UserTag::Handle(UserTag::DefaultTag(thread));
-    thread->set_current_tag(default_tag);
+  if (thread->current_tag() == UserTag::null()) {
+    // Set up current tag if it was not set up by the callback.
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
+    if (group->tag_table() != GrowableObjectArray::null()) {
+      const UserTag& default_tag = UserTag::Handle(UserTag::DefaultTag(thread));
+      thread->set_current_tag(default_tag);
+    }
   }
 
   ASSERT(!thread->IsAtSafepoint());
