@@ -73,13 +73,18 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
 
 intptr_t TypeTestingStubCallPattern::GetSubtypeTestCachePoolIndex() {
   static int16_t indirect_call_pattern[] = {
-      0xff, -1 /* 0x53 or 0x56 */, 0x07,  // callq [RBX/RSI + 0x7]
+      0xff,
+      -1 /* 0x53 or 0x56 */,
+      0x07,  // callq [RBX/RSI + 0x7]
   };
   static int16_t direct_call_pattern[] = {
       0xe8, -1, -1, -1, -1,  // callq [PC + <offset>]
   };
   static int16_t pattern_disp8[] = {
-      0x4d, 0x8b, 0x4f, -1,  // movq R9, [PP + offset]
+      0x4d,
+      0x8b,
+      0x4f,
+      -1,  // movq R9, [PP + offset]
   };
   static int16_t pattern_disp32[] = {
       0x4d, 0x8b, 0x8f, -1, -1, -1, -1,  // movq R9, [PP + offset]

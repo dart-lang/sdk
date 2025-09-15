@@ -90,9 +90,7 @@ class MockInstruction : public ZoneAllocated {
    public:                                                                     \
     LocationSummary* MakeLocationSummary(Zone* zone, bool opt) const;          \
     void EmitNativeCode(FlowGraphCompiler* compiler);                          \
-    virtual intptr_t InputCount() const {                                      \
-      return Arity;                                                            \
-    }                                                                          \
+    virtual intptr_t InputCount() const { return Arity; }                      \
   };                                                                           \
   TEST_CASE(LocationsHelpers_##Name) {                                         \
     const Location expected_out = ExpectedOut;                                 \
