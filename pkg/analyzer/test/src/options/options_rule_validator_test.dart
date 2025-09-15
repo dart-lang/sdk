@@ -185,6 +185,30 @@ include:
     ]);
   }
 
+  Future<void> test_incompatible_multiple_include_noLintMainFile() async {
+    newFile('/included1.yaml', '''
+linter:
+  rules:
+    - rule_neg
+''');
+    newFile('/included2.yaml', '''
+linter:
+  rules:
+    - rule_pos
+''');
+    assertErrors(
+      '''
+include:
+  - included1.yaml
+  - included2.yaml
+
+linter:
+  rules:
+''',
+      [AnalysisOptionsWarningCode.incompatibleLintIncluded],
+    );
+  }
+
   void test_incompatible_noTrigger_invalidMap() {
     newFile('/included.yaml', '''
 linter:
