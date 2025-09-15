@@ -23,11 +23,7 @@ const Map<String, String> severityEnumNames = <String, String>{
 /// Decoded messages from the `_fe_analyzer_shared` package's `messages.yaml`
 /// file.
 final Map<String, CfeStyleErrorCodeInfo> feAnalyzerSharedMessages =
-    _loadCfeStyleMessages(
-      feAnalyzerSharedPkgPath,
-      allowNonExistent: true,
-      isShared: true,
-    );
+    _loadCfeStyleMessages(feAnalyzerSharedPkgPath, isShared: true);
 
 /// The path to the `fe_analyzer_shared` package.
 final String feAnalyzerSharedPkgPath = normalize(
@@ -107,19 +103,11 @@ Map<String, CfeStyleErrorCodeInfo> decodeCfeStyleMessagesYaml(
 }
 
 /// Loads messages in CFE style `messages.yaml` format.
-///
-/// If [allowNonExistent] is `true`, and the `messages.yaml` file does not
-/// exist, an empty map is returned. This is a temporary measure to allow for an
-/// easier transition when the file `pkg/_fe_analyzer_shared/messages.yaml` is
-/// created.
-// TODO(paulberry): remove [allowNonExistent] once it's no longer needed.
 Map<String, CfeStyleErrorCodeInfo> _loadCfeStyleMessages(
   String packagePath, {
-  bool allowNonExistent = false,
   required bool isShared,
 }) {
   var path = join(packagePath, 'messages.yaml');
-  if (allowNonExistent && !File(path).existsSync()) return {};
   Object? messagesYaml = loadYaml(
     File(path).readAsStringSync(),
     sourceUrl: Uri.file(path),

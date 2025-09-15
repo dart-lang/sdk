@@ -179,10 +179,6 @@ class MessageTestSuite extends ChainContext {
     List<MessageTestDescription> result = [];
     Uri uri = root.resolve("messages.yaml");
     File file = new File.fromUri(uri);
-    // Allow for the possibility that the file might not exist yet.
-    // TODO(paulberry): remove this hack once
-    // `pkg/_fe_analyzer_shared/messages.yaml` exists
-    if (!file.existsSync()) return const [];
     String fileContent = file.readAsStringSync();
     YamlMap messages = loadYamlNode(fileContent, sourceUrl: uri) as YamlMap;
     for (String name in messages.keys) {
