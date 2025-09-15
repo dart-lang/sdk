@@ -106,7 +106,7 @@ class LibraryBuilder {
   }
 
   void addExporters() {
-    for (var (fragmentIndex, fragment) in element.fragments.indexed) {
+    for (var (fragmentIndex, fragment) in element.internal.fragments.indexed) {
       for (var (exportIndex, exportElement)
           in fragment.libraryExports.indexed) {
         var exportedLibrary = exportElement.exportedLibrary;

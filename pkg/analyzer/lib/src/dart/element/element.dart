@@ -5901,6 +5901,7 @@ class LibraryElementImpl extends ElementImpl
   /// The language version for the library.
   LibraryLanguageVersion? _languageVersion;
 
+  @trackedInternal
   bool hasTypeProviderSystemSet = false;
 
   @override
@@ -5965,7 +5966,13 @@ class LibraryElementImpl extends ElementImpl
   LibraryDeclarations? _libraryDeclarations;
 
   /// With fine-grained dependencies, the manifest of the library.
+  @trackedInternal
   LibraryManifest? manifest;
+
+  @trackedInternal
+  late final LibraryElementImplInternal internal = LibraryElementImplInternal(
+    this,
+  );
 
   /// Initialize a newly created library element in the given [context] to have
   /// the given [name] and [offset].
@@ -6066,6 +6073,7 @@ class LibraryElementImpl extends ElementImpl
 
   @Deprecated('Use exportedLibraries instead')
   @override
+  @trackedIndirectly
   List<LibraryElementImpl> get exportedLibraries2 {
     return exportedLibraries;
   }
@@ -6136,15 +6144,21 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
-  LibraryFragmentImpl get firstFragment => _firstFragment;
+  @trackedDirectlyOpaque
+  LibraryFragmentImpl get firstFragment {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'firstFragment');
+    return _firstFragment;
+  }
 
   set firstFragment(LibraryFragmentImpl value) {
     _firstFragment = value;
   }
 
   @override
+  @trackedDirectlyOpaque
   List<LibraryFragmentImpl> get fragments {
-    return [_firstFragment, ..._partUnits];
+    globalResultRequirements?.recordOpaqueApiUse(this, 'fragments');
+    return _fragments;
   }
 
   @override
@@ -6342,6 +6356,10 @@ class LibraryElementImpl extends ElementImpl
   @trackedIncludedInId
   Uri get uri => _firstFragment.source.uri;
 
+  List<LibraryFragmentImpl> get _fragments {
+    return [_firstFragment, ..._partUnits];
+  }
+
   List<LibraryFragmentImpl> get _partUnits {
     var result = <LibraryFragmentImpl>[];
 
@@ -6360,12 +6378,15 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
+  @trackedDirectlyOpaque
   T? accept<T>(ElementVisitor2<T> visitor) {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'accept');
     return visitor.visitLibraryElement(this);
   }
 
   @Deprecated('Use accept instead')
   @override
+  @trackedIndirectly
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
   @trackedInternal
@@ -6447,6 +6468,7 @@ class LibraryElementImpl extends ElementImpl
 
   @Deprecated('Use getClass instead')
   @override
+  @trackedIndirectly
   ClassElementImpl? getClass2(String name) {
     return getClass(name);
   }
@@ -6612,7 +6634,8 @@ class LibraryElementImpl extends ElementImpl
   bool isFromDeprecatedExport(ExportedReference reference) {
     if (reference is ExportedReferenceExported) {
       for (var location in reference.locations) {
-        var export = location.exportOf(this);
+        var fragment = _fragments[location.fragmentIndex];
+        var export = fragment.libraryExports[location.exportIndex];
         if (!export.metadata.hasDeprecated) {
           return false;
         }
@@ -6673,6 +6696,19 @@ class LibraryElementImpl extends ElementImpl
   ) {
     return elements.firstWhereOrNull((e) => e.name == name);
   }
+}
+
+/// Exposes [LibraryElementImpl] properties that normally are not intended
+/// to be used during resolution, and would cause opaque API requirement
+/// recorded, but necessary during the element model building or loading.
+class LibraryElementImplInternal {
+  final LibraryElementImpl _library;
+
+  LibraryElementImplInternal(this._library);
+
+  LibraryFragmentImpl get firstFragment => _library._firstFragment;
+
+  List<LibraryFragmentImpl> get fragments => _library._fragments;
 }
 
 class LibraryExportImpl extends ElementDirectiveImpl implements LibraryExport {

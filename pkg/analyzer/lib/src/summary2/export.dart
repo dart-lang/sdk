@@ -89,11 +89,6 @@ class ExportLocation {
         other.exportIndex == exportIndex;
   }
 
-  LibraryExportImpl exportOf(LibraryElementImpl library) {
-    var fragment = library.fragments[fragmentIndex];
-    return fragment.libraryExports[exportIndex];
-  }
-
   @override
   String toString() {
     return '($fragmentIndex, $exportIndex)';

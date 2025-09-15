@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
@@ -366,6 +367,7 @@ class DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
     if (_workspacePackage == null || library == null) {
       return false;
     }
-    return _workspacePackage.contains(library.firstFragment.source);
+    library as LibraryElementImpl;
+    return _workspacePackage.contains(library.internal.firstFragment.source);
   }
 }
