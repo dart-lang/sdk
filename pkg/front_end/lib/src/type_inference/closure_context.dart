@@ -7,6 +7,7 @@ import 'package:kernel/src/future_value_type.dart';
 
 import '../codes/cfe_codes.dart';
 import '../kernel/invalid_type.dart';
+import '../source/check_helper.dart';
 import 'inference_results.dart';
 import 'inference_visitor_base.dart';
 import 'type_demotion.dart';
@@ -216,11 +217,13 @@ class _SyncClosureContext implements ClosureContext {
           returnType is NullType) {
         // Valid return;
       } else {
-        statement.expression = inferrer.helper.wrapInProblem(
-          new NullLiteral()..fileOffset = statement.fileOffset,
-          codeReturnWithoutExpressionSync,
-          statement.fileOffset,
-          noLength,
+        statement.expression = inferrer.problemReporting.wrapInProblem(
+          compilerContext: inferrer.compilerContext,
+          expression: new NullLiteral()..fileOffset = statement.fileOffset,
+          message: codeReturnWithoutExpressionSync,
+          fileUri: inferrer.fileUri,
+          fileOffset: statement.fileOffset,
+          length: noLength,
         )..parent = statement;
       }
     } else {
@@ -237,25 +240,29 @@ class _SyncClosureContext implements ClosureContext {
               expressionType is NullType)) {
         // It is a compile-time error if s is `return e;`, T is void, and S is
         // neither void, dynamic, nor Null.
-        statement.expression = inferrer.helper.wrapInProblem(
-          statement.expression!,
-          codeReturnFromVoidFunction,
-          statement.expression!.fileOffset,
-          noLength,
+        statement.expression = inferrer.problemReporting.wrapInProblem(
+          compilerContext: inferrer.compilerContext,
+          expression: statement.expression!,
+          message: codeReturnFromVoidFunction,
+          fileUri: inferrer.fileUri,
+          fileOffset: statement.expression!.fileOffset,
+          length: noLength,
         )..parent = statement;
       } else if (!(returnType is VoidType || returnType is DynamicType) &&
           expressionType is VoidType) {
         // Coverage-ignore-block(suite): Not run.
         // It is a compile-time error if s is `return e;`, T is neither void
         // nor dynamic, and S is void.
-        statement.expression = inferrer.helper.wrapInProblem(
-          statement.expression!,
-          codeInvalidReturn.withArgumentsOld(
+        statement.expression = inferrer.problemReporting.wrapInProblem(
+          compilerContext: inferrer.compilerContext,
+          expression: statement.expression!,
+          message: codeInvalidReturn.withArgumentsOld(
             expressionType,
             _declaredReturnType,
           ),
-          statement.expression!.fileOffset,
-          noLength,
+          fileUri: inferrer.fileUri,
+          fileOffset: statement.expression!.fileOffset,
+          length: noLength,
         )..parent = statement;
       } else if (expressionType is! VoidType) {
         // It is a compile-time error if s is `return e;`, S is not void, and
@@ -395,11 +402,13 @@ class _SyncClosureContext implements ClosureContext {
           : body;
       // Create a synthetic return statement with the error.
       Statement returnStatement = new ReturnStatement(
-        inferrer.helper.wrapInProblem(
-          new NullLiteral()..fileOffset = fileOffset,
-          codeImplicitReturnNull.withArgumentsOld(returnType),
-          fileOffset,
-          noLength,
+        inferrer.problemReporting.wrapInProblem(
+          compilerContext: inferrer.compilerContext,
+          expression: new NullLiteral()..fileOffset = fileOffset,
+          message: codeImplicitReturnNull.withArgumentsOld(returnType),
+          fileUri: inferrer.fileUri,
+          fileOffset: fileOffset,
+          length: noLength,
         ),
       )..fileOffset = fileOffset;
       if (resultStatement is Block) {
@@ -493,11 +502,13 @@ class _AsyncClosureContext implements ClosureContext {
           emittedValueType is NullType) {
         // Valid return;
       } else {
-        statement.expression = inferrer.helper.wrapInProblem(
-          new NullLiteral()..fileOffset = statement.fileOffset,
-          codeReturnWithoutExpressionAsync,
-          statement.fileOffset,
-          noLength,
+        statement.expression = inferrer.problemReporting.wrapInProblem(
+          compilerContext: inferrer.compilerContext,
+          expression: new NullLiteral()..fileOffset = statement.fileOffset,
+          message: codeReturnWithoutExpressionAsync,
+          fileUri: inferrer.fileUri,
+          fileOffset: statement.fileOffset,
+          length: noLength,
         )..parent = statement;
       }
     } else {
@@ -522,11 +533,16 @@ class _AsyncClosureContext implements ClosureContext {
         // Coverage-ignore-block(suite): Not run.
         // It is a compile-time error if s is `return e;`, T_v is void, and
         // flatten(S) is neither void, dynamic, Null.
-        statement.expression = inferrer.helper.wrapInProblem(
-          new NullLiteral()..fileOffset = statement.fileOffset,
-          codeInvalidReturnAsync.withArgumentsOld(expressionType, returnType),
-          statement.expression!.fileOffset,
-          noLength,
+        statement.expression = inferrer.problemReporting.wrapInProblem(
+          compilerContext: inferrer.compilerContext,
+          expression: new NullLiteral()..fileOffset = statement.fileOffset,
+          message: codeInvalidReturnAsync.withArgumentsOld(
+            expressionType,
+            returnType,
+          ),
+          fileUri: inferrer.fileUri,
+          fileOffset: statement.expression!.fileOffset,
+          length: noLength,
         )..parent = statement;
       } else if (!(emittedValueType is VoidType ||
               emittedValueType is DynamicType) &&
@@ -534,11 +550,16 @@ class _AsyncClosureContext implements ClosureContext {
         // Coverage-ignore-block(suite): Not run.
         // It is a compile-time error if s is `return e;`, T_v is neither void
         // nor dynamic, and flatten(S) is void.
-        statement.expression = inferrer.helper.wrapInProblem(
-          new NullLiteral()..fileOffset = statement.fileOffset,
-          codeInvalidReturnAsync.withArgumentsOld(expressionType, returnType),
-          statement.expression!.fileOffset,
-          noLength,
+        statement.expression = inferrer.problemReporting.wrapInProblem(
+          compilerContext: inferrer.compilerContext,
+          expression: new NullLiteral()..fileOffset = statement.fileOffset,
+          message: codeInvalidReturnAsync.withArgumentsOld(
+            expressionType,
+            returnType,
+          ),
+          fileUri: inferrer.fileUri,
+          fileOffset: statement.expression!.fileOffset,
+          length: noLength,
         )..parent = statement;
       } else if (flattenedExpressionType is! VoidType &&
           !inferrer.typeSchemaEnvironment
@@ -686,11 +707,13 @@ class _AsyncClosureContext implements ClosureContext {
           : body;
       // Create a synthetic return statement with the error.
       Statement returnStatement = new ReturnStatement(
-        inferrer.helper.wrapInProblem(
-          new NullLiteral()..fileOffset = fileOffset,
-          codeImplicitReturnNull.withArgumentsOld(returnType),
-          fileOffset,
-          noLength,
+        inferrer.problemReporting.wrapInProblem(
+          compilerContext: inferrer.compilerContext,
+          expression: new NullLiteral()..fileOffset = fileOffset,
+          message: codeImplicitReturnNull.withArgumentsOld(returnType),
+          fileUri: inferrer.fileUri,
+          fileOffset: fileOffset,
+          length: noLength,
         ),
       )..fileOffset = fileOffset;
       if (resultStatement is Block) {

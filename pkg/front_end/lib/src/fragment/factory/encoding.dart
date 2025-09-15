@@ -7,6 +7,7 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../../base/constant_context.dart';
 import '../../base/identifiers.dart';
 import '../../base/lookup_result.dart';
 import '../../base/messages.dart';
@@ -37,7 +38,6 @@ import '../../source/source_loader.dart' show SourceLoader;
 import '../../source/source_member_builder.dart';
 import '../../source/source_type_parameter_builder.dart';
 import '../../source/type_parameter_factory.dart';
-import '../../type_inference/inference_helper.dart';
 import '../../type_inference/type_inferrer.dart';
 import '../../type_inference/type_schema.dart';
 
@@ -246,13 +246,6 @@ class FactoryEncoding implements InferredTypeListener {
             _fragment.typeParameterScope,
             null,
           );
-      InferenceHelper helper = libraryBuilder.loader
-          .createBodyBuilderForOutlineExpression(
-            libraryBuilder,
-            bodyBuilderContext,
-            _fragment.enclosingScope,
-            _fragment.fileUri,
-          );
       MemberLookupResult? result = _redirectionTarget.target;
       MemberBuilder? targetBuilder;
       if (result != null && !result.isInvalidLookup) {
@@ -281,12 +274,15 @@ class FactoryEncoding implements InferredTypeListener {
       }
 
       typeArguments = inferrer.inferRedirectingFactoryTypeArguments(
-        helper,
-        _procedure.function.returnType,
-        _procedure.function,
-        _fragment.fullNameOffset,
-        target,
-        target.function!.computeFunctionType(Nullability.nonNullable),
+        typeContext: _procedure.function.returnType,
+        redirectingFactoryFunction: _procedure.function,
+        fileUri: _fragment.fileUri,
+        fileOffset: _fragment.fullNameOffset,
+        target: target,
+        targetType: target.function!.computeFunctionType(
+          Nullability.nonNullable,
+        ),
+        constantContext: ConstantContext.none,
       );
       if (typeArguments == null) {
         assert(

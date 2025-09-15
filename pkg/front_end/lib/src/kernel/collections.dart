@@ -6,10 +6,11 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/src/printer.dart';
 import 'package:kernel/type_environment.dart' show StaticTypeContext;
 
+import '../base/compiler_context.dart';
 import '../base/messages.dart'
-    show noLength, codeExpectedAfterButGot, codeExpectedButGot;
+    show noLength, codeExpectedAfterButGot, ProblemReporting;
 import '../base/problems.dart' show getFileUri, unsupported;
-import '../type_inference/inference_helper.dart' show InferenceHelper;
+import '../source/check_helper.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/inference_visitor.dart';
 import 'internal_ast.dart';
@@ -1199,124 +1200,6 @@ class IfCaseMapEntry extends TreeNode
   }
 }
 
-/// Convert [entry] to an [Expression], if possible. If [entry] cannot be
-/// converted an error reported through [helper] and an invalid expression is
-/// returned.
-///
-/// [onConvertMapEntry] is called when a [ForMapEntry], [ForInMapEntry], or
-/// [IfMapEntry] is converted to a [ForElement], [ForInElement], or [IfElement],
-/// respectively.
-Expression convertToElement(
-  MapLiteralEntry entry,
-  InferenceHelper? helper,
-  void onConvertMapEntry(TreeNode from, TreeNode to), {
-  DartType? actualType,
-}) {
-  if (entry is ControlFlowMapEntry) {
-    switch (entry) {
-      case SpreadMapEntry():
-        return new SpreadElement(
-            entry.expression,
-            isNullAware: entry.isNullAware,
-          )
-          ..elementType = actualType
-          ..fileOffset = entry.expression.fileOffset;
-      case IfMapEntry():
-        IfElement result = new IfElement(
-          entry.condition,
-          convertToElement(entry.then, helper, onConvertMapEntry),
-          entry.otherwise == null
-              ? null
-              :
-                // Coverage-ignore(suite): Not run.
-                convertToElement(entry.otherwise!, helper, onConvertMapEntry),
-        )..fileOffset = entry.fileOffset;
-        onConvertMapEntry(entry, result);
-        return result;
-      case NullAwareMapEntry():
-        // Coverage-ignore(suite): Not run.
-        return _convertToErroneousElement(entry, helper);
-      case IfCaseMapEntry():
-        IfCaseElement result =
-            new IfCaseElement(
-                prelude: entry.prelude,
-                expression: entry.expression,
-                patternGuard: entry.patternGuard,
-                then: convertToElement(entry.then, helper, onConvertMapEntry),
-                otherwise: entry.otherwise == null
-                    ? null
-                    :
-                      // Coverage-ignore(suite): Not run.
-                      convertToElement(
-                        entry.otherwise!,
-                        helper,
-                        onConvertMapEntry,
-                      ),
-              )
-              ..matchedValueType = entry.matchedValueType
-              ..fileOffset = entry.fileOffset;
-        onConvertMapEntry(entry, result);
-        return result;
-      case PatternForMapEntry():
-        PatternForElement result = new PatternForElement(
-          patternVariableDeclaration: entry.patternVariableDeclaration,
-          intermediateVariables: entry.intermediateVariables,
-          variables: entry.variables,
-          condition: entry.condition,
-          updates: entry.updates,
-          body: convertToElement(entry.body, helper, onConvertMapEntry),
-        )..fileOffset = entry.fileOffset;
-        onConvertMapEntry(entry, result);
-        return result;
-      case ForMapEntry():
-        ForElement result = new ForElement(
-          entry.variables,
-          entry.condition,
-          entry.updates,
-          convertToElement(entry.body, helper, onConvertMapEntry),
-        )..fileOffset = entry.fileOffset;
-        onConvertMapEntry(entry, result);
-        return result;
-      case ForInMapEntry():
-        ForInElement result = new ForInElement(
-          entry.variable,
-          entry.iterable,
-          entry.syntheticAssignment,
-          entry.expressionEffects,
-          convertToElement(entry.body, helper, onConvertMapEntry),
-          entry.problem,
-          isAsync: entry.isAsync,
-        )..fileOffset = entry.fileOffset;
-        onConvertMapEntry(entry, result);
-        return result;
-    }
-  } else {
-    return _convertToErroneousElement(entry, helper);
-  }
-}
-
-Expression _convertToErroneousElement(
-  MapLiteralEntry entry,
-  InferenceHelper? helper,
-) {
-  Expression key = entry.key;
-  if (key is InvalidExpression) {
-    Expression value = entry.value;
-    if (value is NullLiteral && value.fileOffset == TreeNode.noOffset) {
-      // entry arose from an error.  Don't build another error.
-      return key;
-    }
-  }
-  // Coverage-ignore(suite): Not run.
-  // TODO(johnniwinther): How can this be triggered? This will fail if
-  // encountered in top level inference.
-  return helper!.buildProblem(
-    codeExpectedButGot.withArgumentsOld(','),
-    entry.fileOffset,
-    1,
-  );
-}
-
 bool isConvertibleToMapEntry(Expression element) {
   if (element is ControlFlowElement) {
     switch (element) {
@@ -1353,7 +1236,9 @@ bool isConvertibleToMapEntry(Expression element) {
 /// [IfMapEntry], respectively.
 MapLiteralEntry convertToMapEntry(
   Expression element,
-  InferenceHelper helper,
+  ProblemReporting problemReporting,
+  CompilerContext compilerContext,
+  Uri fileUri,
   void onConvertElement(TreeNode from, TreeNode to),
 ) {
   if (element is ControlFlowElement) {
@@ -1366,15 +1251,32 @@ MapLiteralEntry convertToMapEntry(
 
       case NullAwareElement():
         // Coverage-ignore(suite): Not run.
-        return _convertToErroneousMapEntry(element, helper);
+        return _convertToErroneousMapEntry(
+          element,
+          problemReporting,
+          compilerContext,
+          fileUri,
+        );
 
       case IfElement():
         IfMapEntry result = new IfMapEntry(
           element.condition,
-          convertToMapEntry(element.then, helper, onConvertElement),
+          convertToMapEntry(
+            element.then,
+            problemReporting,
+            compilerContext,
+            fileUri,
+            onConvertElement,
+          ),
           element.otherwise == null
               ? null
-              : convertToMapEntry(element.otherwise!, helper, onConvertElement),
+              : convertToMapEntry(
+                  element.otherwise!,
+                  problemReporting,
+                  compilerContext,
+                  fileUri,
+                  onConvertElement,
+                ),
         )..fileOffset = element.fileOffset;
         onConvertElement(element, result);
         return result;
@@ -1385,12 +1287,20 @@ MapLiteralEntry convertToMapEntry(
                 prelude: [],
                 expression: element.expression,
                 patternGuard: element.patternGuard,
-                then: convertToMapEntry(element.then, helper, onConvertElement),
+                then: convertToMapEntry(
+                  element.then,
+                  problemReporting,
+                  compilerContext,
+                  fileUri,
+                  onConvertElement,
+                ),
                 otherwise: element.otherwise == null
                     ? null
                     : convertToMapEntry(
                         element.otherwise!,
-                        helper,
+                        problemReporting,
+                        compilerContext,
+                        fileUri,
                         onConvertElement,
                       ),
               )
@@ -1406,7 +1316,13 @@ MapLiteralEntry convertToMapEntry(
           variables: element.variables,
           condition: element.condition,
           updates: element.updates,
-          body: convertToMapEntry(element.body, helper, onConvertElement),
+          body: convertToMapEntry(
+            element.body,
+            problemReporting,
+            compilerContext,
+            fileUri,
+            onConvertElement,
+          ),
         )..fileOffset = element.fileOffset;
         onConvertElement(element, result);
         return result;
@@ -1416,7 +1332,13 @@ MapLiteralEntry convertToMapEntry(
           element.variables,
           element.condition,
           element.updates,
-          convertToMapEntry(element.body, helper, onConvertElement),
+          convertToMapEntry(
+            element.body,
+            problemReporting,
+            compilerContext,
+            fileUri,
+            onConvertElement,
+          ),
         )..fileOffset = element.fileOffset;
         onConvertElement(element, result);
         return result;
@@ -1427,7 +1349,13 @@ MapLiteralEntry convertToMapEntry(
           element.iterable,
           element.syntheticAssignment,
           element.expressionEffects,
-          convertToMapEntry(element.body, helper, onConvertElement),
+          convertToMapEntry(
+            element.body,
+            problemReporting,
+            compilerContext,
+            fileUri,
+            onConvertElement,
+          ),
           element.problem,
           isAsync: element.isAsync,
         )..fileOffset = element.fileOffset;
@@ -1436,21 +1364,30 @@ MapLiteralEntry convertToMapEntry(
     }
   } else {
     // Coverage-ignore-block(suite): Not run.
-    return _convertToErroneousMapEntry(element, helper);
+    return _convertToErroneousMapEntry(
+      element,
+      problemReporting,
+      compilerContext,
+      fileUri,
+    );
   }
 }
 
 // Coverage-ignore(suite): Not run.
 MapLiteralEntry _convertToErroneousMapEntry(
   Expression element,
-  InferenceHelper helper,
+  ProblemReporting problemReporting,
+  CompilerContext compilerContext,
+  Uri fileUri,
 ) {
   return new MapLiteralEntry(
-    helper.buildProblem(
-      codeExpectedAfterButGot.withArgumentsOld(':'),
-      element.fileOffset,
+    problemReporting.buildProblem(
+      compilerContext: compilerContext,
+      message: codeExpectedAfterButGot.withArgumentsOld(':'),
+      fileUri: fileUri,
+      fileOffset: element.fileOffset,
       // TODO(danrubel): what is the length of the expression?
-      noLength,
+      length: noLength,
     ),
     new NullLiteral()..fileOffset = element.fileOffset,
   )..fileOffset = element.fileOffset;

@@ -125,16 +125,22 @@ class PrimaryConstructorFieldDeclaration
 
   @override
   // Coverage-ignore(suite): Not run.
-  void buildFieldInitializer(
-    InferenceHelper helper,
-    TypeInferrer typeInferrer,
-    CoreTypes coreTypes,
+  void buildFieldInitializer({
+    required TypeInferrer typeInferrer,
+    required CoreTypes coreTypes,
+    required Uri fileUri,
+    required ConstantContext constantContext,
     Expression? initializer,
-  ) {
+  }) {
     if (initializer != null) {
       if (!hasBodyBeenBuilt) {
         initializer = typeInferrer
-            .inferFieldInitializer(helper, fieldType, initializer)
+            .inferFieldInitializer(
+              fileUri: fileUri,
+              constantContext: constantContext,
+              declaredType: fieldType,
+              initializer: initializer,
+            )
             .expression;
         buildBody(coreTypes, initializer);
       }
@@ -443,14 +449,16 @@ class PrimaryConstructorFieldDeclaration
         typeInferrer,
         fileUri,
       );
-      bodyBuilder.constantContext = ConstantContext.none;
+      ConstantContext constantContext = ConstantContext.none;
+      bodyBuilder.constantContext = constantContext;
       bodyBuilder.inFieldInitializer = true;
       bodyBuilder.inLateFieldInitializer = false;
       Expression initializer = bodyBuilder.parseFieldInitializer(token);
 
       inferredType = typeInferrer.inferImplicitFieldType(
-        bodyBuilder,
-        initializer,
+        fileUri: fileUri,
+        constantContext: constantContext,
+        initializer: initializer,
       );
     } else {
       inferredType = const DynamicType();

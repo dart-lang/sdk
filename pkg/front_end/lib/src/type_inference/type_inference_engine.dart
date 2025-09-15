@@ -371,7 +371,7 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
 
   @override
   TypeInferrer createLocalTypeInferrer(
-    Uri uri,
+    Uri fileUri,
     InterfaceType? thisType,
     SourceLibraryBuilder libraryBuilder,
     LookupScope extensionScope,
@@ -389,7 +389,7 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
     if (benchmarker == null) {
       return new TypeInferrerImpl(
         this,
-        uri,
+        fileUri,
         false,
         thisType,
         libraryBuilder,
@@ -401,7 +401,7 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
     // Coverage-ignore(suite): Not run.
     return new TypeInferrerImplBenchmarked(
       this,
-      uri,
+      fileUri,
       false,
       thisType,
       libraryBuilder,

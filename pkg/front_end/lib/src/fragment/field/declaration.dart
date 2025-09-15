@@ -35,7 +35,6 @@ import '../../source/source_library_builder.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_property_builder.dart';
 import '../../source/type_parameter_factory.dart';
-import '../../type_inference/inference_helper.dart';
 import '../../type_inference/type_inference_engine.dart';
 import '../../type_inference/type_inferrer.dart';
 import '../fragment.dart';
@@ -311,16 +310,22 @@ class RegularFieldDeclaration
   }
 
   @override
-  void buildFieldInitializer(
-    InferenceHelper helper,
-    TypeInferrer typeInferrer,
-    CoreTypes coreTypes,
+  void buildFieldInitializer({
+    required TypeInferrer typeInferrer,
+    required CoreTypes coreTypes,
+    required Uri fileUri,
+    required ConstantContext constantContext,
     Expression? initializer,
-  ) {
+  }) {
     if (initializer != null) {
       if (!hasBodyBeenBuilt) {
         initializer = typeInferrer
-            .inferFieldInitializer(helper, fieldType, initializer)
+            .inferFieldInitializer(
+              fileUri: fileUri,
+              constantContext: constantContext,
+              declaredType: fieldType,
+              initializer: initializer,
+            )
             .expression;
         buildBody(coreTypes, initializer);
       }
@@ -390,14 +395,16 @@ class RegularFieldDeclaration
             scope,
             fileUri,
           );
-      bodyBuilder.constantContext = _fragment.modifiers.isConst
+      ConstantContext constantContext = _fragment.modifiers.isConst
           ? ConstantContext.inferred
           : ConstantContext.required;
+      bodyBuilder.constantContext = constantContext;
       Expression initializer = bodyBuilder.typeInferrer
           .inferFieldInitializer(
-            bodyBuilder,
-            fieldType,
-            bodyBuilder.parseFieldInitializer(token),
+            fileUri: fileUri,
+            constantContext: constantContext,
+            declaredType: fieldType,
+            initializer: bodyBuilder.parseFieldInitializer(token),
           )
           .expression;
       buildBody(classHierarchy.coreTypes, initializer);
@@ -683,16 +690,18 @@ class RegularFieldDeclaration
         typeInferrer,
         fileUri,
       );
-      bodyBuilder.constantContext = _fragment.modifiers.isConst
+      ConstantContext constantContext = _fragment.modifiers.isConst
           ? ConstantContext.inferred
           : ConstantContext.none;
+      bodyBuilder.constantContext = constantContext;
       bodyBuilder.inFieldInitializer = true;
       bodyBuilder.inLateFieldInitializer = _fragment.modifiers.isLate;
       Expression initializer = bodyBuilder.parseFieldInitializer(token);
 
       inferredType = typeInferrer.inferImplicitFieldType(
-        bodyBuilder,
-        initializer,
+        fileUri: fileUri,
+        constantContext: constantContext,
+        initializer: initializer,
       );
     } else {
       inferredType = const DynamicType();
@@ -931,12 +940,13 @@ mixin FieldDeclarationMixin
 abstract class FieldFragmentDeclaration {
   bool get isStatic;
 
-  void buildFieldInitializer(
-    InferenceHelper helper,
-    TypeInferrer typeInferrer,
-    CoreTypes coreTypes,
+  void buildFieldInitializer({
+    required TypeInferrer typeInferrer,
+    required CoreTypes coreTypes,
+    required Uri fileUri,
+    required ConstantContext constantContext,
     Expression? initializer,
-  );
+  });
 
   BodyBuilderContext createBodyBuilderContext();
 

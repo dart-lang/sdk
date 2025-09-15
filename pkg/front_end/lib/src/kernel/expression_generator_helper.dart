@@ -8,9 +8,10 @@ import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../api_prototype/experimental_flags.dart';
+import '../base/compiler_context.dart';
 import '../base/constant_context.dart' show ConstantContext;
 import '../base/lookup_result.dart';
-import '../base/messages.dart' show Message;
+import '../base/messages.dart' show Message, ProblemReporting;
 import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
@@ -21,7 +22,6 @@ import '../builder/prefix_builder.dart';
 import '../builder/type_builder.dart';
 import '../codes/cfe_codes.dart' show LocatedMessage;
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
-import '../type_inference/inference_helper.dart' show InferenceHelper;
 import 'constness.dart' show Constness;
 import 'expression_generator.dart';
 import 'forest.dart' show Forest;
@@ -39,10 +39,11 @@ typedef Expression_Generator_Initializer = dynamic;
 /// Alias for Expression | Initializer
 typedef Expression_Initializer = dynamic;
 
-abstract class ExpressionGeneratorHelper implements InferenceHelper {
+abstract class ExpressionGeneratorHelper {
+  Uri get uri;
+
   SourceLibraryBuilder get libraryBuilder;
 
-  @override
   ConstantContext get constantContext;
 
   /// Whether instance type parameters can be accessed.
@@ -53,12 +54,30 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   Forest get forest;
 
+  ProblemReporting get problemReporting;
+
+  CompilerContext get compilerContext;
+
+  InvalidExpression buildProblem({
+    required Message message,
+    required Uri fileUri,
+    required int fileOffset,
+    required int length,
+    List<LocatedMessage>? context,
+    bool errorHasBeenReported = false,
+    Expression? expression,
+  });
+
   MemberLookupResult? lookupSuperConstructor(
     String name,
     LibraryBuilder accessingLibrary,
   );
 
   Expression toValue(Object? node);
+
+  String superConstructorNameForDiagnostics(String name);
+
+  String constructorNameForDiagnostics(String name, {String? className});
 
   Member? lookupSuperMember(Name name, {bool isSetter});
 
@@ -125,21 +144,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
     bool errorHasBeenReported,
   });
 
-  Expression buildProblemWithContextFromMember({
-    required String name,
-    required Member member,
-    required LocatedMessage message,
-  });
-
   Expression buildProblemFromLocatedMessage(LocatedMessage message);
-
-  LocatedMessage? checkArgumentsForFunction(
-    FunctionNode function,
-    Arguments arguments,
-    int offset,
-    List<TypeParameter> typeParameters, {
-    Extension? extension,
-  });
 
   Expression wrapInDeferredCheck(
     Expression expression,
@@ -193,13 +198,6 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
     int charOffset,
     int length,
   );
-
-  Expression wrapInLocatedProblem(
-    Expression expression,
-    LocatedMessage message, {
-    List<LocatedMessage>? context,
-    bool includeExpression = true,
-  });
 
   Expression evaluateArgumentsBefore(
     ArgumentsImpl arguments,

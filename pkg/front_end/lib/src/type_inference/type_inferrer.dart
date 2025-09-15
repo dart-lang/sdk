@@ -10,6 +10,7 @@ import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../base/constant_context.dart';
 import '../base/instrumentation.dart' show Instrumentation;
 import '../base/scope.dart';
 import '../kernel/benchmarker.dart' show BenchmarkSubdivides, Benchmarker;
@@ -17,7 +18,6 @@ import '../kernel/internal_ast.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import 'closure_context.dart';
-import 'inference_helper.dart' show InferenceHelper;
 import 'inference_results.dart';
 import 'inference_visitor.dart';
 import 'inference_visitor_base.dart';
@@ -49,64 +49,71 @@ abstract class TypeInferrer {
 
   /// Performs top level type inference on the given field initializer and
   /// returns the computed field type.
-  DartType inferImplicitFieldType(
-    InferenceHelper helper,
-    Expression initializer,
-  );
+  DartType inferImplicitFieldType({
+    required Uri fileUri,
+    required ConstantContext constantContext,
+    required Expression initializer,
+  });
 
   /// Performs full type inference on the given field initializer.
-  ExpressionInferenceResult inferFieldInitializer(
-    InferenceHelper helper,
-    DartType declaredType,
-    Expression initializer,
-  );
+  ExpressionInferenceResult inferFieldInitializer({
+    required Uri fileUri,
+    required ConstantContext constantContext,
+    required DartType declaredType,
+    required Expression initializer,
+  });
 
   /// Performs type inference on the given function body.
-  InferredFunctionBody inferFunctionBody(
-    InferenceHelper helper,
-    int fileOffset,
-    DartType returnType,
-    AsyncMarker asyncMarker,
-    Statement body,
+  InferredFunctionBody inferFunctionBody({
+    required Uri fileUri,
+    required int fileOffset,
+    required DartType returnType,
+    required ConstantContext constantContext,
+    required AsyncMarker asyncMarker,
+    required Statement body,
     ExpressionEvaluationHelper? expressionEvaluationHelper,
-  );
+  });
 
   /// Performs type inference on the given constructor initializer.
-  InitializerInferenceResult inferInitializer(
-    InferenceHelper helper,
-    SourceConstructorBuilder constructorBuilder,
-    Initializer initializer,
-  );
+  InitializerInferenceResult inferInitializer({
+    required Uri fileUri,
+    required ConstantContext constantContext,
+    required SourceConstructorBuilder constructorBuilder,
+    required Initializer initializer,
+  });
 
   /// Performs type inference on the given metadata [annotations].
   ///
   /// If [indices] is provided, only the annotations at the given indices are
   /// inferred. Otherwise all annotations are inferred.
-  void inferMetadata(
-    InferenceHelper helper,
-    TreeNode? parent,
-    List<Expression>? annotations,
-    List<int>? indices,
-  );
+  void inferMetadata({
+    required Uri fileUri,
+    required TreeNode? parent,
+    required List<Expression>? annotations,
+    required List<int>? indices,
+    required ConstantContext constantContext,
+  });
 
   /// Performs type inference on the given function parameter initializer
   /// expression.
-  Expression inferParameterInitializer(
-    InferenceHelper helper,
-    Expression initializer,
-    DartType declaredType,
-    bool hasDeclaredInitializer,
-  );
+  Expression inferParameterInitializer({
+    required Uri fileUri,
+    required Expression initializer,
+    required DartType declaredType,
+    required bool hasDeclaredInitializer,
+    required ConstantContext constantContext,
+  });
 
   /// Infers the type arguments a redirecting factory target reference.
-  List<DartType>? inferRedirectingFactoryTypeArguments(
-    InferenceHelper helper,
-    DartType typeContext,
-    FunctionNode redirectingFactoryFunction,
-    int fileOffset,
-    Member target,
-    FunctionType targetType,
-  );
+  List<DartType>? inferRedirectingFactoryTypeArguments({
+    required DartType typeContext,
+    required FunctionNode redirectingFactoryFunction,
+    required Uri fileUri,
+    required int fileOffset,
+    required Member target,
+    required FunctionType targetType,
+    required ConstantContext constantContext,
+  });
 }
 
 /// Concrete implementation of [TypeInferrer] specialized to work with kernel
@@ -196,8 +203,9 @@ class TypeInferrerImpl implements TypeInferrer {
             libraryBuilder.libraryFeatures.soundFlowAnalysis.isEnabled,
       );
 
-  InferenceVisitorBase _createInferenceVisitor(
-    InferenceHelper helper, {
+  InferenceVisitorBase _createInferenceVisitor({
+    required Uri fileUri,
+    required ConstantContext constantContext,
     SourceConstructorBuilder? constructorBuilder,
     ExpressionEvaluationHelper? expressionEvaluationHelper,
   }) {
@@ -205,7 +213,8 @@ class TypeInferrerImpl implements TypeInferrer {
     // InferenceHelper so that we can perform error reporting.
     return new InferenceVisitorImpl(
       this,
-      helper,
+      fileUri,
+      constantContext,
       constructorBuilder,
       operations,
       typeAnalyzerOptions,
@@ -214,11 +223,15 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   @override
-  DartType inferImplicitFieldType(
-    InferenceHelper helper,
-    Expression initializer,
-  ) {
-    InferenceVisitorBase visitor = _createInferenceVisitor(helper);
+  DartType inferImplicitFieldType({
+    required Uri fileUri,
+    required ConstantContext constantContext,
+    required Expression initializer,
+  }) {
+    InferenceVisitorBase visitor = _createInferenceVisitor(
+      fileUri: fileUri,
+      constantContext: constantContext,
+    );
     ExpressionInferenceResult result = visitor.inferExpression(
       initializer,
       const UnknownType(),
@@ -230,13 +243,17 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   @override
-  ExpressionInferenceResult inferFieldInitializer(
-    InferenceHelper helper,
-    DartType declaredType,
-    Expression initializer,
-  ) {
+  ExpressionInferenceResult inferFieldInitializer({
+    required Uri fileUri,
+    required ConstantContext constantContext,
+    required DartType declaredType,
+    required Expression initializer,
+  }) {
     assert(!isTopLevel);
-    InferenceVisitorBase visitor = _createInferenceVisitor(helper);
+    InferenceVisitorBase visitor = _createInferenceVisitor(
+      fileUri: fileUri,
+      constantContext: constantContext,
+    );
     ExpressionInferenceResult initializerResult = visitor.inferExpression(
       initializer,
       declaredType,
@@ -252,16 +269,18 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   @override
-  InferredFunctionBody inferFunctionBody(
-    InferenceHelper helper,
-    int fileOffset,
-    DartType returnType,
-    AsyncMarker asyncMarker,
-    Statement body,
+  InferredFunctionBody inferFunctionBody({
+    required Uri fileUri,
+    required int fileOffset,
+    required DartType returnType,
+    required ConstantContext constantContext,
+    required AsyncMarker asyncMarker,
+    required Statement body,
     ExpressionEvaluationHelper? expressionEvaluationHelper,
-  ) {
+  }) {
     InferenceVisitorBase visitor = _createInferenceVisitor(
-      helper,
+      fileUri: fileUri,
+      constantContext: constantContext,
       expressionEvaluationHelper: expressionEvaluationHelper,
     );
     ClosureContext closureContext = new ClosureContext(
@@ -299,15 +318,19 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   @override
-  List<DartType>? inferRedirectingFactoryTypeArguments(
-    InferenceHelper helper,
-    DartType typeContext,
-    FunctionNode redirectingFactoryFunction,
-    int fileOffset,
-    Member target,
-    FunctionType targetType,
-  ) {
-    InferenceVisitorBase visitor = _createInferenceVisitor(helper);
+  List<DartType>? inferRedirectingFactoryTypeArguments({
+    required DartType typeContext,
+    required FunctionNode redirectingFactoryFunction,
+    required Uri fileUri,
+    required int fileOffset,
+    required Member target,
+    required FunctionType targetType,
+    required ConstantContext constantContext,
+  }) {
+    InferenceVisitorBase visitor = _createInferenceVisitor(
+      fileUri: fileUri,
+      constantContext: constantContext,
+    );
     List<Expression> positionalArguments = <Expression>[];
     for (VariableDeclaration parameter
         in redirectingFactoryFunction.positionalParameters) {
@@ -355,18 +378,20 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   @override
-  InitializerInferenceResult inferInitializer(
-    InferenceHelper helper,
-    SourceConstructorBuilder constructorBuilder,
-    Initializer initializer,
-  ) {
+  InitializerInferenceResult inferInitializer({
+    required Uri fileUri,
+    required ConstantContext constantContext,
+    required SourceConstructorBuilder constructorBuilder,
+    required Initializer initializer,
+  }) {
     // Use polymorphic dispatch on [KernelInitializer] to perform whatever
     // kind of type inference is correct for this kind of initializer.
     // TODO(paulberry): experiment to see if dynamic dispatch would be better,
     // so that the type hierarchy will be simpler (which may speed up "is"
     // checks).
     InferenceVisitorBase visitor = _createInferenceVisitor(
-      helper,
+      fileUri: fileUri,
+      constantContext: constantContext,
       constructorBuilder: constructorBuilder,
     );
     InitializerInferenceResult result = visitor.inferInitializer(initializer);
@@ -375,30 +400,38 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   @override
-  void inferMetadata(
-    InferenceHelper helper,
-    TreeNode? parent,
-    List<Expression>? annotations,
-    List<int>? indices,
-  ) {
+  void inferMetadata({
+    required Uri fileUri,
+    required TreeNode? parent,
+    required List<Expression>? annotations,
+    required List<int>? indices,
+    required ConstantContext constantContext,
+  }) {
     if (annotations != null) {
       // We bypass the check for assignment of the helper during top-level
       // inference and use `_helper = helper` instead of `this.helper = helper`
       // because inference on metadata requires the helper.
-      InferenceVisitorBase visitor = _createInferenceVisitor(helper);
+      InferenceVisitorBase visitor = _createInferenceVisitor(
+        fileUri: fileUri,
+        constantContext: constantContext,
+      );
       visitor.inferMetadata(visitor, parent, annotations, indices: indices);
       visitor.checkCleanState();
     }
   }
 
   @override
-  Expression inferParameterInitializer(
-    InferenceHelper helper,
-    Expression initializer,
-    DartType declaredType,
-    bool hasDeclaredInitializer,
-  ) {
-    InferenceVisitorBase visitor = _createInferenceVisitor(helper);
+  Expression inferParameterInitializer({
+    required Uri fileUri,
+    required Expression initializer,
+    required DartType declaredType,
+    required bool hasDeclaredInitializer,
+    required ConstantContext constantContext,
+  }) {
+    InferenceVisitorBase visitor = _createInferenceVisitor(
+      fileUri: fileUri,
+      constantContext: constantContext,
+    );
     ExpressionInferenceResult result = visitor.inferExpression(
       initializer,
       declaredType,
@@ -457,124 +490,141 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
   TypeSchemaEnvironment get typeSchemaEnvironment => impl.typeSchemaEnvironment;
 
   @override
-  DartType inferImplicitFieldType(
-    InferenceHelper helper,
-    Expression initializer,
-  ) {
+  DartType inferImplicitFieldType({
+    required Uri fileUri,
+    required ConstantContext constantContext,
+    required Expression initializer,
+  }) {
     benchmarker.beginSubdivide(BenchmarkSubdivides.inferImplicitFieldType);
-    DartType result = impl.inferImplicitFieldType(helper, initializer);
+    DartType result = impl.inferImplicitFieldType(
+      fileUri: fileUri,
+      constantContext: constantContext,
+      initializer: initializer,
+    );
     benchmarker.endSubdivide();
     return result;
   }
 
   @override
-  ExpressionInferenceResult inferFieldInitializer(
-    InferenceHelper helper,
-    DartType declaredType,
-    Expression initializer,
-  ) {
+  ExpressionInferenceResult inferFieldInitializer({
+    required Uri fileUri,
+    required ConstantContext constantContext,
+    required DartType declaredType,
+    required Expression initializer,
+  }) {
     benchmarker.beginSubdivide(BenchmarkSubdivides.inferFieldInitializer);
     ExpressionInferenceResult result = impl.inferFieldInitializer(
-      helper,
-      declaredType,
-      initializer,
+      fileUri: fileUri,
+      constantContext: constantContext,
+      declaredType: declaredType,
+      initializer: initializer,
     );
     benchmarker.endSubdivide();
     return result;
   }
 
   @override
-  InferredFunctionBody inferFunctionBody(
-    InferenceHelper helper,
-    int fileOffset,
-    DartType returnType,
-    AsyncMarker asyncMarker,
-    Statement body,
+  InferredFunctionBody inferFunctionBody({
+    required Uri fileUri,
+    required int fileOffset,
+    required DartType returnType,
+    required ConstantContext constantContext,
+    required AsyncMarker asyncMarker,
+    required Statement body,
     ExpressionEvaluationHelper? expressionEvaluationHelper,
-  ) {
+  }) {
     benchmarker.beginSubdivide(BenchmarkSubdivides.inferFunctionBody);
     InferredFunctionBody result = impl.inferFunctionBody(
-      helper,
-      fileOffset,
-      returnType,
-      asyncMarker,
-      body,
-      expressionEvaluationHelper,
+      fileUri: fileUri,
+      fileOffset: fileOffset,
+      returnType: returnType,
+      constantContext: constantContext,
+      asyncMarker: asyncMarker,
+      body: body,
+      expressionEvaluationHelper: expressionEvaluationHelper,
     );
     benchmarker.endSubdivide();
     return result;
   }
 
   @override
-  InitializerInferenceResult inferInitializer(
-    InferenceHelper helper,
-    SourceConstructorBuilder constructorBuilder,
-    Initializer initializer,
-  ) {
+  InitializerInferenceResult inferInitializer({
+    required Uri fileUri,
+    required ConstantContext constantContext,
+    required SourceConstructorBuilder constructorBuilder,
+    required Initializer initializer,
+  }) {
     benchmarker.beginSubdivide(BenchmarkSubdivides.inferInitializer);
     InitializerInferenceResult result = impl.inferInitializer(
-      helper,
-      constructorBuilder,
-      initializer,
+      fileUri: fileUri,
+      constantContext: constantContext,
+      constructorBuilder: constructorBuilder,
+      initializer: initializer,
     );
     benchmarker.endSubdivide();
     return result;
   }
 
   @override
-  void inferMetadata(
-    InferenceHelper helper,
-    TreeNode? parent,
-    List<Expression>? annotations,
-    List<int>? indicesOfAnnotationsToBeInferred,
-  ) {
+  void inferMetadata({
+    required Uri fileUri,
+    required TreeNode? parent,
+    required List<Expression>? annotations,
+    required List<int>? indices,
+    required ConstantContext constantContext,
+  }) {
     benchmarker.beginSubdivide(BenchmarkSubdivides.inferMetadata);
     impl.inferMetadata(
-      helper,
-      parent,
-      annotations,
-      indicesOfAnnotationsToBeInferred,
+      fileUri: fileUri,
+      parent: parent,
+      annotations: annotations,
+      indices: indices,
+      constantContext: constantContext,
     );
     benchmarker.endSubdivide();
   }
 
   @override
-  Expression inferParameterInitializer(
-    InferenceHelper helper,
-    Expression initializer,
-    DartType declaredType,
-    bool hasDeclaredInitializer,
-  ) {
+  Expression inferParameterInitializer({
+    required Uri fileUri,
+    required Expression initializer,
+    required DartType declaredType,
+    required bool hasDeclaredInitializer,
+    required ConstantContext constantContext,
+  }) {
     benchmarker.beginSubdivide(BenchmarkSubdivides.inferParameterInitializer);
     Expression result = impl.inferParameterInitializer(
-      helper,
-      initializer,
-      declaredType,
-      hasDeclaredInitializer,
+      fileUri: fileUri,
+      initializer: initializer,
+      declaredType: declaredType,
+      hasDeclaredInitializer: hasDeclaredInitializer,
+      constantContext: constantContext,
     );
     benchmarker.endSubdivide();
     return result;
   }
 
   @override
-  List<DartType>? inferRedirectingFactoryTypeArguments(
-    InferenceHelper helper,
-    DartType typeContext,
-    FunctionNode redirectingFactoryFunction,
-    int fileOffset,
-    Member target,
-    FunctionType targetType,
-  ) {
+  List<DartType>? inferRedirectingFactoryTypeArguments({
+    required DartType typeContext,
+    required FunctionNode redirectingFactoryFunction,
+    required Uri fileUri,
+    required int fileOffset,
+    required Member target,
+    required FunctionType targetType,
+    required ConstantContext constantContext,
+  }) {
     benchmarker.beginSubdivide(
       BenchmarkSubdivides.inferRedirectingFactoryTypeArguments,
     );
     List<DartType>? result = impl.inferRedirectingFactoryTypeArguments(
-      helper,
-      typeContext,
-      redirectingFactoryFunction,
-      fileOffset,
-      target,
-      targetType,
+      typeContext: typeContext,
+      redirectingFactoryFunction: redirectingFactoryFunction,
+      fileUri: fileUri,
+      fileOffset: fileOffset,
+      target: target,
+      targetType: targetType,
+      constantContext: constantContext,
     );
     benchmarker.endSubdivide();
     return result;

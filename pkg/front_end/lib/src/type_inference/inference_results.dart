@@ -4,10 +4,11 @@
 
 import 'package:kernel/ast.dart';
 
-import '../codes/cfe_codes.dart';
+import '../base/compiler_context.dart';
+import '../base/messages.dart';
 import '../kernel/internal_ast.dart';
+import '../source/check_helper.dart';
 import 'external_ast_helper.dart';
-import 'inference_helper.dart';
 import 'inference_visitor_base.dart';
 import 'type_schema.dart';
 
@@ -278,13 +279,11 @@ class WrapInProblemInferenceResult implements InvocationInferenceResult {
   @override
   final DartType functionType;
 
-  final Message message;
+  final LocatedMessage message;
 
-  final int fileOffset;
+  final ProblemReporting problemReporting;
 
-  final int length;
-
-  final InferenceHelper helper;
+  final CompilerContext compilerContext;
 
   @override
   final bool isInapplicable;
@@ -295,9 +294,8 @@ class WrapInProblemInferenceResult implements InvocationInferenceResult {
     this.inferredType,
     this.functionType,
     this.message,
-    this.fileOffset,
-    this.length,
-    this.helper, {
+    this.problemReporting,
+    this.compilerContext, {
     required this.isInapplicable,
     required this.hoistedArguments,
   });
@@ -307,7 +305,11 @@ class WrapInProblemInferenceResult implements InvocationInferenceResult {
     Expression expression, {
     DartType? extensionReceiverType,
   }) {
-    expression = helper.wrapInProblem(expression, message, fileOffset, length);
+    expression = problemReporting.wrapInLocatedProblem(
+      compilerContext: compilerContext,
+      expression: expression,
+      message: message,
+    );
     List<VariableDeclaration>? hoistedArguments = this.hoistedArguments;
     if (hoistedArguments == null || hoistedArguments.isEmpty) {
       return expression;

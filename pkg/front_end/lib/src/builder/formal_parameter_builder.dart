@@ -303,16 +303,18 @@ class FormalParameterBuilder extends NamedBuilderImpl
               scope,
               fileUri,
             );
-        bodyBuilder.constantContext = ConstantContext.required;
+        ConstantContext constantContext = ConstantContext.required;
+        bodyBuilder.constantContext = constantContext;
         assert(!initializerWasInferred);
         Expression initializer = bodyBuilder.parseFieldInitializer(
           initializerToken!,
         );
         initializer = bodyBuilder.typeInferrer.inferParameterInitializer(
-          bodyBuilder,
-          initializer,
-          variable!.type,
-          hasDeclaredInitializer,
+          fileUri: fileUri,
+          initializer: initializer,
+          declaredType: variable!.type,
+          hasDeclaredInitializer: hasDeclaredInitializer,
+          constantContext: constantContext,
         );
         variable!.initializer = initializer..parent = variable;
         if (initializer is InvalidExpression) {

@@ -38,6 +38,7 @@ import '../kernel/type_algorithms.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/type_inference_engine.dart';
 import '../util/reference_map.dart';
+import 'check_helper.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
@@ -312,12 +313,14 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
         inferenceResult?.applyResult(_initializers, parent);
         superInitializer = initializer;
 
-        LocatedMessage? message = helper.checkArgumentsForFunction(
-          initializer.target.function,
-          initializer.arguments,
-          initializer.arguments.fileOffset,
-          <TypeParameter>[],
-        );
+        LocatedMessage? message = helper.problemReporting
+            .checkArgumentsForFunction(
+              function: initializer.target.function,
+              arguments: initializer.arguments,
+              fileOffset: initializer.arguments.fileOffset,
+              fileUri: helper.uri,
+              typeParameters: <TypeParameter>[],
+            );
         if (message != null) {
           _initializers.add(
             helper.buildInvalidInitializer(
@@ -364,9 +367,10 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
           if (initializer is AssertInitializer) length = "assert".length;
           Initializer error = helper.buildInvalidInitializer(
             helper.buildProblem(
-              codeRedirectingConstructorWithAnotherInitializer,
-              initializer.fileOffset,
-              length,
+              message: codeRedirectingConstructorWithAnotherInitializer,
+              fileUri: helper.uri,
+              fileOffset: initializer.fileOffset,
+              length: length,
             ),
           );
           error.parent = parent;
@@ -384,14 +388,16 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
           redirectingInitializer = initializer;
         }
 
-        LocatedMessage? message = helper.checkArgumentsForFunction(
-          initializerTarget.function!,
-          initializerArguments,
-          initializerArguments.fileOffset,
-          initializer is ExtensionTypeRedirectingInitializer
-              ? initializerTarget.function!.typeParameters
-              : const <TypeParameter>[],
-        );
+        LocatedMessage? message = helper.problemReporting
+            .checkArgumentsForFunction(
+              function: initializerTarget.function!,
+              arguments: initializerArguments,
+              fileOffset: initializerArguments.fileOffset,
+              fileUri: helper.uri,
+              typeParameters: initializer is ExtensionTypeRedirectingInitializer
+                  ? initializerTarget.function!.typeParameters
+                  : const <TypeParameter>[],
+            );
         if (message != null) {
           _initializers.add(
             helper.buildInvalidInitializer(
@@ -640,7 +646,12 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
           lastInitializer == redirectingInitializer,
     );
     Initializer error = helper.buildInvalidInitializer(
-      helper.buildProblem(message, charOffset, length),
+      helper.buildProblem(
+        message: message,
+        fileUri: helper.uri,
+        fileOffset: charOffset,
+        length: length,
+      ),
     );
     _initializers.add(error..parent = parent);
     _initializers.add(lastInitializer);
