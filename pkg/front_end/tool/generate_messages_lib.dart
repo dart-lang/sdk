@@ -69,9 +69,9 @@ part of 'cfe_codes.dart';
   int largestIndex = 0;
   final indexNameMap = new Map<int, String>();
 
-  List<String> keys = frontEndMessages.keys.toList()..sort();
+  List<String> keys = frontEndAndSharedMessages.keys.toList()..sort();
   for (String name in keys) {
-    var errorCodeInfo = frontEndMessages[name]!;
+    var errorCodeInfo = frontEndAndSharedMessages[name]!;
     var index = errorCodeInfo.index;
     if (index != null) {
       String? otherName = indexNameMap[index];
@@ -175,7 +175,7 @@ class _TemplateCompiler {
   _TemplateCompiler({
     required this.name,
     required this.index,
-    required FrontEndErrorCodeInfo errorCodeInfo,
+    required CfeStyleErrorCodeInfo errorCodeInfo,
   }) : problemMessage = errorCodeInfo.problemMessage,
        correctionMessage = errorCodeInfo.correctionMessage,
        analyzerCodes = errorCodeInfo.analyzerCode,
