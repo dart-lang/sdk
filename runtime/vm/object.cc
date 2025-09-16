@@ -19529,6 +19529,39 @@ const char* Bytecode::FullyQualifiedName() const {
   return zone->PrintToString("[Bytecode] %s", function_name);
 }
 
+BytecodePtr Bytecode::FindBytecode(uword pc) {
+#if defined(DART_DYNAMIC_MODULES)
+  class SlowFindBytecodeVisitor : public ObjectVisitor {
+   public:
+    explicit SlowFindBytecodeVisitor(uword pc)
+        : pc_(pc), result_(Bytecode::null()) {}
+
+    void VisitObject(ObjectPtr obj) {
+      if (!obj->IsBytecode()) return;
+      BytecodePtr bytecode = static_cast<BytecodePtr>(obj);
+      if (PayloadStartOf(bytecode) != pc_) return;
+      ASSERT(result_ == Bytecode::null());
+      result_ = bytecode;
+    }
+
+    BytecodePtr result() const { return result_; }
+
+   private:
+    uword pc_;
+    BytecodePtr result_;
+  };
+
+  HeapIterationScope iteration(Thread::Current());
+  SlowFindBytecodeVisitor visitor(pc);
+  iteration.IterateVMIsolateObjects(&visitor);
+  iteration.IterateOldObjectsNoImagePages(&visitor);
+  return visitor.result();
+#else
+  UNREACHABLE();
+  return Bytecode::null();
+#endif
+}
+
 void Bytecode::set_binary(const TypedDataBase& binary) const {
   ASSERT(binary.IsNull() || binary.IsExternalOrExternalView());
   untag()->set_binary(binary.ptr());
