@@ -618,17 +618,21 @@ class Expect {
     StringBuffer sb = StringBuffer("Expect.setEquals($msg) fails");
     // Report any missing items.
     if (missingElements.isNotEmpty) {
-      sb.write('\nMissing expected elements: ');
+      sb.writeln('\nMissing expected elements:');
       for (final val in missingElements) {
-        sb.write('$val ');
+        sb
+          ..write('- ')
+          ..writeln(val);
       }
     }
 
     // Report any extra items.
     if (extraElements.isNotEmpty) {
-      sb.write('\nUnexpected elements: ');
+      sb.writeln('\nUnexpected elements:');
       for (final val in extraElements) {
-        sb.write('$val ');
+        sb
+          ..write('- ')
+          ..writeln(val);
       }
     }
 

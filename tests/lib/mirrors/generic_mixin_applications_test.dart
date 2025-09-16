@@ -50,10 +50,10 @@ main() {
   typeParameters(reflectClass(GenericClass2), [#C]);
   typeParameters(reflectClass(GenericMultipleMixins), [#A, #B, #C]);
   // Anonymous mixin applications have no type parameters or type arguments.
-  typeParameters(reflectClass(NonGenericClass1).superclass, []);
-  typeParameters(reflectClass(NonGenericClass2).superclass, []);
-  typeParameters(reflectClass(GenericClass1).superclass, []);
-  typeParameters(reflectClass(GenericClass2).superclass, []);
+  typeParameters(reflectClass(NonGenericClass1).superclass!, []);
+  typeParameters(reflectClass(NonGenericClass2).superclass!, []);
+  typeParameters(reflectClass(GenericClass1).superclass!, []);
+  typeParameters(reflectClass(GenericClass2).superclass!, []);
 
   typeArguments(reflectClass(NonGenericMixinApplication1), []);
   typeArguments(reflectClass(NonGenericMixinApplication2), []);

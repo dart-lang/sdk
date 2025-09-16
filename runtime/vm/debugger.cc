@@ -40,6 +40,7 @@
 #include "vm/timeline.h"
 #include "vm/token_position.h"
 #include "vm/visitor.h"
+#include "vm/zone_text_buffer.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/deopt_instructions.h"
@@ -629,8 +630,8 @@ bool ActivationFrame::IsDebuggable() const {
   return Debugger::IsDebuggable(function());
 }
 
-void ActivationFrame::PrintDescriptorsError(const char* message) {
-  OS::PrintErr("Bad descriptors: %s\n", message);
+void ActivationFrame::PrintContextLevelError(const char* message) {
+  OS::PrintErr("Cannot locate context level: %s\n", message);
   OS::PrintErr("function %s\n", function().ToQualifiedCString());
   OS::PrintErr("pc_ %" Px "\n", pc_);
   OS::PrintErr("deopt_id_ %" Px "\n", deopt_id_);
@@ -638,9 +639,12 @@ void ActivationFrame::PrintDescriptorsError(const char* message) {
   OS::PrintErr("token_pos_ %s\n", token_pos_.ToCString());
   if (IsInterpreted()) {
 #if defined(DART_DYNAMIC_MODULES)
-    DisassembleToStdout formatter;
-    bytecode().Disassemble(&formatter);
-    OS::PrintErr("%s\n", var_descriptors_.ToCString());
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+    Zone* const zone = Thread::Current()->zone();
+    ZoneTextBuffer buffer(zone);
+    bytecode().WriteLocalVariablesInfo(zone, &buffer);
+    OS::PrintErr("%s\n", buffer.buffer());
+#endif
 #else
     UNREACHABLE();
 #endif
@@ -677,7 +681,7 @@ intptr_t ActivationFrame::ContextLevel() {
       while (local_vars.MoveNext()) {
         if (local_vars.IsScope()) {
           if (local_vars.StartPC() <= pc_offset &&
-              pc_offset < local_vars.EndPC()) {
+              pc_offset <= local_vars.EndPC()) {
             DEBUG_ASSERT(!found || local_vars.StartPC() > closest_start);
             found = true;
             context_level_ = local_vars.ContextLevel();
@@ -689,6 +693,10 @@ intptr_t ActivationFrame::ContextLevel() {
           }
         }
       }
+      if (!found) {
+        PrintContextLevelError(
+            "No Scope local variable info for the current PC");
+      }
 #else
       UNREACHABLE();
 #endif
@@ -698,7 +706,7 @@ intptr_t ActivationFrame::ContextLevel() {
       // We store the deopt ids as real token positions.
       intptr_t deopt_id = DeoptId();
       if (deopt_id == DeoptId::kNone) {
-        PrintDescriptorsError("Missing deopt id");
+        PrintContextLevelError("Missing deopt id");
       }
       const TokenPosition to_compare = TokenPosition::Deserialize(deopt_id);
       for (intptr_t cur_idx = 0; cur_idx < var_desc_len; cur_idx++) {
@@ -712,9 +720,10 @@ intptr_t ActivationFrame::ContextLevel() {
           break;
         }
       }
-    }
-    if (!found) {
-      PrintDescriptorsError("Missing context level in var descriptors");
+      if (!found) {
+        PrintContextLevelError(
+            "No ContextLevel var descriptor that contains the deopt id");
+      }
     }
     ASSERT(context_level_ >= 0);
   }

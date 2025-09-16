@@ -490,6 +490,12 @@ class MessageTestSuite extends ChainContext {
                 );
             }
 
+          case 'pseudoShared':
+            if (value is! bool) {
+              throw new ArgumentError('pseudoShared should be a bool: $value.');
+            }
+            break;
+
           default:
             unknownKeys.add(key);
         }

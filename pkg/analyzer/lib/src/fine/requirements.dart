@@ -375,6 +375,8 @@ class LibraryRequirements {
   Uint8List? featureSet;
   ManifestLibraryLanguageVersion? languageVersion;
 
+  List<Uri>? exportedLibraryUris;
+
   /// TopName => ID
   final Map<LookupName, ManifestItemId?> exportedTopLevels;
 
@@ -416,6 +418,7 @@ class LibraryRequirements {
     required this.name,
     required this.featureSet,
     required this.languageVersion,
+    required this.exportedLibraryUris,
     required this.exportedTopLevels,
     required this.instances,
     required this.interfaces,
@@ -448,6 +451,7 @@ class LibraryRequirements {
       name: null,
       featureSet: null,
       languageVersion: null,
+      exportedLibraryUris: null,
       exportedTopLevels: {},
       instances: {},
       interfaces: {},
@@ -481,6 +485,7 @@ class LibraryRequirements {
       name: reader.readOptionalStringUtf8(),
       featureSet: reader.readOptionalUint8List(),
       languageVersion: ManifestLibraryLanguageVersion.readOptional(reader),
+      exportedLibraryUris: reader.readOptionalUriList(),
       exportedTopLevels: reader.readNameToOptionalIdMap(),
       instances: reader.readMap(
         readKey: () => LookupName.read(reader),
@@ -522,6 +527,7 @@ class LibraryRequirements {
     sink.writeOptionalStringUtf8(name);
     sink.writeOptionalUint8List(featureSet);
     sink.writeOptionalObject(languageVersion, (it) => it.write(sink));
+    sink.writeOptionalUriList(exportedLibraryUris);
     sink.writeNameToIdMap(exportedTopLevels);
 
     sink.writeMap(
@@ -1314,6 +1320,17 @@ class RequirementsManifest {
           );
         }
       }
+
+      if (libraryRequirements.exportedLibraryUris case var expected?) {
+        var actual = libraryManifest.exportedLibraryUris;
+        if (!const ListEquality<Uri>().equals(expected, actual)) {
+          return LibraryExportedUrisMismatch(
+            libraryUri: libraryUri,
+            expected: expected,
+            actual: actual,
+          );
+        }
+      }
     }
 
     for (var exportRequirement in exportRequirements) {
@@ -1821,6 +1838,20 @@ class RequirementsManifest {
     var mainName = TopLevelFunctionElement.MAIN_FUNCTION_NAME.asLookupName;
     var id = manifest.getExportedId(mainName);
     requirements.exportedTopLevels[mainName] = id;
+  }
+
+  void record_library_exportedLibraries({required LibraryElementImpl element}) {
+    if (_recordingLockLevel != 0) {
+      return;
+    }
+
+    var manifest = element.manifest;
+    if (manifest == null) {
+      return;
+    }
+
+    var requirements = _getLibraryRequirements(element);
+    requirements.exportedLibraryUris = manifest.exportedLibraryUris;
   }
 
   void record_library_featureSet({required LibraryElementImpl element}) {

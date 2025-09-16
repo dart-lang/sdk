@@ -2,11 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Formatting can break multitests, so don't format them.
-// dart format off
-
-library test.generic_f_bounded;
-
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
@@ -21,7 +16,7 @@ class Sorter<R extends Magnitude<R>> {}
 
 class RealSorter extends Sorter<Real> {}
 
-main() {
+void main() {
   ClassMirror magnitudeDecl = reflectClass(Magnitude);
   ClassMirror realDecl = reflectClass(Real);
   ClassMirror sorterDecl = reflectClass(Sorter);
@@ -53,7 +48,7 @@ main() {
   typeArguments(realDecl, []);
   typeArguments(sorterDecl, []);
   typeArguments(realSorterDecl, []);
-  typeArguments(magnitudeOfReal, [realDecl]); //# 01: ok
-  typeArguments(sorterOfReal, [realDecl]); //# 01: ok
+  typeArguments(magnitudeOfReal, [realDecl]);
+  typeArguments(sorterOfReal, [realDecl]);
   typeArguments(magnitudeOfR, [rFromSorter]);
 }

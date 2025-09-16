@@ -2524,6 +2524,10 @@ class ExtensionElementImpl extends InstanceElementImpl
       previous.addFragment(current);
       return current;
     });
+    TypeParameterFragmentImpl._linkFragments(
+      fragments,
+      getFragments: (f) => f.typeParameters,
+    );
   }
 }
 
@@ -2708,6 +2712,10 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
       previous.addFragment(current);
       return current;
     });
+    TypeParameterFragmentImpl._linkFragments(
+      fragments,
+      getFragments: (f) => f.typeParameters,
+    );
   }
 }
 
@@ -6084,8 +6092,10 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
+  @trackedDirectly
   List<LibraryElementImpl> get exportedLibraries {
-    return fragments
+    globalResultRequirements?.record_library_exportedLibraries(element: this);
+    return _fragments
         .expand((fragment) => fragment.libraryExports)
         .map((export) => export.exportedLibrary)
         .nonNulls

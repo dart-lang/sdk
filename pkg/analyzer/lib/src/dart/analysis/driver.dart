@@ -106,7 +106,7 @@ testFineAfterLibraryAnalyzerHook;
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 555;
+  static const int DATA_VERSION = 556;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -588,6 +588,15 @@ class AnalysisDriver {
   }
 
   void afterPerformWork() {}
+
+  @visibleForTesting
+  ResolvedLibraryResultImpl? analyzeFileForTesting(String path) {
+    return scheduler.accumulatedPerformance.run('analyzeFileForTesting', (
+      performance,
+    ) {
+      return _analyzeFileImpl(path: path, performance: performance);
+    });
+  }
 
   /// Return a [Future] that completes after pending file changes are applied,
   /// so that [currentSession] can be used to compute results.
@@ -1307,7 +1316,7 @@ class AnalysisDriver {
     });
   }
 
-  void _analyzeFileImpl({
+  ResolvedLibraryResultImpl? _analyzeFileImpl({
     required String path,
     required OperationPerformanceImpl performance,
   }) {
@@ -1331,7 +1340,7 @@ class AnalysisDriver {
         );
 
         if (_completeRequestsIfMissingSdkLibrary(library)) {
-          return;
+          return null;
         }
 
         performance.run('libraryContext', (performance) {
@@ -1491,7 +1500,7 @@ class AnalysisDriver {
 
         // Return the result, full or partial.
         _logger.writeln('Computed new analysis result.');
-        // return result;
+        return libraryResult;
       } catch (exception, stackTrace) {
         var contextKey = _storeExceptionContext(
           path,
@@ -1522,6 +1531,8 @@ class AnalysisDriver {
         completeWithError(_requestedLibraries.remove(library.file.path));
         _clearLibraryContextAfterException();
       }
+
+      return null;
     });
   }
 

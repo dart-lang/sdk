@@ -298,6 +298,24 @@ class LibraryChildrenIdsMismatch extends RequirementFailure {
   }
 }
 
+class LibraryExportedUrisMismatch extends RequirementFailure {
+  final Uri libraryUri;
+  final List<Uri> expected;
+  final List<Uri> actual;
+
+  LibraryExportedUrisMismatch({
+    required this.libraryUri,
+    required this.expected,
+    required this.actual,
+  });
+
+  @override
+  String toString() {
+    return 'LibraryExportedUrisMismatch(libraryUri: $libraryUri, '
+        'expected: $expected, actual: $actual)';
+  }
+}
+
 class LibraryFeatureSetMismatch extends RequirementFailure {
   final Uri libraryUri;
   final Uint8List? expected;
@@ -326,6 +344,12 @@ class LibraryLanguageVersionMismatch extends RequirementFailure {
     required this.expected,
     required this.actual,
   });
+
+  @override
+  String toString() {
+    return 'LibraryLanguageVersionMismatch(libraryUri: $libraryUri, '
+        'expected: $expected, actual: $actual)';
+  }
 }
 
 class LibraryMissing extends RequirementFailure {

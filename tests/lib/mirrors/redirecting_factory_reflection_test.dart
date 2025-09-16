@@ -15,12 +15,19 @@ class B<X, Y> implements A<X> {
   B() : t = Y;
 }
 
-main() {
-  ClassMirror m = reflectClass(A);
-  var i = m.newInstance(Symbol.empty, []).reflectee;
-  var s = i.t.toString();
-  Expect.isTrue(
-    s == 'A' || s == 'A<dynamic>',
+void main() {
+  ClassMirror cm = reflectClass(A);
+  var i = cm.newInstance(Symbol.empty, []).reflectee;
+  Expect.equals(
+    A<dynamic>,
+    i.t,
+    'mirrors should create the correct reified generic type',
+  );
+  cm = reflectType(A<String>) as ClassMirror;
+  i = cm.newInstance(Symbol.empty, []).reflectee;
+  Expect.equals(
+    A<String>,
+    i.t,
     'mirrors should create the correct reified generic type',
   );
 }

@@ -19,13 +19,13 @@ Mutex::~Mutex() {}
 
 ABSL_NO_THREAD_SAFETY_ANALYSIS
 void Mutex::Lock() {
-  mutex_.Lock();
+  mutex_.lock();
   owner_.Acquire();
 }
 
 ABSL_NO_THREAD_SAFETY_ANALYSIS
 bool Mutex::TryLock() {
-  if (!mutex_.TryLock()) {
+  if (!mutex_.try_lock()) {
     return false;
   }
   owner_.Acquire();
@@ -35,7 +35,7 @@ bool Mutex::TryLock() {
 ABSL_NO_THREAD_SAFETY_ANALYSIS
 void Mutex::Unlock() {
   owner_.Release();
-  mutex_.Unlock();
+  mutex_.unlock();
 }
 
 ConditionVariable::ConditionVariable() {}

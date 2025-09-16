@@ -166,10 +166,6 @@ final String analyzerPkgPath = normalize(
   join(pkg_root.packageRoot, 'analyzer'),
 );
 
-/// A set of tables mapping between front end and analyzer error codes.
-final CfeToAnalyzerErrorCodeTables cfeToAnalyzerErrorCodeTables =
-    CfeToAnalyzerErrorCodeTables._(frontEndAndSharedMessages);
-
 /// The path to the `linter` package.
 final String linterPkgPath = normalize(join(pkg_root.packageRoot, 'linter'));
 
@@ -305,82 +301,4 @@ class AnalyzerErrorCodeInfo extends ErrorCodeInfo {
   }
 
   AnalyzerErrorCodeInfo._fromYaml(super.yaml) : super.fromYaml();
-}
-
-/// Data tables mapping between CFE errors and their corresponding automatically
-/// generated analyzer errors.
-class CfeToAnalyzerErrorCodeTables {
-  /// List of CFE errors for which analyzer errors should be automatically
-  /// generated, organized by their `index` property.
-  final List<ErrorCodeInfo?> indexToInfo = [];
-
-  /// Map whose values are the CFE errors for which analyzer errors should be
-  /// automatically generated, and whose keys are the corresponding analyzer
-  /// error name.  (Names are simple identifiers; they are not prefixed by the
-  /// class name `ParserErrorCode`)
-  final Map<String, ErrorCodeInfo> analyzerCodeToInfo = {};
-
-  /// Map whose values are the CFE errors for which analyzer errors should be
-  /// automatically generated, and whose keys are the front end error name.
-  final Map<String, ErrorCodeInfo> frontEndCodeToInfo = {};
-
-  /// Map whose keys are the CFE errors for which analyzer errors should be
-  /// automatically generated, and whose values are the corresponding analyzer
-  /// error name.  (Names are simple identifiers; they are not prefixed by the
-  /// class name `ParserErrorCode`)
-  final Map<ErrorCodeInfo, String> infoToAnalyzerCode = {};
-
-  /// Map whose keys are the CFE errors for which analyzer errors should be
-  /// automatically generated, and whose values are the front end error name.
-  final Map<ErrorCodeInfo, String> infoToFrontEndCode = {};
-
-  CfeToAnalyzerErrorCodeTables._(Map<String, CfeStyleErrorCodeInfo> messages) {
-    for (var entry in messages.entries) {
-      var errorCodeInfo = entry.value;
-      var index = errorCodeInfo.index;
-      if (index == null || errorCodeInfo.analyzerCode.length != 1) {
-        continue;
-      }
-      var frontEndCode = entry.key;
-      if (index < 1) {
-        throw '''
-$frontEndCode specifies index $index but indices must be 1 or greater.
-For more information run:
-dart pkg/front_end/tool/generate_messages.dart
-''';
-      }
-      if (indexToInfo.length <= index) {
-        indexToInfo.length = index + 1;
-      }
-      var previousEntryForIndex = indexToInfo[index];
-      if (previousEntryForIndex != null) {
-        throw 'Index $index used by both '
-            '${infoToFrontEndCode[previousEntryForIndex]} and $frontEndCode';
-      }
-      indexToInfo[index] = errorCodeInfo;
-      frontEndCodeToInfo[frontEndCode] = errorCodeInfo;
-      infoToFrontEndCode[errorCodeInfo] = frontEndCode;
-      var analyzerCodeLong = errorCodeInfo.analyzerCode.single;
-      var expectedPrefix = 'ParserErrorCode.';
-      if (!analyzerCodeLong.startsWith(expectedPrefix)) {
-        throw 'Expected all analyzer error codes to be prefixed with '
-            '${json.encode(expectedPrefix)}.  Found '
-            '${json.encode(analyzerCodeLong)}.';
-      }
-      var analyzerCode = analyzerCodeLong.substring(expectedPrefix.length);
-      infoToAnalyzerCode[errorCodeInfo] = analyzerCode;
-      var previousEntryForAnalyzerCode = analyzerCodeToInfo[analyzerCode];
-      if (previousEntryForAnalyzerCode != null) {
-        throw 'Analyzer code $analyzerCode used by both '
-            '${infoToFrontEndCode[previousEntryForAnalyzerCode]} and '
-            '$frontEndCode';
-      }
-      analyzerCodeToInfo[analyzerCode] = errorCodeInfo;
-    }
-    for (int i = 1; i < indexToInfo.length; i++) {
-      if (indexToInfo[i] == null) {
-        throw 'Indices are not consecutive; no error code has index $i.';
-      }
-    }
-  }
 }

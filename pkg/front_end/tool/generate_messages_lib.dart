@@ -178,7 +178,7 @@ class _TemplateCompiler {
     required CfeStyleErrorCodeInfo errorCodeInfo,
   }) : problemMessage = errorCodeInfo.problemMessage,
        correctionMessage = errorCodeInfo.correctionMessage,
-       analyzerCodes = errorCodeInfo.analyzerCode,
+       analyzerCodes = errorCodeInfo.analyzerCodes,
        severity = errorCodeInfo.cfeSeverity,
        parameters = errorCodeInfo.parameters;
 

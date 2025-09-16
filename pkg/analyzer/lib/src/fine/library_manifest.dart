@@ -27,6 +27,8 @@ class LibraryManifest {
   final Uint8List featureSet;
   final ManifestLibraryLanguageVersion languageVersion;
 
+  final List<Uri> exportedLibraryUris;
+
   /// The names that are re-exported by this library.
   /// This does not include names that are declared in this library.
   final Map<LookupName, ManifestItemId> reExportMap;
@@ -52,6 +54,7 @@ class LibraryManifest {
     required this.name,
     required this.featureSet,
     required this.languageVersion,
+    required this.exportedLibraryUris,
     required this.reExportMap,
     required this.reExportDeprecatedOnly,
     required this.declaredClasses,
@@ -72,6 +75,7 @@ class LibraryManifest {
       name: reader.readOptionalStringUtf8(),
       featureSet: reader.readUint8List(),
       languageVersion: ManifestLibraryLanguageVersion.read(reader),
+      exportedLibraryUris: reader.readUriList(),
       reExportMap: reader.readLookupNameToIdMap(),
       reExportDeprecatedOnly: reader.readLookupNameSet(),
       declaredClasses: reader.readLookupNameMap(
@@ -152,6 +156,7 @@ class LibraryManifest {
     sink.writeOptionalStringUtf8(name);
     sink.writeUint8List(featureSet);
     languageVersion.write(sink);
+    sink.writeUriList(exportedLibraryUris);
     reExportMap.write(sink);
     reExportDeprecatedOnly.write(sink);
     declaredClasses.write(sink);
@@ -865,6 +870,9 @@ class LibraryManifestBuilder {
         languageVersion: ManifestLibraryLanguageVersion.encode(
           libraryElement.languageVersion,
         ),
+        exportedLibraryUris: libraryElement.exportedLibraries
+            .map((e) => e.uri)
+            .toList(),
         reExportMap: {},
         reExportDeprecatedOnly: <LookupName>{},
         declaredClasses: newClassItems,
@@ -1085,6 +1093,7 @@ class LibraryManifestBuilder {
           name: null,
           featureSet: Uint8List(0),
           languageVersion: ManifestLibraryLanguageVersion.empty(),
+          exportedLibraryUris: [],
           reExportMap: {},
           reExportDeprecatedOnly: <LookupName>{},
           declaredClasses: {},

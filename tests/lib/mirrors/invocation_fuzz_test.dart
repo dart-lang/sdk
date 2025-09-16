@@ -2,31 +2,33 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Formatting can break multitests, so don't format them.
-// dart format off
-
 // This test reflectively enumerates all the methods in the system and tries to
 // invoke them with various basic values (nulls, ints, etc). This may result in
-// Dart exceptions or hangs, but should never result in crashes or JavaScript
-// exceptions.
+// Dart exceptions or hangs, but should never result in crashes.
 
+// Library name is used by test.
 library test.invoke_natives;
 
 import 'dart:mirrors';
 import 'dart:async';
 import 'dart:io';
 
+import 'package:expect/async_helper.dart';
+
 // Methods to be skipped, by qualified name.
 var denylist = [
   // Don't recurse on this test.
   'test.invoke_natives',
 
-  // Don't exit the test pre-maturely.
+  // Don't exit the test prematurely.
   'dart.io.exit',
   'dart.isolate.Isolate.exit',
 
   // Don't change the exit code, which may fool the test harness.
   'dart.io.exitCode',
+
+  // Don't mess with the async-helper framework.
+  RegExp(r"^async_helper."),
 
   // Don't kill random other processes.
   'dart.io.Process.killPid',
@@ -36,11 +38,11 @@ var denylist = [
 
   // Don't run blocking io calls.
   'dart.io.sleep',
-  new RegExp(r".*Sync$"),
+  RegExp(r"Sync$"),
 
-  // Don't call private methods in dart.async as they may circumvent the zoned
+  // Don't call private methods in `dart:async` as they may circumvent the zoned
   // error handling below.
-  new RegExp(r"^dart\.async\._.*$"),
+  RegExp(r"^dart\.async\._"),
 
   // Don't try to invoke FFI Natives on simulator.
   // TODO(http://dartbug.com/48365): Support FFI in simulators.
@@ -71,15 +73,17 @@ class Task {
 
 var queue = <Task>[];
 
-checkMethod(MethodMirror m, ObjectMirror target, [origin]) {
+void checkMethod(MethodMirror m, ObjectMirror target, [origin]) {
   if (isDenylisted(m.qualifiedName)) return;
 
-  var task = new Task();
+  var task = Task();
   task.name = '${MirrorSystem.getName(m.qualifiedName)} from $origin';
 
   if (m.isRegularMethod) {
     task.action = () => target.invoke(
-        m.simpleName, new List.filled(m.parameters.length, fuzzArgument));
+      m.simpleName,
+      List.filled(m.parameters.length, fuzzArgument),
+    );
   } else if (m.isGetter) {
     task.action = () => target.getField(m.simpleName);
   } else if (m.isSetter) {
@@ -93,7 +97,7 @@ checkMethod(MethodMirror m, ObjectMirror target, [origin]) {
   queue.add(task);
 }
 
-checkInstance(instanceMirror, origin) {
+void checkInstance(instanceMirror, origin) {
   ClassMirror? klass = instanceMirror.type;
   while (klass != null) {
     instanceMirror.type.declarations.values
@@ -103,7 +107,7 @@ checkInstance(instanceMirror, origin) {
   }
 }
 
-checkClass(classMirror) {
+void checkClass(classMirror) {
   classMirror.declarations.values
       .where((d) => d is MethodMirror && d.isStatic)
       .forEach((m) => checkMethod(m, classMirror));
@@ -111,20 +115,22 @@ checkClass(classMirror) {
   classMirror.declarations.values
       .where((d) => d is MethodMirror && d.isConstructor)
       .forEach((m) {
-    if (isDenylisted(m.qualifiedName)) return;
-    var task = new Task();
-    task.name = MirrorSystem.getName(m.qualifiedName);
+        if (isDenylisted(m.qualifiedName)) return;
+        var task = Task();
+        task.name = MirrorSystem.getName(m.qualifiedName);
 
-    task.action = () {
-      var instance = classMirror.newInstance(m.constructorName,
-          new List.filled(m.parameters.length, fuzzArgument));
-      checkInstance(instance, task.name);
-    };
-    queue.add(task);
-  });
+        task.action = () {
+          var instance = classMirror.newInstance(
+            m.constructorName,
+            List.filled(m.parameters.length, fuzzArgument),
+          );
+          checkInstance(instance, task.name);
+        };
+        queue.add(task);
+      });
 }
 
-checkLibrary(libraryMirror) {
+void checkLibrary(libraryMirror) {
   print(libraryMirror.simpleName);
   if (isDenylisted(libraryMirror.qualifiedName)) return;
 
@@ -139,11 +145,11 @@ checkLibrary(libraryMirror) {
 
 var testZone;
 
-doOneTask() {
+void doOneTask() {
   if (queue.length == 0) {
-    print('Done');
-    // Forcibly exit as we likely opened sockets and timers during the fuzzing.
-    exit(0);
+    print('Done: $fuzzArgument');
+    fuzzNext();
+    return;
   }
 
   var task = queue.removeLast();
@@ -161,19 +167,21 @@ doOneTask() {
 
 var fuzzArgument;
 
-main() {
-  // Avoid polluting the repository. Use a fixed path instead dynamically
-  // creating one because this test won't reliably cleanup on exit and we'd
-  // like to avoid accumulating temp directories.
-  var d = Directory(Directory.systemTemp.path + "/invocation_fuzz_test");
-  d.createSync();
-  Directory.current = d;
+var fuzzArguments = [null, 1, false, 'string', List.filled(0, null)];
 
-  fuzzArgument = null;
-  fuzzArgument = 1; // //# smi: ok
-  fuzzArgument = false; // //# false: ok
-  fuzzArgument = 'fuzzstring'; // //# string: ok
-  fuzzArgument = new List.filled(0, null); // //# emptyarray: ok
+void main() {
+  asyncStart();
+  fuzzNext();
+}
+
+void fuzzNext() {
+  if (fuzzArguments.isEmpty) {
+    asyncEnd();
+    // Forcibly exit as we likely opened sockets and timers during the fuzzing.
+    exit(0);
+  }
+
+  fuzzArgument = fuzzArguments.removeLast();
 
   print('Fuzzing with $fuzzArgument');
 
@@ -195,14 +203,15 @@ main() {
     'blåbærgrød',
     'Îñţérñåţîöñåļîžåţîờñ',
     "\u{1D11E}",
-    #symbol
+    #symbol,
   ];
   valueObjects.forEach((v) => checkInstance(reflect(v), 'value object'));
 
-  void uncaughtErrorHandler(self, parent, zone, error, stack) {}
+  void uncaughtErrorHandler(self, parent, zone, error, stack) {
+    // Ignore any errors.
+  }
 
-  var zoneSpec =
-      new ZoneSpecification(handleUncaughtError: uncaughtErrorHandler);
+  var zoneSpec = ZoneSpecification(handleUncaughtError: uncaughtErrorHandler);
   testZone = Zone.current.fork(specification: zoneSpec);
   testZone.createTimer(Duration.zero, doOneTask);
 }

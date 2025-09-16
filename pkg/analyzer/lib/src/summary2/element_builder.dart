@@ -255,6 +255,13 @@ class ElementBuilder {
 
     if (fragment.isAugmentation && lastFragment is ExtensionFragmentImpl) {
       lastFragment.addFragment(fragment);
+
+      _linkTypeParameters(
+        lastFragments: lastFragment.typeParameters,
+        fragments: fragment.typeParameters,
+        add: fragment.addTypeParameter,
+      );
+
       return;
     }
 
@@ -276,6 +283,13 @@ class ElementBuilder {
 
     if (fragment.isAugmentation && lastFragment is ExtensionTypeFragmentImpl) {
       lastFragment.addFragment(fragment);
+
+      _linkTypeParameters(
+        lastFragments: lastFragment.typeParameters,
+        fragments: fragment.typeParameters,
+        add: fragment.addTypeParameter,
+      );
+
       return;
     }
 
@@ -1841,6 +1855,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var fieldFragment = FieldFragmentImpl(
       name: _getFragmentName(fieldNameToken),
     );
+    fieldFragment.isAugmentation = extensionFragment.isAugmentation;
     fieldFragment.isFinal = true;
     fieldFragment.metadata = _buildMetadata(representation.fieldMetadata);
 
@@ -1860,7 +1875,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
           ConstructorFragmentImpl(
               name: representation.constructorName?.name.lexeme ?? 'new',
             )
-            ..isAugmentation = extensionNode.augmentKeyword != null
+            ..isAugmentation = extensionFragment.isAugmentation
             ..isConst = extensionNode.constKeyword != null
             ..formalParameters = [formalParameterFragment];
       constructorFragment.typeName = extensionFragment.name;

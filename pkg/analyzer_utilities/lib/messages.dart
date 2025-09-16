@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analyzer/src/fasta/error_converter.dart';
+library;
+
 import 'dart:convert';
 import 'dart:io';
 
@@ -22,8 +25,11 @@ const Map<String, String> severityEnumNames = <String, String>{
 
 /// Decoded messages from the `_fe_analyzer_shared` package's `messages.yaml`
 /// file.
-final Map<String, CfeStyleErrorCodeInfo> feAnalyzerSharedMessages =
-    _loadCfeStyleMessages(feAnalyzerSharedPkgPath, isShared: true);
+final Map<String, SharedErrorCodeInfo> feAnalyzerSharedMessages =
+    _loadCfeStyleMessages(
+      feAnalyzerSharedPkgPath,
+      decodeMessage: SharedErrorCodeInfo.fromYaml,
+    );
 
 /// The path to the `fe_analyzer_shared` package.
 final String feAnalyzerSharedPkgPath = normalize(
@@ -37,8 +43,11 @@ final Map<String, CfeStyleErrorCodeInfo> frontEndAndSharedMessages = Map.from(
 )..addAll(feAnalyzerSharedMessages);
 
 /// Decoded messages from the front end's `messages.yaml` file.
-final Map<String, CfeStyleErrorCodeInfo> frontEndMessages =
-    _loadCfeStyleMessages(frontEndPkgPath, isShared: false);
+final Map<String, FrontEndErrorCodeInfo> frontEndMessages =
+    _loadCfeStyleMessages(
+      frontEndPkgPath,
+      decodeMessage: FrontEndErrorCodeInfo.fromYaml,
+    );
 
 /// The path to the `front_end` package.
 final String frontEndPkgPath = normalize(
@@ -57,6 +66,10 @@ final RegExp placeholderPattern = RegExp(
   '#([-a-zA-Z0-9_]+)(?:%([0-9]*).([0-9]+))?',
 );
 
+/// A set of tables mapping between shared and analyzer error codes.
+final SharedToAnalyzerErrorCodeTables sharedToAnalyzerErrorCodeTables =
+    SharedToAnalyzerErrorCodeTables._(feAnalyzerSharedMessages);
+
 /// Convert a template string (which uses placeholders matching
 /// [placeholderPattern]) to an analyzer internal template string (which uses
 /// placeholders like `{0}`).
@@ -69,15 +82,15 @@ String convertTemplate(Map<String, int> placeholderToIndexMap, String entry) {
 
 /// Decodes a YAML object (in CFE style `messages.yaml` format) into a map from
 /// error name to [ErrorCodeInfo].
-Map<String, CfeStyleErrorCodeInfo> decodeCfeStyleMessagesYaml(
+Map<String, T> decodeCfeStyleMessagesYaml<T extends CfeStyleErrorCodeInfo>(
   Object? yaml, {
-  required bool isShared,
+  required T Function(YamlMap) decodeMessage,
 }) {
   Never problem(String message) {
     throw 'Problem in pkg/front_end/messages.yaml: $message';
   }
 
-  var result = <String, CfeStyleErrorCodeInfo>{};
+  var result = <String, T>{};
   if (yaml is! Map<Object?, Object?>) {
     problem('root node is not a map');
   }
@@ -91,10 +104,7 @@ Map<String, CfeStyleErrorCodeInfo> decodeCfeStyleMessagesYaml(
       problem('value associated with error $errorName is not a map');
     }
     try {
-      result[errorName] = CfeStyleErrorCodeInfo.fromYaml(
-        errorValue,
-        isShared: isShared,
-      );
+      result[errorName] = decodeMessage(errorValue);
     } catch (e, st) {
       Error.throwWithStackTrace('while processing $errorName, $e', st);
     }
@@ -103,16 +113,16 @@ Map<String, CfeStyleErrorCodeInfo> decodeCfeStyleMessagesYaml(
 }
 
 /// Loads messages in CFE style `messages.yaml` format.
-Map<String, CfeStyleErrorCodeInfo> _loadCfeStyleMessages(
+Map<String, T> _loadCfeStyleMessages<T extends CfeStyleErrorCodeInfo>(
   String packagePath, {
-  required bool isShared,
+  required T Function(YamlMap) decodeMessage,
 }) {
   var path = join(packagePath, 'messages.yaml');
   Object? messagesYaml = loadYaml(
     File(path).readAsStringSync(),
     sourceUrl: Uri.file(path),
   );
-  return decodeCfeStyleMessagesYaml(messagesYaml, isShared: isShared);
+  return decodeCfeStyleMessagesYaml(messagesYaml, decodeMessage: decodeMessage);
 }
 
 /// Splits [text] on spaces using the given [maxWidth] (and [firstLineWidth] if
@@ -157,10 +167,10 @@ List<String> _splitText(
 
 /// In-memory representation of error code information obtained from a
 /// `messages.yaml` file in `pkg/front_end` or `pkg/_fe_analyzer_shared`.
-class CfeStyleErrorCodeInfo extends ErrorCodeInfo {
+abstract class CfeStyleErrorCodeInfo extends ErrorCodeInfo {
   /// The set of analyzer error codes that corresponds to this error code, if
   /// any.
-  final List<String> analyzerCode;
+  final List<String> analyzerCodes;
 
   /// The index of the error in the analyzer's `fastaAnalyzerErrorCodes` table.
   final int? index;
@@ -169,23 +179,20 @@ class CfeStyleErrorCodeInfo extends ErrorCodeInfo {
   /// severity.
   final String? cfeSeverity;
 
-  CfeStyleErrorCodeInfo.fromYaml(YamlMap yaml, {required bool isShared})
-    : analyzerCode = _decodeAnalyzerCode(yaml['analyzerCode']),
+  CfeStyleErrorCodeInfo.fromYaml(YamlMap yaml)
+    : analyzerCodes = _decodeAnalyzerCode(yaml['analyzerCode']),
       index = _decodeIndex(yaml['index']),
       cfeSeverity = _decodeSeverity(yaml['severity']),
       super.fromYaml(yaml) {
     if (yaml['problemMessage'] == null) {
       throw 'Missing problemMessage';
     }
-    if (isShared && analyzerCode.length != 1) {
-      throw StateError('Shared messages must have exactly one analyzerCode');
-    }
   }
 
   @override
   Map<Object?, Object?> toYaml() => {
-    if (analyzerCode.isNotEmpty)
-      'analyzerCode': _encodeAnalyzerCode(analyzerCode),
+    if (analyzerCodes.isNotEmpty)
+      'analyzerCode': _encodeAnalyzerCode(analyzerCodes),
     if (index != null) 'index': index,
     ...super.toYaml(),
   };
@@ -793,6 +800,30 @@ enum ErrorCodeParameterType {
   bool get isSupportedByAnalyzer => _analyzerName != null;
 }
 
+/// In-memory representation of error code information obtained from the file
+/// `pkg/front_end/messages.yaml`.
+class FrontEndErrorCodeInfo extends CfeStyleErrorCodeInfo {
+  /// Whether the error code contains a `pseudoShared: true` property in
+  /// `pkg/front_end/messages.yaml`.
+  ///
+  /// Messages with this property set are not shared; they have separately
+  /// declared analyzer and CFE codes. However, they are reported by code
+  /// defined in `pkg/_fe_analyzer_shared` using the CFE error reporting
+  /// mechanism. When running under the analyzer, they are then translated
+  /// into the associated analyzer error using [FastaErrorReporter].
+  // TODO(paulberry): migrate all pseudo-shared error codes to shared error
+  // codes.
+  final bool pseudoShared;
+
+  FrontEndErrorCodeInfo.fromYaml(super.yaml)
+    : pseudoShared = (yaml['pseudoShared'] as bool?) ?? false,
+      super.fromYaml() {
+    if (index != null) {
+      throw StateError('Non-shared messages must not have an index');
+    }
+  }
+}
+
 /// Representation of a single file containing generated error codes.
 class GeneratedErrorCodeFile {
   /// The file path (relative to the SDK's `pkg` directory) of the generated
@@ -945,6 +976,106 @@ class ParsedPlaceholder {
       other is ParsedPlaceholder &&
       other.name == name &&
       other.conversionOverride == conversionOverride;
+}
+
+/// In-memory representation of error code information obtained from the file
+/// `pkg/_fe_analyzer_shared/messages.yaml`.
+class SharedErrorCodeInfo extends CfeStyleErrorCodeInfo {
+  SharedErrorCodeInfo.fromYaml(super.yaml) : super.fromYaml() {
+    if (analyzerCodes.length != 1) {
+      throw StateError('Shared messages must have exactly one analyzerCode');
+    }
+    if (super.index == null) {
+      throw StateError('Shared messages must have an index');
+    }
+  }
+
+  /// The analyzer error code that corresponds to this shared error code.
+  ///
+  /// Shared error codes are required to have exactly one analyzer error code
+  /// associated with them.
+  String get analyzerCode => analyzerCodes.single;
+
+  /// The index of the error in the analyzer's `fastaAnalyzerErrorCodes` table.
+  ///
+  /// Shared error codes are required to have a non-null index.
+  @override
+  int get index => super.index!;
+}
+
+/// Data tables mapping between shared errors and their corresponding
+/// automatically generated analyzer errors.
+class SharedToAnalyzerErrorCodeTables {
+  /// List of shared errors for which analyzer errors should be automatically
+  /// generated, organized by their `index` property.
+  final List<SharedErrorCodeInfo?> indexToInfo = [];
+
+  /// Map whose values are the shared errors for which analyzer errors should be
+  /// automatically generated, and whose keys are the corresponding analyzer
+  /// error name.  (Names are simple identifiers; they are not prefixed by the
+  /// class name `ParserErrorCode`)
+  final Map<String, SharedErrorCodeInfo> analyzerCodeToInfo = {};
+
+  /// Map whose values are the shared errors for which analyzer errors should be
+  /// automatically generated, and whose keys are the front end error name.
+  final Map<String, SharedErrorCodeInfo> frontEndCodeToInfo = {};
+
+  /// Map whose keys are the shared errors for which analyzer errors should be
+  /// automatically generated, and whose values are the corresponding analyzer
+  /// error name.  (Names are simple identifiers; they are not prefixed by the
+  /// class name `ParserErrorCode`)
+  final Map<SharedErrorCodeInfo, String> infoToAnalyzerCode = {};
+
+  /// Map whose keys are the shared errors for which analyzer errors should be
+  /// automatically generated, and whose values are the front end error name.
+  final Map<SharedErrorCodeInfo, String> infoToFrontEndCode = {};
+
+  SharedToAnalyzerErrorCodeTables._(Map<String, SharedErrorCodeInfo> messages) {
+    for (var entry in messages.entries) {
+      var errorCodeInfo = entry.value;
+      var index = errorCodeInfo.index;
+      var frontEndCode = entry.key;
+      if (index < 1) {
+        throw '''
+$frontEndCode specifies index $index but indices must be 1 or greater.
+For more information run:
+dart pkg/front_end/tool/generate_messages.dart
+''';
+      }
+      if (indexToInfo.length <= index) {
+        indexToInfo.length = index + 1;
+      }
+      var previousEntryForIndex = indexToInfo[index];
+      if (previousEntryForIndex != null) {
+        throw 'Index $index used by both '
+            '${infoToFrontEndCode[previousEntryForIndex]} and $frontEndCode';
+      }
+      indexToInfo[index] = errorCodeInfo;
+      frontEndCodeToInfo[frontEndCode] = errorCodeInfo;
+      infoToFrontEndCode[errorCodeInfo] = frontEndCode;
+      var analyzerCodeLong = errorCodeInfo.analyzerCode;
+      var expectedPrefix = 'ParserErrorCode.';
+      if (!analyzerCodeLong.startsWith(expectedPrefix)) {
+        throw 'Expected all analyzer error codes to be prefixed with '
+            '${json.encode(expectedPrefix)}.  Found '
+            '${json.encode(analyzerCodeLong)}.';
+      }
+      var analyzerCode = analyzerCodeLong.substring(expectedPrefix.length);
+      infoToAnalyzerCode[errorCodeInfo] = analyzerCode;
+      var previousEntryForAnalyzerCode = analyzerCodeToInfo[analyzerCode];
+      if (previousEntryForAnalyzerCode != null) {
+        throw 'Analyzer code $analyzerCode used by both '
+            '${infoToFrontEndCode[previousEntryForAnalyzerCode]} and '
+            '$frontEndCode';
+      }
+      analyzerCodeToInfo[analyzerCode] = errorCodeInfo;
+    }
+    for (int i = 1; i < indexToInfo.length; i++) {
+      if (indexToInfo[i] == null) {
+        throw 'Indices are not consecutive; no error code has index $i.';
+      }
+    }
+  }
 }
 
 /// A [Conversion] that invokes a top level function via the `conversions`

@@ -19315,6 +19315,7 @@ export 'a.dart';
   package:test/test.dart
     reExportMap
       A: #M0
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -19394,6 +19395,7 @@ class C {}
         interface: #M7
     reExportMap
       A: #M0
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -19496,6 +19498,7 @@ class B {}
         interface: #M5
     reExportMap
       A: #M0
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -19553,6 +19556,7 @@ class C {}
     reExportMap
       A: #M0
       C: #M6
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -19621,6 +19625,7 @@ export 'b.dart';
       A1: #M0
       A2: #M2
       A3: #M4
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/b.dart
@@ -19637,6 +19642,7 @@ export 'b.dart';
       A2: #M2
       A3: #M4
       B: #M6
+    exportedLibraryUris: package:test/b.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -19693,6 +19699,7 @@ class A3 {}
     reExportMap
       A2: #M8
       A3: #M4
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/b.dart
@@ -19715,6 +19722,7 @@ class A3 {}
       A2: #M8
       A3: #M4
       B: #M6
+    exportedLibraryUris: package:test/b.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -19777,12 +19785,14 @@ export 'b.dart';
       A1: #M0
       A2: #M2
       A3: #M4
+    exportedLibraryUris: package:test/a.dart
   package:test/test.dart
     reExportMap
       A1: #M0
       A2: #M2
       A3: #M4
       B: #M6
+    exportedLibraryUris: package:test/b.dart
   requirements
 [status] idle
 [future] getLibraryByUri T1
@@ -19812,11 +19822,13 @@ class A3 {}
     reExportMap
       A2: #M8
       A3: #M4
+    exportedLibraryUris: package:test/a.dart
   package:test/test.dart
     reExportMap
       A2: #M8
       A3: #M4
       B: #M6
+    exportedLibraryUris: package:test/b.dart
   requirements
 [status] idle
 [future] getLibraryByUri T2
@@ -19858,6 +19870,7 @@ export 'b.dart';
         interface: #M3
     reExportMap
       A: #M0
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/b.dart
@@ -19872,6 +19885,7 @@ export 'b.dart';
     reExportMap
       A: #M0
       B: #M2
+    exportedLibraryUris: package:test/b.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -19981,6 +19995,7 @@ export 'a.dart';
   package:test/test.dart
     reExportMap
       E: #M0
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -20083,6 +20098,7 @@ export 'a.dart';
     reExportMap
       E: #M0
     exportedExtensions: #M0
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -20165,6 +20181,7 @@ export 'a.dart';
     reExportMap
       E: #M0
     exportedExtensions: #M0
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -20270,6 +20287,7 @@ export 'a.dart';
     reExportMap
       E: #M0
     exportedExtensions: #M0
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -20375,6 +20393,7 @@ export 'a.dart';
     reExportMap
       E: #M0
     exportedExtensions: #M0
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -20456,6 +20475,7 @@ export 'a.dart';
     reExportMap
       E1: #M0
     exportedExtensions: #M0
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -20502,6 +20522,7 @@ extension E2 on int {}
       E1: #M0
       E2: #M1
     exportedExtensions: #M0 #M1
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -20555,6 +20576,7 @@ export 'a.dart';
       E1: #M0
       E2: #M1
     exportedExtensions: #M0 #M1
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -20599,6 +20621,7 @@ extension E1 on int {}
     reExportMap
       E1: #M0
     exportedExtensions: #M0
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -20652,6 +20675,7 @@ export 'a.dart';
     reExportMap
       E: #M0
     exportedExtensions: #M0
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -20747,6 +20771,7 @@ export 'a.dart';
     reExportMap
       E: #M0
     exportedExtensions: #M0
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -20844,6 +20869,7 @@ export 'a.dart';
     reExportMap
       E: #M0
     exportedExtensions: #M0
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -20935,6 +20961,7 @@ export 'a.dart';
     reExportMap
       E: #M0
     exportedExtensions: #M0
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -21052,6 +21079,7 @@ export 'a.dart';
     reExportMap
       E: #M0
     exportedExtensions: #M0
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -21169,6 +21197,7 @@ export 'a.dart';
     reExportMap
       E: #M0
     exportedExtensions: #M0
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -21268,6 +21297,7 @@ export 'a.dart';
   package:test/test.dart
     reExportMap
       E: #M0
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -21356,6 +21386,7 @@ export 'a.dart';
   package:test/test.dart
     reExportMap
       M: #M0
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -21427,6 +21458,7 @@ export ':';
   package:test/test.dart
     reExportMap
       a: #M0
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -21495,6 +21527,7 @@ export 'a.dart';
   package:test/test.dart
     reExportMap
       a: #M0
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -21540,6 +21573,7 @@ final b = 0;
     reExportMap
       a: #M0
       b: #M2
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -21586,6 +21620,7 @@ export 'a.dart' hide b;
   package:test/test.dart
     reExportMap
       a: #M0
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -21659,6 +21694,7 @@ export 'a.dart' hide c;
   package:test/test.dart
     reExportMap
       a: #M0
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -21706,6 +21742,7 @@ final b = 0;
     reExportMap
       a: #M0
       b: #M2
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -21754,6 +21791,7 @@ export 'a.dart' show a;
   package:test/test.dart
     reExportMap
       a: #M0
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -21827,6 +21865,7 @@ export 'a.dart' show a, b;
   package:test/test.dart
     reExportMap
       a: #M0
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -21874,6 +21913,7 @@ final b = 0;
     reExportMap
       a: #M0
       b: #M2
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -21922,6 +21962,7 @@ export 'a.dart' show a, b hide c;
   package:test/test.dart
     reExportMap
       a: #M0
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -21970,6 +22011,7 @@ final b = 0;
     reExportMap
       a: #M0
       b: #M2
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -22019,6 +22061,7 @@ export 'a.dart';
   package:test/test.dart
     reExportMap
       a: #M0
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -22094,6 +22137,7 @@ export 'a.dart';
     reExportMap
       a: #M0
       b: #M1
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -22137,6 +22181,7 @@ final a = 0;
   package:test/test.dart
     reExportMap
       a: #M0
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -22183,6 +22228,7 @@ export 'a.dart' show a;
   package:test/test.dart
     reExportMap
       a: #M0
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -22257,6 +22303,7 @@ export 'a.dart';
     reExportMap
       a: #M0
       b: #M1
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -22305,6 +22352,7 @@ final c = 0;
     reExportMap
       a: #M0
       c: #M4
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -22357,6 +22405,7 @@ final x = a;
   package:test/b.dart
     reExportMap
       a: #M0
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/b.dart
@@ -22417,6 +22466,7 @@ final a = 1.2;
   package:test/b.dart
     reExportMap
       a: #M4
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/b.dart
@@ -22484,6 +22534,7 @@ export 'a.dart';
   package:test/test.dart
     reExportMap
       A: #M0
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/test.dart
@@ -27992,6 +28043,7 @@ void f() {
   package:test/a.dart
     reExportMap
       A: #M0
+    exportedLibraryUris: package:test/x.dart
   requirements
     exportRequirements
       package:test/a.dart
@@ -28038,6 +28090,7 @@ export 'x.dart';
     reExportMap
       A: #M0
     reExportDeprecatedOnly: A
+    exportedLibraryUris: package:test/x.dart
   requirements
     exportRequirements
       package:test/a.dart
@@ -28115,6 +28168,7 @@ void f() {
     reExportMap
       A: #M0
     reExportDeprecatedOnly: A
+    exportedLibraryUris: package:test/x.dart
   requirements
     exportRequirements
       package:test/a.dart
@@ -28163,6 +28217,7 @@ export 'x.dart';
   package:test/a.dart
     reExportMap
       A: #M0
+    exportedLibraryUris: package:test/x.dart
   requirements
     exportRequirements
       package:test/a.dart
@@ -28245,6 +28300,7 @@ void f() {
   package:test/a.dart
     reExportMap
       foo=: #M0
+    exportedLibraryUris: package:test/x.dart
   requirements
     exportRequirements
       package:test/a.dart
@@ -28291,6 +28347,7 @@ export 'x.dart';
     reExportMap
       foo=: #M0
     reExportDeprecatedOnly: foo=
+    exportedLibraryUris: package:test/x.dart
   requirements
     exportRequirements
       package:test/a.dart
@@ -28375,6 +28432,7 @@ void f() {
     reExportMap
       foo=: #M0
     reExportDeprecatedOnly: foo=
+    exportedLibraryUris: package:test/x.dart
   requirements
     exportRequirements
       package:test/a.dart
@@ -28423,6 +28481,7 @@ export 'x.dart';
   package:test/a.dart
     reExportMap
       foo=: #M0
+    exportedLibraryUris: package:test/x.dart
   requirements
     exportRequirements
       package:test/a.dart
@@ -28498,6 +28557,7 @@ void f() {
   package:test/a.dart
     reExportMap
       A: #M0
+    exportedLibraryUris: package:test/x.dart
   requirements
     exportRequirements
       package:test/a.dart
@@ -29548,6 +29608,102 @@ void main() {}
       package:test/a.dart
         exportedTopLevels
           main: #M1
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_libraryElement_exportedLibraries() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.exportedLibraries;
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+export 'dart:math' show min;
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    reExportMap
+      min: #M0
+    exportedLibraryUris: dart:math
+  requirements
+    exportRequirements
+      package:test/a.dart
+        exports
+          dart:math
+            combinators
+              show min
+            min: #M0
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedLibraryUris: dart:math
+[status] idle
+''',
+      updatedA: r'''
+export 'dart:io' show exit;
+export 'dart:math' show min;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    reExportMap
+      exit: #M1
+      min: #M0
+    exportedLibraryUris: dart:io dart:math
+  requirements
+    exportRequirements
+      package:test/a.dart
+        exports
+          dart:io
+            combinators
+              show exit
+            exit: #M1
+          dart:math
+            combinators
+              show min
+            min: #M0
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  libraryExportedUrisMismatch
+    libraryUri: package:test/a.dart
+    expected: dart:math
+    actual: dart:io dart:math
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportedLibraryUris: dart:io dart:math
 [status] idle
 ''',
     );
@@ -35449,6 +35605,7 @@ final x = a;
   package:test/b.dart
     reExportMap
       a: #M0
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/b.dart
@@ -35505,6 +35662,7 @@ final a = 1.2;
   package:test/b.dart
     reExportMap
       a: #M4
+    exportedLibraryUris: package:test/a.dart
   requirements
     exportRequirements
       package:test/b.dart
@@ -66398,6 +66556,7 @@ extension B on int {
     reExportMap
       A: #M0
     exportedExtensions: #M0 #M3
+    exportedLibraryUris: package:test/a.dart
 ''',
       updatedCodeFile: a,
       updatedCode: r'''
@@ -66452,6 +66611,7 @@ export 'a.dart' hide B;
     reExportMap
       A: #M0
     exportedExtensions: #M0
+    exportedLibraryUris: package:test/a.dart
 ''',
       updatedCodeFile: a,
       updatedCode: r'''
@@ -66510,6 +66670,7 @@ export 'a.dart' show A;
     reExportMap
       A: #M0
     exportedExtensions: #M0
+    exportedLibraryUris: package:test/a.dart
 ''',
       updatedCodeFile: a,
       updatedCode: r'''
@@ -66573,6 +66734,7 @@ extension B on int {
     reExportMap
       A: #M0
     exportedExtensions: #M0
+    exportedLibraryUris: package:test/a.dart
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredExtensions
@@ -66583,6 +66745,7 @@ extension B on int {
     reExportMap
       A: #M0
     exportedExtensions: #M0 #M3
+    exportedLibraryUris: package:test/b.dart
 ''',
       updatedCodeFile: a,
       updatedCode: r'''
@@ -66646,6 +66809,7 @@ extension A on int {
     reExportMap
       B: #M2
     exportedExtensions: #M2 #M4
+    exportedLibraryUris: package:test/a.dart
 ''',
       updatedCodeFile: a,
       updatedCode: r'''
