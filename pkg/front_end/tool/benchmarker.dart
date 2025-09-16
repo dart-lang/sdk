@@ -236,7 +236,7 @@ bool _compare(List<Map<String, num>> from, List<Map<String, num>> to) {
       }
     }
     if (fromForCaption.isEmpty || toForCaption.isEmpty) continue;
-    somethingWasSignificant = _compareSingle(
+    somethingWasSignificant |= _compareSingle(
       toForCaption,
       fromForCaption,
       caption,
