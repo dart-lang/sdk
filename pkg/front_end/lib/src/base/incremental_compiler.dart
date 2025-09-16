@@ -73,7 +73,11 @@ import '../api_prototype/incremental_kernel_generator.dart'
         IncrementalKernelGenerator,
         isLegalIdentifier;
 import '../api_prototype/lowering_predicates.dart'
-    show isExtensionThisName, syntheticThisName, hasUnnamedExtensionNamePrefix;
+    show
+        isExtensionThisName,
+        syntheticThisName,
+        hasUnnamedExtensionNamePrefix,
+        extractQualifiedNameFromExtensionMethodName;
 import '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
 import '../builder/builder.dart' show Builder;
 import '../builder/compilation_unit.dart'
@@ -1835,6 +1839,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
       LibraryBuilder libraryBuilder = compilationUnit.libraryBuilder;
       List<VariableDeclarationImpl> extraKnownVariables = [];
+      String? usedMethodName = methodName;
       if (scriptUri != null && offset != TreeNode.noOffset) {
         Uri? scriptUriAsUri = Uri.tryParse(scriptUri);
         if (scriptUriAsUri != null) {
@@ -1865,6 +1870,15 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             cls,
             offset,
           );
+
+          if (foundScope.member != null &&
+              (foundScope.member!.isExtensionMember ||
+                  foundScope.member!.isExtensionTypeMember)) {
+            usedMethodName = extractQualifiedNameFromExtensionMethodName(
+              foundScope.member!.name.text,
+              keepUnnamedExtensionNamePrefix: true,
+            );
+          }
 
           Map<TypeParameter, TypeParameterType> substitutionMap = {};
           Map<String, TypeParameter> typeDefinitionNamesMap = {};
@@ -1959,11 +1973,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       Extension? extension;
       ExtensionTypeDeclaration? extensionType;
       String? extensionName;
-      if (methodName != null) {
-        int indexOfDot = methodName.indexOf(".");
+      if (usedMethodName != null) {
+        int indexOfDot = usedMethodName.indexOf(".");
         if (indexOfDot >= 0) {
-          String beforeDot = methodName.substring(0, indexOfDot);
-          String afterDot = methodName.substring(indexOfDot + 1);
+          String beforeDot = usedMethodName.substring(0, indexOfDot);
+          String afterDot = usedMethodName.substring(indexOfDot + 1);
           Builder? builder = libraryBuilder.libraryNameSpace
               .lookup(beforeDot)
               ?.getable;
