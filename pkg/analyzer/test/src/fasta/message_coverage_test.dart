@@ -41,7 +41,7 @@ class AbstractRecoveryTest extends FastaParserTestCase {
     for (var entry in frontEndAndSharedMessages.entries) {
       var name = entry.key;
       var errorCodeInfo = entry.value;
-      if (errorCodeInfo.analyzerCode.isNotEmpty) {
+      if (errorCodeInfo.analyzerCodes.isNotEmpty) {
         codes.add(name);
       }
     }
@@ -53,7 +53,7 @@ class AbstractRecoveryTest extends FastaParserTestCase {
   List<String> getReferencedCodes() {
     Set<String> codes = <String>{};
     for (var errorCodeInfo in frontEndAndSharedMessages.values) {
-      codes.addAll(errorCodeInfo.analyzerCode);
+      codes.addAll(errorCodeInfo.analyzerCodes);
     }
     return codes.toList();
   }

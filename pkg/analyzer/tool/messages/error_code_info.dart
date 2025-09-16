@@ -338,7 +338,7 @@ class CfeToAnalyzerErrorCodeTables {
     for (var entry in messages.entries) {
       var errorCodeInfo = entry.value;
       var index = errorCodeInfo.index;
-      if (index == null || errorCodeInfo.analyzerCode.length != 1) {
+      if (index == null || errorCodeInfo.analyzerCodes.length != 1) {
         continue;
       }
       var frontEndCode = entry.key;
@@ -360,7 +360,7 @@ dart pkg/front_end/tool/generate_messages.dart
       indexToInfo[index] = errorCodeInfo;
       frontEndCodeToInfo[frontEndCode] = errorCodeInfo;
       infoToFrontEndCode[errorCodeInfo] = frontEndCode;
-      var analyzerCodeLong = errorCodeInfo.analyzerCode.single;
+      var analyzerCodeLong = errorCodeInfo.analyzerCodes.single;
       var expectedPrefix = 'ParserErrorCode.';
       if (!analyzerCodeLong.startsWith(expectedPrefix)) {
         throw 'Expected all analyzer error codes to be prefixed with '
