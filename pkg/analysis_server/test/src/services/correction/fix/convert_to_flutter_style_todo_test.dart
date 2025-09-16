@@ -36,7 +36,7 @@ void g() { }
 void f() {
   // TODO(user): msg.
 }
-// TODO(user): msg.
+//TODO(user): msg.
 void g() { }
 ''');
   }
@@ -143,10 +143,7 @@ void f() {}
 //TODO(user): msg.
 void f() {}
 ''');
-    await assertHasFix('''
-// TODO(user): msg.
-void f() {}
-''', errorFilter: (e) => e.diagnosticCode != TodoCode.todo);
+    await assertNoFix();
   }
 
   Future<void> test_unwantedSpaceBeforeUser() async {

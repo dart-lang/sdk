@@ -200,6 +200,21 @@ void f() {
     );
   }
 
+  test_forLoop_noUpdaters() async {
+    await assertErrorsInCode(
+      '''
+Never foo() => throw "Never";
+
+test() {
+  int i = 0;
+  for (foo(); (i = 42) < 0;) {}
+  return i;
+}
+''',
+      [error(WarningCode.deadCode, 67, 29)],
+    );
+  }
+
   test_ifElement_patternAssignment() async {
     await assertErrorsInCode(
       r'''

@@ -85,6 +85,7 @@ front_end/JsInteropExternalMemberNotJSAnnotated/example: missingExample # Web co
 front_end/JsInteropFunctionToJSNamedParameters/example: missingExample # Web compiler specific
 front_end/JsInteropFunctionToJSRequiresStaticType/example: missingExample # Web compiler specific
 front_end/JsInteropFunctionToJSTypeParameters/example: missingExample # Web compiler specific
+front_end/JsInteropFunctionToJSTypeViolation/example: missingExample
 front_end/JsInteropInvalidStaticClassMemberName/example: missingExample # Web compiler specific
 front_end/JsInteropIsAInvalidTypeVariable/example: missingExample # Web compiler specific
 front_end/JsInteropIsAObjectLiteralType/example: missingExample # Web compiler specific
@@ -370,6 +371,7 @@ front_end/JsInteropExternalMemberNotJSAnnotated/analyzerCode: missingAnalyzerCod
 front_end/JsInteropFunctionToJSNamedParameters/analyzerCode: missingAnalyzerCode # Web compiler specific
 front_end/JsInteropFunctionToJSRequiresStaticType/analyzerCode: missingAnalyzerCode # Web compiler specific
 front_end/JsInteropFunctionToJSTypeParameters/analyzerCode: missingAnalyzerCode # Web compiler specific
+front_end/JsInteropFunctionToJSTypeViolation/analyzerCode: missingAnalyzerCode
 front_end/JsInteropInvalidStaticClassMemberName/analyzerCode: missingAnalyzerCode
 front_end/JsInteropIsAInvalidTypeVariable/analyzerCode: missingAnalyzerCode # Web compiler specific
 front_end/JsInteropIsAObjectLiteralType/analyzerCode: missingAnalyzerCode # Web compiler specific

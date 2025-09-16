@@ -848,6 +848,44 @@ sealed class InterfaceItem<E extends InterfaceElementImpl>
   }
 }
 
+class LibraryMetadataItem extends ManifestItem<LibraryElementImpl> {
+  LibraryMetadataItem({
+    required super.id,
+    required super.flags,
+    required super.metadata,
+  });
+
+  factory LibraryMetadataItem.empty() {
+    return LibraryMetadataItem(
+      id: ManifestItemId.generate(),
+      flags: _ManifestItemFlags.empty(),
+      metadata: ManifestMetadata(annotations: []),
+    );
+  }
+
+  factory LibraryMetadataItem.encode({
+    required ManifestItemId id,
+    required EncodeContext context,
+    required MetadataImpl metadata,
+  }) {
+    return LibraryMetadataItem(
+      id: id,
+      flags: _ManifestItemFlags.empty(),
+      metadata: ManifestMetadata.encode(context, metadata),
+    );
+  }
+
+  factory LibraryMetadataItem.read(SummaryDataReader reader) {
+    return LibraryMetadataItem(
+      id: ManifestItemId.read(reader),
+      flags: _ManifestItemFlags.read(reader),
+      metadata: ManifestMetadata.read(reader),
+    );
+  }
+
+  bool get isEmpty => metadata.annotations.isEmpty;
+}
+
 class ManifestAnnotation {
   final ManifestNode ast;
 
@@ -1946,12 +1984,20 @@ extension type _ManifestItemFlags._(int _bits) {
   static final int _base = 0;
   static final int _next = _base + _ManifestItemFlag.values.length;
 
+  factory _ManifestItemFlags.empty() {
+    return _ManifestItemFlags._(0);
+  }
+
   factory _ManifestItemFlags.encode(ElementImpl element) {
     var bits = 0;
     if (element.isSynthetic) {
       bits |= _maskFor(_ManifestItemFlag.isSynthetic);
     }
     return _ManifestItemFlags._(bits);
+  }
+
+  factory _ManifestItemFlags.read(SummaryDataReader reader) {
+    return _ManifestItemFlags._(reader.readUint30());
   }
 
   bool get isSynthetic {

@@ -6301,8 +6301,10 @@ class LibraryElementImpl extends ElementImpl
   String? get lookupName => null;
 
   @override
+  @trackedDirectly
   MetadataImpl get metadata {
     _ensureReadResolution();
+    globalResultRequirements?.record_library_metadata(element: this);
     return _metadata;
   }
 

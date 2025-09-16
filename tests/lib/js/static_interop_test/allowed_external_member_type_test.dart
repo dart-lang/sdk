@@ -207,6 +207,10 @@ void functionToJSTest<
   //     ^
   // [web] Function converted via 'toJS' contains invalid types in its function signature: 'Null Function(*dynamic*)'.
 
+  (_) {}.toJSCaptureThis;
+  //     ^
+  // [web] Function converted via 'toJSCaptureThis' contains invalid types in its function signature: 'Null Function(*dynamic*)'.
+
   ((List _) => 4.0).toJS;
   //                ^
   // [web] Function converted via 'toJS' contains invalid types in its function signature: 'double Function(*List<dynamic>*)'.
@@ -217,7 +221,11 @@ void functionToJSTest<
 
   ((((JSNumber _) => 4.0) as dynamic) as Function).toJS;
   //                                               ^
-  // [web] `Function.toJS` requires a statically known function type, but Type 'Function' is not a precise function type, e.g., `void Function()`.
+  // [web] Functions converted via 'toJS' require a statically known function type, but Type 'Function' is not a precise function type, e.g., `void Function()`.
+
+  ((((JSNumber _) => 4.0) as dynamic) as Function).toJSCaptureThis;
+  //                                               ^
+  // [web] Functions converted via 'toJSCaptureThis' require a statically known function type, but Type 'Function' is not a precise function type, e.g., `void Function()`.
 
   ((T t) => t).toJS;
   ((U u) => u).toJS;
@@ -234,24 +242,30 @@ void functionToJSTest<
 
   declareTypeParameter.toJS;
   //                   ^
-  // [web] Functions converted via `toJS` cannot declare type parameters.
+  // [web] Functions converted via 'toJS' cannot declare type parameters.
+  declareTypeParameter.toJSCaptureThis;
+  //                   ^
+  // [web] Functions converted via 'toJSCaptureThis' cannot declare type parameters.
   declareAndUseTypeParameter.toJS;
   //                         ^
-  // [web] Functions converted via `toJS` cannot declare type parameters.
+  // [web] Functions converted via 'toJS' cannot declare type parameters.
   declareAndUseInvalidTypeParameter.toJS;
   //                                ^
   // [web] Function converted via 'toJS' contains invalid types in its function signature: '*T* Function(*T*)'.
-  // [web] Functions converted via `toJS` cannot declare type parameters.
+  // [web] Functions converted via 'toJS' cannot declare type parameters.
 
   (({JSNumber? n}) => n).toJS;
   //                     ^
-  // [web] Functions converted via `toJS` cannot declare named parameters.
+  // [web] Functions converted via 'toJS' cannot declare named parameters.
   ((JSString _, {int n = 0}) => n).toJS;
   //                               ^
-  // [web] Functions converted via `toJS` cannot declare named parameters.
+  // [web] Functions converted via 'toJS' cannot declare named parameters.
   (({int n = 0, JSArray? a}) => n).toJS;
   //                               ^
-  // [web] Functions converted via `toJS` cannot declare named parameters.
+  // [web] Functions converted via 'toJS' cannot declare named parameters.
+  (({int n = 0, JSArray? a}) => n).toJSCaptureThis;
+  //                               ^
+  // [web] Functions converted via 'toJSCaptureThis' cannot declare named parameters.
 }
 
 void main() {}

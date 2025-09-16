@@ -13,42 +13,43 @@ import 'package:front_end/src/api_prototype/codes.dart'
         Message,
         LocatedMessage,
         codeDartFfiLibraryInDart2Wasm,
+        codeJsInteropDartClassExtendsJSClass,
         codeJsInteropDartJsInteropAnnotationForStaticInteropOnly,
+        codeJsInteropDisallowedInteropLibraryInDart2Wasm,
         codeJsInteropEnclosingClassJSAnnotation,
         codeJsInteropEnclosingClassJSAnnotationContext,
         codeJsInteropExtensionTypeMemberNotInterop,
+        codeJsInteropExtensionTypeNotInterop,
         codeJsInteropExtensionTypeUsedWithWrongJsAnnotation,
         codeJsInteropExternalExtensionMemberOnTypeInvalid,
         codeJsInteropExternalExtensionMemberWithStaticDisallowed,
         codeJsInteropExternalMemberNotJSAnnotated,
         codeJsInteropFunctionToJSNamedParameters,
+        codeJsInteropFunctionToJSRequiresStaticType,
         codeJsInteropFunctionToJSTypeParameters,
+        codeJsInteropFunctionToJSTypeViolation,
         codeJsInteropInvalidStaticClassMemberName,
+        codeJsInteropJSClassExtendsDartClass,
         codeJsInteropNamedParameters,
+        codeJsInteropNativeClassInAnnotation,
         codeJsInteropNonExternalConstructor,
         codeJsInteropNonExternalMember,
+        codeJsInteropNonStaticWithStaticInteropSupertype,
+        codeJsInteropObjectLiteralConstructorPositionalParameters,
         codeJsInteropOperatorCannotBeRenamed,
         codeJsInteropOperatorsNotSupported,
+        codeJsInteropStaticInteropExternalAccessorTypeViolation,
+        codeJsInteropStaticInteropExternalFunctionTypeViolation,
         codeJsInteropStaticInteropGenerativeConstructor,
+        codeJsInteropStaticInteropNoJSAnnotation,
         codeJsInteropStaticInteropParameterInitializersAreIgnored,
         codeJsInteropStaticInteropSyntheticConstructor,
-        codeJsInteropDartClassExtendsJSClass,
-        codeJsInteropDisallowedInteropLibraryInDart2Wasm,
-        codeJsInteropJSClassExtendsDartClass,
-        codeJsInteropNonStaticWithStaticInteropSupertype,
-        codeJsInteropStaticInteropNoJSAnnotation,
-        codeJsInteropStaticInteropWithInstanceMembers,
-        codeJsInteropStaticInteropWithNonStaticSupertype,
-        codeJsInteropObjectLiteralConstructorPositionalParameters,
-        codeJsInteropNativeClassInAnnotation,
         codeJsInteropStaticInteropTearOffsDisallowed,
         codeJsInteropStaticInteropTrustTypesUsageNotAllowed,
         codeJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop,
-        codeJsInteropExtensionTypeNotInterop,
-        codeJsInteropFunctionToJSRequiresStaticType,
-        codeJsInteropStaticInteropExternalAccessorTypeViolation,
-        codeJsInteropStaticInteropExternalFunctionTypeViolation,
-        codeJsInteropStaticInteropToJSFunctionTypeViolation;
+        codeJsInteropStaticInteropWithInstanceMembers,
+        codeJsInteropStaticInteropWithNonStaticSupertype;
+
 // Used for importing CFE utility functions for constructor tear-offs.
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -65,6 +66,7 @@ class JsInteropChecks extends RecursiveVisitor {
   final CoreTypes _coreTypes;
   late final ExtensionIndex extensionIndex;
   final Procedure _functionToJSTarget;
+  final Procedure _functionToJSCaptureThisTarget;
   // Errors on constants need source information, so we use the surrounding
   // `ConstantExpression` as the source.
   ConstantExpression? _lastConstantExpression;
@@ -176,6 +178,10 @@ class JsInteropChecks extends RecursiveVisitor {
        _functionToJSTarget = _coreTypes.index.getTopLevelProcedure(
          'dart:js_interop',
          'FunctionToJSExportedDartFunction|get#toJS',
+       ),
+       _functionToJSCaptureThisTarget = _coreTypes.index.getTopLevelProcedure(
+         'dart:js_interop',
+         'FunctionToJSExportedDartFunction|get#toJSCaptureThis',
        ),
        _staticTypeContext = StatefulStaticTypeContext.stacked(
          TypeEnvironment(_coreTypes, hierarchy),
@@ -496,7 +502,8 @@ class JsInteropChecks extends RecursiveVisitor {
   @override
   void visitStaticInvocation(StaticInvocation node) {
     final target = node.target;
-    if (target == _functionToJSTarget) {
+    if (target == _functionToJSTarget ||
+        target == _functionToJSCaptureThisTarget) {
       _checkFunctionToJSCall(node);
     } else {
       // Only check generated tear-offs in StaticInvocations.
@@ -851,8 +858,8 @@ class JsInteropChecks extends RecursiveVisitor {
     return false;
   }
 
-  /// Checks that [node], which is a call to 'Function.toJS', is called with a
-  /// valid function type.
+  /// Checks that [node], which is a call to `Function.toJS` or
+  /// `Function.toJSCaptureThis`, is called with a valid function type.
   void _checkFunctionToJSCall(StaticInvocation node) {
     void report(Message message) => _reporter.report(
       message,
@@ -861,20 +868,28 @@ class JsInteropChecks extends RecursiveVisitor {
       node.location?.file,
     );
 
+    final conversion = node.target == _functionToJSTarget
+        ? 'toJS'
+        : 'toJSCaptureThis';
     final argument = node.arguments.positional.single;
     final functionType = argument.getStaticType(_staticTypeContext);
     if (functionType is! FunctionType) {
       report(
         codeJsInteropFunctionToJSRequiresStaticType.withArgumentsOld(
+          conversion,
           functionType,
         ),
       );
     } else {
       if (functionType.typeParameters.isNotEmpty) {
-        report(codeJsInteropFunctionToJSTypeParameters);
+        report(
+          codeJsInteropFunctionToJSTypeParameters.withArgumentsOld(conversion),
+        );
       }
       if (functionType.namedParameters.isNotEmpty) {
-        report(codeJsInteropFunctionToJSNamedParameters);
+        report(
+          codeJsInteropFunctionToJSNamedParameters.withArgumentsOld(conversion),
+        );
       }
       _reportFunctionToJSInvocationIfNotAllowedFunctionType(functionType, node);
     }
@@ -1187,7 +1202,8 @@ class JsInteropChecks extends RecursiveVisitor {
   ) {
     if (!_isAllowedExternalFunctionType(functionType)) {
       _reporter.report(
-        codeJsInteropStaticInteropToJSFunctionTypeViolation.withArgumentsOld(
+        codeJsInteropFunctionToJSTypeViolation.withArgumentsOld(
+          invocation.target == _functionToJSTarget ? 'toJS' : 'toJSCaptureThis',
           _disallowedExternalFunctionTypeString(functionType),
         ),
         invocation.fileOffset,

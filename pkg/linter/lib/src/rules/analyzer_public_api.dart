@@ -48,23 +48,28 @@ class AnalyzerPublicApi extends MultiAnalysisRule {
   }
 }
 
+/// Lightweight object representing a public import.
+class _PublicImport {
+  final Element? Function(String name) lookup;
+
+  _PublicImport({required this.lookup});
+}
+
 class _Visitor extends SimpleAstVisitor<void> {
   final MultiAnalysisRule rule;
 
-  /// Elements that are imported into the current compilation unit's import
-  /// namespace via `import` directives that do *not* access a package's `src`
-  /// directory.
-  ///
-  /// Elements in this set are part of the public APIs of their respective
-  /// packages, so it is safe for a part of the analyzer public API to refer to
-  /// them.
-  late Set<Element> importedPublicElements;
+  /// Public imports of the current unit.
+  List<_PublicImport> _publicImports = [];
+
+  /// Cache for [_isPubliclyImported].
+  Map<Element, bool> _isImportedMemo = Map.identity();
 
   _Visitor(this.rule);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    importedPublicElements = _computeImportedPublicElements(node);
+    _publicImports = _getPublicImports(node);
+    _isImportedMemo = Map.identity();
     node.declaredFragment!.children.forEach(_checkTopLevelFragment);
   }
 
@@ -184,7 +189,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         _checkType(fragment.element.type, fragment: fragment);
       case TypeAliasFragment(:var element, :var typeParameters):
         var aliasedType = element.aliasedType;
-        _checkType(element.aliasedType, fragment: fragment);
+        _checkType(aliasedType, fragment: fragment);
         if (typeParameters.isNotEmpty &&
             aliasedType is FunctionType &&
             aliasedType.typeParameters.isEmpty) {
@@ -244,6 +249,27 @@ class _Visitor extends SimpleAstVisitor<void> {
     _checkType(typeParameter.element.bound, fragment: fragment);
   }
 
+  /// Whether [element] is visible through at least one public import.
+  bool _isPubliclyImported(Element element) {
+    var lookupName = element.lookupName;
+    if (lookupName == null) return false;
+
+    if (_isImportedMemo[element] case var cached?) {
+      return cached;
+    }
+
+    for (var import in _publicImports) {
+      var lookedUp = import.lookup(lookupName);
+      if (lookedUp?.baseElement == element.baseElement) {
+        _isImportedMemo[element] = true;
+        return true;
+      }
+    }
+
+    _isImportedMemo[element] = false;
+    return false;
+  }
+
   Set<String> _problemsForAnalyzerPublicApi(DartType type) {
     switch (type) {
       case RecordType(:var positionalFields, :var namedFields):
@@ -254,7 +280,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         };
       case InterfaceType(:var element, :var typeArguments):
         return {
-          if (!importedPublicElements.contains(element) &&
+          if (!_isPubliclyImported(element) &&
               !element.isOkForAnalyzerPublicApi)
             element.name!,
           for (var t in typeArguments) ..._problemsForAnalyzerPublicApi(t),
@@ -282,25 +308,30 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  /// Called during [visitCompilationUnit] to compute the value of
-  /// [importedPublicElements].
-  static Set<Element> _computeImportedPublicElements(
-    CompilationUnit compilationUnit,
-  ) {
-    var elements = <Element>{};
-    for (var directive in compilationUnit.directives) {
+  static List<_PublicImport> _getPublicImports(CompilationUnit unit) {
+    var result = <_PublicImport>[];
+    for (var directive in unit.directives) {
       if (directive is! ImportDirective) continue;
       var libraryImport = directive.libraryImport!;
       var importedLibrary = libraryImport.importedLibrary;
-      if (importedLibrary == null) {
-        // Import was unresolved. Ignore.
-        continue;
-      }
-      if (importedLibrary.uri.isPublic) {
-        elements.addAll(libraryImport.namespace.definedNames2.values);
-      }
+      if (importedLibrary == null) continue;
+      if (!importedLibrary.uri.isPublic) continue;
+      var combinators = libraryImport.combinators;
+      result.add(
+        _PublicImport(
+          lookup: (lookupName) {
+            var baseName = lookupName.endsWith('=')
+                ? lookupName.substring(0, lookupName.length - 1)
+                : lookupName;
+            if (combinators.any((c) => c.blocksName(baseName))) {
+              return null;
+            }
+            return importedLibrary.exportNamespace.get2(lookupName);
+          },
+        ),
+      );
     }
-    return elements;
+    return result;
   }
 }
 

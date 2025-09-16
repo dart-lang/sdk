@@ -118,6 +118,10 @@ instead.
 - For object literals created from extension type factories, the `@JS()`
   annotation can now be used to change the name of keys in JavaScript. See
   [#55138][] for more details.
+- Compile-time checks for `Function.toJS` now apply to `toJSCaptureThis` as
+  well. Specifically, the function should be a statically known type, cannot
+  contain invalid types in its signature, cannot have any type parameters, and
+  cannot have any named parameters.
 
 [#59830]: https://github.com/dart-lang/sdk/issues/59830
 [#55138]: https://github.com/dart-lang/sdk/issues/55138

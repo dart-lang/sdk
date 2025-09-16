@@ -26,6 +26,7 @@ class LibraryManifest {
   final String? name;
   final Uint8List featureSet;
   final ManifestLibraryLanguageVersion languageVersion;
+  final LibraryMetadataItem libraryMetadata;
 
   final List<Uri> exportedLibraryUris;
 
@@ -54,6 +55,7 @@ class LibraryManifest {
     required this.name,
     required this.featureSet,
     required this.languageVersion,
+    required this.libraryMetadata,
     required this.exportedLibraryUris,
     required this.reExportMap,
     required this.reExportDeprecatedOnly,
@@ -75,6 +77,7 @@ class LibraryManifest {
       name: reader.readOptionalStringUtf8(),
       featureSet: reader.readUint8List(),
       languageVersion: ManifestLibraryLanguageVersion.read(reader),
+      libraryMetadata: LibraryMetadataItem.read(reader),
       exportedLibraryUris: reader.readUriList(),
       reExportMap: reader.readLookupNameToIdMap(),
       reExportDeprecatedOnly: reader.readLookupNameSet(),
@@ -156,6 +159,7 @@ class LibraryManifest {
     sink.writeOptionalStringUtf8(name);
     sink.writeUint8List(featureSet);
     languageVersion.write(sink);
+    libraryMetadata.write(sink);
     sink.writeUriList(exportedLibraryUris);
     reExportMap.write(sink);
     reExportDeprecatedOnly.write(sink);
@@ -784,12 +788,19 @@ class LibraryManifestBuilder {
       var newTopLevelFunctions = <LookupName, TopLevelFunctionItem>{};
       var newTopLevelVariables = <LookupName, TopLevelVariableItem>{};
 
+      var libraryMetadataItem = _getOrBuildElementItem(libraryElement, () {
+        return LibraryMetadataItem.encode(
+          id: ManifestItemId.generate(),
+          context: encodingContext,
+          metadata: libraryElement.metadata,
+        );
+      });
+
       for (var element in libraryElement.children) {
         var lookupName = element.lookupName?.asLookupName;
         if (lookupName == null) {
           continue;
         }
-
         switch (element) {
           case ClassElementImpl():
             _addClass(
@@ -870,6 +881,7 @@ class LibraryManifestBuilder {
         languageVersion: ManifestLibraryLanguageVersion.encode(
           libraryElement.languageVersion,
         ),
+        libraryMetadata: libraryMetadataItem,
         exportedLibraryUris: libraryElement.exportedLibraries
             .map((e) => e.uri)
             .toList(),
@@ -1093,6 +1105,7 @@ class LibraryManifestBuilder {
           name: null,
           featureSet: Uint8List(0),
           languageVersion: ManifestLibraryLanguageVersion.empty(),
+          libraryMetadata: LibraryMetadataItem.empty(),
           exportedLibraryUris: [],
           reExportMap: {},
           reExportDeprecatedOnly: <LookupName>{},
@@ -1222,6 +1235,10 @@ class _LibraryMatch {
   });
 
   void compareStructures() {
+    if (!_matchLibraryMetadata()) {
+      structureMismatched.add(library);
+    }
+
     for (var element in library.children) {
       var name = element.lookupName?.asLookupName;
       switch (element) {
@@ -1582,6 +1599,18 @@ class _LibraryMatch {
         structureMismatched.add(constructor);
       }
     }
+  }
+
+  bool _matchLibraryMetadata() {
+    var item = manifest.libraryMetadata;
+
+    var matchContext = MatchContext(parent: null);
+    if (!item.match(matchContext, library)) {
+      return false;
+    }
+
+    _addMatchingElementItem(library, item, matchContext);
+    return true;
   }
 
   bool _matchMixin({

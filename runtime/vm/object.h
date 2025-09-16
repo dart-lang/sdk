@@ -7522,7 +7522,10 @@ class Bytecode : public Object {
  public:
   uword instructions() const { return untag()->instructions_; }
 
-  uword PayloadStart() const { return instructions(); }
+  static uword PayloadStartOf(BytecodePtr ptr) {
+    return ptr->untag()->instructions_;
+  }
+  uword PayloadStart() const { return PayloadStartOf(ptr()); }
   intptr_t Size() const { return untag()->instructions_size_; }
 
   ObjectPoolPtr object_pool() const { return untag()->object_pool(); }
@@ -7627,6 +7630,8 @@ class Bytecode : public Object {
   const char* Name() const;
   const char* QualifiedName() const;
   const char* FullyQualifiedName() const;
+
+  static BytecodePtr FindBytecode(uword pc);
 
  private:
   void set_instructions(uword instructions) const {
