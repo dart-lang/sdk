@@ -2524,6 +2524,10 @@ class ExtensionElementImpl extends InstanceElementImpl
       previous.addFragment(current);
       return current;
     });
+    TypeParameterFragmentImpl._linkFragments(
+      fragments,
+      getFragments: (f) => f.typeParameters,
+    );
   }
 }
 
@@ -2708,6 +2712,10 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
       previous.addFragment(current);
       return current;
     });
+    TypeParameterFragmentImpl._linkFragments(
+      fragments,
+      getFragments: (f) => f.typeParameters,
+    );
   }
 }
 

@@ -222,10 +222,12 @@ class TypesBuilder {
   }
 
   void _extensionDeclaration(ExtensionDeclarationImpl node) {
-    var fragment = node.declaredFragment!;
     if (node.onClause case var onClause?) {
-      var extendedType = onClause.extendedType.typeOrThrow;
-      fragment.element.extendedType = extendedType;
+      var fragment = node.declaredFragment!;
+      if (fragment.previousFragment == null) {
+        var extendedType = onClause.extendedType.typeOrThrow;
+        fragment.element.extendedType = extendedType;
+      }
     }
   }
 
@@ -240,7 +242,7 @@ class TypesBuilder {
         .where(typeSystem.isValidExtensionTypeSuperinterface)
         .toFixedList();
     if (interfaces != null) {
-      element.interfaces = interfaces;
+      element.interfaces = [...element.interfaces, ...interfaces];
     }
   }
 
