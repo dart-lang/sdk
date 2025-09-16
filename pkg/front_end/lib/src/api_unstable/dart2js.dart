@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/messages/codes.dart'
-    show codeMissingMain;
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessageHandler;
 import 'package:_fe_analyzer_shared/src/messages/severity.dart'
     show CfeSeverity;
+import 'package:front_end/src/codes/cfe_codes.dart' show codeMissingMain;
 import 'package:kernel/kernel.dart' show Component;
 import 'package:kernel/target/targets.dart' show Target;
 

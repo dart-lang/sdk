@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
-    show Message, LocatedMessage, codeWasmImportOrExportInUserCode;
+    show Message, LocatedMessage;
 import 'package:_js_interop_checks/js_interop_checks.dart';
 import 'package:_js_interop_checks/src/js_interop.dart' as jsInteropHelper;
 import 'package:_js_interop_checks/src/transformations/shared_interop_transformer.dart';
@@ -11,6 +11,8 @@ import 'package:front_end/src/api_prototype/const_conditional_simplifier.dart'
     show ConstConditionalSimplifier;
 import 'package:front_end/src/api_prototype/constant_evaluator.dart'
     as constantEvaluator show ConstantEvaluator;
+import 'package:front_end/src/codes/cfe_codes.dart'
+    show codeWasmImportOrExportInUserCode;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/clone.dart';

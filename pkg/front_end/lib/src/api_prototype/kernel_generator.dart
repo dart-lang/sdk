@@ -7,10 +7,10 @@ library front_end.kernel_generator;
 
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/messages/codes.dart'
-    show codeMissingMain, noLength;
+import 'package:_fe_analyzer_shared/src/messages/codes.dart' show noLength;
 import 'package:_fe_analyzer_shared/src/messages/severity.dart'
     show CfeSeverity;
+import 'package:front_end/src/codes/cfe_codes.dart' show codeMissingMain;
 import 'package:kernel/ast.dart' show Component;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;

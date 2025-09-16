@@ -89,7 +89,7 @@ part of 'cfe_codes.dart';
         }
       }
     }
-    Template template;
+    String template;
     try {
       template = _TemplateCompiler(
         name: name,
@@ -99,10 +99,11 @@ part of 'cfe_codes.dart';
     } catch (e, st) {
       Error.throwWithStackTrace('Error while compiling $name: $e', st);
     }
-    if (template.isShared) {
-      sharedMessages.writeln(template.text);
+    if (errorCodeInfo is SharedErrorCodeInfo ||
+        errorCodeInfo is FrontEndErrorCodeInfo && errorCodeInfo.pseudoShared) {
+      sharedMessages.writeln(template);
     } else {
-      cfeMessages.writeln(template.text);
+      cfeMessages.writeln(template);
     }
   }
   if (largestIndex > indexNameMap.length) {
@@ -144,13 +145,6 @@ String _newName({required Set<String> usedNames, required String nameHint}) {
   }
 }
 
-class Template {
-  final String text;
-  final isShared;
-
-  Template(this.text, {this.isShared}) : assert(isShared != null);
-}
-
 class _TemplateCompiler {
   final String name;
   final int? index;
@@ -182,7 +176,7 @@ class _TemplateCompiler {
        severity = errorCodeInfo.cfeSeverity,
        parameters = errorCodeInfo.parameters;
 
-  Template compile() {
+  String compile() {
     var codeArguments = <String>[
       if (index != null)
         'index: $index'
@@ -199,11 +193,11 @@ class _TemplateCompiler {
         codeArguments.add('correctionMessage: r"""$correctionMessage"""');
       }
 
-      return new Template("""
+      return """
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode code$name =
     const MessageCode(\"$name\", ${codeArguments.join(', ')},);
-""", isShared: true);
+""";
     }
 
     List<String> templateArguments = <String>[];
@@ -240,7 +234,7 @@ const MessageCode code$name =
         .map((name) => '$name: $name')
         .toList();
 
-    return new Template("""
+    return """
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function(${positionalParameters.join(', ')}),
@@ -258,7 +252,7 @@ Message _withArguments$name({${namedParameters.join(', ')}}) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOld$name(${positionalParameters.join(', ')}) =>
     _withArguments$name(${oldToNewArguments.join(', ')});
-""", isShared: !hasLabeler);
+""";
   }
 
   String computeInterpolator(ParsedPlaceholder placeholder) {
