@@ -362,6 +362,10 @@ class LinterRuleOptionsValidator extends OptionsValidator {
   ) {
     if (rules is! YamlList &&
         rules is! YamlMap &&
+        // This handles empty keys like
+        // linter:
+        //   rules:
+        (rules is! YamlScalar || rules.value != null) &&
         // We accept 'null' for triggering `INCOMPATIBLE_LINT_INCLUDED`
         rules != null) {
       return;

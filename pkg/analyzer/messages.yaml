@@ -171,7 +171,7 @@ AnalysisOptionsWarningCode:
       int p2: the number of files that include the incompatible rule
       String p3: plural suffix for the word "file"
     sharedName: INCOMPATIBLE_LINT
-    problemMessage: "The rule '#p0' is incompatible with '#p1', which is included from #p2 file#p3."
+    problemMessage: "The rule '#p0' is incompatible with #p1, which is included from #p2 file#p3."
     correctionMessage: "Try locally disabling all but one of the conflicting rules or removing one of the incompatible files."
     hasPublishedDocs: false
     comment: |-

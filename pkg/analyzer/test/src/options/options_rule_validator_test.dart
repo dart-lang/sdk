@@ -185,6 +185,30 @@ include:
     ]);
   }
 
+  Future<void> test_incompatible_multiple_include_noLintMainFile() async {
+    newFile('/included1.yaml', '''
+linter:
+  rules:
+    - rule_neg
+''');
+    newFile('/included2.yaml', '''
+linter:
+  rules:
+    - rule_pos
+''');
+    assertErrors(
+      '''
+include:
+  - included1.yaml
+  - included2.yaml
+
+linter:
+  rules:
+''',
+      [AnalysisOptionsWarningCode.incompatibleLintIncluded],
+    );
+  }
+
   void test_incompatible_noTrigger_invalidMap() {
     newFile('/included.yaml', '''
 linter:
@@ -245,6 +269,25 @@ linter:
     rule_pos: true
     rule_neg: false
 ''');
+  }
+
+  void test_incompatible_trigger_invalidMap() {
+    newFile('/included.yaml', '''
+linter:
+  rules:
+    rule_neg: true
+''');
+    assertErrors(
+      '''
+include: included.yaml
+
+linter:
+  rules:
+    rule_neg:
+    rule_pos: true
+''',
+      [AnalysisOptionsWarningCode.incompatibleLintFiles],
+    );
   }
 
   void test_incompatible_unsuportedValue_invalidMap() {

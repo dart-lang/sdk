@@ -1502,7 +1502,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     // is effectively the same as calling this method first with Pointer and
     // subsequently with TypedData with field guards. We also set
     // guarded_list_length_ to kNoFixedLength for similar reasons.
-    if (klass.UserVisibleName() == Symbols::Compound().ptr() &&
+    if (klass.UserVisibleName() == Symbols::_Compound().ptr() &&
         Library::Handle(Z, klass.library()).url() == Symbols::DartFfi().ptr()) {
       ASSERT_EQUAL(fields_.length(), 2);
       ASSERT(String::Handle(Z, fields_[0]->name())

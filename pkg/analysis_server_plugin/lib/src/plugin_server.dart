@@ -195,9 +195,13 @@ class PluginServer {
       return protocol.EditGetFixesResult(const []);
     }
 
-    var lintAtOffset = errors.where(
-      (error) => error.diagnostic.offset == offset,
-    );
+    var lineInfo = unitResult.lineInfo;
+    var requestLine = lineInfo.getLocation(offset).lineNumber;
+
+    var lintAtOffset = errors.where((error) {
+      var errorLine = lineInfo.getLocation(error.diagnostic.offset).lineNumber;
+      return errorLine == requestLine;
+    });
     if (lintAtOffset.isEmpty) return protocol.EditGetFixesResult(const []);
 
     var errorFixesList = <protocol.AnalysisErrorFixes>[];
@@ -386,14 +390,16 @@ class PluginServer {
     // TODO(srawlins): Enable timing similar to what the linter package's
     // `benchmark.dart` script does.
     var nodeRegistry = RuleVisitorRegistryImpl(enableTiming: false);
+    var package = analysisContext.contextRoot.workspace.findPackageFor(
+      libraryPath,
+    );
 
     var context = RuleContextWithResolvedResults(
       allUnits,
       definingContextUnit,
       libraryResult.element.typeProvider,
       libraryResult.element.typeSystem as TypeSystemImpl,
-      // TODO(srawlins): Support 'package' parameter.
-      null,
+      package,
     );
 
     // A mapping from each diagnostic code to its corresponding plugin.

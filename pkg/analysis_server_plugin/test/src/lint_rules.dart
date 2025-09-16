@@ -9,6 +9,30 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
+class NeedsPackageRule extends AnalysisRule {
+  static const LintCode code = LintCode(
+    'needs_package',
+    'Needs Package at {0}',
+  );
+
+  NeedsPackageRule()
+    : super(name: 'needs_package', description: 'This rule needs package info');
+
+  @override
+  DiagnosticCode get diagnosticCode => code;
+
+  @override
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
+    if (context.isInLibDir) {
+      var visitor = _NeedsPackageVisitor(this, context);
+      registry.addIntegerLiteral(this, visitor);
+    }
+  }
+}
+
 class NoBoolsRule extends AnalysisRule {
   static const LintCode code = LintCode('no_bools', 'No bools message');
 
@@ -27,11 +51,18 @@ class NoBoolsRule extends AnalysisRule {
   }
 }
 
-class NoDoublesRule extends AnalysisRule {
-  static const LintCode code = LintCode('no_doubles', 'No doubles message');
+class NoDoublesCustomSeverityRule extends AnalysisRule {
+  static const LintCode code = LintCode(
+    'no_doubles_custom_severity',
+    'No doubles message',
+    severity: DiagnosticSeverity.WARNING,
+  );
 
-  NoDoublesRule()
-    : super(name: 'no_doubles', description: 'No doubles message');
+  NoDoublesCustomSeverityRule()
+    : super(
+        name: 'no_doubles_custom_severity',
+        description: 'No doubles message',
+      );
 
   @override
   DiagnosticCode get diagnosticCode => code;
@@ -46,18 +77,11 @@ class NoDoublesRule extends AnalysisRule {
   }
 }
 
-class NoDoublesCustomSeverityRule extends AnalysisRule {
-  static const LintCode code = LintCode(
-    'no_doubles_custom_severity',
-    'No doubles message',
-    severity: DiagnosticSeverity.WARNING,
-  );
+class NoDoublesRule extends AnalysisRule {
+  static const LintCode code = LintCode('no_doubles', 'No doubles message');
 
-  NoDoublesCustomSeverityRule()
-    : super(
-        name: 'no_doubles_custom_severity',
-        description: 'No doubles message',
-      );
+  NoDoublesRule()
+    : super(name: 'no_doubles', description: 'No doubles message');
 
   @override
   DiagnosticCode get diagnosticCode => code;
@@ -94,6 +118,19 @@ class NoReferencesToStringsRule extends AnalysisRule {
   ) {
     var visitor = _NoReferencesToStringsVisitor(this, context);
     registry.addSimpleIdentifier(this, visitor);
+  }
+}
+
+class _NeedsPackageVisitor extends SimpleAstVisitor<void> {
+  final AnalysisRule rule;
+
+  final RuleContext context;
+
+  _NeedsPackageVisitor(this.rule, this.context);
+
+  @override
+  void visitIntegerLiteral(IntegerLiteral node) {
+    rule.reportAtNode(node, arguments: ['"${context.package!.root.path}"']);
   }
 }
 

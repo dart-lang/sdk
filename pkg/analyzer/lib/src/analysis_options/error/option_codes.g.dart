@@ -315,7 +315,7 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
   >
   incompatibleLintIncluded = AnalysisOptionsWarningTemplate(
     'INCOMPATIBLE_LINT',
-    "The rule '{0}' is incompatible with '{1}', which is included from {2} "
+    "The rule '{0}' is incompatible with {1}, which is included from {2} "
         "file{3}.",
     correctionMessage:
         "Try locally disabling all but one of the conflicting rules or "
