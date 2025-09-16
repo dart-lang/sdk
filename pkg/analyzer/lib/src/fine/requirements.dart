@@ -372,6 +372,7 @@ class LibraryExportRequirements {
 
 class LibraryRequirements {
   String? name;
+  bool? isSynthetic;
   Uint8List? featureSet;
   ManifestLibraryLanguageVersion? languageVersion;
   ManifestItemId? libraryMetadataId;
@@ -417,6 +418,7 @@ class LibraryRequirements {
 
   LibraryRequirements({
     required this.name,
+    required this.isSynthetic,
     required this.featureSet,
     required this.languageVersion,
     required this.libraryMetadataId,
@@ -451,6 +453,7 @@ class LibraryRequirements {
   factory LibraryRequirements.empty() {
     return LibraryRequirements(
       name: null,
+      isSynthetic: null,
       featureSet: null,
       languageVersion: null,
       libraryMetadataId: null,
@@ -486,6 +489,7 @@ class LibraryRequirements {
   factory LibraryRequirements.read(SummaryDataReader reader) {
     return LibraryRequirements(
       name: reader.readOptionalStringUtf8(),
+      isSynthetic: reader.readOptionalBool(),
       featureSet: reader.readOptionalUint8List(),
       languageVersion: ManifestLibraryLanguageVersion.readOptional(reader),
       libraryMetadataId: ManifestItemId.readOptional(reader),
@@ -529,6 +533,7 @@ class LibraryRequirements {
 
   void write(BufferedSink sink) {
     sink.writeOptionalStringUtf8(name);
+    sink.writeOptionalBool(isSynthetic);
     sink.writeOptionalUint8List(featureSet);
     sink.writeOptionalObject(languageVersion, (it) => it.write(sink));
     libraryMetadataId.writeOptional(sink);
@@ -719,6 +724,17 @@ class RequirementsManifest {
         var actual = libraryManifest.name;
         if (expected != actual) {
           return LibraryNameMismatch(
+            libraryUri: libraryUri,
+            expected: expected,
+            actual: actual,
+          );
+        }
+      }
+
+      if (libraryRequirements.isSynthetic case var expected?) {
+        var actual = libraryManifest.isSynthetic;
+        if (expected != actual) {
+          return LibraryIsSyntheticMismatch(
             libraryUri: libraryUri,
             expected: expected,
             actual: actual,
@@ -2044,6 +2060,20 @@ class RequirementsManifest {
     var lookupName = name.asLookupName;
     var id = manifest.declaredTypeAliases[lookupName]?.id;
     requirements.requestedDeclaredTypeAliases[lookupName] = id;
+  }
+
+  void record_library_isSynthetic({required LibraryElementImpl element}) {
+    if (_recordingLockLevel != 0) {
+      return;
+    }
+
+    var manifest = element.manifest;
+    if (manifest == null) {
+      return;
+    }
+
+    var requirements = _getLibraryRequirements(element);
+    requirements.isSynthetic = manifest.isSynthetic;
   }
 
   void record_library_languageVersion({required LibraryElementImpl element}) {
