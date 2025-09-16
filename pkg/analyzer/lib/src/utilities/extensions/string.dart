@@ -18,7 +18,7 @@ extension IntExtension on int {
 
   bool get isLetterOrDigit => isLetter || isDigit;
 
-  bool get isLetterOrDigitOrUnderscore => isLetter || isDigit || this == 0x5F;
+  bool get isLetterOrDigitOrUnderscore => isLetter || isDigit || isUnderscore;
 
   /// Whether this, as an ASCII character, is a newline (not a carriage
   /// return) character.
@@ -28,6 +28,8 @@ extension IntExtension on int {
 
   /// Whether this, as an ASCII character, is a space or tab character.
   bool get isSpace => this == 0x20 || this == 0x09;
+
+  bool get isUnderscore => this == 0x5F;
 
   /// Whether this, as an ASCII character, is a space (as per [isSpace]) or EOL
   /// character (as per [isEOL]).
