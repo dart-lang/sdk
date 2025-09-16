@@ -54,12 +54,12 @@ import 'package:vm/modular/target/vm.dart';
 import '../test/incremental_suite.dart' show getOptions;
 import 'utils.dart';
 
-const _portMessageTest = "test";
-const _portMessageGood = "good";
-const _portMessageBad = "bad";
-const _portMessageCrash = "crash";
-const _portMessageParseError = "parseError";
-const _portMessageDone = "done";
+const String _portMessageTest = "test";
+const String _portMessageGood = "good";
+const String _portMessageBad = "bad";
+const String _portMessageCrash = "crash";
+const String _portMessageParseError = "parseError";
+const String _portMessageDone = "done";
 
 // TODO: This doesn't work on parts... (Well, it might, depending on how
 // the part declares what file it's part of and if we've compiled other stuff
@@ -237,7 +237,10 @@ class DartDocTest {
       _print("Got errors in ${stopwatch.elapsedMilliseconds} ms.");
 
       // Map back to the offending test.
-      List<List<String>?> testsWithErrors = List.filled(tests.length + 1, null);
+      List<List<String>?> testsWithErrors = new List.filled(
+        tests.length + 1,
+        null,
+      );
       for (CfeDiagnosticMessage message in errorMessages) {
         int testIndex = tests.length; // indicating no test.
         if (message is FormattedMessage) {
@@ -760,7 +763,6 @@ List<Test> extractTestsFromComment(
       final Token expressionFirstToken = parseFrom.next!;
       final Token beforeNextSeparator = parser.parseExpression(parseFrom);
       final Token nextSeparator = parseFrom = beforeNextSeparator.next!;
-      final String expectedSeparator = i == expressionCount ? ")" : ",";
 
       if (listener.hasErrors) {
         StringBuffer sb = new StringBuffer();
@@ -776,11 +778,16 @@ List<Test> extractTestsFromComment(
           firstPosition,
           getLocation(firstPosition),
         );
-      } else if (!identical(expectedSeparator, nextSeparator.stringValue)) {
+      } else if ((i < expressionCount &&
+              !identical(",", nextSeparator.stringValue)) ||
+          (i == expressionCount &&
+              !identical(")", nextSeparator.stringValue) &&
+              !(identical(",", nextSeparator.stringValue) &&
+                  identical(")", nextSeparator.next!.stringValue)))) {
         int position =
             commentsData.charOffset + scanOffset + nextSeparator.charOffset;
         Message message = codes.codeExpectedButGot.withArgumentsOld(
-          expectedSeparator,
+          i < expressionCount ? "," : ")",
         );
         return new TestParseError(
           _createParseErrorMessage(

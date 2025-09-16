@@ -380,7 +380,7 @@ void testTestExtraction() {
     ],
   );
 
-  // Two valid tests. Four invalid ones.
+  // Two valid tests. Five invalid ones.
   expect(
     extractTests("""
 // DartDocTest(1+1, 2)
@@ -389,6 +389,7 @@ void testTestExtraction() {
 // DartDocTest(2+40, 42]
 // DartDocTest(2+40, 42)
 // DartDocTest(2+40, 42+)
+// DartDocTest(2+40, 42, 42)
 """),
     <impl.Test>[
       new impl.ExpectTest("1+1", "2", "darttest:/foo.dart:1:16"),
@@ -424,6 +425,13 @@ darttest:/foo.dart:6:25: Expected an identifier, but got ')'.
                         ^""",
         148,
         "darttest:/foo.dart:6:25",
+      ),
+      new impl.TestParseError(
+        """darttest:/foo.dart:7:24: Expected ')' before this.
+// DartDocTest(2+40, 42, 42)
+                       ^""",
+        173,
+        "darttest:/foo.dart:7:24",
       ),
     ],
   );
@@ -511,6 +519,25 @@ darttest:/foo.dart:6:25: Expected an identifier, but got ')'.
     // DartDocTest(1+1, 2)
     // DartDocTest(2+2, 4)
     // DartDocTestThrows(2~/0)"""),
+    <impl.Test>[
+      // For now the order is expect tests first.
+      new impl.ExpectTest("1+1", "2", "darttest:/foo.dart:5:20"),
+      new impl.ExpectTest("2+2", "4", "darttest:/foo.dart:6:20"),
+      new impl.ThrowsTest("1~/0", "darttest:/foo.dart:4:26"),
+      new impl.ThrowsTest("2~/0", "darttest:/foo.dart:7:26"),
+    ],
+  );
+
+  // Expect with trailing comma.
+  expect(
+    extractTests("""
+    // not a test comment
+    void foo_bar_long_name() {}
+
+    // DartDocTestThrows(1~/0,)
+    // DartDocTest(1+1, 2,)
+    // DartDocTest(2+2, 4, )
+    // DartDocTestThrows(2~/0, )"""),
     <impl.Test>[
       // For now the order is expect tests first.
       new impl.ExpectTest("1+1", "2", "darttest:/foo.dart:5:20"),
