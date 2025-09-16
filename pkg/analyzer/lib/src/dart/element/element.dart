@@ -6092,8 +6092,10 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
+  @trackedDirectly
   List<LibraryElementImpl> get exportedLibraries {
-    return fragments
+    globalResultRequirements?.record_library_exportedLibraries(element: this);
+    return _fragments
         .expand((fragment) => fragment.libraryExports)
         .map((export) => export.exportedLibrary)
         .nonNulls

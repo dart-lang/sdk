@@ -135,6 +135,14 @@ class SummaryDataReader {
     }
   }
 
+  List<Uri>? readOptionalUriList() {
+    if (readBool()) {
+      return readUriList();
+    } else {
+      return null;
+    }
+  }
+
   String readStringReference() {
     var index = readUint30();
     return stringOfIndex(index);
@@ -235,6 +243,10 @@ class SummaryDataReader {
   Uri readUri() {
     var uriStr = readStringUtf8();
     return Uri.parse(uriStr);
+  }
+
+  List<Uri> readUriList() {
+    return readTypedList(readUri);
   }
 
   /// Temporary move to [offset] and run [operation].

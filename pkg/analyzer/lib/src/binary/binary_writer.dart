@@ -189,6 +189,15 @@ class BufferedSink {
     }
   }
 
+  void writeOptionalUriList(List<Uri>? value) {
+    if (value != null) {
+      writeBool(true);
+      writeUriList(value);
+    } else {
+      writeBool(false);
+    }
+  }
+
   /// Write the [value] as UTF8 encoded byte array.
   void writeStringUtf8(String value) {
     var bytes = const Utf8Encoder().convert(value);
@@ -244,6 +253,10 @@ class BufferedSink {
   void writeUri(Uri uri) {
     var uriStr = uri.toString();
     writeStringUtf8(uriStr);
+  }
+
+  void writeUriList(List<Uri> uriList) {
+    writeList(uriList, writeUri);
   }
 
   @pragma("vm:prefer-inline")

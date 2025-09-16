@@ -73,6 +73,7 @@ class BundleRequirementsPrinter {
           _writeInstanceItems(libraryRequirements);
           _writeInterfaceItems(libraryRequirements);
           _writeExportedExtensions(libraryRequirements);
+          _writeExportedLibraryUris(libraryRequirements);
         });
       });
 
@@ -96,6 +97,15 @@ class BundleRequirementsPrinter {
 
   void _writeExportedExtensions(LibraryRequirements requirements) {
     _writelnIdList('exportedExtensions', requirements.exportedExtensions);
+  }
+
+  void _writeExportedLibraryUris(LibraryRequirements requirements) {
+    if (requirements.exportedLibraryUris case var uriList?) {
+      if (uriList.isNotEmpty) {
+        var uriListStr = uriList.join(' ');
+        sink.writelnWithIndent('exportedLibraryUris: $uriListStr');
+      }
+    }
   }
 
   void _writeExportedTopLevels(LibraryRequirements requirements) {
@@ -679,6 +689,13 @@ class DriverEventsPrinter {
           'expectedIds': failure.expectedIds.asString(idProvider),
           'actualIds': failure.actualIds.asString(idProvider),
         });
+      case LibraryExportedUrisMismatch():
+        sink.writelnWithIndent('libraryExportedUrisMismatch');
+        sink.writeProperties({
+          'libraryUri': failure.libraryUri,
+          'expected': failure.expected.join(' '),
+          'actual': failure.actual.join(' '),
+        });
       case InstanceFieldIdMismatch():
         sink.writelnWithIndent('instanceFieldIdMismatch');
         sink.writeProperties({
@@ -1216,6 +1233,11 @@ class LibraryManifestPrinter {
     if (exportedExtensionIds.ids.isNotEmpty) {
       var idListStr = exportedExtensionIds.asString(idProvider);
       sink.writelnWithIndent('exportedExtensions: $idListStr');
+    }
+
+    if (manifest.exportedLibraryUris.isNotEmpty) {
+      var uriListStr = manifest.exportedLibraryUris.join(' ');
+      sink.writelnWithIndent('exportedLibraryUris: $uriListStr');
     }
   }
 
