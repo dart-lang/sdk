@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Formatting can break multitests, so don't format them.
-// dart format off
-
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
@@ -18,7 +15,7 @@ class A {
   static const z = true;
 }
 
-main() {
+void main() {
   var cm = reflectClass(A);
   var closure = cm.getField(#foo).reflectee;
   Expect.equals("b", closure("b"));
@@ -28,6 +25,6 @@ main() {
 
   Expect.equals(499, cm.getField(#bar).reflectee);
   Expect.equals(42, cm.getField(#x).reflectee);
-  Expect.equals("toto", cm.getField(#y).reflectee); // //# 00: ok
-  Expect.equals(true, cm.getField(#z).reflectee); //   //# 00: ok
+  Expect.equals("toto", cm.getField(#y).reflectee);
+  Expect.equals(true, cm.getField(#z).reflectee);
 }

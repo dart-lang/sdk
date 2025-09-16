@@ -1397,6 +1397,13 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 0, 5) {
     UNREACHABLE();
   }
 
+  if (klass.is_enum_class() && !lookup_constructor.IsFactory()) {
+    const Array& error_args = Array::Handle(Array::New(1));
+    error_args.SetAt(0, String::Handle(String::New("Cannot instantiate enum")));
+    Exceptions::ThrowByType(Exceptions::kUnsupported, error_args);
+    UNREACHABLE();
+  }
+
   ASSERT(!type.IsNull());
   TypeArguments& type_arguments = TypeArguments::Handle();
   if (!type.IsInstantiated()) {

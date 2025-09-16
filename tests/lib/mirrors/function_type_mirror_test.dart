@@ -10,9 +10,8 @@ typedef void FooFunction(int a, double b);
 
 bar(int a) {}
 
-main() {
-  TypedefMirror tm = reflectType(FooFunction) as TypedefMirror;
-  FunctionTypeMirror ftm = tm.referent;
+void main() {
+  FunctionTypeMirror ftm = reflectType(FooFunction) as FunctionTypeMirror;
   Expect.equals(const Symbol('void'), ftm.returnType.simpleName);
   Expect.equals(#int, ftm.parameters[0].type.simpleName);
   Expect.equals(#double, ftm.parameters[1].type.simpleName);

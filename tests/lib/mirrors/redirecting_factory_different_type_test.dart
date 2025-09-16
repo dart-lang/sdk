@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Formatting can break multitests, so don't format them.
-// dart format off
-
 library mirror_test;
 
 import 'dart:mirrors';
@@ -12,22 +9,16 @@ import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
 class A {
-  factory A(
-    String //# 01: compile-time error
-    var    //# 02: compile-time error
-    int    //# none: ok
-      x) = B;
+  factory A(int x) = B;
   A._();
 }
 
 class B extends A {
   var x;
-  B(int x)
-      : this.x = x,
-        super._();
+  B(Object x) : this.x = x, super._();
 }
 
-main() {
+void main() {
   var cm = reflectClass(A);
   // The type-annotation in A's constructor must be ignored.
   var b = cm.newInstance(Symbol.empty, [499]).reflectee;

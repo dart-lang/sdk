@@ -2,27 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Formatting can break multitests, so don't format them.
-// dart format off
-
 // Dart2js crashed on this example. It globalized both closures and created
 // top-level classes for closures (here the globalized_closure{2}). There was a
 // name-clash (both being named "main_closure") which led to a crash.
 
+// Library name is used by test.
 library main;
 
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
 
-confuse(x) {
-  if (new DateTime.now().millisecondsSinceEpoch == 42) {
-    return confuse(() => print(42));
-  }
+int Function() confuse(int Function() x) {
+  if (DateTime.now().millisecondsSinceEpoch == 42) return confuse(() => 42);
   return x;
 }
 
-main() {
+void main() {
+  // Non-standard name format is part of test.
   var globalized_closure = confuse(() => 499);
   var globalized_closure2 = confuse(() => 99);
   globalized_closure();
@@ -36,5 +33,5 @@ main() {
       collectedParents.add(MirrorSystem.getName(c.superclass!.simpleName));
     }
   }
-  Expect.isTrue(collectedParents.isEmpty); //  //# 00: ok
+  Expect.isTrue(collectedParents.isEmpty);
 }

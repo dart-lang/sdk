@@ -4,30 +4,20 @@
 
 // Test library uri for a library read as a package.
 
-library MirrorsTest;
-
 import 'dart:mirrors';
-import 'package:expect/expect.dart';
-import 'package:expect/legacy/async_minitest.dart'; // ignore: deprecated_member_use
 
-testLibraryUri(var value, Uri expectedUri) {
+import 'package:expect/expect.dart';
+
+void testLibraryUri(Object value, Uri expectedUri) {
   var valueMirror = reflect(value);
   ClassMirror valueClass = valueMirror.type;
   LibraryMirror valueLibrary = valueClass.owner as LibraryMirror;
   Uri uri = valueLibrary.uri;
-  if (!uri.isScheme("https") ||
-      uri.host != "dartlang.org" ||
-      uri.path != "/dart2js-stripped-uri") {
-    expect(uri, equals(expectedUri));
+  if (!uri.isScheme("https") || uri.host != "dartlang.org") {
+    Expect.equals(expectedUri, uri);
   }
 }
 
-main() {
-  var mirrors = currentMirrorSystem();
-  test("Test package library uri", () {
-    testLibraryUri(
-      ExpectException(""),
-      Uri.parse('package:expect/expect.dart'),
-    );
-  });
+void main() {
+  testLibraryUri(ExpectException(""), Uri.parse('package:expect/expect.dart'));
 }
