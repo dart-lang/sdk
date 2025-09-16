@@ -6171,8 +6171,13 @@ class LibraryElementImpl extends ElementImpl
   ///
   /// If a field in the library has a private name and that name does not appear
   /// as a key in this map, the field is promotable.
+  @trackedDirectlyOpaque
   Map<String, FieldNameNonPromotabilityInfo> get fieldNameNonPromotabilityInfo {
     _ensureReadResolution();
+    globalResultRequirements?.recordOpaqueApiUse(
+      this,
+      'fieldNameNonPromotabilityInfo',
+    );
     return _fieldNameNonPromotabilityInfo!;
   }
 
