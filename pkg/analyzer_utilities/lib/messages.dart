@@ -65,7 +65,7 @@ final RegExp placeholderPattern = RegExp(
 
 /// A set of tables mapping between shared and analyzer error codes.
 final SharedToAnalyzerErrorCodeTables sharedToAnalyzerErrorCodeTables =
-    SharedToAnalyzerErrorCodeTables._(frontEndAndSharedMessages);
+    SharedToAnalyzerErrorCodeTables._(feAnalyzerSharedMessages);
 
 /// Convert a template string (which uses placeholders matching
 /// [placeholderPattern]) to an analyzer internal template string (which uses
@@ -989,39 +989,34 @@ class SharedErrorCodeInfo extends CfeStyleErrorCodeInfo {
 /// Data tables mapping between shared errors and their corresponding
 /// automatically generated analyzer errors.
 class SharedToAnalyzerErrorCodeTables {
-  /// List of CFE errors for which analyzer errors should be automatically
+  /// List of shared errors for which analyzer errors should be automatically
   /// generated, organized by their `index` property.
-  final List<ErrorCodeInfo?> indexToInfo = [];
+  final List<SharedErrorCodeInfo?> indexToInfo = [];
 
-  /// Map whose values are the CFE errors for which analyzer errors should be
+  /// Map whose values are the shared errors for which analyzer errors should be
   /// automatically generated, and whose keys are the corresponding analyzer
   /// error name.  (Names are simple identifiers; they are not prefixed by the
   /// class name `ParserErrorCode`)
-  final Map<String, ErrorCodeInfo> analyzerCodeToInfo = {};
+  final Map<String, SharedErrorCodeInfo> analyzerCodeToInfo = {};
 
-  /// Map whose values are the CFE errors for which analyzer errors should be
+  /// Map whose values are the shared errors for which analyzer errors should be
   /// automatically generated, and whose keys are the front end error name.
-  final Map<String, ErrorCodeInfo> frontEndCodeToInfo = {};
+  final Map<String, SharedErrorCodeInfo> frontEndCodeToInfo = {};
 
-  /// Map whose keys are the CFE errors for which analyzer errors should be
+  /// Map whose keys are the shared errors for which analyzer errors should be
   /// automatically generated, and whose values are the corresponding analyzer
   /// error name.  (Names are simple identifiers; they are not prefixed by the
   /// class name `ParserErrorCode`)
-  final Map<ErrorCodeInfo, String> infoToAnalyzerCode = {};
+  final Map<SharedErrorCodeInfo, String> infoToAnalyzerCode = {};
 
-  /// Map whose keys are the CFE errors for which analyzer errors should be
+  /// Map whose keys are the shared errors for which analyzer errors should be
   /// automatically generated, and whose values are the front end error name.
-  final Map<ErrorCodeInfo, String> infoToFrontEndCode = {};
+  final Map<SharedErrorCodeInfo, String> infoToFrontEndCode = {};
 
-  SharedToAnalyzerErrorCodeTables._(
-    Map<String, CfeStyleErrorCodeInfo> messages,
-  ) {
+  SharedToAnalyzerErrorCodeTables._(Map<String, SharedErrorCodeInfo> messages) {
     for (var entry in messages.entries) {
       var errorCodeInfo = entry.value;
       var index = errorCodeInfo.index;
-      if (index == null || errorCodeInfo.analyzerCodes.length != 1) {
-        continue;
-      }
       var frontEndCode = entry.key;
       if (index < 1) {
         throw '''
@@ -1041,7 +1036,7 @@ dart pkg/front_end/tool/generate_messages.dart
       indexToInfo[index] = errorCodeInfo;
       frontEndCodeToInfo[frontEndCode] = errorCodeInfo;
       infoToFrontEndCode[errorCodeInfo] = frontEndCode;
-      var analyzerCodeLong = errorCodeInfo.analyzerCodes.single;
+      var analyzerCodeLong = errorCodeInfo.analyzerCode;
       var expectedPrefix = 'ParserErrorCode.';
       if (!analyzerCodeLong.startsWith(expectedPrefix)) {
         throw 'Expected all analyzer error codes to be prefixed with '
