@@ -13,6 +13,7 @@ import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart' as analysis;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
@@ -224,6 +225,12 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
   /// The path that is not in [workspaceRootPath], contains external packages.
   @override
   String get packagesRootPath => resourceProvider.convertPath('/packages');
+
+  TestCodeRange get parsedRange => parsedTestCode.range;
+
+  List<TestCodeRange> get parsedRanges => parsedTestCode.ranges;
+
+  SourceRange get parsedSourceRange => parsedTestCode.range.sourceRange;
 
   File get testFile => getFile(testFilePath);
 

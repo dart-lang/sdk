@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring_manager.dart';
+import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -1620,7 +1621,7 @@ void f() {
   Future<void> test_class_fromFactoryRedirectingConstructor() {
     addTestFile('''
 class A {
-  A() = Test.named;
+  A() = [!Test!].named;
 }
 class Test {
   Test.named() {}
@@ -1640,8 +1641,8 @@ class NewName {
 ''',
       feedbackValidator: (feedback) {
         var renameFeedback = feedback as RenameFeedback;
-        expect(renameFeedback.offset, 18);
-        expect(renameFeedback.length, 4);
+        expect(renameFeedback.offset, parsedSourceRange.offset);
+        expect(renameFeedback.length, parsedSourceRange.length);
       },
     );
   }
@@ -1652,7 +1653,7 @@ class Test {
   Test() {}
 }
 void f() {
-  Test();
+  [!Test!]();
 }
 ''');
     return assertSuccessfulRefactoring(
@@ -1669,8 +1670,8 @@ void f() {
 ''',
       feedbackValidator: (feedback) {
         var renameFeedback = feedback as RenameFeedback;
-        expect(renameFeedback.offset, 40);
-        expect(renameFeedback.length, 4);
+        expect(renameFeedback.offset, parsedSourceRange.offset);
+        expect(renameFeedback.length, parsedSourceRange.length);
       },
     );
   }
@@ -1681,7 +1682,7 @@ class Test {
   Test.named() {}
 }
 void f() {
-  Test.named();
+  [!Test!].named();
 }
 ''');
     return assertSuccessfulRefactoring(
@@ -1698,8 +1699,8 @@ void f() {
 ''',
       feedbackValidator: (feedback) {
         var renameFeedback = feedback as RenameFeedback;
-        expect(renameFeedback.offset, 46);
-        expect(renameFeedback.length, 4);
+        expect(renameFeedback.offset, parsedSourceRange.offset);
+        expect(renameFeedback.length, parsedSourceRange.length);
       },
     );
   }
@@ -1710,7 +1711,7 @@ class Test {
   Test() {}
 }
 void f() {
-  new Test();
+  new [!Test!]();
 }
 ''');
     return assertSuccessfulRefactoring(
@@ -1727,8 +1728,8 @@ void f() {
 ''',
       feedbackValidator: (feedback) {
         var renameFeedback = feedback as RenameFeedback;
-        expect(renameFeedback.offset, 44);
-        expect(renameFeedback.length, 4);
+        expect(renameFeedback.offset, parsedSourceRange.offset);
+        expect(renameFeedback.length, parsedSourceRange.length);
       },
     );
   }
@@ -1739,7 +1740,7 @@ class Test {
   Test.named() {}
 }
 void f() {
-  new Test.named();
+  new [!Test!].named();
 }
 ''');
     return assertSuccessfulRefactoring(
@@ -1756,8 +1757,8 @@ void f() {
 ''',
       feedbackValidator: (feedback) {
         var renameFeedback = feedback as RenameFeedback;
-        expect(renameFeedback.offset, 50);
-        expect(renameFeedback.length, 4);
+        expect(renameFeedback.offset, parsedSourceRange.offset);
+        expect(renameFeedback.length, parsedSourceRange.length);
       },
     );
   }
@@ -2137,7 +2138,7 @@ class A {
   Future<void> test_constructor_fromFactoryRedirectingConstructor() {
     addTestFile('''
 class A {
-  A() = B.test;
+  A() = B.[!test!];
 }
 class B {
   B.test() {}
@@ -2157,8 +2158,8 @@ class B {
 ''',
       feedbackValidator: (feedback) {
         var renameFeedback = feedback as RenameFeedback;
-        expect(renameFeedback.offset, 20);
-        expect(renameFeedback.length, 4);
+        expect(renameFeedback.offset, parsedSourceRange.offset);
+        expect(renameFeedback.length, parsedSourceRange.length);
       },
     );
   }
@@ -2169,7 +2170,7 @@ class A {
   A.test() {}
 }
 void f() {
-  A.test();
+  A.[!test!]();
 }
 ''');
     return assertSuccessfulRefactoring(
@@ -2186,8 +2187,8 @@ void f() {
 ''',
       feedbackValidator: (feedback) {
         var renameFeedback = feedback as RenameFeedback;
-        expect(renameFeedback.offset, 41);
-        expect(renameFeedback.length, 4);
+        expect(renameFeedback.offset, parsedSourceRange.offset);
+        expect(renameFeedback.length, parsedSourceRange.length);
       },
     );
   }
@@ -2195,7 +2196,7 @@ void f() {
   Future<void> test_enum_constructor_add_toSynthetic() {
     addTestFile('''
 enum E {
-  v1, v2.new()
+  v1, v2.[!new!]()
 }
 ''');
     return assertSuccessfulRefactoring(
@@ -2211,8 +2212,8 @@ enum E {
 ''',
       feedbackValidator: (feedback) {
         var renameFeedback = feedback as RenameFeedback;
-        expect(renameFeedback.offset, 18);
-        expect(renameFeedback.length, 3);
+        expect(renameFeedback.offset, parsedSourceRange.offset);
+        expect(renameFeedback.length, parsedSourceRange.length);
       },
     );
   }
@@ -2220,7 +2221,7 @@ enum E {
   Future<void> test_enum_constructor_change() {
     addTestFile('''
 enum E {
-  v1.test(), v2.test();
+  v1.test(), v2.[!test!]();
 
   const E.test();
 }
@@ -2238,8 +2239,8 @@ enum E {
 ''',
       feedbackValidator: (feedback) {
         var renameFeedback = feedback as RenameFeedback;
-        expect(renameFeedback.offset, 25);
-        expect(renameFeedback.length, 4);
+        expect(renameFeedback.offset, parsedSourceRange.offset);
+        expect(renameFeedback.length, parsedSourceRange.length);
       },
     );
   }
@@ -2266,7 +2267,7 @@ enum E2<NewName> {
 
   Future<void> test_extension_atDeclaration() {
     addTestFile('''
-extension Test on int {
+extension [!Test!] on int {
   void foo() {}
 }
 void f() {
@@ -2287,8 +2288,8 @@ void f() {
 ''',
       feedbackValidator: (feedback) {
         var renameFeedback = feedback as RenameFeedback;
-        expect(renameFeedback.offset, 10);
-        expect(renameFeedback.length, 4);
+        expect(renameFeedback.offset, parsedSourceRange.offset);
+        expect(renameFeedback.length, parsedSourceRange.length);
       },
     );
   }
@@ -2299,7 +2300,7 @@ extension Test on int {
   void foo() {}
 }
 void f() {
-  Test(0).foo();
+  [!Test!](0).foo();
 }
 ''');
     return assertSuccessfulRefactoring(
@@ -2316,8 +2317,8 @@ void f() {
 ''',
       feedbackValidator: (feedback) {
         var renameFeedback = feedback as RenameFeedback;
-        expect(renameFeedback.offset, 55);
-        expect(renameFeedback.length, 4);
+        expect(renameFeedback.offset, parsedSourceRange.offset);
+        expect(renameFeedback.length, parsedSourceRange.length);
       },
     );
   }
@@ -2610,7 +2611,7 @@ void f() {
   Future<void> test_importPrefix_remove() {
     addTestFile('''
 import 'dart:math' as test;
-import 'dart:async' as test;
+import 'dart:async' as [!test!];
 void f() {
   test.Random r;
   test.Future f;
@@ -2630,8 +2631,8 @@ void f() {
 ''',
       feedbackValidator: (feedback) {
         var renameFeedback = feedback as RenameFeedback;
-        expect(renameFeedback.offset, 51);
-        expect(renameFeedback.length, 4);
+        expect(renameFeedback.offset, parsedSourceRange.offset);
+        expect(renameFeedback.length, parsedSourceRange.length);
       },
     );
   }
@@ -2936,6 +2937,13 @@ void f() {
 class _AbstractGetRefactoring_Test extends PubPackageAnalysisServerTest {
   bool shouldWaitForFullAnalysis = true;
 
+  @override
+  void addTestFile(String content) {
+    // TODO(dantup): Move this normalization into the base class so it happens
+    //  automatically for all tests unless opted-out with a flag.
+    super.addTestFile(normalizeNewlinesForPlatform(content));
+  }
+
   Future<void> assertEmptySuccessfulRefactoring(
     Future<Response> Function() requestSender, {
     void Function(RefactoringFeedback?)? feedbackValidator,
@@ -3035,6 +3043,7 @@ class _AbstractGetRefactoring_Test extends PubPackageAnalysisServerTest {
     String expectedCode, {
     int changeEdits = 0,
   }) {
+    expectedCode = normalizeNewlinesForPlatform(expectedCode);
     var change = result.change!;
     if (changeEdits != 0) {
       expect(change.edits.length, changeEdits);

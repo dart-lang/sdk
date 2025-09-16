@@ -3,10 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_testing/utilities/extensions/resource_provider.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../utils/test_code_extensions.dart';
 import 'abstract_search_domain.dart';
 
 void main() {
@@ -24,8 +27,9 @@ class DeclarationsTest extends AbstractSearchDomainTest {
     ElementKind kind, {
     String? className,
     String? mixinName,
+    TestCodeRange? range,
   }) {
-    return declarationsResult.declarations.singleWhere(
+    var declaration = declarationsResult.declarations.singleWhere(
       (ElementDeclaration d) =>
           declarationsResult.files[d.fileIndex] == testFile.path &&
           d.name == name &&
@@ -33,6 +37,13 @@ class DeclarationsTest extends AbstractSearchDomainTest {
           d.className == className &&
           d.mixinName == mixinName,
     );
+
+    if (range != null) {
+      expect(declaration.codeOffset, range.sourceRange.offset);
+      expect(declaration.codeLength, range.sourceRange.length);
+    }
+
+    return declaration;
   }
 
   void assertNo(String name) {
@@ -57,8 +68,8 @@ class C {
   C();
   C.named();
   int get g => 0;
-  void set s(_) {}
-  void m() {}
+  /*[0*/void set s(_) {}/*0]*/
+  /*[1*/void m() {}/*1]*/
 }
 ''');
     await _getDeclarations();
@@ -68,17 +79,8 @@ class C {
     assertHas('named', ElementKind.CONSTRUCTOR, className: 'C');
     assertHas('g', ElementKind.GETTER, className: 'C');
 
-    {
-      var declaration = assertHas('s', ElementKind.SETTER, className: 'C');
-      expect(declaration.codeOffset, 59);
-      expect(declaration.codeLength, 16);
-    }
-
-    {
-      var declaration = assertHas('m', ElementKind.METHOD, className: 'C');
-      expect(declaration.codeOffset, 78);
-      expect(declaration.codeLength, 11);
-    }
+    assertHas('s', ElementKind.SETTER, className: 'C', range: parsedRanges[0]);
+    assertHas('m', ElementKind.METHOD, className: 'C', range: parsedRanges[1]);
   }
 
   Future<void> test_enum() async {
@@ -98,32 +100,18 @@ enum E {
   Future<void> test_extension() async {
     addTestFile(r'''
 extension E on int {
-  int get foo01 => 0;
-  void set foo02(_) {}
-  void foo03() {}
+  /*[0*/int get foo01 => 0;/*0]*/
+  /*[1*/void set foo02(_) {}/*1]*/
+  /*[2*/void foo03() {}/*2]*/
 }
 ''');
     await _getDeclarations();
 
     assertHas('E', ElementKind.EXTENSION);
 
-    {
-      var declaration = assertHas('foo01', ElementKind.GETTER);
-      expect(declaration.codeOffset, 23);
-      expect(declaration.codeLength, 19);
-    }
-
-    {
-      var declaration = assertHas('foo02', ElementKind.SETTER);
-      expect(declaration.codeOffset, 45);
-      expect(declaration.codeLength, 20);
-    }
-
-    {
-      var declaration = assertHas('foo03', ElementKind.METHOD);
-      expect(declaration.codeOffset, 68);
-      expect(declaration.codeLength, 15);
-    }
+    assertHas('foo01', ElementKind.GETTER, range: parsedRanges[0]);
+    assertHas('foo02', ElementKind.SETTER, range: parsedRanges[1]);
+    assertHas('foo03', ElementKind.METHOD, range: parsedRanges[2]);
   }
 
   Future<void> test_fuzzyMatch() async {
@@ -240,10 +228,13 @@ void f(bool a, String b) {}
   /// parent library.
   Future<void> test_parts() async {
     var a = newFile('$testPackageLibPath/a.dart', "part 'b.dart';").path;
-    var b = newFile('$testPackageLibPath/b.dart', '''
+    var b = testFilePath = resourceProvider.convertPath(
+      '$testPackageLibPath/b.dart',
+    );
+    addTestFile('''
 part of 'a.dart';
-class A {}
-''').path;
+class [!A!] {}
+''');
 
     await _getDeclarations(pattern: 'A');
 
@@ -256,9 +247,9 @@ class A {}
     expect(declaration.name, 'A');
     expect(declaration.kind, ElementKind.CLASS);
     expect(declarationsResult.files[declaration.fileIndex], b);
-    expect(declaration.offset, 24);
-    expect(declaration.line, 2);
-    expect(declaration.column, 7);
+    expect(declaration.offset, parsedSourceRange.offset);
+    expect(declaration.line, parsedRange.range.start.line + 1);
+    expect(declaration.column, parsedRange.range.start.character + 1);
   }
 
   Future<void> test_top() async {
