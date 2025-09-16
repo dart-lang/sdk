@@ -9,15 +9,15 @@ import 'package:expect/expect.dart';
 
 import 'catch_errors.dart';
 
-main() {
+void main() {
   asyncStart();
-  Completer done = new Completer();
+  Completer done = Completer();
 
   var events = [];
   // Test that periodic Timers are handled correctly by `catchErrors`.
   catchErrors(() {
     int counter = 0;
-    new Timer.periodic(const Duration(milliseconds: 50), (timer) {
+    Timer.periodic(const Duration(milliseconds: 50), (timer) {
       if (counter++ == 5) {
         timer.cancel();
         done.complete(true);

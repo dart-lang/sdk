@@ -9,12 +9,12 @@ import 'package:expect/expect.dart';
 
 import 'catch_errors.dart';
 
-main() {
+void main() {
   asyncStart();
 
   // Make sure `catchErrors` does not execute the error callback.
   catchErrors(() {
-    return 'allDone';
+    return;
   }).listen((x) {
     Expect.fail("Unexpected callback");
   });

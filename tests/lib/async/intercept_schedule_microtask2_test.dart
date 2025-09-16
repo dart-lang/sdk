@@ -8,7 +8,7 @@ import 'catch_errors.dart';
 
 var events = [];
 
-body() {
+int body() {
   events.add("body entry");
   scheduleMicrotask(() {
     events.add("run async body");
@@ -16,15 +16,15 @@ body() {
   return 499;
 }
 
-handler(fun) {
+void handler(fun) {
   events.add("handler");
   fun();
   events.add("handler done");
 }
 
-main() {
+void main() {
   // Test that scheduleMicrotask interception works.
-  var result = runZonedScheduleMicrotask(body, onScheduleMicrotask: handler);
+  runZonedScheduleMicrotask(body, onScheduleMicrotask: handler);
   // No need for a ReceivePort: If the runZonedScheduleMicrotask misbehaved we
   // would have an [events] list that is different from what we expect.
   Expect.listEquals([

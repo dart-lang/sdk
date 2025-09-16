@@ -9,9 +9,9 @@ import 'package:expect/expect.dart';
 
 import 'catch_errors.dart';
 
-main() {
+void main() {
   asyncStart();
-  Completer done = new Completer();
+  Completer done = Completer();
 
   var events = [];
   late StreamController controller;
@@ -19,7 +19,7 @@ main() {
   // Test `StreamController.broadcast` streams.
   catchErrors(() {
     catchErrors(() {
-          controller = new StreamController.broadcast();
+          controller = StreamController.broadcast();
 
           // Listen to the stream from the inner zone.
           controller.stream
@@ -28,7 +28,7 @@ main() {
                 return x + 100;
               })
               .transform(
-                new StreamTransformer.fromHandlers(
+                StreamTransformer.fromHandlers(
                   handleError: (e, st, sink) {
                     sink.add("error $e");
                   },
@@ -59,7 +59,7 @@ main() {
     // Feed the controller.
     controller.add(1);
     controller.addError("inner stream");
-    new Future.error("outer error");
+    Future.error("outer error");
     controller.close();
   }).listen(
     (x) {

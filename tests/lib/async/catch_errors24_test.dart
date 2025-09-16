@@ -9,9 +9,9 @@ import 'package:expect/expect.dart';
 
 import 'catch_errors.dart';
 
-main() {
+void main() {
   asyncStart();
-  Completer done = new Completer();
+  Completer done = Completer();
 
   var events = [];
   late StreamController controller;
@@ -21,7 +21,7 @@ main() {
   // and the error reaches `handleError`.
   catchErrors(() {
     catchErrors(() {
-          controller = new StreamController();
+          controller = StreamController();
 
           // Assign to the "global" `stream`.
           stream = controller.stream
@@ -30,7 +30,7 @@ main() {
                 return x + 100;
               })
               .transform(
-                new StreamTransformer.fromHandlers(
+                StreamTransformer.fromHandlers(
                   handleError: (e, st, sink) {
                     sink.add("error $e");
                   },

@@ -9,25 +9,24 @@ import 'package:expect/expect.dart';
 
 import 'catch_errors.dart';
 
-main() {
+void main() {
   asyncStart();
-  Completer done = new Completer();
+  Completer done = Completer();
   bool futureWasExecuted = false;
   bool future2WasExecuted = false;
 
   // Make sure `catchErrors` never closes its stream.
   catchErrors(() {
-    new Future(() => 499).then((x) {
+    Future(() => 499).then((x) {
       futureWasExecuted = true;
     });
     scheduleMicrotask(() {
-      new Future(() => 42).then((x) {
+      Future(() => 42).then((x) {
         future2WasExecuted = true;
         Expect.isTrue(futureWasExecuted);
         done.complete(true);
       });
     });
-    return 'allDone';
   }).listen(
     (x) {
       Expect.fail("Unexpected callback");
