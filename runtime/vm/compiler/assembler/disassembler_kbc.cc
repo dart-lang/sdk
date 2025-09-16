@@ -10,6 +10,7 @@
 #include "platform/assert.h"
 #include "vm/bytecode_reader.h"
 #include "vm/constants_kbc.h"
+#include "vm/zone_text_buffer.h"
 
 namespace dart {
 
@@ -354,23 +355,6 @@ void KernelBytecodeDisassembler::Disassemble(uword start,
 #endif
 }
 
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-static const int kLocalVariableKindMaxWidth = strlen(
-    bytecode::BytecodeLocalVariablesIterator::kKindNames
-        [bytecode::BytecodeLocalVariablesIterator::kVariableDeclaration]);
-
-static const int kLocalVariableColumnWidths[] = {
-    kLocalVariableKindMaxWidth,  // kind
-    14,                          // start pc
-    14,                          // end pc
-    7,                           // context level
-    7,                           // index
-    7,                           // start token pos
-    7,                           // end token pos
-    7,                           // decl token pos
-};
-#endif
-
 void KernelBytecodeDisassembler::Disassemble(const Function& function) {
 #if !defined(PRODUCT)
   ASSERT(function.HasBytecode());
@@ -416,61 +400,11 @@ void KernelBytecodeDisassembler::Disassemble(const Function& function) {
 
   if (bytecode.HasLocalVariablesInfo()) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-    auto& name = String::Handle(zone);
-    auto& type = AbstractType::Handle(zone);
     THR_Print("Local variable information for function '%s' {\n",
               function_fullname);
-    // "*" in a printf format specifier tells it to read the field width from
-    // the printf argument list.
-    THR_Print(
-        " %*s %*s %*s %*s %*s %*s %*s %*s name\n",
-        kLocalVariableColumnWidths[0], "kind", kLocalVariableColumnWidths[1],
-        "start pc", kLocalVariableColumnWidths[2], "end pc",
-        kLocalVariableColumnWidths[3], "ctx", kLocalVariableColumnWidths[4],
-        "index", kLocalVariableColumnWidths[5], "start",
-        kLocalVariableColumnWidths[6], "end", kLocalVariableColumnWidths[7],
-        "decl");
-    bytecode::BytecodeLocalVariablesIterator iter(zone, bytecode);
-    while (iter.MoveNext()) {
-      THR_Print(" %*s %-#*" Px "", kLocalVariableColumnWidths[0],
-                iter.KindName(), kLocalVariableColumnWidths[1],
-                base + iter.StartPC());
-      if (iter.IsVariableDeclaration() || iter.IsScope()) {
-        THR_Print(" %-#*" Px "", kLocalVariableColumnWidths[2],
-                  base + iter.EndPC());
-      } else {
-        THR_Print(" %*s", kLocalVariableColumnWidths[2], "");
-      }
-      if (iter.IsScope()) {
-        THR_Print(" %*" Pd "", kLocalVariableColumnWidths[3],
-                  iter.ContextLevel());
-      } else {
-        THR_Print(" %*s", kLocalVariableColumnWidths[3], "");
-      }
-      if (iter.IsContextVariable() || iter.IsVariableDeclaration()) {
-        THR_Print(" %*" Pd "", kLocalVariableColumnWidths[4], iter.Index());
-      } else {
-        THR_Print(" %*s", kLocalVariableColumnWidths[4], "");
-      }
-      if (iter.IsVariableDeclaration() || iter.IsScope()) {
-        THR_Print(" %*s %*s", kLocalVariableColumnWidths[5],
-                  iter.StartTokenPos().ToCString(),
-                  kLocalVariableColumnWidths[6],
-                  iter.EndTokenPos().ToCString());
-
-      } else {
-        THR_Print(" %*s %*s", kLocalVariableColumnWidths[5], "",
-                  kLocalVariableColumnWidths[6], "");
-      }
-      if (iter.IsVariableDeclaration()) {
-        name = iter.Name();
-        type = iter.Type();
-        THR_Print(" %*s %s: %s%s", kLocalVariableColumnWidths[7],
-                  iter.DeclarationTokenPos().ToCString(), name.ToCString(),
-                  type.ToCString(), iter.IsCaptured() ? " (captured)" : "");
-      }
-      THR_Print("\n");
-    }
+    ZoneTextBuffer buffer(zone);
+    bytecode.WriteLocalVariablesInfo(zone, &buffer);
+    THR_Print("%s", buffer.buffer());
     THR_Print("}\n");
 #else
     UNREACHABLE();
