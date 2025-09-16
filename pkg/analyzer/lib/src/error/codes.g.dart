@@ -11246,8 +11246,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// https://github.com/dart-lang/language/blob/master/resources/type-system/strict-inference.md
   ///
   /// Parameters:
-  /// String p0: the name of the function or method whose return type couldn't
-  ///            be inferred
+  /// String p0: the name of the function or method whose return type can't be
+  ///            inferred
   static const WarningTemplate<
     LocatableDiagnostic Function({required String p0})
   >
@@ -12327,7 +12327,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     "Tearing off a constructor requires the 'constructor-tearoffs' language "
         "feature.",
     correctionMessage:
-        "Try updating your pubspec.yaml to set the minimum SDK constraint to "
+        "Try updating your 'pubspec.yaml' to set the minimum SDK constraint to "
         "2.15 or higher, and running 'pub get'.",
     hasPublishedDocs: true,
     expectedTypes: [],

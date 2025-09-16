@@ -24740,9 +24740,9 @@ WarningCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when
-      - the language option `strict-inference` has been enabled in the analysis options file,
-      - a list, map or set literal doesn't have type arguments, and
+      The analyzer produces this diagnostic when:
+      - the language option `strict-inference` is enabled in the analysis options file,
+      - a list, map, or set literal has no type arguments, and
       - the values for the type arguments can't be inferred from the elements.
 
       #### Example
@@ -24756,8 +24756,8 @@ WarningCode:
           strict-inference: true
       ```
 
-      The following code produces this diagnostic because the type of the
-      elements of the list literal can't be inferred by the analyzer:
+      The following code produces this diagnostic because the type of the list
+      literal's elements can't be inferred:
 
       ```dart
       void f() {
@@ -24788,9 +24788,9 @@ WarningCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when
-      - the language option `strict-inference` has been enabled in the analysis options file,
-      - the invocation of a method or function doesn't have type arguments, and
+      The analyzer produces this diagnostic when:
+      - the language option `strict-inference` is enabled in the analysis options file,
+      - the invocation of a method or function has no type arguments, and
       - the values for the type arguments can't be inferred.
 
       #### Example
@@ -24804,9 +24804,8 @@ WarningCode:
           strict-inference: true
       ```
 
-      The following code produces this diagnostic because the invocation of the
-      method `m` doesn't have type arguments and the type arguments can't be
-      inferred:
+      The following code produces this diagnostic because the invocation of `m`
+      has no explicit type arguments, and the arguments can't be inferred:
 
       ```dart
       abstract class C {
@@ -24833,7 +24832,8 @@ WarningCode:
       ```
   INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE:
     parameters:
-      String p0: the name of the function or method whose return type couldn't be inferred
+      String p0: the name of the function or method whose return type can't be
+                 inferred
     problemMessage: "The return type of '#p0' can't be inferred."
     correctionMessage: "Declare the return type of '#p0'."
     hasPublishedDocs: false
@@ -24846,9 +24846,9 @@ WarningCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when
-      - the language option `strict-inference` has been enabled in the analysis options file,
-      - the declaration of a method or function doesn't have a return type, and
+      The analyzer produces this diagnostic when:
+      - the language option `strict-inference` is enabled in the analysis options file,
+      - the declaration of a method or function has no return type, and
       - the return type can't be inferred.
 
       #### Example
@@ -24911,9 +24911,9 @@ WarningCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when
-      - the language option `strict-inference` has been enabled in the analysis options file,
-      - the declaration of a variable doesn't have a type, and
+      The analyzer produces this diagnostic when:
+      - the language option `strict-inference` is enabled in the analysis options file,
+      - the declaration of a variable has no type, and
       - the type of the variable can't be inferred.
 
       #### Example
@@ -24954,13 +24954,13 @@ WarningCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when
-      - the language option `strict-inference` has been enabled in the analysis options file,
-      - the declaration of a formal parameter doesn't have a type, and
+      The analyzer produces this diagnostic when:
+      - the language option `strict-inference` is enabled in the analysis options file,
+      - the declaration of a formal parameter has no type, and
       - the type of the parameter can't be inferred.
 
-      The type of a parameter of a method can be inferred if the method
-      overrides an inherited method.
+      The type of a method's parameter can be inferred if it overrides an
+      inherited method.
 
       #### Example
 
@@ -27120,13 +27120,13 @@ WarningCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when the type of the object being
-      matched can't ever be matched by the pattern.
+      The analyzer produces this diagnostic when the object's type can't be
+      matched by the pattern.
 
       #### Example
 
-      The following code produces this diagnostic because a `double` is being
-      matched by a pattern that requires an `int`, which can never succeed:
+      The following code produces this diagnostic because a `double` is matched
+      by an `int` pattern, which can never succeed:
 
       ```dart
       void f(String? s) {
@@ -27136,8 +27136,8 @@ WarningCode:
 
       #### Common fixes
 
-      If one of the types is wrong, then change one or both of the types so that
-      the pattern can succeed:
+      If one of the types is wrong, then change one or both so the pattern match
+      can succeed:
 
       ```dart
       void f(String? s) {
@@ -27145,7 +27145,7 @@ WarningCode:
       }
       ```
 
-      If the types aren't wrong, then remove the pattern match:
+      If the types are correct, then remove the pattern match:
 
       ```dart
       void f(double x) {}
@@ -27243,8 +27243,8 @@ WarningCode:
       #### Description
 
       The analyzer produces this diagnostic when a lint that has been removed is
-      used in an analysis options file. Because the lint has been removed, the
-      reference to it (such as enabling it) will have no effect.
+      used in an analysis options file. Because the lint no longer exists,
+      referencing it will have no effect.
 
       #### Example
 
@@ -27496,7 +27496,7 @@ WarningCode:
   SDK_VERSION_CONSTRUCTOR_TEAROFFS:
     parameters: none
     problemMessage: "Tearing off a constructor requires the 'constructor-tearoffs' language feature."
-    correctionMessage: "Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'."
+    correctionMessage: "Try updating your 'pubspec.yaml' to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'."
     hasPublishedDocs: true
     comment: |-
       There is also a [ParserErrorCode.experimentNotEnabled] code which
