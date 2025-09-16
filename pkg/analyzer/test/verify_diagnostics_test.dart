@@ -232,7 +232,7 @@ class DocumentationValidator {
         errorClassIncludingCfeMessages = errorClass;
         await _validateMessages(
           errorClass.name,
-          cfeToAnalyzerErrorCodeTables.analyzerCodeToInfo,
+          sharedToAnalyzerErrorCodeTables.analyzerCodeToInfo,
         );
       }
     }
