@@ -302,7 +302,7 @@ class NullSafetyDeadCodeVerifier {
           offset = node.end;
         }
       } else if (parent is ForParts) {
-        node = parent.updaters.last;
+        if (parent.updaters.lastOrNull case var last?) node = last;
       } else if (parent is BinaryExpression) {
         offset = parent.operator.offset;
         node = parent.rightOperand;
