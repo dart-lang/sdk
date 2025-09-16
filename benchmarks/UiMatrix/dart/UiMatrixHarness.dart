@@ -4,6 +4,8 @@
 
 /// Various math benchmarks from https://github.com/yjbanov/uimatrix
 
+// ignore_for_file: deprecated_member_use
+
 import 'dart:math' as math;
 
 import 'package:benchmark_harness/benchmark_harness.dart';
