@@ -132,7 +132,7 @@ template("_prebuilt_tool_action") {
                            ])
     script = "$_dart_root/build/gn_run_binary.py"
 
-    inputs = []
+    inputs = [ invoker.binary ]
     if (defined(invoker.inputs)) {
       inputs += invoker.inputs
     }
@@ -210,7 +210,6 @@ template("prebuilt_dart_action") {
   _prebuilt_tool_action(target_name) {
     forward_variables_from(invoker, "*")
     binary = "$_dart_root/tools/sdks/dart-sdk/bin/dart$executable_suffix"
-    dfe = "$_dart_root/tools/sdks/dart-sdk/bin/snapshots/kernel-service.dart.snapshot"
   }
 }
 
