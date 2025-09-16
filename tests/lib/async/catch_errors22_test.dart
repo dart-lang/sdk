@@ -9,12 +9,12 @@ import 'package:expect/expect.dart';
 
 import 'catch_errors.dart';
 
-main() {
+void main() {
   asyncStart();
 
   var events = [];
   bool onDoneWasCalled = false;
-  var controller = new StreamController();
+  var controller = StreamController();
   // Test that streams that are never closed keep the `catchError` alive.
   catchErrors(() {
     catchErrors(() {
@@ -45,7 +45,7 @@ main() {
 
   [1, 2, 3, 4].forEach(controller.add);
 
-  new Timer(const Duration(milliseconds: 20), () {
+  Timer(const Duration(milliseconds: 20), () {
     Expect.isFalse(onDoneWasCalled);
     Expect.listEquals([
       "caught: 1",

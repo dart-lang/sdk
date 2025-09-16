@@ -25,7 +25,7 @@ void printHandler2(Zone self, ZoneDelegate parent, Zone origin, String line) {
 const TEST_SPEC1 = const ZoneSpecification(print: printHandler1);
 const TEST_SPEC2 = const ZoneSpecification(print: printHandler2);
 
-main() {
+void main() {
   Zone zone1 = Zone.current.fork(specification: TEST_SPEC1);
   Zone zone2 = zone1.fork(specification: TEST_SPEC2);
   zone1.run(() {

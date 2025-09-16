@@ -9,15 +9,12 @@ import 'package:expect/expect.dart';
 
 import 'catch_errors.dart';
 
-main() {
+void main() {
   asyncStart();
-  Completer done = new Completer();
+  Completer done = Completer();
 
   var events = [];
-  Stream stream = new Stream.periodic(
-    const Duration(milliseconds: 20),
-    (x) => x,
-  );
+  Stream stream = Stream.periodic(const Duration(milliseconds: 20), (x) => x);
   // Test that errors of periodic streams are caught.
   catchErrors(() {
     var subscription;

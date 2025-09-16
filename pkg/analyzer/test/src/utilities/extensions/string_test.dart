@@ -170,6 +170,21 @@ class StringExtensionTest {
     expect('.'.codeUnitAt(0).isLetterOrDigit, isFalse);
   }
 
+  void test_isLetterOrDigitOrUnderscore() {
+    for (var c in 'abcdefghijklmnopqrstuvwxyz'.codeUnits) {
+      expect(c.isLetterOrDigitOrUnderscore, isTrue);
+    }
+    for (var c in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.codeUnits) {
+      expect(c.isLetterOrDigitOrUnderscore, isTrue);
+    }
+    for (var c in '0123456789'.codeUnits) {
+      expect(c.isLetterOrDigitOrUnderscore, isTrue);
+    }
+    expect('_'.codeUnitAt(0).isLetterOrDigitOrUnderscore, isTrue);
+    expect(' '.codeUnitAt(0).isLetterOrDigitOrUnderscore, isFalse);
+    expect('.'.codeUnitAt(0).isLetterOrDigitOrUnderscore, isFalse);
+  }
+
   void test_isSpace() {
     expect(' '.codeUnitAt(0).isSpace, isTrue);
     expect('\t'.codeUnitAt(0).isSpace, isTrue);
@@ -177,6 +192,12 @@ class StringExtensionTest {
     expect('\n'.codeUnitAt(0).isSpace, isFalse);
     expect('0'.codeUnitAt(0).isSpace, isFalse);
     expect('A'.codeUnitAt(0).isSpace, isFalse);
+  }
+
+  void test_isUnderscore() {
+    expect('_'.codeUnitAt(0).isUnderscore, isTrue);
+    expect(' '.codeUnitAt(0).isUnderscore, isFalse);
+    expect('A'.codeUnitAt(0).isUnderscore, isFalse);
   }
 
   void test_isWhitespace() {

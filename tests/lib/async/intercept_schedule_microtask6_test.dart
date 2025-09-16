@@ -15,7 +15,7 @@ class A {
 
 var events = [];
 
-body() {
+int body() {
   events.add("body entry");
   scheduleMicrotask(() {
     events.add("run async body");
@@ -24,17 +24,17 @@ body() {
   return 499;
 }
 
-onAsyncHandler(fun) {
+void onAsyncHandler(fun) {
   events.add("async handler");
   scheduleMicrotask(fun);
   events.add("async handler done");
 }
 
-onErrorHandler(e) {
+void onErrorHandler(e) {
   events.add("error: $e");
 }
 
-main() {
+void main() {
   asyncStart();
 
   // Test that runZonedScheduleMicrotask works when async, error and done

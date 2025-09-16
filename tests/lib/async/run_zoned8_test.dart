@@ -7,24 +7,22 @@ import 'dart:async';
 import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 
-import 'catch_errors.dart';
-
-main() {
+void main() {
   asyncStart();
-  Completer done = new Completer();
+  Completer done = Completer();
 
   var events = [];
-  // Test runZoned with periodic Timers.
+  // Test runZonedGuarded with periodic Timer. Throw in timer callback.
   runZonedGuarded(
     () {
       int counter = 0;
-      new Timer.periodic(const Duration(milliseconds: 50), (timer) {
-        if (counter == 1) {
+      Timer.periodic(const Duration(milliseconds: 50), (timer) {
+        counter++;
+        events.add(counter);
+        if (counter == 2) {
           timer.cancel();
           done.complete(true);
         }
-        counter++;
-        events.add(counter);
         throw counter;
       });
     },

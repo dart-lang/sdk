@@ -2,15 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Formatting can break multitests, so don't format them.
-// dart format off
-
-library stream_controller_async_test;
-
 import 'dart:async';
 
 import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
+import 'package:expect/variations.dart' show checkedParameters;
 
 class A {
   const A();
@@ -24,26 +20,28 @@ class C extends B {
   const C();
 }
 
-main() {
-  asyncStart();
-  {
-    Stream<B> stream = new Stream<B>.fromIterable([new B()]);
+void main() {
+  if (checkedParameters) {
+    Stream<A> stream = Stream<B>.fromIterable([B()]);
     A aFunc() => const A();
-    // Make sure that firstWhere does not allow you to return instances
-    // of types that are not subtypes of the generic type of the stream.
-    stream.firstWhere((x) => false, //# badType: compile-time error
-        orElse: aFunc); //          //# badType: continued
+    // `firstWhere` does not dynamically allow you to return
+    // instances that are not subtypes of the stream element type.
+    Expect.throws<TypeError>(() {
+      // `aFunc` is not a `B Function()`.
+      stream.firstWhere((x) => false, orElse: aFunc);
+    });
   }
+
+  // Returning a subtype is fine.
   {
     asyncStart();
     C cFunc() => const C();
-    Stream<B> stream = new Stream<B>.fromIterable([new B()]);
-    // Make sure that firstWhere does allow you to return instances
-    // of types that are subtypes of the generic type of the stream.
+    Stream<B> stream = Stream<B>.fromIterable([B()]);
+    // `firstWhere` does allow you to return instances of subtypes the
+    // stream element type.
     stream.firstWhere((x) => false, orElse: cFunc).then((value) {
       Expect.identical(const C(), value);
       asyncEnd();
     });
   }
-  asyncEnd();
 }

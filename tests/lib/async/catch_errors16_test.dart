@@ -9,10 +9,10 @@ import 'package:expect/expect.dart';
 
 import 'catch_errors.dart';
 
-main() {
+void main() {
   asyncStart();
   var events = [];
-  StreamController controller = new StreamController();
+  StreamController controller = StreamController();
   Stream stream = controller.stream;
   // Test that the subscription of a stream is what counts. The error (2) runs
   // through the map-stream which goes through the nested `catchError` but
@@ -24,7 +24,7 @@ main() {
   });
   stream
       .transform(
-        new StreamTransformer.fromHandlers(
+        StreamTransformer.fromHandlers(
           handleError: (e, st, sink) {
             sink.add("error $e");
           },

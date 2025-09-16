@@ -9,16 +9,16 @@ import 'package:expect/expect.dart';
 
 import 'catch_errors.dart';
 
-main() {
+void main() {
   asyncStart();
-  Completer done = new Completer();
+  Completer done = Completer();
 
   var events = [];
   // Test that synchronous *and* asynchronous errors are caught by
   // `catchErrors`.
   catchErrors(() {
     events.add("catch error entry");
-    Future errorFuture = new Future.error("future error");
+    Future errorFuture = Future.error("future error");
     errorFuture.whenComplete(() => done.complete(true));
     throw "catch error";
   }).listen(

@@ -6,25 +6,36 @@ library catch_errors;
 
 import 'dart:async';
 
-Stream catchErrors(dynamic body()) {
-  late StreamController controller;
-
-  bool onError(e, st) {
-    controller.add(e);
-    return true;
-  }
-
-  void onListen() {
-    runZonedGuarded(body, onError);
-  }
-
-  controller = new StreamController(onListen: onListen);
+/// Runs [body] inside [runZonedGuarded].
+///
+/// Runs [body] when the returned stream is listened to.
+/// Emits all errors, synchronous and asynchronous,
+/// as events on the returned stream.
+///
+/// **Notice**: The stream never closes. The caller should stop
+/// listening when they're convinced there will be no later error events.
+Stream<Object> catchErrors(void Function() body) {
+  var controller = StreamController<Object>();
+  controller.onListen = () {
+    runZonedGuarded(body, (e, s) {
+      controller.add(e);
+    });
+  };
   return controller.stream;
 }
 
-runZonedScheduleMicrotask(
-  body(), {
-  void onScheduleMicrotask(void callback())?,
+/// Runs [body] inside [runZoneGuarded], [Zone.runGuarded] or [Zone.run].
+///
+/// If [onScheduleMicrotask] is provided, a custom zone is created
+/// with a [Zone.scheduleMicrotask] which calls [onScheduleMicrotask] with
+/// the provided callback.
+///
+/// If [onError] is provided, it's used as argument to [runZonedGuarded]
+/// or as error handler of the custom zone, and the `body` is then run
+/// using `runGuarded`.
+R? runZonedScheduleMicrotask<R>(
+  R body(), {
+  void Function(void Function() callback)? onScheduleMicrotask,
   Function? onError,
 }) {
   if (onScheduleMicrotask == null) {
@@ -56,18 +67,20 @@ runZonedScheduleMicrotask(
   }
   ScheduleMicrotaskHandler? asyncHandler;
   if (onScheduleMicrotask != null) {
-    asyncHandler = (Zone self, ZoneDelegate parent, Zone zone, f()) {
+    void handle(Zone self, ZoneDelegate parent, Zone zone, Function() f) {
       self.parent!.runUnary(onScheduleMicrotask, () => zone.runGuarded(f));
-    };
+    }
+
+    asyncHandler = handle;
   }
-  ZoneSpecification specification = new ZoneSpecification(
+  ZoneSpecification specification = ZoneSpecification(
     handleUncaughtError: errorHandler,
     scheduleMicrotask: asyncHandler,
   );
-  Zone zone = Zone.current.fork(specification: specification);
   if (onError != null) {
-    return zone.runGuarded(body);
+    return runZoned<R>(body, zoneSpecification: specification);
   } else {
-    return zone.run(body);
+    Zone zone = Zone.current.fork(specification: specification);
+    return zone.run<R>(body);
   }
 }

@@ -9,17 +9,16 @@ import 'package:expect/expect.dart';
 
 import 'catch_errors.dart';
 
-main() {
+void main() {
   asyncStart();
   bool futureWasExecuted = false;
   late Future done;
 
   // Error streams never close.
   catchErrors(() {
-    done = new Future(() {
+    done = Future(() {
       futureWasExecuted = true;
     });
-    return 'allDone';
   }).listen(
     (x) {
       Expect.fail("Unexpected callback");
