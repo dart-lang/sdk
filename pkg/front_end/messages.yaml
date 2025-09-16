@@ -145,6 +145,7 @@
 # - `Uri`: a URI.
 
 AsciiControlCharacter:
+  pseudoShared: true
   parameters:
     Unicode character: the unexpected control character.
   problemMessage: "The control character #character can only be used in strings and comments."
@@ -746,6 +747,7 @@ MemberShouldBeListedAsCanBeOverriddenInDynamicInterface:
   correctionMessage: "Try removing the override or update the dynamic interface to list member '#name.#name2' as can-be-overridden."
 
 NonAsciiIdentifier:
+  pseudoShared: true
   parameters:
     Character character: undocumented
     Unicode unicode: undocumented
@@ -756,6 +758,7 @@ NonAsciiIdentifier:
   exampleAllowOtherCodes: true
 
 NonAsciiWhitespace:
+  pseudoShared: true
   parameters:
     Unicode unicode: undocumented
   problemMessage: "The non-ASCII space character #unicode can only be used in strings and comments."
@@ -763,6 +766,7 @@ NonAsciiWhitespace:
   expression: "\u2028 1"
 
 Encoding:
+  pseudoShared: true
   parameters: none
   problemMessage: "Unable to decode bytes as UTF-8."
   bytes: [255]
@@ -782,6 +786,7 @@ ExperimentDisabledInvalidLanguageVersion:
   analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
 
 EmptyNamedParameterList:
+  pseudoShared: true
   parameters: none
   problemMessage: "Named parameter lists cannot be empty."
   correctionMessage: "Try adding a named parameter to the list."
@@ -822,6 +827,7 @@ DuplicatedRecordLiteralFieldNameContext:
   severity: CONTEXT
 
 EmptyOptionalParameterList:
+  pseudoShared: true
   parameters: none
   problemMessage: "Optional parameter lists cannot be empty."
   correctionMessage: "Try adding an optional parameter to the list."
@@ -841,6 +847,7 @@ ExpectedBlockToSkip:
   analyzerCode: MISSING_FUNCTION_BODY
 
 ExpectedBody:
+  pseudoShared: true
   parameters: none
   problemMessage: "Expected a function body or '=>'."
   # TODO(ahe): In some scenarios, we can suggest removing the 'static' keyword.
@@ -850,6 +857,7 @@ ExpectedBody:
 
 ExpectedButGot:
   # Also see ExpectedAfterButGot and ExpectedInstead
+  pseudoShared: true
   parameters:
     String string: undocumented
   problemMessage: "Expected '#string' before this."
@@ -864,6 +872,7 @@ ExpectedButGot:
 
 ExpectedAfterButGot:
   # Also see ExpectedButGot and ExpectedInstead
+  pseudoShared: true
   parameters:
     String string: undocumented
   problemMessage: "Expected '#string' after this."
@@ -914,6 +923,7 @@ ImplementsSuperClass:
       class C extends A implements A {}
 
 MultipleImplements:
+  pseudoShared: true
   parameters: none
   problemMessage: "Each class definition can have at most one implements clause."
   correctionMessage: "Try combining all of the implements clauses into a single clause."
@@ -943,6 +953,7 @@ ImplementsNever:
   exampleAllowOtherCodes: true
 
 ExpectedDeclaration:
+  pseudoShared: true
   parameters:
     Token lexeme: undocumented
   problemMessage: "Expected a declaration, but got '#lexeme'."
@@ -952,6 +963,7 @@ ExpectedDeclaration:
   exampleAllowOtherCodes: true
 
 ExpectedClassMember:
+  pseudoShared: true
   parameters:
     Token lexeme: undocumented
   problemMessage: "Expected a class member, but got '#lexeme'."
@@ -964,6 +976,7 @@ ExpectedClassMember:
   exampleAllowMultipleReports: true
 
 ExpectedFunctionBody:
+  pseudoShared: true
   parameters:
     Token lexeme: undocumented
   problemMessage: "Expected a function body, but got '#lexeme'."
@@ -974,6 +987,7 @@ ExpectedFunctionBody:
   exampleAllowMultipleReports: true
 
 ExpectedHexDigit:
+  pseudoShared: true
   parameters: none
   problemMessage: "A hex digit (0-9 or A-F) must follow '0x'."
   # No tip, seems obvious from the error message.
@@ -984,6 +998,7 @@ ExpectedHexDigit:
     }
 
 ExpectedIdentifier:
+  pseudoShared: true
   parameters:
     Token lexeme: undocumented
   problemMessage: "Expected an identifier, but got '#lexeme'."
@@ -992,6 +1007,7 @@ ExpectedIdentifier:
   script: "var = 42;"
 
 ExpectedString:
+  pseudoShared: true
   parameters:
     Token lexeme: undocumented
   problemMessage: "Expected a String, but got '#lexeme'."
@@ -1001,6 +1017,7 @@ ExpectedString:
   exampleAllowOtherCodes: true
 
 ExpectedToken:
+  pseudoShared: true
   parameters:
     String string: undocumented
   problemMessage: "Expected to find '#string'."
@@ -1013,6 +1030,7 @@ ExpectedToken:
     }
 
 ExpectedType:
+  pseudoShared: true
   parameters:
     Token lexeme: undocumented
   problemMessage: "Expected a type, but got '#lexeme'."
@@ -1022,6 +1040,7 @@ ExpectedType:
   exampleAllowOtherCodes: true
 
 AbstractExtensionField:
+  pseudoShared: true
   parameters: none
   problemMessage: "Extension fields can't be declared 'abstract'."
   correctionMessage: "Try removing the 'abstract' keyword."
@@ -1085,6 +1104,7 @@ NonConstConstructor:
     }
 
 ConstConstructorWithBody:
+  pseudoShared: true
   parameters: none
   problemMessage: "A const constructor can't have a body."
   correctionMessage: "Try removing either the 'const' keyword or the body."
@@ -1256,6 +1276,7 @@ LabelNotFound:
     - "switch (0) {case 0: continue L;}"
 
 InvalidSyncModifier:
+  pseudoShared: true
   parameters: none
   problemMessage: "Invalid modifier 'sync'."
   correctionMessage: "Try replacing 'sync' with 'sync*'."
@@ -1263,6 +1284,7 @@ InvalidSyncModifier:
   script: "main() sync {}"
 
 InvalidVoid:
+  pseudoShared: true
   parameters: none
   problemMessage: "Type 'void' can't be used here."
   correctionMessage: "Try removing 'void' keyword or replace it with 'var', 'final', or a type."
@@ -1296,6 +1318,7 @@ FinalFieldNotInitializedByConstructor:
     }
 
 MissingExponent:
+  pseudoShared: true
   parameters: none
   problemMessage: "Numbers in exponential notation should always contain an exponent (an integer number with an optional sign)."
   correctionMessage: "Make sure there is an exponent, and remove any whitespace before it."
@@ -1306,6 +1329,7 @@ MissingExponent:
     }
 
 PositionalParameterWithEquals:
+  pseudoShared: true
   parameters: none
   problemMessage: "Positional optional parameters can't use ':' to specify a default value."
   correctionMessage: "Try replacing ':' with '='."
@@ -1317,6 +1341,7 @@ PositionalParameterWithEquals:
     }
 
 RequiredParameterWithDefault:
+  pseudoShared: true
   parameters: none
   problemMessage: "Non-optional parameters can't have a default value."
   correctionMessage: "Try removing the default value or making the parameter optional."
@@ -1334,6 +1359,7 @@ RequiredParameterWithDefault:
       }
 
 InvalidCodePoint:
+  pseudoShared: true
   parameters: none
   problemMessage: "The escape sequence starting with '\\u' isn't a valid code point."
   analyzerCode: INVALID_CODE_POINT
@@ -1341,6 +1367,7 @@ InvalidCodePoint:
     - "'\\u{110000}'"
 
 UnexpectedDollarInString:
+  pseudoShared: true
   parameters: none
   problemMessage: "A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({})."
   correctionMessage: "Try adding a backslash (\\) to escape the '$'."
@@ -1352,6 +1379,7 @@ UnexpectedDollarInString:
     - '"""$"""'
 
 UnexpectedSeparatorInNumber:
+  pseudoShared: true
   parameters: none
   problemMessage: "Digit separators ('_') in a number literal can only be placed between two digits."
   correctionMessage: "Try removing the '_'."
@@ -1368,6 +1396,7 @@ UnexpectedSeparatorInNumber:
     - '1.2e_3'
 
 UnexpectedToken:
+  pseudoShared: true
   parameters:
     Token lexeme: undocumented
   problemMessage: "Unexpected token '#lexeme'."
@@ -1377,6 +1406,7 @@ UnexpectedToken:
   exampleAllowOtherCodes: true
 
 UnmatchedToken:
+  pseudoShared: true
   parameters:
     String string: undocumented
     Token lexeme: undocumented
@@ -1389,6 +1419,7 @@ UnmatchedToken:
   exampleAllowOtherCodes: true
 
 UnsupportedOperator:
+  pseudoShared: true
   parameters:
     Token lexeme: undocumented
   problemMessage: "The '#lexeme' operator is not supported."
@@ -1398,6 +1429,7 @@ UnsupportedOperator:
     - "class C { void operator !==(x) {} }"
 
 UnsupportedPrefixPlus:
+  pseudoShared: true
   parameters: none
   problemMessage: "'+' is not a prefix operator."
   correctionMessage: "Try removing '+'."
@@ -1405,6 +1437,7 @@ UnsupportedPrefixPlus:
   expression: "+2" # No longer a valid way to write '2'
 
 UnterminatedComment:
+  pseudoShared: true
   parameters: none
   problemMessage: "Comment starting with '/*' must end with '*/'."
   analyzerCode: UNTERMINATED_MULTI_LINE_COMMENT
@@ -1414,6 +1447,7 @@ UnterminatedComment:
     /*
 
 UnterminatedString:
+  pseudoShared: true
   parameters:
     String string: undocumented
     String string2: undocumented
@@ -1459,11 +1493,13 @@ UnterminatedToken:
 # prototyping, see [diagnostics.md](
 # lib/src/base/diagnostics.md#avoid-composing-messages-programmatically).
 Unspecified:
+  pseudoShared: true
   parameters:
     String string: undocumented
   problemMessage: "#string"
 
 AbstractNotSync:
+  pseudoShared: true
   parameters: none
   problemMessage: "Abstract methods can't use 'async', 'async*', or 'sync*'."
   analyzerCode: NON_SYNC_ABSTRACT_METHOD
@@ -1474,6 +1510,7 @@ AbstractNotSync:
   exampleAllowOtherCodes: true
 
 AwaitAsIdentifier:
+  pseudoShared: true
   parameters: none
   problemMessage: "'await' can't be used as an identifier in 'async', 'async*', or 'sync*' methods."
   analyzerCode: ASYNC_KEYWORD_USED_AS_IDENTIFIER
@@ -1483,6 +1520,7 @@ AwaitAsIdentifier:
     }
 
 AwaitNotAsync:
+  pseudoShared: true
   parameters: none
   problemMessage: "'await' can only be used in 'async' or 'async*' methods."
   analyzerCode: AWAIT_IN_WRONG_CONTEXT
@@ -1492,6 +1530,7 @@ AwaitNotAsync:
     }
 
 BuiltInIdentifierAsType:
+  pseudoShared: true
   parameters:
     Token lexeme: undocumented
   problemMessage: "The built-in identifier '#lexeme' can't be used as a type."
@@ -1501,6 +1540,7 @@ BuiltInIdentifierAsType:
   exampleAllowOtherCodes: true
 
 BuiltInIdentifierInDeclaration:
+  pseudoShared: true
   parameters:
     Token lexeme: undocumented
   problemMessage: "Can't use '#lexeme' as a name here."
@@ -1509,6 +1549,7 @@ BuiltInIdentifierInDeclaration:
     class late {}
 
 AwaitForNotAsync:
+  pseudoShared: true
   parameters: none
   problemMessage: "The asynchronous for-in can only be used in functions marked with 'async' or 'async*'."
   correctionMessage: "Try marking the function body with either 'async' or 'async*', or removing the 'await' before the for loop."
@@ -1528,6 +1569,7 @@ ConstructorNotSync:
     }
 
 FactoryNotSync:
+  pseudoShared: true
   parameters: none
   problemMessage: "Factory bodies can't use 'async', 'async*', or 'sync*'."
   analyzerCode: NON_SYNC_FACTORY
@@ -1538,6 +1580,7 @@ FactoryNotSync:
     }
 
 GeneratorReturnsValue:
+  pseudoShared: true
   parameters: none
   problemMessage: "'sync*' and 'async*' can't return a value."
   analyzerCode: RETURN_IN_GENERATOR
@@ -1547,6 +1590,7 @@ GeneratorReturnsValue:
     }
 
 InvalidInlineFunctionType:
+  pseudoShared: true
   parameters: none
   problemMessage: "Inline function types cannot be used for parameters in a generic function type."
   correctionMessage: "Try changing the inline function type (as in 'int f()') to a prefixed function type using the `Function` keyword (as in 'int Function() f')."
@@ -1554,6 +1598,7 @@ InvalidInlineFunctionType:
   declaration: "typedef F = Function(int f(String x));"
 
 SetterNotSync:
+  pseudoShared: true
   parameters: none
   problemMessage: "Setters can't use 'async', 'async*', or 'sync*'."
   analyzerCode: INVALID_MODIFIER_ON_SETTER
@@ -1561,6 +1606,7 @@ SetterNotSync:
     set foo(int x) async {}
 
 YieldAsIdentifier:
+  pseudoShared: true
   parameters: none
   problemMessage: "'yield' can't be used as an identifier in 'async', 'async*', or 'sync*' methods."
   analyzerCode: ASYNC_KEYWORD_USED_AS_IDENTIFIER
@@ -1570,6 +1616,7 @@ YieldAsIdentifier:
     }
 
 YieldNotGenerator:
+  pseudoShared: true
   parameters: none
   problemMessage: "'yield' can only be used in 'sync*' or 'async*' methods."
   analyzerCode: YIELD_IN_NON_GENERATOR
@@ -1581,6 +1628,7 @@ YieldNotGenerator:
     }
 
 PositionalAfterNamedArgument:
+  pseudoShared: true
   parameters: none
   problemMessage: "Place positional arguments before named arguments."
   correctionMessage: "Try moving the positional argument before the named arguments, or add a name to the argument."
@@ -1597,6 +1645,7 @@ ExpectedNamedArgument:
   exampleAllowOtherCodes: true
 
 AssertAsExpression:
+  pseudoShared: true
   parameters: none
   problemMessage: "`assert` can't be used as an expression."
   script: |
@@ -1607,6 +1656,7 @@ AssertAsExpression:
   exampleAllowOtherCodes: true
 
 FunctionTypeDefaultValue:
+  pseudoShared: true
   parameters: none
   problemMessage: "Can't have a default value in a function type."
   analyzerCode: DEFAULT_VALUE_IN_FUNCTION_TYPE
@@ -1614,6 +1664,7 @@ FunctionTypeDefaultValue:
     void Function({dynamic obj = Object})? x;
 
 PrivateNamedParameter:
+  pseudoShared: true
   parameters: none
   problemMessage: "A named parameter can't start with an underscore ('_')."
   analyzerCode: PRIVATE_OPTIONAL_PARAMETER
@@ -1621,6 +1672,7 @@ PrivateNamedParameter:
     void foo({int? _hello}) {}
 
 GetterWithFormals:
+  pseudoShared: true
   parameters: none
   problemMessage: "A getter can't have formal parameters."
   correctionMessage: "Try removing '(...)'."
@@ -1637,6 +1689,7 @@ SetterWithWrongNumberOfFormals:
   exampleAllowOtherCodes: true
 
 ConstFieldWithoutInitializer:
+  pseudoShared: true
   parameters:
     Name name: undocumented
   problemMessage: "The const variable '#name' must be initialized."
@@ -1647,6 +1700,7 @@ ConstFieldWithoutInitializer:
   exampleAllowOtherCodes: true
 
 FinalFieldWithoutInitializer:
+  pseudoShared: true
   parameters:
     Name name: undocumented
   problemMessage: "The final variable '#name' must be initialized."
@@ -1931,6 +1985,7 @@ ListLiteralTooManyTypeArguments:
     }
 
 SetOrMapLiteralTooManyTypeArguments:
+  pseudoShared: true
   parameters: none
   problemMessage: "A set or map literal requires exactly one or two type arguments, respectively."
   script: |
@@ -2092,11 +2147,13 @@ FastaUsageLong:
         Multiple experiments can be separated by commas.
 
 FastaCLIArgumentRequired:
+  pseudoShared: true
   parameters:
     Name name: undocumented
   problemMessage: "Expected value after '#name'."
 
 NamedFunctionExpression:
+  pseudoShared: true
   parameters: none
   problemMessage: "A function expression can't have a name."
   analyzerCode: NAMED_FUNCTION_EXPRESSION
@@ -2104,6 +2161,7 @@ NamedFunctionExpression:
     var x = void f<T>(T t) {};
 
 InternalProblemUnhandled:
+  pseudoShared: true
   parameters:
     String string: undocumented
     String string2: undocumented
@@ -2124,6 +2182,7 @@ InternalProblemUnexpected:
   severity: INTERNAL_PROBLEM
 
 InternalProblemUnsupported:
+  pseudoShared: true
   parameters:
     Name name: undocumented
   problemMessage: "Unsupported operation: '#name'."
@@ -2166,6 +2225,7 @@ InternalProblemPreviousTokenNotFound:
   severity: INTERNAL_PROBLEM
 
 InternalProblemStackNotEmpty:
+  pseudoShared: true
   parameters:
     Name name: undocumented
     String string: undocumented
@@ -2402,6 +2462,7 @@ IllegalMixinDueToConstructorsCause:
   severity: CONTEXT
 
 ExtensionTypeDeclaresAbstractMember:
+  pseudoShared: true
   parameters: none
   problemMessage: "Extension types can't declare abstract members."
   correctionMessage: "Try providing an implementation for the member."
@@ -2412,6 +2473,7 @@ ExtensionTypeDeclaresAbstractMember:
     }
 
 ExtensionDeclaresInstanceField:
+  pseudoShared: true
   parameters: none
   problemMessage: "Extensions can't declare instance fields"
   correctionMessage: "Try removing the field declaration or making it a static field"
@@ -2422,6 +2484,7 @@ ExtensionDeclaresInstanceField:
     }
 
 ExtensionTypeDeclaresInstanceField:
+  pseudoShared: true
   parameters: none
   problemMessage: "Extension types can't declare instance fields"
   correctionMessage: "Try removing the field declaration or making it a static field"
@@ -3037,6 +3100,7 @@ AnnotationOnFunctionTypeTypeParameter:
      main() { Function<@Object() T>() x; }
 
 ExpectedEnumBody:
+  pseudoShared: true
   parameters:
     Token lexeme: undocumented
   problemMessage: "Expected a enum body, but got '#lexeme'."
@@ -3115,6 +3179,7 @@ TypedefCause:
   severity: CONTEXT
 
 NonPartOfDirectiveInPart:
+  pseudoShared: true
   parameters: none
   problemMessage: "The part-of directive must be the only directive in a part."
   correctionMessage: "Try removing the other directives, or moving them to the library for which this is a part."
@@ -3147,6 +3212,7 @@ PartOfTwoLibrariesContext:
   severity: CONTEXT
 
 MissingFunctionParameters:
+  pseudoShared: true
   parameters: none
   problemMessage: "A function declaration needs an explicit list of parameters."
   correctionMessage: "Try adding a parameter list to the function declaration."
@@ -3155,6 +3221,7 @@ MissingFunctionParameters:
     - "void f {}"
 
 MissingMethodParameters:
+  pseudoShared: true
   parameters: none
   problemMessage: "A method declaration needs an explicit list of parameters."
   correctionMessage: "Try adding a parameter list to the method declaration."
@@ -3163,6 +3230,7 @@ MissingMethodParameters:
     - "class C { void m {} }"
 
 MissingTypedefParameters:
+  pseudoShared: true
   parameters: none
   problemMessage: "A typedef needs an explicit list of parameters."
   correctionMessage: "Try adding a parameter list to the typedef."
@@ -3937,6 +4005,7 @@ ExpectedUri:
   exampleAllowOtherCodes: true
 
 InterpolationInUri:
+  pseudoShared: true
   parameters: none
   problemMessage: "Can't use string interpolation in a URI."
   analyzerCode: INVALID_LITERAL_IN_CONFIGURATION

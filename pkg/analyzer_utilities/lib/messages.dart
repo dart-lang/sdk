@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analyzer/src/fasta/error_converter.dart';
+library;
+
 import 'dart:convert';
 import 'dart:io';
 
@@ -800,7 +803,21 @@ enum ErrorCodeParameterType {
 /// In-memory representation of error code information obtained from the file
 /// `pkg/front_end/messages.yaml`.
 class FrontEndErrorCodeInfo extends CfeStyleErrorCodeInfo {
-  FrontEndErrorCodeInfo.fromYaml(super.yaml) : super.fromYaml() {
+  /// Whether the error code contains a `pseudoShared: true` property in
+  /// `pkg/front_end/messages.yaml`.
+  ///
+  /// Messages with this property set are not shared; they have separately
+  /// declared analyzer and CFE codes. However, they are reported by code
+  /// defined in `pkg/_fe_analyzer_shared` using the CFE error reporting
+  /// mechanism. When running under the analyzer, they are then translated
+  /// into the associated analyzer error using [FastaErrorReporter].
+  // TODO(paulberry): migrate all pseudo-shared error codes to shared error
+  // codes.
+  final bool pseudoShared;
+
+  FrontEndErrorCodeInfo.fromYaml(super.yaml)
+    : pseudoShared = (yaml['pseudoShared'] as bool?) ?? false,
+      super.fromYaml() {
     if (index != null) {
       throw StateError('Non-shared messages must not have an index');
     }
