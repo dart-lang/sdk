@@ -282,6 +282,13 @@ trace to find the place to insert the appropriate support.
                 self.unsupported('rewrapper', arg)
 
     def parse_dart(self):
+        self.extra_paths.add(
+            self.rebase(os.path.join(self.dart_subdir, 'dartvm')))
+        self.extra_paths.add(
+            self.rebase(
+                os.path.join(self.dart_subdir,
+                             'snapshots/kernel-service.dart.snapshot')))
+
         while self.has_next_arg:
             arg = self.next_arg()
             if self.get_option(['--dfe']):
