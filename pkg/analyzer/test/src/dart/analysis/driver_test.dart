@@ -5788,6 +5788,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M2
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -5810,18 +5811,18 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M2
-        declaredGetters
           foo: #M3
+        declaredGetters
+          foo: #M4
         declaredSetters
-          foo=: #M4
-        interface: #M5
+          foo=: #M5
+        interface: #M6
           map
-            foo: #M3
-            foo=: #M4
+            foo: #M4
+            foo=: #M5
           implemented
-            foo: #M3
-            foo=: #M4
+            foo: #M4
+            foo=: #M5
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -5840,6 +5841,7 @@ class A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M2
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -5904,6 +5906,7 @@ class B extends A {}
     libraries
       package:test/a.dart
         featureSet: <not-null>
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -5933,18 +5936,18 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M5
-        declaredGetters
           foo: #M6
+        declaredGetters
+          foo: #M7
         declaredSetters
-          foo=: #M7
-        interface: #M8
+          foo=: #M8
+        interface: #M9
           map
-            foo: #M6
-            foo=: #M7
+            foo: #M7
+            foo=: #M8
           implemented
-            foo: #M6
-            foo=: #M7
+            foo: #M7
+            foo=: #M8
   requirements
 [operation] checkLinkedBundleRequirements
   package:test/test.dart
@@ -5952,25 +5955,25 @@ class A {
     libraryUri: package:test/a.dart
     interfaceName: A
     expectedId: #M1
-    actualId: #M8
+    actualId: #M9
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredClasses
       B: #M2
-        interface: #M9
+        interface: #M10
           map
-            foo: #M6
-            foo=: #M7
+            foo: #M7
+            foo=: #M8
           implemented
-            foo: #M6
-            foo=: #M7
+            foo: #M7
+            foo=: #M8
           superImplemented
             [0]
-              foo: #M6
-              foo=: #M7
+              foo: #M7
+              foo=: #M8
           inherited
-            foo: #M6
-            foo=: #M7
+            foo: #M7
+            foo=: #M8
   requirements
     libraries
       package:test/a.dart
@@ -5981,7 +5984,7 @@ class A {
           A: false
         interfaces
           A
-            interfaceId: #M8
+            interfaceId: #M9
             hasNonFinalField: true
             requestedConstructors
               new: #M4
@@ -5992,7 +5995,7 @@ class A {
     instanceName: A
     childrenPropertyName: getters
     expectedIds: []
-    actualIds: #M6
+    actualIds: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -6002,6 +6005,7 @@ class A {
     libraries
       package:test/a.dart
         featureSet: <not-null>
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -6010,9 +6014,9 @@ class A {
         instances
           A
             requestedDeclaredFields
-              foo: #M5
-            allDeclaredGetters: #M6
-            allDeclaredSetters: #M7
+              foo: #M6
+            allDeclaredGetters: #M7
+            allDeclaredSetters: #M8
             allDeclaredMethods: []
         interfaces
           A
@@ -6075,6 +6079,7 @@ class B extends A {}
     libraries
       package:test/a.dart
         featureSet: <not-null>
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -6104,11 +6109,11 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          _foo: #M5
-        declaredGetters
           _foo: #M6
+        declaredGetters
+          _foo: #M7
         declaredSetters
-          _foo=: #M7
+          _foo=: #M8
         interface: #M1
   requirements
 [operation] checkLinkedBundleRequirements
@@ -6144,7 +6149,7 @@ class A {
     instanceName: A
     childrenPropertyName: getters
     expectedIds: []
-    actualIds: #M6
+    actualIds: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -6154,6 +6159,7 @@ class A {
     libraries
       package:test/a.dart
         featureSet: <not-null>
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -6161,8 +6167,8 @@ class A {
           A: false
         instances
           A
-            allDeclaredGetters: #M6
-            allDeclaredSetters: #M7
+            allDeclaredGetters: #M7
+            allDeclaredSetters: #M8
             allDeclaredMethods: []
         interfaces
           A
@@ -6225,6 +6231,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -6255,14 +6262,14 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M4
-        declaredGetters
           foo: #M5
-        interface: #M6
+        declaredGetters
+          foo: #M6
+        interface: #M7
           map
-            foo: #M5
+            foo: #M6
           implemented
-            foo: #M5
+            foo: #M6
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -6273,7 +6280,7 @@ class A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M4
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -6289,6 +6296,7 @@ class A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -6297,7 +6305,7 @@ class A {
         instances
           A
             requestedDeclaredFields
-              foo: #M4
+              foo: #M5
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -6366,6 +6374,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M6
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -6397,17 +6406,17 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M6
+          bar: #M7
           foo: #M2
         declaredGetters
-          bar: #M7
+          bar: #M8
           foo: #M4
-        interface: #M8
+        interface: #M9
           map
-            bar: #M7
+            bar: #M8
             foo: #M4
           implemented
-            bar: #M7
+            bar: #M8
             foo: #M4
   requirements
 [operation] reuseLinkedBundle
@@ -6622,6 +6631,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -6652,17 +6662,17 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M4
+          bar: #M5
           foo: #M1
         declaredGetters
-          bar: #M5
+          bar: #M6
           foo: #M2
-        interface: #M6
+        interface: #M7
           map
-            bar: #M5
+            bar: #M6
             foo: #M2
           implemented
-            bar: #M5
+            bar: #M6
             foo: #M2
   requirements
 [operation] reuseLinkedBundle
@@ -6674,7 +6684,7 @@ class A {
     instanceName: A
     childrenPropertyName: getters
     expectedIds: #M2
-    actualIds: #M2 #M5
+    actualIds: #M2 #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -6690,6 +6700,7 @@ class A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -6697,7 +6708,7 @@ class A {
           A: false
         instances
           A
-            allDeclaredGetters: #M2 #M5
+            allDeclaredGetters: #M2 #M6
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -6787,6 +6798,7 @@ class B extends A {}
     libraries
       package:test/a.dart
         featureSet: <not-null>
+        libraryMetadataId: #M8
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -6824,17 +6836,17 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M8
-        declaredGetters
           foo: #M9
+        declaredGetters
+          foo: #M10
         declaredSetters
           foo=: #M3
-        interface: #M10
+        interface: #M11
           map
-            foo: #M9
+            foo: #M10
             foo=: #M3
           implemented
-            foo: #M9
+            foo: #M10
             foo=: #M3
   requirements
 [operation] checkLinkedBundleRequirements
@@ -6843,24 +6855,24 @@ class A {
     libraryUri: package:test/a.dart
     interfaceName: A
     expectedId: #M4
-    actualId: #M10
+    actualId: #M11
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredClasses
       B: #M5
-        interface: #M11
+        interface: #M12
           map
-            foo: #M9
+            foo: #M10
             foo=: #M3
           implemented
-            foo: #M9
+            foo: #M10
             foo=: #M3
           superImplemented
             [0]
-              foo: #M9
+              foo: #M10
               foo=: #M3
           inherited
-            foo: #M9
+            foo: #M10
             foo=: #M3
   requirements
     libraries
@@ -6872,7 +6884,7 @@ class A {
           A: false
         interfaces
           A
-            interfaceId: #M10
+            interfaceId: #M11
             hasNonFinalField: false
             requestedConstructors
               new: #M7
@@ -6883,7 +6895,7 @@ class A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M8
+    actualId: #M9
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -6893,6 +6905,7 @@ class A {
     libraries
       package:test/a.dart
         featureSet: <not-null>
+        libraryMetadataId: #M8
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -6901,8 +6914,8 @@ class A {
         instances
           A
             requestedDeclaredFields
-              foo: #M8
-            allDeclaredGetters: #M9
+              foo: #M9
+            allDeclaredGetters: #M10
             allDeclaredSetters: #M3
             allDeclaredMethods: []
         interfaces
@@ -6971,6 +6984,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -7003,14 +7017,14 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M4
-        declaredGetters
           foo: #M5
-        interface: #M6
+        declaredGetters
+          foo: #M6
+        interface: #M7
           map
-            foo: #M5
+            foo: #M6
           implemented
-            foo: #M5
+            foo: #M6
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -7021,7 +7035,7 @@ class A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M4
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -7037,6 +7051,7 @@ class A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -7045,9 +7060,9 @@ class A {
         instances
           A
             requestedDeclaredFields
-              foo: #M4
-            requestedDeclaredGetters
               foo: #M5
+            requestedDeclaredGetters
+              foo: #M6
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -7111,6 +7126,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -7141,14 +7157,14 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M4
-        declaredGetters
           foo: #M5
-        interface: #M6
+        declaredGetters
+          foo: #M6
+        interface: #M7
           map
-            foo: #M5
+            foo: #M6
           implemented
-            foo: #M5
+            foo: #M6
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -7159,7 +7175,7 @@ class A {
     interfaceName: A
     methodName: foo
     expectedId: #M2
-    actualId: #M5
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -7175,6 +7191,7 @@ class A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -7183,7 +7200,7 @@ class A {
         instances
           A
             requestedDeclaredGetters
-              foo: #M5
+              foo: #M6
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -7252,6 +7269,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M6
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -7283,17 +7301,17 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M6
+          bar: #M7
           foo: #M2
         declaredGetters
-          bar: #M7
+          bar: #M8
           foo: #M4
-        interface: #M8
+        interface: #M9
           map
-            bar: #M7
+            bar: #M8
             foo: #M4
           implemented
-            bar: #M7
+            bar: #M8
             foo: #M4
   requirements
 [operation] reuseLinkedBundle
@@ -7369,6 +7387,7 @@ void f(A a) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -7401,14 +7420,14 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M5
-        declaredGetters
           foo: #M6
-        interface: #M7
+        declaredGetters
+          foo: #M7
+        interface: #M8
           map
-            foo: #M6
+            foo: #M7
           implemented
-            foo: #M6
+            foo: #M7
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -7419,7 +7438,7 @@ class A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M5
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -7433,6 +7452,7 @@ class A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -7441,11 +7461,11 @@ class A {
         instances
           A
             requestedDeclaredFields
-              foo: #M5
+              foo: #M6
         interfaces
           A
             methods
-              foo: #M6
+              foo: #M7
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -7511,6 +7531,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -7548,19 +7569,19 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M7
-        declaredGetters
           foo: #M8
+        declaredGetters
+          foo: #M9
         declaredSetters
           foo=: #M3
         declaredConstructors
           foo: #M4
-        interface: #M9
+        interface: #M10
           map
-            foo: #M8
+            foo: #M9
             foo=: #M3
           implemented
-            foo: #M8
+            foo: #M9
             foo=: #M3
   requirements
 [operation] reuseLinkedBundle
@@ -7572,7 +7593,7 @@ class A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M7
+    actualId: #M8
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -7581,6 +7602,7 @@ class A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -7589,13 +7611,13 @@ class A {
         instances
           A
             requestedDeclaredFields
-              foo: #M7
+              foo: #M8
         interfaces
           A
             requestedConstructors
               foo: #M4
             methods
-              foo: #M8
+              foo: #M9
               foo=: #M3
 [status] idle
 [future] getErrors T2
@@ -7668,6 +7690,7 @@ void f(A a) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -7703,7 +7726,7 @@ class A {
           foo: #M2
         declaredGetters
           foo: #M4
-        interface: #M7
+        interface: #M8
           map
             foo: #M4
           implemented
@@ -7789,6 +7812,7 @@ void f(B b) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           B: #M4
           B=: <null>
@@ -7831,8 +7855,8 @@ class B extends A<double> {}
             foo: #M2
           implemented
             foo: #M2
-      B: #M7
-        interface: #M8
+      B: #M8
+        interface: #M9
           map
             foo: #M2
           implemented
@@ -7849,16 +7873,16 @@ class B extends A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M4
-    actualId: #M7
+    actualId: #M8
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M9
+      f: #M10
   requirements
     libraries
       package:test/a.dart
         exportedTopLevels
-          B: #M7
+          B: #M8
           B=: <null>
         reExportDeprecatedOnly
           B: false
@@ -7868,7 +7892,7 @@ class B extends A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M4
-    actualId: #M7
+    actualId: #M8
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -7877,8 +7901,9 @@ class B extends A<double> {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
-          B: #M7
+          B: #M8
           B=: <null>
         reExportDeprecatedOnly
           B: false
@@ -7960,6 +7985,7 @@ void f(B b) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           B: #M4
           B=: <null>
@@ -8002,8 +8028,8 @@ class B implements A<double> {}
             foo: #M2
           implemented
             foo: #M2
-      B: #M7
-        interface: #M8
+      B: #M8
+        interface: #M9
           map
             foo: #M2
           inherited
@@ -8015,16 +8041,16 @@ class B implements A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M4
-    actualId: #M7
+    actualId: #M8
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M9
+      f: #M10
   requirements
     libraries
       package:test/a.dart
         exportedTopLevels
-          B: #M7
+          B: #M8
           B=: <null>
         reExportDeprecatedOnly
           B: false
@@ -8034,7 +8060,7 @@ class B implements A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M4
-    actualId: #M7
+    actualId: #M8
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -8043,8 +8069,9 @@ class B implements A<double> {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
-          B: #M7
+          B: #M8
           B=: <null>
         reExportDeprecatedOnly
           B: false
@@ -8131,6 +8158,7 @@ void f(B b) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           B: #M4
           B=: <null>
@@ -8173,8 +8201,8 @@ class B with A<double> {}
             foo: #M2
           implemented
             foo: #M2
-      B: #M7
-        interface: #M8
+      B: #M8
+        interface: #M9
           map
             foo: #M2
           implemented
@@ -8191,16 +8219,16 @@ class B with A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M4
-    actualId: #M7
+    actualId: #M8
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M9
+      f: #M10
   requirements
     libraries
       package:test/a.dart
         exportedTopLevels
-          B: #M7
+          B: #M8
           B=: <null>
         reExportDeprecatedOnly
           B: false
@@ -8210,7 +8238,7 @@ class B with A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M4
-    actualId: #M7
+    actualId: #M8
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -8219,8 +8247,9 @@ class B with A<double> {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
-          B: #M7
+          B: #M8
           B=: <null>
         reExportDeprecatedOnly
           B: false
@@ -8529,6 +8558,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -8559,14 +8589,14 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M3
+          bar: #M4
           foo: #M1
-        interface: #M4
+        interface: #M5
           map
-            bar: #M3
+            bar: #M4
             foo: #M1
           implemented
-            bar: #M3
+            bar: #M4
             foo: #M1
   requirements
 [operation] reuseLinkedBundle
@@ -8578,7 +8608,7 @@ class A {
     instanceName: A
     childrenPropertyName: methods
     expectedIds: #M1
-    actualIds: #M1 #M3
+    actualIds: #M1 #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -8594,6 +8624,7 @@ class A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -8601,7 +8632,7 @@ class A {
           A: false
         instances
           A
-            allDeclaredMethods: #M1 #M3
+            allDeclaredMethods: #M1 #M4
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -8656,6 +8687,7 @@ void f(A a) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -8694,12 +8726,12 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M3
-        interface: #M4
+          foo: #M4
+        interface: #M5
           map
-            foo: #M3
+            foo: #M4
           implemented
-            foo: #M3
+            foo: #M4
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -8710,7 +8742,7 @@ class A {
     interfaceName: A
     methodName: foo
     expectedId: <null>
-    actualId: #M3
+    actualId: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -8719,6 +8751,7 @@ class A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -8727,7 +8760,7 @@ class A {
         interfaces
           A
             methods
-              foo: #M3
+              foo: #M4
 [status] idle
 [future] getErrors T2
   ErrorsResult #1
@@ -8812,6 +8845,7 @@ class B extends A {}
     libraries
       package:test/a.dart
         featureSet: <not-null>
+        libraryMetadataId: #M7
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -8848,14 +8882,14 @@ class A {
       A: #M0
         declaredMethods
           bar: #M1
-          foo: #M7
-        interface: #M8
+          foo: #M8
+        interface: #M9
           map
             bar: #M1
-            foo: #M7
+            foo: #M8
           implemented
             bar: #M1
-            foo: #M7
+            foo: #M8
   requirements
 [operation] checkLinkedBundleRequirements
   package:test/test.dart
@@ -8863,25 +8897,25 @@ class A {
     libraryUri: package:test/a.dart
     interfaceName: A
     expectedId: #M3
-    actualId: #M8
+    actualId: #M9
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredClasses
       B: #M4
-        interface: #M9
+        interface: #M10
           map
             bar: #M1
-            foo: #M7
+            foo: #M8
           implemented
             bar: #M1
-            foo: #M7
+            foo: #M8
           superImplemented
             [0]
               bar: #M1
-              foo: #M7
+              foo: #M8
           inherited
             bar: #M1
-            foo: #M7
+            foo: #M8
   requirements
     libraries
       package:test/a.dart
@@ -8892,7 +8926,7 @@ class A {
           A: false
         interfaces
           A
-            interfaceId: #M8
+            interfaceId: #M9
             hasNonFinalField: false
             requestedConstructors
               new: #M6
@@ -8903,7 +8937,7 @@ class A {
     instanceName: A
     childrenPropertyName: methods
     expectedIds: #M2 #M1
-    actualIds: #M7 #M1
+    actualIds: #M8 #M1
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -8913,6 +8947,7 @@ class A {
     libraries
       package:test/a.dart
         featureSet: <not-null>
+        libraryMetadataId: #M7
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -8922,7 +8957,7 @@ class A {
           A
             allDeclaredGetters: []
             allDeclaredSetters: []
-            allDeclaredMethods: #M7 #M1
+            allDeclaredMethods: #M8 #M1
         interfaces
           A
             allConstructors: #M6
@@ -9031,6 +9066,7 @@ class X extends C {}
     libraries
       package:test/a.dart
         featureSet: <not-null>
+        libraryMetadataId: #M12
         exportedTopLevels
           C: #M6
           C=: <null>
@@ -9079,12 +9115,12 @@ class C extends A implements B {}
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M12
-        interface: #M13
+          foo: #M13
+        interface: #M14
           map
-            foo: #M12
+            foo: #M13
           implemented
-            foo: #M12
+            foo: #M13
       B: #M3
         declaredMethods
           foo: #M4
@@ -9094,18 +9130,18 @@ class C extends A implements B {}
           implemented
             foo: #M4
       C: #M6
-        interface: #M14
+        interface: #M15
           map
-            foo: #M15
+            foo: #M16
           combinedIds
-            [#M12, #M4]: #M15
+            [#M13, #M4]: #M16
           implemented
-            foo: #M12
+            foo: #M13
           superImplemented
             [0]
-              foo: #M12
+              foo: #M13
           inherited
-            foo: #M12
+            foo: #M13
   requirements
 [operation] checkLinkedBundleRequirements
   package:test/test.dart
@@ -9113,21 +9149,21 @@ class C extends A implements B {}
     libraryUri: package:test/a.dart
     interfaceName: C
     expectedId: #M7
-    actualId: #M14
+    actualId: #M15
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredClasses
       X: #M9
-        interface: #M16
+        interface: #M17
           map
-            foo: #M12
+            foo: #M13
           implemented
-            foo: #M12
+            foo: #M13
           superImplemented
             [0]
-              foo: #M12
+              foo: #M13
           inherited
-            foo: #M12
+            foo: #M13
   requirements
     libraries
       package:test/a.dart
@@ -9138,7 +9174,7 @@ class C extends A implements B {}
           C: false
         interfaces
           C
-            interfaceId: #M14
+            interfaceId: #M15
             hasNonFinalField: false
             requestedConstructors
               new: #M11
@@ -9149,7 +9185,7 @@ class C extends A implements B {}
     instanceName: A
     childrenPropertyName: methods
     expectedIds: #M1
-    actualIds: #M12
+    actualIds: #M13
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -9159,6 +9195,7 @@ class C extends A implements B {}
     libraries
       package:test/a.dart
         featureSet: <not-null>
+        libraryMetadataId: #M12
         exportedTopLevels
           C: #M6
           C=: <null>
@@ -9168,7 +9205,7 @@ class C extends A implements B {}
           A
             allDeclaredGetters: []
             allDeclaredSetters: []
-            allDeclaredMethods: #M12
+            allDeclaredMethods: #M13
           B
             allDeclaredGetters: []
             allDeclaredSetters: []
@@ -9241,6 +9278,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -9271,12 +9309,12 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M3
-        interface: #M4
+          foo: #M4
+        interface: #M5
           map
-            foo: #M3
+            foo: #M4
           implemented
-            foo: #M3
+            foo: #M4
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -9287,7 +9325,7 @@ class A {
     interfaceName: A
     methodName: foo
     expectedId: #M1
-    actualId: #M3
+    actualId: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -9303,6 +9341,7 @@ class A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -9311,7 +9350,7 @@ class A {
         instances
           A
             requestedDeclaredMethods
-              foo: #M3
+              foo: #M4
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -9377,6 +9416,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -9408,14 +9448,14 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M4
+          bar: #M5
           foo: #M2
-        interface: #M5
+        interface: #M6
           map
-            bar: #M4
+            bar: #M5
             foo: #M2
           implemented
-            bar: #M4
+            bar: #M5
             foo: #M2
   requirements
 [operation] reuseLinkedBundle
@@ -9491,6 +9531,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M6
         exportedTopLevels
           B: #M3
           B=: <null>
@@ -9517,18 +9558,18 @@ abstract class B extends A {
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M6
-        interface: #M7
+          foo: #M7
+        interface: #M8
           map
-            foo: #M6
+            foo: #M7
       B: #M3
         declaredMethods
           foo: #M4
-        interface: #M8
+        interface: #M9
           map
             foo: #M4
           inherited
-            foo: #M6
+            foo: #M7
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -9538,7 +9579,7 @@ abstract class B extends A {
     libraryUri: package:test/a.dart
     interfaceName: B
     expectedId: #M5
-    actualId: #M8
+    actualId: #M9
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -9547,6 +9588,7 @@ abstract class B extends A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M6
         exportedTopLevels
           B: #M3
           B=: <null>
@@ -9554,7 +9596,7 @@ abstract class B extends A {
           B: false
         interfaces
           B
-            interfaceId: #M8
+            interfaceId: #M9
 [status] idle
 ''',
     );
@@ -9624,6 +9666,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M8
         exportedTopLevels
           C: #M6
           C=: <null>
@@ -9652,18 +9695,18 @@ abstract class C extends B {}
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M8
-        interface: #M9
+          foo: #M9
+        interface: #M10
           map
-            foo: #M8
+            foo: #M9
       B: #M3
         declaredMethods
           foo: #M4
-        interface: #M10
+        interface: #M11
           map
             foo: #M4
           inherited
-            foo: #M8
+            foo: #M9
       C: #M6
         interface: #M7
           map
@@ -9735,6 +9778,7 @@ void f(A a) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -9763,12 +9807,12 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M4
-        interface: #M5
+          foo: #M5
+        interface: #M6
           map
-            foo: #M4
+            foo: #M5
           implemented
-            foo: #M4
+            foo: #M5
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -9779,7 +9823,7 @@ class A {
     interfaceName: A
     methodName: foo
     expectedId: #M1
-    actualId: #M4
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -9793,6 +9837,7 @@ class A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -9801,7 +9846,7 @@ class A {
         interfaces
           A
             methods
-              foo: #M4
+              foo: #M5
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -9858,6 +9903,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -9889,14 +9935,14 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M5
+          foo: #M6
         declaredConstructors
           foo: #M2
-        interface: #M6
+        interface: #M7
           map
-            foo: #M5
+            foo: #M6
           implemented
-            foo: #M5
+            foo: #M6
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -9907,7 +9953,7 @@ class A {
     interfaceName: A
     methodName: foo
     expectedId: #M1
-    actualId: #M5
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -9916,6 +9962,7 @@ class A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -9926,7 +9973,7 @@ class A {
             requestedConstructors
               foo: #M2
             methods
-              foo: #M5
+              foo: #M6
 [status] idle
 [future] getErrors T2
   ErrorsResult #1
@@ -10086,6 +10133,7 @@ void f(B b) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M6
         exportedTopLevels
           B: #M0
           B=: <null>
@@ -10123,7 +10171,7 @@ void f(B b) {
     declaredClasses
       A: #M2
         declaredMethods
-          _bar: #M6
+          _bar: #M7
         interface: #M4
     declaredFunctions
       f: #M5
@@ -10136,6 +10184,7 @@ void f(B b) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M6
         exportedTopLevels
           B: #M0
           B=: <null>
@@ -10205,6 +10254,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -10228,10 +10278,10 @@ abstract class A {
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M3
-        interface: #M4
+          foo: #M4
+        interface: #M5
           map
-            foo: #M3
+            foo: #M4
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -10242,7 +10292,7 @@ abstract class A {
     interfaceName: A
     methodName: foo
     expectedId: #M1
-    actualId: #M3
+    actualId: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -10251,6 +10301,7 @@ abstract class A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -10259,7 +10310,7 @@ abstract class A {
         interfaces
           A
             methods
-              foo: #M3
+              foo: #M4
 [status] idle
 ''',
     );
@@ -10311,6 +10362,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -10334,12 +10386,12 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M3
-        interface: #M4
+          foo: #M4
+        interface: #M5
           map
-            foo: #M3
+            foo: #M4
           implemented
-            foo: #M3
+            foo: #M4
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -10350,7 +10402,7 @@ class A {
     interfaceName: A
     methodName: foo
     expectedId: #M1
-    actualId: #M3
+    actualId: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -10359,6 +10411,7 @@ class A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -10367,7 +10420,7 @@ class A {
         interfaces
           A
             implementedMethods
-              foo: #M3
+              foo: #M4
 [status] idle
 ''',
     );
@@ -10419,6 +10472,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -10442,10 +10496,10 @@ abstract class A {
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M3
-        interface: #M4
+          foo: #M4
+        interface: #M5
           map
-            foo: #M3
+            foo: #M4
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -10465,6 +10519,7 @@ abstract class A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -10523,6 +10578,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -10546,12 +10602,12 @@ abstract class A {
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M3
-        interface: #M4
+          foo: #M4
+        interface: #M5
           map
-            foo: #M3
+            foo: #M4
           implemented
-            foo: #M3
+            foo: #M4
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -10562,7 +10618,7 @@ abstract class A {
     interfaceName: A
     methodName: foo
     expectedId: <null>
-    actualId: #M3
+    actualId: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -10571,6 +10627,7 @@ abstract class A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -10579,7 +10636,7 @@ abstract class A {
         interfaces
           A
             implementedMethods
-              foo: #M3
+              foo: #M4
 [status] idle
 ''',
     );
@@ -10631,6 +10688,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -10655,14 +10713,14 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M3
+          bar: #M4
           foo: #M1
-        interface: #M4
+        interface: #M5
           map
-            bar: #M3
+            bar: #M4
             foo: #M1
           implemented
-            bar: #M3
+            bar: #M4
             foo: #M1
   requirements
 [operation] reuseLinkedBundle
@@ -10738,6 +10796,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           B: #M3
           B=: <null>
@@ -10763,23 +10822,23 @@ class B extends A {}
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M5
-        interface: #M6
-          map
-            foo: #M5
-          implemented
-            foo: #M5
-      B: #M3
+          foo: #M6
         interface: #M7
           map
-            foo: #M5
+            foo: #M6
           implemented
-            foo: #M5
+            foo: #M6
+      B: #M3
+        interface: #M8
+          map
+            foo: #M6
+          implemented
+            foo: #M6
           superImplemented
             [0]
-              foo: #M5
+              foo: #M6
           inherited
-            foo: #M5
+            foo: #M6
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -10791,7 +10850,7 @@ class B extends A {}
     superIndex: 0
     methodName: foo
     expectedId: #M1
-    actualId: #M5
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -10800,6 +10859,7 @@ class B extends A {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           B: #M3
           B=: <null>
@@ -10809,7 +10869,7 @@ class B extends A {}
           B
             superMethods
               [0]
-                foo: #M5
+                foo: #M6
 [status] idle
 ''',
     );
@@ -10878,6 +10938,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           B: #M3
           B=: <null>
@@ -10904,29 +10965,29 @@ class B extends A {}
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M5
+          bar: #M6
           foo: #M1
-        interface: #M6
-          map
-            bar: #M5
-            foo: #M1
-          implemented
-            bar: #M5
-            foo: #M1
-      B: #M3
         interface: #M7
           map
-            bar: #M5
+            bar: #M6
             foo: #M1
           implemented
-            bar: #M5
+            bar: #M6
+            foo: #M1
+      B: #M3
+        interface: #M8
+          map
+            bar: #M6
+            foo: #M1
+          implemented
+            bar: #M6
             foo: #M1
           superImplemented
             [0]
-              bar: #M5
+              bar: #M6
               foo: #M1
           inherited
-            bar: #M5
+            bar: #M6
             foo: #M1
   requirements
 [operation] reuseLinkedBundle
@@ -10983,6 +11044,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -11007,11 +11069,11 @@ abstract class A {
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M3
+          bar: #M4
           foo: #M1
-        interface: #M4
+        interface: #M5
           map
-            bar: #M3
+            bar: #M4
             foo: #M1
   requirements
 [operation] reuseLinkedBundle
@@ -11082,6 +11144,7 @@ void f(A a) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -11111,14 +11174,14 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M5
+          bar: #M6
           foo: #M2
-        interface: #M6
+        interface: #M7
           map
-            bar: #M5
+            bar: #M6
             foo: #M2
           implemented
-            bar: #M5
+            bar: #M6
             foo: #M2
   requirements
 [operation] reuseLinkedBundle
@@ -11212,6 +11275,7 @@ void f(C c) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M8
         exportedTopLevels
           C: #M5
           C=: <null>
@@ -11250,8 +11314,8 @@ class C extends B {}
             foo: #M1
           implemented
             foo: #M1
-      B: #M8
-        interface: #M9
+      B: #M9
+        interface: #M10
           map
             foo: #M1
           implemented
@@ -11261,8 +11325,8 @@ class C extends B {}
               foo: #M1
           inherited
             foo: #M1
-      C: #M10
-        interface: #M11
+      C: #M11
+        interface: #M12
           map
             foo: #M1
           implemented
@@ -11279,16 +11343,16 @@ class C extends B {}
     libraryUri: package:test/a.dart
     name: C
     expectedId: #M5
-    actualId: #M10
+    actualId: #M11
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M12
+      f: #M13
   requirements
     libraries
       package:test/a.dart
         exportedTopLevels
-          C: #M10
+          C: #M11
           C=: <null>
         reExportDeprecatedOnly
           C: false
@@ -11298,7 +11362,7 @@ class C extends B {}
     libraryUri: package:test/a.dart
     name: C
     expectedId: #M5
-    actualId: #M10
+    actualId: #M11
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -11307,8 +11371,9 @@ class C extends B {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M8
         exportedTopLevels
-          C: #M10
+          C: #M11
           C=: <null>
         reExportDeprecatedOnly
           C: false
@@ -11389,6 +11454,7 @@ void f(B b) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M6
         exportedTopLevels
           B: #M3
           B=: <null>
@@ -11425,8 +11491,8 @@ class B extends A<double> {}
             foo: #M1
           implemented
             foo: #M1
-      B: #M6
-        interface: #M7
+      B: #M7
+        interface: #M8
           map
             foo: #M1
           implemented
@@ -11443,16 +11509,16 @@ class B extends A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M3
-    actualId: #M6
+    actualId: #M7
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M8
+      f: #M9
   requirements
     libraries
       package:test/a.dart
         exportedTopLevels
-          B: #M6
+          B: #M7
           B=: <null>
         reExportDeprecatedOnly
           B: false
@@ -11462,7 +11528,7 @@ class B extends A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M3
-    actualId: #M6
+    actualId: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -11471,8 +11537,9 @@ class B extends A<double> {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M6
         exportedTopLevels
-          B: #M6
+          B: #M7
           B=: <null>
         reExportDeprecatedOnly
           B: false
@@ -11548,6 +11615,7 @@ void f(B b) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M6
         exportedTopLevels
           B: #M3
           B=: <null>
@@ -11584,8 +11652,8 @@ class B implements A<double> {}
             foo: #M1
           implemented
             foo: #M1
-      B: #M6
-        interface: #M7
+      B: #M7
+        interface: #M8
           map
             foo: #M1
           inherited
@@ -11597,16 +11665,16 @@ class B implements A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M3
-    actualId: #M6
+    actualId: #M7
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M8
+      f: #M9
   requirements
     libraries
       package:test/a.dart
         exportedTopLevels
-          B: #M6
+          B: #M7
           B=: <null>
         reExportDeprecatedOnly
           B: false
@@ -11616,7 +11684,7 @@ class B implements A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M3
-    actualId: #M6
+    actualId: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -11625,8 +11693,9 @@ class B implements A<double> {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M6
         exportedTopLevels
-          B: #M6
+          B: #M7
           B=: <null>
         reExportDeprecatedOnly
           B: false
@@ -11707,6 +11776,7 @@ void f(B b) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M6
         exportedTopLevels
           B: #M3
           B=: <null>
@@ -11743,8 +11813,8 @@ class B with A<double> {}
             foo: #M1
           implemented
             foo: #M1
-      B: #M6
-        interface: #M7
+      B: #M7
+        interface: #M8
           map
             foo: #M1
           implemented
@@ -11761,16 +11831,16 @@ class B with A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M3
-    actualId: #M6
+    actualId: #M7
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M8
+      f: #M9
   requirements
     libraries
       package:test/a.dart
         exportedTopLevels
-          B: #M6
+          B: #M7
           B=: <null>
         reExportDeprecatedOnly
           B: false
@@ -11780,7 +11850,7 @@ class B with A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M3
-    actualId: #M6
+    actualId: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -11789,8 +11859,9 @@ class B with A<double> {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M6
         exportedTopLevels
-          B: #M6
+          B: #M7
           B=: <null>
         reExportDeprecatedOnly
           B: false
@@ -11953,6 +12024,7 @@ void f(A a) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -11978,7 +12050,7 @@ class A {}
   package:test/a.dart
     declaredClasses
       A: #M0
-        interface: #M4
+        interface: #M5
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -11998,6 +12070,7 @@ class A {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -12075,6 +12148,7 @@ void f(A a) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -12115,14 +12189,14 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M3
+          foo: #M4
         declaredSetters
-          foo=: #M4
-        interface: #M5
+          foo=: #M5
+        interface: #M6
           map
-            foo=: #M4
+            foo=: #M5
           implemented
-            foo=: #M4
+            foo=: #M5
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -12133,7 +12207,7 @@ class A {
     interfaceName: A
     methodName: foo=
     expectedId: <null>
-    actualId: #M4
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -12147,6 +12221,7 @@ class A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -12155,11 +12230,11 @@ class A {
         instances
           A
             requestedDeclaredFields
-              foo: #M3
+              foo: #M4
         interfaces
           A
             methods
-              foo=: #M4
+              foo=: #M5
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -12226,6 +12301,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -12263,14 +12339,14 @@ class A {
         declaredGetters
           foo: #M2
         declaredSetters
-          foo=: #M5
-        interface: #M6
+          foo=: #M6
+        interface: #M7
           map
             foo: #M2
-            foo=: #M5
+            foo=: #M6
           implemented
             foo: #M2
-            foo=: #M5
+            foo=: #M6
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -12281,7 +12357,7 @@ class A {
     interfaceName: A
     methodName: foo=
     expectedId: #M3
-    actualId: #M5
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -12297,6 +12373,7 @@ class A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -12307,7 +12384,7 @@ class A {
             requestedDeclaredFields
               foo: #M1
             requestedDeclaredSetters
-              foo=: #M5
+              foo=: #M6
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -12371,6 +12448,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -12401,14 +12479,14 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M4
+          foo: #M5
         declaredSetters
-          foo=: #M5
-        interface: #M6
+          foo=: #M6
+        interface: #M7
           map
-            foo=: #M5
+            foo=: #M6
           implemented
-            foo=: #M5
+            foo=: #M6
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -12419,7 +12497,7 @@ class A {
     interfaceName: A
     methodName: foo=
     expectedId: #M2
-    actualId: #M5
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -12435,6 +12513,7 @@ class A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -12443,7 +12522,7 @@ class A {
         instances
           A
             requestedDeclaredSetters
-              foo=: #M5
+              foo=: #M6
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -12512,6 +12591,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M6
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -12543,17 +12623,17 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M6
+          bar: #M7
           foo: #M2
         declaredSetters
-          bar=: #M7
+          bar=: #M8
           foo=: #M4
-        interface: #M8
+        interface: #M9
           map
-            bar=: #M7
+            bar=: #M8
             foo=: #M4
           implemented
-            bar=: #M7
+            bar=: #M8
             foo=: #M4
   requirements
 [operation] reuseLinkedBundle
@@ -12629,6 +12709,7 @@ void f(A a) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -12661,14 +12742,14 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M5
+          foo: #M6
         declaredSetters
-          foo=: #M6
-        interface: #M7
+          foo=: #M7
+        interface: #M8
           map
-            foo=: #M6
+            foo=: #M7
           implemented
-            foo=: #M6
+            foo=: #M7
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -12679,7 +12760,7 @@ class A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M5
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -12693,6 +12774,7 @@ class A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -12701,11 +12783,11 @@ class A {
         instances
           A
             requestedDeclaredFields
-              foo: #M5
+              foo: #M6
         interfaces
           A
             methods
-              foo=: #M6
+              foo=: #M7
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -12771,6 +12853,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -12812,16 +12895,16 @@ class A {
         declaredGetters
           foo: #M2
         declaredSetters
-          foo=: #M7
+          foo=: #M8
         declaredConstructors
           foo: #M4
-        interface: #M8
+        interface: #M9
           map
             foo: #M2
-            foo=: #M7
+            foo=: #M8
           implemented
             foo: #M2
-            foo=: #M7
+            foo=: #M8
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -12832,7 +12915,7 @@ class A {
     interfaceName: A
     methodName: foo=
     expectedId: #M3
-    actualId: #M7
+    actualId: #M8
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -12841,6 +12924,7 @@ class A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -12856,7 +12940,7 @@ class A {
               foo: #M4
             methods
               foo: #M2
-              foo=: #M7
+              foo=: #M8
 [status] idle
 [future] getErrors T2
   ErrorsResult #1
@@ -12928,6 +13012,7 @@ void f(A a) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -12961,17 +13046,17 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M7
+          bar: #M8
           foo: #M2
         declaredSetters
-          bar=: #M8
+          bar=: #M9
           foo=: #M4
-        interface: #M9
+        interface: #M10
           map
-            bar=: #M8
+            bar=: #M9
             foo=: #M4
           implemented
-            bar=: #M8
+            bar=: #M9
             foo=: #M4
   requirements
 [operation] reuseLinkedBundle
@@ -13054,6 +13139,7 @@ void f(B b) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           B: #M4
           B=: <null>
@@ -13096,8 +13182,8 @@ class B extends A<double> {}
             foo=: #M2
           implemented
             foo=: #M2
-      B: #M7
-        interface: #M8
+      B: #M8
+        interface: #M9
           map
             foo=: #M2
           implemented
@@ -13114,16 +13200,16 @@ class B extends A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M4
-    actualId: #M7
+    actualId: #M8
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M9
+      f: #M10
   requirements
     libraries
       package:test/a.dart
         exportedTopLevels
-          B: #M7
+          B: #M8
           B=: <null>
         reExportDeprecatedOnly
           B: false
@@ -13133,7 +13219,7 @@ class B extends A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M4
-    actualId: #M7
+    actualId: #M8
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -13142,8 +13228,9 @@ class B extends A<double> {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
-          B: #M7
+          B: #M8
           B=: <null>
         reExportDeprecatedOnly
           B: false
@@ -13225,6 +13312,7 @@ void f(B b) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           B: #M4
           B=: <null>
@@ -13267,8 +13355,8 @@ class B implements A<double> {}
             foo=: #M2
           implemented
             foo=: #M2
-      B: #M7
-        interface: #M8
+      B: #M8
+        interface: #M9
           map
             foo=: #M2
           inherited
@@ -13280,16 +13368,16 @@ class B implements A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M4
-    actualId: #M7
+    actualId: #M8
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M9
+      f: #M10
   requirements
     libraries
       package:test/a.dart
         exportedTopLevels
-          B: #M7
+          B: #M8
           B=: <null>
         reExportDeprecatedOnly
           B: false
@@ -13299,7 +13387,7 @@ class B implements A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M4
-    actualId: #M7
+    actualId: #M8
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -13308,8 +13396,9 @@ class B implements A<double> {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
-          B: #M7
+          B: #M8
           B=: <null>
         reExportDeprecatedOnly
           B: false
@@ -13396,6 +13485,7 @@ void f(B b) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           B: #M4
           B=: <null>
@@ -13438,8 +13528,8 @@ class B with A<double> {}
             foo=: #M2
           implemented
             foo=: #M2
-      B: #M7
-        interface: #M8
+      B: #M8
+        interface: #M9
           map
             foo=: #M2
           implemented
@@ -13456,16 +13546,16 @@ class B with A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M4
-    actualId: #M7
+    actualId: #M8
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M9
+      f: #M10
   requirements
     libraries
       package:test/a.dart
         exportedTopLevels
-          B: #M7
+          B: #M8
           B=: <null>
         reExportDeprecatedOnly
           B: false
@@ -13475,7 +13565,7 @@ class B with A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M4
-    actualId: #M7
+    actualId: #M8
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -13484,8 +13574,9 @@ class B with A<double> {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
-          B: #M7
+          B: #M8
           B=: <null>
         reExportDeprecatedOnly
           B: false
@@ -13662,6 +13753,7 @@ void f(A a) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -13691,7 +13783,7 @@ class A {}
   package:test/a.dart
     declaredClasses
       A: #M0
-        interface: #M5
+        interface: #M6
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -13718,6 +13810,7 @@ class A {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -13800,6 +13893,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -13830,17 +13924,17 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M4
+          bar: #M5
           foo: #M1
         declaredSetters
-          bar=: #M5
+          bar=: #M6
           foo=: #M2
-        interface: #M6
+        interface: #M7
           map
-            bar=: #M5
+            bar=: #M6
             foo=: #M2
           implemented
-            bar=: #M5
+            bar=: #M6
             foo=: #M2
   requirements
 [operation] reuseLinkedBundle
@@ -13852,7 +13946,7 @@ class A {
     instanceName: A
     childrenPropertyName: setters
     expectedIds: #M2
-    actualIds: #M2 #M5
+    actualIds: #M2 #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -13868,6 +13962,7 @@ class A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -13875,7 +13970,7 @@ class A {
           A: false
         instances
           A
-            allDeclaredSetters: #M2 #M5
+            allDeclaredSetters: #M2 #M6
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -13927,6 +14022,7 @@ A foo() {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M1
         exportedTopLevels
           A: <null>
           A=: <null>
@@ -13947,8 +14043,8 @@ class A {}
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
-      A: #M1
-        interface: #M2
+      A: #M2
+        interface: #M3
   requirements
 [operation] checkLinkedBundleRequirements
   package:test/test.dart
@@ -13956,16 +14052,16 @@ class A {}
     libraryUri: package:test/a.dart
     name: A
     expectedId: <null>
-    actualId: #M1
+    actualId: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      foo: #M3
+      foo: #M4
   requirements
     libraries
       package:test/a.dart
         exportedTopLevels
-          A: #M1
+          A: #M2
           A=: <null>
         reExportDeprecatedOnly
           A: false
@@ -13975,7 +14071,7 @@ class A {}
     libraryUri: package:test/a.dart
     name: A
     expectedId: <null>
-    actualId: #M1
+    actualId: #M2
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -13991,8 +14087,9 @@ class A {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M1
         exportedTopLevels
-          A: #M1
+          A: #M2
           A=: <null>
         reExportDeprecatedOnly
           A: false
@@ -14054,6 +14151,7 @@ A foo() {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -14079,8 +14177,8 @@ class B {}
     declaredClasses
       A: #M0
         interface: #M1
-      B: #M3
-        interface: #M4
+      B: #M4
+        interface: #M5
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -14148,6 +14246,7 @@ A foo() {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -14171,8 +14270,8 @@ class B {}
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
-      A: #M5
-        interface: #M6
+      A: #M6
+        interface: #M7
       B: #M2
         interface: #M3
   requirements
@@ -14182,16 +14281,16 @@ class B {}
     libraryUri: package:test/a.dart
     name: A
     expectedId: #M0
-    actualId: #M5
+    actualId: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      foo: #M7
+      foo: #M8
   requirements
     libraries
       package:test/a.dart
         exportedTopLevels
-          A: #M5
+          A: #M6
           A=: <null>
         reExportDeprecatedOnly
           A: false
@@ -14201,7 +14300,7 @@ class B {}
     libraryUri: package:test/a.dart
     name: A
     expectedId: #M0
-    actualId: #M5
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -14217,8 +14316,9 @@ class B {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
-          A: #M5
+          A: #M6
           A=: <null>
         reExportDeprecatedOnly
           A: false
@@ -14286,6 +14386,7 @@ A foo() {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -14312,8 +14413,8 @@ class C {}
     declaredClasses
       A: #M0
         interface: #M1
-      B: #M7
-        interface: #M8
+      B: #M8
+        interface: #M9
       C: #M4
         interface: #M5
   requirements
@@ -14378,6 +14479,7 @@ A foo() => throw 0;
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -14406,7 +14508,7 @@ A foo() => throw 0;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      foo: #M3
+      foo: #M4
   requirements
     libraries
       package:test/a.dart
@@ -14435,6 +14537,7 @@ A foo() => throw 0;
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: <null>
           A=: <null>
@@ -14497,6 +14600,7 @@ A foo() => throw 0;
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -14574,6 +14678,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -14612,7 +14717,7 @@ class A {
       A: #M0
         declaredConstructors
           c1: #M1
-          c2: #M4
+          c2: #M5
         interface: #M2
   requirements
 [operation] reuseLinkedBundle
@@ -14624,7 +14729,7 @@ class A {
     interfaceName: A
     constructorName: c2
     expectedId: <null>
-    actualId: #M4
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -14633,6 +14738,7 @@ class A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -14641,7 +14747,7 @@ class A {
         interfaces
           A
             requestedConstructors
-              c2: #M4
+              c2: #M5
 [status] idle
 [future] getErrors T2
   ErrorsResult #1
@@ -14687,6 +14793,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M2
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -14694,7 +14801,7 @@ import 'a.dart';
           A: false
         interfaces
           A
-            allConstructors: #M2
+            allConstructors: #M3
 [status] idle
 [future] getErrors T1
   ErrorsResult #0
@@ -14716,7 +14823,7 @@ class A {
     declaredClasses
       A: #M0
         declaredConstructors
-          named: #M3
+          named: #M4
         interface: #M1
   requirements
 [operation] reuseLinkedBundle
@@ -14727,8 +14834,8 @@ class A {
     libraryUri: package:test/a.dart
     interfaceName: A
     childrenPropertyName: constructors
-    expectedIds: #M2
-    actualIds: #M3
+    expectedIds: #M3
+    actualIds: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -14737,6 +14844,7 @@ class A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M2
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -14744,7 +14852,7 @@ class A {
           A: false
         interfaces
           A
-            allConstructors: #M3
+            allConstructors: #M4
 [status] idle
 [future] getErrors T2
   ErrorsResult #1
@@ -14806,6 +14914,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -14836,7 +14945,7 @@ class A {
     declaredClasses
       A: #M0
         declaredConstructors
-          named: #M4
+          named: #M5
           new: #M2
         interface: #M3
   requirements
@@ -14849,7 +14958,7 @@ class A {
     interfaceName: A
     childrenPropertyName: constructors
     expectedIds: #M2 #M1
-    actualIds: #M2 #M4
+    actualIds: #M2 #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -14865,6 +14974,7 @@ class A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -14872,7 +14982,7 @@ class A {
           A: false
         interfaces
           A
-            allConstructors: #M2 #M4
+            allConstructors: #M2 #M5
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -14930,6 +15040,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -14960,7 +15071,7 @@ class A {
     declaredClasses
       A: #M0
         declaredConstructors
-          foo: #M3
+          foo: #M4
         interface: #M2
   requirements
 [operation] reuseLinkedBundle
@@ -14972,7 +15083,7 @@ class A {
     interfaceName: A
     constructorName: foo
     expectedId: #M1
-    actualId: #M3
+    actualId: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -14988,6 +15099,7 @@ class A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -14996,7 +15108,7 @@ class A {
         interfaces
           A
             requestedConstructors
-              foo: #M3
+              foo: #M4
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -15056,6 +15168,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -15087,7 +15200,7 @@ class A {
     declaredClasses
       A: #M0
         declaredConstructors
-          bar: #M4
+          bar: #M5
           foo: #M2
         interface: #M3
   requirements
@@ -15157,6 +15270,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -15188,7 +15302,7 @@ class A {
     declaredClasses
       A: #M0
         declaredConstructors
-          named: #M4
+          named: #M5
           new: #M2
         interface: #M3
   requirements
@@ -15248,6 +15362,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -15276,7 +15391,7 @@ class A {
     declaredClasses
       A: #M0
         declaredConstructors
-          named: #M4
+          named: #M5
         interface: #M2
   requirements
 [operation] reuseLinkedBundle
@@ -15288,7 +15403,7 @@ class A {
     interfaceName: A
     constructorName: named
     expectedId: #M1
-    actualId: #M4
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -15297,6 +15412,7 @@ class A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -15305,7 +15421,7 @@ class A {
         interfaces
           A
             requestedConstructors
-              named: #M4
+              named: #M5
 [status] idle
 [future] getErrors T2
   ErrorsResult #1
@@ -15372,6 +15488,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -15415,7 +15532,7 @@ class A {
         declaredSetters
           foo=: #M3
         declaredConstructors
-          foo: #M7
+          foo: #M8
         interface: #M5
           map
             foo: #M2
@@ -15433,7 +15550,7 @@ class A {
     interfaceName: A
     constructorName: foo
     expectedId: #M4
-    actualId: #M7
+    actualId: #M8
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -15442,6 +15559,7 @@ class A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -15454,7 +15572,7 @@ class A {
         interfaces
           A
             requestedConstructors
-              foo: #M7
+              foo: #M8
             methods
               foo: #M2
               foo=: #M3
@@ -15514,6 +15632,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -15547,7 +15666,7 @@ class A {
         declaredMethods
           foo: #M1
         declaredConstructors
-          foo: #M5
+          foo: #M6
         interface: #M3
           map
             foo: #M1
@@ -15563,7 +15682,7 @@ class A {
     interfaceName: A
     constructorName: foo
     expectedId: #M2
-    actualId: #M5
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -15572,6 +15691,7 @@ class A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -15580,7 +15700,7 @@ class A {
         interfaces
           A
             requestedConstructors
-              foo: #M5
+              foo: #M6
             methods
               foo: #M1
 [status] idle
@@ -15651,6 +15771,7 @@ class B extends A {
     libraries
       package:test/a.dart
         featureSet: <not-null>
+        libraryMetadataId: #M6
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -15687,7 +15808,7 @@ class A {
     declaredClasses
       A: #M0
         declaredConstructors
-          named: #M6
+          named: #M7
         interface: #M2
   requirements
 [operation] checkLinkedBundleRequirements
@@ -15697,13 +15818,13 @@ class A {
     interfaceName: A
     constructorName: named
     expectedId: #M1
-    actualId: #M6
+    actualId: #M7
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredClasses
       B: #M3
         declaredConstructors
-          foo: #M7
+          foo: #M8
         interface: #M5
   requirements
     libraries
@@ -15720,7 +15841,7 @@ class A {
             interfaceId: #M2
             hasNonFinalField: false
             requestedConstructors
-              named: #M6
+              named: #M7
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
   interfaceChildrenIdsMismatch
@@ -15728,7 +15849,7 @@ class A {
     interfaceName: A
     childrenPropertyName: constructors
     expectedIds: #M1
-    actualIds: #M6
+    actualIds: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -15738,6 +15859,7 @@ class A {
     libraries
       package:test/a.dart
         featureSet: <not-null>
+        libraryMetadataId: #M6
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -15752,9 +15874,9 @@ class A {
             allDeclaredMethods: []
         interfaces
           A
-            allConstructors: #M6
+            allConstructors: #M7
             requestedConstructors
-              named: #M6
+              named: #M7
 [status] idle
 [future] getErrors T2
   ErrorsResult #1
@@ -15806,6 +15928,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -15836,7 +15959,7 @@ class A {
       A: #M0
         declaredConstructors
           c1: #M1
-          c2: #M5
+          c2: #M6
         interface: #M3
   requirements
 [operation] reuseLinkedBundle
@@ -15895,6 +16018,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -15944,6 +16068,7 @@ class A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -16018,6 +16143,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -16048,10 +16174,10 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M4
+          bar: #M5
           foo: #M1
         declaredGetters
-          bar: #M5
+          bar: #M6
           foo: #M2
         interface: #M3
   requirements
@@ -16064,7 +16190,7 @@ class A {
     instanceName: A
     childrenPropertyName: fields
     expectedIds: #M1
-    actualIds: #M1 #M4
+    actualIds: #M1 #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -16080,6 +16206,7 @@ class A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -16087,7 +16214,7 @@ class A {
           A: false
         instances
           A
-            allDeclaredFields: #M1 #M4
+            allDeclaredFields: #M1 #M5
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -16145,6 +16272,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -16179,9 +16307,9 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M5
-        declaredGetters
           foo: #M6
+        declaredGetters
+          foo: #M7
         interface: #M3
   requirements
 [operation] reuseLinkedBundle
@@ -16193,7 +16321,7 @@ class A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M5
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -16207,6 +16335,7 @@ class A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -16215,9 +16344,9 @@ class A {
         instances
           A
             requestedDeclaredFields
-              foo: #M5
-            requestedDeclaredGetters
               foo: #M6
+            requestedDeclaredGetters
+              foo: #M7
         interfaces
           A
             requestedConstructors
@@ -16280,6 +16409,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -16315,10 +16445,10 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M7
+          bar: #M8
           foo: #M2
         declaredGetters
-          bar: #M8
+          bar: #M9
           foo: #M4
         interface: #M5
   requirements
@@ -16380,6 +16510,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -16414,7 +16545,7 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M4
+          foo: #M5
         interface: #M2
   requirements
 [operation] reuseLinkedBundle
@@ -16426,7 +16557,7 @@ class A {
     interfaceName: A
     methodName: foo
     expectedId: #M1
-    actualId: #M4
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -16440,6 +16571,7 @@ class A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -16450,7 +16582,7 @@ class A {
             requestedDeclaredGetters
               foo: <null>
             requestedDeclaredMethods
-              foo: #M4
+              foo: #M5
         interfaces
           A
             requestedConstructors
@@ -16510,6 +16642,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -16545,7 +16678,7 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M5
+          bar: #M6
           foo: #M2
         interface: #M3
   requirements
@@ -16609,6 +16742,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -16639,9 +16773,9 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M5
+          foo: #M6
         declaredSetters
-          foo=: #M6
+          foo=: #M7
         interface: #M3
   requirements
 [operation] reuseLinkedBundle
@@ -16653,7 +16787,7 @@ class A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M5
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -16667,6 +16801,7 @@ class A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -16675,9 +16810,9 @@ class A {
         instances
           A
             requestedDeclaredFields
-              foo: #M5
+              foo: #M6
             requestedDeclaredSetters
-              foo=: #M6
+              foo=: #M7
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -16736,6 +16871,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -16767,10 +16903,10 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M7
+          bar: #M8
           foo: #M2
         declaredSetters
-          bar=: #M8
+          bar=: #M9
           foo=: #M4
         interface: #M5
   requirements
@@ -16838,6 +16974,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -16869,7 +17006,7 @@ class A {
       A: #M0
         declaredConstructors
           named: #M1
-          new: #M4
+          new: #M5
         interface: #M3
   requirements
 [operation] reuseLinkedBundle
@@ -16881,7 +17018,7 @@ class A {
     interfaceName: A
     childrenPropertyName: constructors
     expectedIds: #M2 #M1
-    actualIds: #M4 #M1
+    actualIds: #M5 #M1
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -16897,6 +17034,7 @@ class A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -16904,7 +17042,7 @@ class A {
           A: false
         interfaces
           A
-            allConstructors: #M4 #M1
+            allConstructors: #M5 #M1
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -16964,6 +17102,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -17049,6 +17188,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -17077,7 +17217,7 @@ class A {
     declaredClasses
       A: #M0
         declaredConstructors
-          new: #M4
+          new: #M5
         interface: #M2
   requirements
 [operation] reuseLinkedBundle
@@ -17089,7 +17229,7 @@ class A {
     interfaceName: A
     constructorName: new
     expectedId: #M1
-    actualId: #M4
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -17098,6 +17238,7 @@ class A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -17106,7 +17247,7 @@ class A {
         interfaces
           A
             requestedConstructors
-              new: #M4
+              new: #M5
 [status] idle
 [future] getErrors T2
   ErrorsResult #1
@@ -17160,6 +17301,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -17190,7 +17332,7 @@ class A {
       A: #M0
         declaredConstructors
           named: #M1
-          new: #M5
+          new: #M6
         interface: #M3
   requirements
 [operation] reuseLinkedBundle
@@ -17256,6 +17398,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M8
         exportedTopLevels
           B: #M3
           B=: <null>
@@ -17286,11 +17429,11 @@ class B = A with M;
     declaredClasses
       A: #M0
         declaredConstructors
-          named: #M8
+          named: #M9
         interface: #M2
       B: #M3
         inheritedConstructors
-          named: #M8
+          named: #M9
         interface: #M4
     declaredMixins
       M: #M5
@@ -17305,7 +17448,7 @@ class B = A with M;
     interfaceName: B
     constructorName: named
     expectedId: #M1
-    actualId: #M8
+    actualId: #M9
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -17314,6 +17457,7 @@ class B = A with M;
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M8
         exportedTopLevels
           B: #M3
           B=: <null>
@@ -17322,7 +17466,7 @@ class B = A with M;
         interfaces
           B
             requestedConstructors
-              named: #M8
+              named: #M9
 [status] idle
 [future] getErrors T2
   ErrorsResult #1
@@ -17390,6 +17534,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M8
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -17425,8 +17570,8 @@ enum A {
     declaredEnums
       A: #M0
         declaredFields
-          foo: #M8
-          values: #M9
+          foo: #M9
+          values: #M10
         declaredGetters
           foo: #M3
           values: #M4
@@ -17450,7 +17595,7 @@ enum A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M8
+    actualId: #M9
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -17464,6 +17609,7 @@ enum A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M8
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -17472,7 +17618,7 @@ enum A {
         instances
           A
             requestedDeclaredFields
-              foo: #M8
+              foo: #M9
             requestedDeclaredGetters
               foo: #M3
         interfaces
@@ -17557,6 +17703,7 @@ void f(A a) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M10
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -17590,19 +17737,19 @@ enum A {
     declaredEnums
       A: #M0
         declaredFields
-          foo: #M10
+          foo: #M11
           v: #M2
           values: #M3
         declaredGetters
-          foo: #M11
+          foo: #M12
           v: #M5
           values: #M6
-        interface: #M12
+        interface: #M13
           map
-            foo: #M11
+            foo: #M12
             index: #M8
           implemented
-            foo: #M11
+            foo: #M12
             index: #M8
           superImplemented
             [0]
@@ -17619,7 +17766,7 @@ enum A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M10
+    actualId: #M11
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -17633,6 +17780,7 @@ enum A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M10
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -17641,11 +17789,11 @@ enum A {
         instances
           A
             requestedDeclaredFields
-              foo: #M10
+              foo: #M11
         interfaces
           A
             methods
-              foo: #M11
+              foo: #M12
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -17729,6 +17877,7 @@ void f(A a) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M12
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -17763,22 +17912,22 @@ enum A {
     declaredEnums
       A: #M0
         declaredFields
-          bar: #M12
+          bar: #M13
           foo: #M2
           v: #M3
           values: #M4
         declaredGetters
-          bar: #M13
+          bar: #M14
           foo: #M6
           v: #M7
           values: #M8
-        interface: #M14
+        interface: #M15
           map
-            bar: #M13
+            bar: #M14
             foo: #M6
             index: #M10
           implemented
-            bar: #M13
+            bar: #M14
             foo: #M6
             index: #M10
           superImplemented
@@ -17870,6 +18019,7 @@ void f(A a) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M9
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -17905,13 +18055,13 @@ enum A {
           v: #M3
           values: #M4
         declaredMethods
-          foo: #M9
-        interface: #M10
+          foo: #M10
+        interface: #M11
           map
-            foo: #M9
+            foo: #M10
             index: #M7
           implemented
-            foo: #M9
+            foo: #M10
             index: #M7
           superImplemented
             [0]
@@ -17928,7 +18078,7 @@ enum A {
     interfaceName: A
     methodName: foo
     expectedId: #M5
-    actualId: #M9
+    actualId: #M10
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -17942,6 +18092,7 @@ enum A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M9
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -17950,7 +18101,7 @@ enum A {
         interfaces
           A
             methods
-              foo: #M9
+              foo: #M10
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -18033,6 +18184,7 @@ void f(A a) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M10
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -18069,15 +18221,15 @@ enum A {
           v: #M3
           values: #M4
         declaredMethods
-          bar: #M10
+          bar: #M11
           foo: #M6
-        interface: #M11
+        interface: #M12
           map
-            bar: #M10
+            bar: #M11
             foo: #M6
             index: #M8
           implemented
-            bar: #M10
+            bar: #M11
             foo: #M6
             index: #M8
           superImplemented
@@ -18170,6 +18322,7 @@ void f(A a) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M10
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -18203,20 +18356,20 @@ enum A {
     declaredEnums
       A: #M0
         declaredFields
-          foo: #M10
+          foo: #M11
           v: #M2
           values: #M3
         declaredGetters
           v: #M4
           values: #M5
         declaredSetters
-          foo=: #M11
-        interface: #M12
+          foo=: #M12
+        interface: #M13
           map
-            foo=: #M11
+            foo=: #M12
             index: #M8
           implemented
-            foo=: #M11
+            foo=: #M12
             index: #M8
           superImplemented
             [0]
@@ -18233,7 +18386,7 @@ enum A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M10
+    actualId: #M11
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -18247,6 +18400,7 @@ enum A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M10
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -18255,11 +18409,11 @@ enum A {
         instances
           A
             requestedDeclaredFields
-              foo: #M10
+              foo: #M11
         interfaces
           A
             methods
-              foo=: #M11
+              foo=: #M12
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -18344,6 +18498,7 @@ void f(A a) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M12
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -18378,7 +18533,7 @@ enum A {
     declaredEnums
       A: #M0
         declaredFields
-          bar: #M12
+          bar: #M13
           foo: #M2
           v: #M3
           values: #M4
@@ -18386,15 +18541,15 @@ enum A {
           v: #M5
           values: #M6
         declaredSetters
-          bar=: #M13
+          bar=: #M14
           foo=: #M8
-        interface: #M14
+        interface: #M15
           map
-            bar=: #M13
+            bar=: #M14
             foo=: #M8
             index: #M10
           implemented
-            bar=: #M13
+            bar=: #M14
             foo=: #M8
             index: #M10
           superImplemented
@@ -18477,6 +18632,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M10
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -18512,11 +18668,11 @@ enum A {
     declaredEnums
       A: #M0
         declaredFields
-          foo: #M10
+          foo: #M11
           v: #M2
           values: #M3
         declaredGetters
-          foo: #M11
+          foo: #M12
           v: #M5
           values: #M6
         interface: #M7
@@ -18539,7 +18695,7 @@ enum A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M10
+    actualId: #M11
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -18553,6 +18709,7 @@ enum A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M10
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -18561,9 +18718,9 @@ enum A {
         instances
           A
             requestedDeclaredFields
-              foo: #M10
-            requestedDeclaredGetters
               foo: #M11
+            requestedDeclaredGetters
+              foo: #M12
         interfaces
           A
             requestedConstructors
@@ -18640,6 +18797,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M12
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -18676,12 +18834,12 @@ enum A {
     declaredEnums
       A: #M0
         declaredFields
-          bar: #M12
+          bar: #M13
           foo: #M2
           v: #M3
           values: #M4
         declaredGetters
-          bar: #M13
+          bar: #M14
           foo: #M6
           v: #M7
           values: #M8
@@ -18770,6 +18928,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M9
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -18811,7 +18970,7 @@ enum A {
           v: #M3
           values: #M4
         declaredMethods
-          foo: #M9
+          foo: #M10
         interface: #M6
           map
             index: #M7
@@ -18832,7 +18991,7 @@ enum A {
     interfaceName: A
     methodName: foo
     expectedId: #M5
-    actualId: #M9
+    actualId: #M10
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -18846,6 +19005,7 @@ enum A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M9
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -18856,7 +19016,7 @@ enum A {
             requestedDeclaredGetters
               foo: <null>
             requestedDeclaredMethods
-              foo: #M9
+              foo: #M10
         interfaces
           A
             requestedConstructors
@@ -18932,6 +19092,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M10
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -18974,7 +19135,7 @@ enum A {
           v: #M3
           values: #M4
         declaredMethods
-          bar: #M10
+          bar: #M11
           foo: #M6
         interface: #M7
           map
@@ -19062,6 +19223,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M10
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -19093,14 +19255,14 @@ enum A {
     declaredEnums
       A: #M0
         declaredFields
-          foo: #M10
+          foo: #M11
           v: #M2
           values: #M3
         declaredGetters
           v: #M4
           values: #M5
         declaredSetters
-          foo=: #M11
+          foo=: #M12
         interface: #M7
           map
             index: #M8
@@ -19121,7 +19283,7 @@ enum A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M10
+    actualId: #M11
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -19135,6 +19297,7 @@ enum A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M10
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -19143,9 +19306,9 @@ enum A {
         instances
           A
             requestedDeclaredFields
-              foo: #M10
+              foo: #M11
             requestedDeclaredSetters
-              foo=: #M11
+              foo=: #M12
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -19219,6 +19382,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M12
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -19251,7 +19415,7 @@ enum A {
     declaredEnums
       A: #M0
         declaredFields
-          bar: #M12
+          bar: #M13
           foo: #M2
           v: #M3
           values: #M4
@@ -19259,7 +19423,7 @@ enum A {
           v: #M5
           values: #M6
         declaredSetters
-          bar=: #M13
+          bar=: #M14
           foo=: #M8
         interface: #M9
           map
@@ -22617,6 +22781,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M1
         exportedExtensions: #M0
 [status] idle
 [future] getErrors T1
@@ -22637,8 +22802,8 @@ extension E2 on Object {}
   package:test/a.dart
     declaredExtensions
       E1: #M0
-      E2: #M1
-    exportedExtensions: #M0 #M1
+      E2: #M2
+    exportedExtensions: #M0 #M2
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -22647,7 +22812,7 @@ extension E2 on Object {}
   exportedExtensionsMismatch
     libraryUri: package:test/a.dart
     expectedIds: #M0
-    actualIds: #M0 #M1
+    actualIds: #M0 #M2
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -22663,7 +22828,8 @@ extension E2 on Object {}
   requirements
     libraries
       package:test/a.dart
-        exportedExtensions: #M0 #M1
+        libraryMetadataId: #M1
+        exportedExtensions: #M0 #M2
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -22716,6 +22882,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M1
         exportedExtensions: #M0
 [status] idle
 [future] getErrors T1
@@ -22736,7 +22903,7 @@ extension _E on Object {}
   package:test/a.dart
     declaredExtensions
       E: #M0
-      _E: #M1
+      _E: #M2
     exportedExtensions: #M0
   requirements
 [operation] reuseLinkedBundle
@@ -22798,6 +22965,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M2
         exportedExtensions: #M0 #M1
 [status] idle
 [future] getErrors T1
@@ -22842,6 +23010,7 @@ extension E1 on Object {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M2
         exportedExtensions: #M0
 [status] idle
 [future] getErrors T2
@@ -22906,6 +23075,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         instances
           E
             requestedDeclaredFields
@@ -22938,10 +23108,10 @@ extension E on Object {
     declaredExtensions
       E: #M0
         declaredFields
-          bar: #M7
+          bar: #M8
           foo: #M2
         declaredGetters
-          bar: #M8
+          bar: #M9
           foo: #M4
         declaredSetters
           foo=: #M5
@@ -23010,6 +23180,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         instances
           E
             requestedDeclaredFields
@@ -23041,9 +23212,9 @@ extension E on Object {
     declaredExtensions
       E: #M0
         declaredFields
-          foo: #M5
-        declaredGetters
           foo: #M6
+        declaredGetters
+          foo: #M7
         declaredSetters
           foo=: #M3
     exportedExtensions: #M0
@@ -23057,7 +23228,7 @@ extension E on Object {
     interfaceName: E
     fieldName: foo
     expectedId: #M1
-    actualId: #M5
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -23071,12 +23242,13 @@ extension E on Object {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         instances
           E
             requestedDeclaredFields
-              foo: #M5
-            requestedDeclaredGetters
               foo: #M6
+            requestedDeclaredGetters
+              foo: #M7
             requestedDeclaredSetters
               foo=: #M3
             requestedDeclaredMethods
@@ -23158,6 +23330,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           Object: <null>
           Object=: <null>
@@ -23185,9 +23358,9 @@ extension A on Object {
     declaredExtensions
       A: #M0
         declaredFields
-          _foo: #M7
-        declaredGetters
           _foo: #M8
+        declaredGetters
+          _foo: #M9
     exportedExtensions: #M0
   requirements
 [operation] reuseLinkedBundle
@@ -23256,6 +23429,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         instances
           E1
             requestedDeclaredFields
@@ -23293,7 +23467,7 @@ extension E2 on Object {
           foo: #M1
       E2: #M2
         declaredMethods
-          bar: #M5
+          bar: #M6
     exportedExtensions: #M0 #M2
   requirements
 [operation] reuseLinkedBundle
@@ -23360,6 +23534,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         instances
           E1
             requestedDeclaredFields
@@ -23394,7 +23569,7 @@ extension E2 on Object {
     declaredExtensions
       E1: #M0
         declaredMethods
-          foo: #M5
+          foo: #M6
       E2: #M2
         declaredMethods
           bar: #M3
@@ -23409,7 +23584,7 @@ extension E2 on Object {
     interfaceName: E1
     methodName: foo
     expectedId: #M1
-    actualId: #M5
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -23423,12 +23598,13 @@ extension E2 on Object {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         instances
           E1
             requestedDeclaredFields
               foo: <null>
             requestedDeclaredMethods
-              foo: #M5
+              foo: #M6
           E2
             requestedDeclaredFields
               foo: <null>
@@ -23489,6 +23665,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         instances
           E
             requestedDeclaredFields
@@ -23515,7 +23692,7 @@ extension E on Object {
     declaredExtensions
       E: #M0
         declaredMethods
-          foo: #M3
+          foo: #M4
     exportedExtensions: #M0
   requirements
 [operation] reuseLinkedBundle
@@ -23527,7 +23704,7 @@ extension E on Object {
     interfaceName: E
     methodName: foo
     expectedId: #M1
-    actualId: #M3
+    actualId: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -23541,12 +23718,13 @@ extension E on Object {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         instances
           E
             requestedDeclaredFields
               foo: <null>
             requestedDeclaredMethods
-              foo: #M3
+              foo: #M4
         exportedExtensions: #M0
 [status] idle
 [future] getErrors T2
@@ -23606,6 +23784,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         instances
           E
             requestedDeclaredFields
@@ -23641,7 +23820,7 @@ extension E on Object {
         declaredGetters
           foo: #M2
         declaredSetters
-          foo=: #M5
+          foo=: #M6
     exportedExtensions: #M0
   requirements
 [operation] reuseLinkedBundle
@@ -23653,7 +23832,7 @@ extension E on Object {
     interfaceName: E
     methodName: foo=
     expectedId: #M3
-    actualId: #M5
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -23667,6 +23846,7 @@ extension E on Object {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         instances
           E
             requestedDeclaredFields
@@ -23674,7 +23854,7 @@ extension E on Object {
             requestedDeclaredGetters
               foo: #M2
             requestedDeclaredSetters
-              foo=: #M5
+              foo=: #M6
             requestedDeclaredMethods
               foo: <null>
         exportedExtensions: #M0
@@ -23731,6 +23911,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         instances
           E1
             requestedDeclaredFields
@@ -23761,10 +23942,10 @@ extension E2 on int {
       E1: #M0
         declaredMethods
           foo: #M1
-      E2: #M3
+      E2: #M4
         declaredMethods
-          bar: #M4
-    exportedExtensions: #M0 #M3
+          bar: #M5
+    exportedExtensions: #M0 #M4
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -23773,7 +23954,7 @@ extension E2 on int {
   exportedExtensionsMismatch
     libraryUri: package:test/a.dart
     expectedIds: #M0
-    actualIds: #M0 #M3
+    actualIds: #M0 #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -23787,6 +23968,7 @@ extension E2 on int {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         instances
           E1
             requestedDeclaredFields
@@ -23798,7 +23980,7 @@ extension E2 on int {
               foo: <null>
             requestedDeclaredMethods
               foo: <null>
-        exportedExtensions: #M0 #M3
+        exportedExtensions: #M0 #M4
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -23852,6 +24034,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         instances
           E1
             requestedDeclaredFields
@@ -23879,7 +24062,7 @@ extension E1 on Object {
     declaredExtensions
       E1: #M0
         declaredMethods
-          _bar: #M3
+          _bar: #M4
           foo: #M1
     exportedExtensions: #M0
   requirements
@@ -23941,6 +24124,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         instances
           E1
             requestedDeclaredFields
@@ -23971,10 +24155,10 @@ extension E2 on int {
       E1: #M0
         declaredMethods
           foo: #M1
-      E2: #M3
+      E2: #M4
         declaredMethods
-          foo: #M4
-    exportedExtensions: #M0 #M3
+          foo: #M5
+    exportedExtensions: #M0 #M4
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -23983,7 +24167,7 @@ extension E2 on int {
   exportedExtensionsMismatch
     libraryUri: package:test/a.dart
     expectedIds: #M0
-    actualIds: #M0 #M3
+    actualIds: #M0 #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -23997,6 +24181,7 @@ extension E2 on int {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         instances
           E1
             requestedDeclaredFields
@@ -24007,8 +24192,8 @@ extension E2 on int {
             requestedDeclaredFields
               foo: <null>
             requestedDeclaredMethods
-              foo: #M4
-        exportedExtensions: #M0 #M3
+              foo: #M5
+        exportedExtensions: #M0 #M4
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -24061,6 +24246,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M2
         instances
           E
             requestedDeclaredFields
@@ -24090,7 +24276,7 @@ extension E on Object {
     declaredExtensions
       E: #M0
         declaredMethods
-          foo: #M2
+          foo: #M3
     exportedExtensions: #M0
   requirements
 [operation] reuseLinkedBundle
@@ -24102,7 +24288,7 @@ extension E on Object {
     interfaceName: E
     methodName: foo
     expectedId: <null>
-    actualId: #M2
+    actualId: #M3
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -24116,12 +24302,13 @@ extension E on Object {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M2
         instances
           E
             requestedDeclaredFields
               foo: <null>
             requestedDeclaredMethods
-              foo: #M2
+              foo: #M3
         exportedExtensions: #M0
 [status] idle
 [future] getErrors T2
@@ -24182,6 +24369,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         instances
           E1
             requestedDeclaredFields
@@ -24236,6 +24424,7 @@ extension E1 on Object {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         instances
           E1
             requestedDeclaredFields
@@ -24302,6 +24491,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         instances
           E1
             requestedDeclaredFields
@@ -24356,6 +24546,7 @@ extension E1 on Object {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         instances
           E1
             requestedDeclaredFields
@@ -24422,6 +24613,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         instances
           E1
             requestedDeclaredFields
@@ -24476,6 +24668,7 @@ extension E1 on Object {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         instances
           E1
             requestedDeclaredFields
@@ -24538,6 +24731,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         instances
           E1
             requestedDeclaredMethods
@@ -24564,7 +24758,7 @@ extension E1 on Object {
     declaredExtensions
       E1: #M0
         declaredMethods
-          []: #M4
+          []: #M5
           []=: #M2
     exportedExtensions: #M0
   requirements
@@ -24577,7 +24771,7 @@ extension E1 on Object {
     interfaceName: E1
     methodName: []
     expectedId: #M1
-    actualId: #M4
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -24591,10 +24785,11 @@ extension E1 on Object {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         instances
           E1
             requestedDeclaredMethods
-              []: #M4
+              []: #M5
               []=: #M2
         exportedExtensions: #M0
 [status] idle
@@ -24652,6 +24847,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         instances
           E1
             requestedDeclaredMethods
@@ -24678,7 +24874,7 @@ extension E1 on Object {
     declaredExtensions
       E1: #M0
         declaredMethods
-          []: #M4
+          []: #M5
           []=: #M2
     exportedExtensions: #M0
   requirements
@@ -24691,7 +24887,7 @@ extension E1 on Object {
     interfaceName: E1
     methodName: []
     expectedId: #M1
-    actualId: #M4
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -24705,10 +24901,11 @@ extension E1 on Object {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         instances
           E1
             requestedDeclaredMethods
-              []: #M4
+              []: #M5
               []=: #M2
         exportedExtensions: #M0
 [status] idle
@@ -24766,6 +24963,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         instances
           E1
             requestedDeclaredMethods
@@ -24793,7 +24991,7 @@ extension E1 on Object {
       E1: #M0
         declaredMethods
           []: #M1
-          []=: #M4
+          []=: #M5
     exportedExtensions: #M0
   requirements
 [operation] reuseLinkedBundle
@@ -24805,7 +25003,7 @@ extension E1 on Object {
     interfaceName: E1
     methodName: []=
     expectedId: #M2
-    actualId: #M4
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -24819,11 +25017,12 @@ extension E1 on Object {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         instances
           E1
             requestedDeclaredMethods
               []: #M1
-              []=: #M4
+              []=: #M5
         exportedExtensions: #M0
 [status] idle
 [future] getErrors T2
@@ -24880,6 +25079,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         instances
           E1
             requestedDeclaredMethods
@@ -24907,7 +25107,7 @@ extension E1 on Object {
       E1: #M0
         declaredMethods
           []: #M1
-          []=: #M4
+          []=: #M5
     exportedExtensions: #M0
   requirements
 [operation] reuseLinkedBundle
@@ -24919,7 +25119,7 @@ extension E1 on Object {
     interfaceName: E1
     methodName: []=
     expectedId: #M2
-    actualId: #M4
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -24933,11 +25133,12 @@ extension E1 on Object {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         instances
           E1
             requestedDeclaredMethods
               []: #M1
-              []=: #M4
+              []=: #M5
         exportedExtensions: #M0
 [status] idle
 [future] getErrors T2
@@ -24994,6 +25195,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -25024,9 +25226,9 @@ extension A on int {
     declaredExtensions
       A: #M0
         declaredFields
-          foo: #M4
-        declaredGetters
           foo: #M5
+        declaredGetters
+          foo: #M6
     exportedExtensions: #M0
   requirements
 [operation] reuseLinkedBundle
@@ -25038,7 +25240,7 @@ extension A on int {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M4
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -25052,6 +25254,7 @@ extension A on int {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -25060,9 +25263,9 @@ extension A on int {
         instances
           A
             requestedDeclaredFields
-              foo: #M4
-            requestedDeclaredGetters
               foo: #M5
+            requestedDeclaredGetters
+              foo: #M6
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -25121,6 +25324,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M6
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -25152,10 +25356,10 @@ extension A on int {
     declaredExtensions
       A: #M0
         declaredFields
-          bar: #M6
+          bar: #M7
           foo: #M2
         declaredGetters
-          bar: #M7
+          bar: #M8
           foo: #M4
     exportedExtensions: #M0
   requirements
@@ -25217,6 +25421,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -25247,7 +25452,7 @@ extension A on int {
     declaredExtensions
       A: #M0
         declaredMethods
-          foo: #M3
+          foo: #M4
     exportedExtensions: #M0
   requirements
 [operation] reuseLinkedBundle
@@ -25259,7 +25464,7 @@ extension A on int {
     interfaceName: A
     methodName: foo
     expectedId: #M1
-    actualId: #M3
+    actualId: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -25273,6 +25478,7 @@ extension A on int {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -25283,7 +25489,7 @@ extension A on int {
             requestedDeclaredGetters
               foo: <null>
             requestedDeclaredMethods
-              foo: #M3
+              foo: #M4
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -25339,6 +25545,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -25370,7 +25577,7 @@ extension A on int {
     declaredExtensions
       A: #M0
         declaredMethods
-          bar: #M4
+          bar: #M5
           foo: #M2
     exportedExtensions: #M0
   requirements
@@ -25434,6 +25641,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -25464,9 +25672,9 @@ extension A on int {
     declaredExtensions
       A: #M0
         declaredFields
-          foo: #M4
+          foo: #M5
         declaredSetters
-          foo=: #M5
+          foo=: #M6
     exportedExtensions: #M0
   requirements
 [operation] reuseLinkedBundle
@@ -25478,7 +25686,7 @@ extension A on int {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M4
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -25492,6 +25700,7 @@ extension A on int {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -25500,9 +25709,9 @@ extension A on int {
         instances
           A
             requestedDeclaredFields
-              foo: #M4
+              foo: #M5
             requestedDeclaredSetters
-              foo=: #M5
+              foo=: #M6
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -25561,6 +25770,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M6
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -25592,10 +25802,10 @@ extension A on int {
     declaredExtensions
       A: #M0
         declaredFields
-          bar: #M6
+          bar: #M7
           foo: #M2
         declaredSetters
-          bar=: #M7
+          bar=: #M8
           foo=: #M4
     exportedExtensions: #M0
   requirements
@@ -25674,6 +25884,7 @@ void f(A a) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -25706,17 +25917,17 @@ extension type A(int it) {
     declaredExtensionTypes
       A: #M0
         declaredFields
-          foo: #M7
+          foo: #M8
           it: #M2
         declaredGetters
-          foo: #M8
+          foo: #M9
           it: #M4
-        interface: #M9
+        interface: #M10
           map
-            foo: #M8
+            foo: #M9
             it: #M4
           implemented
-            foo: #M8
+            foo: #M9
             it: #M4
   requirements
 [operation] reuseLinkedBundle
@@ -25728,7 +25939,7 @@ extension type A(int it) {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M7
+    actualId: #M8
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -25742,6 +25953,7 @@ extension type A(int it) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -25750,11 +25962,11 @@ extension type A(int it) {
         instances
           A
             requestedDeclaredFields
-              foo: #M7
+              foo: #M8
         interfaces
           A
             methods
-              foo: #M8
+              foo: #M9
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -25830,6 +26042,7 @@ void f(A a) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M9
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -25863,20 +26076,20 @@ extension type A(int it) {
     declaredExtensionTypes
       A: #M0
         declaredFields
-          bar: #M9
+          bar: #M10
           foo: #M2
           it: #M3
         declaredGetters
-          bar: #M10
+          bar: #M11
           foo: #M5
           it: #M6
-        interface: #M11
+        interface: #M12
           map
-            bar: #M10
+            bar: #M11
             foo: #M5
             it: #M6
           implemented
-            bar: #M10
+            bar: #M11
             foo: #M5
             it: #M6
   requirements
@@ -25955,6 +26168,7 @@ void f(A a) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M6
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -25987,13 +26201,13 @@ extension type A(int it) {
         declaredGetters
           it: #M2
         declaredMethods
-          foo: #M6
-        interface: #M7
+          foo: #M7
+        interface: #M8
           map
-            foo: #M6
+            foo: #M7
             it: #M2
           implemented
-            foo: #M6
+            foo: #M7
             it: #M2
   requirements
 [operation] reuseLinkedBundle
@@ -26005,7 +26219,7 @@ extension type A(int it) {
     interfaceName: A
     methodName: foo
     expectedId: #M3
-    actualId: #M6
+    actualId: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -26019,6 +26233,7 @@ extension type A(int it) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M6
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -26027,7 +26242,7 @@ extension type A(int it) {
         interfaces
           A
             methods
-              foo: #M6
+              foo: #M7
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -26102,6 +26317,7 @@ void f(A a) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -26135,15 +26351,15 @@ extension type A(int it) {
         declaredGetters
           it: #M2
         declaredMethods
-          bar: #M7
+          bar: #M8
           foo: #M4
-        interface: #M8
+        interface: #M9
           map
-            bar: #M7
+            bar: #M8
             foo: #M4
             it: #M2
           implemented
-            bar: #M7
+            bar: #M8
             foo: #M4
             it: #M2
   requirements
@@ -26223,6 +26439,7 @@ void f(A a) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -26255,18 +26472,18 @@ extension type A(int it) {
     declaredExtensionTypes
       A: #M0
         declaredFields
-          foo: #M7
+          foo: #M8
           it: #M2
         declaredGetters
           it: #M3
         declaredSetters
-          foo=: #M8
-        interface: #M9
+          foo=: #M9
+        interface: #M10
           map
-            foo=: #M8
+            foo=: #M9
             it: #M3
           implemented
-            foo=: #M8
+            foo=: #M9
             it: #M3
   requirements
 [operation] reuseLinkedBundle
@@ -26278,7 +26495,7 @@ extension type A(int it) {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M7
+    actualId: #M8
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -26292,6 +26509,7 @@ extension type A(int it) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -26300,11 +26518,11 @@ extension type A(int it) {
         instances
           A
             requestedDeclaredFields
-              foo: #M7
+              foo: #M8
         interfaces
           A
             methods
-              foo=: #M8
+              foo=: #M9
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -26381,6 +26599,7 @@ void f(A a) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M9
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -26414,21 +26633,21 @@ extension type A(int it) {
     declaredExtensionTypes
       A: #M0
         declaredFields
-          bar: #M9
+          bar: #M10
           foo: #M2
           it: #M3
         declaredGetters
           it: #M4
         declaredSetters
-          bar=: #M10
+          bar=: #M11
           foo=: #M6
-        interface: #M11
+        interface: #M12
           map
-            bar=: #M10
+            bar=: #M11
             foo=: #M6
             it: #M4
           implemented
-            bar=: #M10
+            bar=: #M11
             foo=: #M6
             it: #M4
   requirements
@@ -26503,6 +26722,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M6
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -26536,7 +26756,7 @@ extension type A(int it) {
         declaredGetters
           it: #M2
         declaredConstructors
-          named: #M6
+          named: #M7
           new: #M4
         interface: #M5
           map
@@ -26553,7 +26773,7 @@ extension type A(int it) {
     interfaceName: A
     childrenPropertyName: constructors
     expectedIds: #M4 #M3
-    actualIds: #M4 #M6
+    actualIds: #M4 #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -26569,6 +26789,7 @@ extension type A(int it) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M6
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -26576,7 +26797,7 @@ extension type A(int it) {
           A: false
         interfaces
           A
-            allConstructors: #M4 #M6
+            allConstructors: #M4 #M7
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -26642,6 +26863,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -26674,7 +26896,7 @@ extension type A(int it) {
         declaredGetters
           it: #M2
         declaredConstructors
-          named: #M7
+          named: #M8
           new: #M4
         interface: #M5
           map
@@ -26691,7 +26913,7 @@ extension type A(int it) {
     interfaceName: A
     constructorName: named
     expectedId: #M3
-    actualId: #M7
+    actualId: #M8
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -26705,6 +26927,7 @@ extension type A(int it) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -26713,7 +26936,7 @@ extension type A(int it) {
         interfaces
           A
             requestedConstructors
-              named: #M7
+              named: #M8
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -26777,6 +27000,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -26809,7 +27033,7 @@ extension type A(int it) {
         declaredGetters
           it: #M2
         declaredConstructors
-          named: #M7
+          named: #M8
           new: #M4
         interface: #M5
           map
@@ -26883,6 +27107,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -26917,10 +27142,10 @@ extension type A(int it) {
     declaredExtensionTypes
       A: #M0
         declaredFields
-          foo: #M7
+          foo: #M8
           it: #M2
         declaredGetters
-          foo: #M8
+          foo: #M9
           it: #M4
         interface: #M5
           map
@@ -26937,7 +27162,7 @@ extension type A(int it) {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M7
+    actualId: #M8
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -26951,6 +27176,7 @@ extension type A(int it) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -26959,9 +27185,9 @@ extension type A(int it) {
         instances
           A
             requestedDeclaredFields
-              foo: #M7
-            requestedDeclaredGetters
               foo: #M8
+            requestedDeclaredGetters
+              foo: #M9
         interfaces
           A
             requestedConstructors
@@ -27030,6 +27256,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M9
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -27065,11 +27292,11 @@ extension type A(int it) {
     declaredExtensionTypes
       A: #M0
         declaredFields
-          bar: #M9
+          bar: #M10
           foo: #M2
           it: #M3
         declaredGetters
-          bar: #M10
+          bar: #M11
           foo: #M5
           it: #M6
         interface: #M7
@@ -27144,6 +27371,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M6
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -27182,7 +27410,7 @@ extension type A(int it) {
         declaredGetters
           it: #M2
         declaredMethods
-          foo: #M6
+          foo: #M7
         interface: #M4
           map
             it: #M2
@@ -27198,7 +27426,7 @@ extension type A(int it) {
     interfaceName: A
     methodName: foo
     expectedId: #M3
-    actualId: #M6
+    actualId: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -27212,6 +27440,7 @@ extension type A(int it) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M6
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -27222,7 +27451,7 @@ extension type A(int it) {
             requestedDeclaredGetters
               foo: <null>
             requestedDeclaredMethods
-              foo: #M6
+              foo: #M7
         interfaces
           A
             requestedConstructors
@@ -27290,6 +27519,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -27329,7 +27559,7 @@ extension type A(int it) {
         declaredGetters
           it: #M2
         declaredMethods
-          bar: #M7
+          bar: #M8
           foo: #M4
         interface: #M5
           map
@@ -27404,6 +27634,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -27434,12 +27665,12 @@ extension type A(int it) {
     declaredExtensionTypes
       A: #M0
         declaredFields
-          foo: #M7
+          foo: #M8
           it: #M2
         declaredGetters
           it: #M3
         declaredSetters
-          foo=: #M8
+          foo=: #M9
         interface: #M5
           map
             it: #M3
@@ -27455,7 +27686,7 @@ extension type A(int it) {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M7
+    actualId: #M8
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -27469,6 +27700,7 @@ extension type A(int it) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -27477,9 +27709,9 @@ extension type A(int it) {
         instances
           A
             requestedDeclaredFields
-              foo: #M7
+              foo: #M8
             requestedDeclaredSetters
-              foo=: #M8
+              foo=: #M9
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -27545,6 +27777,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M9
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -27576,13 +27809,13 @@ extension type A(int it) {
     declaredExtensionTypes
       A: #M0
         declaredFields
-          bar: #M9
+          bar: #M10
           foo: #M2
           it: #M3
         declaredGetters
           it: #M4
         declaredSetters
-          bar=: #M10
+          bar=: #M11
           foo=: #M6
         interface: #M7
           map
@@ -27661,6 +27894,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M6
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -27688,19 +27922,19 @@ extension type A(double it) {
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensionTypes
-      A: #M6
+      A: #M7
         declaredFields
-          it: #M7
-        declaredGetters
           it: #M8
+        declaredGetters
+          it: #M9
         declaredConstructors
-          named: #M9
-          new: #M10
-        interface: #M11
+          named: #M10
+          new: #M11
+        interface: #M12
           map
-            it: #M8
+            it: #M9
           implemented
-            it: #M8
+            it: #M9
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -27710,7 +27944,7 @@ extension type A(double it) {
     libraryUri: package:test/a.dart
     name: A
     expectedId: #M0
-    actualId: #M6
+    actualId: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -27726,14 +27960,15 @@ extension type A(double it) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M6
         exportedTopLevels
-          A: #M6
+          A: #M7
           A=: <null>
         reExportDeprecatedOnly
           A: false
         interfaces
           A
-            allConstructors: #M10 #M9
+            allConstructors: #M11 #M10
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -27796,6 +28031,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M6
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -27820,18 +28056,18 @@ extension type A(double it) {}
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensionTypes
-      A: #M6
+      A: #M7
         declaredFields
-          it: #M7
-        declaredGetters
           it: #M8
+        declaredGetters
+          it: #M9
         declaredConstructors
-          new: #M9
-        interface: #M10
+          new: #M10
+        interface: #M11
           map
-            it: #M8
+            it: #M9
           implemented
-            it: #M8
+            it: #M9
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -27841,7 +28077,7 @@ extension type A(double it) {}
     libraryUri: package:test/a.dart
     name: A
     expectedId: #M0
-    actualId: #M6
+    actualId: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -27855,15 +28091,16 @@ extension type A(double it) {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M6
         exportedTopLevels
-          A: #M6
+          A: #M7
           A=: <null>
         reExportDeprecatedOnly
           A: false
         interfaces
           A
             requestedConstructors
-              new: #M9
+              new: #M10
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -27927,6 +28164,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -27953,19 +28191,19 @@ extension type A(double it) {
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensionTypes
-      A: #M7
+      A: #M8
         declaredFields
-          it: #M8
-        declaredGetters
           it: #M9
+        declaredGetters
+          it: #M10
         declaredConstructors
-          named: #M10
-          new: #M11
-        interface: #M12
+          named: #M11
+          new: #M12
+        interface: #M13
           map
-            it: #M9
+            it: #M10
           implemented
-            it: #M9
+            it: #M10
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -27975,7 +28213,7 @@ extension type A(double it) {
     libraryUri: package:test/a.dart
     name: A
     expectedId: #M0
-    actualId: #M7
+    actualId: #M8
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -27989,15 +28227,16 @@ extension type A(double it) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
-          A: #M7
+          A: #M8
           A=: <null>
         reExportDeprecatedOnly
           A: false
         interfaces
           A
             requestedConstructors
-              named: #M10
+              named: #M11
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -28066,6 +28305,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -28114,6 +28354,7 @@ export 'x.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -28191,6 +28432,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -28243,6 +28485,7 @@ export 'x.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -28323,11 +28566,14 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           foo: <null>
           foo=: #M0
         reExportDeprecatedOnly
           foo=: false
+      package:test/x.dart
+        libraryMetadataId: #M4
 [status] idle
 [future] getErrors T1
   ErrorsResult #0
@@ -28371,11 +28617,14 @@ export 'x.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           foo: <null>
           foo=: #M0
         reExportDeprecatedOnly
           foo=: true
+      package:test/x.dart
+        libraryMetadataId: #M4
 [status] idle
 [future] getErrors T2
   ErrorsResult #1
@@ -28455,11 +28704,14 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           foo: <null>
           foo=: #M0
         reExportDeprecatedOnly
           foo=: true
+      package:test/x.dart
+        libraryMetadataId: #M4
 [status] idle
 [future] getErrors T1
   ErrorsResult #0
@@ -28507,11 +28759,14 @@ export 'x.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           foo: <null>
           foo=: #M0
         reExportDeprecatedOnly
           foo=: false
+      package:test/x.dart
+        libraryMetadataId: #M4
 [status] idle
 [future] getErrors T2
   ErrorsResult #1
@@ -28580,6 +28835,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -28618,6 +28874,7 @@ library;
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: <null>
           A=: <null>
@@ -28674,6 +28931,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         allDeclaredClasses: #M0 #M2
 [status] idle
 ''',
@@ -28688,8 +28946,8 @@ class C {}
     declaredClasses
       A: #M0
         interface: #M1
-      C: #M4
-        interface: #M5
+      C: #M5
+        interface: #M6
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -28699,7 +28957,7 @@ class C {}
     libraryUri: package:test/a.dart
     childrenPropertyName: classes
     expectedIds: #M0 #M2
-    actualIds: #M0 #M4
+    actualIds: #M0 #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -28708,7 +28966,8 @@ class C {}
   requirements
     libraries
       package:test/a.dart
-        allDeclaredClasses: #M0 #M4
+        libraryMetadataId: #M4
+        allDeclaredClasses: #M0 #M5
 [status] idle
 ''',
     );
@@ -28785,6 +29044,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M13
         allDeclaredEnums: #M0 #M7
 [status] idle
 ''',
@@ -28814,14 +29074,14 @@ enum C { c }
               index: #M6
           inherited
             index: #M6
-      C: #M13
+      C: #M14
         declaredFields
-          c: #M14
-          values: #M15
+          c: #M15
+          values: #M16
         declaredGetters
-          c: #M16
-          values: #M17
-        interface: #M18
+          c: #M17
+          values: #M18
+        interface: #M19
           map
             index: #M6
           implemented
@@ -28840,7 +29100,7 @@ enum C { c }
     libraryUri: package:test/a.dart
     childrenPropertyName: enums
     expectedIds: #M0 #M7
-    actualIds: #M0 #M13
+    actualIds: #M0 #M14
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -28849,7 +29109,8 @@ enum C { c }
   requirements
     libraries
       package:test/a.dart
-        allDeclaredEnums: #M0 #M13
+        libraryMetadataId: #M13
+        allDeclaredEnums: #M0 #M14
 [status] idle
 ''',
     );
@@ -28895,6 +29156,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M2
         allDeclaredExtensions: #M0 #M1
 [status] idle
 ''',
@@ -28908,8 +29170,8 @@ extension C on int {}
   package:test/a.dart
     declaredExtensions
       A: #M0
-      C: #M2
-    exportedExtensions: #M0 #M2
+      C: #M3
+    exportedExtensions: #M0 #M3
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -28919,7 +29181,7 @@ extension C on int {}
     libraryUri: package:test/a.dart
     childrenPropertyName: extensions
     expectedIds: #M0 #M1
-    actualIds: #M0 #M2
+    actualIds: #M0 #M3
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -28928,7 +29190,8 @@ extension C on int {}
   requirements
     libraries
       package:test/a.dart
-        allDeclaredExtensions: #M0 #M2
+        libraryMetadataId: #M2
+        allDeclaredExtensions: #M0 #M3
 [status] idle
 ''',
     );
@@ -28991,6 +29254,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M8
         allDeclaredExtensionTypes: #M0 #M4
 [status] idle
 ''',
@@ -29013,16 +29277,16 @@ extension type C(int it) {}
             it: #M2
           implemented
             it: #M2
-      C: #M8
+      C: #M9
         declaredFields
-          it: #M9
-        declaredGetters
           it: #M10
-        interface: #M11
+        declaredGetters
+          it: #M11
+        interface: #M12
           map
-            it: #M10
+            it: #M11
           implemented
-            it: #M10
+            it: #M11
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -29032,7 +29296,7 @@ extension type C(int it) {}
     libraryUri: package:test/a.dart
     childrenPropertyName: extensionTypes
     expectedIds: #M0 #M4
-    actualIds: #M0 #M8
+    actualIds: #M0 #M9
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -29041,7 +29305,8 @@ extension type C(int it) {}
   requirements
     libraries
       package:test/a.dart
-        allDeclaredExtensionTypes: #M0 #M8
+        libraryMetadataId: #M8
+        allDeclaredExtensionTypes: #M0 #M9
 [status] idle
 ''',
     );
@@ -29089,6 +29354,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         allDeclaredGetters: #M1 #M0
 [status] idle
 ''',
@@ -29101,10 +29367,10 @@ int get baz => 1;
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
-      baz: #M4
+      baz: #M5
       foo: #M1
     declaredVariables
-      baz: #M5
+      baz: #M6
       foo: #M3
   requirements
 [operation] reuseLinkedBundle
@@ -29115,7 +29381,7 @@ int get baz => 1;
     libraryUri: package:test/a.dart
     childrenPropertyName: getters
     expectedIds: #M1 #M0
-    actualIds: #M1 #M4
+    actualIds: #M1 #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -29124,7 +29390,8 @@ int get baz => 1;
   requirements
     libraries
       package:test/a.dart
-        allDeclaredGetters: #M1 #M4
+        libraryMetadataId: #M4
+        allDeclaredGetters: #M1 #M5
 [status] idle
 ''',
     );
@@ -29171,6 +29438,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         allDeclaredMixins: #M0 #M2
 [status] idle
 ''',
@@ -29185,8 +29453,8 @@ mixin C {}
     declaredMixins
       A: #M0
         interface: #M1
-      C: #M4
-        interface: #M5
+      C: #M5
+        interface: #M6
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -29196,7 +29464,7 @@ mixin C {}
     libraryUri: package:test/a.dart
     childrenPropertyName: mixins
     expectedIds: #M0 #M2
-    actualIds: #M0 #M4
+    actualIds: #M0 #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -29205,7 +29473,8 @@ mixin C {}
   requirements
     libraries
       package:test/a.dart
-        allDeclaredMixins: #M0 #M4
+        libraryMetadataId: #M4
+        allDeclaredMixins: #M0 #M5
 [status] idle
 ''',
     );
@@ -29253,6 +29522,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         allDeclaredSetters: #M1 #M0
 [status] idle
 ''',
@@ -29265,10 +29535,10 @@ set baz(int _) {}
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredSetters
-      baz=: #M4
+      baz=: #M5
       foo=: #M1
     declaredVariables
-      baz: #M5
+      baz: #M6
       foo: #M3
   requirements
 [operation] reuseLinkedBundle
@@ -29279,7 +29549,7 @@ set baz(int _) {}
     libraryUri: package:test/a.dart
     childrenPropertyName: setters
     expectedIds: #M1 #M0
-    actualIds: #M1 #M4
+    actualIds: #M1 #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -29288,7 +29558,8 @@ set baz(int _) {}
   requirements
     libraries
       package:test/a.dart
-        allDeclaredSetters: #M1 #M4
+        libraryMetadataId: #M4
+        allDeclaredSetters: #M1 #M5
 [status] idle
 ''',
     );
@@ -29333,6 +29604,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M2
         allDeclaredFunctions: #M1 #M0
 [status] idle
 ''',
@@ -29345,7 +29617,7 @@ void baz() {}
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredFunctions
-      baz: #M2
+      baz: #M3
       foo: #M1
   requirements
 [operation] reuseLinkedBundle
@@ -29356,7 +29628,7 @@ void baz() {}
     libraryUri: package:test/a.dart
     childrenPropertyName: topLevelFunctions
     expectedIds: #M1 #M0
-    actualIds: #M1 #M2
+    actualIds: #M1 #M3
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -29365,7 +29637,8 @@ void baz() {}
   requirements
     libraries
       package:test/a.dart
-        allDeclaredFunctions: #M1 #M2
+        libraryMetadataId: #M2
+        allDeclaredFunctions: #M1 #M3
 [status] idle
 ''',
     );
@@ -29416,6 +29689,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M6
         allDeclaredVariables: #M5 #M4
 [status] idle
 ''',
@@ -29428,13 +29702,13 @@ var baz = 1;
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
-      baz: #M6
+      baz: #M7
       foo: #M1
     declaredSetters
-      baz=: #M7
+      baz=: #M8
       foo=: #M3
     declaredVariables
-      baz: #M8
+      baz: #M9
       foo: #M5
   requirements
 [operation] reuseLinkedBundle
@@ -29445,7 +29719,7 @@ var baz = 1;
     libraryUri: package:test/a.dart
     childrenPropertyName: topLevelVariables
     expectedIds: #M5 #M4
-    actualIds: #M5 #M8
+    actualIds: #M5 #M9
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -29454,7 +29728,8 @@ var baz = 1;
   requirements
     libraries
       package:test/a.dart
-        allDeclaredVariables: #M5 #M8
+        libraryMetadataId: #M6
+        allDeclaredVariables: #M5 #M9
 [status] idle
 ''',
     );
@@ -29499,6 +29774,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M2
         allDeclaredTypeAliases: #M0 #M1
 [status] idle
 ''',
@@ -29512,7 +29788,7 @@ typedef C = int;
   package:test/a.dart
     declaredTypeAliases
       A: #M0
-      C: #M2
+      C: #M3
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -29522,7 +29798,7 @@ typedef C = int;
     libraryUri: package:test/a.dart
     childrenPropertyName: typeAliases
     expectedIds: #M0 #M1
-    actualIds: #M0 #M2
+    actualIds: #M0 #M3
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -29531,7 +29807,8 @@ typedef C = int;
   requirements
     libraries
       package:test/a.dart
-        allDeclaredTypeAliases: #M0 #M2
+        libraryMetadataId: #M2
+        allDeclaredTypeAliases: #M0 #M3
 [status] idle
 ''',
     );
@@ -29574,6 +29851,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M1
         exportedTopLevels
           main: #M0
 [status] idle
@@ -29587,7 +29865,7 @@ void main() {}
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredFunctions
-      main: #M1
+      main: #M2
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -29597,7 +29875,7 @@ void main() {}
     libraryUri: package:test/a.dart
     name: main
     expectedId: #M0
-    actualId: #M1
+    actualId: #M2
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -29606,8 +29884,9 @@ void main() {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M1
         exportedTopLevels
-          main: #M1
+          main: #M2
 [status] idle
 ''',
     );
@@ -29658,6 +29937,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M1
         exportedLibraryUris: dart:math
 [status] idle
 ''',
@@ -29672,7 +29952,7 @@ export 'dart:math' show min;
 [operation] linkLibraryCycle
   package:test/a.dart
     reExportMap
-      exit: #M1
+      exit: #M2
       min: #M0
     exportedLibraryUris: dart:io dart:math
   requirements
@@ -29682,7 +29962,7 @@ export 'dart:math' show min;
           dart:io
             combinators
               show exit
-            exit: #M1
+            exit: #M2
           dart:math
             combinators
               show min
@@ -29703,6 +29983,7 @@ export 'dart:math' show min;
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M1
         exportedLibraryUris: dart:io dart:math
 [status] idle
 ''',
@@ -29748,6 +30029,7 @@ import 'a.dart';
     libraries
       package:test/a.dart
         featureSet: <not-null>
+        libraryMetadataId: #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -29777,6 +30059,7 @@ class A {}
     libraries
       package:test/a.dart
         featureSet: <not-null>
+        libraryMetadataId: #M2
 [status] idle
 ''',
     );
@@ -29820,6 +30103,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M2
         requestedDeclaredClasses
           A: #M0
 [status] idle
@@ -29832,8 +30116,8 @@ class B {}
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredClasses
-      B: #M2
-        interface: #M3
+      B: #M3
+        interface: #M4
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -29852,6 +30136,7 @@ class B {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M2
         requestedDeclaredClasses
           A: <null>
 [status] idle
@@ -29900,6 +30185,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         requestedDeclaredClasses
           A: #M0
 [status] idle
@@ -29915,8 +30201,8 @@ class C {}
     declaredClasses
       A: #M0
         interface: #M1
-      C: #M4
-        interface: #M5
+      C: #M5
+        interface: #M6
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -29981,6 +30267,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         requestedDeclaredEnums
           A: #M0
 [status] idle
@@ -29993,14 +30280,14 @@ enum B { b }
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredEnums
-      B: #M7
+      B: #M8
         declaredFields
-          b: #M8
-          values: #M9
+          b: #M9
+          values: #M10
         declaredGetters
-          b: #M10
-          values: #M11
-        interface: #M12
+          b: #M11
+          values: #M12
+        interface: #M13
           map
             index: #M6
           implemented
@@ -30028,6 +30315,7 @@ enum B { b }
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         requestedDeclaredEnums
           A: <null>
 [status] idle
@@ -30106,6 +30394,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M13
         requestedDeclaredEnums
           A: #M0
 [status] idle
@@ -30136,14 +30425,14 @@ enum C { c }
               index: #M6
           inherited
             index: #M6
-      C: #M13
+      C: #M14
         declaredFields
-          c: #M14
-          values: #M15
+          c: #M15
+          values: #M16
         declaredGetters
-          c: #M16
-          values: #M17
-        interface: #M18
+          c: #M17
+          values: #M18
+        interface: #M19
           map
             index: #M6
           implemented
@@ -30202,6 +30491,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M1
         requestedDeclaredExtensions
           A: #M0
 [status] idle
@@ -30214,8 +30504,8 @@ extension B on int {}
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensions
-      B: #M1
-    exportedExtensions: #M1
+      B: #M2
+    exportedExtensions: #M2
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -30234,6 +30524,7 @@ extension B on int {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M1
         requestedDeclaredExtensions
           A: <null>
 [status] idle
@@ -30281,6 +30572,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M2
         requestedDeclaredExtensions
           A: #M0
 [status] idle
@@ -30295,8 +30587,8 @@ extension C on int {}
   package:test/a.dart
     declaredExtensions
       A: #M0
-      C: #M2
-    exportedExtensions: #M0 #M2
+      C: #M3
+    exportedExtensions: #M0 #M3
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -30354,6 +30646,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         requestedDeclaredExtensionTypes
           A: #M0
 [status] idle
@@ -30366,16 +30659,16 @@ extension type B(int it) {}
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredExtensionTypes
-      B: #M4
+      B: #M5
         declaredFields
-          it: #M5
-        declaredGetters
           it: #M6
-        interface: #M7
+        declaredGetters
+          it: #M7
+        interface: #M8
           map
-            it: #M6
+            it: #M7
           implemented
-            it: #M6
+            it: #M7
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -30394,6 +30687,7 @@ extension type B(int it) {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         requestedDeclaredExtensionTypes
           A: <null>
 [status] idle
@@ -30458,6 +30752,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M8
         requestedDeclaredExtensionTypes
           A: #M0
 [status] idle
@@ -30481,16 +30776,16 @@ extension type C(int it) {}
             it: #M2
           implemented
             it: #M2
-      C: #M8
+      C: #M9
         declaredFields
-          it: #M9
-        declaredGetters
           it: #M10
-        interface: #M11
+        declaredGetters
+          it: #M11
+        interface: #M12
           map
-            it: #M10
+            it: #M11
           implemented
-            it: #M10
+            it: #M11
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -30541,6 +30836,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M2
         requestedDeclaredGetters
           foo: #M0
 [status] idle
@@ -30553,9 +30849,9 @@ int get bar => 0;
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
-      bar: #M2
-    declaredVariables
       bar: #M3
+    declaredVariables
+      bar: #M4
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -30574,6 +30870,7 @@ int get bar => 0;
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M2
         requestedDeclaredGetters
           foo: <null>
 [status] idle
@@ -30623,6 +30920,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         requestedDeclaredGetters
           foo: #M1
 [status] idle
@@ -30636,10 +30934,10 @@ int get baz => 1;
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
-      baz: #M4
+      baz: #M5
       foo: #M1
     declaredVariables
-      baz: #M5
+      baz: #M6
       foo: #M3
   requirements
 [operation] reuseLinkedBundle
@@ -30690,6 +30988,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M2
         requestedDeclaredMixins
           A: #M0
 [status] idle
@@ -30702,8 +31001,8 @@ mixin B {}
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredMixins
-      B: #M2
-        interface: #M3
+      B: #M3
+        interface: #M4
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -30722,6 +31021,7 @@ mixin B {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M2
         requestedDeclaredMixins
           A: <null>
 [status] idle
@@ -30770,6 +31070,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         requestedDeclaredMixins
           A: #M0
 [status] idle
@@ -30785,8 +31086,8 @@ mixin C {}
     declaredMixins
       A: #M0
         interface: #M1
-      C: #M4
-        interface: #M5
+      C: #M5
+        interface: #M6
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -30839,6 +31140,7 @@ import 'a.dart';
     libraries
       package:test/a.dart
         name: foo
+        libraryMetadataId: #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -30871,6 +31173,7 @@ class A {}
     libraries
       package:test/a.dart
         name: bar
+        libraryMetadataId: #M2
 [status] idle
 ''',
     );
@@ -30917,6 +31220,7 @@ import 'a.dart';
     libraries
       package:test/a.dart
         name: foo
+        libraryMetadataId: #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -30929,8 +31233,8 @@ class B {}
   package:test/a.dart
     name: foo
     declaredClasses
-      B: #M2
-        interface: #M3
+      B: #M3
+        interface: #M4
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -30981,6 +31285,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M2
         requestedDeclaredSetters
           foo=: #M0
 [status] idle
@@ -30993,9 +31298,9 @@ set bar(int _) {}
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredSetters
-      bar=: #M2
+      bar=: #M3
     declaredVariables
-      bar: #M3
+      bar: #M4
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -31014,6 +31319,7 @@ set bar(int _) {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M2
         requestedDeclaredSetters
           foo=: <null>
 [status] idle
@@ -31063,6 +31369,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         requestedDeclaredSetters
           foo=: #M1
 [status] idle
@@ -31076,10 +31383,10 @@ set baz(int _) {}
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredSetters
-      baz=: #M4
+      baz=: #M5
       foo=: #M1
     declaredVariables
-      baz: #M5
+      baz: #M6
       foo: #M3
   requirements
 [operation] reuseLinkedBundle
@@ -31129,6 +31436,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M1
         requestedDeclaredFunctions
           foo: #M0
 [status] idle
@@ -31141,7 +31449,7 @@ void bar() {}
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredFunctions
-      bar: #M1
+      bar: #M2
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -31160,6 +31468,7 @@ void bar() {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M1
         requestedDeclaredFunctions
           foo: <null>
 [status] idle
@@ -31206,6 +31515,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M2
         requestedDeclaredFunctions
           foo: #M1
 [status] idle
@@ -31219,7 +31529,7 @@ void baz() {}
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredFunctions
-      baz: #M2
+      baz: #M3
       foo: #M1
   requirements
 [operation] reuseLinkedBundle
@@ -31273,6 +31583,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         requestedDeclaredVariables
           foo: #M2
 [status] idle
@@ -31285,11 +31596,11 @@ var bar = 0;
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
-      bar: #M3
+      bar: #M4
     declaredSetters
-      bar=: #M4
+      bar=: #M5
     declaredVariables
-      bar: #M5
+      bar: #M6
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -31308,6 +31619,7 @@ var bar = 0;
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         requestedDeclaredVariables
           foo: <null>
 [status] idle
@@ -31360,6 +31672,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M6
         requestedDeclaredVariables
           foo: #M5
 [status] idle
@@ -31373,13 +31686,13 @@ var baz = 1;
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredGetters
-      baz: #M6
+      baz: #M7
       foo: #M1
     declaredSetters
-      baz=: #M7
+      baz=: #M8
       foo=: #M3
     declaredVariables
-      baz: #M8
+      baz: #M9
       foo: #M5
   requirements
 [operation] reuseLinkedBundle
@@ -31429,6 +31742,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M1
         requestedDeclaredTypeAliases
           A: #M0
 [status] idle
@@ -31441,7 +31755,7 @@ typedef B = int;
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredTypeAliases
-      B: #M1
+      B: #M2
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -31460,6 +31774,7 @@ typedef B = int;
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M1
         requestedDeclaredTypeAliases
           A: <null>
 [status] idle
@@ -31506,6 +31821,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M2
         requestedDeclaredTypeAliases
           A: #M0
 [status] idle
@@ -31520,7 +31836,7 @@ typedef C = int;
   package:test/a.dart
     declaredTypeAliases
       A: #M0
-      C: #M2
+      C: #M3
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -31572,6 +31888,7 @@ import 'a.dart';
     libraries
       package:test/a.dart
         languageVersion: <not-null>
+        libraryMetadataId: #M2
 [status] idle
 ''',
       updatedA: r'''
@@ -31601,6 +31918,79 @@ class A {}
     libraries
       package:test/a.dart
         languageVersion: <not-null>
+        libraryMetadataId: #M2
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_libraryElement_metadata() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.metadata;
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+@Deprecated('0')
+library;
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    libraryMetadata: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        featureSet: <not-null>
+        libraryMetadataId: #M0
+[status] idle
+''',
+      updatedA: r'''
+@Deprecated('1')
+library;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    libraryMetadata: #M1
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  libraryMetadataMismatch
+    libraryUri: package:test/a.dart
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        featureSet: <not-null>
+        libraryMetadataId: #M1
 [status] idle
 ''',
     );
@@ -31702,6 +32092,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M2
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -31724,18 +32115,18 @@ mixin A {
     declaredMixins
       A: #M0
         declaredFields
-          foo: #M2
-        declaredGetters
           foo: #M3
+        declaredGetters
+          foo: #M4
         declaredSetters
-          foo=: #M4
-        interface: #M5
+          foo=: #M5
+        interface: #M6
           map
-            foo: #M3
-            foo=: #M4
+            foo: #M4
+            foo=: #M5
           implemented
-            foo: #M3
-            foo=: #M4
+            foo: #M4
+            foo=: #M5
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -31754,6 +32145,7 @@ mixin A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M2
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -31823,6 +32215,7 @@ void f(A a) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -31855,14 +32248,14 @@ mixin A {
     declaredMixins
       A: #M0
         declaredFields
-          foo: #M5
-        declaredGetters
           foo: #M6
-        interface: #M7
+        declaredGetters
+          foo: #M7
+        interface: #M8
           map
-            foo: #M6
+            foo: #M7
           implemented
-            foo: #M6
+            foo: #M7
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -31873,7 +32266,7 @@ mixin A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M5
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -31887,6 +32280,7 @@ mixin A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -31895,11 +32289,11 @@ mixin A {
         instances
           A
             requestedDeclaredFields
-              foo: #M5
+              foo: #M6
         interfaces
           A
             methods
-              foo: #M6
+              foo: #M7
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -31971,6 +32365,7 @@ void f(A a) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -32006,7 +32401,7 @@ mixin A {
           foo: #M2
         declaredGetters
           foo: #M4
-        interface: #M7
+        interface: #M8
           map
             foo: #M4
           implemented
@@ -32090,6 +32485,7 @@ void f(B b) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           B: #M4
           B=: <null>
@@ -32132,8 +32528,8 @@ mixin B on A<double> {}
             foo: #M2
           implemented
             foo: #M2
-      B: #M7
-        interface: #M8
+      B: #M8
+        interface: #M9
           map
             foo: #M2
           superImplemented
@@ -32148,16 +32544,16 @@ mixin B on A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M4
-    actualId: #M7
+    actualId: #M8
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M9
+      f: #M10
   requirements
     libraries
       package:test/a.dart
         exportedTopLevels
-          B: #M7
+          B: #M8
           B=: <null>
         reExportDeprecatedOnly
           B: false
@@ -32167,7 +32563,7 @@ mixin B on A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M4
-    actualId: #M7
+    actualId: #M8
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -32176,8 +32572,9 @@ mixin B on A<double> {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
-          B: #M7
+          B: #M8
           B=: <null>
         reExportDeprecatedOnly
           B: false
@@ -32241,6 +32638,7 @@ void f(A a) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -32279,12 +32677,12 @@ mixin A {
     declaredMixins
       A: #M0
         declaredMethods
-          foo: #M3
-        interface: #M4
+          foo: #M4
+        interface: #M5
           map
-            foo: #M3
+            foo: #M4
           implemented
-            foo: #M3
+            foo: #M4
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -32295,7 +32693,7 @@ mixin A {
     interfaceName: A
     methodName: foo
     expectedId: <null>
-    actualId: #M3
+    actualId: #M4
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -32304,6 +32702,7 @@ mixin A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -32312,7 +32711,7 @@ mixin A {
         interfaces
           A
             methods
-              foo: #M3
+              foo: #M4
 [status] idle
 [future] getErrors T2
   ErrorsResult #1
@@ -32377,6 +32776,7 @@ void f(A a) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -32405,12 +32805,12 @@ mixin A {
     declaredMixins
       A: #M0
         declaredMethods
-          foo: #M4
-        interface: #M5
+          foo: #M5
+        interface: #M6
           map
-            foo: #M4
+            foo: #M5
           implemented
-            foo: #M4
+            foo: #M5
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -32421,7 +32821,7 @@ mixin A {
     interfaceName: A
     methodName: foo
     expectedId: #M1
-    actualId: #M4
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -32435,6 +32835,7 @@ mixin A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -32443,7 +32844,7 @@ mixin A {
         interfaces
           A
             methods
-              foo: #M4
+              foo: #M5
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -32512,6 +32913,7 @@ void f(A a) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -32541,14 +32943,14 @@ mixin A {
     declaredMixins
       A: #M0
         declaredMethods
-          bar: #M5
+          bar: #M6
           foo: #M2
-        interface: #M6
+        interface: #M7
           map
-            bar: #M5
+            bar: #M6
             foo: #M2
           implemented
-            bar: #M5
+            bar: #M6
             foo: #M2
   requirements
 [operation] reuseLinkedBundle
@@ -32624,6 +33026,7 @@ void f(B b) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M6
         exportedTopLevels
           B: #M3
           B=: <null>
@@ -32660,8 +33063,8 @@ mixin B implements A<double> {}
             foo: #M1
           implemented
             foo: #M1
-      B: #M6
-        interface: #M7
+      B: #M7
+        interface: #M8
           map
             foo: #M1
           inherited
@@ -32673,16 +33076,16 @@ mixin B implements A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M3
-    actualId: #M6
+    actualId: #M7
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M8
+      f: #M9
   requirements
     libraries
       package:test/a.dart
         exportedTopLevels
-          B: #M6
+          B: #M7
           B=: <null>
         reExportDeprecatedOnly
           B: false
@@ -32692,7 +33095,7 @@ mixin B implements A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M3
-    actualId: #M6
+    actualId: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -32701,8 +33104,9 @@ mixin B implements A<double> {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M6
         exportedTopLevels
-          B: #M6
+          B: #M7
           B=: <null>
         reExportDeprecatedOnly
           B: false
@@ -32781,6 +33185,7 @@ void f(B b) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M6
         exportedTopLevels
           B: #M3
           B=: <null>
@@ -32817,8 +33222,8 @@ mixin B on A<double> {}
             foo: #M1
           implemented
             foo: #M1
-      B: #M6
-        interface: #M7
+      B: #M7
+        interface: #M8
           map
             foo: #M1
           superImplemented
@@ -32833,16 +33238,16 @@ mixin B on A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M3
-    actualId: #M6
+    actualId: #M7
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M8
+      f: #M9
   requirements
     libraries
       package:test/a.dart
         exportedTopLevels
-          B: #M6
+          B: #M7
           B=: <null>
         reExportDeprecatedOnly
           B: false
@@ -32852,7 +33257,7 @@ mixin B on A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M3
-    actualId: #M6
+    actualId: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -32861,8 +33266,9 @@ mixin B on A<double> {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M6
         exportedTopLevels
-          B: #M6
+          B: #M7
           B=: <null>
         reExportDeprecatedOnly
           B: false
@@ -32930,6 +33336,7 @@ void f(A a) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -32955,7 +33362,7 @@ mixin A {}
   package:test/a.dart
     declaredMixins
       A: #M0
-        interface: #M4
+        interface: #M5
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -32975,6 +33382,7 @@ mixin A {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -33052,6 +33460,7 @@ void f(A a) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -33092,14 +33501,14 @@ mixin A {
     declaredMixins
       A: #M0
         declaredFields
-          foo: #M3
+          foo: #M4
         declaredSetters
-          foo=: #M4
-        interface: #M5
+          foo=: #M5
+        interface: #M6
           map
-            foo=: #M4
+            foo=: #M5
           implemented
-            foo=: #M4
+            foo=: #M5
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -33110,7 +33519,7 @@ mixin A {
     interfaceName: A
     methodName: foo=
     expectedId: <null>
-    actualId: #M4
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -33124,6 +33533,7 @@ mixin A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -33132,11 +33542,11 @@ mixin A {
         instances
           A
             requestedDeclaredFields
-              foo: #M3
+              foo: #M4
         interfaces
           A
             methods
-              foo=: #M4
+              foo=: #M5
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -33203,6 +33613,7 @@ void f(A a) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -33235,14 +33646,14 @@ mixin A {
     declaredMixins
       A: #M0
         declaredFields
-          foo: #M5
+          foo: #M6
         declaredSetters
-          foo=: #M6
-        interface: #M7
+          foo=: #M7
+        interface: #M8
           map
-            foo=: #M6
+            foo=: #M7
           implemented
-            foo=: #M6
+            foo=: #M7
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -33253,7 +33664,7 @@ mixin A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M5
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -33267,6 +33678,7 @@ mixin A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -33275,11 +33687,11 @@ mixin A {
         instances
           A
             requestedDeclaredFields
-              foo: #M5
+              foo: #M6
         interfaces
           A
             methods
-              foo=: #M6
+              foo=: #M7
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -33351,6 +33763,7 @@ void f(A a) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -33384,17 +33797,17 @@ mixin A {
     declaredMixins
       A: #M0
         declaredFields
-          bar: #M7
+          bar: #M8
           foo: #M2
         declaredSetters
-          bar=: #M8
+          bar=: #M9
           foo=: #M4
-        interface: #M9
+        interface: #M10
           map
-            bar=: #M8
+            bar=: #M9
             foo=: #M4
           implemented
-            bar=: #M8
+            bar=: #M9
             foo=: #M4
   requirements
 [operation] reuseLinkedBundle
@@ -33475,6 +33888,7 @@ void f(B b) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           B: #M4
           B=: <null>
@@ -33517,8 +33931,8 @@ mixin B on A<double> {}
             foo=: #M2
           implemented
             foo=: #M2
-      B: #M7
-        interface: #M8
+      B: #M8
+        interface: #M9
           map
             foo=: #M2
           superImplemented
@@ -33533,16 +33947,16 @@ mixin B on A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M4
-    actualId: #M7
+    actualId: #M8
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M9
+      f: #M10
   requirements
     libraries
       package:test/a.dart
         exportedTopLevels
-          B: #M7
+          B: #M8
           B=: <null>
         reExportDeprecatedOnly
           B: false
@@ -33552,7 +33966,7 @@ mixin B on A<double> {}
     libraryUri: package:test/a.dart
     name: B
     expectedId: #M4
-    actualId: #M7
+    actualId: #M8
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -33561,8 +33975,9 @@ mixin B on A<double> {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
-          B: #M7
+          B: #M8
           B=: <null>
         reExportDeprecatedOnly
           B: false
@@ -33640,6 +34055,7 @@ void f(A a) {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -33669,7 +34085,7 @@ mixin A {}
   package:test/a.dart
     declaredMixins
       A: #M0
-        interface: #M5
+        interface: #M6
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -33696,6 +34112,7 @@ mixin A {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -33766,6 +34183,7 @@ A foo() {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M1
         exportedTopLevels
           A: <null>
           A=: <null>
@@ -33786,8 +34204,8 @@ mixin A {}
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredMixins
-      A: #M1
-        interface: #M2
+      A: #M2
+        interface: #M3
   requirements
 [operation] checkLinkedBundleRequirements
   package:test/test.dart
@@ -33795,16 +34213,16 @@ mixin A {}
     libraryUri: package:test/a.dart
     name: A
     expectedId: <null>
-    actualId: #M1
+    actualId: #M2
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      foo: #M3
+      foo: #M4
   requirements
     libraries
       package:test/a.dart
         exportedTopLevels
-          A: #M1
+          A: #M2
           A=: <null>
         reExportDeprecatedOnly
           A: false
@@ -33814,7 +34232,7 @@ mixin A {}
     libraryUri: package:test/a.dart
     name: A
     expectedId: <null>
-    actualId: #M1
+    actualId: #M2
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -33830,8 +34248,9 @@ mixin A {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M1
         exportedTopLevels
-          A: #M1
+          A: #M2
           A=: <null>
         reExportDeprecatedOnly
           A: false
@@ -33893,6 +34312,7 @@ A foo() {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -33918,8 +34338,8 @@ mixin B {}
     declaredMixins
       A: #M0
         interface: #M1
-      B: #M3
-        interface: #M4
+      B: #M4
+        interface: #M5
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -33987,6 +34407,7 @@ A foo() {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -34010,8 +34431,8 @@ mixin B {}
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredMixins
-      A: #M5
-        interface: #M6
+      A: #M6
+        interface: #M7
       B: #M2
         interface: #M3
   requirements
@@ -34021,16 +34442,16 @@ mixin B {}
     libraryUri: package:test/a.dart
     name: A
     expectedId: #M0
-    actualId: #M5
+    actualId: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      foo: #M7
+      foo: #M8
   requirements
     libraries
       package:test/a.dart
         exportedTopLevels
-          A: #M5
+          A: #M6
           A=: <null>
         reExportDeprecatedOnly
           A: false
@@ -34040,7 +34461,7 @@ mixin B {}
     libraryUri: package:test/a.dart
     name: A
     expectedId: #M0
-    actualId: #M5
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -34056,8 +34477,9 @@ mixin B {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
-          A: #M5
+          A: #M6
           A=: <null>
         reExportDeprecatedOnly
           A: false
@@ -34125,6 +34547,7 @@ A foo() {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -34151,8 +34574,8 @@ mixin C {}
     declaredMixins
       A: #M0
         interface: #M1
-      B: #M7
-        interface: #M8
+      B: #M8
+        interface: #M9
       C: #M4
         interface: #M5
   requirements
@@ -34217,6 +34640,7 @@ A foo() => throw 0;
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -34245,7 +34669,7 @@ A foo() => throw 0;
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      foo: #M3
+      foo: #M4
   requirements
     libraries
       package:test/a.dart
@@ -34274,6 +34698,7 @@ A foo() => throw 0;
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: <null>
           A=: <null>
@@ -34336,6 +34761,7 @@ A foo() => throw 0;
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -34419,6 +34845,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -34453,9 +34880,9 @@ mixin A {
     declaredMixins
       A: #M0
         declaredFields
-          foo: #M5
-        declaredGetters
           foo: #M6
+        declaredGetters
+          foo: #M7
         interface: #M3
   requirements
 [operation] reuseLinkedBundle
@@ -34467,7 +34894,7 @@ mixin A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M5
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -34481,6 +34908,7 @@ mixin A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -34489,9 +34917,9 @@ mixin A {
         instances
           A
             requestedDeclaredFields
-              foo: #M5
-            requestedDeclaredGetters
               foo: #M6
+            requestedDeclaredGetters
+              foo: #M7
         interfaces
           A
             requestedConstructors
@@ -34554,6 +34982,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -34589,10 +35018,10 @@ mixin A {
     declaredMixins
       A: #M0
         declaredFields
-          bar: #M7
+          bar: #M8
           foo: #M2
         declaredGetters
-          bar: #M8
+          bar: #M9
           foo: #M4
         interface: #M5
   requirements
@@ -34654,6 +35083,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -34688,7 +35118,7 @@ mixin A {
     declaredMixins
       A: #M0
         declaredMethods
-          foo: #M4
+          foo: #M5
         interface: #M2
   requirements
 [operation] reuseLinkedBundle
@@ -34700,7 +35130,7 @@ mixin A {
     interfaceName: A
     methodName: foo
     expectedId: #M1
-    actualId: #M4
+    actualId: #M5
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -34714,6 +35144,7 @@ mixin A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -34724,7 +35155,7 @@ mixin A {
             requestedDeclaredGetters
               foo: <null>
             requestedDeclaredMethods
-              foo: #M4
+              foo: #M5
         interfaces
           A
             requestedConstructors
@@ -34784,6 +35215,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -34819,7 +35251,7 @@ mixin A {
     declaredMixins
       A: #M0
         declaredMethods
-          bar: #M5
+          bar: #M6
           foo: #M2
         interface: #M3
   requirements
@@ -34883,6 +35315,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -34913,9 +35346,9 @@ mixin A {
     declaredMixins
       A: #M0
         declaredFields
-          foo: #M5
+          foo: #M6
         declaredSetters
-          foo=: #M6
+          foo=: #M7
         interface: #M3
   requirements
 [operation] reuseLinkedBundle
@@ -34927,7 +35360,7 @@ mixin A {
     interfaceName: A
     fieldName: foo
     expectedId: #M1
-    actualId: #M5
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -34941,6 +35374,7 @@ mixin A {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -34949,9 +35383,9 @@ mixin A {
         instances
           A
             requestedDeclaredFields
-              foo: #M5
+              foo: #M6
             requestedDeclaredSetters
-              foo=: #M6
+              foo=: #M7
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -35010,6 +35444,7 @@ void f() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M7
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -35041,10 +35476,10 @@ mixin A {
     declaredMixins
       A: #M0
         declaredFields
-          bar: #M7
+          bar: #M8
           foo: #M2
         declaredSetters
-          bar=: #M8
+          bar=: #M9
           foo=: #M4
         interface: #M5
   requirements
@@ -35107,6 +35542,7 @@ base class X implements A {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -35137,8 +35573,8 @@ class B {}
     declaredClasses
       A: #M0
         interface: #M1
-      B: #M4
-        interface: #M5
+      B: #M5
+        interface: #M6
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -35198,6 +35634,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M2
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -35227,8 +35664,8 @@ class B {}
     declaredClasses
       A: #M0
         interface: #M1
-      B: #M2
-        interface: #M3
+      B: #M3
+        interface: #M4
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -35253,6 +35690,7 @@ class B {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M2
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -35831,6 +36269,7 @@ void foo(A _) {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -35853,7 +36292,7 @@ typedef B = double;
   package:test/a.dart
     declaredTypeAliases
       A: #M0
-      B: #M3
+      B: #M4
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -35913,6 +36352,7 @@ void foo(A _) {}
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M2
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -35933,7 +36373,7 @@ typedef A = double;
 [operation] linkLibraryCycle
   package:test/a.dart
     declaredTypeAliases
-      A: #M2
+      A: #M3
   requirements
 [operation] checkLinkedBundleRequirements
   package:test/test.dart
@@ -35941,16 +36381,16 @@ typedef A = double;
     libraryUri: package:test/a.dart
     name: A
     expectedId: #M0
-    actualId: #M2
+    actualId: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      foo: #M3
+      foo: #M4
   requirements
     libraries
       package:test/a.dart
         exportedTopLevels
-          A: #M2
+          A: #M3
           A=: <null>
         reExportDeprecatedOnly
           A: false
@@ -35960,7 +36400,7 @@ typedef A = double;
     libraryUri: package:test/a.dart
     name: A
     expectedId: #M0
-    actualId: #M2
+    actualId: #M3
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -35974,8 +36414,9 @@ typedef A = double;
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M2
         exportedTopLevels
-          A: #M2
+          A: #M3
           A=: <null>
         reExportDeprecatedOnly
           A: false
@@ -36035,6 +36476,7 @@ void foo() {
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           B: #M3
           B=: <null>
@@ -36064,7 +36506,7 @@ typedef B = A;
     declaredClasses
       A: #M0
         declaredConstructors
-          named: #M5
+          named: #M6
         interface: #M2
     declaredTypeAliases
       B: #M3
@@ -36078,7 +36520,7 @@ typedef B = A;
     interfaceName: A
     constructorName: named
     expectedId: #M1
-    actualId: #M5
+    actualId: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -36092,6 +36534,7 @@ typedef B = A;
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           B: #M3
           B=: <null>
@@ -36100,7 +36543,7 @@ typedef B = A;
         interfaces
           A
             requestedConstructors
-              named: #M5
+              named: #M6
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
@@ -70755,6 +71198,101 @@ extension type A<T, U>(int it) {}
     );
   }
 
+  test_manifest_library_metadata_add() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+library;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+''',
+      updatedCode: r'''
+@deprecated
+library;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    libraryMetadata: #M0
+''',
+    );
+  }
+
+  test_manifest_library_metadata_changeArgument() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+@Deprecated('0')
+library;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    libraryMetadata: #M0
+''',
+      updatedCode: r'''
+@Deprecated('1')
+library;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    libraryMetadata: #M1
+''',
+    );
+  }
+
+  test_manifest_library_metadata_match() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+@deprecated
+library;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    libraryMetadata: #M0
+''',
+      updatedCode: r'''
+@deprecated
+library;
+void foo() {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    libraryMetadata: #M0
+    declaredFunctions
+      foo: #M1
+''',
+    );
+  }
+
+  test_manifest_library_metadata_remove() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+@deprecated
+library;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    libraryMetadata: #M0
+''',
+      updatedCode: r'''
+library;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+''',
+    );
+  }
+
   test_manifest_metadata() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -81498,6 +82036,7 @@ final x = a;
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           a: #M0
           a=: <null>
@@ -81520,10 +82059,10 @@ int get b => 0;
   package:test/a.dart
     declaredGetters
       a: #M0
-      b: #M4
+      b: #M5
     declaredVariables
       a: #M1
-      b: #M5
+      b: #M6
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
@@ -81950,6 +82489,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -82012,6 +82552,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -82066,6 +82607,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -82121,6 +82663,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -82173,6 +82716,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -82223,6 +82767,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -82269,6 +82814,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M2
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -82321,6 +82867,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -82381,6 +82928,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -82445,6 +82993,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -82507,6 +83056,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -82565,6 +83115,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -82623,6 +83174,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -82672,6 +83224,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -82731,6 +83284,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -82795,6 +83349,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -82857,6 +83412,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M5
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -82915,6 +83471,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -82973,6 +83530,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M4
         exportedTopLevels
           A: #M0
           A=: <null>
@@ -83022,6 +83580,7 @@ import 'a.dart';
   requirements
     libraries
       package:test/a.dart
+        libraryMetadataId: #M3
         exportedTopLevels
           A: #M0
           A=: <null>

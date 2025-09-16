@@ -352,6 +352,15 @@ class LibraryLanguageVersionMismatch extends RequirementFailure {
   }
 }
 
+class LibraryMetadataMismatch extends RequirementFailure {
+  final Uri libraryUri;
+
+  LibraryMetadataMismatch({required this.libraryUri});
+
+  @override
+  String toString() => 'LibraryMetadataMismatch(libraryUri: $libraryUri)';
+}
+
 class LibraryMissing extends RequirementFailure {
   final Uri uri;
 

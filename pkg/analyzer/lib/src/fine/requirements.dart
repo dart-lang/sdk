@@ -374,6 +374,7 @@ class LibraryRequirements {
   String? name;
   Uint8List? featureSet;
   ManifestLibraryLanguageVersion? languageVersion;
+  ManifestItemId? libraryMetadataId;
 
   List<Uri>? exportedLibraryUris;
 
@@ -418,6 +419,7 @@ class LibraryRequirements {
     required this.name,
     required this.featureSet,
     required this.languageVersion,
+    required this.libraryMetadataId,
     required this.exportedLibraryUris,
     required this.exportedTopLevels,
     required this.instances,
@@ -451,6 +453,7 @@ class LibraryRequirements {
       name: null,
       featureSet: null,
       languageVersion: null,
+      libraryMetadataId: null,
       exportedLibraryUris: null,
       exportedTopLevels: {},
       instances: {},
@@ -485,6 +488,7 @@ class LibraryRequirements {
       name: reader.readOptionalStringUtf8(),
       featureSet: reader.readOptionalUint8List(),
       languageVersion: ManifestLibraryLanguageVersion.readOptional(reader),
+      libraryMetadataId: ManifestItemId.readOptional(reader),
       exportedLibraryUris: reader.readOptionalUriList(),
       exportedTopLevels: reader.readNameToOptionalIdMap(),
       instances: reader.readMap(
@@ -527,6 +531,7 @@ class LibraryRequirements {
     sink.writeOptionalStringUtf8(name);
     sink.writeOptionalUint8List(featureSet);
     sink.writeOptionalObject(languageVersion, (it) => it.write(sink));
+    libraryMetadataId.writeOptional(sink);
     sink.writeOptionalUriList(exportedLibraryUris);
     sink.writeNameToIdMap(exportedTopLevels);
 
@@ -740,6 +745,13 @@ class RequirementsManifest {
             expected: expected,
             actual: actual,
           );
+        }
+      }
+
+      if (libraryRequirements.libraryMetadataId case var expectedId?) {
+        var actualId = libraryManifest.libraryMetadata.id;
+        if (actualId != expectedId) {
+          return LibraryMetadataMismatch(libraryUri: libraryUri);
         }
       }
 
@@ -2046,6 +2058,20 @@ class RequirementsManifest {
 
     var requirements = _getLibraryRequirements(element);
     requirements.languageVersion = manifest.languageVersion;
+  }
+
+  void record_library_metadata({required LibraryElementImpl element}) {
+    if (_recordingLockLevel != 0) {
+      return;
+    }
+
+    var manifest = element.manifest;
+    if (manifest == null) {
+      return;
+    }
+
+    var requirements = _getLibraryRequirements(element);
+    requirements.libraryMetadataId ??= manifest.libraryMetadata.id;
   }
 
   /// Record that all accessible extensions inside a [LibraryFragmentImpl]

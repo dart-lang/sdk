@@ -68,6 +68,10 @@ class BundleRequirementsPrinter {
           if (libraryRequirements.languageVersion != null) {
             sink.writelnWithIndent('languageVersion: <not-null>');
           }
+          if (libraryRequirements.libraryMetadataId case var id?) {
+            var idStr = idProvider.manifestId(id);
+            sink.writelnWithIndent('libraryMetadataId: $idStr');
+          }
           _writeExportedTopLevels(libraryRequirements);
           _writeLibraryDeclaredItems(libraryRequirements);
           _writeInstanceItems(libraryRequirements);
@@ -819,6 +823,9 @@ class DriverEventsPrinter {
       case LibraryLanguageVersionMismatch():
         sink.writelnWithIndent('libraryLanguageVersionMismatch');
         sink.writeProperties({'libraryUri': failure.libraryUri});
+      case LibraryMetadataMismatch():
+        sink.writelnWithIndent('libraryMetadataMismatch');
+        sink.writeProperties({'libraryUri': failure.libraryUri});
       case ReExportDeprecatedOnlyMismatch():
         sink.writelnWithIndent('reExportDeprecatedOnlyMismatch');
         sink.writeProperties({
@@ -1139,6 +1146,12 @@ class LibraryManifestPrinter {
   void write(LibraryManifest manifest) {
     if (manifest.name case var name?) {
       sink.writelnWithIndent('name: $name');
+    }
+
+    var libraryMetadata = manifest.libraryMetadata;
+    if (!libraryMetadata.isEmpty) {
+      var idStr = idProvider.manifestId(libraryMetadata.id);
+      sink.writelnWithIndent('libraryMetadata: $idStr');
     }
 
     var classEntries = manifest.declaredClasses.sorted;
