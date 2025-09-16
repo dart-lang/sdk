@@ -6323,20 +6323,30 @@ JsInteropExternalMemberNotJSAnnotated:
   correctionMessage: "Try removing the 'external' keyword or adding a JS interop annotation."
 
 JsInteropFunctionToJSNamedParameters:
-  parameters: none
-  problemMessage: "Functions converted via `toJS` cannot declare named parameters."
+  parameters:
+    String conversion: undocumented
+  problemMessage: "Functions converted via '#conversion' cannot declare named parameters."
   correctionMessage: "Remove the declared named parameters from the function."
 
 JsInteropFunctionToJSRequiresStaticType:
   parameters:
+    String conversion: undocumented
     Type type: undocumented
-  problemMessage: "`Function.toJS` requires a statically known function type, but Type '#type' is not a precise function type, e.g., `void Function()`."
+  problemMessage: "Functions converted via '#conversion' require a statically known function type, but Type '#type' is not a precise function type, e.g., `void Function()`."
   correctionMessage: "Insert an explicit cast to the expected function type."
 
 JsInteropFunctionToJSTypeParameters:
-  parameters: none
-  problemMessage: "Functions converted via `toJS` cannot declare type parameters."
+  parameters:
+    String conversion: undocumented
+  problemMessage: "Functions converted via '#conversion' cannot declare type parameters."
   correctionMessage: "Remove the declared type parameters from the function."
+
+JsInteropFunctionToJSTypeViolation:
+  parameters:
+    String conversion: undocumented
+    String string2: undocumented
+  problemMessage: "Function converted via '#conversion' contains invalid types in its function signature: '#string2'."
+  correctionMessage: "Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type."
 
 JsInteropInvalidStaticClassMemberName:
   parameters: none
@@ -6407,12 +6417,6 @@ JsInteropStaticInteropExternalFunctionTypeViolation:
   parameters:
     String string2: undocumented
   problemMessage: "External JS interop member contains invalid types in its function signature: '#string2'."
-  correctionMessage: "Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type."
-
-JsInteropStaticInteropToJSFunctionTypeViolation:
-  parameters:
-    String string2: undocumented
-  problemMessage: "Function converted via 'toJS' contains invalid types in its function signature: '#string2'."
   correctionMessage: "Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type."
 
 JsInteropStaticInteropGenerativeConstructor:

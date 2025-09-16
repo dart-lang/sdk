@@ -3141,13 +3141,13 @@ Message _withArgumentsOldJsInteropExtensionTypeNotInterop(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
-  Message Function(DartType type),
-  Message Function({required DartType type})
+  Message Function(String conversion, DartType type),
+  Message Function({required String conversion, required DartType type})
 >
 codeJsInteropFunctionToJSRequiresStaticType = const Template(
   "JsInteropFunctionToJSRequiresStaticType",
   problemMessageTemplate:
-      r"""`Function.toJS` requires a statically known function type, but Type '#type' is not a precise function type, e.g., `void Function()`.""",
+      r"""Functions converted via '#conversion' require a statically known function type, but Type '#type' is not a precise function type, e.g., `void Function()`.""",
   correctionMessageTemplate:
       r"""Insert an explicit cast to the expected function type.""",
   withArgumentsOld: _withArgumentsOldJsInteropFunctionToJSRequiresStaticType,
@@ -3156,25 +3156,31 @@ codeJsInteropFunctionToJSRequiresStaticType = const Template(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsJsInteropFunctionToJSRequiresStaticType({
+  required String conversion,
   required DartType type,
 }) {
+  var conversion_0 = conversions.validateString(conversion);
   TypeLabeler labeler = new TypeLabeler();
   var type_0 = labeler.labelType(type);
   return new Message(
     codeJsInteropFunctionToJSRequiresStaticType,
     problemMessage:
-        """`Function.toJS` requires a statically known function type, but Type '${type_0}' is not a precise function type, e.g., `void Function()`.""" +
+        """Functions converted via '${conversion_0}' require a statically known function type, but Type '${type_0}' is not a precise function type, e.g., `void Function()`.""" +
         labeler.originMessages,
     correctionMessage:
         """Insert an explicit cast to the expected function type.""",
-    arguments: {'type': type},
+    arguments: {'conversion': conversion, 'type': type},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsOldJsInteropFunctionToJSRequiresStaticType(
+  String conversion,
   DartType type,
-) => _withArgumentsJsInteropFunctionToJSRequiresStaticType(type: type);
+) => _withArgumentsJsInteropFunctionToJSRequiresStaticType(
+  conversion: conversion,
+  type: type,
+);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<

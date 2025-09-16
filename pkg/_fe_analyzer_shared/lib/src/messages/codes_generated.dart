@@ -9721,21 +9721,114 @@ const MessageCode codeJsInteropExternalMemberNotJSAnnotated = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeJsInteropFunctionToJSNamedParameters = const MessageCode(
+const Template<
+  Message Function(String conversion),
+  Message Function({required String conversion})
+>
+codeJsInteropFunctionToJSNamedParameters = const Template(
   "JsInteropFunctionToJSNamedParameters",
-  problemMessage:
-      r"""Functions converted via `toJS` cannot declare named parameters.""",
-  correctionMessage:
+  problemMessageTemplate:
+      r"""Functions converted via '#conversion' cannot declare named parameters.""",
+  correctionMessageTemplate:
       r"""Remove the declared named parameters from the function.""",
+  withArgumentsOld: _withArgumentsOldJsInteropFunctionToJSNamedParameters,
+  withArguments: _withArgumentsJsInteropFunctionToJSNamedParameters,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeJsInteropFunctionToJSTypeParameters = const MessageCode(
+Message _withArgumentsJsInteropFunctionToJSNamedParameters({
+  required String conversion,
+}) {
+  var conversion_0 = conversions.validateString(conversion);
+  return new Message(
+    codeJsInteropFunctionToJSNamedParameters,
+    problemMessage:
+        """Functions converted via '${conversion_0}' cannot declare named parameters.""",
+    correctionMessage:
+        """Remove the declared named parameters from the function.""",
+    arguments: {'conversion': conversion},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOldJsInteropFunctionToJSNamedParameters(
+  String conversion,
+) => _withArgumentsJsInteropFunctionToJSNamedParameters(conversion: conversion);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+  Message Function(String conversion),
+  Message Function({required String conversion})
+>
+codeJsInteropFunctionToJSTypeParameters = const Template(
   "JsInteropFunctionToJSTypeParameters",
-  problemMessage:
-      r"""Functions converted via `toJS` cannot declare type parameters.""",
-  correctionMessage:
+  problemMessageTemplate:
+      r"""Functions converted via '#conversion' cannot declare type parameters.""",
+  correctionMessageTemplate:
       r"""Remove the declared type parameters from the function.""",
+  withArgumentsOld: _withArgumentsOldJsInteropFunctionToJSTypeParameters,
+  withArguments: _withArgumentsJsInteropFunctionToJSTypeParameters,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropFunctionToJSTypeParameters({
+  required String conversion,
+}) {
+  var conversion_0 = conversions.validateString(conversion);
+  return new Message(
+    codeJsInteropFunctionToJSTypeParameters,
+    problemMessage:
+        """Functions converted via '${conversion_0}' cannot declare type parameters.""",
+    correctionMessage:
+        """Remove the declared type parameters from the function.""",
+    arguments: {'conversion': conversion},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOldJsInteropFunctionToJSTypeParameters(
+  String conversion,
+) => _withArgumentsJsInteropFunctionToJSTypeParameters(conversion: conversion);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+  Message Function(String conversion, String string2),
+  Message Function({required String conversion, required String string2})
+>
+codeJsInteropFunctionToJSTypeViolation = const Template(
+  "JsInteropFunctionToJSTypeViolation",
+  problemMessageTemplate:
+      r"""Function converted via '#conversion' contains invalid types in its function signature: '#string2'.""",
+  correctionMessageTemplate:
+      r"""Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
+  withArgumentsOld: _withArgumentsOldJsInteropFunctionToJSTypeViolation,
+  withArguments: _withArgumentsJsInteropFunctionToJSTypeViolation,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropFunctionToJSTypeViolation({
+  required String conversion,
+  required String string2,
+}) {
+  var conversion_0 = conversions.validateString(conversion);
+  var string2_0 = conversions.validateString(string2);
+  return new Message(
+    codeJsInteropFunctionToJSTypeViolation,
+    problemMessage:
+        """Function converted via '${conversion_0}' contains invalid types in its function signature: '${string2_0}'.""",
+    correctionMessage:
+        """Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
+    arguments: {'conversion': conversion, 'string2': string2},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOldJsInteropFunctionToJSTypeViolation(
+  String conversion,
+  String string2,
+) => _withArgumentsJsInteropFunctionToJSTypeViolation(
+  conversion: conversion,
+  string2: string2,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10224,44 +10317,6 @@ Message _withArgumentsOldJsInteropStaticInteropTearOffsDisallowed(
 ) => _withArgumentsJsInteropStaticInteropTearOffsDisallowed(
   string: string,
   name: name,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-  Message Function(String string2),
-  Message Function({required String string2})
->
-codeJsInteropStaticInteropToJSFunctionTypeViolation = const Template(
-  "JsInteropStaticInteropToJSFunctionTypeViolation",
-  problemMessageTemplate:
-      r"""Function converted via 'toJS' contains invalid types in its function signature: '#string2'.""",
-  correctionMessageTemplate:
-      r"""Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
-  withArgumentsOld:
-      _withArgumentsOldJsInteropStaticInteropToJSFunctionTypeViolation,
-  withArguments: _withArgumentsJsInteropStaticInteropToJSFunctionTypeViolation,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropStaticInteropToJSFunctionTypeViolation({
-  required String string2,
-}) {
-  var string2_0 = conversions.validateString(string2);
-  return new Message(
-    codeJsInteropStaticInteropToJSFunctionTypeViolation,
-    problemMessage:
-        """Function converted via 'toJS' contains invalid types in its function signature: '${string2_0}'.""",
-    correctionMessage:
-        """Use one of these valid types instead: JS types from 'dart:js_interop', ExternalDartReference, void, bool, num, double, int, String, extension types that erase to one of these types, '@staticInterop' types, 'dart:html' types when compiling to JS, or a type parameter that is a subtype of a valid non-primitive type.""",
-    arguments: {'string2': string2},
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsOldJsInteropStaticInteropToJSFunctionTypeViolation(
-  String string2,
-) => _withArgumentsJsInteropStaticInteropToJSFunctionTypeViolation(
-  string2: string2,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
