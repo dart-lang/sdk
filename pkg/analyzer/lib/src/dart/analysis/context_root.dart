@@ -6,7 +6,6 @@ import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:glob/glob.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart';
 
 /// An implementation of a context root.
@@ -34,7 +33,6 @@ class ContextRootImpl implements ContextRoot {
   File? optionsFile;
 
   /// Maintains a mapping of folders to associated analysis options files.
-  @experimental
   final Map<Folder, File> optionsFileMap = {};
 
   @override

@@ -254,7 +254,6 @@ abstract final class Annotation implements AstNode {
   ///
   /// Returns `null` if the AST structure hasn't been resolved or if this
   /// annotation couldn't be resolved.
-  @experimental
   Element? get element;
 
   /// The element associated with this annotation.
@@ -262,7 +261,6 @@ abstract final class Annotation implements AstNode {
   /// Returns `null` if the AST structure hasn't been resolved or if this
   /// annotation couldn't be resolved.
   @Deprecated('Use element instead')
-  @experimental
   Element? get element2;
 
   /// The element annotation representing this annotation in the element model,
@@ -1027,11 +1025,9 @@ abstract final class AssignedVariablePattern implements VariablePattern {
   ///
   /// In valid code this is either a [LocalVariableElement] or a
   /// [FormalParameterElement].
-  @experimental
   Element? get element;
 
   @Deprecated('Use element instead')
-  @experimental
   Element? get element2;
 }
 
@@ -2746,20 +2742,17 @@ abstract final class CatchClauseParameter extends AstNode {
   ///
   /// Returns `null` if the AST hasn't been resolved.
   @Deprecated('Use declaredFragment instead')
-  @experimental
   LocalVariableElement? get declaredElement;
 
   /// The declared element.
   ///
   /// Returns `null` if the AST hasn't been resolved.
   @Deprecated('Use declaredFragment instead')
-  @experimental
   LocalVariableElement? get declaredElement2;
 
   /// The declared fragment.
   ///
   /// Returns `null` if the AST hasn't been resolved.
-  @experimental
   LocalVariableFragment? get declaredFragment;
 
   /// The name of the parameter.
@@ -2909,7 +2902,6 @@ abstract final class ClassDeclaration implements NamedCompilationUnitMember {
   Token? get abstractKeyword;
 
   /// The `augment` keyword, or `null` if the keyword was absent.
-  @experimental
   Token? get augmentKeyword;
 
   /// The `base` keyword, or `null` if the keyword was absent.
@@ -2918,7 +2910,6 @@ abstract final class ClassDeclaration implements NamedCompilationUnitMember {
   /// The token representing the `class` keyword.
   Token get classKeyword;
 
-  @experimental
   @override
   ClassFragment? get declaredFragment;
 
@@ -3286,7 +3277,6 @@ abstract final class ClassTypeAlias implements TypeAlias {
   /// The `base` keyword, or `null` if the keyword was absent.
   Token? get baseKeyword;
 
-  @experimental
   @override
   ClassFragment? get declaredFragment;
 
@@ -3596,18 +3586,14 @@ sealed class CombinatorImpl extends AstNodeImpl implements Combinator {
 abstract final class Comment implements AstNode {
   /// The markdown code blocks (both fenced and indented) contained in this
   /// comment.
-  @experimental
   List<MdCodeBlock> get codeBlocks;
 
-  @experimental
   List<DocDirective> get docDirectives;
 
-  @experimental
   List<DocImport> get docImports;
 
   /// Whether this comment has a line beginning with '@nodoc', indicating its
   /// contents aren't intended for publishing.
-  @experimental
   bool get hasNodoc;
 
   /// The references embedded within the documentation comment.
@@ -3830,7 +3816,6 @@ abstract final class CompilationUnit implements AstNode {
   /// The fragment associated with this compilation unit.
   ///
   /// Returns `null` if the AST structure hasn't been resolved.
-  @experimental
   LibraryFragment? get declaredFragment;
 
   /// The directives contained in this compilation unit.
@@ -4092,7 +4077,6 @@ abstract final class CompoundAssignmentExpression implements Expression {
   /// In invalid code this element is `null`. For example, in `int += 2`. In
   /// such cases, for recovery purposes, [writeElement] is filled, and can be
   /// used for navigation.
-  @experimental
   Element? get readElement;
 
   /// The element that is used to read the value.
@@ -4107,7 +4091,6 @@ abstract final class CompoundAssignmentExpression implements Expression {
   /// such cases, for recovery purposes, [writeElement] is filled, and can be
   /// used for navigation.
   @Deprecated('Use readElement instead')
-  @experimental
   Element? get readElement2;
 
   /// The type of the value read with the [readElement], or `null` if this node
@@ -4132,7 +4115,6 @@ abstract final class CompoundAssignmentExpression implements Expression {
   ///
   /// If this node is a compound assignment, such as `x += y`, both
   /// [readElement] and [writeElement] could be non-`null`.
-  @experimental
   Element? get writeElement;
 
   /// The element that is used to write the result.
@@ -4151,7 +4133,6 @@ abstract final class CompoundAssignmentExpression implements Expression {
   /// If this node is a compound assignment, such as `x += y`, both
   /// [readElement] and [writeElement] could be non-`null`.
   @Deprecated('Use writeElement instead')
-  @experimental
   Element? get writeElement2;
 
   /// The type of the target of the assignment.
@@ -4690,7 +4671,6 @@ abstract final class ConstructorDeclaration implements ClassMember {
   /// const constructor.
   Token? get constKeyword;
 
-  @experimental
   @override
   ConstructorFragment? get declaredFragment;
 
@@ -5308,7 +5288,6 @@ abstract final class ConstructorReferenceNode implements AstNode {
   ///
   /// Returns `null` if the AST structure hasn't been resolved or if the
   /// constructor couldn't be resolved.
-  @experimental
   ConstructorElement? get element;
 }
 
@@ -5610,7 +5589,6 @@ abstract final class Declaration implements AnnotatedNode {
   /// because these nodes don't declare any fragments, but individual
   /// [VariableDeclaration]s inside them do. They are [Declaration]s mostly to
   /// fit into [ClassDeclaration.members] and [CompilationUnit.declarations].
-  @experimental
   Fragment? get declaredFragment;
 }
 
@@ -5636,7 +5614,6 @@ abstract final class DeclaredIdentifier implements Declaration {
   /// Returns `null` if either this node corresponds to a list of declarations
   /// or if the AST structure hasn't been resolved.
   @Deprecated('Use declaredFragment instead')
-  @experimental
   LocalVariableElement? get declaredElement;
 
   /// The element associated with this declaration.
@@ -5644,7 +5621,6 @@ abstract final class DeclaredIdentifier implements Declaration {
   /// Returns `null` if either this node corresponds to a list of declarations
   /// or if the AST structure hasn't been resolved.
   @Deprecated('Use declaredFragment instead')
-  @experimental
   LocalVariableElement? get declaredElement2;
 
   @override
@@ -5706,14 +5682,12 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
   }
 
   @Deprecated('Use declaredFragment instead')
-  @experimental
   @override
   LocalVariableElementImpl? get declaredElement {
     return declaredFragment?.element;
   }
 
   @Deprecated('Use declaredFragment instead')
-  @experimental
   @override
   LocalVariableElementImpl? get declaredElement2 {
     return declaredElement;
@@ -5795,14 +5769,12 @@ sealed class DeclaredVariablePattern implements VariablePattern {
   ///
   /// Returns `null` if the AST structure hasn't been resolved.
   @Deprecated('Use declaredFragment instead')
-  @experimental
   BindPatternVariableElement? get declaredElement;
 
   /// The element declared by this declaration.
   ///
   /// Returns `null` if the AST structure hasn't been resolved.
   @Deprecated('Use declaredFragment instead')
-  @experimental
   BindPatternVariableElement? get declaredElement2;
 
   /// The fragment declared by this declaration.
@@ -5859,14 +5831,12 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
   }
 
   @Deprecated('Use declaredFragment instead')
-  @experimental
   @override
   BindPatternVariableElementImpl? get declaredElement {
     return declaredFragment?.element;
   }
 
   @Deprecated('Use declaredFragment instead')
-  @experimental
   @override
   BindPatternVariableElementImpl? get declaredElement2 {
     return declaredElement;
@@ -6034,7 +6004,6 @@ final class DefaultFormalParameterImpl extends FormalParameterImpl
   @override
   Token? get covariantKeyword => null;
 
-  @experimental
   @override
   FormalParameterFragmentImpl? get declaredFragment =>
       _parameter.declaredFragment;
@@ -6300,7 +6269,6 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
 ///
 ///    dotShorthandHead ::=
 ///        '.' [SimpleIdentifier] [TypeArgumentList]? [ArgumentList]
-@experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class DotShorthandConstructorInvocation
     extends InvocationExpression
@@ -6473,7 +6441,6 @@ final class DotShorthandConstructorInvocationImpl
 ///
 ///    dotShorthandHead ::=
 ///        '.' [SimpleIdentifier] [TypeArgumentList]? [ArgumentList]
-@experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class DotShorthandInvocation extends InvocationExpression {
   /// The name of the constructor or static method invocation.
@@ -6605,7 +6572,6 @@ base mixin DotShorthandMixin on ExpressionImpl {
 /// For example, `.zero`.
 ///
 ///    dotShorthandHead ::= '.' [SimpleIdentifier]
-@experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class DotShorthandPropertyAccess extends Expression {
   /// The token representing the period.
@@ -7091,14 +7057,12 @@ abstract final class EnumConstantDeclaration implements Declaration {
   EnumConstantArguments? get arguments;
 
   /// The `augment` keyword, or `null` if the keyword was absent.
-  @experimental
   Token? get augmentKeyword;
 
   /// The constructor that's invoked by this enum constant.
   ///
   /// Returns `null` if the AST structure hasn't been resolved, or if the
   /// constructor couldn't be resolved.
-  @experimental
   ConstructorElement? get constructorElement;
 
   /// The constructor that's invoked by this enum constant.
@@ -7106,10 +7070,8 @@ abstract final class EnumConstantDeclaration implements Declaration {
   /// Returns `null` if the AST structure hasn't been resolved, or if the
   /// constructor couldn't be resolved.
   @Deprecated('Use constructorElement instead')
-  @experimental
   ConstructorElement? get constructorElement2;
 
-  @experimental
   @override
   FieldFragment? get declaredFragment;
 
@@ -7228,13 +7190,11 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class EnumDeclaration implements NamedCompilationUnitMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
-  @experimental
   Token? get augmentKeyword;
 
   /// The enumeration constants being declared.
   NodeList<EnumConstantDeclaration> get constants;
 
-  @experimental
   @override
   EnumFragment? get declaredFragment;
 
@@ -7466,7 +7426,6 @@ abstract final class ExportDirective implements NamespaceDirective {
   /// Information about this export directive.
   ///
   /// Returns `null` if the AST structure hasn't been resolved.
-  @experimental
   LibraryExport? get libraryExport;
 }
 
@@ -7577,7 +7536,6 @@ abstract final class Expression implements CollectionElement {
   /// - the function being invoked is known based on static type information
   /// - this expression corresponds to one of the parameters of the function
   ///   being invoked
-  @experimental
   FormalParameterElement? get correspondingParameter;
 
   /// Whether this expression is in a constant context.
@@ -7786,7 +7744,6 @@ sealed class ExpressionImpl extends CollectionElementImpl
   @override
   bool get canBeConst => false;
 
-  @experimental
   @override
   InternalFormalParameterElement? get correspondingParameter {
     var parent = this.parent;
@@ -8188,10 +8145,8 @@ final class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ExtensionDeclaration implements CompilationUnitMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
-  @experimental
   Token? get augmentKeyword;
 
-  @experimental
   @override
   ExtensionFragment? get declaredFragment;
 
@@ -8474,12 +8429,10 @@ abstract final class ExtensionOverride implements Expression {
   ArgumentList get argumentList;
 
   /// The extension that resolution will use to resolve member references.
-  @experimental
   ExtensionElement get element;
 
   /// The extension that resolution will use to resolve member references.
   @Deprecated('Use element instead')
-  @experimental
   ExtensionElement get element2;
 
   /// The actual type extended by this override, produced by applying
@@ -8667,18 +8620,15 @@ final class ExtensionOverrideImpl extends ExpressionImpl
 ///        '{'
 ///            (<metadata> <extensionTypeMemberDeclaration>)*
 ///        '}'
-@experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ExtensionTypeDeclaration
     implements NamedCompilationUnitMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
-  @experimental
   Token? get augmentKeyword;
 
   /// The `const` keyword.
   Token? get constKeyword;
 
-  @experimental
   @override
   ExtensionTypeFragment? get declaredFragment;
 
@@ -8912,7 +8862,6 @@ abstract final class FieldDeclaration implements ClassMember {
   Token? get abstractKeyword;
 
   /// The `augment` keyword, or `null` if the keyword was absent.
-  @experimental
   Token? get augmentKeyword;
 
   /// The `covariant` keyword, or `null` if the keyword isn't used.
@@ -9070,7 +9019,6 @@ final class FieldDeclarationImpl extends ClassMemberImpl
 ///        'this' '.' name ([TypeParameterList]? [FormalParameterList])?
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class FieldFormalParameter implements NormalFormalParameter {
-  @experimental
   @override
   FieldFormalParameterFragment? get declaredFragment;
 
@@ -9851,7 +9799,6 @@ sealed class FormalParameter implements AstNode {
   ///The fragment declared by this parameter.
   ///
   /// Returns `null` if this parameter hasn't been resolved.
-  @experimental
   FormalParameterFragment? get declaredFragment;
 
   /// Whether this parameter was declared with the 'const' modifier.
@@ -9918,7 +9865,6 @@ sealed class FormalParameter implements AstNode {
 
 sealed class FormalParameterImpl extends AstNodeImpl
     implements FormalParameter {
-  @experimental
   @override
   FormalParameterFragmentImpl? declaredFragment;
 
@@ -9993,7 +9939,6 @@ abstract final class FormalParameterList implements AstNode {
   ///
   /// The list contains `null`s if the parameters in this list haven't been
   /// resolved.
-  @experimental
   List<FormalParameterFragment?> get parameterFragments;
 
   /// The parameters associated with the method.
@@ -10062,7 +10007,6 @@ final class FormalParameterListImpl extends AstNodeImpl
     return rightParenthesis;
   }
 
-  @experimental
   @override
   List<FormalParameterFragmentImpl?> get parameterFragments {
     return parameters.map((node) => node.declaredFragment).toList();
@@ -10668,7 +10612,6 @@ sealed class FunctionBody implements AstNode {
   /// level function or method containing this [FunctionBody], return `false`.
   ///
   /// Throws an exception if resolution hasn't been performed.
-  @experimental
   bool isPotentiallyMutatedInScope(VariableElement variable);
 
   /// If [variable] is a local variable or parameter declared anywhere within
@@ -10681,7 +10624,6 @@ sealed class FunctionBody implements AstNode {
   ///
   /// Throws an exception if resolution hasn't been performed.
   @Deprecated('Use isPotentiallyMutatedInScope instead')
-  @experimental
   bool isPotentiallyMutatedInScope2(VariableElement variable);
 }
 
@@ -10749,14 +10691,12 @@ sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class FunctionDeclaration implements NamedCompilationUnitMember {
   /// The `augment` keyword, or `null` if there is no `augment` keyword.
-  @experimental
   Token? get augmentKeyword;
 
   /// The fragment declared by this declaration.
   ///
   /// Returns `null` if the AST structure hasn't been resolved or if this node
   /// represents a local function.
-  @experimental
   @override
   ExecutableFragment? get declaredFragment;
 
@@ -11003,7 +10943,6 @@ abstract final class FunctionExpression implements Expression {
   ///
   /// Returns `null` is thie expression is a closure, or the parent is a
   /// local function.
-  @experimental
   ExecutableFragment? get declaredFragment;
 
   /// The parameters associated with the function, or `null` if the function is
@@ -11167,7 +11106,6 @@ abstract final class FunctionExpressionInvocation
   ///
   /// Returns `null` if the AST structure hasn't been resolved or the function
   /// couldn't be resolved.
-  @experimental
   ExecutableElement? get element;
 
   /// The expression producing the function being invoked.
@@ -11419,7 +11357,6 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
 ///        [TypeAnnotation]? [SimpleIdentifier]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class FunctionTypeAlias implements TypeAlias {
-  @experimental
   @override
   TypeAliasFragment? get declaredFragment;
 
@@ -12348,7 +12285,6 @@ sealed class Identifier implements Expression, CommentReferableExpression {
   /// Returns `null` if the AST structure hasn't been resolved or if this
   /// identifier couldn't be resolved. One example of the latter case is an
   /// identifier that isn't defined within the scope in which it appears.
-  @experimental
   Element? get element;
 
   /// The lexical representation of the identifier.
@@ -13044,7 +12980,6 @@ abstract final class ImportDirective implements NamespaceDirective {
   /// Information about this import directive.
   ///
   /// Returns `null` if the AST structure hasn't been resolved.
-  @experimental
   LibraryImport? get libraryImport;
 
   /// The prefix to be used with the imported names, or `null` if the imported
@@ -13235,14 +13170,12 @@ abstract final class ImportPrefixReference implements AstNode {
   /// The element to which [name] is resolved.
   ///
   /// Usually a [PrefixElement], but can be anything in invalid code.
-  @experimental
   Element? get element;
 
   /// The element to which [name] is resolved.
   ///
   /// Usually a [PrefixElement], but can be anything in invalid code.
   @Deprecated('Use element instead')
-  @experimental
   Element? get element2;
 
   /// The name of the referenced import prefix.
@@ -14550,7 +14483,6 @@ abstract final class LibraryDirective implements Directive {
   ///
   /// Returns `null` if the AST structure hasn't been resolved or if this
   /// directive couldn't be resolved.
-  @experimental
   LibraryElement? get element;
 
   /// The element associated with this directive.
@@ -14558,7 +14490,6 @@ abstract final class LibraryDirective implements Directive {
   /// Returns `null` if the AST structure hasn't been resolved or if this
   /// directive couldn't be resolved.
   @Deprecated('Use element instead')
-  @experimental
   LibraryElement? get element2;
 
   /// The token representing the `library` keyword.
@@ -15764,7 +15695,6 @@ abstract final class MethodDeclaration implements ClassMember {
   /// The body of the method.
   FunctionBody get body;
 
-  @experimental
   @override
   ExecutableFragment? get declaredFragment;
 
@@ -16283,7 +16213,6 @@ abstract final class MethodReferenceExpression implements Expression {
   /// meaningful element to return. The latter case can occur, for example, when
   /// this is a non-compound assignment expression, or when the method referred
   /// to couldn't be resolved.
-  @experimental
   MethodElement? get element;
 }
 
@@ -16300,7 +16229,6 @@ abstract final class MixinDeclaration implements NamedCompilationUnitMember {
   /// The `base` keyword, or `null` if the keyword was absent.
   Token? get baseKeyword;
 
-  @experimental
   @override
   MixinFragment? get declaredFragment;
 
@@ -16621,7 +16549,6 @@ abstract final class NamedExpression implements Expression {
   ///
   /// Returns `null` if the AST structure hasn't been resolved or if there's no
   /// parameter with the same name as this expression.
-  @experimental
   FormalParameterElement? get element;
 
   /// The element representing the parameter being named by this expression.
@@ -16629,7 +16556,6 @@ abstract final class NamedExpression implements Expression {
   /// Returns `null` if the AST structure hasn't been resolved or if there's no
   /// parameter with the same name as this expression.
   @Deprecated('Use element instead')
-  @experimental
   FormalParameterElement? get element2;
 
   /// The expression with which the name is associated.
@@ -16669,14 +16595,12 @@ final class NamedExpressionImpl extends ExpressionImpl
     return name.beginToken;
   }
 
-  @experimental
   @override
   InternalFormalParameterElement? get element {
     return _name.label.element?.ifTypeOrNull();
   }
 
   @Deprecated('Use element instead')
-  @experimental
   @override
   InternalFormalParameterElement? get element2 {
     return element;
@@ -16758,7 +16682,6 @@ abstract final class NamedType implements TypeAnnotation {
   ///
   /// Returns `null` if [name] can't be resolved, or there's no element for the
   /// type name, such as for `void`.
-  @experimental
   Element? get element;
 
   /// The element of [name] considering [importPrefix].
@@ -16769,7 +16692,6 @@ abstract final class NamedType implements TypeAnnotation {
   /// Returns `null` if [name] can't be resolved, or there's no element for the
   /// type name, such as for `void`.
   @Deprecated('Use element instead')
-  @experimental
   Element? get element2;
 
   /// The optional import prefix before [name].
@@ -16823,7 +16745,6 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   @override
   final Token? question;
 
-  @experimental
   @override
   Element? element;
 
@@ -16852,7 +16773,6 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   }
 
   @Deprecated('Use element instead')
-  @experimental
   @override
   Element? get element2 => element;
 
@@ -18259,7 +18179,6 @@ abstract final class PartDirective implements UriBasedDirective {
   /// Information about this part directive.
   ///
   /// Returns `null` if the AST structure hasn't been resolved.
-  @experimental
   PartInclude? get partInclude;
 
   /// The token representing the `part` keyword.
@@ -18636,7 +18555,6 @@ abstract final class PatternField implements AstNode {
   ///
   /// Returns non-`null` inside valid [ObjectPattern]s; always returns `null`
   /// inside [RecordPattern]s.
-  @experimental
   Element? get element;
 
   /// The element referenced by [effectiveName].
@@ -18646,7 +18564,6 @@ abstract final class PatternField implements AstNode {
   /// Returns non-`null` inside valid [ObjectPattern]s; always returns `null`
   /// inside [RecordPattern]s.
   @Deprecated('Use element instead')
-  @experimental
   Element? get element2;
 
   /// The name of the field, or `null` if the field is a positional field.
@@ -20470,7 +20387,6 @@ abstract final class RelationalPattern implements DartPattern {
   ///
   /// Returns `null` if the AST structure hasn't been resolved or if the
   /// operator couldn't be resolved.
-  @experimental
   MethodElement? get element;
 
   /// The element of the [operator] for the matched type.
@@ -20478,7 +20394,6 @@ abstract final class RelationalPattern implements DartPattern {
   /// Returns `null` if the AST structure hasn't been resolved or if the
   /// operator couldn't be resolved.
   @Deprecated('Use element instead')
-  @experimental
   MethodElement? get element2;
 
   /// The expression used to compute the operand.
@@ -20592,7 +20507,6 @@ final class RelationalPatternImpl extends DartPatternImpl
 }
 
 /// The name of the primary constructor of an extension type.
-@experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class RepresentationConstructorName implements AstNode {
   /// The name of the primary constructor.
@@ -20661,11 +20575,9 @@ final class RepresentationConstructorNameImpl extends AstNodeImpl
 ///
 ///    <representationDeclaration> ::=
 ///        ('.' <identifierOrNew>)? '(' <metadata> <type> <identifier> ')'
-@experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class RepresentationDeclaration implements AstNode {
   /// The fragment of the primary constructor contained in this declaration.
-  @experimental
   ConstructorFragment? get constructorFragment;
 
   /// The optional name of the primary constructor.
@@ -20673,7 +20585,6 @@ abstract final class RepresentationDeclaration implements AstNode {
 
   /// The fragment for [fieldName] with [fieldType] contained in this
   /// declaration.
-  @experimental
   FieldFragment? get fieldFragment;
 
   /// The annotations associated with the field.
@@ -23775,7 +23686,6 @@ final class ThrowExpressionImpl extends ExpressionImpl
 abstract final class TopLevelVariableDeclaration
     implements CompilationUnitMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
-  @experimental
   Token? get augmentKeyword;
 
   /// The `external` keyword, or `null` if the keyword isn't used.
@@ -24045,7 +23955,6 @@ final class TryStatementImpl extends StatementImpl implements TryStatement {
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class TypeAlias implements NamedCompilationUnitMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
-  @experimental
   Token? get augmentKeyword;
 
   /// The semicolon terminating the declaration.
@@ -24378,7 +24287,6 @@ abstract final class TypeParameter implements Declaration {
   /// upper bound.
   TypeAnnotation? get bound;
 
-  @experimental
   @override
   TypeParameterFragment? get declaredFragment;
 
@@ -24703,7 +24611,6 @@ abstract final class VariableDeclaration implements Declaration {
   /// Returns `null` if the AST structure hasn't been resolved or if this node
   /// represents the declaration of a top-level variable or a field.
   @Deprecated('Use declaredFragment instead')
-  @experimental
   LocalVariableElement? get declaredElement;
 
   /// The element declared by this declaration.
@@ -24711,14 +24618,12 @@ abstract final class VariableDeclaration implements Declaration {
   /// Returns `null` if the AST structure hasn't been resolved or if this node
   /// represents the declaration of a top-level variable or a field.
   @Deprecated('Use declaredFragment instead')
-  @experimental
   LocalVariableElement? get declaredElement2;
 
   /// The fragment declared by this declaration.
   ///
   /// Returns `null` if the AST structure hasn't been resolved or if this node
   /// represents the declaration of a local variable.
-  @experimental
   @override
   VariableFragment? get declaredFragment;
 
@@ -24787,14 +24692,12 @@ final class VariableDeclarationImpl extends DeclarationImpl
   }
 
   @Deprecated('Use declaredFragment instead')
-  @experimental
   @override
   LocalVariableElementImpl? get declaredElement {
     return declaredFragment?.element.ifTypeOrNull<LocalVariableElementImpl>();
   }
 
   @Deprecated('Use declaredFragment instead')
-  @experimental
   @override
   LocalVariableElementImpl? get declaredElement2 {
     return declaredElement;

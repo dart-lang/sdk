@@ -797,7 +797,6 @@ class AnalysisDriver {
 
   /// NOTE: this API is experimental and subject to change in a future
   /// release (see https://github.com/dart-lang/sdk/issues/53876 for context).
-  @experimental
   AnalysisOptionsImpl getAnalysisOptionsForFile(File file) =>
       analysisOptionsMap.getOptions(file);
 

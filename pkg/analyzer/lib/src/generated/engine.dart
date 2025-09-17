@@ -9,7 +9,6 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
-import 'package:meta/meta.dart';
 
 export 'package:analyzer/dart/analysis/analysis_options.dart';
 export 'package:analyzer/error/listener.dart' show RecordingDiagnosticListener;
@@ -66,7 +65,6 @@ abstract class AnalysisContext {
   ///
   /// NOTE: this API is experimental and subject to change in a future
   /// release (see https://github.com/dart-lang/sdk/issues/53876 for context).
-  @experimental
   AnalysisOptions getAnalysisOptionsForFile(File file);
 }
 
