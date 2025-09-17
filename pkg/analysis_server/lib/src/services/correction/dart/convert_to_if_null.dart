@@ -41,6 +41,16 @@ class ConvertToIfNull extends ResolvedCorrectionProducer {
     }
   }
 
+  bool _outerParenthesesNeeded(AstNode node) {
+    if (node.parent case Expression expression
+        when expression is! ParenthesizedExpression) {
+      return expression.precedence >
+          Precedence.forTokenType(TokenType.QUESTION_QUESTION);
+    } else {
+      return false;
+    }
+  }
+
   Future<void> _preferIfNull(ChangeBuilder builder) async {
     var node = this.node;
     if (node is ConditionalExpression &&
@@ -62,21 +72,31 @@ class ConvertToIfNull extends ResolvedCorrectionProducer {
         return;
       }
 
-      var parentheses =
+      var innerParentheses =
           defaultExpression.precedence <
           Precedence.forTokenType(TokenType.QUESTION_QUESTION);
 
+      // Should not be needed because the precedence for ConditionalExpression
+      // is higher than for '??'. We still do it for consistency.
+      var outerParentheses = _outerParenthesesNeeded(node);
+
       await builder.addDartFileEdit(file, (builder) {
         builder.addReplacement(range.node(node), (builder) {
+          if (outerParentheses) {
+            builder.write('(');
+          }
           builder.write(utils.getNodeText(nullableExpression));
 
           if (defaultExpression is NullLiteral) return;
           builder.write(' ?? ');
-          if (parentheses) {
+          if (innerParentheses) {
             builder.write('(');
           }
           builder.write(utils.getNodeText(defaultExpression));
-          if (parentheses) {
+          if (innerParentheses) {
+            builder.write(')');
+          }
+          if (outerParentheses) {
             builder.write(')');
           }
         });
@@ -101,14 +121,21 @@ class ConvertToIfNull extends ResolvedCorrectionProducer {
       } else {
         return;
       }
+      var outerParentheses = _outerParenthesesNeeded(node);
       await builder.addDartFileEdit(file, (builder) {
         builder.addReplacement(range.node(node), (builder) {
+          if (outerParentheses) {
+            builder.write('(');
+          }
           builder.write(utils.getNodeText(nullableExpression));
           builder.write(' ${TokenType.QUESTION_QUESTION.lexeme} ');
           if (node.operator.type == TokenType.EQ_EQ) {
             builder.write('false');
           } else {
             builder.write('true');
+          }
+          if (outerParentheses) {
+            builder.write(')');
           }
         });
       });

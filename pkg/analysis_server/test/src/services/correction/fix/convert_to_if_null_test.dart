@@ -190,4 +190,17 @@ void f(bool? value) {
 }
 ''');
   }
+
+  Future<void> test_parensAround() async {
+    await resolveTestCode('''
+void f(bool? value) {
+  print(value != false && 1 == 2);
+}
+''');
+    await assertHasFix('''
+void f(bool? value) {
+  print((value ?? true) && 1 == 2);
+}
+''');
+  }
 }
