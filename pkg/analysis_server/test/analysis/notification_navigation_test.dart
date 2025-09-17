@@ -455,7 +455,7 @@ augment class A {
      bar();
    }
 
-  void bar(){}
+  void [!bar!](){}
 }
 ''');
     newFile(augmentFilePath, '''
@@ -470,7 +470,11 @@ void f() {
 
     await prepareNavigation();
     assertHasRegion('bar');
-    assertHasFileTarget(convertPath(testFilePath), 76, 3);
+    assertHasFileTarget(
+      convertPath(testFilePath),
+      parsedSourceRange.offset,
+      parsedSourceRange.length,
+    );
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation

@@ -2937,13 +2937,6 @@ void f() {
 class _AbstractGetRefactoring_Test extends PubPackageAnalysisServerTest {
   bool shouldWaitForFullAnalysis = true;
 
-  @override
-  void addTestFile(String content) {
-    // TODO(dantup): Move this normalization into the base class so it happens
-    //  automatically for all tests unless opted-out with a flag.
-    super.addTestFile(normalizeNewlinesForPlatform(content));
-  }
-
   Future<void> assertEmptySuccessfulRefactoring(
     Future<Response> Function() requestSender, {
     void Function(RefactoringFeedback?)? feedbackValidator,

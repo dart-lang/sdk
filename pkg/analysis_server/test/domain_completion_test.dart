@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:test/test.dart';
@@ -27,6 +28,9 @@ void main() {
 @reflectiveTest
 class CompletionDomainHandlerGetSuggestionDetails2Test
     extends PubPackageAnalysisServerTest {
+  String get testEolEscaped =>
+      testEol.replaceAll('\r', r'\r').replaceAll('\n', r'\n');
+
   void assertDetailsText(
     CompletionGetSuggestionDetails2Result result,
     String expected, {
@@ -83,13 +87,13 @@ void f() {
       libraryUri: 'dart:math',
     );
 
-    assertDetailsText(details, r'''
+    assertDetailsText(details, '''
 completion: Random
   change
     testFile
       offset: 0
       length: 0
-      replacement: import 'dart:math';\n\n
+      replacement: import 'dart:math';$testEolEscaped$testEolEscaped
 ''');
   }
 
@@ -122,13 +126,13 @@ void f() {
       libraryUri: 'package:aaa/a.dart',
     );
 
-    assertDetailsText(details, r'''
+    assertDetailsText(details, '''
 completion: Test
   change
     testFile
       offset: 0
       length: 0
-      replacement: import 'package:aaa/a.dart';\n\n
+      replacement: import 'package:aaa/a.dart';$testEolEscaped$testEolEscaped
 ''');
   }
 
@@ -149,13 +153,13 @@ void f() {
       libraryUri: 'package:test/a.dart',
     );
 
-    assertDetailsText(details, r'''
+    assertDetailsText(details, '''
 completion: Test
   change
     testFile
       offset: 0
       length: 0
-      replacement: import 'package:test/a.dart';\n\n
+      replacement: import 'package:test/a.dart';$testEolEscaped$testEolEscaped
 ''');
   }
 
@@ -2168,7 +2172,7 @@ suggestions
     required String content,
     int maxResults = 1 << 10,
   }) async {
-    var code = TestCode.parse(content);
+    var code = TestCode.parseNormalized(content);
     var completionOffset = code.position.offset;
 
     newFile(path, code.code);
@@ -2306,7 +2310,9 @@ class _SuggestionDetailsPrinter {
     _writelnWithIndent('offset: ${edit.offset}');
     _writelnWithIndent('length: ${edit.length}');
 
-    var replacementStr = edit.replacement.replaceAll('\n', r'\n');
+    var replacementStr = edit.replacement
+        .replaceAll('\n', r'\n')
+        .replaceAll('\r', r'\r');
     _writelnWithIndent('replacement: $replacementStr');
   }
 

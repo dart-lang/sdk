@@ -88,7 +88,7 @@ void f() {
   }
 
   void _assertHasChange(String message, String expected) {
-    var expectedCode = TestCode.parse(expected);
+    var expectedCode = TestCode.parseNormalized(expected);
     if (change.message != message) {
       fail('Expected to find |$message| but got: ${change.message}');
     }

@@ -2768,6 +2768,8 @@ class HighlightsTestSupport extends PubPackageAnalysisServerTest {
 
   @override
   Future<void> setUp() async {
+    useLineEndingsForPlatform = false;
+
     super.setUp();
     await setRoots(included: [workspaceRootPath], excluded: []);
   }
