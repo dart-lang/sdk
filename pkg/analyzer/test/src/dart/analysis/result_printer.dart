@@ -62,6 +62,11 @@ class BundleRequirementsPrinter {
           if (libraryRequirements.name case var name?) {
             sink.writelnWithIndent('name: $name');
           }
+          if (libraryRequirements.isSynthetic case var value?) {
+            if (value) {
+              sink.writelnWithIndent('isSynthetic: $value');
+            }
+          }
           if (libraryRequirements.featureSet != null) {
             sink.writelnWithIndent('featureSet: <not-null>');
           }
@@ -666,6 +671,13 @@ class DriverEventsPrinter {
       case LibraryFeatureSetMismatch():
         sink.writelnWithIndent('libraryFeatureSetMismatch');
         sink.writeProperties({'libraryUri': failure.libraryUri});
+      case LibraryIsSyntheticMismatch():
+        sink.writelnWithIndent('libraryIsSyntheticMismatch');
+        sink.writeProperties({
+          'libraryUri': failure.libraryUri,
+          'expected': failure.expected,
+          'actual': failure.actual,
+        });
       case ExportCountMismatch():
         sink.writelnWithIndent('exportCountMismatch');
         sink.writeProperties({
@@ -1147,6 +1159,7 @@ class LibraryManifestPrinter {
     if (manifest.name case var name?) {
       sink.writelnWithIndent('name: $name');
     }
+    sink.writeFlags({'isSynthetic': manifest.isSynthetic});
 
     var libraryMetadata = manifest.libraryMetadata;
     if (!libraryMetadata.isEmpty) {

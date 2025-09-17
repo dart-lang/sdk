@@ -334,6 +334,24 @@ class LibraryFeatureSetMismatch extends RequirementFailure {
   }
 }
 
+class LibraryIsSyntheticMismatch extends RequirementFailure {
+  final Uri libraryUri;
+  final bool expected;
+  final bool actual;
+
+  LibraryIsSyntheticMismatch({
+    required this.libraryUri,
+    required this.expected,
+    required this.actual,
+  });
+
+  @override
+  String toString() {
+    return 'LibraryIsSyntheticMismatch(libraryUri: $libraryUri, '
+        'expected: $expected, actual: $actual)';
+  }
+}
+
 class LibraryLanguageVersionMismatch extends RequirementFailure {
   final Uri libraryUri;
   final ManifestLibraryLanguageVersion expected;

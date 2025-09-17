@@ -1645,10 +1645,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitPartOfDirective(PartOfDirective node) {
-    var libraryElement = _libraryBuilder.element;
-    libraryElement.hasPartOfDirective = true;
-  }
+  void visitPartOfDirective(PartOfDirective node) {}
 
   @override
   void visitRecordTypeAnnotation(RecordTypeAnnotation node) {

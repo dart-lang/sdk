@@ -6171,8 +6171,13 @@ class LibraryElementImpl extends ElementImpl
   ///
   /// If a field in the library has a private name and that name does not appear
   /// as a key in this map, the field is promotable.
+  @trackedDirectlyOpaque
   Map<String, FieldNameNonPromotabilityInfo> get fieldNameNonPromotabilityInfo {
     _ensureReadResolution();
+    globalResultRequirements?.recordOpaqueApiUse(
+      this,
+      'fieldNameNonPromotabilityInfo',
+    );
     return _fieldNameNonPromotabilityInfo!;
   }
 
@@ -6211,14 +6216,6 @@ class LibraryElementImpl extends ElementImpl
     _getters = value;
   }
 
-  bool get hasPartOfDirective {
-    return hasModifier(Modifier.HAS_PART_OF_DIRECTIVE);
-  }
-
-  set hasPartOfDirective(bool hasPartOfDirective) {
-    setModifier(Modifier.HAS_PART_OF_DIRECTIVE, hasPartOfDirective);
-  }
-
   @override
   @trackedIndirectly
   String get identifier => '$uri';
@@ -6243,7 +6240,9 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
+  @trackedDirectly
   bool get isSynthetic {
+    globalResultRequirements?.record_library_isSynthetic(element: this);
     return hasModifier(Modifier.SYNTHETIC);
   }
 
@@ -8580,11 +8579,6 @@ enum Modifier {
   /// A flag used for libraries indicating that the variable has an explicit
   /// initializer.
   HAS_INITIALIZER,
-
-  /// A flag used for libraries indicating that the defining compilation unit
-  /// has a `part of` directive, meaning that this unit should be a part,
-  /// but is used as a library.
-  HAS_PART_OF_DIRECTIVE,
 
   /// Indicates that the value of [FragmentImpl.sinceSdkVersion] was computed.
   HAS_SINCE_SDK_VERSION_COMPUTED,

@@ -24,6 +24,7 @@ import 'package:collection/collection.dart';
 /// The manifest of a single library.
 class LibraryManifest {
   final String? name;
+  final bool isSynthetic;
   final Uint8List featureSet;
   final ManifestLibraryLanguageVersion languageVersion;
   final LibraryMetadataItem libraryMetadata;
@@ -53,6 +54,7 @@ class LibraryManifest {
 
   LibraryManifest({
     required this.name,
+    required this.isSynthetic,
     required this.featureSet,
     required this.languageVersion,
     required this.libraryMetadata,
@@ -75,6 +77,7 @@ class LibraryManifest {
   factory LibraryManifest.read(SummaryDataReader reader) {
     return LibraryManifest(
       name: reader.readOptionalStringUtf8(),
+      isSynthetic: reader.readBool(),
       featureSet: reader.readUint8List(),
       languageVersion: ManifestLibraryLanguageVersion.read(reader),
       libraryMetadata: LibraryMetadataItem.read(reader),
@@ -157,6 +160,7 @@ class LibraryManifest {
 
   void write(BufferedSink sink) {
     sink.writeOptionalStringUtf8(name);
+    sink.writeBool(isSynthetic);
     sink.writeUint8List(featureSet);
     languageVersion.write(sink);
     libraryMetadata.write(sink);
@@ -877,6 +881,7 @@ class LibraryManifestBuilder {
 
       var newManifest = LibraryManifest(
         name: libraryElement.name.nullIfEmpty,
+        isSynthetic: libraryElement.isSynthetic,
         featureSet: (libraryElement.featureSet as ExperimentStatus).toStorage(),
         languageVersion: ManifestLibraryLanguageVersion.encode(
           libraryElement.languageVersion,
@@ -1103,6 +1108,7 @@ class LibraryManifestBuilder {
     return inputManifests[uri] ??
         LibraryManifest(
           name: null,
+          isSynthetic: false,
           featureSet: Uint8List(0),
           languageVersion: ManifestLibraryLanguageVersion.empty(),
           libraryMetadata: LibraryMetadataItem.empty(),

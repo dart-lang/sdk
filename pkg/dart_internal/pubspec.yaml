@@ -1,5 +1,5 @@
 name: dart_internal
-version: 0.2.15
+version: 0.2.16
 description: >-
   This package is not intended for wide use. It provides a temporary API to
   solve the problem: "Given an object some generic type A, how do I construct an

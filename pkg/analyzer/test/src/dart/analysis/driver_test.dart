@@ -31848,6 +31848,75 @@ typedef C = int;
     );
   }
 
+  test_dependency_libraryElement_isSynthetic() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.isSynthetic;
+    });
+
+    newFile('$testPackageLibPath/test.dart', r'''
+import 'a.dart';
+''');
+
+    await _runChangeScenario(
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    flags: isSynthetic
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        isSynthetic: true
+        libraryMetadataId: #M0
+[status] idle
+''',
+      updateFiles: () {
+        var a = newFile('$testPackageLibPath/a.dart', '');
+        return [a];
+      },
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  libraryIsSyntheticMismatch
+    libraryUri: package:test/a.dart
+    expected: true
+    actual: false
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M0
+[status] idle
+''',
+    );
+  }
+
   test_dependency_libraryElement_languageVersion() async {
     configuration
       ..withGetErrorsEvents = false
@@ -32013,6 +32082,7 @@ library;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    flags: isSynthetic
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
