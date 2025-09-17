@@ -6,14 +6,12 @@
 library;
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:meta/meta.dart';
 
 /// A block doc directive, denoted by an opening tag, and a closing tag.
 ///
 /// The text in between the two tags is not explicitly called out. It can be
 /// read from the original compilation unit, between the offsets of the opening
 /// and closing tags.
-@experimental
 final class BlockDocDirective implements DocDirective {
   final DocDirectiveTag openingTag;
   final DocDirectiveTag? closingTag;
@@ -25,7 +23,6 @@ final class BlockDocDirective implements DocDirective {
 }
 
 /// The type of Markdown code block in a documentation comment.
-@experimental
 enum CodeBlockType {
   /// Fenced code blocks begin with a code fence, preceded by up to three spaces
   /// of indentation.
@@ -43,13 +40,11 @@ enum CodeBlockType {
 /// as a [SimpleDocDirective], represented by a single [DocDirectiveTag], or a
 /// [BlockDocDirective], represented by an opening [DocDirectiveTag] and a
 /// closing one (in well-formed text).
-@experimental
 sealed class DocDirective {
   DocDirectiveType get type;
 }
 
 /// An argument in a doc directive. See [DocDirective] for their syntax.
-@experimental
 sealed class DocDirectiveArgument {
   /// The offset of the start of the argument, from the beginning of the
   /// compilation unit.
@@ -70,7 +65,6 @@ sealed class DocDirectiveArgument {
 }
 
 /// A named argument in a doc directive. See [DocDirective] for their syntax.
-@experimental
 final class DocDirectiveNamedArgument extends DocDirectiveArgument {
   /// The name of the argument.
   final String name;
@@ -84,7 +78,6 @@ final class DocDirectiveNamedArgument extends DocDirectiveArgument {
 }
 
 /// A parameter in a doc directive, with it's expected format, if it has one.
-@experimental
 final class DocDirectiveParameter {
   final String name;
   final DocDirectiveParameterFormat expectedFormat;
@@ -94,7 +87,6 @@ final class DocDirectiveParameter {
 
 /// The expected format of a doc directive parameter, which indicates some
 /// minimal validation that can produce diagnostics.
-@experimental
 enum DocDirectiveParameterFormat {
   /// A format indicating that arguments are not validated.
   any('any'),
@@ -118,7 +110,6 @@ enum DocDirectiveParameterFormat {
 
 /// A positional argument in a doc directive. See [DocDirective] for their
 /// syntax.
-@experimental
 final class DocDirectivePositionalArgument extends DocDirectiveArgument {
   DocDirectivePositionalArgument({
     required super.offset,
@@ -137,7 +128,6 @@ final class DocDirectivePositionalArgument extends DocDirectiveArgument {
 /// whitespace. There are two types of arguments: positional and named. Named
 /// arguments are written as `NAME=VALUE`, without any internal whitespace.
 /// Named arguments can be optional.
-@experimental
 final class DocDirectiveTag {
   /// The offset of the starting text; for example: '@animation'.
   final int offset;
@@ -161,7 +151,6 @@ final class DocDirectiveTag {
   });
 }
 
-@experimental
 enum DocDirectiveType {
   /// A [DocDirective] declaring an embedded video with HTML video controls.
   ///
@@ -391,7 +380,6 @@ enum DocDirectiveType {
 /// Documentation imports are declared with `@docImport` at the start of a line
 /// of a documentation comment, followed by regular import elements (URI,
 /// optional prefix, optional combinators), ending with a semicolon.
-@experimental
 final class DocImport {
   /// The offset of the starting text, '@docImport'.
   int offset;
@@ -402,7 +390,6 @@ final class DocImport {
 }
 
 /// A Markdown fenced code block found in a documentation comment.
-@experimental
 final class MdCodeBlock {
   /// The 'info string'.
   ///
@@ -434,7 +421,6 @@ final class MdCodeBlock {
 }
 
 /// A Markdown code block line found in a documentation comment.
-@experimental
 final class MdCodeBlockLine {
   /// The offset of the start of the code block, from the beginning of the
   /// compilation unit.
@@ -446,7 +432,6 @@ final class MdCodeBlockLine {
   MdCodeBlockLine({required this.offset, required this.length});
 }
 
-@experimental
 final class SimpleDocDirective implements DocDirective {
   final DocDirectiveTag tag;
 

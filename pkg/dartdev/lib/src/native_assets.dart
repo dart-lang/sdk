@@ -9,7 +9,6 @@ import 'package:code_assets/code_assets.dart';
 import 'package:dartdev/src/native_assets_bundling.dart';
 import 'package:dartdev/src/sdk.dart';
 import 'package:dartdev/src/utils.dart';
-import 'package:data_assets/data_assets.dart';
 import 'package:file/local.dart';
 import 'package:hooks/hooks.dart';
 import 'package:hooks_runner/hooks_runner.dart';
@@ -137,7 +136,7 @@ class DartNativeAssetsBuilder {
     ),
     // TODO(dacoharkes,mosum): This should be gated behind a data-assets
     // experiment flag.
-    DataAssetsExtension(),
+    // DataAssetsExtension(),
   ];
 
   Future<BuildResult?> _buildNativeAssetsShared({

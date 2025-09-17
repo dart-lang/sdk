@@ -179,9 +179,9 @@ features:
     help: "Shorter dot syntax for static accesses."
 
   native-assets:
-    help: "Compile and bundle native assets."
-    channels: [ "main", "dev", "beta" ]
-    enabledIn: '3.9.0'
+    help: 'Compile and bundle native assets.'
+    enabledIn: '3.10.0'
+    experimentalReleaseVersion: '3.9.0'
     expired: true
 
   getter-setter-error:

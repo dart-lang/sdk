@@ -85,9 +85,10 @@ String convertTemplate(Map<String, int> placeholderToIndexMap, String entry) {
 Map<String, T> decodeCfeStyleMessagesYaml<T extends CfeStyleErrorCodeInfo>(
   Object? yaml, {
   required T Function(YamlMap) decodeMessage,
+  required String path,
 }) {
   Never problem(String message) {
-    throw 'Problem in pkg/front_end/messages.yaml: $message';
+    throw 'Problem in $path: $message';
   }
 
   var result = <String, T>{};
@@ -106,7 +107,10 @@ Map<String, T> decodeCfeStyleMessagesYaml<T extends CfeStyleErrorCodeInfo>(
     try {
       result[errorName] = decodeMessage(errorValue);
     } catch (e, st) {
-      Error.throwWithStackTrace('while processing $errorName, $e', st);
+      Error.throwWithStackTrace(
+        'while processing $errorName from $path, $e',
+        st,
+      );
     }
   }
   return result;
@@ -122,7 +126,11 @@ Map<String, T> _loadCfeStyleMessages<T extends CfeStyleErrorCodeInfo>(
     File(path).readAsStringSync(),
     sourceUrl: Uri.file(path),
   );
-  return decodeCfeStyleMessagesYaml(messagesYaml, decodeMessage: decodeMessage);
+  return decodeCfeStyleMessagesYaml(
+    messagesYaml,
+    decodeMessage: decodeMessage,
+    path: path,
+  );
 }
 
 /// Splits [text] on spaces using the given [maxWidth] (and [firstLineWidth] if

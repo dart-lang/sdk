@@ -427,9 +427,9 @@ class ExperimentalFeatures {
     isEnabledByDefault: IsEnabledByDefault.native_assets,
     isExpired: IsExpired.native_assets,
     documentation: 'Compile and bundle native assets.',
-    experimentalReleaseVersion: null,
-    releaseVersion: Version.parse('3.9.0'),
-    channels: ["main", "dev", "beta"],
+    experimentalReleaseVersion: Version.parse('3.9.0'),
+    releaseVersion: Version.parse('3.10.0'),
+    channels: ["stable", "beta", "dev", "main"],
   );
 
   static final non_nullable = ExperimentalFeature(

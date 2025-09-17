@@ -199,7 +199,6 @@ class DiagnosticReporter {
   ///
   /// The reported [Diagnostic] is returned so that the caller may attach
   /// additional information to it (for example, using an expando).
-  @experimental
   Diagnostic atElement2(
     Element element,
     DiagnosticCode diagnosticCode, {

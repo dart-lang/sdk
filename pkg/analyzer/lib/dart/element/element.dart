@@ -59,7 +59,6 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart' show Name;
 import 'package:analyzer/src/dart/resolver/scope.dart';
-import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 export 'package:analyzer/src/dart/element/inheritance_manager3.dart' show Name;
@@ -552,7 +551,6 @@ abstract class DirectiveUriWithSource extends DirectiveUriWithRelativeUri {
 /// Clients may not extend, implement or mix-in this class.
 abstract class DirectiveUriWithUnit extends DirectiveUriWithSource {
   /// The library fragment referenced by the [source].
-  @experimental
   LibraryFragment get libraryFragment;
 }
 

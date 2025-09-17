@@ -182,7 +182,7 @@ enum ExperimentalFlag {
     name: 'native-assets',
     isEnabledByDefault: true,
     isExpired: true,
-    experimentEnabledVersion: const Version(3, 9),
+    experimentEnabledVersion: const Version(3, 10),
     experimentReleasedVersion: const Version(3, 9),
   ),
 
