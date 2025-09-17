@@ -1062,8 +1062,18 @@ bool Thread::IsExecutingDartCode() const {
   return (top_exit_frame_info() == 0) && VMTag::IsDartTag(vm_tag());
 }
 
+bool Thread::IsExecutingDartCodeIgnoreRace() const {
+  return (top_exit_frame_info_ignore_race() == 0) &&
+         VMTag::IsDartTag(vm_tag_ignore_race());
+}
+
 bool Thread::HasExitedDartCode() const {
   return (top_exit_frame_info() != 0) && !VMTag::IsDartTag(vm_tag());
+}
+
+bool Thread::HasExitedDartCodeIgnoreRace() const {
+  return (top_exit_frame_info_ignore_race() != 0) &&
+         !VMTag::IsDartTag(vm_tag_ignore_race());
 }
 
 template <class C>

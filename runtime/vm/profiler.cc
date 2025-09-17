@@ -209,6 +209,16 @@ static uword* LoadStackSlot(uword* ptr) {
   return reinterpret_cast<uword*>(*ptr);
 }
 
+#if defined(DART_HOST_OS_MACOS)
+// Mac profiling is cross-thread and TSAN doesn't know that thread_suspend
+// establishes synchronization.
+#define IGNORE_RACE(x) x##_ignore_race
+#define IGNORE_RACE2(x) x##IgnoreRace
+#else
+#define IGNORE_RACE(x) x
+#define IGNORE_RACE2(x) x
+#endif
+
 // The layout of C stack frames.
 #if defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64) ||                       \
     defined(HOST_ARCH_ARM) || defined(HOST_ARCH_ARM64)
@@ -379,7 +389,8 @@ static bool GetAndValidateThreadStackBounds(OSThread* os_thread,
 
 #if defined(DART_INCLUDE_SIMULATOR)
   const bool use_simulator_stack_bounds =
-      FLAG_use_simulator && thread != nullptr && thread->IsExecutingDartCode();
+      FLAG_use_simulator && thread != nullptr &&
+      thread->IGNORE_RACE2(IsExecutingDartCode)();
   if (use_simulator_stack_bounds) {
     Isolate* isolate = thread->isolate();
     ASSERT(isolate != nullptr);
@@ -1047,8 +1058,8 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
                           uword lr,
                           bool allocation_sample,
                           intptr_t skip_count = 0)
-      : ProfilerStackWalker((thread->isolate() != nullptr)
-                                ? thread->isolate()->main_port()
+      : ProfilerStackWalker((thread->IGNORE_RACE(isolate)() != nullptr)
+                                ? thread->IGNORE_RACE(isolate)()->main_port()
                                 : ILLEGAL_PORT,
                             sample,
                             sample_buffer,
@@ -1061,12 +1072,13 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
 
   void walk() {
     RELEASE_ASSERT(StubCode::HasBeenInitialized());
-    if (thread_->IsDeoptimizing()) {
+    if (thread_->IGNORE_RACE2(IsDeoptimizing)()) {
       sample_->set_ignore_sample(true);
       return;
     }
 
-    uword* exit_fp = reinterpret_cast<uword*>(thread_->top_exit_frame_info());
+    uword* exit_fp =
+        reinterpret_cast<uword*>(thread_->IGNORE_RACE(top_exit_frame_info)());
     bool has_exit_frame = exit_fp != nullptr;
     if (has_exit_frame) {
       // Exited from compiled code or interpreter.
@@ -1077,13 +1089,14 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
       pc_ = CallerPC();
       fp_ = CallerFP();
     } else {
-      if (thread_->vm_tag() == VMTag::kDartTagId) {
+      if (thread_->IGNORE_RACE(vm_tag)() == VMTag::kDartTagId) {
         // Running compiled code.
         // Use the FP and PC from the thread interrupt or simulator; already set
         // in the constructor.
 
 #if defined(DART_DYNAMIC_MODULES)
-      } else if (thread_->vm_tag() == VMTag::kDartInterpretedTagId) {
+      } else if (thread_->IGNORE_RACE(vm_tag)() ==
+                 VMTag::kDartInterpretedTagId) {
         // Running interpreter.
         pc_ = reinterpret_cast<uword*>(thread_->interpreter()->get_pc());
         fp_ = reinterpret_cast<uword*>(thread_->interpreter()->get_fp());
@@ -1286,7 +1299,7 @@ static Sample* SetupSample(Thread* thread,
                            bool allocation_sample,
                            ThreadId tid) {
   ASSERT(thread != nullptr);
-  Isolate* isolate = thread->isolate();
+  Isolate* isolate = thread->IGNORE_RACE(isolate)();
   SampleBlockBuffer* buffer = Profiler::sample_block_buffer();
   Sample* sample = allocation_sample ? buffer->ReserveAllocationSample(isolate)
                                      : buffer->ReserveCPUSample(isolate);
@@ -1294,7 +1307,7 @@ static Sample* SetupSample(Thread* thread,
     return nullptr;
   }
   sample->Init(isolate->main_port(), OS::GetCurrentMonotonicMicros(), tid);
-  uword vm_tag = thread->vm_tag();
+  uword vm_tag = thread->IGNORE_RACE(vm_tag)();
 #if defined(DART_INCLUDE_SIMULATOR)
   // When running in the simulator, the runtime entry function address
   // (stored as the vm tag) is the address of a redirect function.
@@ -1307,7 +1320,7 @@ static Sample* SetupSample(Thread* thread,
   }
 #endif
   sample->set_vm_tag(vm_tag);
-  sample->set_user_tag(thread->user_tag());
+  sample->set_user_tag(thread->IGNORE_RACE(user_tag)());
   sample->set_thread_task(thread->task_kind());
   return sample;
 }
@@ -1388,7 +1401,7 @@ void Profiler::SampleThreadSingleFrame(Thread* thread,
   ASSERT(thread != nullptr);
   OSThread* os_thread = thread->os_thread();
   ASSERT(os_thread != nullptr);
-  Isolate* isolate = thread->isolate();
+  Isolate* isolate = thread->IGNORE_RACE(isolate)();
 
   ASSERT(Profiler::sample_block_buffer() != nullptr);
 
@@ -1406,9 +1419,9 @@ void Profiler::SampleThreadSingleFrame(Thread* thread,
 void Profiler::SampleThread(Thread* thread,
                             const InterruptedThreadState& state) {
   ASSERT(thread != nullptr);
-  OSThread* os_thread = thread->os_thread();
+  OSThread* os_thread = thread->IGNORE_RACE(os_thread)();
   ASSERT(os_thread != nullptr);
-  Isolate* isolate = thread->isolate();
+  Isolate* isolate = thread->IGNORE_RACE(isolate)();
 
   // Double check if interrupts are disabled
   // after the thread interrupter decided to send a signal.
@@ -1430,7 +1443,7 @@ void Profiler::SampleThread(Thread* thread,
     return;
   }
 
-  const bool in_dart_code = thread->IsExecutingDartCode();
+  const bool in_dart_code = thread->IGNORE_RACE2(IsExecutingDartCode)();
 
   uintptr_t sp = 0;
   uintptr_t fp = state.fp;
@@ -1478,7 +1491,7 @@ void Profiler::SampleThread(Thread* thread,
   }
 
   if (thread->IsDartMutatorThread()) {
-    if (thread->IsDeoptimizing()) {
+    if (thread->IGNORE_RACE2(IsDeoptimizing)()) {
       counters_.single_frame_sample_deoptimizing.fetch_add(1);
       SampleThreadSingleFrame(thread, sample, pc);
       return;
@@ -1509,7 +1522,7 @@ void Profiler::SampleThread(Thread* thread,
       &counters_, (isolate != nullptr) ? isolate->main_port() : ILLEGAL_PORT,
       sample, isolate->current_sample_block(), stack_lower, stack_upper, pc, fp,
       sp);
-  const bool exited_dart_code = thread->HasExitedDartCode();
+  const bool exited_dart_code = thread->IGNORE_RACE2(HasExitedDartCode)();
   ProfilerDartStackWalker dart_stack_walker(
       thread, sample, isolate->current_sample_block(), pc, fp, sp, lr,
       /* allocation_sample*/ false);

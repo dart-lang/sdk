@@ -71,7 +71,7 @@ class ThreadInterrupterMacOS {
     kern_return_t res = KERN_FAILURE;
 #endif
     ASSERT(res == KERN_SUCCESS);
-    Thread* thread = static_cast<Thread*>(os_thread_->thread());
+    Thread* thread = static_cast<Thread*>(os_thread_->thread_ignore_race());
     if (thread == nullptr) {
       return;
     }
