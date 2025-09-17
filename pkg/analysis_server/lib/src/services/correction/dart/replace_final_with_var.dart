@@ -30,6 +30,7 @@ class ReplaceFinalWithVar extends ResolvedCorrectionProducer {
       VariableDeclarationList node => (node.keyword, node.type),
       PatternVariableDeclaration node => (node.keyword, null),
       DeclaredIdentifier node => (node.keyword, node.type),
+      DeclaredVariablePattern node => (node.keyword, node.type),
       _ => (null, null),
     };
 
