@@ -32,7 +32,7 @@ class AnalysisNotificationOccurrencesTest extends PubPackageAnalysisServerTest {
     required ElementKind? kind,
     String? elementName,
   }) async {
-    var code = TestCode.parse(content);
+    var code = TestCode.parseNormalized(content);
     addTestFile(code.code);
 
     await prepareOccurrences();

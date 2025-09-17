@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:linter/src/lint_names.dart';
@@ -295,7 +296,7 @@ class C {}
   Future<void> _assertSorted(String expectedCode) async {
     await _requestSort();
     var resultCode = SourceEdit.applySequence(testFileContent, fileEdit.edits);
-    expect(resultCode, expectedCode);
+    expect(resultCode, normalizeNewlinesForPlatform(expectedCode));
   }
 
   Future<void> _requestSort() async {

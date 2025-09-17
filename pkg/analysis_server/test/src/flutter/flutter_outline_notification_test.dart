@@ -67,20 +67,20 @@ analyzer:
     await pumpEventQueue();
     await server.onAnalysisComplete;
 
-    var code = '''
+    addTestFile('''
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return new Column(children: [
-      const Text('aaa'),
-      const Text('bbb'),
+      /*0*/const Text('aaa'),
+      /*1*/const Text('bbb'),
     ]);
   }
 }
-''';
-    addTestFile(code);
+''');
+
     await prepareOutline();
     var unitOutline = outline;
 
@@ -100,11 +100,11 @@ class MyWidget extends StatelessWidget {
     var textOutlineA = columnOutline.children![0];
     expect(textOutlineA.kind, FlutterOutlineKind.NEW_INSTANCE);
     expect(textOutlineA.className, 'Text');
-    expect(textOutlineA.offset, code.indexOf("const Text('aaa')"));
+    expect(textOutlineA.offset, parsedPositions[0].offset);
 
     var textOutlineB = columnOutline.children![1];
     expect(textOutlineB.kind, FlutterOutlineKind.NEW_INSTANCE);
     expect(textOutlineB.className, 'Text');
-    expect(textOutlineB.offset, code.indexOf("const Text('bbb')"));
+    expect(textOutlineB.offset, parsedPositions[1].offset);
   }
 }

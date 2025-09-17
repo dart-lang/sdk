@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -19,17 +20,21 @@ void main() {
 
 @reflectiveTest
 class AnalysisNotificationFoldingTest extends PubPackageAnalysisServerTest {
-  static const sampleCode = '''
-import 'dart:async';
-import 'dart:core';
+  final sampleCode = TestCode.parseNormalized('''
+import[! 'dart:async';
+import 'dart:core';!]
 
 main async() {}
-''';
+''');
 
-  static final expectedResults = [
+  late final expectedResults = [
     // We don't include the first "import" in the region because
     // we want that to remain visible (not collapse).
-    FoldingRegion(FoldingKind.DIRECTIVES, 6, 34),
+    FoldingRegion(
+      FoldingKind.DIRECTIVES,
+      sampleCode.range.sourceRange.offset,
+      sampleCode.range.sourceRange.length,
+    ),
   ];
 
   List<FoldingRegion>? lastRegions;
@@ -67,7 +72,7 @@ main async() {}
   }
 
   Future<void> test_afterAnalysis() async {
-    addTestFile(sampleCode);
+    addTestFile(sampleCode.code);
     await waitForTasksFinished();
     expect(lastRegions, isNull);
 
@@ -90,7 +95,7 @@ main async() {}
     expect(lastRegions, hasLength(0));
 
     // With sample code there will be folding regions.
-    await waitForFolding(() async => modifyTestFile(sampleCode));
+    await waitForFolding(() async => modifyTestFile(sampleCode.code));
 
     expect(lastRegions, expectedResults);
   }

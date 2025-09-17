@@ -13,9 +13,11 @@ import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart' as analysis;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
+import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_testing/experiments/experiments.dart';
@@ -217,6 +219,9 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
 
   final String testPackageName = 'test';
 
+  /// Whether to automatically normalize line endings for the current platform.
+  bool useLineEndingsForPlatform = true;
+
   /// Return a list of the experiments that are to be enabled for tests in this
   /// class, an empty list if there are no experiments that should be enabled.
   List<String> get experiments => experimentsForTests;
@@ -224,6 +229,14 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
   /// The path that is not in [workspaceRootPath], contains external packages.
   @override
   String get packagesRootPath => resourceProvider.convertPath('/packages');
+
+  List<TestCodePosition> get parsedPositions => parsedTestCode.positions;
+
+  TestCodeRange get parsedRange => parsedTestCode.range;
+
+  List<TestCodeRange> get parsedRanges => parsedTestCode.ranges;
+
+  SourceRange get parsedSourceRange => parsedTestCode.range.sourceRange;
 
   File get testFile => getFile(testFilePath);
 
@@ -262,7 +275,9 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
 
   // TODO(scheglov): rename
   void addTestFile(String content) {
-    parsedTestCode = TestCode.parse(content);
+    parsedTestCode = useLineEndingsForPlatform
+        ? TestCode.parseNormalized(content)
+        : TestCode.parse(content);
     newFile(testFilePath, parsedTestCode.code);
   }
 
@@ -301,6 +316,14 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
 
   void modifyTestFile(String content) {
     modifyFile2(testFile, content);
+  }
+
+  @override
+  File newFile(String path, String content) {
+    if (useLineEndingsForPlatform) {
+      content = normalizeNewlinesForPlatform(content);
+    }
+    return super.newFile(path, content);
   }
 
   /// Returns the offset of [search] in [file].

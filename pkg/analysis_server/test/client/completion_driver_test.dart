@@ -191,6 +191,8 @@ To accept the current state change the expectation to
 
   @override
   Future<void> setUp() async {
+    useLineEndingsForPlatform = false;
+
     super.setUp();
 
     writeTestPackagePubspecYamlFile(r'''

@@ -30,7 +30,7 @@ class ElementReferencesTest extends AbstractSearchDomainTest {
     required ElementKind kind,
     required Map<int, SearchResultKind> resultKinds,
   }) async {
-    var code = TestCode.parse(content);
+    var code = TestCode.parseNormalized(content);
     expect(
       resultKinds,
       hasLength(code.ranges.length),

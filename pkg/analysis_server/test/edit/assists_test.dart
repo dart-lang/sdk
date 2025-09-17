@@ -6,6 +6,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/plugin/plugin_isolate.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analyzer/instrumentation/service.dart';
+import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
@@ -169,7 +170,7 @@ void f() {
           testFileContent,
           change.edits[0].edits,
         );
-        expect(resultCode, expectedCode);
+        expect(resultCode, normalizeNewlinesForPlatform(expectedCode));
         return;
       }
     }
