@@ -317,4 +317,4 @@ dependency_overrides:
   # observatory needs a migration to language version 3.6 before it can be
   # included in the workspace. (If it is not deleted before)
   observatory:
-    path: runtime/observatory
+    path: pkg/observatory

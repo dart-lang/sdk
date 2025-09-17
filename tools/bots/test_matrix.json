@@ -3067,15 +3067,6 @@
             "--suppress-analytics",
             "runtime/tests/concurrency/run_stress_test_shards.dart"
           ]
-        },
-        {
-          "name": "analyze runtime/observatory",
-          "script": "out/ReleaseX64/dart-sdk/bin/dart",
-          "arguments": [
-            "analyze",
-            "--suppress-analytics",
-            "runtime/observatory"
-          ]
         }
       ]
     },
