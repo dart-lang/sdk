@@ -5888,6 +5888,7 @@ class LabelFragmentImpl extends FragmentImpl implements LabelFragment {
 }
 
 /// A concrete implementation of [LibraryElement].
+@elementClass
 class LibraryElementImpl extends ElementImpl
     with DeferredResolutionReadingMixin
     implements LibraryElement {
@@ -6372,7 +6373,9 @@ class LibraryElementImpl extends ElementImpl
   LibraryElementImpl get nonSynthetic => this;
 
   @override
+  @trackedDirectlyOpaque
   Namespace get publicNamespace {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'publicNamespace');
     return _publicNamespace ??= NamespaceBuilder()
         .createPublicNamespaceForLibrary(this);
   }
