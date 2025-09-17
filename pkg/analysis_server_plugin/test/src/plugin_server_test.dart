@@ -306,6 +306,41 @@ bool b = false;
     expect(params.errors, isEmpty);
   }
 
+  Future<void> test_setPriorityFiles() async {
+    newFile(filePath, '''
+int a = 0;
+''');
+    newFile(file2Path, '''
+int b = 1;
+''');
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
+
+    var paramsQueue = _analysisErrorsParams;
+    var params = await paramsQueue.next;
+    expect(params.file, filePath);
+
+    params = await paramsQueue.next;
+    expect(params.file, file2Path);
+
+    await channel.sendRequest(
+      protocol.AnalysisSetPriorityFilesParams([file2Path]),
+    );
+
+    expect(pluginServer.priorityPaths, {file2Path});
+
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
+
+    params = await paramsQueue.next;
+    expect(params.file, file2Path);
+
+    params = await paramsQueue.next;
+    expect(params.file, filePath);
+  }
+
   Future<void> test_unsupportedRequest() async {
     writeAnalysisOptionsWithPlugin();
     newFile(filePath, 'bool b = false;');

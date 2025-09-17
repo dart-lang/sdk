@@ -43,6 +43,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/protocol/protocol_constants.dart' as protocol;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as protocol;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
+import 'package:meta/meta.dart';
 
 /// A pair, matching a [Diagnostic] with it's equivalent
 /// [protocol.AnalysisError].
@@ -100,6 +101,9 @@ class PluginServer {
     }
     PluginRegistryImpl.registerIgnoreProducerGenerators();
   }
+
+  @visibleForTesting
+  Set<String> get priorityPaths => {..._priorityPaths};
 
   /// Handles an 'analysis.setPriorityFiles' request.
   ///
@@ -561,8 +565,10 @@ class PluginServer {
         result = await _handleAnalysisSetContextRoots(params);
 
       case protocol.ANALYSIS_REQUEST_SET_PRIORITY_FILES:
-        // TODO(srawlins): Support!
-        result = null;
+        var params = protocol.AnalysisSetPriorityFilesParams.fromRequest(
+          request,
+        );
+        result = await handleAnalysisSetPriorityFiles(params);
 
       case protocol.ANALYSIS_REQUEST_UPDATE_CONTENT:
         var params = protocol.AnalysisUpdateContentParams.fromRequest(request);

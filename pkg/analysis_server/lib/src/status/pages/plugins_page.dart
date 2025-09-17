@@ -59,7 +59,7 @@ class PluginsPage extends DiagnosticPageWithNav {
             'starting).',
           );
         }
-        return;
+        continue;
       }
 
       p('Associated contexts:');

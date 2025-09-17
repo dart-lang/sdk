@@ -9,6 +9,7 @@
 #include "platform/globals.h"
 #include "platform/safe_stack.h"
 #include "platform/synchronization.h"
+#include "platform/thread_sanitizer.h"
 #include "platform/threads.h"
 #include "platform/utils.h"
 #include "vm/allocation.h"
@@ -247,6 +248,8 @@ class OSThread : public BaseThread {
   // We could eliminate this requirement if the windows thread interrupter
   // is implemented differently.
   ThreadState* thread() const { return thread_; }
+  NO_SANITIZE_THREAD
+  ThreadState* thread_ignore_race() const { return thread_; }
   void set_thread(ThreadState* value) { thread_ = value; }
 
   static void Cleanup();

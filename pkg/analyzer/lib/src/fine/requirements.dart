@@ -15,6 +15,7 @@ import 'package:analyzer/src/fine/manifest_id.dart';
 import 'package:analyzer/src/fine/manifest_item.dart';
 import 'package:analyzer/src/fine/requirement_failure.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
@@ -368,6 +369,84 @@ class LibraryExportRequirements {
     declaredTopNames.write(sink);
     sink.writeList(exports, (export) => export.write(sink));
   }
+
+  static LibraryExportRequirements? build(LibraryElementImpl libraryElement) {
+    var declaredTopNames = libraryElement.children
+        .map((element) => element.lookupName)
+        .nonNulls
+        .map((nameStr) => nameStr.asLookupName)
+        .toSet();
+
+    var fragments = <ExportRequirement>[];
+
+    for (var fragment in libraryElement.fragments) {
+      for (var export in fragment.libraryExports) {
+        var exportedLibrary = export.exportedLibrary;
+
+        // If no library, then there is nothing to re-export.
+        if (exportedLibrary == null) {
+          continue;
+        }
+
+        var combinators = export.combinators.map((combinator) {
+          switch (combinator) {
+            case HideElementCombinator():
+              return ExportRequirementHideCombinator(
+                hiddenBaseNames: combinator.hiddenNames.toBaseNameSet(),
+              );
+            case ShowElementCombinator():
+              return ExportRequirementShowCombinator(
+                shownBaseNames: combinator.shownNames.toBaseNameSet(),
+              );
+          }
+        }).toList();
+
+        // SAFETY: every library has the manifest.
+        var manifest = exportedLibrary.manifest!;
+
+        var exportMap = globalResultRequirements.untracked(
+          reason: 'Recoding requirements',
+          operation: () {
+            return NamespaceBuilder()
+                .createExportNamespaceForDirective2(export)
+                .definedNames2;
+          },
+        );
+
+        var exportedIds = <LookupName, ManifestItemId>{};
+        for (var entry in exportMap.entries) {
+          var lookupName = entry.key.asLookupName;
+          if (declaredTopNames.contains(lookupName)) {
+            continue;
+          }
+          // TODO(scheglov): must always be not null.
+          var id = manifest.getExportedId(lookupName);
+          if (id != null) {
+            exportedIds[lookupName] = id;
+          }
+        }
+
+        fragments.add(
+          ExportRequirement(
+            fragmentUri: fragment.source.uri,
+            exportedUri: exportedLibrary.uri,
+            combinators: combinators,
+            exportedIds: exportedIds,
+          ),
+        );
+      }
+    }
+
+    if (fragments.isNotEmpty) {
+      return LibraryExportRequirements(
+        libraryUri: libraryElement.uri,
+        declaredTopNames: declaredTopNames,
+        exports: fragments,
+      );
+    } else {
+      return null;
+    }
+  }
 }
 
 class LibraryRequirements {
@@ -670,8 +749,11 @@ class RequirementsManifest {
     required Set<Uri> libraryUriSet,
   }) {
     for (var libraryUri in libraryUriSet) {
-      var libraryElement = elementFactory.libraryOfUri2(libraryUri);
-      _addExports(libraryElement);
+      var element = elementFactory.libraryOfUri2(libraryUri);
+      var exports = LibraryExportRequirements.build(element);
+      if (exports != null) {
+        exportRequirements.add(exports);
+      }
     }
   }
 
@@ -1408,6 +1490,11 @@ class RequirementsManifest {
     required String id,
   }) {
     assert(!id.endsWith('='));
+
+    if (_recordingLockLevel != 0) {
+      return;
+    }
+
     var getterLookupName = id.asLookupName;
     var setterLookupName = '$id='.asLookupName;
 
@@ -1720,6 +1807,22 @@ class RequirementsManifest {
     );
   }
 
+  void record_library_allExportedTopLevels({
+    required LibraryElementImpl element,
+  }) {
+    if (_recordingLockLevel != 0) {
+      return;
+    }
+
+    var manifest = element.manifest;
+    if (manifest == null) {
+      return;
+    }
+
+    var requirements = _getLibraryRequirements(element);
+    requirements.exportedTopLevels.addAll(manifest.exportedIds);
+  }
+
   void record_library_allExtensions({required LibraryElementImpl element}) {
     if (_recordingLockLevel != 0) {
       return;
@@ -1880,6 +1983,16 @@ class RequirementsManifest {
 
     var requirements = _getLibraryRequirements(element);
     requirements.exportedLibraryUris = manifest.exportedLibraryUris;
+  }
+
+  void record_library_exportScope_get({
+    required LibraryElementImpl element,
+    required String name,
+  }) {
+    record_importPrefixScope_lookup(
+      importedLibraries: [element],
+      id: name.removeSuffix('=') ?? name,
+    );
   }
 
   void record_library_featureSet({required LibraryElementImpl element}) {
@@ -2205,78 +2318,6 @@ class RequirementsManifest {
     );
 
     sink.writeList(opaqueApiUses, (usage) => usage.write(sink));
-  }
-
-  void _addExports(LibraryElementImpl libraryElement) {
-    var declaredTopNames = libraryElement.children
-        .map((element) => element.lookupName)
-        .nonNulls
-        .map((nameStr) => nameStr.asLookupName)
-        .toSet();
-
-    var fragments = <ExportRequirement>[];
-
-    for (var fragment in libraryElement.fragments) {
-      for (var export in fragment.libraryExports) {
-        var exportedLibrary = export.exportedLibrary;
-
-        // If no library, then there is nothing to re-export.
-        if (exportedLibrary == null) {
-          continue;
-        }
-
-        var combinators = export.combinators.map((combinator) {
-          switch (combinator) {
-            case HideElementCombinator():
-              return ExportRequirementHideCombinator(
-                hiddenBaseNames: combinator.hiddenNames.toBaseNameSet(),
-              );
-            case ShowElementCombinator():
-              return ExportRequirementShowCombinator(
-                shownBaseNames: combinator.shownNames.toBaseNameSet(),
-              );
-          }
-        }).toList();
-
-        // SAFETY: every library has the manifest.
-        var manifest = exportedLibrary.manifest!;
-
-        var exportedIds = <LookupName, ManifestItemId>{};
-        var exportMap = NamespaceBuilder().createExportNamespaceForDirective2(
-          export,
-        );
-        for (var entry in exportMap.definedNames2.entries) {
-          var lookupName = entry.key.asLookupName;
-          if (declaredTopNames.contains(lookupName)) {
-            continue;
-          }
-          // TODO(scheglov): must always be not null.
-          var id = manifest.getExportedId(lookupName);
-          if (id != null) {
-            exportedIds[lookupName] = id;
-          }
-        }
-
-        fragments.add(
-          ExportRequirement(
-            fragmentUri: fragment.source.uri,
-            exportedUri: exportedLibrary.uri,
-            combinators: combinators,
-            exportedIds: exportedIds,
-          ),
-        );
-      }
-    }
-
-    if (fragments.isNotEmpty) {
-      exportRequirements.add(
-        LibraryExportRequirements(
-          libraryUri: libraryElement.uri,
-          declaredTopNames: declaredTopNames,
-          exports: fragments,
-        ),
-      );
-    }
   }
 
   _InstanceItemWithRequirements? _getInstanceItem(InstanceElementImpl element) {

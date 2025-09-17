@@ -1833,28 +1833,51 @@ class AnalysisDriver {
   }
 
   void _getIndex(String path) {
-    var file = _fsState.getFileForPath(path);
+    scheduler.accumulatedPerformance.run('getIndex', (performance) {
+      var file = _fsState.getFileForPath(path);
 
-    // Prepare the library - the file itself, or the known library.
-    var kind = file.kind;
-    var library = kind.library ?? kind.asLibrary;
+      // Prepare the library - the file itself, or the known library.
+      var kind = file.kind;
+      var library = kind.library ?? kind.asLibrary;
 
-    if (_completeRequestsIfMissingSdkLibrary(library)) {
-      return;
-    }
+      if (_completeRequestsIfMissingSdkLibrary(library)) {
+        return;
+      }
 
-    // Prepare the signature and key.
-    var signature = _getResolvedUnitSignature(library, file);
-    var key = _getResolvedUnitKey(signature);
+      // Index is based on elements, so load them.
+      performance.run('libraryContext', (performance) {
+        libraryContext.load(targetLibrary: library, performance: performance);
+      });
 
-    var bytes = _byteStore.get(key);
-    if (bytes != null) {
-      var unit = AnalysisDriverResolvedUnit.fromBuffer(bytes);
-      _indexRequestedFiles.completeAll(path, unit.index!);
-      return;
-    }
+      if (withFineDependencies) {
+        var bundle = _getLibraryDiagnosticsBundle(
+          library: library,
+          performance: performance,
+        );
 
-    _analyzeFile(path);
+        if (bundle != null) {
+          var bytes = bundle.serializedFileResults[file.uri]!;
+          var unit = AnalysisDriverResolvedUnit.fromBuffer(bytes);
+          _indexRequestedFiles.completeAll(path, unit.index!);
+          return;
+        }
+      }
+
+      // Prepare the signature and key.
+      var signature = _getResolvedUnitSignature(library, file);
+      var key = _getResolvedUnitKey(signature);
+
+      var bytes = _byteStore.get(key);
+      if (bytes != null) {
+        var unit = AnalysisDriverResolvedUnit.fromBuffer(bytes);
+        _indexRequestedFiles.completeAll(path, unit.index!);
+        return;
+      }
+
+      performance.run('analyzeFile', (performance) {
+        _analyzeFileImpl(path: path, performance: performance);
+      });
+    });
   }
 
   /// Returns the [LibraryDiagnosticsBundle] for the given [library].

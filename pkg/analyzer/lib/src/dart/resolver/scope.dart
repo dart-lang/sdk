@@ -7,6 +7,7 @@ import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/generated/engine.dart';
 
 /// The scope defined by a block.
@@ -323,5 +324,37 @@ class PrefixedNamespace implements Namespace {
       return _definedNames[name];
     }
     return null;
+  }
+}
+
+class RecordingExportNamespace implements Namespace {
+  final LibraryElementImpl owner;
+  final Namespace base;
+
+  RecordingExportNamespace({required this.owner, required this.base});
+
+  @override
+  Map<String, Element> get definedNames2 {
+    globalResultRequirements?.record_library_allExportedTopLevels(
+      element: owner,
+    );
+    return base.definedNames2;
+  }
+
+  @override
+  Map<String, Element> get _definedNames => throw UnimplementedError();
+
+  @override
+  Element? get2(String name) {
+    globalResultRequirements?.record_library_exportScope_get(
+      element: owner,
+      name: name,
+    );
+    return base.get2(name);
+  }
+
+  @override
+  Element? getPrefixed2(String prefix, String name) {
+    return base.getPrefixed2(prefix, name);
   }
 }

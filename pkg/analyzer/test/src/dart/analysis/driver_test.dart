@@ -29990,6 +29990,497 @@ export 'dart:math' show min;
     );
   }
 
+  test_dependency_libraryElement_exportNamespace_ambiguousExport_add() async {
+    configuration.withStreamResolvedUnitResults = false;
+
+    newFile('$testPackageLibPath/b.dart', r'''
+class B {}
+''');
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {}
+''',
+      testCode: r'''
+export 'a.dart';
+export 'b.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/b.dart
+    declaredClasses
+      B: #M2
+        interface: #M3
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    reExportMap
+      A: #M0
+      B: #M2
+    exportedLibraryUris: package:test/a.dart package:test/b.dart
+  requirements
+    exportRequirements
+      package:test/test.dart
+        exports
+          package:test/a.dart
+            A: #M0
+          package:test/b.dart
+            B: #M2
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M4
+        exportedTopLevels
+          A: #M0
+      package:test/b.dart
+        libraryMetadataId: #M5
+        exportedTopLevels
+          B: #M2
+[status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+''',
+      updatedA: r'''
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      B: #M6
+        interface: #M7
+  requirements
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
+  exportIdMismatch
+    fragmentUri: package:test/test.dart
+    exportedUri: package:test/a.dart
+    name: B
+    expectedId: <null>
+    actualId: #M6
+[operation] linkLibraryCycle
+  package:test/test.dart
+    reExportMap
+      B: #M6
+    exportedLibraryUris: package:test/a.dart package:test/b.dart
+  requirements
+    exportRequirements
+      package:test/test.dart
+        exports
+          package:test/a.dart
+            B: #M6
+          package:test/b.dart
+            B: #M2
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: A
+    expectedId: #M0
+    actualId: <null>
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M4
+        exportedTopLevels
+          B: #M6
+      package:test/b.dart
+        libraryMetadataId: #M5
+        exportedTopLevels
+          B: #M2
+[status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      24 +8 AMBIGUOUS_EXPORT
+''',
+    );
+  }
+
+  test_dependency_libraryElement_exportNamespace_ambiguousExport_remove() async {
+    configuration.withStreamResolvedUnitResults = false;
+
+    newFile('$testPackageLibPath/b.dart', r'''
+class B {}
+''');
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+class B {}
+''',
+      testCode: r'''
+export 'a.dart';
+export 'b.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      B: #M0
+        interface: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/b.dart
+    declaredClasses
+      B: #M2
+        interface: #M3
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    reExportMap
+      B: #M0
+    exportedLibraryUris: package:test/a.dart package:test/b.dart
+  requirements
+    exportRequirements
+      package:test/test.dart
+        exports
+          package:test/a.dart
+            B: #M0
+          package:test/b.dart
+            B: #M2
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M4
+        exportedTopLevels
+          B: #M0
+      package:test/b.dart
+        libraryMetadataId: #M5
+        exportedTopLevels
+          B: #M2
+[status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      24 +8 AMBIGUOUS_EXPORT
+''',
+      updatedA: r'''
+class A {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M6
+        interface: #M7
+  requirements
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
+  exportIdMismatch
+    fragmentUri: package:test/test.dart
+    exportedUri: package:test/a.dart
+    name: A
+    expectedId: <null>
+    actualId: #M6
+[operation] linkLibraryCycle
+  package:test/test.dart
+    reExportMap
+      A: #M6
+      B: #M2
+    exportedLibraryUris: package:test/a.dart package:test/b.dart
+  requirements
+    exportRequirements
+      package:test/test.dart
+        exports
+          package:test/a.dart
+            A: #M6
+          package:test/b.dart
+            B: #M2
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M0
+    actualId: <null>
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M4
+        exportedTopLevels
+          A: #M6
+      package:test/b.dart
+        libraryMetadataId: #M5
+        exportedTopLevels
+          B: #M2
+[status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+''',
+    );
+  }
+
+  test_dependency_libraryElement_exportNamespace_definedNames() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.exportNamespace.definedNames2;
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {}
+class B {}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M4
+        exportedTopLevels
+          A: #M0
+          B: #M2
+[status] idle
+''',
+      updatedA: r'''
+class A {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: B
+    expectedId: #M2
+    actualId: <null>
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M4
+        exportedTopLevels
+          A: #M0
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_libraryElement_exportNamespace_get_class() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.exportNamespace.get2('A');
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {}
+class B {}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M4
+        exportedTopLevels
+          A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+[status] idle
+''',
+      updatedA: r'''
+class A {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_libraryElement_exportNamespace_get_setter() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var library = state.singleUnit.importedLibraries.first;
+      library.exportNamespace.get2('foo=');
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+void set foo(int _) {}
+void set bar(int _) {}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredSetters
+      bar=: #M0
+      foo=: #M1
+    declaredVariables
+      bar: #M2
+      foo: #M3
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M4
+        exportedTopLevels
+          foo: <null>
+          foo=: #M1
+        reExportDeprecatedOnly
+          foo=: false
+[status] idle
+''',
+      updatedA: r'''
+void set foo(int _) {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredSetters
+      foo=: #M1
+    declaredVariables
+      foo: #M3
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
   test_dependency_libraryElement_featureSet() async {
     configuration
       ..withGetErrorsEvents = false
@@ -82060,6 +82551,8 @@ void f() {}
   }
 
   test_operation_getErrors_notAffected() async {
+    configuration.withCheckLibraryDiagnosticsRequirements = true;
+
     await _runChangeScenarioTA(
       initialA: r'''
 int get a => 0;
@@ -82136,6 +82629,9 @@ int get b => 0;
   requirements
 [operation] reuseLinkedBundle
   package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -82149,7 +82645,290 @@ int get b => 0;
     );
   }
 
+  test_operation_getIndex_changeImported_affected() async {
+    configuration.withCheckLibraryDiagnosticsRequirements = true;
+
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver, idProvider: idProvider);
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+int get a => 0;
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+void f() {
+  a;
+}
+''');
+
+    collector.getIndex('T1', testFile);
+
+    await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+[status] idle
+[future] getIndex T1
+  strings
+    --nullString--
+    a
+    package:test/a.dart
+''');
+
+    modifyFile2(a, r'''
+double get a => 0;
+''');
+    driver.changeFile2(a);
+    collector.getIndex('T2', testFile);
+
+    await assertEventsText(collector, r'''
+[status] working
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: a
+    expectedId: #M0
+    actualId: #M1
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+[status] idle
+[future] getIndex T2
+  strings
+    --nullString--
+    a
+    package:test/a.dart
+''');
+  }
+
+  test_operation_getIndex_changeImported_notAffected() async {
+    configuration.withCheckLibraryDiagnosticsRequirements = true;
+
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver, idProvider: idProvider);
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+int get a => 0;
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+void f() {
+  a;
+}
+''');
+
+    collector.getIndex('T1', testFile);
+
+    await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+[status] idle
+[future] getIndex T1
+  strings
+    --nullString--
+    a
+    package:test/a.dart
+''');
+
+    modifyFile2(a, r'''
+int get a => 0;
+int get b => 0;
+''');
+    driver.changeFile2(a);
+    collector.getIndex('T2', testFile);
+
+    await assertEventsText(collector, r'''
+[status] working
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
+[status] idle
+[future] getIndex T2
+  strings
+    --nullString--
+    a
+    package:test/a.dart
+''');
+  }
+
+  test_operation_getIndex_noChange() async {
+    configuration.withCheckLibraryDiagnosticsRequirements = true;
+
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver, idProvider: idProvider);
+
+    newFile(testFile.path, r'''
+void f() {}
+''');
+
+    collector.getIndex('T1', testFile);
+
+    await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+[status] idle
+[future] getIndex T1
+  strings
+    --nullString--
+''');
+
+    // Note, no check for requirements operation.
+    // The transitive API signature is the same, so we shortcut.
+    collector.getIndex('T2', testFile);
+    await assertEventsText(collector, r'''
+[status] working
+[status] idle
+[future] getIndex T2
+  strings
+    --nullString--
+''');
+
+    // Repeating requests still uses the shortcut.
+    collector.getIndex('T3', testFile);
+    await assertEventsText(collector, r'''
+[status] working
+[status] idle
+[future] getIndex T3
+  strings
+    --nullString--
+''');
+  }
+
+  test_operation_getIndex_notAffected() async {
+    configuration.withCheckLibraryDiagnosticsRequirements = true;
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+int get a => 0;
+''',
+      testCode: r'''
+import 'a.dart';
+final x = a;
+''',
+      operation: _FineOperationTestFileGetIndex(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      x: #M2
+    declaredVariables
+      x: #M3
+  requirements
+    libraries
+      package:test/a.dart
+        exportedTopLevels
+          a: #M0
+          a=: <null>
+        reExportDeprecatedOnly
+          a: false
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M4
+        exportedTopLevels
+          a: #M0
+          a=: <null>
+        reExportDeprecatedOnly
+          a: false
+[status] idle
+[future] getIndex T1
+  strings
+    --nullString--
+    a
+    package:test/a.dart
+''',
+      updatedA: r'''
+int get a => 0;
+int get b => 0;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredGetters
+      a: #M0
+      b: #M5
+    declaredVariables
+      a: #M1
+      b: #M6
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  failure: null
+[status] idle
+[future] getIndex T2
+  strings
+    --nullString--
+    a
+    package:test/a.dart
+''',
+    );
+  }
+
   test_operation_getLibraryByUri_affected() async {
+    configuration.withCheckLinkedBundleRequirements = true;
+
     await _runChangeScenarioTA(
       initialA: r'''
 int get a => 0;
@@ -82288,6 +83067,8 @@ void f() { 2; }
   }
 
   test_operation_getLibraryByUri_notAffected() async {
+    configuration.withCheckLinkedBundleRequirements = true;
+
     await _runChangeScenarioTA(
       initialA: r'''
 int get a => 0;
@@ -82343,6 +83124,9 @@ int get b => 0;
       a: #M1
       b: #M5
   requirements
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
+  failure: null
 [operation] reuseLinkedBundle
   package:test/test.dart
 [status] idle
@@ -83836,6 +84620,8 @@ void f(A _) {}
         driver.addFile2(testFile);
       case _FineOperationTestFileGetErrors():
         collector.getErrors('T1', testFile);
+      case _FineOperationTestFileGetIndex():
+        collector.getIndex('T1', testFile);
       case _FineOperationGetTestLibrary():
         collector.getLibraryByUri('T1', 'package:test/test.dart');
     }
@@ -83859,6 +84645,8 @@ void f(A _) {}
         break;
       case _FineOperationTestFileGetErrors():
         collector.getErrors('T2', testFile);
+      case _FineOperationTestFileGetIndex():
+        collector.getIndex('T2', testFile);
       case _FineOperationGetTestLibrary():
         collector.getLibraryByUri('T2', 'package:test/test.dart');
     }
@@ -84060,6 +84848,10 @@ final class _FineOperationGetTestLibrary extends _FineOperation {
 
 final class _FineOperationTestFileGetErrors extends _FineOperation {
   const _FineOperationTestFileGetErrors();
+}
+
+final class _FineOperationTestFileGetIndex extends _FineOperation {
+  const _FineOperationTestFileGetIndex();
 }
 
 /// Helper for triggering requirements manually.

@@ -42,7 +42,7 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart'
-    show Namespace, NamespaceBuilder;
+    show Namespace, NamespaceBuilder, RecordingExportNamespace;
 import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/fine/annotations.dart';
 import 'package:analyzer/src/fine/library_manifest.dart';
@@ -5888,6 +5888,7 @@ class LabelFragmentImpl extends FragmentImpl implements LabelFragment {
 }
 
 /// A concrete implementation of [LibraryElement].
+@elementClass
 class LibraryElementImpl extends ElementImpl
     with DeferredResolutionReadingMixin
     implements LibraryElement {
@@ -6111,9 +6112,13 @@ class LibraryElementImpl extends ElementImpl
   }
 
   @override
+  @trackedDirectly
   Namespace get exportNamespace {
     _ensureReadResolution();
-    return _exportNamespace ??= Namespace({});
+    return RecordingExportNamespace(
+      owner: this,
+      base: _exportNamespace ??= Namespace({}),
+    );
   }
 
   set exportNamespace(Namespace exportNamespace) {
@@ -6368,7 +6373,9 @@ class LibraryElementImpl extends ElementImpl
   LibraryElementImpl get nonSynthetic => this;
 
   @override
+  @trackedDirectlyOpaque
   Namespace get publicNamespace {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'publicNamespace');
     return _publicNamespace ??= NamespaceBuilder()
         .createPublicNamespaceForLibrary(this);
   }
