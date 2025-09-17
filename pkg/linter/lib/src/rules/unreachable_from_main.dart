@@ -129,7 +129,9 @@ class _DeclarationGatherer {
                 rawName.startsWith('test_') ||
                 rawName.startsWith('solo_test_') ||
                 rawName == 'setUp' ||
-                rawName == 'tearDown';
+                rawName == 'tearDown' ||
+                rawName == 'setUpClass' ||
+                rawName == 'tearDownClass';
             if (!isOverride(element) && !isTestMethod) {
               declarations.add(member);
             }
