@@ -83,6 +83,9 @@ analyze_flutter_packages() {
 echo Cloning flutter/flutter...
 git clone --single-branch -vv \
   https://dart.googlesource.com/external/github.com/flutter/flutter
+pushd flutter
+git fetch --tags
+popd
 
 analyze_engine
 analyze_flutter_sdk
