@@ -75,10 +75,10 @@ vars = {
   "jsc_tag": "version:299913",
 
   # https://chrome-infra-packages.appspot.com/p/fuchsia/third_party/clang
-  "clang_version": "git_revision:49f39b349db181ca516eb0253462105ff0e2c634",
+  "clang_version": "git_revision:9d7449a82b83ee589b8af8d6f86525727788b3b9",
 
   # https://chrome-infra-packages.appspot.com/p/gn/gn
-  "gn_version": "git_revision:5d0a4153b0bcc86c5a23310d5b648a587be3c56d",
+  "gn_version": "git_revision:81b24e01531ecf0eff12ec9359a555ec3944ec4e",
 
   "reclient_version": "re_client_version:0.179.0.28341fc7-gomaip",
   "download_reclient": True,

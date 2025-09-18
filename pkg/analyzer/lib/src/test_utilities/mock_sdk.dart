@@ -313,20 +313,16 @@ class DateTime extends Object {
 }
 
 class Deprecated extends Object {
-  final String message;
+  final String? message;
   final _DeprecationKind _kind;
-  const Deprecated(this.message)
-      : _kind = _DeprecationKind.use;
-  const Deprecated.implement([this.message = "next release"])
-      : _kind = _DeprecationKind.implement;
-  const Deprecated.extend([this.message = "next release"])
-      : _kind = _DeprecationKind.extend;
-  const Deprecated.subclass([this.message = "next release"])
-      : _kind = _DeprecationKind.subclass;
-  const Deprecated.instantiate([this.message = "next release"])
-      : _kind = _DeprecationKind.instantiate;
-  const Deprecated.mixin([this.message = "next release"])
-      : _kind = _DeprecationKind.mixin;
+  const Deprecated(this.message) : _kind = _DeprecationKind.use;
+  const Deprecated.implement([this.message])
+    : _kind = _DeprecationKind.implement;
+  const Deprecated.extend([this.message]) : _kind = _DeprecationKind.extend;
+  const Deprecated.subclass([this.message]) : _kind = _DeprecationKind.subclass;
+  const Deprecated.instantiate([this.message])
+    : _kind = _DeprecationKind.instantiate;
+  const Deprecated.mixin([this.message]) : _kind = _DeprecationKind.mixin;
 }
 
 enum _DeprecationKind {

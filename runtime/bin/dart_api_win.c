@@ -149,6 +149,11 @@ typedef Dart_Handle (*Dart_EmptyStringType)();
 typedef Dart_Handle (*Dart_TypeDynamicType)();
 typedef Dart_Handle (*Dart_TypeVoidType)();
 typedef Dart_Handle (*Dart_TypeNeverType)();
+typedef Dart_Handle (*Dart_TypeStringType)();
+typedef Dart_Handle (*Dart_TypeDoubleType)();
+typedef Dart_Handle (*Dart_TypeIntType)();
+typedef Dart_Handle (*Dart_TypeBooleanType)();
+typedef Dart_Handle (*Dart_TypeObjectType)();
 typedef Dart_Handle (*Dart_ObjectEqualsType)(Dart_Handle, Dart_Handle, bool*);
 typedef Dart_Handle (*Dart_ObjectIsTypeType)(Dart_Handle, Dart_Handle, bool*);
 typedef bool (*Dart_IsInstanceType)(Dart_Handle);
@@ -239,6 +244,10 @@ typedef Dart_Handle (*Dart_ListSetAsBytesType)(Dart_Handle,
 typedef Dart_Handle (*Dart_MapGetAtType)(Dart_Handle, Dart_Handle);
 typedef Dart_Handle (*Dart_MapContainsKeyType)(Dart_Handle, Dart_Handle);
 typedef Dart_Handle (*Dart_MapKeysType)(Dart_Handle);
+typedef Dart_Handle (*Dart_NewMapType)(Dart_Handle,
+                                       Dart_Handle,
+                                       Dart_Handle,
+                                       Dart_Handle);
 typedef Dart_TypedData_Type (*Dart_GetTypeOfTypedDataType)(Dart_Handle);
 typedef Dart_TypedData_Type (*Dart_GetTypeOfExternalTypedDataType)(Dart_Handle);
 typedef Dart_Handle (*Dart_NewTypedDataType)(Dart_TypedData_Type, intptr_t);
@@ -572,6 +581,11 @@ static Dart_EmptyStringType Dart_EmptyStringFn = NULL;
 static Dart_TypeDynamicType Dart_TypeDynamicFn = NULL;
 static Dart_TypeVoidType Dart_TypeVoidFn = NULL;
 static Dart_TypeNeverType Dart_TypeNeverFn = NULL;
+static Dart_TypeStringType Dart_TypeStringFn = NULL;
+static Dart_TypeDoubleType Dart_TypeDoubleFn = NULL;
+static Dart_TypeIntType Dart_TypeIntFn = NULL;
+static Dart_TypeBooleanType Dart_TypeBooleanFn = NULL;
+static Dart_TypeObjectType Dart_TypeObjectFn = NULL;
 static Dart_ObjectEqualsType Dart_ObjectEqualsFn = NULL;
 static Dart_ObjectIsTypeType Dart_ObjectIsTypeFn = NULL;
 static Dart_IsInstanceType Dart_IsInstanceFn = NULL;
@@ -640,6 +654,7 @@ static Dart_ListSetAsBytesType Dart_ListSetAsBytesFn = NULL;
 static Dart_MapGetAtType Dart_MapGetAtFn = NULL;
 static Dart_MapContainsKeyType Dart_MapContainsKeyFn = NULL;
 static Dart_MapKeysType Dart_MapKeysFn = NULL;
+static Dart_NewMapType Dart_NewMapFn = NULL;
 static Dart_GetTypeOfTypedDataType Dart_GetTypeOfTypedDataFn = NULL;
 static Dart_GetTypeOfExternalTypedDataType Dart_GetTypeOfExternalTypedDataFn =
     NULL;
@@ -983,6 +998,15 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
         (Dart_TypeVoidType)GetProcAddress(process, "Dart_TypeVoid");
     Dart_TypeNeverFn =
         (Dart_TypeNeverType)GetProcAddress(process, "Dart_TypeNever");
+    Dart_TypeStringFn =
+        (Dart_TypeStringType)GetProcAddress(process, "Dart_TypeString");
+    Dart_TypeDoubleFn =
+        (Dart_TypeDoubleType)GetProcAddress(process, "Dart_TypeDouble");
+    Dart_TypeIntFn = (Dart_TypeIntType)GetProcAddress(process, "Dart_TypeInt");
+    Dart_TypeBooleanFn =
+        (Dart_TypeBooleanType)GetProcAddress(process, "Dart_TypeBoolean");
+    Dart_TypeObjectFn =
+        (Dart_TypeObjectType)GetProcAddress(process, "Dart_TypeObject");
     Dart_ObjectEqualsFn =
         (Dart_ObjectEqualsType)GetProcAddress(process, "Dart_ObjectEquals");
     Dart_ObjectIsTypeFn =
@@ -1116,6 +1140,7 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
     Dart_MapContainsKeyFn =
         (Dart_MapContainsKeyType)GetProcAddress(process, "Dart_MapContainsKey");
     Dart_MapKeysFn = (Dart_MapKeysType)GetProcAddress(process, "Dart_MapKeys");
+    Dart_NewMapFn = (Dart_NewMapType)GetProcAddress(process, "Dart_NewMap");
     Dart_GetTypeOfTypedDataFn = (Dart_GetTypeOfTypedDataType)GetProcAddress(
         process, "Dart_GetTypeOfTypedData");
     Dart_GetTypeOfExternalTypedDataFn =
@@ -1820,6 +1845,26 @@ Dart_Handle Dart_TypeNever() {
   return Dart_TypeNeverFn();
 }
 
+Dart_Handle Dart_TypeString() {
+  return Dart_TypeStringFn();
+}
+
+Dart_Handle Dart_TypeDouble() {
+  return Dart_TypeDoubleFn();
+}
+
+Dart_Handle Dart_TypeInt() {
+  return Dart_TypeIntFn();
+}
+
+Dart_Handle Dart_TypeBoolean() {
+  return Dart_TypeBooleanFn();
+}
+
+Dart_Handle Dart_TypeObject() {
+  return Dart_TypeObjectFn();
+}
+
 Dart_Handle Dart_ObjectEquals(Dart_Handle obj1, Dart_Handle obj2, bool* equal) {
   return Dart_ObjectEqualsFn(obj1, obj2, equal);
 }
@@ -2120,6 +2165,13 @@ Dart_Handle Dart_MapContainsKey(Dart_Handle map, Dart_Handle key) {
 
 Dart_Handle Dart_MapKeys(Dart_Handle map) {
   return Dart_MapKeysFn(map);
+}
+
+Dart_Handle Dart_NewMap(Dart_Handle keys_type,
+                        Dart_Handle keys_handle,
+                        Dart_Handle values_type,
+                        Dart_Handle values_handle) {
+  return Dart_NewMapFn(keys_type, keys_handle, values_type, values_handle);
 }
 
 Dart_TypedData_Type Dart_GetTypeOfTypedData(Dart_Handle object) {

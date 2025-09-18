@@ -1893,6 +1893,17 @@ DART_EXPORT Dart_Handle Dart_TypeVoid(void);
 DART_EXPORT Dart_Handle Dart_TypeNever(void);
 
 /**
+ * Returns simple core types.
+ *
+ * \return A handle to type.
+ */
+DART_EXPORT Dart_Handle Dart_TypeString();
+DART_EXPORT Dart_Handle Dart_TypeDouble();
+DART_EXPORT Dart_Handle Dart_TypeInt();
+DART_EXPORT Dart_Handle Dart_TypeBoolean();
+DART_EXPORT Dart_Handle Dart_TypeObject();
+
+/**
  * Checks if the two objects are equal.
  *
  * The result of the comparison is returned through the 'equal'
@@ -2591,6 +2602,26 @@ DART_EXPORT Dart_Handle Dart_MapContainsKey(Dart_Handle map, Dart_Handle key);
  *   error handle.
  */
 DART_EXPORT Dart_Handle Dart_MapKeys(Dart_Handle map);
+
+/**
+ * Returns a Map filled by key value pairs from the provided lists.
+ *
+ * \param keys_type Handle to a type of keys. E.g., from
+ *   Dart_Get<XXX>Type.
+ * \param keys_handle Handle to a list with keys. E.g., from
+ *   Dart_NewList<XXX>.
+ * \param values_type Handle to a type of values. E.g., from
+ *   Dart_Get<XXX>Type.
+ * \param values_handle Handle to a list with values. E.g., from
+ *   Dart_NewList<XXX>.
+ *
+ * \return The Map object if no error occurs. Otherwise returns
+ *   an error handle.
+ */
+DART_EXPORT Dart_Handle Dart_NewMap(Dart_Handle keys_type,
+                                    Dart_Handle keys_handle,
+                                    Dart_Handle values_type,
+                                    Dart_Handle values_handle);
 
 /*
  * ==========

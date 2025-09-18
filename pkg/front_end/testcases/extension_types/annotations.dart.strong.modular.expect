@@ -2,7 +2,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-@#C2
+@#C5
 extension type A(core::int i) {
   abstract extension-type-member representation-field get i() → core::int;
   method m = self::A|m;
@@ -12,27 +12,30 @@ extension type A(core::int i) {
   constructor constructor = self::A|constructor#constructor;
   constructor tearoff constructor = self::A|constructor#_#constructor#tearOff;
 }
-static extension-type-member method A|constructor#(@#C2 core::int i) → self::A% /* erasure=core::int, declared=! */ {
+static extension-type-member method A|constructor#(@#C5 core::int i) → self::A% /* erasure=core::int, declared=! */ {
   lowered final self::A% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }
 static extension-type-member synthetic method A|constructor#_#new#tearOff(core::int i) → self::A% /* erasure=core::int, declared=! */
   return self::A|constructor#(i);
-@#C2
+@#C5
 static extension-type-member method A|constructor#constructor(core::int i) → self::A% /* erasure=core::int, declared=! */ {
   lowered final self::A% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }
 static extension-type-member synthetic method A|constructor#_#constructor#tearOff(core::int i) → self::A% /* erasure=core::int, declared=! */
   return self::A|constructor#constructor(i);
-@#C2
+@#C5
 static extension-type-member method A|m(lowered final self::A% /* erasure=core::int, declared=! */ #this) → void {}
 static extension-type-member method A|get#m(lowered final self::A% /* erasure=core::int, declared=! */ #this) → () → void
   return () → void => self::A|m(#this);
 
 constants  {
   #C1 = ""
-  #C2 = core::Deprecated {message:#C1}
+  #C2 = 0
+  #C3 = "use"
+  #C4 = core::_DeprecationKind {index:#C2, _name:#C3}
+  #C5 = core::Deprecated {message:#C1, _kind:#C4}
 }
 
 
