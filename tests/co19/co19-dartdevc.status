@@ -131,6 +131,14 @@ LibTest/html/Window/animationFrame_A01_t01: SkipByDesign # Issue #53985: request
 
 [ $compiler == ddc && $runtime == d8 ]
 LibTest/html/*: SkipByDesign # Browser tests
+LibTest/js_interop/FutureOfJSAnyToJSPromise/toJS_A01_t01: Skip # https://github.com/dart-lang/sdk/issues/54520
+LibTest/js_interop/FutureOfJSAnyToJSPromise/toJS_A01_t02: Skip # https://github.com/dart-lang/sdk/issues/54520
+LibTest/js_interop/FutureOfJSAnyToJSPromise/toJS_A01_t03: Skip # https://github.com/dart-lang/sdk/issues/54520
+LibTest/js_interop/FutureOfJSAnyToJSPromise/toJS_A02_t01: Skip # https://github.com/dart-lang/sdk/issues/54520
+LibTest/js_interop/FutureOfVoidToJSPromise/toJS_A01_t01: Skip # https://github.com/dart-lang/sdk/issues/54520
+LibTest/js_interop/FutureOfVoidToJSPromise/toJS_A01_t02: Skip # https://github.com/dart-lang/sdk/issues/54520
+LibTest/js_interop/FutureOfVoidToJSPromise/toJS_A01_t03: Skip # https://github.com/dart-lang/sdk/issues/54520
+LibTest/js_interop/FutureOfVoidToJSPromise/toJS_A02_t01: Skip # https://github.com/dart-lang/sdk/issues/54520
 LibTest/js_interop/JS/js_A03_t05: Skip # https://github.com/dart-lang/sdk/issues/61204
 LibTest/js_interop/JS/js_A03_t06: Skip # https://github.com/dart-lang/sdk/issues/61204
 LibTest/js_interop/JS/js_A03_t07: Skip # https://github.com/dart-lang/sdk/issues/61204
