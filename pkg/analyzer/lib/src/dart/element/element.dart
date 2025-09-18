@@ -1935,12 +1935,8 @@ abstract class ElementImpl implements Element {
   }
 
   @override
-  @trackedDirectlyOpaque
+  @trackedIncludedInId
   Element? thisOrAncestorMatching(bool Function(Element p1) predicate) {
-    globalResultRequirements?.recordOpaqueApiUse(
-      this,
-      'thisOrAncestorMatching',
-    );
     Element? element = this;
     while (element != null && !predicate(element)) {
       element = element.enclosingElement;
@@ -1956,9 +1952,8 @@ abstract class ElementImpl implements Element {
   }
 
   @override
-  @trackedDirectlyOpaque
+  @trackedIncludedInId
   E? thisOrAncestorOfType<E extends Element>() {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'thisOrAncestorOfType');
     Element element = this;
     while (element is! E) {
       var ancestor = element.enclosingElement;
@@ -4603,12 +4598,8 @@ abstract class InstanceElementImpl extends ElementImpl
   }
 
   @override
-  @trackedDirectlyOpaque
+  @trackedIncludedInId
   Element? thisOrAncestorMatching(bool Function(Element) predicate) {
-    globalResultRequirements?.recordOpaqueApiUse(
-      this,
-      'thisOrAncestorMatching',
-    );
     if (predicate(this)) {
       return this;
     }
@@ -4623,9 +4614,8 @@ abstract class InstanceElementImpl extends ElementImpl
   }
 
   @override
-  @trackedDirectlyOpaque
+  @trackedIncludedInId
   E? thisOrAncestorOfType<E extends Element>() {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'thisOrAncestorOfType');
     if (this case E result) {
       return result;
     }
