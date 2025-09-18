@@ -1316,6 +1316,40 @@ class A {
 ''');
   }
 
+  test_methodInvocation_nonUseKind() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+class A {
+  @Deprecated.extend()
+  void foo() {}
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'package:aaa/a.dart';
+
+void f(A a) {
+  a.foo();
+}
+''');
+  }
+
+  test_methodInvocation_unrelatedAnnotation() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+class A {
+  @override
+  void foo() {}
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'package:aaa/a.dart';
+
+void f(A a) {
+  a.foo();
+}
+''');
+  }
+
   test_methodInvocation_withMessage() async {
     newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
 class A {
