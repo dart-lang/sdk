@@ -75,7 +75,7 @@ const List<TestData> DATA = [
     ConstantData('true ? 0 : 1', 'IntConstant(0)'),
     ConstantData(
       'deprecated',
-      'ConstructedConstant(Deprecated(message=StringConstant("next release")))',
+      'ConstructedConstant(Deprecated(_kind=ConstructedConstant(_DeprecationKind(_name=StringConstant("use"),index=IntConstant(0))),message=StringConstant("next release")))',
     ),
     ConstantData('const [] == null', 'BoolConstant(false)'),
     ConstantData('deprecated == null', 'BoolConstant(false)'),
