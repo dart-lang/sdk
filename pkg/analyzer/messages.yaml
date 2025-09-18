@@ -201,6 +201,15 @@ AnalysisOptionsWarningCode:
     hasPublishedDocs: false
     comment: |-
       An error code indicating multiple plugins have been specified as enabled.
+  PLUGINS_IN_INNER_OPTIONS:
+    parameters:
+      String contextRoot: the root of the analysis context
+    problemMessage: "Plugins can only be specified in the root of a pub workspace or the root of a package that isn't in a workspace."
+    correctionMessage: "Try specifying plugins in an analysis options file at '#contextRoot'."
+    hasPublishedDocs: false
+    comment: |-
+      An error code indicating plugins have been specified in an "inner"
+      analysis options file.
   RECURSIVE_INCLUDE_FILE:
     parameters:
       Object p0: the URI of the file to be included

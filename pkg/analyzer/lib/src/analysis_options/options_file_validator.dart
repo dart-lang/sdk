@@ -77,11 +77,12 @@ List<Diagnostic> analyzeAnalysisOptions(
   }
 
   // Validates the specified options and any included option files.
-  void validate(Source source, YamlMap options) {
+  void validate(Source source, YamlMap options, {required String contextRoot}) {
     var isSourcePrimary = initialIncludeSpan == null;
     var validationErrors = OptionsFileValidator(
       source,
       sdkVersionConstraint: sdkVersionConstraint,
+      contextRoot: contextRoot,
       isPrimarySource: isSourcePrimary,
       optionsProvider: optionsProvider,
       sourceFactory: sourceFactory,
@@ -168,7 +169,7 @@ List<Diagnostic> analyzeAnalysisOptions(
         var includedOptions = optionsProvider.getOptionsFromString(
           includedSource.contents.data,
         );
-        validate(includedSource, includedOptions);
+        validate(includedSource, includedOptions, contextRoot: contextRoot);
         firstPluginName ??= _firstPluginName(includedOptions);
         // Validate the 'plugins' option in [options], taking into account any
         // plugins enabled by [includedOptions].
@@ -222,7 +223,7 @@ List<Diagnostic> analyzeAnalysisOptions(
       content,
       sourceUrl: source.uri,
     );
-    validate(source, options);
+    validate(source, options, contextRoot: contextRoot);
   } on OptionsFormatException catch (e) {
     SourceSpan span = e.span!;
     errors.add(
@@ -297,6 +298,7 @@ class OptionsFileValidator {
   OptionsFileValidator(
     this._source, {
     VersionConstraint? sdkVersionConstraint,
+    required String contextRoot,
     required bool isPrimarySource,
     required AnalysisOptionsProvider optionsProvider,
     required ResourceProvider resourceProvider,
@@ -313,7 +315,12 @@ class OptionsFileValidator {
            sdkVersionConstraint: sdkVersionConstraint,
            isPrimarySource: isPrimarySource,
          ),
-         _PluginsOptionsValidator(),
+         _PluginsOptionsValidator(
+           contextRoot: contextRoot,
+           filePath: _source.fullName,
+           isPrimarySource: isPrimarySource,
+           resourceProvider: resourceProvider,
+         ),
        ];
 
   List<Diagnostic> validate(YamlMap options) {
@@ -945,11 +952,38 @@ class _PluginsOptionsValidator extends OptionsValidator {
     AnalysisOptionsFile.pluginsOptions,
   );
 
+  final String _contextRoot;
+
+  final String _filePath;
+
+  final bool _isPrimarySource;
+
+  final ResourceProvider _resourceProvider;
+
+  _PluginsOptionsValidator({
+    required String contextRoot,
+    required String filePath,
+    required bool isPrimarySource,
+    required ResourceProvider resourceProvider,
+  }) : _contextRoot = contextRoot,
+       _filePath = filePath,
+       _isPrimarySource = isPrimarySource,
+       _resourceProvider = resourceProvider;
+
   @override
   void validate(DiagnosticReporter reporter, YamlMap options) {
     var plugins = options.valueAt(AnalysisOptionsFile.plugins);
     switch (plugins) {
       case YamlMap():
+        var sourceDir = _resourceProvider.pathContext.dirname(_filePath);
+        var isAtContextRoot = sourceDir == _contextRoot;
+        if (!isAtContextRoot && _isPrimarySource) {
+          reporter.atSourceSpan(
+            plugins.span,
+            AnalysisOptionsWarningCode.pluginsInInnerOptions,
+            arguments: [_contextRoot],
+          );
+        }
         plugins.nodes.forEach((pluginName, pluginValue) {
           if (pluginName is! String) {
             return;

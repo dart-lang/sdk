@@ -78,6 +78,7 @@ class OptionsFileValidatorTest
   late final OptionsFileValidator validator = OptionsFileValidator(
     TestSource(),
     isPrimarySource: true,
+    contextRoot: '/',
     optionsProvider: optionsProvider,
     resourceProvider: resourceProvider,
     sourceFactory: SourceFactory([ResourceUriResolver(resourceProvider)]),
@@ -837,6 +838,57 @@ analyzer:
 ''',
       [error(AnalysisOptionsErrorCode.parseError, 45, 10)],
     );
+  }
+
+  test_pluginsInInnerOptions() {
+    var code = '''
+plugins:
+  one: ^1.0.0
+''';
+    var filePath = '/inner/analysis_options.yaml';
+    newFile(filePath, code);
+    newFile('/pubspec.yaml', '''
+name: test
+version: 0.0.1
+''');
+    var diagnostics = analyzeAnalysisOptions(
+      sourceFactory.forUri2(toUri(filePath))!,
+      code,
+      sourceFactory,
+      '/',
+      null /*sdkVersionConstraint*/,
+      resourceProvider,
+    );
+
+    assertErrorsInList(diagnostics, [
+      error(AnalysisOptionsWarningCode.pluginsInInnerOptions, 11, 12),
+    ]);
+  }
+
+  test_pluginsInInnerOptions_included() {
+    newFile(optionsFilePath, '''
+plugins:
+  one: ^1.0.0
+''');
+    var code = '''
+include: ../analysis_options.yaml
+''';
+    var filePath = '/inner/analysis_options.yaml';
+    newFile(filePath, code);
+    newFile('/pubspec.yaml', '''
+name: test
+version: 0.0.1
+''');
+    var diagnostics = analyzeAnalysisOptions(
+      sourceFactory.forUri2(toUri(filePath))!,
+      code,
+      sourceFactory,
+      '/',
+      null /*sdkVersionConstraint*/,
+      resourceProvider,
+    );
+
+    assertErrorsInList(diagnostics, []);
   }
 
   List<Diagnostic> validate(String code, List<DiagnosticCode> expected) {

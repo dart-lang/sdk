@@ -40,6 +40,7 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   AnalysisOptionsWarningCode.invalidOption,
   AnalysisOptionsWarningCode.invalidSectionFormat,
   AnalysisOptionsWarningCode.multiplePlugins,
+  AnalysisOptionsWarningCode.pluginsInInnerOptions,
   AnalysisOptionsWarningCode.recursiveIncludeFile,
   AnalysisOptionsWarningCode.removedLint,
   AnalysisOptionsWarningCode.replacedLint,
