@@ -94,6 +94,7 @@ class EnumElementDeclaration
   ];
 
   @override
+  // Coverage-ignore(suite): Not run.
   List<MetadataBuilder>? get metadata => _fragment.metadata;
 
   @override
@@ -135,7 +136,8 @@ class EnumElementDeclaration
         bodyBuilderContext: bodyBuilderContext,
         annotatable: annotatable,
         annotatableFileUri: annotatablesFileUri,
-        metadata: metadata,
+        metadata: _fragment.metadata,
+        annotationsFileUri: _fragment.fileUri,
       );
     }
   }
@@ -358,82 +360,29 @@ class EnumElementDeclaration
         length: noLength,
       )..parent = _field;
     } else if (libraryBuilder.libraryFeatures.enhancedEnums.isEnabled) {
-      // We need to create a BodyBuilder to solve the following: 1) if
-      // the arguments token is provided, we'll use the BodyBuilder to
-      // parse them and perform inference, 2) if the type arguments
-      // aren't provided, but required, we'll use it to infer them, and
-      // 3) in case of erroneous code the constructor invocation should
-      // be built via a body builder to detect potential errors.
-      ConstantContext constantContext = ConstantContext.inferred;
-      BodyBuilder bodyBuilder = libraryBuilder.loader
-          .createBodyBuilderForOutlineExpression(
-            libraryBuilder,
-            sourceEnumBuilder.createBodyBuilderContext(),
-            _fragment.enclosingScope,
-            fileUri,
+      var (Expression initializer, DartType? fieldType) = libraryBuilder.loader
+          .createResolver()
+          .buildEnumConstant(
+            libraryBuilder: libraryBuilder,
+            bodyBuilderContext: sourceEnumBuilder.createBodyBuilderContext(),
+            scope: _fragment.enclosingScope,
+            token: token,
+            enumSyntheticArguments: enumSyntheticArguments,
+            enumTypeParameterCount: sourceEnumBuilder.typeParametersCount,
+            typeArguments: typeArguments,
+            constructorBuilder: constructorBuilder,
+            fileUri: fileUri,
+            fileOffset: fileOffset,
+            fullConstructorNameForErrors: fullConstructorNameForErrors,
           );
-      bodyBuilder.constantContext = constantContext;
-
-      ArgumentsImpl arguments;
-      if (token != null) {
-        arguments = bodyBuilder.parseArguments(token);
-        // We pass `true` for [allowFurtherDelays] here because the members of
-        // the enums are built before the inference, and the resolution of the
-        // redirecting factories can't be completed at this moment and
-        // therefore should be delayed to another invocation of
-        // [BodyBuilder.performBacklogComputations].
-        bodyBuilder.performBacklogComputations();
-
-        arguments.positional.insertAll(0, enumSyntheticArguments);
-        arguments.argumentsOriginalOrder?.insertAll(0, enumSyntheticArguments);
-      } else {
-        arguments = new ArgumentsImpl(enumSyntheticArguments);
-      }
-      if (typeArguments != null) {
-        arguments.setExplicitTypeArguments(typeArguments);
-      } else if (sourceEnumBuilder.cls.typeParameters.isNotEmpty) {
-        arguments.types.addAll(
-          new List<DartType>.filled(
-            sourceEnumBuilder.cls.typeParameters.length,
-            const UnknownType(),
-          ),
-        );
-      }
-      setParents(enumSyntheticArguments, arguments);
-      if (constructorBuilder == null ||
-          constructorBuilder is! SourceConstructorBuilder) {
-        assert(
-          _field!.initializer == null,
-          "Initializer has already been computed for $this: "
-          "${_field!.initializer}.",
-        );
-        _field!.initializer = bodyBuilder.buildUnresolvedError(
-          fullConstructorNameForErrors,
-          fileOffset,
-          kind: UnresolvedKind.Constructor,
-        )..parent = _field;
-      } else {
-        Expression initializer = bodyBuilder.buildConstructorInvocation(
-          constructorBuilder.invokeTarget,
-          arguments,
-          constness: Constness.explicitConst,
-          fileOffset: nameOffset,
-        );
-        ExpressionInferenceResult inferenceResult = bodyBuilder.typeInferrer
-            .inferFieldInitializer(
-              fileUri: fileUri,
-              constantContext: constantContext,
-              declaredType: const UnknownType(),
-              initializer: initializer,
-            );
-        initializer = inferenceResult.expression;
-        inferredFieldType = inferenceResult.inferredType;
-        assert(
-          _field!.initializer == null,
-          "Initializer has already been computed for $this: "
-          "${_field!.initializer}.",
-        );
-        _field!.initializer = initializer..parent = _field;
+      assert(
+        _field!.initializer == null,
+        "Initializer has already been computed for $this: "
+        "${_field!.initializer}.",
+      );
+      _field!.initializer = initializer..parent = _field;
+      if (fieldType != null) {
+        inferredFieldType = fieldType;
       }
     } else {
       Arguments arguments = new Arguments(enumSyntheticArguments);

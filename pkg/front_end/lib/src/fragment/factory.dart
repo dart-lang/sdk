@@ -112,7 +112,6 @@ class _FactoryBodyBuildingContext implements FunctionBodyBuildingContext {
       ?.inferenceData;
 
   @override
-  // Coverage-ignore(suite): Not run.
   MemberKind get memberKind => MemberKind.Factory;
 
   @override

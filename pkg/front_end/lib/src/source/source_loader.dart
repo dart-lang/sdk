@@ -38,7 +38,6 @@ import '../base/export.dart' show Export;
 import '../base/import_chains.dart';
 import '../base/instrumentation.dart' show Instrumentation;
 import '../base/loader.dart' show Loader, untranslatableUriScheme;
-import '../base/local_scope.dart';
 import '../base/lookup_result.dart';
 import '../base/messages.dart';
 import '../base/problems.dart' show internalProblem;
@@ -58,7 +57,6 @@ import '../codes/denylisted_classes.dart'
     show denylistedCoreClasses, denylistedTypedDataClasses;
 import '../dill/dill_library_builder.dart';
 import '../kernel/benchmarker.dart' show BenchmarkSubdivides;
-import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/body_builder_context.dart';
 import '../kernel/exhaustiveness.dart';
 import '../kernel/hierarchy/class_member.dart';
@@ -69,14 +67,14 @@ import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/kernel_helper.dart'
     show DelayedDefaultValueCloner, TypeDependency;
 import '../kernel/kernel_target.dart' show KernelTarget;
+import '../kernel/resolver.dart';
 import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
 import '../type_inference/inference_visitor.dart'
     show ExpressionEvaluationHelper;
 import '../type_inference/type_inference_engine.dart';
-import '../type_inference/type_inferrer.dart';
 import '../util/reference_map.dart';
 import 'diet_listener.dart' show DietListener;
-import 'diet_parser.dart' show DietParser, useImplicitCreationExpressionInCfe;
+import 'diet_parser.dart' show DietParser;
 import 'offset_map.dart';
 import 'outline_builder.dart' show OutlineBuilder;
 import 'source_class_builder.dart' show SourceClassBuilder;
@@ -1003,22 +1001,6 @@ severity: $severity
     annotatable.addAnnotation(annotation);
   }
 
-  BodyBuilder createBodyBuilderForOutlineExpression(
-    SourceLibraryBuilder libraryBuilder,
-    BodyBuilderContext bodyBuilderContext,
-    LookupScope scope,
-    Uri fileUri, {
-    LocalScope? formalParameterScope,
-  }) {
-    return new BodyBuilder.forOutlineExpression(
-      libraryBuilder,
-      bodyBuilderContext,
-      scope,
-      fileUri,
-      formalParameterScope: formalParameterScope,
-    );
-  }
-
   CoreTypes get coreTypes {
     assert(_coreTypes != null, "CoreTypes has not been computed.");
     return _coreTypes!;
@@ -1486,42 +1468,22 @@ severity: $severity
       suppressLexicalErrors: false,
       allowLazyStrings: false,
     );
-    DietListener dietListener = createDietListener(
-      libraryBuilder,
-      memberScope,
-      // Expression compilation doesn't build an outline, and thus doesn't
-      // support members from source, so we provide an empty [DeclarationMap].
-      new OffsetMap(libraryBuilder.fileUri),
-    );
 
-    BodyBuilder listener = dietListener.createListener(
-      new ExpressionCompilerProcedureBodyBuildContext(
-        dietListener,
+    return createResolver().buildSingleExpression(
+      libraryBuilder: libraryBuilder,
+      bodyBuilderContext: new ExpressionCompilerProcedureBodyBuildContext(
         procedure,
         libraryBuilder,
         declarationBuilder,
         isDeclarationInstanceMember: isClassInstanceMember,
       ),
-      memberScope,
-      thisVariable: extensionThis,
-    );
-    for (VariableDeclaration variable
-        in procedure.function.positionalParameters) {
-      listener.typeInferrer.assignedVariables.declare(variable);
-    }
-
-    return listener.parseSingleExpression(
-      new Parser(
-        listener,
-        useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-        allowPatterns: libraryBuilder.libraryFeatures.patterns.isEnabled,
-        enableFeatureEnhancedParts:
-            libraryBuilder.libraryFeatures.enhancedParts.isEnabled,
-      ),
-      token,
-      procedure.function,
-      extraKnownVariables,
-      expressionEvaluationHelper,
+      fileUri: libraryBuilder.fileUri,
+      scope: memberScope,
+      token: token,
+      procedure: procedure,
+      extraKnownVariables: extraKnownVariables,
+      expressionEvaluationHelper: expressionEvaluationHelper,
+      extensionThis: extensionThis,
     );
   }
 
@@ -1530,13 +1492,15 @@ severity: $severity
     LookupScope compilationUnitScope,
     OffsetMap offsetMap,
   ) {
-    return new DietListener(
-      library,
-      compilationUnitScope,
-      hierarchy,
-      coreTypes,
-      typeInferenceEngine,
-      offsetMap,
+    return new DietListener(library, compilationUnitScope, offsetMap);
+  }
+
+  Resolver createResolver() {
+    return new Resolver(
+      classHierarchy: hierarchy,
+      coreTypes: coreTypes,
+      typeInferenceEngine: typeInferenceEngine,
+      benchmarker: target.benchmarker,
     );
   }
 
@@ -3200,22 +3164,6 @@ severity: $severity
   @override
   TypeBuilder computeTypeBuilder(DartType type) {
     return _typeBuilderComputer.visit(type);
-  }
-
-  BodyBuilder createBodyBuilderForField(
-    SourceLibraryBuilder libraryBuilder,
-    BodyBuilderContext bodyBuilderContext,
-    LookupScope enclosingScope,
-    TypeInferrer typeInferrer,
-    Uri uri,
-  ) {
-    return new BodyBuilder.forField(
-      libraryBuilder,
-      bodyBuilderContext,
-      enclosingScope,
-      typeInferrer,
-      uri,
-    );
   }
 }
 

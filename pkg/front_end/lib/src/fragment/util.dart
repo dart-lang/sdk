@@ -51,11 +51,13 @@ void buildMetadataForOutlineExpressions({
   required BodyBuilderContext bodyBuilderContext,
   required Annotatable annotatable,
   required Uri annotatableFileUri,
+  required Uri annotationsFileUri,
   required List<MetadataBuilder>? metadata,
 }) {
   MetadataBuilder.buildAnnotations(
     annotatable: annotatable,
     annotatableFileUri: annotatableFileUri,
+    annotationsFileUri: annotationsFileUri,
     metadata: metadata,
     bodyBuilderContext: bodyBuilderContext,
     libraryBuilder: libraryBuilder,

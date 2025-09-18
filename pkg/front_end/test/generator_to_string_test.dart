@@ -20,7 +20,7 @@ import 'package:front_end/src/codes/cfe_codes.dart'
     show Message, codeUnspecified;
 import 'package:front_end/src/dill/dill_target.dart' show DillTarget;
 import 'package:front_end/src/dill/dill_type_parameter_builder.dart';
-import 'package:front_end/src/kernel/body_builder.dart' show BodyBuilder;
+import 'package:front_end/src/kernel/body_builder.dart' show BodyBuilderImpl;
 import 'package:front_end/src/kernel/body_builder_context.dart';
 import 'package:front_end/src/kernel/expression_generator.dart';
 import 'package:front_end/src/kernel/expression_generator_helper.dart';
@@ -178,7 +178,7 @@ Future<void> main() async {
     TypeInferenceEngineImpl engine = new TypeInferenceEngineImpl(null, null);
     engine.prepareTopLevel(coreTypes, hierarchy);
 
-    BodyBuilder helper = new BodyBuilder(
+    ExpressionGeneratorHelper helper = new BodyBuilderImpl(
       libraryBuilder: libraryBuilder,
       context: new LibraryBodyBuilderContext(libraryBuilder),
       uri: uri,

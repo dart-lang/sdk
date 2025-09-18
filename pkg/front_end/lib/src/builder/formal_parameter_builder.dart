@@ -15,13 +15,12 @@ import 'package:kernel/ast.dart'
         VariableDeclaration;
 import 'package:kernel/class_hierarchy.dart';
 
-import '../base/constant_context.dart' show ConstantContext;
 import '../base/lookup_result.dart';
 import '../base/modifiers.dart';
 import '../base/scope.dart' show LookupScope;
-import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/body_builder_context.dart';
 import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
+import '../kernel/resolver.dart';
 import '../kernel/wildcard_lowering.dart';
 import '../source/fragment_factory.dart';
 import '../source/source_constructor_builder.dart';
@@ -296,32 +295,22 @@ class FormalParameterBuilder extends NamedBuilderImpl
           declarationBuilder,
           this,
         );
-        BodyBuilder bodyBuilder = libraryBuilder.loader
-            .createBodyBuilderForOutlineExpression(
-              libraryBuilder,
-              bodyBuilderContext,
-              scope,
-              fileUri,
-            );
-        ConstantContext constantContext = ConstantContext.required;
-        bodyBuilder.constantContext = constantContext;
         assert(!initializerWasInferred);
-        Expression initializer = bodyBuilder.parseFieldInitializer(
-          initializerToken!,
-        );
-        initializer = bodyBuilder.typeInferrer.inferParameterInitializer(
+        Resolver resolver = libraryBuilder.loader.createResolver();
+        Expression initializer = resolver.buildParameterInitializer(
+          libraryBuilder: libraryBuilder,
+          bodyBuilderContext: bodyBuilderContext,
+          scope: scope,
           fileUri: fileUri,
-          initializer: initializer,
+          initializerToken: initializerToken!,
           declaredType: variable!.type,
           hasDeclaredInitializer: hasDeclaredInitializer,
-          constantContext: constantContext,
         );
         variable!.initializer = initializer..parent = variable;
         if (initializer is InvalidExpression) {
           variable!.isErroneouslyInitialized = true;
         }
         initializerWasInferred = true;
-        bodyBuilder.performBacklogComputations();
       } else if (kind.isOptional) {
         // As done by BodyBuilder.endFormalParameter.
         variable!.initializer = new NullLiteral()..parent = variable;

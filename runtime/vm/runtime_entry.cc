@@ -4962,85 +4962,58 @@ DEFINE_LEAF_RUNTIME_ENTRY(ExitSafepoint,
                           /*argument_count=*/0,
                           DLRT_ExitSafepoint);
 
-// This is called by a native callback trampoline
-// (see StubCodeCompiler::GenerateFfiCallbackTrampolineStub). Not registered as
-// a runtime entry because we can't use Thread to look it up.
-extern "C" Thread* DLRT_GetFfiCallbackMetadata(
-    FfiCallbackMetadata::Trampoline trampoline,
-    uword* out_entry_point,
-    uword* out_trampoline_type) {
-  CHECK_STACK_ALIGNMENT;
-  TRACE_RUNTIME_CALL("GetFfiCallbackMetadata %p",
-                     reinterpret_cast<void*>(trampoline));
-  ASSERT(out_entry_point != nullptr);
-  ASSERT(out_trampoline_type != nullptr);
+namespace {
+Thread* HandleAsyncFfiCallback(FfiCallbackMetadata::Metadata metadata,
+                               uword* out_entry_point,
+                               uword* out_trampoline_type) {
+  // NOTE: This is only thread safe if the user is using the API correctly.
+  // Otherwise, the callback could have been deleted and replaced, in which case
+  // IsLive would still be true. Or it could have been deleted after we looked
+  // it up, and the target isolate could be shut down. We delay recycling
+  // callbacks as long as possible, so this check is better than nothing, but
+  // it's not infallible. Ultimately it's the user's responsibility to avoid use
+  // after free errors. Trying to lock FfiCallbackMetadata::lock_, or any
+  // similar lock, leads to deadlocks.
 
-  if (!Isolate::IsolateCreationEnabled()) {
-    TRACE_RUNTIME_CALL("GetFfiCallbackMetadata called after shutdown %p",
-                       reinterpret_cast<void*>(trampoline));
-    return nullptr;
-  }
+  *out_trampoline_type = static_cast<uword>(metadata.trampoline_type());
+  *out_entry_point = metadata.target_entry_point();
+  Isolate* target_isolate = metadata.target_isolate();
 
+  Isolate* current_isolate = nullptr;
   Thread* current_thread = Thread::Current();
-  auto* fcm = FfiCallbackMetadata::Instance();
-  auto metadata = fcm->LookupMetadataForTrampoline(trampoline);
-
-  // Is this an async callback?
-  if (metadata.trampoline_type() ==
-      FfiCallbackMetadata::TrampolineType::kAsync) {
-    // It's possible that the callback was deleted, or the target isolate was
-    // shut down, in between looking up the metadata above, and this point. So
-    // grab the lock and then check that the callback is still alive.
-    MutexLocker locker(fcm->lock());
-    auto metadata2 = fcm->LookupMetadataForTrampoline(trampoline);
-    *out_trampoline_type = static_cast<uword>(metadata2.trampoline_type());
-
-    // Check IsLive, but also check that the metdata hasn't changed. This is
-    // for the edge case that the callback was destroyed and recycled in between
-    // the two lookups.
-    if (!metadata.IsLive() || !metadata.IsSameCallback(metadata2)) {
-      TRACE_RUNTIME_CALL("GetFfiCallbackMetadata callback deleted %p",
-                         reinterpret_cast<void*>(trampoline));
-      return nullptr;
+  if (current_thread != nullptr) {
+    current_isolate = current_thread->isolate();
+    if (current_thread->execution_state() != Thread::kThreadInNative) {
+      FATAL("Cannot invoke native callback from a leaf call.");
     }
-
-    *out_entry_point = metadata.target_entry_point();
-    Isolate* target_isolate = metadata.target_isolate();
-
-    Isolate* current_isolate = nullptr;
-    if (current_thread != nullptr) {
-      current_isolate = current_thread->isolate();
-      if (current_thread->execution_state() != Thread::kThreadInNative) {
-        FATAL("Cannot invoke native callback from a leaf call.");
-      }
-      current_thread->ExitSafepointFromNative();
-      current_thread->set_execution_state(Thread::kThreadInVM);
-    }
-
-    // Enter the temporary isolate. If the current isolate is in the same group
-    // as the target isolate, we can skip entering the temp isolate, and marshal
-    // the args on the current isolate.
-    if (current_isolate == nullptr ||
-        current_isolate->group() != target_isolate->group()) {
-      if (current_isolate != nullptr) {
-        Thread::ExitIsolate(/*isolate_shutdown=*/false);
-      }
-      target_isolate->group()->EnterTemporaryIsolate();
-    }
-    Thread* const temp_thread = Thread::Current();
-    ASSERT(temp_thread != nullptr);
-    temp_thread->set_unboxed_int64_runtime_arg(metadata.send_port());
-    temp_thread->set_unboxed_int64_runtime_second_arg(
-        reinterpret_cast<intptr_t>(current_isolate));
-    ASSERT(!temp_thread->IsAtSafepoint());
-    return temp_thread;
+    current_thread->ExitSafepointFromNative();
+    current_thread->set_execution_state(Thread::kThreadInVM);
   }
 
-  // Otherwise, this is a sync callback, so verify that we're already entered
-  // into the target isolate.
-  if (!metadata.IsLive()) {
-    FATAL("Callback invoked after it has been deleted.");
+  // Enter the temporary isolate. If the current isolate is in the same group
+  // as the target isolate, we can skip entering the temp isolate, and marshal
+  // the args on the current isolate.
+  if (current_isolate == nullptr ||
+      current_isolate->group() != target_isolate->group()) {
+    if (current_isolate != nullptr) {
+      Thread::ExitIsolate(/*isolate_shutdown=*/false);
+    }
+    target_isolate->group()->EnterTemporaryIsolate();
   }
+  Thread* const temp_thread = Thread::Current();
+  ASSERT(temp_thread != nullptr);
+  temp_thread->set_unboxed_int64_runtime_arg(metadata.send_port());
+  temp_thread->set_unboxed_int64_runtime_second_arg(
+      reinterpret_cast<intptr_t>(current_isolate));
+  ASSERT(!temp_thread->IsAtSafepoint());
+  return temp_thread;
+}
+
+Thread* HandleSyncFfiCallback(FfiCallbackMetadata::Metadata metadata,
+                              uword* out_entry_point,
+                              uword* out_trampoline_type) {
+  Thread* current_thread = Thread::Current();
+
   if (metadata.is_isolate_group_bound()) {
     *out_entry_point = metadata.target_entry_point();
     *out_trampoline_type = static_cast<uword>(metadata.trampoline_type());
@@ -5101,6 +5074,53 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(
   TRACE_RUNTIME_CALL("GetFfiCallbackMetadata trampoline_type %p",
                      (void*)*out_trampoline_type);
   return current_thread;
+}
+}  // namespace
+
+// This is called by a native callback trampoline
+// (see StubCodeCompiler::GenerateFfiCallbackTrampolineStub). Not registered as
+// a runtime entry because we can't use Thread to look it up.
+extern "C" Thread* DLRT_GetFfiCallbackMetadata(
+    FfiCallbackMetadata::Trampoline trampoline,
+    uword* out_entry_point,
+    uword* out_trampoline_type) {
+  CHECK_STACK_ALIGNMENT;
+  TRACE_RUNTIME_CALL("GetFfiCallbackMetadata %p",
+                     reinterpret_cast<void*>(trampoline));
+  ASSERT(out_entry_point != nullptr);
+  ASSERT(out_trampoline_type != nullptr);
+
+  if (!Isolate::IsolateCreationEnabled()) {
+    FATAL("GetFfiCallbackMetadata called after shutdown %p",
+          reinterpret_cast<void*>(trampoline));
+  }
+
+  // NOTE: We access the metadata for `trampoline` without a lock. This is safe
+  // because nobody will touch the metadata of the `trampoline` until it's
+  // deleted and the `NativeCallable` API requires the isolate to keep the
+  // trampoline (and therefore the metadata) alive until C code no longer
+  // attempts to call it.
+  //
+  // If a user of the `NativeCallable` API violates this agreement, we may
+  // have a use-after-free scenario here and therefore undefined behavior.
+  // We make some best effort to `FATAL()` in obvious cases of undefined
+  // behavior, but not all cases will be caught.
+  auto metadata =
+      FfiCallbackMetadata::Instance()->LookupMetadataForTrampolineUnlocked(
+          trampoline);
+
+  if (!metadata.IsLive()) {
+    FATAL("Callback invoked after it has been deleted.");
+  }
+
+  if (metadata.trampoline_type() ==
+      FfiCallbackMetadata::TrampolineType::kAsync) {
+    return HandleAsyncFfiCallback(metadata, out_entry_point,
+                                  out_trampoline_type);
+  } else {
+    return HandleSyncFfiCallback(metadata, out_entry_point,
+                                 out_trampoline_type);
+  }
 }
 
 extern "C" void DLRT_ExitIsolateGroupBoundIsolate() {

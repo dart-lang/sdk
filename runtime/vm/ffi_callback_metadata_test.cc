@@ -102,7 +102,7 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateSyncFfiCallback) {
 
     {
       FfiCallbackMetadata::Metadata m1 =
-          fcm->LookupMetadataForTrampoline(tramp1);
+          fcm->LookupMetadataForTrampolineUnlocked(tramp1);
       EXPECT(m1.IsLive());
       EXPECT_EQ(m1.target_isolate(), isolate);
       EXPECT_EQ(m1.target_entry_point(), code.EntryPoint());
@@ -124,7 +124,7 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateSyncFfiCallback) {
 
     {
       FfiCallbackMetadata::Metadata m2 =
-          fcm->LookupMetadataForTrampoline(tramp2);
+          fcm->LookupMetadataForTrampolineUnlocked(tramp2);
       EXPECT(m2.IsLive());
       EXPECT_EQ(m2.target_isolate(), isolate);
       EXPECT_EQ(m2.target_entry_point(), code.EntryPoint());
@@ -147,7 +147,7 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateSyncFfiCallback) {
     {
       isolate->DeleteFfiCallback(tramp1);
       FfiCallbackMetadata::Metadata m1 =
-          fcm->LookupMetadataForTrampoline(tramp1);
+          fcm->LookupMetadataForTrampolineUnlocked(tramp1);
       EXPECT(!m1.IsLive());
 
       // head -> tramp2
@@ -160,10 +160,12 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateSyncFfiCallback) {
 
   {
     // Isolate has shut down, so all callbacks should be deleted.
-    FfiCallbackMetadata::Metadata m1 = fcm->LookupMetadataForTrampoline(tramp1);
+    FfiCallbackMetadata::Metadata m1 =
+        fcm->LookupMetadataForTrampolineUnlocked(tramp1);
     EXPECT(!m1.IsLive());
 
-    FfiCallbackMetadata::Metadata m2 = fcm->LookupMetadataForTrampoline(tramp2);
+    FfiCallbackMetadata::Metadata m2 =
+        fcm->LookupMetadataForTrampolineUnlocked(tramp2);
     EXPECT(!m2.IsLive());
   }
 }
@@ -197,7 +199,7 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateAsyncFfiCallback) {
 
     {
       FfiCallbackMetadata::Metadata m1 =
-          fcm->LookupMetadataForTrampoline(tramp1);
+          fcm->LookupMetadataForTrampolineUnlocked(tramp1);
       EXPECT(m1.IsLive());
       EXPECT_EQ(m1.target_isolate(), isolate);
       EXPECT_EQ(m1.target_entry_point(), code.EntryPoint());
@@ -219,7 +221,7 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateAsyncFfiCallback) {
 
     {
       FfiCallbackMetadata::Metadata m2 =
-          fcm->LookupMetadataForTrampoline(tramp2);
+          fcm->LookupMetadataForTrampolineUnlocked(tramp2);
       EXPECT(m2.IsLive());
       EXPECT_EQ(m2.target_isolate(), isolate);
       EXPECT_EQ(m2.target_entry_point(), code.EntryPoint());
@@ -242,7 +244,7 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateAsyncFfiCallback) {
     {
       isolate->DeleteFfiCallback(tramp2);
       FfiCallbackMetadata::Metadata m2 =
-          fcm->LookupMetadataForTrampoline(tramp2);
+          fcm->LookupMetadataForTrampolineUnlocked(tramp2);
       EXPECT(!m2.IsLive());
 
       // head -> tramp1
@@ -255,10 +257,12 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateAsyncFfiCallback) {
 
   {
     // Isolate has shut down, so all callbacks should be deleted.
-    FfiCallbackMetadata::Metadata m1 = fcm->LookupMetadataForTrampoline(tramp1);
+    FfiCallbackMetadata::Metadata m1 =
+        fcm->LookupMetadataForTrampolineUnlocked(tramp1);
     EXPECT(!m1.IsLive());
 
-    FfiCallbackMetadata::Metadata m2 = fcm->LookupMetadataForTrampoline(tramp2);
+    FfiCallbackMetadata::Metadata m2 =
+        fcm->LookupMetadataForTrampolineUnlocked(tramp2);
     EXPECT(!m2.IsLive());
   }
 }
@@ -299,7 +303,7 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateIsolateLocalFfiCallback) {
 
     {
       FfiCallbackMetadata::Metadata m1 =
-          fcm->LookupMetadataForTrampoline(tramp1);
+          fcm->LookupMetadataForTrampolineUnlocked(tramp1);
       EXPECT(m1.IsLive());
       EXPECT_EQ(m1.target_isolate(), isolate);
       EXPECT_EQ(m1.target_entry_point(), code.EntryPoint());
@@ -323,7 +327,7 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateIsolateLocalFfiCallback) {
 
     {
       FfiCallbackMetadata::Metadata m2 =
-          fcm->LookupMetadataForTrampoline(tramp2);
+          fcm->LookupMetadataForTrampolineUnlocked(tramp2);
       EXPECT(m2.IsLive());
       EXPECT_EQ(m2.target_isolate(), isolate);
       EXPECT_EQ(m2.target_entry_point(), code.EntryPoint());
@@ -346,7 +350,7 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateIsolateLocalFfiCallback) {
     {
       isolate->DeleteFfiCallback(tramp2);
       FfiCallbackMetadata::Metadata m2 =
-          fcm->LookupMetadataForTrampoline(tramp2);
+          fcm->LookupMetadataForTrampolineUnlocked(tramp2);
       EXPECT(!m2.IsLive());
 
       // head -> tramp1
@@ -359,10 +363,12 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateIsolateLocalFfiCallback) {
 
   {
     // Isolate has shut down, so all callbacks should be deleted.
-    FfiCallbackMetadata::Metadata m1 = fcm->LookupMetadataForTrampoline(tramp1);
+    FfiCallbackMetadata::Metadata m1 =
+        fcm->LookupMetadataForTrampolineUnlocked(tramp1);
     EXPECT(!m1.IsLive());
 
-    FfiCallbackMetadata::Metadata m2 = fcm->LookupMetadataForTrampoline(tramp2);
+    FfiCallbackMetadata::Metadata m2 =
+        fcm->LookupMetadataForTrampolineUnlocked(tramp2);
     EXPECT(!m2.IsLive());
   }
 }
@@ -460,7 +466,7 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_DeleteTrampolines) {
 
   // Verify all the callbacks.
   for (FfiCallbackMetadata::Trampoline tramp : tramps) {
-    auto metadata = fcm->LookupMetadataForTrampoline(tramp);
+    auto metadata = fcm->LookupMetadataForTrampolineUnlocked(tramp);
     EXPECT(metadata.IsLive());
     EXPECT_EQ(metadata.target_isolate(), isolate);
     EXPECT_EQ(static_cast<int>(metadata.trampoline_type()),
@@ -494,7 +500,7 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_DeleteTrampolines) {
   fcm->DeleteAllCallbacks(&list_head);
   EXPECT_EQ(list_head, nullptr);
   for (FfiCallbackMetadata::Trampoline tramp : tramps) {
-    EXPECT(!fcm->LookupMetadataForTrampoline(tramp).IsLive());
+    EXPECT(!fcm->LookupMetadataForTrampolineUnlocked(tramp).IsLive());
   }
 }
 
@@ -574,7 +580,7 @@ static void RunBigRandomMultithreadedTest(uint64_t seed) {
 
     // Verify all the callbacks.
     for (const auto& tramp : tramps) {
-      auto metadata = fcm->LookupMetadataForTrampoline(tramp.tramp);
+      auto metadata = fcm->LookupMetadataForTrampolineUnlocked(tramp.tramp);
       EXPECT(metadata.IsLive());
       EXPECT_EQ(metadata.target_isolate(), isolate);
       if (metadata.trampoline_type() ==

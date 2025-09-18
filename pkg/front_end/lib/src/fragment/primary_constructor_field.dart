@@ -86,6 +86,7 @@ class PrimaryConstructorFieldDeclaration
   List<ClassMember> get localMembers => _encoding.localMembers;
 
   @override
+  // Coverage-ignore(suite): Not run.
   List<MetadataBuilder>? get metadata => _fragment.metadata;
 
   @override
@@ -166,7 +167,8 @@ class PrimaryConstructorFieldDeclaration
         bodyBuilderContext: bodyBuilderContext,
         annotatable: annotatable,
         annotatableFileUri: annotatablesFileUri,
-        metadata: metadata,
+        metadata: _fragment.metadata,
+        annotationsFileUri: _fragment.fileUri,
       );
     }
   }
@@ -433,33 +435,19 @@ class PrimaryConstructorFieldDeclaration
                 )
           : null;
       LookupScope scope = _fragment.enclosingScope;
-      TypeInferrer typeInferrer = libraryBuilder.loader.typeInferenceEngine
-          .createTopLevelTypeInferrer(
-            fileUri,
-            enclosingClassThisType,
-            libraryBuilder,
-            scope,
-            builder.dataForTesting?.inferenceData,
+      inferredType = libraryBuilder.loader
+          .createResolver()
+          .buildFieldInitializer1(
+            libraryBuilder: libraryBuilder,
+            fileUri: fileUri,
+            scope: scope,
+            enclosingClassThisType: enclosingClassThisType,
+            inferenceDataForTesting: builder.dataForTesting?.inferenceData,
+            bodyBuilderContext: createBodyBuilderContext(),
+            startToken: token,
+            isConst: false,
+            isLate: false,
           );
-      BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
-      BodyBuilder bodyBuilder = libraryBuilder.loader.createBodyBuilderForField(
-        libraryBuilder,
-        bodyBuilderContext,
-        scope,
-        typeInferrer,
-        fileUri,
-      );
-      ConstantContext constantContext = ConstantContext.none;
-      bodyBuilder.constantContext = constantContext;
-      bodyBuilder.inFieldInitializer = true;
-      bodyBuilder.inLateFieldInitializer = false;
-      Expression initializer = bodyBuilder.parseFieldInitializer(token);
-
-      inferredType = typeInferrer.inferImplicitFieldType(
-        fileUri: fileUri,
-        constantContext: constantContext,
-        initializer: initializer,
-      );
     } else {
       inferredType = const DynamicType();
     }

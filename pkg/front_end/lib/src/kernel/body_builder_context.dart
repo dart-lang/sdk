@@ -18,7 +18,6 @@ import '../builder/library_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../dill/dill_class_builder.dart';
-import '../source/diet_listener.dart';
 import '../source/source_class_builder.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_enum_builder.dart';
@@ -811,7 +810,6 @@ class ExpressionCompilerProcedureBodyBuildContext extends BodyBuilderContext {
   final Procedure _procedure;
 
   ExpressionCompilerProcedureBodyBuildContext(
-    DietListener listener,
     this._procedure,
     SourceLibraryBuilder libraryBuilder,
     DeclarationBuilder? declarationBuilder, {

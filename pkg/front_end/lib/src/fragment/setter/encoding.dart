@@ -245,6 +245,7 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
       annotatable: annotatable,
       annotatableFileUri: annotatableFileUri,
       metadata: _fragment.metadata,
+      annotationsFileUri: _fragment.fileUri,
     );
 
     buildTypeParametersForOutlineExpressions(
@@ -521,6 +522,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
       annotatable: annotatable,
       annotatableFileUri: annotatableFileUri,
       metadata: _fragment.metadata,
+      annotationsFileUri: _fragment.fileUri,
     );
 
     buildTypeParametersForOutlineExpressions(

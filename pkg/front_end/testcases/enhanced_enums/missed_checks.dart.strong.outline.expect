@@ -206,7 +206,7 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///missed_checks.dart:6:3 -> InstanceConstant(const E1{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///missed_checks.dart:6:11 -> InstanceConstant(const E1{_Enum.index: 0, _Enum._name: "element"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///missed_checks.dart:5:6 -> ListConstant(const <E1>[const E1{_Enum.index: 0, _Enum._name: "element"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///missed_checks.dart:11:3 -> InstanceConstant(const E2<dynamic>{_Enum.index: 0, _Enum._name: "element"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///missed_checks.dart:10:6 -> ListConstant(const <E2<dynamic>>[const E2<dynamic>{_Enum.index: 0, _Enum._name: "element"}])
