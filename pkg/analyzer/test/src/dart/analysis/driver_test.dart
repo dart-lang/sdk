@@ -9229,6 +9229,128 @@ class C extends A implements B {}
     );
   }
 
+  test_dependency_class_instanceMethod_change_getInterfaceMember() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var B = state.singleUnit.scopeClassElement('B');
+      B.getInterfaceMember(Name(null, 'foo'));
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+abstract class A {
+  int foo();
+}
+
+abstract class B extends A {}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+      B: #M3
+        interface: #M4
+          map
+            foo: #M1
+          inherited
+            foo: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M5
+        exportedTopLevels
+          B: #M3
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
+        interfaces
+          B
+            methods
+              foo: #M1
+[status] idle
+''',
+      updatedA: r'''
+abstract class A {
+  double foo();
+}
+
+abstract class B extends A {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M6
+        interface: #M7
+          map
+            foo: #M6
+      B: #M3
+        interface: #M8
+          map
+            foo: #M6
+          inherited
+            foo: #M6
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  instanceMethodIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: B
+    methodName: foo
+    expectedId: #M1
+    actualId: #M6
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M5
+        exportedTopLevels
+          B: #M3
+          B=: <null>
+        reExportDeprecatedOnly
+          B: false
+        interfaces
+          B
+            methods
+              foo: #M6
+[status] idle
+''',
+    );
+  }
+
   test_dependency_class_instanceMethod_change_getMethod() async {
     _ManualRequirements.install((state) {
       var A = state.singleUnit.scopeInstanceElement('A');

@@ -13,6 +13,7 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/element/element.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/extensions.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/error/deprecated_member_use_verifier.dart' // ignore: implementation_imports
     show BaseDeprecatedMemberUseVerifier;
@@ -62,10 +63,11 @@ class _DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
     String? message,
   ) {
     var library = element is LibraryElement ? element : element.library;
-    if (library == null ||
-        !_workspacePackage.contains(library.firstFragment.source)) {
-      // In this case, `DEPRECATED_MEMBER_USE` is reported by the analyzer.
-      return;
+    if (library case LibraryElementImpl library) {
+      if (!_workspacePackage.contains(library.source)) {
+        // In this case, `DEPRECATED_MEMBER_USE` is reported by the analyzer.
+        return;
+      }
     }
 
     var normalizedMessage = message?.trim();
