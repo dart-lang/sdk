@@ -739,15 +739,16 @@ class ElementBuilder {
 
   void _handleTopLevelVariableFragment(
     LibraryFragmentImpl libraryFragment,
-    FragmentImpl? lastVariableFragment,
+    FragmentImpl? lastFragment,
     TopLevelVariableFragmentImpl variableFragment,
   ) {
     assert(!variableFragment.isSynthetic);
     libraryFragment.addTopLevelVariable(variableFragment);
 
-    if (variableFragment.isAugmentation &&
-        lastVariableFragment is TopLevelVariableFragmentImpl) {
-      lastVariableFragment.addFragment(variableFragment);
+    var lastVariableElement = _topLevelVariableElement(lastFragment);
+
+    if (variableFragment.isAugmentation && lastVariableElement != null) {
+      lastVariableElement.lastFragment.addFragment(variableFragment);
       return;
     }
 

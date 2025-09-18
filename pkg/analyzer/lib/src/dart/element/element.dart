@@ -10257,6 +10257,16 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   @trackedIncludedInId
   ElementKind get kind => ElementKind.TOP_LEVEL_VARIABLE;
 
+  @trackedDirectlyOpaque
+  TopLevelVariableFragmentImpl get lastFragment {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'lastFragment');
+    var current = firstFragment;
+    while (current.nextFragment != null) {
+      current = current.nextFragment!;
+    }
+    return current;
+  }
+
   @Deprecated('Use library instead')
   @override
   @trackedIndirectly
