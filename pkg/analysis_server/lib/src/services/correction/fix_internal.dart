@@ -887,7 +887,10 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   CompileTimeErrorCode.superInvocationNotLast: [MakeSuperInvocationLast.new],
   CompileTimeErrorCode.switchCaseCompletesNormally: [AddSwitchCaseBreak.new],
   CompileTimeErrorCode.typeTestWithUndefinedName: [ChangeTo.classOrMixin],
-  CompileTimeErrorCode.uncheckedInvocationOfNullableValue: [AddNullCheck.new],
+  CompileTimeErrorCode.uncheckedInvocationOfNullableValue: [
+    AddNullCheck.new,
+    ReplaceWithNullAware.single,
+  ],
   CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue: [
     AddNullCheck.new,
     ExtractLocalVariable.new,
