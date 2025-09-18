@@ -31,7 +31,7 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
 
   Code errorCode = token.errorCode;
   switch (errorCode.analyzerCodes?.first) {
-    case "UNTERMINATED_STRING_LITERAL":
+    case AnalyzerCode.unterminatedStringLiteral:
       // TODO(paulberry,ahe): Fasta reports the error location as the entire
       // string; analyzer expects the end of the string.
       reportError(
@@ -41,7 +41,7 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
       );
       return;
 
-    case "UNTERMINATED_MULTI_LINE_COMMENT":
+    case AnalyzerCode.unterminatedMultiLineComment:
       // TODO(paulberry,ahe): Fasta reports the error location as the entire
       // comment; analyzer expects the end of the comment.
       reportError(
@@ -51,27 +51,27 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
       );
       return;
 
-    case "MISSING_DIGIT":
+    case AnalyzerCode.missingDigit:
       // TODO(paulberry,ahe): Fasta reports the error location as the entire
       // number; analyzer expects the end of the number.
       charOffset = endOffset - 1;
       return _makeError(ScannerErrorCode.missingDigit, null);
 
-    case "MISSING_HEX_DIGIT":
+    case AnalyzerCode.missingHexDigit:
       // TODO(paulberry,ahe): Fasta reports the error location as the entire
       // number; analyzer expects the end of the number.
       charOffset = endOffset - 1;
       return _makeError(ScannerErrorCode.missingHexDigit, null);
 
-    case "ILLEGAL_CHARACTER":
+    case AnalyzerCode.illegalCharacter:
       // We can safely assume `token.character` is non-`null` because this error
       // is only reported when there is a character associated with the token.
       return _makeError(ScannerErrorCode.illegalCharacter, [token.character!]);
 
-    case "UNEXPECTED_SEPARATOR_IN_NUMBER":
+    case AnalyzerCode.unexpectedSeparatorInNumber:
       return _makeError(ScannerErrorCode.unexpectedSeparatorInNumber, null);
 
-    case "UNSUPPORTED_OPERATOR":
+    case AnalyzerCode.unsupportedOperator:
       return _makeError(ScannerErrorCode.unsupportedOperator, [
         (token as UnsupportedOperator).token.lexeme,
       ]);

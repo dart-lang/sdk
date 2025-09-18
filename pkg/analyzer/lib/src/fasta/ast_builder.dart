@@ -30,7 +30,8 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         codeExpectedIdentifier,
         codeExperimentNotEnabled,
         codeExtraneousModifier,
-        codeInternalProblemUnhandled;
+        codeInternalProblemUnhandled,
+        AnalyzerCode;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show
         Assert,
@@ -223,7 +224,7 @@ class AstBuilder extends StackListener {
   }) {
     if (directives.isEmpty &&
         (message.code.analyzerCodes?.contains(
-              'NON_PART_OF_DIRECTIVE_IN_PART',
+              AnalyzerCode.nonPartOfDirectiveInPart,
             ) ??
             false)) {
       message = codeDirectiveAfterDeclaration;
