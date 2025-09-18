@@ -8,6 +8,8 @@ import 'package:analysis_server/src/services/correction/dart/add_late.dart';
 import 'package:analysis_server/src/services/correction/dart/add_return_type.dart';
 import 'package:analysis_server/src/services/correction/dart/add_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/assign_to_local_variable.dart';
+import 'package:analysis_server/src/services/correction/dart/bind_all_to_fields.dart';
+import 'package:analysis_server/src/services/correction/dart/bind_to_field.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_add_all_to_spread.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_class_to_enum.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_class_to_mixin.dart';
@@ -88,6 +90,8 @@ const Set<ProducerGenerator> _builtInGenerators = {
   AddReturnType.new,
   AddTypeAnnotation.bulkFixable,
   AssignToLocalVariable.new,
+  BindAllToFields.new,
+  BindToField.new,
   ConvertAddAllToSpread.new,
   ConvertClassToEnum.new,
   ConvertClassToMixin.new,

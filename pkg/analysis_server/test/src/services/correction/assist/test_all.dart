@@ -10,6 +10,8 @@ import 'add_late_test.dart' as add_late;
 import 'add_return_type_test.dart' as add_return_type;
 import 'add_type_annotation_test.dart' as add_type_annotation;
 import 'assign_to_local_variable_test.dart' as assign_to_local_variable;
+import 'bind_all_to_fields_test.dart' as bind_all_to_fields_test;
+import 'bind_to_field_test.dart' as bind_to_field_test;
 import 'convert_class_to_enum_test.dart' as convert_class_to_enum;
 import 'convert_class_to_mixin_test.dart' as convert_class_to_mixin;
 import 'convert_documentation_into_block_test.dart'
@@ -119,6 +121,8 @@ void main() {
     add_return_type.main();
     add_type_annotation.main();
     assign_to_local_variable.main();
+    bind_all_to_fields_test.main();
+    bind_to_field_test.main();
     convert_class_to_enum.main();
     convert_class_to_mixin.main();
     convert_documentation_into_block.main();
