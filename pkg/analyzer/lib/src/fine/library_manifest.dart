@@ -1432,6 +1432,7 @@ class _LibraryMatch {
   }) {
     for (var field in element.fields) {
       if (!_matchInstanceElementField(
+        instanceElement: element,
         instanceItem: item,
         instanceMatchContext: matchContext,
         element: field,
@@ -1442,6 +1443,7 @@ class _LibraryMatch {
 
     for (var method in element.methods) {
       if (!_matchInstanceElementMethod(
+        instanceElement: element,
         instanceItem: item,
         instanceMatchContext: matchContext,
         element: method,
@@ -1452,6 +1454,7 @@ class _LibraryMatch {
 
     for (var getter in element.getters) {
       if (!_matchInstanceElementGetter(
+        instanceElement: element,
         instanceItem: item,
         instanceMatchContext: matchContext,
         element: getter,
@@ -1462,6 +1465,7 @@ class _LibraryMatch {
 
     for (var setter in element.setters) {
       if (!_matchInstanceElementSetter(
+        instanceElement: element,
         instanceItem: item,
         instanceMatchContext: matchContext,
         element: setter,
@@ -1472,6 +1476,7 @@ class _LibraryMatch {
   }
 
   bool _matchInstanceElementField({
+    required InstanceElementImpl instanceElement,
     required InstanceItem instanceItem,
     required MatchContext instanceMatchContext,
     required FieldElementImpl element,
@@ -1491,11 +1496,13 @@ class _LibraryMatch {
       return false;
     }
 
+    matchContext.elements.add(instanceElement);
     _addMatchingElementItem(element, item, matchContext);
     return true;
   }
 
   bool _matchInstanceElementGetter({
+    required InstanceElementImpl instanceElement,
     required InstanceItem instanceItem,
     required MatchContext instanceMatchContext,
     required GetterElementImpl element,
@@ -1515,11 +1522,13 @@ class _LibraryMatch {
       return false;
     }
 
+    matchContext.elements.add(instanceElement);
     _addMatchingElementItem(element, item, matchContext);
     return true;
   }
 
   bool _matchInstanceElementMethod({
+    required InstanceElementImpl instanceElement,
     required InstanceItem instanceItem,
     required MatchContext instanceMatchContext,
     required MethodElementImpl element,
@@ -1539,11 +1548,13 @@ class _LibraryMatch {
       return false;
     }
 
+    matchContext.elements.add(instanceElement);
     _addMatchingElementItem(element, item, matchContext);
     return true;
   }
 
   bool _matchInstanceElementSetter({
+    required InstanceElementImpl instanceElement,
     required InstanceItem instanceItem,
     required MatchContext instanceMatchContext,
     required SetterElementImpl element,
@@ -1563,11 +1574,13 @@ class _LibraryMatch {
       return false;
     }
 
+    matchContext.elements.add(instanceElement);
     _addMatchingElementItem(element, item, matchContext);
     return true;
   }
 
   bool _matchInterfaceElementConstructor({
+    required InterfaceElementImpl interfaceElement,
     required InterfaceItem interfaceItem,
     required MatchContext interfaceMatchContext,
     required ConstructorElementImpl element,
@@ -1587,6 +1600,7 @@ class _LibraryMatch {
       return false;
     }
 
+    matchContext.elements.add(interfaceElement);
     _addMatchingElementItem(element, item, matchContext);
     return true;
   }
@@ -1598,6 +1612,7 @@ class _LibraryMatch {
   }) {
     for (var constructor in interfaceElement.constructors) {
       if (!_matchInterfaceElementConstructor(
+        interfaceElement: interfaceElement,
         interfaceItem: item,
         interfaceMatchContext: matchContext,
         element: constructor,

@@ -14,9 +14,8 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TopLevelVariableElementTest_keepLinking);
     defineReflectiveTests(TopLevelVariableElementTest_fromBytes);
-    // TODO(scheglov): implement augmentation
-    // defineReflectiveTests(TopLevelVariableElementTest_augmentation_keepLinking);
-    // defineReflectiveTests(TopLevelVariableElementTest_augmentation_fromBytes);
+    defineReflectiveTests(TopLevelVariableElementTest_augmentation_keepLinking);
+    defineReflectiveTests(TopLevelVariableElementTest_augmentation_fromBytes);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
@@ -2655,618 +2654,787 @@ library
 
 abstract class TopLevelVariableElementTest_augmentation
     extends ElementsBaseTest {
-  test_variable_augments_class() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+  test_augment_by_getter() async {
+    var library = await buildLibrary(r'''
+int foo = 0;
+augment int get foo => 0;
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasInitializer foo (nameOffset:4) (firstTokenOffset:4) (offset:4)
+          element: <testLibrary>::@topLevelVariable::foo
+      getters
+        #F2 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@getter::foo
+          nextFragment: #F3
+        #F3 augment foo (nameOffset:29) (firstTokenOffset:13) (offset:29)
+          element: <testLibrary>::@getter::foo
+          previousFragment: #F2
+      setters
+        #F4 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@setter::foo
+          formalParameters
+            #F5 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+  topLevelVariables
+    hasInitializer foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo
+      setter: <testLibrary>::@setter::foo
+  getters
+    synthetic static foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  setters
+    synthetic static foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F4
+      formalParameters
+        #E0 requiredPositional value
+          firstFragment: #F5
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportedReferences
+    declared <testLibrary>::@getter::foo
+    declared <testLibrary>::@setter::foo
+  exportNamespace
+    foo: <testLibrary>::@getter::foo
+    foo=: <testLibrary>::@setter::foo
+''');
+  }
+
+  test_augment_class() async {
+    var library = await buildLibrary(r'''
+class A {}
 augment int A = 0;
 ''');
 
-    var library = await buildLibrary(r'''
-part 'a.dart';
-class A {}
-''');
-
     configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        augment static A @33
-          reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          type: int
-          shouldUseTypeForInitializerInference: true
-          id: variable_0
-          augmentationTargetAny: <testLibraryFragment>::@class::A
-  exportedReferences
-    declared <testLibraryFragment>::@class::A
-  exportNamespace
-    A: <testLibraryFragment>::@class::A
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
       topLevelVariables
-        augment hasInitializer A @33
-          reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::A
+        #F3 augment hasInitializer A (nameOffset:23) (firstTokenOffset:23) (offset:23)
           element: <testLibrary>::@topLevelVariable::A
+      getters
+        #F4 synthetic A (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+          element: <testLibrary>::@getter::A
+      setters
+        #F5 synthetic A (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+          element: <testLibrary>::@setter::A
+          formalParameters
+            #F6 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+              element: <testLibrary>::@setter::A::@formalParameter::value
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
   topLevelVariables
     hasInitializer A
       reference: <testLibrary>::@topLevelVariable::A
-      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::A
+      firstFragment: #F3
       type: int
+      getter: <testLibrary>::@getter::A
+      setter: <testLibrary>::@setter::A
+  getters
+    synthetic static A
+      reference: <testLibrary>::@getter::A
+      firstFragment: #F4
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::A
+  setters
+    synthetic static A
+      reference: <testLibrary>::@setter::A
+      firstFragment: #F5
+      formalParameters
+        #E0 requiredPositional value
+          firstFragment: #F6
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::A
   exportedReferences
-    declared <testLibraryFragment>::@class::A
+    declared <testLibrary>::@getter::A
+    declared <testLibrary>::@setter::A
   exportNamespace
-    A: <testLibraryFragment>::@class::A
+    A: <testLibrary>::@getter::A
+    A=: <testLibrary>::@setter::A
 ''');
   }
 
-  test_variable_augments_function() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment int foo = 0;
-''');
-
+  test_augment_function() async {
     var library = await buildLibrary(r'''
-part 'a.dart';
 void foo() {}
+augment int foo = 0;
 ''');
 
     configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      functions
-        foo @20
-          reference: <testLibraryFragment>::@function::foo
-          enclosingElement3: <testLibraryFragment>
-          returnType: void
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        augment static foo @33
-          reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          type: int
-          shouldUseTypeForInitializerInference: true
-          id: variable_0
-          augmentationTargetAny: <testLibraryFragment>::@function::foo
-  exportedReferences
-    declared <testLibraryFragment>::@function::foo
-  exportNamespace
-    foo: <testLibraryFragment>::@function::foo
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
-      functions
-        foo @20
-          reference: <testLibraryFragment>::@function::foo
-          element: <testLibrary>::@function::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
       topLevelVariables
-        augment hasInitializer foo @33
-          reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
+        #F1 augment hasInitializer foo (nameOffset:26) (firstTokenOffset:26) (offset:26)
           element: <testLibrary>::@topLevelVariable::foo
+      getters
+        #F2 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+          element: <testLibrary>::@getter::foo
+      setters
+        #F3 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+          element: <testLibrary>::@setter::foo
+          formalParameters
+            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+      functions
+        #F5 foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@function::foo
   topLevelVariables
     hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
+      firstFragment: #F1
       type: int
+      getter: <testLibrary>::@getter::foo
+      setter: <testLibrary>::@setter::foo
+  getters
+    synthetic static foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  setters
+    synthetic static foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F3
+      formalParameters
+        #E0 requiredPositional value
+          firstFragment: #F4
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
   functions
     foo
       reference: <testLibrary>::@function::foo
-      firstFragment: <testLibraryFragment>::@function::foo
+      firstFragment: #F5
       returnType: void
   exportedReferences
-    declared <testLibraryFragment>::@function::foo
+    declared <testLibrary>::@getter::foo
+    declared <testLibrary>::@setter::foo
   exportNamespace
-    foo: <testLibraryFragment>::@function::foo
+    foo: <testLibrary>::@getter::foo
+    foo=: <testLibrary>::@setter::foo
 ''');
   }
 
-  test_variable_augments_getter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment int foo = 0;
-''');
-
+  test_augment_getter() async {
     var library = await buildLibrary(r'''
-part 'a.dart';
 int get foo => 0;
-''');
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      topLevelVariables
-        synthetic static foo @-1
-          reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          id: variable_0
-          getter: getter_0
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
-      accessors
-        static get foo @23
-          reference: <testLibraryFragment>::@getter::foo
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-          id: getter_0
-          variable: variable_0
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        augment static foo @33
-          reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          type: int
-          shouldUseTypeForInitializerInference: true
-          id: variable_1
-          augmentationTarget: <testLibraryFragment>::@topLevelVariable::foo
-  exportedReferences
-    declared <testLibraryFragment>::@getter::foo
-  exportNamespace
-    foo: <testLibraryFragment>::@getter::foo
-----------------------------------------
-library
-  reference: <testLibrary>
-  fragments
-    <testLibraryFragment>
-      element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
-      topLevelVariables
-        synthetic foo (offset=-1)
-          reference: <testLibraryFragment>::@topLevelVariable::foo
-          element: <testLibrary>::@topLevelVariable::foo
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
-          getter2: <testLibraryFragment>::@getter::foo
-      getters
-        get foo @23
-          reference: <testLibraryFragment>::@getter::foo
-          element: <testLibraryFragment>::@getter::foo#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      topLevelVariables
-        augment hasInitializer foo @33
-          reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
-          element: <testLibrary>::@topLevelVariable::foo
-          previousFragment: <testLibraryFragment>::@topLevelVariable::foo
-  topLevelVariables
-    synthetic hasInitializer foo
-      reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: <testLibraryFragment>::@topLevelVariable::foo
-      type: int
-      getter: <testLibraryFragment>::@getter::foo#element
-  getters
-    static get foo
-      firstFragment: <testLibraryFragment>::@getter::foo
-  exportedReferences
-    declared <testLibraryFragment>::@getter::foo
-  exportNamespace
-    foo: <testLibraryFragment>::@getter::foo
-''');
-  }
-
-  test_variable_augments_setter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
 augment int foo = 0;
 ''');
 
-    var library = await buildLibrary(r'''
-part 'a.dart';
-set foo(int _) {}
-''');
-
     configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      topLevelVariables
-        synthetic static foo @-1
-          reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          id: variable_0
-          setter: setter_0
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
-      accessors
-        static set foo= @19
-          reference: <testLibraryFragment>::@setter::foo
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _ @27
-              type: int
-          returnType: void
-          id: setter_0
-          variable: variable_0
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        augment static foo @33
-          reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          type: int
-          shouldUseTypeForInitializerInference: true
-          id: variable_1
-          augmentationTarget: <testLibraryFragment>::@topLevelVariable::foo
-  exportedReferences
-    declared <testLibraryFragment>::@setter::foo
-  exportNamespace
-    foo=: <testLibraryFragment>::@setter::foo
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
-        synthetic foo (offset=-1)
-          reference: <testLibraryFragment>::@topLevelVariable::foo
+        #F1 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
           element: <testLibrary>::@topLevelVariable::foo
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
-          setter2: <testLibraryFragment>::@setter::foo
-      setters
-        set foo @19
-          reference: <testLibraryFragment>::@setter::foo
-          element: <testLibraryFragment>::@setter::foo#element
-          formalParameters
-            _ @27
-              element: <testLibraryFragment>::@setter::foo::@parameter::_#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      topLevelVariables
-        augment hasInitializer foo @33
-          reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
+          nextFragment: #F2
+        #F2 augment hasInitializer foo (nameOffset:30) (firstTokenOffset:30) (offset:30)
           element: <testLibrary>::@topLevelVariable::foo
-          previousFragment: <testLibraryFragment>::@topLevelVariable::foo
+          previousFragment: #F1
+      getters
+        #F3 foo (nameOffset:8) (firstTokenOffset:0) (offset:8)
+          element: <testLibrary>::@getter::foo
   topLevelVariables
     synthetic hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: <testLibraryFragment>::@topLevelVariable::foo
+      firstFragment: #F1
       type: int
-      setter: <testLibraryFragment>::@setter::foo#element
-  setters
-    static set foo
-      firstFragment: <testLibraryFragment>::@setter::foo
-      formalParameters
-        requiredPositional _
-          type: int
+      getter: <testLibrary>::@getter::foo
+  getters
+    static foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F3
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
   exportedReferences
-    declared <testLibraryFragment>::@setter::foo
+    declared <testLibrary>::@getter::foo
   exportNamespace
-    foo=: <testLibraryFragment>::@setter::foo
+    foo: <testLibrary>::@getter::foo
 ''');
   }
 
-  test_variable_augments_variable() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment int foo = 1;
-''');
-
+  test_augment_multiple_variables() async {
     var library = await buildLibrary(r'''
-part 'a.dart';
 int foo = 0;
+augment int foo = 1;
+augment int foo = 2;
 ''');
 
     configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      topLevelVariables
-        static foo @19
-          reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: true
-          id: variable_0
-          getter: getter_0
-          setter: setter_0
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
-      accessors
-        synthetic static get foo @-1
-          reference: <testLibraryFragment>::@getter::foo
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-          id: getter_0
-          variable: variable_0
-        synthetic static set foo= @-1
-          reference: <testLibraryFragment>::@setter::foo
-          enclosingElement3: <testLibraryFragment>
-          parameters
-            requiredPositional _foo @-1
-              type: int
-          returnType: void
-          id: setter_0
-          variable: variable_0
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        augment static foo @33
-          reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          type: int
-          shouldUseTypeForInitializerInference: true
-          id: variable_1
-          augmentationTarget: <testLibraryFragment>::@topLevelVariable::foo
-  exportedReferences
-    declared <testLibraryFragment>::@getter::foo
-    declared <testLibraryFragment>::@setter::foo
-  exportNamespace
-    foo: <testLibraryFragment>::@getter::foo
-    foo=: <testLibraryFragment>::@setter::foo
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
-        hasInitializer foo @19
-          reference: <testLibraryFragment>::@topLevelVariable::foo
+        #F1 hasInitializer foo (nameOffset:4) (firstTokenOffset:4) (offset:4)
           element: <testLibrary>::@topLevelVariable::foo
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
-          getter2: <testLibraryFragment>::@getter::foo
-          setter2: <testLibraryFragment>::@setter::foo
+          nextFragment: #F2
+        #F2 augment hasInitializer foo (nameOffset:25) (firstTokenOffset:25) (offset:25)
+          element: <testLibrary>::@topLevelVariable::foo
+          previousFragment: #F1
+          nextFragment: #F3
+        #F3 augment hasInitializer foo (nameOffset:46) (firstTokenOffset:46) (offset:46)
+          element: <testLibrary>::@topLevelVariable::foo
+          previousFragment: #F2
       getters
-        synthetic get foo
-          reference: <testLibraryFragment>::@getter::foo
-          element: <testLibraryFragment>::@getter::foo#element
+        #F4 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@getter::foo
       setters
-        synthetic set foo
-          reference: <testLibraryFragment>::@setter::foo
-          element: <testLibraryFragment>::@setter::foo#element
+        #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@setter::foo
           formalParameters
-            _foo
-              element: <testLibraryFragment>::@setter::foo::@parameter::_foo#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      topLevelVariables
-        augment hasInitializer foo @33
-          reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
-          element: <testLibrary>::@topLevelVariable::foo
-          previousFragment: <testLibraryFragment>::@topLevelVariable::foo
+            #F6 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+              element: <testLibrary>::@setter::foo::@formalParameter::value
   topLevelVariables
     hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: <testLibraryFragment>::@topLevelVariable::foo
+      firstFragment: #F1
       type: int
-      getter: <testLibraryFragment>::@getter::foo#element
-      setter: <testLibraryFragment>::@setter::foo#element
+      getter: <testLibrary>::@getter::foo
+      setter: <testLibrary>::@setter::foo
   getters
-    synthetic static get foo
-      firstFragment: <testLibraryFragment>::@getter::foo
+    synthetic static foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F4
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
   setters
-    synthetic static set foo
-      firstFragment: <testLibraryFragment>::@setter::foo
+    synthetic static foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F5
       formalParameters
-        requiredPositional _foo
+        #E0 requiredPositional value
+          firstFragment: #F6
           type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
   exportedReferences
-    declared <testLibraryFragment>::@getter::foo
-    declared <testLibraryFragment>::@setter::foo
+    declared <testLibrary>::@getter::foo
+    declared <testLibrary>::@setter::foo
   exportNamespace
-    foo: <testLibraryFragment>::@getter::foo
-    foo=: <testLibraryFragment>::@setter::foo
+    foo: <testLibrary>::@getter::foo
+    foo=: <testLibrary>::@setter::foo
 ''');
   }
 
-  test_variable_augments_variable_augmented_const_typed() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment const int foo = augmented + 1;
+  test_augment_multiple_variables_different_type() async {
+    var library = await buildLibrary(r'''
+int foo = 0;
+augment int foo = 1;
+augment double foo;
 ''');
 
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasInitializer foo (nameOffset:4) (firstTokenOffset:4) (offset:4)
+          element: <testLibrary>::@topLevelVariable::foo
+          nextFragment: #F2
+        #F2 augment hasInitializer foo (nameOffset:25) (firstTokenOffset:25) (offset:25)
+          element: <testLibrary>::@topLevelVariable::foo
+          previousFragment: #F1
+          nextFragment: #F3
+        #F3 augment foo (nameOffset:49) (firstTokenOffset:49) (offset:49)
+          element: <testLibrary>::@topLevelVariable::foo
+          previousFragment: #F2
+      getters
+        #F4 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@getter::foo
+      setters
+        #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@setter::foo
+          formalParameters
+            #F6 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+  topLevelVariables
+    hasInitializer foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo
+      setter: <testLibrary>::@setter::foo
+  getters
+    synthetic static foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F4
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  setters
+    synthetic static foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F5
+      formalParameters
+        #E0 requiredPositional value
+          firstFragment: #F6
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportedReferences
+    declared <testLibrary>::@getter::foo
+    declared <testLibrary>::@setter::foo
+  exportNamespace
+    foo: <testLibrary>::@getter::foo
+    foo=: <testLibrary>::@setter::foo
+''');
+  }
+
+  test_augment_setter() async {
     var library = await buildLibrary(r'''
-part 'a.dart';
+set foo(int _) {}
+augment int foo = 0;
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@topLevelVariable::foo
+          nextFragment: #F2
+        #F2 augment hasInitializer foo (nameOffset:30) (firstTokenOffset:30) (offset:30)
+          element: <testLibrary>::@topLevelVariable::foo
+          previousFragment: #F1
+      setters
+        #F3 foo (nameOffset:4) (firstTokenOffset:0) (offset:4)
+          element: <testLibrary>::@setter::foo
+          formalParameters
+            #F4 _ (nameOffset:12) (firstTokenOffset:8) (offset:12)
+              element: <testLibrary>::@setter::foo::@formalParameter::_
+  topLevelVariables
+    synthetic hasInitializer foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      setter: <testLibrary>::@setter::foo
+  setters
+    static foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F3
+      formalParameters
+        #E0 requiredPositional _
+          firstFragment: #F4
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportedReferences
+    declared <testLibrary>::@setter::foo
+  exportNamespace
+    foo=: <testLibrary>::@setter::foo
+''');
+  }
+
+  test_augment_variable() async {
+    var library = await buildLibrary(r'''
+int foo = 0;
+augment int foo = 1;
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasInitializer foo (nameOffset:4) (firstTokenOffset:4) (offset:4)
+          element: <testLibrary>::@topLevelVariable::foo
+          nextFragment: #F2
+        #F2 augment hasInitializer foo (nameOffset:25) (firstTokenOffset:25) (offset:25)
+          element: <testLibrary>::@topLevelVariable::foo
+          previousFragment: #F1
+      getters
+        #F3 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@getter::foo
+      setters
+        #F4 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@setter::foo
+          formalParameters
+            #F5 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+  topLevelVariables
+    hasInitializer foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo
+      setter: <testLibrary>::@setter::foo
+  getters
+    synthetic static foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F3
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  setters
+    synthetic static foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F4
+      formalParameters
+        #E0 requiredPositional value
+          firstFragment: #F5
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportedReferences
+    declared <testLibrary>::@getter::foo
+    declared <testLibrary>::@setter::foo
+  exportNamespace
+    foo: <testLibrary>::@getter::foo
+    foo=: <testLibrary>::@setter::foo
+''');
+  }
+
+  test_augment_variable_annotated() async {
+    var library = await buildLibrary(r'''
+final foo = 0;
+@deprecated
+augment final foo;
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasInitializer foo (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::foo
+          nextFragment: #F2
+        #F2 augment foo (nameOffset:41) (firstTokenOffset:41) (offset:41)
+          element: <testLibrary>::@topLevelVariable::foo
+          metadata
+            Annotation
+              atSign: @ @15
+              name: SimpleIdentifier
+                token: deprecated @16
+                element: dart:core::@getter::deprecated
+                staticType: null
+              element2: dart:core::@getter::deprecated
+          previousFragment: #F1
+      getters
+        #F3 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::foo
+  topLevelVariables
+    final hasInitializer foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @15
+          name: SimpleIdentifier
+            token: deprecated @16
+            element: dart:core::@getter::deprecated
+            staticType: null
+          element2: dart:core::@getter::deprecated
+      type: int
+      getter: <testLibrary>::@getter::foo
+  getters
+    synthetic static foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F3
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportedReferences
+    declared <testLibrary>::@getter::foo
+  exportNamespace
+    foo: <testLibrary>::@getter::foo
+''');
+  }
+
+  test_augment_variable_augmented_const() async {
+    var library = await buildLibrary(r'''
 const int foo = 0;
+augment const int foo = 1;
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      topLevelVariables
-        static const foo @25
-          reference: <testLibraryFragment>::@topLevelVariable::foo
-          enclosingElement3: <testLibraryFragment>
-          type: int
-          shouldUseTypeForInitializerInference: true
-          constantInitializer
-            IntegerLiteral
-              literal: 0 @31
-              staticType: int
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
-      accessors
-        synthetic static get foo @-1
-          reference: <testLibraryFragment>::@getter::foo
-          enclosingElement3: <testLibraryFragment>
-          returnType: int
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      topLevelVariables
-        augment static const foo @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          type: int
-          shouldUseTypeForInitializerInference: true
-          constantInitializer
-            BinaryExpression
-              leftOperand: AugmentedExpression
-                augmentedKeyword: augmented @45
-                element: <testLibraryFragment>::@topLevelVariable::foo
-                fragment: <testLibraryFragment>::@topLevelVariable::foo
-                staticType: int
-              operator: + @55
-              rightOperand: IntegerLiteral
-                literal: 1 @57
-                staticType: int
-              staticElement: dart:core::<fragment>::@class::num::@method::+
-              element: dart:core::<fragment>::@class::num::@method::+#element
-              staticInvokeType: num Function(num)
-              staticType: int
-          augmentationTarget: <testLibraryFragment>::@topLevelVariable::foo
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       topLevelVariables
-        hasInitializer foo @25
-          reference: <testLibraryFragment>::@topLevelVariable::foo
+        #F1 hasInitializer foo (nameOffset:10) (firstTokenOffset:10) (offset:10)
           element: <testLibrary>::@topLevelVariable::foo
           initializer: expression_0
             IntegerLiteral
-              literal: 0 @31
-              staticType: int
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
-          getter2: <testLibraryFragment>::@getter::foo
-      getters
-        synthetic get foo
-          reference: <testLibraryFragment>::@getter::foo
-          element: <testLibraryFragment>::@getter::foo#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      topLevelVariables
-        augment hasInitializer foo @39
-          reference: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
+              literal: 0 @16
+              staticType: null
+          nextFragment: #F2
+        #F2 augment hasInitializer foo (nameOffset:37) (firstTokenOffset:37) (offset:37)
           element: <testLibrary>::@topLevelVariable::foo
           initializer: expression_1
-            BinaryExpression
-              leftOperand: AugmentedExpression
-                augmentedKeyword: augmented @45
-                element: <testLibraryFragment>::@topLevelVariable::foo
-                fragment: <testLibraryFragment>::@topLevelVariable::foo
-                staticType: int
-              operator: + @55
-              rightOperand: IntegerLiteral
-                literal: 1 @57
-                staticType: int
-              staticElement: dart:core::<fragment>::@class::num::@method::+
-              element: dart:core::<fragment>::@class::num::@method::+#element
-              staticInvokeType: num Function(num)
+            IntegerLiteral
+              literal: 1 @43
               staticType: int
-          previousFragment: <testLibraryFragment>::@topLevelVariable::foo
+          previousFragment: #F1
+      getters
+        #F3 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+          element: <testLibrary>::@getter::foo
   topLevelVariables
     const hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: <testLibraryFragment>::@topLevelVariable::foo
+      firstFragment: #F1
       type: int
       constantInitializer
-        fragment: <testLibrary>::@fragment::package:test/a.dart::@topLevelVariableAugmentation::foo
+        fragment: #F2
         expression: expression_1
-      getter: <testLibraryFragment>::@getter::foo#element
+      getter: <testLibrary>::@getter::foo
   getters
-    synthetic static get foo
-      firstFragment: <testLibraryFragment>::@getter::foo
+    synthetic static foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F3
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
+  test_augment_variable_differentType() async {
+    var library = await buildLibrary(r'''
+int foo = 0;
+augment double foo;
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasInitializer foo (nameOffset:4) (firstTokenOffset:4) (offset:4)
+          element: <testLibrary>::@topLevelVariable::foo
+          nextFragment: #F2
+        #F2 augment foo (nameOffset:28) (firstTokenOffset:28) (offset:28)
+          element: <testLibrary>::@topLevelVariable::foo
+          previousFragment: #F1
+      getters
+        #F3 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@getter::foo
+      setters
+        #F4 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@setter::foo
+          formalParameters
+            #F5 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+  topLevelVariables
+    hasInitializer foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo
+      setter: <testLibrary>::@setter::foo
+  getters
+    synthetic static foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F3
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  setters
+    synthetic static foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F4
+      formalParameters
+        #E0 requiredPositional value
+          firstFragment: #F5
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportedReferences
+    declared <testLibrary>::@getter::foo
+    declared <testLibrary>::@setter::foo
+  exportNamespace
+    foo: <testLibrary>::@getter::foo
+    foo=: <testLibrary>::@setter::foo
+''');
+  }
+
+  test_augment_variable_final() async {
+    var library = await buildLibrary(r'''
+final int = 0;
+augment int foo = 1;
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasInitializer int (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::int
+        #F2 augment hasInitializer foo (nameOffset:27) (firstTokenOffset:27) (offset:27)
+          element: <testLibrary>::@topLevelVariable::foo
+      getters
+        #F3 synthetic int (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::int
+        #F4 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+          element: <testLibrary>::@getter::foo
+      setters
+        #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+          element: <testLibrary>::@setter::foo
+          formalParameters
+            #F6 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+  topLevelVariables
+    final hasInitializer int
+      reference: <testLibrary>::@topLevelVariable::int
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::int
+    hasInitializer foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F2
+      type: dynamic
+      getter: <testLibrary>::@getter::foo
+      setter: <testLibrary>::@setter::foo
+  getters
+    synthetic static int
+      reference: <testLibrary>::@getter::int
+      firstFragment: #F3
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::int
+    synthetic static foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F4
+      returnType: dynamic
+      variable: <testLibrary>::@topLevelVariable::foo
+  setters
+    synthetic static foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F5
+      formalParameters
+        #E0 requiredPositional value
+          firstFragment: #F6
+          type: dynamic
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportedReferences
+    declared <testLibrary>::@getter::foo
+    declared <testLibrary>::@getter::int
+    declared <testLibrary>::@setter::foo
+  exportNamespace
+    foo: <testLibrary>::@getter::foo
+    foo=: <testLibrary>::@setter::foo
+    int: <testLibrary>::@getter::int
+''');
+  }
+
+  test_augment_variable_initializer() async {
+    var library = await buildLibrary(r'''
+int foo;
+augment int foo = 0;
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 foo (nameOffset:4) (firstTokenOffset:4) (offset:4)
+          element: <testLibrary>::@topLevelVariable::foo
+          nextFragment: #F2
+        #F2 augment hasInitializer foo (nameOffset:21) (firstTokenOffset:21) (offset:21)
+          element: <testLibrary>::@topLevelVariable::foo
+          previousFragment: #F1
+      getters
+        #F3 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@getter::foo
+      setters
+        #F4 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+          element: <testLibrary>::@setter::foo
+          formalParameters
+            #F5 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+  topLevelVariables
+    hasInitializer foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo
+      setter: <testLibrary>::@setter::foo
+  getters
+    synthetic static foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F3
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+  setters
+    synthetic static foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F4
+      formalParameters
+        #E0 requiredPositional value
+          firstFragment: #F5
+          type: int
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
+  exportedReferences
+    declared <testLibrary>::@getter::foo
+    declared <testLibrary>::@setter::foo
+  exportNamespace
+    foo: <testLibrary>::@getter::foo
+    foo=: <testLibrary>::@setter::foo
 ''');
   }
 }

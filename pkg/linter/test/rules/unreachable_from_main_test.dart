@@ -1151,6 +1151,29 @@ mixin M {}
     );
   }
 
+  test_setUpClass_class_static_member_reachable() async {
+    await assertNoDiagnostics('''
+void main() {
+  A();
+}
+
+final class A {
+  static setUpClass() {}
+}
+''');
+  }
+
+  test_setUpClass_top_level_unreachable() async {
+    await assertDiagnostics(
+      '''
+void main() {}
+
+setUpClass() {}
+''',
+      [lint(16, 10)],
+    );
+  }
+
   test_staticField_unreachable() async {
     await assertDiagnostics(
       r'''
@@ -1346,6 +1369,29 @@ class C {
 }
 ''',
       [lint(45, 1)],
+    );
+  }
+
+  test_tearDownClass_class_static_member_reachable() async {
+    await assertNoDiagnostics('''
+void main() {
+  A();
+}
+
+final class A {
+  static tearDownClass() {}
+}
+''');
+  }
+
+  test_tearDownClass_top_level_unreachable() async {
+    await assertDiagnostics(
+      '''
+void main() {}
+
+tearDownClass() {}
+''',
+      [lint(16, 13)],
     );
   }
 

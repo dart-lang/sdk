@@ -1935,12 +1935,8 @@ abstract class ElementImpl implements Element {
   }
 
   @override
-  @trackedDirectlyOpaque
+  @trackedIncludedInId
   Element? thisOrAncestorMatching(bool Function(Element p1) predicate) {
-    globalResultRequirements?.recordOpaqueApiUse(
-      this,
-      'thisOrAncestorMatching',
-    );
     Element? element = this;
     while (element != null && !predicate(element)) {
       element = element.enclosingElement;
@@ -1956,9 +1952,8 @@ abstract class ElementImpl implements Element {
   }
 
   @override
-  @trackedDirectlyOpaque
+  @trackedIncludedInId
   E? thisOrAncestorOfType<E extends Element>() {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'thisOrAncestorOfType');
     Element element = this;
     while (element is! E) {
       var ancestor = element.enclosingElement;
@@ -2440,6 +2435,11 @@ abstract class ExecutableFragmentImpl extends FunctionTypedFragmentImpl
   @Deprecated('Use typeParameters instead')
   @override
   List<TypeParameterFragmentImpl> get typeParameters2 => typeParameters;
+
+  void addTypeParameter(TypeParameterFragmentImpl fragment) {
+    _typeParameters.add(fragment);
+    fragment.enclosingFragment = this;
+  }
 }
 
 @elementClass
@@ -3384,6 +3384,12 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   /// The element corresponding to this fragment.
   FormalParameterElementImpl? _element;
 
+  @override
+  FormalParameterFragmentImpl? nextFragment;
+
+  @override
+  FormalParameterFragmentImpl? previousFragment;
+
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
   FormalParameterFragmentImpl({
@@ -3521,14 +3527,6 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   @override
   String? get name2 => name;
 
-  @override
-  // TODO(augmentations): Support chaining between the fragments.
-  FormalParameterFragmentImpl? get nextFragment => null;
-
-  @override
-  // TODO(augmentations): Support chaining between the fragments.
-  FormalParameterFragmentImpl? get previousFragment => null;
-
   /// The type parameters defined by this parameter.
   ///
   /// A parameter will only define type parameters if it is a function typed
@@ -3546,9 +3544,40 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
     _typeParameters = typeParameters;
   }
 
+  void addFragment(FormalParameterFragmentImpl fragment) {
+    fragment.element = element;
+    fragment.previousFragment = this;
+    nextFragment = fragment;
+  }
+
   FormalParameterElementImpl _createElement(
     FormalParameterFragment firstFragment,
   ) => FormalParameterElementImpl(firstFragment as FormalParameterFragmentImpl);
+
+  static void _linkFragments<T extends FragmentImpl>(
+    List<T> fragments, {
+    required List<FormalParameterFragmentImpl> Function(T) getFragments,
+  }) {
+    DeferredResolutionReadingMixin.withoutLoadingResolution(() {
+      var firstFormalParameters = getFragments(fragments.first);
+      for (var i = 0; i < firstFormalParameters.length; i++) {
+        // Side effect: set element for the fragment.
+        var first = firstFormalParameters[i];
+        switch (first) {
+          case FieldFormalParameterFragmentImpl():
+            FieldFormalParameterElementImpl(first);
+          case SuperFormalParameterFragmentImpl():
+            SuperFormalParameterElementImpl(first);
+          default:
+            FormalParameterElementImpl(first);
+        }
+        fragments.reduce((previous, current) {
+          getFragments(previous)[i].addFragment(getFragments(current)[i]);
+          return current;
+        });
+      }
+    });
+  }
 }
 
 @GenerateFragmentImpl(modifiers: _FragmentImplModifiers.values)
@@ -4569,12 +4598,8 @@ abstract class InstanceElementImpl extends ElementImpl
   }
 
   @override
-  @trackedDirectlyOpaque
+  @trackedIncludedInId
   Element? thisOrAncestorMatching(bool Function(Element) predicate) {
-    globalResultRequirements?.recordOpaqueApiUse(
-      this,
-      'thisOrAncestorMatching',
-    );
     if (predicate(this)) {
       return this;
     }
@@ -4589,9 +4614,8 @@ abstract class InstanceElementImpl extends ElementImpl
   }
 
   @override
-  @trackedDirectlyOpaque
+  @trackedIncludedInId
   E? thisOrAncestorOfType<E extends Element>() {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'thisOrAncestorOfType');
     if (this case E result) {
       return result;
     }
@@ -8332,6 +8356,7 @@ class MethodFragmentImpl extends ExecutableFragmentImpl
     nextFragment = fragment;
   }
 
+  @override
   void addTypeParameter(TypeParameterFragmentImpl typeParameter) {
     _typeParameters.add(typeParameter);
     typeParameter.enclosingFragment = this;
@@ -10116,6 +10141,14 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl
       previous.addFragment(current);
       return current;
     });
+    TypeParameterFragmentImpl._linkFragments(
+      fragments,
+      getFragments: (f) => f.typeParameters,
+    );
+    FormalParameterFragmentImpl._linkFragments(
+      fragments,
+      getFragments: (f) => f.formalParameters,
+    );
   }
 }
 
@@ -10223,6 +10256,16 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   @override
   @trackedIncludedInId
   ElementKind get kind => ElementKind.TOP_LEVEL_VARIABLE;
+
+  @trackedDirectlyOpaque
+  TopLevelVariableFragmentImpl get lastFragment {
+    globalResultRequirements?.recordOpaqueApiUse(this, 'lastFragment');
+    var current = firstFragment;
+    while (current.nextFragment != null) {
+      current = current.nextFragment!;
+    }
+    return current;
+  }
 
   @Deprecated('Use library instead')
   @override

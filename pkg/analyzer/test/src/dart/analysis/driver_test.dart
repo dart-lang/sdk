@@ -50036,6 +50036,52 @@ class A {
     );
   }
 
+  test_manifest_class_constructor_idChangesWithContainer() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {}
+class B {}
+class C extends B {
+  C.named();
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M4
+        declaredConstructors
+          named: #M5
+        interface: #M6
+''',
+      updatedCode: r'''
+class A {}
+class B extends A {}
+class C extends B {
+  C.named();
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M7
+        interface: #M8
+      C: #M9
+        declaredConstructors
+          named: #M10
+        interface: #M11
+''',
+    );
+  }
+
   test_manifest_class_constructor_initializers_isConst_add() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -51573,6 +51619,72 @@ class A {
           a: #M3
           b: #M4
         interface: #M5
+''',
+    );
+  }
+
+  test_manifest_class_field_idChangesWithContainer() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {}
+class B {}
+class C extends B {
+  var foo = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M4
+        declaredFields
+          foo: #M5
+        declaredGetters
+          foo: #M6
+        declaredSetters
+          foo=: #M7
+        interface: #M8
+          map
+            foo: #M6
+            foo=: #M7
+          implemented
+            foo: #M6
+            foo=: #M7
+''',
+      updatedCode: r'''
+class A {}
+class B extends A {}
+class C extends B {
+  var foo = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M9
+        interface: #M10
+      C: #M11
+        declaredFields
+          foo: #M12
+        declaredGetters
+          foo: #M13
+        declaredSetters
+          foo=: #M14
+        interface: #M15
+          map
+            foo: #M13
+            foo=: #M14
+          implemented
+            foo: #M13
+            foo=: #M14
 ''',
     );
   }
@@ -54019,6 +54131,64 @@ abstract class D implements C {}
           inherited
             foo: #M10
             xxx: #M13
+''',
+    );
+  }
+
+  test_manifest_class_getter_idChangesWithContainer() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {}
+class B {}
+class C extends B {
+  int get foo => 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M4
+        declaredFields
+          foo: #M5
+        declaredGetters
+          foo: #M6
+        interface: #M7
+          map
+            foo: #M6
+          implemented
+            foo: #M6
+''',
+      updatedCode: r'''
+class A {}
+class B extends A {}
+class C extends B {
+  int get foo => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M8
+        interface: #M9
+      C: #M10
+        declaredFields
+          foo: #M11
+        declaredGetters
+          foo: #M12
+        interface: #M13
+          map
+            foo: #M12
+          implemented
+            foo: #M12
 ''',
     );
   }
@@ -58260,6 +58430,60 @@ class A {
     );
   }
 
+  test_manifest_class_method_idChangesWithContainer() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {}
+class B {}
+class C extends B {
+  void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M4
+        declaredMethods
+          foo: #M5
+        interface: #M6
+          map
+            foo: #M5
+          implemented
+            foo: #M5
+''',
+      updatedCode: r'''
+class A {}
+class B extends A {}
+class C extends B {
+  void foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M7
+        interface: #M8
+      C: #M9
+        declaredMethods
+          foo: #M10
+        interface: #M11
+          map
+            foo: #M10
+          implemented
+            foo: #M10
+''',
+    );
+  }
+
   test_manifest_class_method_metadata() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -61065,6 +61289,64 @@ class A {
             foo2=: #M6
             foo3=: #M10
             foo4=: #M11
+''',
+    );
+  }
+
+  test_manifest_class_setter_idChangesWithContainer() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {}
+class B {}
+class C extends B {
+  void set foo(int value) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M4
+        declaredFields
+          foo: #M5
+        declaredSetters
+          foo=: #M6
+        interface: #M7
+          map
+            foo=: #M6
+          implemented
+            foo=: #M6
+''',
+      updatedCode: r'''
+class A {}
+class B extends A {}
+class C extends B {
+  void set foo(int value) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M8
+        interface: #M9
+      C: #M10
+        declaredFields
+          foo: #M11
+        declaredSetters
+          foo=: #M12
+        interface: #M13
+          map
+            foo=: #M12
+          implemented
+            foo=: #M12
 ''',
     );
   }
@@ -68050,6 +68332,58 @@ extension A on int {
     );
   }
 
+  test_manifest_extension_getter_idChangesWithContainer() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {}
+class B {}
+extension E on B {
+  int get foo => 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+    declaredExtensions
+      E: #M4
+        declaredFields
+          foo: #M5
+        declaredGetters
+          foo: #M6
+    exportedExtensions: #M4
+''',
+      updatedCode: r'''
+class A {}
+class B extends A {}
+extension E on B {
+  int get foo => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M7
+        interface: #M8
+    declaredExtensions
+      E: #M9
+        declaredFields
+          foo: #M10
+        declaredGetters
+          foo: #M11
+    exportedExtensions: #M9
+''',
+    );
+  }
+
   test_manifest_extension_getter_modifier_hasEnclosingTypeParameterReference() async {
     configuration.withElementManifests = true;
     await _runLibraryManifestScenario(
@@ -68480,6 +68814,54 @@ extension A on int {
     );
   }
 
+  test_manifest_extension_method_idChangesWithContainer() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {}
+class B {}
+extension E on B {
+  void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+    declaredExtensions
+      E: #M4
+        declaredMethods
+          foo: #M5
+    exportedExtensions: #M4
+''',
+      updatedCode: r'''
+class A {}
+class B extends A {}
+extension E on B {
+  void foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M6
+        interface: #M7
+    declaredExtensions
+      E: #M8
+        declaredMethods
+          foo: #M9
+    exportedExtensions: #M8
+''',
+    );
+  }
+
   test_manifest_extension_method_modifier_hasEnclosingTypeParameterReference() async {
     configuration.withElementManifests = true;
     await _runLibraryManifestScenario(
@@ -68833,6 +69215,58 @@ extension A on int {
           bar=: #M6
           foo=: #M4
     exportedExtensions: #M0
+''',
+    );
+  }
+
+  test_manifest_extension_setter_idChangesWithContainer() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {}
+class B {}
+extension E on B {
+  void set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+    declaredExtensions
+      E: #M4
+        declaredFields
+          foo: #M5
+        declaredSetters
+          foo=: #M6
+    exportedExtensions: #M4
+''',
+      updatedCode: r'''
+class A {}
+class B extends A {}
+extension E on B {
+  void set foo(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M7
+        interface: #M8
+    declaredExtensions
+      E: #M9
+        declaredFields
+          foo: #M10
+        declaredSetters
+          foo=: #M11
+    exportedExtensions: #M9
 ''',
     );
   }
@@ -69250,6 +69684,70 @@ extension A<T, U> on int {}
     );
   }
 
+  test_manifest_extensionType_constructor_idChangesWithContainer() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {}
+class B {}
+extension type ET(B it) {
+  ET.named();
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+    declaredExtensionTypes
+      ET: #M4
+        declaredFields
+          it: #M5
+        declaredGetters
+          it: #M6
+        declaredConstructors
+          named: #M7
+        interface: #M8
+          map
+            it: #M6
+          implemented
+            it: #M6
+''',
+      updatedCode: r'''
+class A {}
+class B extends A {}
+extension type ET(B it) {
+  ET.named();
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M9
+        interface: #M10
+    declaredExtensionTypes
+      ET: #M11
+        declaredFields
+          it: #M12
+        declaredGetters
+          it: #M13
+        declaredConstructors
+          named: #M14
+        interface: #M15
+          map
+            it: #M13
+          implemented
+            it: #M13
+''',
+    );
+  }
+
   test_manifest_extensionType_constructor_modifier_isConst() async {
     configuration.withElementManifests = true;
     await _runLibraryManifestScenario(
@@ -69655,6 +70153,74 @@ extension type A(int it) {
             bar: #M9
             foo: #M5
             it: #M6
+''',
+    );
+  }
+
+  test_manifest_extensionType_getter_idChangesWithContainer() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {}
+class B {}
+extension type ET(B it) {
+  int get foo => 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+    declaredExtensionTypes
+      ET: #M4
+        declaredFields
+          foo: #M5
+          it: #M6
+        declaredGetters
+          foo: #M7
+          it: #M8
+        interface: #M9
+          map
+            foo: #M7
+            it: #M8
+          implemented
+            foo: #M7
+            it: #M8
+''',
+      updatedCode: r'''
+class A {}
+class B extends A {}
+extension type ET(B it) {
+  int get foo => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M10
+        interface: #M11
+    declaredExtensionTypes
+      ET: #M12
+        declaredFields
+          foo: #M13
+          it: #M14
+        declaredGetters
+          foo: #M15
+          it: #M16
+        interface: #M17
+          map
+            foo: #M15
+            it: #M16
+          implemented
+            foo: #M15
+            it: #M16
 ''',
     );
   }
@@ -70480,6 +71046,74 @@ extension type A(int it) {
     );
   }
 
+  test_manifest_extensionType_method_idChangesWithContainer() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {}
+class B {}
+extension type ET(B it) {
+  void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+    declaredExtensionTypes
+      ET: #M4
+        declaredFields
+          it: #M5
+        declaredGetters
+          it: #M6
+        declaredMethods
+          foo: #M7
+        interface: #M8
+          map
+            foo: #M7
+            it: #M6
+          implemented
+            foo: #M7
+            it: #M6
+''',
+      updatedCode: r'''
+class A {}
+class B extends A {}
+extension type ET(B it) {
+  void foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M9
+        interface: #M10
+    declaredExtensionTypes
+      ET: #M11
+        declaredFields
+          it: #M12
+        declaredGetters
+          it: #M13
+        declaredMethods
+          foo: #M14
+        interface: #M15
+          map
+            foo: #M14
+            it: #M13
+          implemented
+            foo: #M14
+            it: #M13
+''',
+    );
+  }
+
   test_manifest_extensionType_method_modifier_hasEnclosingTypeParameterReference() async {
     configuration.withElementManifests = true;
     await _runLibraryManifestScenario(
@@ -71150,6 +71784,76 @@ extension type A(int it) {
             bar=: #M9
             foo=: #M6
             it: #M4
+''',
+    );
+  }
+
+  test_manifest_extensionType_setter_idChangesWithContainer() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {}
+class B {}
+extension type ET(B it) {
+  void set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+    declaredExtensionTypes
+      ET: #M4
+        declaredFields
+          foo: #M5
+          it: #M6
+        declaredGetters
+          it: #M7
+        declaredSetters
+          foo=: #M8
+        interface: #M9
+          map
+            foo=: #M8
+            it: #M7
+          implemented
+            foo=: #M8
+            it: #M7
+''',
+      updatedCode: r'''
+class A {}
+class B extends A {}
+extension type ET(B it) {
+  void set foo(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M10
+        interface: #M11
+    declaredExtensionTypes
+      ET: #M12
+        declaredFields
+          foo: #M13
+          it: #M14
+        declaredGetters
+          it: #M15
+        declaredSetters
+          foo=: #M16
+        interface: #M17
+          map
+            foo=: #M16
+            it: #M15
+          implemented
+            foo=: #M16
+            it: #M15
 ''',
     );
   }
@@ -72091,6 +72795,72 @@ mixin A {
     );
   }
 
+  test_manifest_mixin_field_idChangesWithContainer() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {}
+mixin B {}
+mixin C on B {
+  var foo = 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M4
+        declaredFields
+          foo: #M5
+        declaredGetters
+          foo: #M6
+        declaredSetters
+          foo=: #M7
+        interface: #M8
+          map
+            foo: #M6
+            foo=: #M7
+          implemented
+            foo: #M6
+            foo=: #M7
+''',
+      updatedCode: r'''
+mixin A {}
+mixin B on A {}
+mixin C on B {
+  var foo = 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      A: #M0
+        interface: #M1
+      B: #M9
+        interface: #M10
+      C: #M11
+        declaredFields
+          foo: #M12
+        declaredGetters
+          foo: #M13
+        declaredSetters
+          foo=: #M14
+        interface: #M15
+          map
+            foo: #M13
+            foo=: #M14
+          implemented
+            foo: #M13
+            foo=: #M14
+''',
+    );
+  }
+
   test_manifest_mixin_field_initializer_type() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -72811,6 +73581,64 @@ mixin B on A<int> {}
           inherited
             bar: #M7
             foo: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_getter_idChangesWithContainer() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {}
+mixin B {}
+mixin C on B {
+  int get foo => 0;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M4
+        declaredFields
+          foo: #M5
+        declaredGetters
+          foo: #M6
+        interface: #M7
+          map
+            foo: #M6
+          implemented
+            foo: #M6
+''',
+      updatedCode: r'''
+mixin A {}
+mixin B on A {}
+mixin C on B {
+  int get foo => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      A: #M0
+        interface: #M1
+      B: #M8
+        interface: #M9
+      C: #M10
+        declaredFields
+          foo: #M11
+        declaredGetters
+          foo: #M12
+        interface: #M13
+          map
+            foo: #M12
+          implemented
+            foo: #M12
 ''',
     );
   }
@@ -74395,6 +75223,60 @@ mixin B extends A<int> {}
           inherited
             bar: #M5
             foo: #M1
+''',
+    );
+  }
+
+  test_manifest_mixin_method_idChangesWithContainer() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {}
+mixin B {}
+mixin C on B {
+  void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M4
+        declaredMethods
+          foo: #M5
+        interface: #M6
+          map
+            foo: #M5
+          implemented
+            foo: #M5
+''',
+      updatedCode: r'''
+mixin A {}
+mixin B on A {}
+mixin C on B {
+  void foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      A: #M0
+        interface: #M1
+      B: #M7
+        interface: #M8
+      C: #M9
+        declaredMethods
+          foo: #M10
+        interface: #M11
+          map
+            foo: #M10
+          implemented
+            foo: #M10
 ''',
     );
   }
@@ -76056,6 +76938,64 @@ mixin B on A<int> {}
           inherited
             bar=: #M7
             foo=: #M2
+''',
+    );
+  }
+
+  test_manifest_mixin_setter_idChangesWithContainer() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+mixin A {}
+mixin B {}
+mixin C on B {
+  void set foo(int _) {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M4
+        declaredFields
+          foo: #M5
+        declaredSetters
+          foo=: #M6
+        interface: #M7
+          map
+            foo=: #M6
+          implemented
+            foo=: #M6
+''',
+      updatedCode: r'''
+mixin A {}
+mixin B on A {}
+mixin C on B {
+  void set foo(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredMixins
+      A: #M0
+        interface: #M1
+      B: #M8
+        interface: #M9
+      C: #M10
+        declaredFields
+          foo: #M11
+        declaredSetters
+          foo=: #M12
+        interface: #M13
+          map
+            foo=: #M12
+          implemented
+            foo=: #M12
 ''',
     );
   }

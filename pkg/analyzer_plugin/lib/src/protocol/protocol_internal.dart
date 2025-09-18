@@ -115,44 +115,41 @@ void addEditToSourceChange(
   fileEdit.add(edit, insertBeforeExisting: insertBeforeExisting);
 }
 
-/// Get the result of applying the edit to the given [code]. Access via
-/// SourceEdit.apply().
+/// Get the result of applying the edit to the given [code].
+///
+/// Access via SourceEdit.apply().
 String applyEdit(String code, SourceEdit edit) {
-  if (edit.length < 0) {
-    throw RangeError('length is negative');
-  }
+  validateEdit(code, edit);
+
   return code.replaceRange(edit.offset, edit.end, edit.replacement);
 }
 
-/// Get the result of applying a set of [edits] to the given [code]. Edits
-/// are applied in the order they appear in [edits]. Access via
-/// SourceEdit.applySequence().
+/// Get the result of applying a set of [edits] to the given [code].
+///
+/// The edits are applied in the order in which they occur in the list. This
+/// means that the offset of each edit must be correct under the assumption
+/// that all previous edits have been applied.
+///
+/// Access via SourceEdit.applySequence().
 String applySequenceOfEdits(String code, List<SourceEdit> edits) {
+  // This function exists in both analysis_server_client and analyzer_plugin!
+
   var buffer = StringBuffer();
   var start = 0;
   for (var i = edits.length - 1; i >= 0; i--) {
     var edit = edits[i];
     var offset = edit.offset;
     var length = edit.length;
-    if (length < 0) {
-      throw RangeError('The edit length is negative.');
+
+    // If this edit overlaps or is not before the next (previous in this
+    // backwards loop) one in the sequence, fall back to sequential application.
+    if (i > 0 && offset + length >= edits[i - 1].offset) {
+      return edits.fold(code, (code, edit) => edit.apply(code));
     }
-    if (offset + length > code.length) {
-      throw RangeError('The edit extends past the end of the code.');
-    }
-    if (start > offset) {
-      // One of the edits overlaps with another, requiring that they be applied
-      // from largest offset to smallest. This should only be possible in code
-      // that creates source edits without using the `ChangeBuilder` to do so.
-      //
-      // We should consider fixing the places where overlapping edits are
-      // produced so that this branch can be removed. One such place is
-      // exhibited by `_DoCompletionTest.test_noBody`.
-      for (var edit in edits) {
-        code = edit.apply(code);
-      }
-      return code;
-    } else if (start < offset) {
+
+    validateEdit(code, edit);
+
+    if (start < offset) {
       buffer.write(code.substring(start, offset));
     }
     buffer.write(edit.replacement);
@@ -376,6 +373,24 @@ RefactoringOptions refactoringOptionsFromJson(
     );
   }
   throw StateError('Unexpected refactoring kind');
+}
+
+/// Validates whether [edit] can be applied to [code].
+///
+/// Throws [RangeError] if the edit contains an invalid offset/length.
+void validateEdit(String code, SourceEdit edit) {
+  if (edit.offset < 0) {
+    throw RangeError('The edit offset is negative.');
+  }
+  if (edit.length < 0) {
+    throw RangeError('The edit length is negative.');
+  }
+  if (edit.offset > code.length) {
+    throw RangeError('The edit starts past the end of the code.');
+  }
+  if (edit.offset + edit.length > code.length) {
+    throw RangeError('The edit extends past the end of the code.');
+  }
 }
 
 /// Type of callbacks used to decode parts of JSON objects. [jsonPath] is a
