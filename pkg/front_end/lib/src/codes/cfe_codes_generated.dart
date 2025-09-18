@@ -28,7 +28,6 @@ codeAbstractClassInstantiation = const Template(
       r"""The class '#name' is abstract and can't be instantiated.""",
   withArgumentsOld: _withArgumentsOldAbstractClassInstantiation,
   withArguments: _withArgumentsAbstractClassInstantiation,
-  analyzerCodes: <String>["NEW_WITH_ABSTRACT_CLASS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -73,7 +72,6 @@ codeAbstractRedirectedClassInstantiation = const Template(
       r"""Factory redirects to class '#name', which is abstract and can't be instantiated.""",
   withArgumentsOld: _withArgumentsOldAbstractRedirectedClassInstantiation,
   withArguments: _withArgumentsAbstractRedirectedClassInstantiation,
-  analyzerCodes: <String>["FACTORY_REDIRECTS_TO_ABSTRACT_CLASS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -233,7 +231,6 @@ codeAmbiguousSupertypes = const Template(
       r"""'#name' can't implement both '#type' and '#type2'""",
   withArgumentsOld: _withArgumentsOldAmbiguousSupertypes,
   withArguments: _withArgumentsAmbiguousSupertypes,
-  analyzerCodes: <String>["AMBIGUOUS_SUPERTYPES"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -272,7 +269,6 @@ const MessageCode codeAnnotationOnFunctionTypeTypeParameter = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeAnonymousBreakTargetOutsideFunction = const MessageCode(
   "AnonymousBreakTargetOutsideFunction",
-  analyzerCodes: <String>["LABEL_IN_OUTER_SCOPE"],
   problemMessage: r"""Can't break to a target in a different function.""",
 );
 
@@ -280,7 +276,6 @@ const MessageCode codeAnonymousBreakTargetOutsideFunction = const MessageCode(
 const MessageCode codeAnonymousContinueTargetOutsideFunction =
     const MessageCode(
       "AnonymousContinueTargetOutsideFunction",
-      analyzerCodes: <String>["LABEL_IN_OUTER_SCOPE"],
       problemMessage:
           r"""Can't continue at a target in a different function.""",
     );
@@ -296,7 +291,6 @@ codeArgumentTypeNotAssignable = const Template(
       r"""The argument type '#type' can't be assigned to the parameter type '#type2'.""",
   withArgumentsOld: _withArgumentsOldArgumentTypeNotAssignable,
   withArguments: _withArgumentsArgumentTypeNotAssignable,
-  analyzerCodes: <String>["ARGUMENT_TYPE_NOT_ASSIGNABLE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -332,7 +326,6 @@ const MessageCode codeAwaitInLateLocalInitializer = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeAwaitOfExtensionTypeNotFuture = const MessageCode(
   "AwaitOfExtensionTypeNotFuture",
-  analyzerCodes: <String>["AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE"],
   problemMessage:
       r"""The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.""",
 );
@@ -348,7 +341,6 @@ codeBaseClassImplementedOutsideOfLibrary = const Template(
       r"""The class '#name' can't be implemented outside of its library because it's a base class.""",
   withArgumentsOld: _withArgumentsOldBaseClassImplementedOutsideOfLibrary,
   withArguments: _withArgumentsBaseClassImplementedOutsideOfLibrary,
-  analyzerCodes: <String>["BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -379,7 +371,6 @@ codeBaseMixinImplementedOutsideOfLibrary = const Template(
       r"""The mixin '#name' can't be implemented outside of its library because it's a base mixin.""",
   withArgumentsOld: _withArgumentsOldBaseMixinImplementedOutsideOfLibrary,
   withArguments: _withArgumentsBaseMixinImplementedOutsideOfLibrary,
-  analyzerCodes: <String>["BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -451,7 +442,6 @@ codeBoundIssueViaCycleNonSimplicity = const Template(
       r"""Try providing type arguments to '#name2' here or to some other raw types in the bounds along the reference chain.""",
   withArgumentsOld: _withArgumentsOldBoundIssueViaCycleNonSimplicity,
   withArguments: _withArgumentsBoundIssueViaCycleNonSimplicity,
-  analyzerCodes: <String>["NOT_INSTANTIATED_BOUND"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -490,7 +480,6 @@ codeBoundIssueViaLoopNonSimplicity = const Template(
       r"""Try providing type arguments to '#name' here.""",
   withArgumentsOld: _withArgumentsOldBoundIssueViaLoopNonSimplicity,
   withArguments: _withArgumentsBoundIssueViaLoopNonSimplicity,
-  analyzerCodes: <String>["NOT_INSTANTIATED_BOUND"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -522,7 +511,6 @@ codeBoundIssueViaRawTypeWithNonSimpleBounds = const Template(
       r"""Try providing type arguments to '#name' here.""",
   withArgumentsOld: _withArgumentsOldBoundIssueViaRawTypeWithNonSimpleBounds,
   withArguments: _withArgumentsBoundIssueViaRawTypeWithNonSimpleBounds,
-  analyzerCodes: <String>["NOT_INSTANTIATED_BOUND"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -554,7 +542,6 @@ codeBreakTargetOutsideFunction = const Template(
       r"""Can't break to '#name' in a different function.""",
   withArgumentsOld: _withArgumentsOldBreakTargetOutsideFunction,
   withArguments: _withArgumentsBreakTargetOutsideFunction,
-  analyzerCodes: <String>["LABEL_IN_OUTER_SCOPE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -670,14 +657,12 @@ Message _withArgumentsOldCannotAssignToFinalVariable(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeCannotAssignToParenthesizedExpression = const MessageCode(
   "CannotAssignToParenthesizedExpression",
-  analyzerCodes: <String>["ASSIGNMENT_TO_PARENTHESIZED_EXPRESSION"],
   problemMessage: r"""Can't assign to a parenthesized expression.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeCannotAssignToSuper = const MessageCode(
   "CannotAssignToSuper",
-  analyzerCodes: <String>["NOT_AN_LVALUE"],
   problemMessage: r"""Can't assign to super.""",
 );
 
@@ -818,7 +803,6 @@ codeCantInferReturnTypeDueToNoCombinedSignature = const Template(
   withArgumentsOld:
       _withArgumentsOldCantInferReturnTypeDueToNoCombinedSignature,
   withArguments: _withArgumentsCantInferReturnTypeDueToNoCombinedSignature,
-  analyzerCodes: <String>["COMPILE_TIME_ERROR.NO_COMBINED_SUPER_SIGNATURE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -852,7 +836,6 @@ codeCantInferTypeDueToCircularity = const Template(
   correctionMessageTemplate: r"""Specify the type explicitly.""",
   withArgumentsOld: _withArgumentsOldCantInferTypeDueToCircularity,
   withArguments: _withArgumentsCantInferTypeDueToCircularity,
-  analyzerCodes: <String>["RECURSIVE_COMPILE_TIME_CONSTANT"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -883,7 +866,6 @@ codeCantInferTypeDueToNoCombinedSignature = const Template(
   correctionMessageTemplate: r"""Try adding an explicit type.""",
   withArgumentsOld: _withArgumentsOldCantInferTypeDueToNoCombinedSignature,
   withArguments: _withArgumentsCantInferTypeDueToNoCombinedSignature,
-  analyzerCodes: <String>["COMPILE_TIME_ERROR.NO_COMBINED_SUPER_SIGNATURE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -916,7 +898,6 @@ codeCantInferTypesDueToNoCombinedSignature = const Template(
   correctionMessageTemplate: r"""Try adding explicit types.""",
   withArgumentsOld: _withArgumentsOldCantInferTypesDueToNoCombinedSignature,
   withArguments: _withArgumentsCantInferTypesDueToNoCombinedSignature,
-  analyzerCodes: <String>["COMPILE_TIME_ERROR.NO_COMBINED_SUPER_SIGNATURE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -947,7 +928,6 @@ codeCantReadFile = const Template(
   problemMessageTemplate: r"""Error when reading '#uri': #string""",
   withArgumentsOld: _withArgumentsOldCantReadFile,
   withArguments: _withArgumentsCantReadFile,
-  analyzerCodes: <String>["URI_DOES_NOT_EXIST"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -976,7 +956,6 @@ codeCantUseClassAsMixin = const Template(
       r"""The class '#name' can't be used as a mixin because it isn't a mixin class nor a mixin.""",
   withArgumentsOld: _withArgumentsOldCantUseClassAsMixin,
   withArguments: _withArgumentsCantUseClassAsMixin,
-  analyzerCodes: <String>["CLASS_USED_AS_MIXIN"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1005,7 +984,6 @@ codeCantUseControlFlowOrSpreadAsConstant = const Template(
       r"""'#lexeme' is not supported in constant expressions.""",
   withArgumentsOld: _withArgumentsOldCantUseControlFlowOrSpreadAsConstant,
   withArguments: _withArgumentsCantUseControlFlowOrSpreadAsConstant,
-  analyzerCodes: <String>["NOT_CONSTANT_EXPRESSION"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1038,7 +1016,6 @@ codeCantUseDeferredPrefixAsConstant = const Template(
       r"""Try moving the constant from the deferred library, or removing 'deferred' from the import.""",
   withArgumentsOld: _withArgumentsOldCantUseDeferredPrefixAsConstant,
   withArguments: _withArgumentsCantUseDeferredPrefixAsConstant,
-  analyzerCodes: <String>["CONST_DEFERRED_CLASS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1061,14 +1038,12 @@ Message _withArgumentsOldCantUseDeferredPrefixAsConstant(Token lexeme) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeCantUsePrefixAsExpression = const MessageCode(
   "CantUsePrefixAsExpression",
-  analyzerCodes: <String>["PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT"],
   problemMessage: r"""A prefix can't be used as an expression.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeCantUsePrefixWithNullAware = const MessageCode(
   "CantUsePrefixWithNullAware",
-  analyzerCodes: <String>["PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT"],
   problemMessage: r"""A prefix can't be used with null-aware operators.""",
   correctionMessage: r"""Try replacing '?.' with '.'""",
 );
@@ -1076,7 +1051,6 @@ const MessageCode codeCantUsePrefixWithNullAware = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeClassImplementsDeferredClass = const MessageCode(
   "ClassImplementsDeferredClass",
-  analyzerCodes: <String>["IMPLEMENTS_DEFERRED_CLASS"],
   problemMessage: r"""Classes and mixins can't implement deferred classes.""",
   correctionMessage:
       r"""Try specifying a different interface, removing the class from the list, or changing the import to not be deferred.""",
@@ -1167,7 +1141,6 @@ codeCombinedMemberSignatureFailed = const Template(
       r"""Try adding a declaration of '#name2' to '#name'.""",
   withArgumentsOld: _withArgumentsOldCombinedMemberSignatureFailed,
   withArguments: _withArgumentsCombinedMemberSignatureFailed,
-  analyzerCodes: <String>["INCONSISTENT_INHERITANCE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1204,7 +1177,6 @@ codeConflictsWithImplicitSetter = const Template(
       r"""Conflicts with the implicit setter of the field '#name'.""",
   withArgumentsOld: _withArgumentsOldConflictsWithImplicitSetter,
   withArguments: _withArgumentsConflictsWithImplicitSetter,
-  analyzerCodes: <String>["CONFLICTS_WITH_MEMBER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1259,7 +1231,6 @@ codeConflictsWithTypeParameter = const Template(
   problemMessageTemplate: r"""Conflicts with type variable '#name'.""",
   withArgumentsOld: _withArgumentsOldConflictsWithTypeParameter,
   withArguments: _withArgumentsConflictsWithTypeParameter,
-  analyzerCodes: <String>["CONFLICTING_TYPE_VARIABLE_AND_MEMBER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1300,7 +1271,6 @@ const MessageCode codeConstConstructorLateFinalFieldError = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeConstConstructorNonFinalField = const MessageCode(
   "ConstConstructorNonFinalField",
-  analyzerCodes: <String>["CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD"],
   problemMessage:
       r"""Constructor is marked 'const' so all fields must be final.""",
 );
@@ -1322,7 +1292,6 @@ const MessageCode codeConstConstructorRedirectionToNonConst = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeConstConstructorWithNonConstSuper = const MessageCode(
   "ConstConstructorWithNonConstSuper",
-  analyzerCodes: <String>["CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER"],
   problemMessage:
       r"""A constant constructor can't call a non-constant super constructor.""",
 );
@@ -1362,7 +1331,6 @@ Message _withArgumentsOldConstEvalCaseImplementsEqual(Constant constant) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeConstEvalCircularity = const MessageCode(
   "ConstEvalCircularity",
-  analyzerCodes: <String>["RECURSIVE_COMPILE_TIME_CONSTANT"],
   problemMessage: r"""Constant expression depends on itself.""",
 );
 
@@ -1386,9 +1354,6 @@ codeConstEvalDeferredLibrary = const Template(
       r"""Try moving the constant from the deferred library, or removing 'deferred' from the import.""",
   withArgumentsOld: _withArgumentsOldConstEvalDeferredLibrary,
   withArguments: _withArgumentsConstEvalDeferredLibrary,
-  analyzerCodes: <String>[
-    "INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY",
-  ],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1419,7 +1384,6 @@ codeConstEvalDuplicateElement = const Template(
       r"""The element '#constant' conflicts with another existing element in the set.""",
   withArgumentsOld: _withArgumentsOldConstEvalDuplicateElement,
   withArguments: _withArgumentsConstEvalDuplicateElement,
-  analyzerCodes: <String>["EQUAL_ELEMENTS_IN_CONST_SET"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1450,7 +1414,6 @@ codeConstEvalDuplicateKey = const Template(
       r"""The key '#constant' conflicts with another existing key in the map.""",
   withArgumentsOld: _withArgumentsOldConstEvalDuplicateKey,
   withArguments: _withArgumentsConstEvalDuplicateKey,
-  analyzerCodes: <String>["EQUAL_KEYS_IN_CONST_MAP"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1481,7 +1444,6 @@ codeConstEvalElementImplementsEqual = const Template(
       r"""The element '#constant' does not have a primitive operator '=='.""",
   withArgumentsOld: _withArgumentsOldConstEvalElementImplementsEqual,
   withArguments: _withArgumentsConstEvalElementImplementsEqual,
-  analyzerCodes: <String>["CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1604,7 +1566,6 @@ Message _withArgumentsOldConstEvalError(String string) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeConstEvalExtension = const MessageCode(
   "ConstEvalExtension",
-  analyzerCodes: <String>["NOT_CONSTANT_EXPRESSION"],
   problemMessage:
       r"""Extension operations can't be used in constant expressions.""",
 );
@@ -1626,7 +1587,6 @@ const MessageCode codeConstEvalExternalFactory = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeConstEvalFailedAssertion = const MessageCode(
   "ConstEvalFailedAssertion",
-  analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"],
   problemMessage: r"""This assertion failed.""",
 );
 
@@ -1641,7 +1601,6 @@ codeConstEvalFailedAssertionWithMessage = const Template(
       r"""This assertion failed with message: #stringOKEmpty""",
   withArgumentsOld: _withArgumentsOldConstEvalFailedAssertionWithMessage,
   withArguments: _withArgumentsConstEvalFailedAssertionWithMessage,
-  analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1668,7 +1627,6 @@ Message _withArgumentsOldConstEvalFailedAssertionWithMessage(
 const MessageCode codeConstEvalFailedAssertionWithNonStringMessage =
     const MessageCode(
       "ConstEvalFailedAssertionWithNonStringMessage",
-      analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"],
       problemMessage: r"""This assertion failed with a non-String message.""",
     );
 
@@ -1810,7 +1768,6 @@ codeConstEvalInvalidMethodInvocation = const Template(
       r"""The method '#stringOKEmpty' can't be invoked on '#constant' in a constant expression.""",
   withArgumentsOld: _withArgumentsOldConstEvalInvalidMethodInvocation,
   withArguments: _withArgumentsConstEvalInvalidMethodInvocation,
-  analyzerCodes: <String>["UNDEFINED_OPERATOR"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1850,7 +1807,6 @@ codeConstEvalInvalidPropertyGet = const Template(
       r"""The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression.""",
   withArgumentsOld: _withArgumentsOldConstEvalInvalidPropertyGet,
   withArguments: _withArgumentsConstEvalInvalidPropertyGet,
-  analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1890,7 +1846,6 @@ codeConstEvalInvalidRecordIndexGet = const Template(
       r"""The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression.""",
   withArgumentsOld: _withArgumentsOldConstEvalInvalidRecordIndexGet,
   withArguments: _withArgumentsConstEvalInvalidRecordIndexGet,
-  analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1930,7 +1885,6 @@ codeConstEvalInvalidRecordNameGet = const Template(
       r"""The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression.""",
   withArgumentsOld: _withArgumentsOldConstEvalInvalidRecordNameGet,
   withArguments: _withArgumentsConstEvalInvalidRecordNameGet,
-  analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1970,7 +1924,6 @@ codeConstEvalInvalidStaticInvocation = const Template(
       r"""The invocation of '#nameOKEmpty' is not allowed in a constant expression.""",
   withArgumentsOld: _withArgumentsOldConstEvalInvalidStaticInvocation,
   withArguments: _withArgumentsConstEvalInvalidStaticInvocation,
-  analyzerCodes: <String>["CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2002,7 +1955,6 @@ codeConstEvalInvalidStringInterpolationOperand = const Template(
 Only values of type 'null', 'bool', 'int', 'double', or 'String' can be used.""",
   withArgumentsOld: _withArgumentsOldConstEvalInvalidStringInterpolationOperand,
   withArguments: _withArgumentsConstEvalInvalidStringInterpolationOperand,
-  analyzerCodes: <String>["CONST_EVAL_TYPE_BOOL_NUM_STRING"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2039,7 +1991,6 @@ codeConstEvalInvalidSymbolName = const Template(
       r"""The symbol name must be a valid public Dart member name, public constructor name, or library name, optionally qualified, but was '#constant'.""",
   withArgumentsOld: _withArgumentsOldConstEvalInvalidSymbolName,
   withArguments: _withArgumentsConstEvalInvalidSymbolName,
-  analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2117,7 +2068,6 @@ codeConstEvalKeyImplementsEqual = const Template(
       r"""The key '#constant' does not have a primitive operator '=='.""",
   withArgumentsOld: _withArgumentsOldConstEvalKeyImplementsEqual,
   withArguments: _withArgumentsConstEvalKeyImplementsEqual,
-  analyzerCodes: <String>["CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2227,7 +2177,6 @@ codeConstEvalNonConstantVariableGet = const Template(
       r"""The variable '#nameOKEmpty' is not a constant, only constant expressions are allowed.""",
   withArgumentsOld: _withArgumentsOldConstEvalNonConstantVariableGet,
   withArguments: _withArgumentsConstEvalNonConstantVariableGet,
-  analyzerCodes: <String>["NON_CONSTANT_VALUE_IN_INITIALIZER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2256,7 +2205,6 @@ const MessageCode codeConstEvalNonNull = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeConstEvalNotListOrSetInSpread = const MessageCode(
   "ConstEvalNotListOrSetInSpread",
-  analyzerCodes: <String>["CONST_SPREAD_EXPECTED_LIST_OR_SET"],
   problemMessage:
       r"""Only lists and sets can be used in spreads in constant lists and sets.""",
 );
@@ -2264,14 +2212,12 @@ const MessageCode codeConstEvalNotListOrSetInSpread = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeConstEvalNotMapInSpread = const MessageCode(
   "ConstEvalNotMapInSpread",
-  analyzerCodes: <String>["CONST_SPREAD_EXPECTED_MAP"],
   problemMessage: r"""Only maps can be used in spreads in constant maps.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeConstEvalNullValue = const MessageCode(
   "ConstEvalNullValue",
-  analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"],
   problemMessage: r"""Null value during constant evaluation.""",
 );
 
@@ -2392,7 +2338,6 @@ codeConstEvalZeroDivisor = const Template(
       r"""Binary operator '#string' on '#string2' requires non-zero divisor, but divisor was '0'.""",
   withArgumentsOld: _withArgumentsOldConstEvalZeroDivisor,
   withArguments: _withArgumentsConstEvalZeroDivisor,
-  analyzerCodes: <String>["CONST_EVAL_THROWS_IDBZE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2417,7 +2362,6 @@ Message _withArgumentsOldConstEvalZeroDivisor(String string, String string2) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeConstFactoryRedirectionToNonConst = const MessageCode(
   "ConstFactoryRedirectionToNonConst",
-  analyzerCodes: <String>["REDIRECT_TO_NON_CONST_CONSTRUCTOR"],
   problemMessage:
       r"""Constant factory constructor can't delegate to a non-constant constructor.""",
   correctionMessage:
@@ -2427,7 +2371,6 @@ const MessageCode codeConstFactoryRedirectionToNonConst = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeConstInstanceField = const MessageCode(
   "ConstInstanceField",
-  analyzerCodes: <String>["CONST_INSTANCE_FIELD"],
   problemMessage: r"""Only static fields can be declared as const.""",
   correctionMessage:
       r"""Try using 'final' instead of 'const', or adding the keyword 'static'.""",
@@ -2443,7 +2386,6 @@ codeConstructorConflictsWithMember = const Template(
   problemMessageTemplate: r"""The constructor conflicts with member '#name'.""",
   withArgumentsOld: _withArgumentsOldConstructorConflictsWithMember,
   withArguments: _withArgumentsConstructorConflictsWithMember,
-  analyzerCodes: <String>["CONFLICTS_WITH_MEMBER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2492,7 +2434,6 @@ Message _withArgumentsOldConstructorConflictsWithMemberCause(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeConstructorCyclic = const MessageCode(
   "ConstructorCyclic",
-  analyzerCodes: <String>["RECURSIVE_CONSTRUCTOR_REDIRECT"],
   problemMessage: r"""Redirecting constructors can't be cyclic.""",
   correctionMessage:
       r"""Try to have all constructors eventually redirect to a non-redirecting constructor.""",
@@ -2511,7 +2452,6 @@ codeConstructorInitializeSameInstanceVariableSeveralTimes = const Template(
       _withArgumentsOldConstructorInitializeSameInstanceVariableSeveralTimes,
   withArguments:
       _withArgumentsConstructorInitializeSameInstanceVariableSeveralTimes,
-  analyzerCodes: <String>["FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2544,7 +2484,6 @@ codeConstructorNotFound = const Template(
   problemMessageTemplate: r"""Couldn't find constructor '#name'.""",
   withArgumentsOld: _withArgumentsOldConstructorNotFound,
   withArguments: _withArgumentsConstructorNotFound,
-  analyzerCodes: <String>["CONSTRUCTOR_NOT_FOUND"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2564,7 +2503,6 @@ Message _withArgumentsOldConstructorNotFound(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeConstructorNotSync = const MessageCode(
   "ConstructorNotSync",
-  analyzerCodes: <String>["NON_SYNC_CONSTRUCTOR"],
   problemMessage:
       r"""Constructor bodies can't use 'async', 'async*', or 'sync*'.""",
 );
@@ -2647,7 +2585,6 @@ Message _withArgumentsOldConstructorWithWrongNameContext(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeContinueLabelInvalid = const MessageCode(
   "ContinueLabelInvalid",
-  analyzerCodes: <String>["CONTINUE_LABEL_INVALID"],
   problemMessage:
       r"""A 'continue' label must be on a loop or a switch member.""",
 );
@@ -2663,7 +2600,6 @@ codeContinueTargetOutsideFunction = const Template(
       r"""Can't continue at '#name' in a different function.""",
   withArgumentsOld: _withArgumentsOldContinueTargetOutsideFunction,
   withArguments: _withArgumentsContinueTargetOutsideFunction,
-  analyzerCodes: <String>["LABEL_IN_OUTER_SCOPE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2726,7 +2662,6 @@ codeCycleInTypeParameters = const Template(
       r"""Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.""",
   withArgumentsOld: _withArgumentsOldCycleInTypeParameters,
   withArguments: _withArgumentsCycleInTypeParameters,
-  analyzerCodes: <String>["TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2760,7 +2695,6 @@ codeCyclicClassHierarchy = const Template(
   problemMessageTemplate: r"""'#name' is a supertype of itself.""",
   withArgumentsOld: _withArgumentsOldCyclicClassHierarchy,
   withArguments: _withArgumentsCyclicClassHierarchy,
-  analyzerCodes: <String>["RECURSIVE_INTERFACE_INHERITANCE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2787,7 +2721,6 @@ codeCyclicRedirectingFactoryConstructors = const Template(
   problemMessageTemplate: r"""Cyclic definition of factory '#name'.""",
   withArgumentsOld: _withArgumentsOldCyclicRedirectingFactoryConstructors,
   withArguments: _withArgumentsCyclicRedirectingFactoryConstructors,
-  analyzerCodes: <String>["RECURSIVE_FACTORY_REDIRECT"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2823,7 +2756,6 @@ codeCyclicTypedef = const Template(
   problemMessageTemplate: r"""The typedef '#name' has a reference to itself.""",
   withArgumentsOld: _withArgumentsOldCyclicTypedef,
   withArguments: _withArgumentsCyclicTypedef,
-  analyzerCodes: <String>["TYPE_ALIAS_CANNOT_REFERENCE_ITSELF"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2889,7 +2821,6 @@ codeDeclarationConflictsWithSetter = const Template(
   problemMessageTemplate: r"""The declaration conflicts with setter '#name'.""",
   withArgumentsOld: _withArgumentsOldDeclarationConflictsWithSetter,
   withArguments: _withArgumentsDeclarationConflictsWithSetter,
-  analyzerCodes: <String>["CONFLICTS_WITH_MEMBER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2939,7 +2870,6 @@ Message _withArgumentsOldDeclarationConflictsWithSetterCause(String name) =>
 const MessageCode codeDeclaredMemberConflictsWithInheritedMember =
     const MessageCode(
       "DeclaredMemberConflictsWithInheritedMember",
-      analyzerCodes: <String>["DECLARED_MEMBER_CONFLICTS_WITH_INHERITED"],
       problemMessage:
           r"""Can't declare a member that conflicts with an inherited one.""",
     );
@@ -2981,7 +2911,6 @@ codeDefaultValueInRedirectingFactoryConstructor = const Template(
   withArgumentsOld:
       _withArgumentsOldDefaultValueInRedirectingFactoryConstructor,
   withArguments: _withArgumentsDefaultValueInRedirectingFactoryConstructor,
-  analyzerCodes: <String>["DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3044,7 +2973,6 @@ codeDeferredPrefixDuplicated = const Template(
       r"""Can't use the name '#name' for a deferred library, as the name is used elsewhere.""",
   withArgumentsOld: _withArgumentsOldDeferredPrefixDuplicated,
   withArguments: _withArgumentsDeferredPrefixDuplicated,
-  analyzerCodes: <String>["SHARED_DEFERRED_PREFIX"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3102,7 +3030,6 @@ codeDeferredTypeAnnotation = const Template(
       r"""Try removing 'deferred' from the import of '#name' or use a supertype of '#type' that isn't deferred.""",
   withArgumentsOld: _withArgumentsOldDeferredTypeAnnotation,
   withArguments: _withArgumentsDeferredTypeAnnotation,
-  analyzerCodes: <String>["TYPE_ANNOTATION_DEFERRED_CLASS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3218,7 +3145,6 @@ codeDirectCycleInTypeParameters = const Template(
       r"""Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.""",
   withArgumentsOld: _withArgumentsOldDirectCycleInTypeParameters,
   withArguments: _withArgumentsDirectCycleInTypeParameters,
-  analyzerCodes: <String>["TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3367,7 +3293,6 @@ codeDuplicatePatternAssignmentVariable = const Template(
   correctionMessageTemplate: r"""Try renaming the variable.""",
   withArgumentsOld: _withArgumentsOldDuplicatePatternAssignmentVariable,
   withArguments: _withArgumentsDuplicatePatternAssignmentVariable,
-  analyzerCodes: <String>["DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3408,7 +3333,6 @@ codeDuplicateRecordPatternField = const Template(
   correctionMessageTemplate: r"""Try removing the duplicate field.""",
   withArgumentsOld: _withArgumentsOldDuplicateRecordPatternField,
   withArguments: _withArgumentsDuplicateRecordPatternField,
-  analyzerCodes: <String>["DUPLICATE_RECORD_PATTERN_FIELD"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3437,7 +3361,6 @@ const MessageCode codeDuplicateRecordPatternFieldContext = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeDuplicateRestElementInPattern = const MessageCode(
   "DuplicateRestElementInPattern",
-  analyzerCodes: <String>["DUPLICATE_REST_ELEMENT_IN_PATTERN"],
   problemMessage:
       r"""At most one rest element is allowed in a list or map pattern.""",
   correctionMessage: r"""Try removing the duplicate rest element.""",
@@ -3460,7 +3383,6 @@ codeDuplicatedDeclaration = const Template(
   problemMessageTemplate: r"""'#name' is already declared in this scope.""",
   withArgumentsOld: _withArgumentsOldDuplicatedDeclaration,
   withArguments: _withArgumentsDuplicatedDeclaration,
-  analyzerCodes: <String>["DUPLICATE_DEFINITION"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3574,7 +3496,6 @@ codeDuplicatedExport = const Template(
       r"""'#name' is exported from both '#uri' and '#uri2'.""",
   withArgumentsOld: _withArgumentsOldDuplicatedExport,
   withArguments: _withArgumentsDuplicatedExport,
-  analyzerCodes: <String>["AMBIGUOUS_EXPORT"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3609,7 +3530,6 @@ codeDuplicatedImport = const Template(
       r"""'#name' is imported from both '#uri' and '#uri2'.""",
   withArgumentsOld: _withArgumentsOldDuplicatedImport,
   withArguments: _withArgumentsDuplicatedImport,
-  analyzerCodes: <String>["AMBIGUOUS_IMPORT"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3643,7 +3563,6 @@ codeDuplicatedNamedArgument = const Template(
   problemMessageTemplate: r"""Duplicated named argument '#name'.""",
   withArgumentsOld: _withArgumentsOldDuplicatedNamedArgument,
   withArguments: _withArgumentsDuplicatedNamedArgument,
-  analyzerCodes: <String>["DUPLICATE_NAMED_ARGUMENT"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3670,7 +3589,6 @@ codeDuplicatedParameterName = const Template(
   problemMessageTemplate: r"""Duplicated parameter name '#name'.""",
   withArgumentsOld: _withArgumentsOldDuplicatedParameterName,
   withArguments: _withArgumentsDuplicatedParameterName,
-  analyzerCodes: <String>["DUPLICATE_DEFINITION"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3846,7 +3764,6 @@ const MessageCode codeDynamicCallsAreNotAllowedInDynamicModule =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeEmptyMapPattern = const MessageCode(
   "EmptyMapPattern",
-  analyzerCodes: <String>["EMPTY_MAP_PATTERN"],
   problemMessage: r"""A map pattern must have at least one entry.""",
   correctionMessage: r"""Try replacing it with an object pattern 'Map()'.""",
 );
@@ -3909,7 +3826,6 @@ const MessageCode codeEnumContainsValuesDeclaration = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeEnumDeclarationEmpty = const MessageCode(
   "EnumDeclarationEmpty",
-  analyzerCodes: <String>["EMPTY_ENUM_BODY"],
   problemMessage: r"""An enum declaration can't be empty.""",
 );
 
@@ -4026,7 +3942,6 @@ const MessageCode codeEnumInheritsRestrictedMember = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeEnumInstantiation = const MessageCode(
   "EnumInstantiation",
-  analyzerCodes: <String>["INSTANTIATE_ENUM"],
   problemMessage: r"""Enums can't be instantiated.""",
 );
 
@@ -4068,7 +3983,6 @@ Message _withArgumentsOldEnumSupertypeOfNonAbstractClass(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeEnumWithNameValues = const MessageCode(
   "EnumWithNameValues",
-  analyzerCodes: <String>["ENUM_WITH_NAME_VALUES"],
   problemMessage:
       r"""The name 'values' is not a valid name for an enum. Try using a different name.""",
 );
@@ -4076,7 +3990,6 @@ const MessageCode codeEnumWithNameValues = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeEqualKeysInMapPattern = const MessageCode(
   "EqualKeysInMapPattern",
-  analyzerCodes: <String>["EQUAL_KEYS_IN_MAP_PATTERN"],
   problemMessage: r"""Two keys in a map pattern can't be equal.""",
   correctionMessage: r"""Change or remove the duplicate key.""",
 );
@@ -4121,7 +4034,6 @@ Message _withArgumentsOldExceptionReadingFile(Uri uri, String string) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExpectedBlockToSkip = const MessageCode(
   "ExpectedBlockToSkip",
-  analyzerCodes: <String>["MISSING_FUNCTION_BODY"],
   problemMessage: r"""Expected a function body or '=>'.""",
   correctionMessage: r"""Try adding {}.""",
 );
@@ -4129,7 +4041,6 @@ const MessageCode codeExpectedBlockToSkip = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExpectedNamedArgument = const MessageCode(
   "ExpectedNamedArgument",
-  analyzerCodes: <String>["EXTRA_POSITIONAL_ARGUMENTS"],
   problemMessage: r"""Expected named argument.""",
 );
 
@@ -4142,14 +4053,12 @@ const MessageCode codeExpectedOneExpression = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExpectedRepresentationField = const MessageCode(
   "ExpectedRepresentationField",
-  analyzerCodes: <String>["EXPECTED_REPRESENTATION_FIELD"],
   problemMessage: r"""Expected a representation field.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExpectedRepresentationType = const MessageCode(
   "ExpectedRepresentationType",
-  analyzerCodes: <String>["EXPECTED_REPRESENTATION_TYPE"],
   problemMessage: r"""Expected a representation type.""",
 );
 
@@ -4172,7 +4081,6 @@ codeExperimentDisabled = const Template(
       r"""The feature is on by default but is currently disabled, maybe because the '--enable-experiment=no-#string' command line option is passed.""",
   withArgumentsOld: _withArgumentsOldExperimentDisabled,
   withArguments: _withArgumentsExperimentDisabled,
-  analyzerCodes: <String>["ParserErrorCode.EXPERIMENT_NOT_ENABLED"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4203,7 +4111,6 @@ codeExperimentDisabledInvalidLanguageVersion = const Template(
       r"""This requires the '#string' language feature, which requires language version of #string2 or higher.""",
   withArgumentsOld: _withArgumentsOldExperimentDisabledInvalidLanguageVersion,
   withArguments: _withArgumentsExperimentDisabledInvalidLanguageVersion,
-  analyzerCodes: <String>["ParserErrorCode.EXPERIMENT_NOT_ENABLED"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4505,7 +4412,6 @@ codeExtendingEnum = const Template(
       r"""'#name' is an enum and can't be extended or implemented.""",
   withArgumentsOld: _withArgumentsOldExtendingEnum,
   withArguments: _withArgumentsExtendingEnum,
-  analyzerCodes: <String>["EXTENDS_ENUM"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4534,7 +4440,6 @@ codeExtendingRestricted = const Template(
       r"""'#name' is restricted and can't be extended or implemented.""",
   withArgumentsOld: _withArgumentsOldExtendingRestricted,
   withArguments: _withArgumentsExtendingRestricted,
-  analyzerCodes: <String>["EXTENDS_DISALLOWED_CLASS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4555,7 +4460,6 @@ Message _withArgumentsOldExtendingRestricted(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExtendsDeferredClass = const MessageCode(
   "ExtendsDeferredClass",
-  analyzerCodes: <String>["EXTENDS_DEFERRED_CLASS"],
   problemMessage: r"""Classes can't extend deferred classes.""",
   correctionMessage:
       r"""Try specifying a different superclass, or removing the extends clause.""",
@@ -4611,7 +4515,6 @@ codeExtensionTypeCombinedMemberSignatureFailed = const Template(
       r"""Try adding a declaration of '#name2' to '#name'.""",
   withArgumentsOld: _withArgumentsOldExtensionTypeCombinedMemberSignatureFailed,
   withArguments: _withArgumentsExtensionTypeCombinedMemberSignatureFailed,
-  analyzerCodes: <String>["INCONSISTENT_INHERITANCE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4644,9 +4547,6 @@ Message _withArgumentsOldExtensionTypeCombinedMemberSignatureFailed(
 const MessageCode
 codeExtensionTypeConstructorWithSuperFormalParameter = const MessageCode(
   "ExtensionTypeConstructorWithSuperFormalParameter",
-  analyzerCodes: <String>[
-    "EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER",
-  ],
   problemMessage:
       r"""Extension type constructors can't declare super formal parameters.""",
 );
@@ -4661,7 +4561,6 @@ const MessageCode codeExtensionTypeDeclarationCause = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExtensionTypeImplementsDeferred = const MessageCode(
   "ExtensionTypeImplementsDeferred",
-  analyzerCodes: <String>["IMPLEMENTS_DEFERRED_CLASS"],
   problemMessage: r"""Extension types can't implement deferred types.""",
   correctionMessage:
       r"""Try specifying a different type, removing the type from the list, or changing the import to not be deferred.""",
@@ -4703,7 +4602,6 @@ codeExtensionTypePrimaryConstructorWithInitializingFormal = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExtensionTypeRepresentationTypeBottom = const MessageCode(
   "ExtensionTypeRepresentationTypeBottom",
-  analyzerCodes: <String>["EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM"],
   problemMessage: r"""The representation type can't be a bottom type.""",
 );
 
@@ -4773,7 +4671,6 @@ codeFactoryConflictsWithMember = const Template(
   problemMessageTemplate: r"""The factory conflicts with member '#name'.""",
   withArgumentsOld: _withArgumentsOldFactoryConflictsWithMember,
   withArguments: _withArgumentsFactoryConflictsWithMember,
-  analyzerCodes: <String>["CONFLICTS_WITH_MEMBER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4933,7 +4830,6 @@ const MessageCode codeFfiAbiSpecificIntegerMappingInvalid = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeFfiAddressOfMustBeNative = const MessageCode(
   "FfiAddressOfMustBeNative",
-  analyzerCodes: <String>["ARGUMENT_MUST_BE_NATIVE"],
   problemMessage:
       r"""Argument to 'Native.addressOf' must be annotated with @Native.""",
 );
@@ -5080,7 +4976,6 @@ codeFfiDeeplyImmutableSupertypeMustBeDeeplyImmutable = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeFfiDefaultAssetDuplicate = const MessageCode(
   "FfiDefaultAssetDuplicate",
-  analyzerCodes: <String>["FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET"],
   problemMessage:
       r"""There may be at most one @DefaultAsset annotation on a library.""",
 );
@@ -5448,7 +5343,6 @@ Message _withArgumentsOldFfiNativeCallableListenerReturnVoid(DartType type) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeFfiNativeDuplicateAnnotations = const MessageCode(
   "FfiNativeDuplicateAnnotations",
-  analyzerCodes: <String>["FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS"],
   problemMessage:
       r"""Native functions and fields must not have more than @Native annotation.""",
 );
@@ -5456,7 +5350,6 @@ const MessageCode codeFfiNativeDuplicateAnnotations = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeFfiNativeFieldMissingType = const MessageCode(
   "FfiNativeFieldMissingType",
-  analyzerCodes: <String>["NATIVE_FIELD_MISSING_TYPE"],
   problemMessage:
       r"""The native type of this field could not be inferred and must be specified in the annotation.""",
 );
@@ -5464,14 +5357,12 @@ const MessageCode codeFfiNativeFieldMissingType = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeFfiNativeFieldMustBeStatic = const MessageCode(
   "FfiNativeFieldMustBeStatic",
-  analyzerCodes: <String>["NATIVE_FIELD_NOT_STATIC"],
   problemMessage: r"""Native fields must be static.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeFfiNativeFieldType = const MessageCode(
   "FfiNativeFieldType",
-  analyzerCodes: <String>["NATIVE_FIELD_INVALID_TYPE"],
   problemMessage:
       r"""Unsupported type for native fields. Native fields only support pointers, compounds and numeric types.""",
 );
@@ -5479,7 +5370,6 @@ const MessageCode codeFfiNativeFieldType = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeFfiNativeFunctionMissingType = const MessageCode(
   "FfiNativeFunctionMissingType",
-  analyzerCodes: <String>["NATIVE_FUNCTION_MISSING_TYPE"],
   problemMessage:
       r"""The native type of this function couldn't be inferred so it must be specified in the annotation.""",
 );
@@ -5811,7 +5701,6 @@ codeFieldAlreadyInitializedAtDeclaration = const Template(
       r"""'#name' is a final instance variable that was initialized at the declaration.""",
   withArgumentsOld: _withArgumentsOldFieldAlreadyInitializedAtDeclaration,
   withArguments: _withArgumentsFieldAlreadyInitializedAtDeclaration,
-  analyzerCodes: <String>["FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6275,7 +6164,6 @@ codeFinalClassExtendedOutsideOfLibrary = const Template(
       r"""The class '#name' can't be extended outside of its library because it's a final class.""",
   withArgumentsOld: _withArgumentsOldFinalClassExtendedOutsideOfLibrary,
   withArguments: _withArgumentsFinalClassExtendedOutsideOfLibrary,
-  analyzerCodes: <String>["FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6306,7 +6194,6 @@ codeFinalClassImplementedOutsideOfLibrary = const Template(
       r"""The class '#name' can't be implemented outside of its library because it's a final class.""",
   withArgumentsOld: _withArgumentsOldFinalClassImplementedOutsideOfLibrary,
   withArguments: _withArgumentsFinalClassImplementedOutsideOfLibrary,
-  analyzerCodes: <String>["FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6338,9 +6225,6 @@ codeFinalClassUsedAsMixinConstraintOutsideOfLibrary = const Template(
   withArgumentsOld:
       _withArgumentsOldFinalClassUsedAsMixinConstraintOutsideOfLibrary,
   withArguments: _withArgumentsFinalClassUsedAsMixinConstraintOutsideOfLibrary,
-  analyzerCodes: <String>[
-    "FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY",
-  ],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6373,7 +6257,6 @@ codeFinalFieldNotInitialized = const Template(
       r"""Try to initialize the field in the declaration or in every constructor.""",
   withArgumentsOld: _withArgumentsOldFinalFieldNotInitialized,
   withArguments: _withArgumentsFinalFieldNotInitialized,
-  analyzerCodes: <String>["FINAL_NOT_INITIALIZED"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6405,7 +6288,6 @@ codeFinalFieldNotInitializedByConstructor = const Template(
       r"""Try to initialize the field using an initializing formal or a field initializer.""",
   withArgumentsOld: _withArgumentsOldFinalFieldNotInitializedByConstructor,
   withArguments: _withArgumentsFinalFieldNotInitializedByConstructor,
-  analyzerCodes: <String>["FINAL_NOT_INITIALIZED_CONSTRUCTOR_1"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6438,7 +6320,6 @@ codeFinalNotAssignedError = const Template(
       r"""Final variable '#name' must be assigned before it can be used.""",
   withArgumentsOld: _withArgumentsOldFinalNotAssignedError,
   withArguments: _withArgumentsFinalNotAssignedError,
-  analyzerCodes: <String>["READ_POTENTIALLY_UNASSIGNED_FINAL"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6467,7 +6348,6 @@ codeFinalPossiblyAssignedError = const Template(
       r"""Final variable '#name' might already be assigned at this point.""",
   withArgumentsOld: _withArgumentsOldFinalPossiblyAssignedError,
   withArguments: _withArgumentsFinalPossiblyAssignedError,
-  analyzerCodes: <String>["ASSIGNMENT_TO_FINAL_LOCAL"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6497,7 +6377,6 @@ codeForInLoopElementTypeNotAssignable = const Template(
   correctionMessageTemplate: r"""Try changing the type of the variable.""",
   withArgumentsOld: _withArgumentsOldForInLoopElementTypeNotAssignable,
   withArguments: _withArgumentsForInLoopElementTypeNotAssignable,
-  analyzerCodes: <String>["FOR_IN_OF_INVALID_ELEMENT_TYPE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6548,7 +6427,6 @@ codeForInLoopTypeNotIterable = const Template(
       r"""The type '#type' used in the 'for' loop must implement '#type2'.""",
   withArgumentsOld: _withArgumentsOldForInLoopTypeNotIterable,
   withArguments: _withArgumentsForInLoopTypeNotIterable,
-  analyzerCodes: <String>["FOR_IN_OF_INVALID_TYPE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6577,7 +6455,6 @@ Message _withArgumentsOldForInLoopTypeNotIterable(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeForInLoopWithConstVariable = const MessageCode(
   "ForInLoopWithConstVariable",
-  analyzerCodes: <String>["FOR_IN_WITH_CONST_VARIABLE"],
   problemMessage: r"""A for-in loop-variable can't be 'const'.""",
   correctionMessage: r"""Try removing the 'const' modifier.""",
 );
@@ -6596,7 +6473,6 @@ codeGenericFunctionTypeAsTypeArgumentThroughTypedef = const Template(
   withArgumentsOld:
       _withArgumentsOldGenericFunctionTypeAsTypeArgumentThroughTypedef,
   withArguments: _withArgumentsGenericFunctionTypeAsTypeArgumentThroughTypedef,
-  analyzerCodes: <String>["GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6630,7 +6506,6 @@ Message _withArgumentsOldGenericFunctionTypeAsTypeArgumentThroughTypedef(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeGenericFunctionTypeInBound = const MessageCode(
   "GenericFunctionTypeInBound",
-  analyzerCodes: <String>["GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND"],
   problemMessage:
       r"""Type variables can't have generic function types in their bounds.""",
 );
@@ -6649,7 +6524,6 @@ codeGenericFunctionTypeInferredAsActualTypeArgument = const Template(
   withArgumentsOld:
       _withArgumentsOldGenericFunctionTypeInferredAsActualTypeArgument,
   withArguments: _withArgumentsGenericFunctionTypeInferredAsActualTypeArgument,
-  analyzerCodes: <String>["GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6678,7 +6552,6 @@ Message _withArgumentsOldGenericFunctionTypeInferredAsActualTypeArgument(
 const MessageCode codeGenericFunctionTypeUsedAsActualTypeArgument =
     const MessageCode(
       "GenericFunctionTypeUsedAsActualTypeArgument",
-      analyzerCodes: <String>["GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT"],
       problemMessage:
           r"""A generic function type can't be used as a type argument.""",
       correctionMessage: r"""Try using a non-generic function type.""",
@@ -6694,7 +6567,6 @@ codeGetterNotFound = const Template(
   problemMessageTemplate: r"""Getter not found: '#name'.""",
   withArgumentsOld: _withArgumentsOldGetterNotFound,
   withArguments: _withArgumentsGetterNotFound,
-  analyzerCodes: <String>["UNDEFINED_GETTER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6714,7 +6586,6 @@ Message _withArgumentsOldGetterNotFound(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeIllegalAsyncGeneratorReturnType = const MessageCode(
   "IllegalAsyncGeneratorReturnType",
-  analyzerCodes: <String>["ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE"],
   problemMessage:
       r"""Functions marked 'async*' must have a return type assignable to 'Stream'.""",
 );
@@ -6729,7 +6600,6 @@ const MessageCode codeIllegalAsyncGeneratorVoidReturnType = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeIllegalAsyncReturnType = const MessageCode(
   "IllegalAsyncReturnType",
-  analyzerCodes: <String>["ILLEGAL_ASYNC_RETURN_TYPE"],
   problemMessage:
       r"""Functions marked 'async' must have a return type assignable to 'Future'.""",
 );
@@ -6744,7 +6614,6 @@ codeIllegalMixin = const Template(
   problemMessageTemplate: r"""The type '#name' can't be mixed in.""",
   withArgumentsOld: _withArgumentsOldIllegalMixin,
   withArguments: _withArgumentsIllegalMixin,
-  analyzerCodes: <String>["ILLEGAL_MIXIN"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6772,7 +6641,6 @@ codeIllegalMixinDueToConstructors = const Template(
       r"""Can't use '#name' as a mixin because it has constructors.""",
   withArgumentsOld: _withArgumentsOldIllegalMixinDueToConstructors,
   withArguments: _withArgumentsIllegalMixinDueToConstructors,
-  analyzerCodes: <String>["MIXIN_DECLARES_CONSTRUCTOR"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6824,7 +6692,6 @@ Message _withArgumentsOldIllegalMixinDueToConstructorsCause(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeIllegalSyncGeneratorReturnType = const MessageCode(
   "IllegalSyncGeneratorReturnType",
-  analyzerCodes: <String>["ILLEGAL_SYNC_GENERATOR_RETURN_TYPE"],
   problemMessage:
       r"""Functions marked 'sync*' must have a return type assignable to 'Iterable'.""",
 );
@@ -6944,7 +6811,6 @@ codeImplementsRepeated = const Template(
   correctionMessageTemplate: r"""Try removing #count of the occurrences.""",
   withArgumentsOld: _withArgumentsOldImplementsRepeated,
   withArguments: _withArgumentsImplementsRepeated,
-  analyzerCodes: <String>["IMPLEMENTS_REPEATED"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6977,7 +6843,6 @@ codeImplementsSuperClass = const Template(
   correctionMessageTemplate: r"""Try removing one of the occurrences.""",
   withArgumentsOld: _withArgumentsOldImplementsSuperClass,
   withArguments: _withArgumentsImplementsSuperClass,
-  analyzerCodes: <String>["IMPLEMENTS_SUPER_CLASS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7009,7 +6874,6 @@ codeImplicitCallOfNonMethod = const Template(
       r"""Try changing 'call' to a method or explicitly invoke 'call'.""",
   withArgumentsOld: _withArgumentsOldImplicitCallOfNonMethod,
   withArguments: _withArgumentsImplicitCallOfNonMethod,
-  analyzerCodes: <String>["IMPLICIT_CALL_OF_NON_METHOD"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7106,7 +6970,6 @@ Message _withArgumentsOldImplicitReturnNull(DartType type) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeImplicitSuperCallOfNonMethod = const MessageCode(
   "ImplicitSuperCallOfNonMethod",
-  analyzerCodes: <String>["IMPLICIT_CALL_OF_NON_METHOD"],
   problemMessage:
       r"""Cannot invoke `super` because it declares 'call' to be something other than a method.""",
   correctionMessage:
@@ -7126,7 +6989,6 @@ codeImplicitSuperInitializerMissingArguments = const Template(
       r"""Try adding an explicit super initializer with the required arguments.""",
   withArgumentsOld: _withArgumentsOldImplicitSuperInitializerMissingArguments,
   withArguments: _withArgumentsImplicitSuperInitializerMissingArguments,
-  analyzerCodes: <String>["IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7253,7 +7115,6 @@ codeIncompatibleRedirecteeFunctionType = const Template(
       r"""The constructor function type '#type' isn't a subtype of '#type2'.""",
   withArgumentsOld: _withArgumentsOldIncompatibleRedirecteeFunctionType,
   withArguments: _withArgumentsIncompatibleRedirecteeFunctionType,
-  analyzerCodes: <String>["REDIRECT_TO_INVALID_TYPE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7297,7 +7158,6 @@ codeIncorrectTypeArgument = const Template(
       r"""Try changing type arguments so that they conform to the bounds.""",
   withArgumentsOld: _withArgumentsOldIncorrectTypeArgument,
   withArguments: _withArgumentsIncorrectTypeArgument,
-  analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7354,7 +7214,6 @@ codeIncorrectTypeArgumentInferred = const Template(
       r"""Try specifying type arguments explicitly so that they conform to the bounds.""",
   withArgumentsOld: _withArgumentsOldIncorrectTypeArgumentInferred,
   withArguments: _withArgumentsIncorrectTypeArgumentInferred,
-  analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7411,7 +7270,6 @@ codeIncorrectTypeArgumentInstantiation = const Template(
       r"""Try changing type arguments so that they conform to the bounds.""",
   withArgumentsOld: _withArgumentsOldIncorrectTypeArgumentInstantiation,
   withArguments: _withArgumentsIncorrectTypeArgumentInstantiation,
-  analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7468,7 +7326,6 @@ codeIncorrectTypeArgumentInstantiationInferred = const Template(
       r"""Try specifying type arguments explicitly so that they conform to the bounds.""",
   withArgumentsOld: _withArgumentsOldIncorrectTypeArgumentInstantiationInferred,
   withArguments: _withArgumentsIncorrectTypeArgumentInstantiationInferred,
-  analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7532,7 +7389,6 @@ codeIncorrectTypeArgumentQualified = const Template(
       r"""Try changing type arguments so that they conform to the bounds.""",
   withArgumentsOld: _withArgumentsOldIncorrectTypeArgumentQualified,
   withArguments: _withArgumentsIncorrectTypeArgumentQualified,
-  analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7606,7 +7462,6 @@ codeIncorrectTypeArgumentQualifiedInferred = const Template(
       r"""Try specifying type arguments explicitly so that they conform to the bounds.""",
   withArgumentsOld: _withArgumentsOldIncorrectTypeArgumentQualifiedInferred,
   withArguments: _withArgumentsIncorrectTypeArgumentQualifiedInferred,
-  analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7772,7 +7627,6 @@ Message _withArgumentsOldIndexOutOfBoundInRecordIndexGet(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeInheritedMembersConflict = const MessageCode(
   "InheritedMembersConflict",
-  analyzerCodes: <String>["CONFLICTS_WITH_INHERITED_MEMBER"],
   problemMessage: r"""Can't inherit members that conflict with each other.""",
 );
 
@@ -7801,7 +7655,6 @@ codeInheritedRestrictedMemberOfEnumImplementer = const Template(
       r"""A concrete instance member named '#name' can't be inherited from '#name2' in a class that implements 'Enum'.""",
   withArgumentsOld: _withArgumentsOldInheritedRestrictedMemberOfEnumImplementer,
   withArguments: _withArgumentsInheritedRestrictedMemberOfEnumImplementer,
-  analyzerCodes: <String>["ILLEGAL_CONCRETE_ENUM_MEMBER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8043,7 +7896,6 @@ codeInitializerForStaticField = const Template(
   problemMessageTemplate: r"""'#name' isn't an instance field of this class.""",
   withArgumentsOld: _withArgumentsOldInitializerForStaticField,
   withArguments: _withArgumentsInitializerForStaticField,
-  analyzerCodes: <String>["INITIALIZER_FOR_STATIC_FIELD"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8077,7 +7929,6 @@ codeInitializingFormalTypeMismatch = const Template(
       r"""Try changing the type of parameter '#name' to a subtype of '#type2'.""",
   withArgumentsOld: _withArgumentsOldInitializingFormalTypeMismatch,
   withArguments: _withArgumentsInitializingFormalTypeMismatch,
-  analyzerCodes: <String>["INVALID_PARAMETER_DECLARATION"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8153,7 +8004,6 @@ codeInstanceAndSynthesizedStaticConflict = const Template(
       r"""This instance member conflicts with the synthesized static member called '#name'.""",
   withArgumentsOld: _withArgumentsOldInstanceAndSynthesizedStaticConflict,
   withArguments: _withArgumentsInstanceAndSynthesizedStaticConflict,
-  analyzerCodes: <String>["CONFLICTING_STATIC_AND_INSTANCE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8184,7 +8034,6 @@ codeInstanceConflictsWithStatic = const Template(
       r"""Instance property '#name' conflicts with static property of the same name.""",
   withArgumentsOld: _withArgumentsOldInstanceConflictsWithStatic,
   withArguments: _withArgumentsInstanceConflictsWithStatic,
-  analyzerCodes: <String>["CONFLICTS_WITH_MEMBER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8278,7 +8127,6 @@ codeInstantiationNullableGenericFunctionType = const Template(
       r"""Try changing the operand or remove the type arguments.""",
   withArgumentsOld: _withArgumentsOldInstantiationNullableGenericFunctionType,
   withArguments: _withArgumentsInstantiationNullableGenericFunctionType,
-  analyzerCodes: <String>["DISALLOWED_TYPE_INSTANTIATION_EXPRESSION"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8380,7 +8228,6 @@ codeIntegerLiteralIsOutOfRange = const Template(
       r"""Try using the BigInt class if you need an integer larger than 9,223,372,036,854,775,807 or less than -9,223,372,036,854,775,808.""",
   withArgumentsOld: _withArgumentsOldIntegerLiteralIsOutOfRange,
   withArguments: _withArgumentsIntegerLiteralIsOutOfRange,
-  analyzerCodes: <String>["INTEGER_LITERAL_OUT_OF_RANGE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8443,7 +8290,6 @@ codeInterfaceClassExtendedOutsideOfLibrary = const Template(
       r"""The class '#name' can't be extended outside of its library because it's an interface class.""",
   withArgumentsOld: _withArgumentsOldInterfaceClassExtendedOutsideOfLibrary,
   withArguments: _withArgumentsInterfaceClassExtendedOutsideOfLibrary,
-  analyzerCodes: <String>["INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8878,7 +8724,6 @@ codeInvalidAssignmentError = const Template(
       r"""A value of type '#type' can't be assigned to a variable of type '#type2'.""",
   withArgumentsOld: _withArgumentsOldInvalidAssignmentError,
   withArguments: _withArgumentsInvalidAssignmentError,
-  analyzerCodes: <String>["INVALID_ASSIGNMENT"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8950,7 +8795,6 @@ codeInvalidCastFunctionExpr = const Template(
       r"""Change the type of the function expression or the context in which it is used.""",
   withArgumentsOld: _withArgumentsOldInvalidCastFunctionExpr,
   withArguments: _withArgumentsInvalidCastFunctionExpr,
-  analyzerCodes: <String>["INVALID_CAST_FUNCTION_EXPR"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8991,7 +8835,6 @@ codeInvalidCastLiteralList = const Template(
       r"""Change the type of the list literal or the context in which it is used.""",
   withArgumentsOld: _withArgumentsOldInvalidCastLiteralList,
   withArguments: _withArgumentsInvalidCastLiteralList,
-  analyzerCodes: <String>["INVALID_CAST_LITERAL_LIST"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9032,7 +8875,6 @@ codeInvalidCastLiteralMap = const Template(
       r"""Change the type of the map literal or the context in which it is used.""",
   withArgumentsOld: _withArgumentsOldInvalidCastLiteralMap,
   withArguments: _withArgumentsInvalidCastLiteralMap,
-  analyzerCodes: <String>["INVALID_CAST_LITERAL_MAP"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9071,7 +8913,6 @@ codeInvalidCastLiteralSet = const Template(
       r"""Change the type of the set literal or the context in which it is used.""",
   withArgumentsOld: _withArgumentsOldInvalidCastLiteralSet,
   withArguments: _withArgumentsInvalidCastLiteralSet,
-  analyzerCodes: <String>["INVALID_CAST_LITERAL_SET"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9110,7 +8951,6 @@ codeInvalidCastLocalFunction = const Template(
       r"""Change the type of the function or the context in which it is used.""",
   withArgumentsOld: _withArgumentsOldInvalidCastLocalFunction,
   withArguments: _withArgumentsInvalidCastLocalFunction,
-  analyzerCodes: <String>["INVALID_CAST_FUNCTION"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9151,7 +8991,6 @@ codeInvalidCastNewExpr = const Template(
       r"""Change the type of the object being constructed or the context in which it is used.""",
   withArgumentsOld: _withArgumentsOldInvalidCastNewExpr,
   withArguments: _withArgumentsInvalidCastNewExpr,
-  analyzerCodes: <String>["INVALID_CAST_NEW_EXPR"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9190,7 +9029,6 @@ codeInvalidCastStaticMethod = const Template(
       r"""Change the type of the method or the context in which it is used.""",
   withArgumentsOld: _withArgumentsOldInvalidCastStaticMethod,
   withArguments: _withArgumentsInvalidCastStaticMethod,
-  analyzerCodes: <String>["INVALID_CAST_METHOD"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9231,7 +9069,6 @@ codeInvalidCastTopLevelFunction = const Template(
       r"""Change the type of the function or the context in which it is used.""",
   withArgumentsOld: _withArgumentsOldInvalidCastTopLevelFunction,
   withArguments: _withArgumentsInvalidCastTopLevelFunction,
-  analyzerCodes: <String>["INVALID_CAST_FUNCTION"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10140,7 +9977,6 @@ Message _withArgumentsOldInvalidTypeParameterVariancePositionInReturnType(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeInvalidUseOfNullAwareAccess = const MessageCode(
   "InvalidUseOfNullAwareAccess",
-  analyzerCodes: <String>["INVALID_USE_OF_NULL_AWARE_ACCESS"],
   problemMessage: r"""Cannot use '?.' here.""",
   correctionMessage: r"""Try using '.'.""",
 );
@@ -10156,7 +9992,6 @@ codeInvokeNonFunction = const Template(
       r"""'#name' isn't a function or method and can't be invoked.""",
   withArgumentsOld: _withArgumentsOldInvokeNonFunction,
   withArguments: _withArgumentsInvokeNonFunction,
-  analyzerCodes: <String>["INVOCATION_OF_NON_FUNCTION"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10185,7 +10020,6 @@ codeJointPatternVariableNotInAll = const Template(
       r"""The variable '#name' is available in some, but not all cases that share this body.""",
   withArgumentsOld: _withArgumentsOldJointPatternVariableNotInAll,
   withArguments: _withArgumentsJointPatternVariableNotInAll,
-  analyzerCodes: <String>["INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10214,7 +10048,6 @@ codeJointPatternVariableWithLabelDefault = const Template(
       r"""The variable '#name' is not available because there is a label or 'default' case.""",
   withArgumentsOld: _withArgumentsOldJointPatternVariableWithLabelDefault,
   withArguments: _withArgumentsJointPatternVariableWithLabelDefault,
-  analyzerCodes: <String>["INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11731,7 +11564,6 @@ codeLabelNotFound = const Template(
       r"""Try defining the label, or correcting the name to match an existing label.""",
   withArgumentsOld: _withArgumentsOldLabelNotFound,
   withArguments: _withArgumentsLabelNotFound,
-  analyzerCodes: <String>["LABEL_UNDEFINED"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12066,21 +11898,18 @@ Message _withArgumentsOldLateDefinitelyUnassignedError(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeListLiteralTooManyTypeArguments = const MessageCode(
   "ListLiteralTooManyTypeArguments",
-  analyzerCodes: <String>["EXPECTED_ONE_LIST_TYPE_ARGUMENTS"],
   problemMessage: r"""List literal requires exactly one type argument.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeListPatternTooManyTypeArguments = const MessageCode(
   "ListPatternTooManyTypeArguments",
-  analyzerCodes: <String>["EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS"],
   problemMessage: r"""A list pattern requires exactly one type argument.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeLoadLibraryTakesNoArguments = const MessageCode(
   "LoadLibraryTakesNoArguments",
-  analyzerCodes: <String>["LOAD_LIBRARY_TAKES_NO_ARGUMENTS"],
   problemMessage: r"""'loadLibrary' takes no arguments.""",
 );
 
@@ -12095,7 +11924,6 @@ codeLocalVariableUsedBeforeDeclared = const Template(
       r"""Local variable '#name' can't be referenced before it is declared.""",
   withArgumentsOld: _withArgumentsOldLocalVariableUsedBeforeDeclared,
   withArguments: _withArgumentsLocalVariableUsedBeforeDeclared,
-  analyzerCodes: <String>["REFERENCED_BEFORE_DECLARATION"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12259,7 +12087,6 @@ Message _withArgumentsOldMainWrongParameterTypeExported(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeMapPatternTypeArgumentMismatch = const MessageCode(
   "MapPatternTypeArgumentMismatch",
-  analyzerCodes: <String>["EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS"],
   problemMessage: r"""A map pattern requires exactly two type arguments.""",
 );
 
@@ -12273,7 +12100,6 @@ codeMemberConflictsWithConstructor = const Template(
   problemMessageTemplate: r"""The member conflicts with constructor '#name'.""",
   withArgumentsOld: _withArgumentsOldMemberConflictsWithConstructor,
   withArguments: _withArgumentsMemberConflictsWithConstructor,
-  analyzerCodes: <String>["CONFLICTS_WITH_MEMBER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12329,7 +12155,6 @@ codeMemberConflictsWithFactory = const Template(
   problemMessageTemplate: r"""The member conflicts with factory '#name'.""",
   withArgumentsOld: _withArgumentsOldMemberConflictsWithFactory,
   withArguments: _withArgumentsMemberConflictsWithFactory,
-  analyzerCodes: <String>["CONFLICTS_WITH_MEMBER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12383,7 +12208,6 @@ codeMemberNotFound = const Template(
   problemMessageTemplate: r"""Member not found: '#name'.""",
   withArgumentsOld: _withArgumentsOldMemberNotFound,
   withArguments: _withArgumentsMemberNotFound,
-  analyzerCodes: <String>["UNDEFINED_GETTER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12490,7 +12314,6 @@ codeMethodNotFound = const Template(
   problemMessageTemplate: r"""Method not found: '#name'.""",
   withArgumentsOld: _withArgumentsOldMethodNotFound,
   withArguments: _withArgumentsMethodNotFound,
-  analyzerCodes: <String>["UNDEFINED_METHOD"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12510,7 +12333,6 @@ Message _withArgumentsOldMethodNotFound(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeMissingExplicitConst = const MessageCode(
   "MissingExplicitConst",
-  analyzerCodes: <String>["NOT_CONSTANT_EXPRESSION"],
   problemMessage: r"""Constant expression expected.""",
   correctionMessage: r"""Try inserting 'const'.""",
 );
@@ -12559,7 +12381,6 @@ codeMissingImplementationNotAbstract = const Template(
  - provide a 'noSuchMethod' implementation.""",
   withArgumentsOld: _withArgumentsOldMissingImplementationNotAbstract,
   withArguments: _withArgumentsMissingImplementationNotAbstract,
-  analyzerCodes: <String>["CONCRETE_CLASS_WITH_ABSTRACT_MEMBER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12605,7 +12426,6 @@ const MessageCode codeMissingMain = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeMissingNamedSuperConstructorParameter = const MessageCode(
   "MissingNamedSuperConstructorParameter",
-  analyzerCodes: <String>["SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED"],
   problemMessage:
       r"""The super constructor has no corresponding named parameter.""",
 );
@@ -12618,7 +12438,6 @@ codeMissingPartOf = const Template(
       r"""Can't use '#uri' as a part, because it has no 'part of' declaration.""",
   withArgumentsOld: _withArgumentsOldMissingPartOf,
   withArguments: _withArgumentsMissingPartOf,
-  analyzerCodes: <String>["PART_OF_NON_PART"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12640,9 +12459,6 @@ Message _withArgumentsOldMissingPartOf(Uri uri) =>
 const MessageCode
 codeMissingPositionalSuperConstructorParameter = const MessageCode(
   "MissingPositionalSuperConstructorParameter",
-  analyzerCodes: <String>[
-    "SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL",
-  ],
   problemMessage:
       r"""The super constructor has no corresponding positional parameter.""",
 );
@@ -12660,7 +12476,6 @@ codeMissingVariablePattern = const Template(
       r"""Try declaring this variable pattern in the branch.""",
   withArgumentsOld: _withArgumentsOldMissingVariablePattern,
   withArguments: _withArgumentsMissingVariablePattern,
-  analyzerCodes: <String>["MISSING_VARIABLE_PATTERN"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12694,7 +12509,6 @@ codeMixinApplicationIncompatibleSupertype = const Template(
       r"""'#type' doesn't implement '#type2' so it can't be used with '#type3'.""",
   withArgumentsOld: _withArgumentsOldMixinApplicationIncompatibleSupertype,
   withArguments: _withArgumentsMixinApplicationIncompatibleSupertype,
-  analyzerCodes: <String>["MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12738,7 +12552,6 @@ codeMixinApplicationNoConcreteGetter = const Template(
       r"""The class doesn't have a concrete implementation of the super-accessed member '#name'.""",
   withArgumentsOld: _withArgumentsOldMixinApplicationNoConcreteGetter,
   withArguments: _withArgumentsMixinApplicationNoConcreteGetter,
-  analyzerCodes: <String>["MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12776,7 +12589,6 @@ codeMixinApplicationNoConcreteMethod = const Template(
       r"""The class doesn't have a concrete implementation of the super-invoked member '#name'.""",
   withArgumentsOld: _withArgumentsOldMixinApplicationNoConcreteMethod,
   withArguments: _withArgumentsMixinApplicationNoConcreteMethod,
-  analyzerCodes: <String>["MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12805,7 +12617,6 @@ codeMixinApplicationNoConcreteSetter = const Template(
       r"""The class doesn't have a concrete implementation of the super-accessed setter '#name'.""",
   withArgumentsOld: _withArgumentsOldMixinApplicationNoConcreteSetter,
   withArguments: _withArgumentsMixinApplicationNoConcreteSetter,
-  analyzerCodes: <String>["MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12826,7 +12637,6 @@ Message _withArgumentsOldMixinApplicationNoConcreteSetter(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeMixinDeferredMixin = const MessageCode(
   "MixinDeferredMixin",
-  analyzerCodes: <String>["MIXIN_DEFERRED_CLASS"],
   problemMessage: r"""Classes can't mix in deferred mixins.""",
   correctionMessage: r"""Try changing the import to not be deferred.""",
 );
@@ -12846,7 +12656,6 @@ codeMixinInferenceNoMatchingClass = const Template(
       r"""Type parameters couldn't be inferred for the mixin '#name' because '#name2' does not implement the mixin's supertype constraint '#type'.""",
   withArgumentsOld: _withArgumentsOldMixinInferenceNoMatchingClass,
   withArguments: _withArgumentsMixinInferenceNoMatchingClass,
-  analyzerCodes: <String>["MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12890,7 +12699,6 @@ codeMixinInheritsFromNotObject = const Template(
       r"""The class '#name' can't be used as a mixin because it extends a class other than 'Object'.""",
   withArgumentsOld: _withArgumentsOldMixinInheritsFromNotObject,
   withArguments: _withArgumentsMixinInheritsFromNotObject,
-  analyzerCodes: <String>["MIXIN_INHERITS_FROM_NOT_OBJECT"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12920,7 +12728,6 @@ codeMixinSubtypeOfBaseIsNotBase = const Template(
   correctionMessageTemplate: r"""Try adding 'base' to the mixin.""",
   withArgumentsOld: _withArgumentsOldMixinSubtypeOfBaseIsNotBase,
   withArguments: _withArgumentsMixinSubtypeOfBaseIsNotBase,
-  analyzerCodes: <String>["MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12957,7 +12764,6 @@ codeMixinSubtypeOfFinalIsNotBase = const Template(
   correctionMessageTemplate: r"""Try adding 'base' to the mixin.""",
   withArgumentsOld: _withArgumentsOldMixinSubtypeOfFinalIsNotBase,
   withArguments: _withArgumentsMixinSubtypeOfFinalIsNotBase,
-  analyzerCodes: <String>["MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12986,7 +12792,6 @@ Message _withArgumentsOldMixinSubtypeOfFinalIsNotBase(
 const MessageCode codeMixinSuperClassConstraintDeferredClass =
     const MessageCode(
       "MixinSuperClassConstraintDeferredClass",
-      analyzerCodes: <String>["MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS"],
       problemMessage:
           r"""Deferred classes can't be used as superclass constraints.""",
       correctionMessage: r"""Try changing the import to not be deferred.""",
@@ -12995,14 +12800,12 @@ const MessageCode codeMixinSuperClassConstraintDeferredClass =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeMoreThanOneSuperInitializer = const MessageCode(
   "MoreThanOneSuperInitializer",
-  analyzerCodes: <String>["MULTIPLE_SUPER_INITIALIZERS"],
   problemMessage: r"""Can't have more than one 'super' initializer.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeMultipleRepresentationFields = const MessageCode(
   "MultipleRepresentationFields",
-  analyzerCodes: <String>["MULTIPLE_REPRESENTATION_FIELDS"],
   problemMessage:
       r"""Each extension type should have exactly one representation field.""",
 );
@@ -13017,7 +12820,6 @@ codeNameNotFound = const Template(
   problemMessageTemplate: r"""Undefined name '#name'.""",
   withArgumentsOld: _withArgumentsOldNameNotFound,
   withArguments: _withArgumentsNameNotFound,
-  analyzerCodes: <String>["UNDEFINED_NAME"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13074,7 +12876,6 @@ Message _withArgumentsOldNameNotFoundInRecordNameGet(
 const MessageCode
 codeNamedFieldClashesWithPositionalFieldInRecord = const MessageCode(
   "NamedFieldClashesWithPositionalFieldInRecord",
-  analyzerCodes: <String>["INVALID_FIELD_NAME"],
   problemMessage:
       r"""Record field names can't be a dollar sign followed by an integer when integer is the index of a positional field.""",
 );
@@ -13188,7 +12989,6 @@ codeNoSuchNamedParameter = const Template(
   problemMessageTemplate: r"""No named parameter with the name '#name'.""",
   withArgumentsOld: _withArgumentsOldNoSuchNamedParameter,
   withArguments: _withArgumentsNoSuchNamedParameter,
-  analyzerCodes: <String>["UNDEFINED_NAMED_PARAMETER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13229,7 +13029,6 @@ const MessageCode codeNonAugmentationMemberConflictCause = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNonBoolCondition = const MessageCode(
   "NonBoolCondition",
-  analyzerCodes: <String>["NON_BOOL_CONDITION"],
   problemMessage: r"""Conditions must have a static type of 'bool'.""",
   correctionMessage: r"""Try changing the condition.""",
 );
@@ -13237,7 +13036,6 @@ const MessageCode codeNonBoolCondition = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNonConstConstructor = const MessageCode(
   "NonConstConstructor",
-  analyzerCodes: <String>["NOT_CONSTANT_EXPRESSION"],
   problemMessage:
       r"""Cannot invoke a non-'const' constructor where a const expression is expected.""",
   correctionMessage: r"""Try using a constructor or factory that is 'const'.""",
@@ -13246,7 +13044,6 @@ const MessageCode codeNonConstConstructor = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNonConstFactory = const MessageCode(
   "NonConstFactory",
-  analyzerCodes: <String>["NOT_CONSTANT_EXPRESSION"],
   problemMessage:
       r"""Cannot invoke a non-'const' factory where a const expression is expected.""",
   correctionMessage: r"""Try using a constructor or factory that is 'const'.""",
@@ -13279,7 +13076,6 @@ codeNonExhaustiveSwitchExpression = const Template(
       r"""Try adding a wildcard pattern or cases that match '#string2'.""",
   withArgumentsOld: _withArgumentsOldNonExhaustiveSwitchExpression,
   withArguments: _withArgumentsNonExhaustiveSwitchExpression,
-  analyzerCodes: <String>["NON_EXHAUSTIVE_SWITCH_EXPRESSION"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13331,7 +13127,6 @@ codeNonExhaustiveSwitchStatement = const Template(
       r"""Try adding a default case or cases that match '#string2'.""",
   withArgumentsOld: _withArgumentsOldNonExhaustiveSwitchStatement,
   withArguments: _withArgumentsNonExhaustiveSwitchStatement,
-  analyzerCodes: <String>["NON_EXHAUSTIVE_SWITCH_STATEMENT"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13505,7 +13300,6 @@ Message _withArgumentsOldNonSimpleBoundViaVariable(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNonVoidReturnOperator = const MessageCode(
   "NonVoidReturnOperator",
-  analyzerCodes: <String>["NON_VOID_RETURN_FOR_OPERATOR"],
   problemMessage: r"""The return type of the operator []= must be 'void'.""",
   correctionMessage: r"""Try changing the return type to 'void'.""",
 );
@@ -13513,7 +13307,6 @@ const MessageCode codeNonVoidReturnOperator = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNonVoidReturnSetter = const MessageCode(
   "NonVoidReturnSetter",
-  analyzerCodes: <String>["NON_VOID_RETURN_FOR_SETTER"],
   problemMessage:
       r"""The return type of the setter must be 'void' or absent.""",
   correctionMessage:
@@ -13523,7 +13316,6 @@ const MessageCode codeNonVoidReturnSetter = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNotAConstantExpression = const MessageCode(
   "NotAConstantExpression",
-  analyzerCodes: <String>["NOT_CONSTANT_EXPRESSION"],
   problemMessage: r"""Not a constant expression.""",
 );
 
@@ -13538,7 +13330,6 @@ codeNotAPrefixInTypeAnnotation = const Template(
       r"""'#name.#name2' can't be used as a type because '#name' doesn't refer to an import prefix.""",
   withArgumentsOld: _withArgumentsOldNotAPrefixInTypeAnnotation,
   withArguments: _withArgumentsNotAPrefixInTypeAnnotation,
-  analyzerCodes: <String>["NOT_A_TYPE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13572,7 +13363,6 @@ codeNotAType = const Template(
   problemMessageTemplate: r"""'#name' isn't a type.""",
   withArgumentsOld: _withArgumentsOldNotAType,
   withArguments: _withArgumentsNotAType,
-  analyzerCodes: <String>["NOT_A_TYPE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13599,7 +13389,6 @@ const MessageCode codeNotATypeContext = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNotAnLvalue = const MessageCode(
   "NotAnLvalue",
-  analyzerCodes: <String>["NOT_AN_LVALUE"],
   problemMessage: r"""Can't assign to this.""",
 );
 
@@ -13639,7 +13428,6 @@ codeNotConstantExpression = const Template(
   problemMessageTemplate: r"""#string is not a constant expression.""",
   withArgumentsOld: _withArgumentsOldNotConstantExpression,
   withArguments: _withArgumentsNotConstantExpression,
-  analyzerCodes: <String>["NOT_CONSTANT_EXPRESSION"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13963,7 +13751,6 @@ codeOperatorMinusParameterMismatch = const Template(
       r"""With zero parameters, it has the syntactic form '-a', formally known as 'unary-'. With one parameter, it has the syntactic form 'a - b', formally known as '-'.""",
   withArgumentsOld: _withArgumentsOldOperatorMinusParameterMismatch,
   withArguments: _withArgumentsOperatorMinusParameterMismatch,
-  analyzerCodes: <String>["WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14021,7 +13808,6 @@ codeOperatorParameterMismatch1 = const Template(
       r"""Operator '#name' should have exactly one parameter.""",
   withArgumentsOld: _withArgumentsOldOperatorParameterMismatch1,
   withArguments: _withArgumentsOperatorParameterMismatch1,
-  analyzerCodes: <String>["WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14050,7 +13836,6 @@ codeOperatorParameterMismatch2 = const Template(
       r"""Operator '#name' should have exactly two parameters.""",
   withArgumentsOld: _withArgumentsOldOperatorParameterMismatch2,
   withArguments: _withArgumentsOperatorParameterMismatch2,
-  analyzerCodes: <String>["WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14087,7 +13872,6 @@ codeOptionalNonNullableWithoutInitializerError = const Template(
       r"""Try adding either an explicit non-'null' default value or the 'required' modifier.""",
   withArgumentsOld: _withArgumentsOldOptionalNonNullableWithoutInitializerError,
   withArguments: _withArgumentsOptionalNonNullableWithoutInitializerError,
-  analyzerCodes: <String>["MISSING_DEFAULT_VALUE_FOR_PARAMETER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14203,7 +13987,6 @@ codeOverrideFewerNamedArguments = const Template(
       r"""The method '#name' has fewer named arguments than those of overridden method '#name2'.""",
   withArgumentsOld: _withArgumentsOldOverrideFewerNamedArguments,
   withArguments: _withArgumentsOverrideFewerNamedArguments,
-  analyzerCodes: <String>["INVALID_OVERRIDE_NAMED"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14238,7 +14021,6 @@ codeOverrideFewerPositionalArguments = const Template(
       r"""The method '#name' has fewer positional arguments than those of overridden method '#name2'.""",
   withArgumentsOld: _withArgumentsOldOverrideFewerPositionalArguments,
   withArguments: _withArgumentsOverrideFewerPositionalArguments,
-  analyzerCodes: <String>["INVALID_OVERRIDE_POSITIONAL"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14277,7 +14059,6 @@ codeOverrideMismatchNamedParameter = const Template(
       r"""The method '#name' doesn't have the named parameter '#name2' of overridden method '#name3'.""",
   withArgumentsOld: _withArgumentsOldOverrideMismatchNamedParameter,
   withArguments: _withArgumentsOverrideMismatchNamedParameter,
-  analyzerCodes: <String>["INVALID_OVERRIDE_NAMED"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14364,7 +14145,6 @@ codeOverrideMoreRequiredArguments = const Template(
       r"""The method '#name' has more required arguments than those of overridden method '#name2'.""",
   withArgumentsOld: _withArgumentsOldOverrideMoreRequiredArguments,
   withArguments: _withArgumentsOverrideMoreRequiredArguments,
-  analyzerCodes: <String>["INVALID_OVERRIDE_REQUIRED"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14413,7 +14193,6 @@ codeOverrideTypeMismatchParameter = const Template(
       r"""Change to a supertype of '#type2', or, for a covariant parameter, a subtype.""",
   withArgumentsOld: _withArgumentsOldOverrideTypeMismatchParameter,
   withArguments: _withArgumentsOverrideTypeMismatchParameter,
-  analyzerCodes: <String>["INVALID_METHOD_OVERRIDE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14479,7 +14258,6 @@ codeOverrideTypeMismatchReturnType = const Template(
   correctionMessageTemplate: r"""Change to a subtype of '#type2'.""",
   withArgumentsOld: _withArgumentsOldOverrideTypeMismatchReturnType,
   withArguments: _withArgumentsOverrideTypeMismatchReturnType,
-  analyzerCodes: <String>["INVALID_METHOD_OVERRIDE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14533,7 +14311,6 @@ codeOverrideTypeMismatchSetter = const Template(
       r"""The field '#name' has type '#type', which does not match the corresponding type, '#type2', in the overridden setter, '#name2'.""",
   withArgumentsOld: _withArgumentsOldOverrideTypeMismatchSetter,
   withArguments: _withArgumentsOverrideTypeMismatchSetter,
-  analyzerCodes: <String>["INVALID_METHOD_OVERRIDE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14650,7 +14427,6 @@ codeOverrideTypeParametersMismatch = const Template(
       r"""Declared type variables of '#name' doesn't match those on overridden method '#name2'.""",
   withArgumentsOld: _withArgumentsOldOverrideTypeParametersMismatch,
   withArguments: _withArgumentsOverrideTypeParametersMismatch,
-  analyzerCodes: <String>["INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14736,7 +14512,6 @@ Message _withArgumentsOldPackagesFileFormat(String string) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codePartExport = const MessageCode(
   "PartExport",
-  analyzerCodes: <String>["EXPORT_OF_NON_LIBRARY"],
   problemMessage:
       r"""Can't export this file because it contains a 'part of' declaration.""",
 );
@@ -14751,7 +14526,6 @@ const MessageCode codePartExportContext = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codePartInPart = const MessageCode(
   "PartInPart",
-  analyzerCodes: <String>["NON_PART_OF_DIRECTIVE_IN_PART"],
   problemMessage:
       r"""A file that's a part of a library can't have parts itself.""",
   correctionMessage:
@@ -14775,7 +14549,6 @@ codePartOfInLibrary = const Template(
       r"""Try removing the 'part of' declaration, or using '#uri' as a part.""",
   withArgumentsOld: _withArgumentsOldPartOfInLibrary,
   withArguments: _withArgumentsPartOfInLibrary,
-  analyzerCodes: <String>["IMPORT_OF_NON_LIBRARY"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14810,7 +14583,6 @@ codePartOfLibraryNameMismatch = const Template(
       r"""Using '#uri' as part of '#name' but its 'part of' declaration says '#name2'.""",
   withArgumentsOld: _withArgumentsOldPartOfLibraryNameMismatch,
   withArguments: _withArgumentsPartOfLibraryNameMismatch,
-  analyzerCodes: <String>["PART_OF_DIFFERENT_LIBRARY"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14841,14 +14613,12 @@ Message _withArgumentsOldPartOfLibraryNameMismatch(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codePartOfSelf = const MessageCode(
   "PartOfSelf",
-  analyzerCodes: <String>["PART_OF_NON_PART"],
   problemMessage: r"""A file can't be a part of itself.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codePartOfTwoLibraries = const MessageCode(
   "PartOfTwoLibraries",
-  analyzerCodes: <String>["PART_OF_DIFFERENT_LIBRARY"],
   problemMessage: r"""A file can't be part of more than one library.""",
   correctionMessage:
       r"""Try moving the shared declarations into the libraries, or into a new library.""",
@@ -14872,7 +14642,6 @@ codePartOfUriMismatch = const Template(
       r"""Using '#uri' as part of '#uri2' but its 'part of' declaration says '#uri3'.""",
   withArgumentsOld: _withArgumentsOldPartOfUriMismatch,
   withArguments: _withArgumentsPartOfUriMismatch,
-  analyzerCodes: <String>["PART_OF_DIFFERENT_LIBRARY"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14909,7 +14678,6 @@ codePartOfUseUri = const Template(
       r"""Try changing the 'part of' declaration to use a relative file name.""",
   withArgumentsOld: _withArgumentsOldPartOfUseUri,
   withArguments: _withArgumentsPartOfUseUri,
-  analyzerCodes: <String>["PART_OF_UNNAMED_LIBRARY"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14949,7 +14717,6 @@ codePartTwice = const Template(
   problemMessageTemplate: r"""Can't use '#uri' as a part more than once.""",
   withArgumentsOld: _withArgumentsOldPartTwice,
   withArguments: _withArgumentsPartTwice,
-  analyzerCodes: <String>["DUPLICATE_PART"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15038,7 +14805,6 @@ Message _withArgumentsOldPatchInjectionFailed(String name, Uri uri) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codePatternAssignmentNotLocalVariable = const MessageCode(
   "PatternAssignmentNotLocalVariable",
-  analyzerCodes: <String>["PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE"],
   problemMessage:
       r"""Only local variables or formal parameters can be used in pattern assignments.""",
   correctionMessage: r"""Try assigning to a local variable.""",
@@ -15063,7 +14829,6 @@ codePatternTypeMismatchInIrrefutableContext = const Template(
       r"""Try changing the required type of the pattern, or the matched value type.""",
   withArgumentsOld: _withArgumentsOldPatternTypeMismatchInIrrefutableContext,
   withArguments: _withArgumentsPatternTypeMismatchInIrrefutableContext,
-  analyzerCodes: <String>["PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15097,7 +14862,6 @@ Message _withArgumentsOldPatternTypeMismatchInIrrefutableContext(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codePatternVariableAssignmentInsideGuard = const MessageCode(
   "PatternVariableAssignmentInsideGuard",
-  analyzerCodes: <String>["PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD"],
   problemMessage:
       r"""Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.""",
   correctionMessage: r"""Try assigning to a different variable.""",
@@ -15106,7 +14870,6 @@ const MessageCode codePatternVariableAssignmentInsideGuard = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codePlatformPrivateLibraryAccess = const MessageCode(
   "PlatformPrivateLibraryAccess",
-  analyzerCodes: <String>["IMPORT_INTERNAL_LIBRARY"],
   problemMessage: r"""Can't access platform private library.""",
 );
 
@@ -15120,7 +14883,6 @@ const MessageCode codePositionalSuperParametersAndArguments = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeRecordFieldsCantBePrivate = const MessageCode(
   "RecordFieldsCantBePrivate",
-  analyzerCodes: <String>["INVALID_FIELD_NAME"],
   problemMessage: r"""Record field names can't be private.""",
 );
 
@@ -15142,7 +14904,6 @@ const MessageCode codeRecordUsedAsCallable = const MessageCode(
 const MessageCode codeRedirectingConstructorWithAnotherInitializer =
     const MessageCode(
       "RedirectingConstructorWithAnotherInitializer",
-      analyzerCodes: <String>["FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR"],
       problemMessage:
           r"""A redirecting constructor can't have other initializers.""",
     );
@@ -15151,7 +14912,6 @@ const MessageCode codeRedirectingConstructorWithAnotherInitializer =
 const MessageCode
 codeRedirectingConstructorWithMultipleRedirectInitializers = const MessageCode(
   "RedirectingConstructorWithMultipleRedirectInitializers",
-  analyzerCodes: <String>["MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS"],
   problemMessage:
       r"""A redirecting constructor can't have more than one redirection.""",
 );
@@ -15160,7 +14920,6 @@ codeRedirectingConstructorWithMultipleRedirectInitializers = const MessageCode(
 const MessageCode codeRedirectingConstructorWithSuperInitializer =
     const MessageCode(
       "RedirectingConstructorWithSuperInitializer",
-      analyzerCodes: <String>["SUPER_IN_REDIRECTING_CONSTRUCTOR"],
       problemMessage:
           r"""A redirecting constructor can't have a 'super' initializer.""",
     );
@@ -15176,7 +14935,6 @@ codeRedirectingFactoryIncompatibleTypeArgument = const Template(
   correctionMessageTemplate: r"""Try using a different type as argument.""",
   withArgumentsOld: _withArgumentsOldRedirectingFactoryIncompatibleTypeArgument,
   withArguments: _withArgumentsRedirectingFactoryIncompatibleTypeArgument,
-  analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15217,7 +14975,6 @@ codeRedirectionTargetNotFound = const Template(
       r"""Redirection constructor target not found: '#name'""",
   withArgumentsOld: _withArgumentsOldRedirectionTargetNotFound,
   withArguments: _withArgumentsRedirectionTargetNotFound,
-  analyzerCodes: <String>["REDIRECT_TO_MISSING_CONSTRUCTOR"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15237,7 +14994,6 @@ Message _withArgumentsOldRedirectionTargetNotFound(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeRefutablePatternInIrrefutableContext = const MessageCode(
   "RefutablePatternInIrrefutableContext",
-  analyzerCodes: <String>["REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT"],
   problemMessage:
       r"""Refutable patterns can't be used in an irrefutable context.""",
   correctionMessage:
@@ -15247,14 +15003,12 @@ const MessageCode codeRefutablePatternInIrrefutableContext = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeRepresentationFieldModifier = const MessageCode(
   "RepresentationFieldModifier",
-  analyzerCodes: <String>["REPRESENTATION_FIELD_MODIFIER"],
   problemMessage: r"""Representation fields can't have modifiers.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeRepresentationFieldTrailingComma = const MessageCode(
   "RepresentationFieldTrailingComma",
-  analyzerCodes: <String>["REPRESENTATION_FIELD_TRAILING_COMMA"],
   problemMessage: r"""The representation field can't have a trailing comma.""",
 );
 
@@ -15298,14 +15052,12 @@ const MessageCode codeRestPatternInMapPattern = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeRethrowNotCatch = const MessageCode(
   "RethrowNotCatch",
-  analyzerCodes: <String>["RETHROW_OUTSIDE_CATCH"],
   problemMessage: r"""'rethrow' can only be used in catch clauses.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeReturnFromVoidFunction = const MessageCode(
   "ReturnFromVoidFunction",
-  analyzerCodes: <String>["RETURN_OF_INVALID_TYPE"],
   problemMessage: r"""Can't return a value from a void function.""",
 );
 
@@ -15415,7 +15167,6 @@ codeSealedClassSubtypeOutsideOfLibrary = const Template(
       r"""The class '#name' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.""",
   withArgumentsOld: _withArgumentsOldSealedClassSubtypeOutsideOfLibrary,
   withArguments: _withArgumentsSealedClassSubtypeOutsideOfLibrary,
-  analyzerCodes: <String>["SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15445,7 +15196,6 @@ codeSetterConflictsWithDeclaration = const Template(
   problemMessageTemplate: r"""The setter conflicts with declaration '#name'.""",
   withArgumentsOld: _withArgumentsOldSetterConflictsWithDeclaration,
   withArguments: _withArgumentsSetterConflictsWithDeclaration,
-  analyzerCodes: <String>["CONFLICTS_WITH_MEMBER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15501,7 +15251,6 @@ codeSetterNotFound = const Template(
   problemMessageTemplate: r"""Setter not found: '#name'.""",
   withArgumentsOld: _withArgumentsOldSetterNotFound,
   withArguments: _withArgumentsSetterNotFound,
-  analyzerCodes: <String>["UNDEFINED_SETTER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15521,7 +15270,6 @@ Message _withArgumentsOldSetterNotFound(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeSetterWithWrongNumberOfFormals = const MessageCode(
   "SetterWithWrongNumberOfFormals",
-  analyzerCodes: <String>["WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER"],
   problemMessage: r"""A setter should have exactly one formal parameter.""",
 );
 
@@ -15699,7 +15447,6 @@ codeSpreadElementTypeMismatch = const Template(
       r"""Can't assign spread elements of type '#type' to collection elements of type '#type2'.""",
   withArgumentsOld: _withArgumentsOldSpreadElementTypeMismatch,
   withArguments: _withArgumentsSpreadElementTypeMismatch,
-  analyzerCodes: <String>["LIST_ELEMENT_TYPE_NOT_ASSIGNABLE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15743,7 +15490,6 @@ codeSpreadMapEntryElementKeyTypeMismatch = const Template(
       r"""Can't assign spread entry keys of type '#type' to map entry keys of type '#type2'.""",
   withArgumentsOld: _withArgumentsOldSpreadMapEntryElementKeyTypeMismatch,
   withArguments: _withArgumentsSpreadMapEntryElementKeyTypeMismatch,
-  analyzerCodes: <String>["MAP_KEY_TYPE_NOT_ASSIGNABLE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15783,7 +15529,6 @@ codeSpreadMapEntryElementValueTypeMismatch = const Template(
       r"""Can't assign spread entry values of type '#type' to map entry values of type '#type2'.""",
   withArgumentsOld: _withArgumentsOldSpreadMapEntryElementValueTypeMismatch,
   withArguments: _withArgumentsSpreadMapEntryElementValueTypeMismatch,
-  analyzerCodes: <String>["MAP_VALUE_TYPE_NOT_ASSIGNABLE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15883,7 +15628,6 @@ codeStaticConflictsWithInstance = const Template(
       r"""Static property '#name' conflicts with instance property of the same name.""",
   withArgumentsOld: _withArgumentsOldStaticConflictsWithInstance,
   withArguments: _withArgumentsStaticConflictsWithInstance,
-  analyzerCodes: <String>["CONFLICTS_WITH_MEMBER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15950,7 +15694,6 @@ codeSubtypeOfBaseIsNotBaseFinalOrSealed = const Template(
       r"""Try adding 'base', 'final', or 'sealed' to the type.""",
   withArgumentsOld: _withArgumentsOldSubtypeOfBaseIsNotBaseFinalOrSealed,
   withArguments: _withArgumentsSubtypeOfBaseIsNotBaseFinalOrSealed,
-  analyzerCodes: <String>["SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15990,7 +15733,6 @@ codeSubtypeOfFinalIsNotBaseFinalOrSealed = const Template(
       r"""Try adding 'base', 'final', or 'sealed' to the type.""",
   withArgumentsOld: _withArgumentsOldSubtypeOfFinalIsNotBaseFinalOrSealed,
   withArguments: _withArgumentsSubtypeOfFinalIsNotBaseFinalOrSealed,
-  analyzerCodes: <String>["SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16022,7 +15764,6 @@ Message _withArgumentsOldSubtypeOfFinalIsNotBaseFinalOrSealed(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeSuperAsExpression = const MessageCode(
   "SuperAsExpression",
-  analyzerCodes: <String>["SUPER_AS_EXPRESSION"],
   problemMessage: r"""Can't use 'super' as an expression.""",
   correctionMessage:
       r"""To delegate a constructor to a super constructor, put the super call as an initializer.""",
@@ -16031,7 +15772,6 @@ const MessageCode codeSuperAsExpression = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeSuperAsIdentifier = const MessageCode(
   "SuperAsIdentifier",
-  analyzerCodes: <String>["SUPER_AS_EXPRESSION"],
   problemMessage: r"""Expected identifier, but got 'super'.""",
 );
 
@@ -16203,7 +15943,6 @@ Message _withArgumentsOldSuperExtensionTypeIsTypeParameter(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeSuperInitializerNotLast = const MessageCode(
   "SuperInitializerNotLast",
-  analyzerCodes: <String>["SUPER_INVOCATION_NOT_LAST"],
   problemMessage: r"""Can't have initializers after 'super'.""",
 );
 
@@ -16233,10 +15972,6 @@ codeSuperclassHasNoConstructor = const Template(
   problemMessageTemplate: r"""Superclass has no constructor named '#name'.""",
   withArgumentsOld: _withArgumentsOldSuperclassHasNoConstructor,
   withArguments: _withArgumentsSuperclassHasNoConstructor,
-  analyzerCodes: <String>[
-    "UNDEFINED_CONSTRUCTOR_IN_INITIALIZER",
-    "UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT",
-  ],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16264,7 +15999,6 @@ codeSuperclassHasNoDefaultConstructor = const Template(
       r"""The superclass, '#name', has no unnamed constructor that takes no arguments.""",
   withArgumentsOld: _withArgumentsOldSuperclassHasNoDefaultConstructor,
   withArguments: _withArgumentsSuperclassHasNoDefaultConstructor,
-  analyzerCodes: <String>["NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16294,7 +16028,6 @@ codeSuperclassHasNoGetter = const Template(
   problemMessageTemplate: r"""Superclass has no getter named '#name'.""",
   withArgumentsOld: _withArgumentsOldSuperclassHasNoGetter,
   withArguments: _withArgumentsSuperclassHasNoGetter,
-  analyzerCodes: <String>["UNDEFINED_SUPER_GETTER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16321,7 +16054,6 @@ codeSuperclassHasNoMember = const Template(
   problemMessageTemplate: r"""Superclass has no member named '#name'.""",
   withArgumentsOld: _withArgumentsOldSuperclassHasNoMember,
   withArguments: _withArgumentsSuperclassHasNoMember,
-  analyzerCodes: <String>["UNDEFINED_SUPER_GETTER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16348,7 +16080,6 @@ codeSuperclassHasNoMethod = const Template(
   problemMessageTemplate: r"""Superclass has no method named '#name'.""",
   withArgumentsOld: _withArgumentsOldSuperclassHasNoMethod,
   withArguments: _withArgumentsSuperclassHasNoMethod,
-  analyzerCodes: <String>["UNDEFINED_SUPER_METHOD"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16375,7 +16106,6 @@ codeSuperclassHasNoSetter = const Template(
   problemMessageTemplate: r"""Superclass has no setter named '#name'.""",
   withArgumentsOld: _withArgumentsOldSuperclassHasNoSetter,
   withArguments: _withArgumentsSuperclassHasNoSetter,
-  analyzerCodes: <String>["UNDEFINED_SUPER_SETTER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16408,7 +16138,6 @@ codeSupertypeIsIllegal = const Template(
   problemMessageTemplate: r"""The type '#name' can't be used as supertype.""",
   withArgumentsOld: _withArgumentsOldSupertypeIsIllegal,
   withArguments: _withArgumentsSupertypeIsIllegal,
-  analyzerCodes: <String>["EXTENDS_NON_CLASS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16436,7 +16165,6 @@ codeSupertypeIsIllegalAliased = const Template(
       r"""The type '#name' which is an alias of '#type' can't be used as supertype.""",
   withArgumentsOld: _withArgumentsOldSupertypeIsIllegalAliased,
   withArguments: _withArgumentsSupertypeIsIllegalAliased,
-  analyzerCodes: <String>["EXTENDS_NON_CLASS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16473,7 +16201,6 @@ codeSupertypeIsNullableAliased = const Template(
       r"""The type '#name' which is an alias of '#type' can't be used as supertype because it is nullable.""",
   withArgumentsOld: _withArgumentsOldSupertypeIsNullableAliased,
   withArguments: _withArgumentsSupertypeIsNullableAliased,
-  analyzerCodes: <String>["EXTENDS_NON_CLASS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16510,7 +16237,6 @@ codeSupertypeIsTypeParameter = const Template(
       r"""The type variable '#name' can't be used as supertype.""",
   withArgumentsOld: _withArgumentsOldSupertypeIsTypeParameter,
   withArguments: _withArgumentsSupertypeIsTypeParameter,
-  analyzerCodes: <String>["EXTENDS_NON_CLASS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16531,7 +16257,6 @@ Message _withArgumentsOldSupertypeIsTypeParameter(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeSwitchCaseFallThrough = const MessageCode(
   "SwitchCaseFallThrough",
-  analyzerCodes: <String>["CASE_BLOCK_NOT_TERMINATED"],
   problemMessage: r"""Switch case may fall through to the next case.""",
 );
 
@@ -16615,7 +16340,6 @@ Message _withArgumentsOldThisAccessInFieldInitializer(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeThisAsIdentifier = const MessageCode(
   "ThisAsIdentifier",
-  analyzerCodes: <String>["INVALID_REFERENCE_TO_THIS"],
   problemMessage: r"""Expected identifier, but got 'this'.""",
 );
 
@@ -16657,7 +16381,6 @@ codeThisOrSuperAccessInFieldInitializer = const Template(
   problemMessageTemplate: r"""Can't access '#string' in a field initializer.""",
   withArgumentsOld: _withArgumentsOldThisOrSuperAccessInFieldInitializer,
   withArguments: _withArgumentsThisOrSuperAccessInFieldInitializer,
-  analyzerCodes: <String>["THIS_ACCESS_FROM_INITIALIZER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16719,7 +16442,6 @@ codeTooFewArguments = const Template(
       r"""Too few positional arguments: #count required, #count2 given.""",
   withArgumentsOld: _withArgumentsOldTooFewArguments,
   withArguments: _withArgumentsTooFewArguments,
-  analyzerCodes: <String>["NOT_ENOUGH_REQUIRED_ARGUMENTS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16752,7 +16474,6 @@ codeTooManyArguments = const Template(
       r"""Try removing the extra positional arguments.""",
   withArgumentsOld: _withArgumentsOldTooManyArguments,
   withArguments: _withArgumentsTooManyArguments,
-  analyzerCodes: <String>["EXTRA_POSITIONAL_ARGUMENTS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16783,7 +16504,6 @@ codeTypeArgumentMismatch = const Template(
   problemMessageTemplate: r"""Expected #count type arguments.""",
   withArgumentsOld: _withArgumentsOldTypeArgumentMismatch,
   withArguments: _withArgumentsTypeArgumentMismatch,
-  analyzerCodes: <String>["WRONG_NUMBER_OF_TYPE_ARGUMENTS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16809,7 +16529,6 @@ codeTypeNotFound = const Template(
   problemMessageTemplate: r"""Type '#name' not found.""",
   withArgumentsOld: _withArgumentsOldTypeNotFound,
   withArguments: _withArgumentsTypeNotFound,
-  analyzerCodes: <String>["UNDEFINED_CLASS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16891,7 +16610,6 @@ Message _withArgumentsOldTypeOriginWithFileUri(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeTypeParameterDuplicatedName = const MessageCode(
   "TypeParameterDuplicatedName",
-  analyzerCodes: <String>["DUPLICATE_DEFINITION"],
   problemMessage: r"""A type variable can't have the same name as another.""",
 );
 
@@ -16925,7 +16643,6 @@ Message _withArgumentsOldTypeParameterDuplicatedNameCause(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeTypeParameterSameNameAsEnclosing = const MessageCode(
   "TypeParameterSameNameAsEnclosing",
-  analyzerCodes: <String>["CONFLICTING_TYPE_VARIABLE_AND_CLASS"],
   problemMessage:
       r"""A type variable can't have the same name as its enclosing declaration.""",
 );
@@ -16933,14 +16650,12 @@ const MessageCode codeTypeParameterSameNameAsEnclosing = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeTypeVariableInConstantContext = const MessageCode(
   "TypeVariableInConstantContext",
-  analyzerCodes: <String>["TYPE_PARAMETER_IN_CONST_EXPRESSION"],
   problemMessage: r"""Type variables can't be used as constants.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeTypeVariableInStaticContext = const MessageCode(
   "TypeVariableInStaticContext",
-  analyzerCodes: <String>["TYPE_PARAMETER_REFERENCED_BY_STATIC"],
   problemMessage: r"""Type variables can't be used in static members.""",
 );
 
@@ -16954,14 +16669,12 @@ const MessageCode codeTypedefCause = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeTypedefNotFunction = const MessageCode(
   "TypedefNotFunction",
-  analyzerCodes: <String>["INVALID_GENERIC_FUNCTION_TYPE"],
   problemMessage: r"""Can't create typedef from non-function type.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeTypedefNotType = const MessageCode(
   "TypedefNotType",
-  analyzerCodes: <String>["INVALID_TYPE_IN_TYPEDEF"],
   problemMessage: r"""Can't create typedef from non-type.""",
 );
 
@@ -17001,7 +16714,6 @@ codeUnavailableDartLibrary = const Template(
       r"""Dart library '#uri' is not available on this platform.""",
   withArgumentsOld: _withArgumentsOldUnavailableDartLibrary,
   withArguments: _withArgumentsUnavailableDartLibrary,
-  analyzerCodes: <String>["URI_DOES_NOT_EXIST"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -17032,7 +16744,6 @@ codeUndefinedGetter = const Template(
       r"""Try correcting the name to the name of an existing getter, or defining a getter or field named '#name'.""",
   withArgumentsOld: _withArgumentsOldUndefinedGetter,
   withArguments: _withArgumentsUndefinedGetter,
-  analyzerCodes: <String>["UNDEFINED_GETTER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -17071,7 +16782,6 @@ codeUndefinedMethod = const Template(
       r"""Try correcting the name to the name of an existing method, or defining a method named '#name'.""",
   withArgumentsOld: _withArgumentsOldUndefinedMethod,
   withArguments: _withArgumentsUndefinedMethod,
-  analyzerCodes: <String>["UNDEFINED_METHOD"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -17110,7 +16820,6 @@ codeUndefinedOperator = const Template(
       r"""Try correcting the operator to an existing operator, or defining a '#name' operator.""",
   withArgumentsOld: _withArgumentsOldUndefinedOperator,
   withArguments: _withArgumentsUndefinedOperator,
-  analyzerCodes: <String>["UNDEFINED_METHOD"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -17149,7 +16858,6 @@ codeUndefinedSetter = const Template(
       r"""Try correcting the name to the name of an existing setter, or defining a setter or field named '#name'.""",
   withArgumentsOld: _withArgumentsOldUndefinedSetter,
   withArguments: _withArgumentsUndefinedSetter,
-  analyzerCodes: <String>["UNDEFINED_SETTER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -17179,7 +16887,6 @@ Message _withArgumentsOldUndefinedSetter(String name, DartType type) =>
 const MessageCode
 codeUnexpectedSuperParametersInGenerativeConstructors = const MessageCode(
   "UnexpectedSuperParametersInGenerativeConstructors",
-  analyzerCodes: <String>["INVALID_SUPER_FORMAL_PARAMETER_LOCATION"],
   problemMessage:
       r"""Super parameters can only be used in non-redirecting generative constructors.""",
 );
@@ -17499,7 +17206,6 @@ const MessageCode codeUnsoundSwitchStatementError = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeUnspecifiedGetterNameInObjectPattern = const MessageCode(
   "UnspecifiedGetterNameInObjectPattern",
-  analyzerCodes: <String>["MISSING_OBJECT_PATTERN_GETTER_NAME"],
   problemMessage:
       r"""The getter name is not specified explicitly, and the pattern is not a variable. Try specifying the getter name explicitly, or using a variable pattern.""",
 );
@@ -17525,7 +17231,6 @@ codeUntranslatableUri = const Template(
   problemMessageTemplate: r"""Not found: '#uri'""",
   withArgumentsOld: _withArgumentsOldUntranslatableUri,
   withArguments: _withArgumentsUntranslatableUri,
-  analyzerCodes: <String>["URI_DOES_NOT_EXIST"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -17622,7 +17327,6 @@ const MessageCode codeVerificationErrorOriginContext = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeVoidExpression = const MessageCode(
   "VoidExpression",
-  analyzerCodes: <String>["USE_OF_VOID_RESULT"],
   problemMessage: r"""This expression has type 'void' and can't be used.""",
 );
 
@@ -17727,7 +17431,6 @@ codeWrongTypeParameterVarianceInSuperinterface = const Template(
       r"""'#name' can't be used contravariantly or invariantly in '#type'.""",
   withArgumentsOld: _withArgumentsOldWrongTypeParameterVarianceInSuperinterface,
   withArguments: _withArgumentsWrongTypeParameterVarianceInSuperinterface,
-  analyzerCodes: <String>["WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

@@ -89,18 +89,21 @@ part of 'cfe_codes.dart';
         }
       }
     }
+    var forFeAnalyzerShared =
+        errorCodeInfo is SharedErrorCodeInfo ||
+        errorCodeInfo is FrontEndErrorCodeInfo && errorCodeInfo.pseudoShared;
     String template;
     try {
       template = _TemplateCompiler(
         name: name,
         index: index,
         errorCodeInfo: errorCodeInfo,
+        forFeAnalyzerShared: forFeAnalyzerShared,
       ).compile();
     } catch (e, st) {
       Error.throwWithStackTrace('Error while compiling $name: $e', st);
     }
-    if (errorCodeInfo is SharedErrorCodeInfo ||
-        errorCodeInfo is FrontEndErrorCodeInfo && errorCodeInfo.pseudoShared) {
+    if (forFeAnalyzerShared) {
       sharedMessages.writeln(template);
     } else {
       cfeMessages.writeln(template);
@@ -154,6 +157,9 @@ class _TemplateCompiler {
   final String? severity;
   final Map<String, ErrorCodeParameter> parameters;
 
+  /// Whether the template will be generated into `pkg/_fe_analyzer_shared`.
+  final bool forFeAnalyzerShared;
+
   late final Set<String> usedNames = {
     'conversions',
     'labeler',
@@ -170,6 +176,7 @@ class _TemplateCompiler {
     required this.name,
     required this.index,
     required CfeStyleErrorCodeInfo errorCodeInfo,
+    required this.forFeAnalyzerShared,
   }) : problemMessage = errorCodeInfo.problemMessage,
        correctionMessage = errorCodeInfo.correctionMessage,
        analyzerCodes = errorCodeInfo.analyzerCodes,
@@ -180,7 +187,7 @@ class _TemplateCompiler {
     var codeArguments = <String>[
       if (index != null)
         'index: $index'
-      else if (analyzerCodes.isNotEmpty)
+      else if (forFeAnalyzerShared && analyzerCodes.isNotEmpty)
         // If "index:" is defined, then "analyzerCode:" should not be generated
         // in the front end. See comment in messages.yaml
         'analyzerCodes: <String>["${analyzerCodes.join('", "')}"]',
