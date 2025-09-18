@@ -1163,6 +1163,64 @@ TEST_CASE(DartAPI_TypeNever) {
   EXPECT_STREQ("Never", cstr);
 }
 
+TEST_CASE(DartAPI_CoreTypes) {
+  {  // String
+    Dart_Handle type = Dart_TypeString();
+    EXPECT_VALID(type);
+    EXPECT(Dart_IsType(type));
+
+    Dart_Handle str = Dart_ToString(type);
+    EXPECT_VALID(str);
+    const char* cstr = nullptr;
+    EXPECT_VALID(Dart_StringToCString(str, &cstr));
+    EXPECT_STREQ("String", cstr);
+  }
+  {  // Double
+    Dart_Handle type = Dart_TypeDouble();
+    EXPECT_VALID(type);
+    EXPECT(Dart_IsType(type));
+
+    Dart_Handle str = Dart_ToString(type);
+    EXPECT_VALID(str);
+    const char* cstr = nullptr;
+    EXPECT_VALID(Dart_StringToCString(str, &cstr));
+    EXPECT_STREQ("double", cstr);
+  }
+  {  // Boolean
+    Dart_Handle type = Dart_TypeBoolean();
+    EXPECT_VALID(type);
+    EXPECT(Dart_IsType(type));
+
+    Dart_Handle str = Dart_ToString(type);
+    EXPECT_VALID(str);
+    const char* cstr = nullptr;
+    EXPECT_VALID(Dart_StringToCString(str, &cstr));
+    EXPECT_STREQ("bool", cstr);
+  }
+  {  // Int
+    Dart_Handle type = Dart_TypeInt();
+    EXPECT_VALID(type);
+    EXPECT(Dart_IsType(type));
+
+    Dart_Handle str = Dart_ToString(type);
+    EXPECT_VALID(str);
+    const char* cstr = nullptr;
+    EXPECT_VALID(Dart_StringToCString(str, &cstr));
+    EXPECT_STREQ("int", cstr);
+  }
+  {  // Object
+    Dart_Handle type = Dart_TypeObject();
+    EXPECT_VALID(type);
+    EXPECT(Dart_IsType(type));
+
+    Dart_Handle str = Dart_ToString(type);
+    EXPECT_VALID(str);
+    const char* cstr = nullptr;
+    EXPECT_VALID(Dart_StringToCString(str, &cstr));
+    EXPECT_STREQ("Object", cstr);
+  }
+}
+
 TEST_CASE(DartAPI_IdentityEquals) {
   Dart_Handle five = Dart_NewInteger(5);
   Dart_Handle five_again = Dart_NewInteger(5);

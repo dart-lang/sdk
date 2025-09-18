@@ -2307,6 +2307,41 @@ DART_EXPORT Dart_Handle Dart_TypeNever() {
   return Api::NewHandle(T, Type::NeverType());
 }
 
+DART_EXPORT Dart_Handle Dart_TypeString() {
+  DARTSCOPE(Thread::Current());
+  CHECK_CALLBACK_STATE(T);
+  API_TIMELINE_DURATION(T);
+  return Api::NewHandle(T, T->isolate_group()->object_store()->string_type());
+}
+
+DART_EXPORT Dart_Handle Dart_TypeDouble() {
+  DARTSCOPE(Thread::Current());
+  CHECK_CALLBACK_STATE(T);
+  API_TIMELINE_DURATION(T);
+  return Api::NewHandle(T, T->isolate_group()->object_store()->double_type());
+}
+
+DART_EXPORT Dart_Handle Dart_TypeInt() {
+  DARTSCOPE(Thread::Current());
+  CHECK_CALLBACK_STATE(T);
+  API_TIMELINE_DURATION(T);
+  return Api::NewHandle(T, T->isolate_group()->object_store()->int_type());
+}
+
+DART_EXPORT Dart_Handle Dart_TypeBoolean() {
+  DARTSCOPE(Thread::Current());
+  CHECK_CALLBACK_STATE(T);
+  API_TIMELINE_DURATION(T);
+  return Api::NewHandle(T, T->isolate_group()->object_store()->bool_type());
+}
+
+DART_EXPORT Dart_Handle Dart_TypeObject() {
+  DARTSCOPE(Thread::Current());
+  CHECK_CALLBACK_STATE(T);
+  API_TIMELINE_DURATION(T);
+  return Api::NewHandle(T, T->isolate_group()->object_store()->object_type());
+}
+
 DART_EXPORT Dart_Handle Dart_ObjectEquals(Dart_Handle obj1,
                                           Dart_Handle obj2,
                                           bool* value) {

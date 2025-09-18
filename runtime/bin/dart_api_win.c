@@ -149,6 +149,11 @@ typedef Dart_Handle (*Dart_EmptyStringType)();
 typedef Dart_Handle (*Dart_TypeDynamicType)();
 typedef Dart_Handle (*Dart_TypeVoidType)();
 typedef Dart_Handle (*Dart_TypeNeverType)();
+typedef Dart_Handle (*Dart_TypeStringType)();
+typedef Dart_Handle (*Dart_TypeDoubleType)();
+typedef Dart_Handle (*Dart_TypeIntType)();
+typedef Dart_Handle (*Dart_TypeBooleanType)();
+typedef Dart_Handle (*Dart_TypeObjectType)();
 typedef Dart_Handle (*Dart_ObjectEqualsType)(Dart_Handle, Dart_Handle, bool*);
 typedef Dart_Handle (*Dart_ObjectIsTypeType)(Dart_Handle, Dart_Handle, bool*);
 typedef bool (*Dart_IsInstanceType)(Dart_Handle);
@@ -572,6 +577,11 @@ static Dart_EmptyStringType Dart_EmptyStringFn = NULL;
 static Dart_TypeDynamicType Dart_TypeDynamicFn = NULL;
 static Dart_TypeVoidType Dart_TypeVoidFn = NULL;
 static Dart_TypeNeverType Dart_TypeNeverFn = NULL;
+static Dart_TypeStringType Dart_TypeStringFn = NULL;
+static Dart_TypeDoubleType Dart_TypeDoubleFn = NULL;
+static Dart_TypeIntType Dart_TypeIntFn = NULL;
+static Dart_TypeBooleanType Dart_TypeBooleanFn = NULL;
+static Dart_TypeObjectType Dart_TypeObjectFn = NULL;
 static Dart_ObjectEqualsType Dart_ObjectEqualsFn = NULL;
 static Dart_ObjectIsTypeType Dart_ObjectIsTypeFn = NULL;
 static Dart_IsInstanceType Dart_IsInstanceFn = NULL;
@@ -983,6 +993,15 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
         (Dart_TypeVoidType)GetProcAddress(process, "Dart_TypeVoid");
     Dart_TypeNeverFn =
         (Dart_TypeNeverType)GetProcAddress(process, "Dart_TypeNever");
+    Dart_TypeStringFn =
+        (Dart_TypeStringType)GetProcAddress(process, "Dart_TypeString");
+    Dart_TypeDoubleFn =
+        (Dart_TypeDoubleType)GetProcAddress(process, "Dart_TypeDouble");
+    Dart_TypeIntFn = (Dart_TypeIntType)GetProcAddress(process, "Dart_TypeInt");
+    Dart_TypeBooleanFn =
+        (Dart_TypeBooleanType)GetProcAddress(process, "Dart_TypeBoolean");
+    Dart_TypeObjectFn =
+        (Dart_TypeObjectType)GetProcAddress(process, "Dart_TypeObject");
     Dart_ObjectEqualsFn =
         (Dart_ObjectEqualsType)GetProcAddress(process, "Dart_ObjectEquals");
     Dart_ObjectIsTypeFn =
@@ -1818,6 +1837,26 @@ Dart_Handle Dart_TypeVoid() {
 
 Dart_Handle Dart_TypeNever() {
   return Dart_TypeNeverFn();
+}
+
+Dart_Handle Dart_TypeString() {
+  return Dart_TypeStringFn();
+}
+
+Dart_Handle Dart_TypeDouble() {
+  return Dart_TypeDoubleFn();
+}
+
+Dart_Handle Dart_TypeInt() {
+  return Dart_TypeIntFn();
+}
+
+Dart_Handle Dart_TypeBoolean() {
+  return Dart_TypeBooleanFn();
+}
+
+Dart_Handle Dart_TypeObject() {
+  return Dart_TypeObjectFn();
 }
 
 Dart_Handle Dart_ObjectEquals(Dart_Handle obj1, Dart_Handle obj2, bool* equal) {

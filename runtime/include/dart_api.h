@@ -1893,6 +1893,17 @@ DART_EXPORT Dart_Handle Dart_TypeVoid(void);
 DART_EXPORT Dart_Handle Dart_TypeNever(void);
 
 /**
+ * Returns simple core types.
+ *
+ * \return A handle to type.
+ */
+DART_EXPORT Dart_Handle Dart_TypeString();
+DART_EXPORT Dart_Handle Dart_TypeDouble();
+DART_EXPORT Dart_Handle Dart_TypeInt();
+DART_EXPORT Dart_Handle Dart_TypeBoolean();
+DART_EXPORT Dart_Handle Dart_TypeObject();
+
+/**
  * Checks if the two objects are equal.
  *
  * The result of the comparison is returned through the 'equal'
