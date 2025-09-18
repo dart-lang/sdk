@@ -55,7 +55,7 @@ class _DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
   _DeprecatedMemberUseVerifier(this._rule, this._workspacePackage);
 
   @override
-  void reportError2(
+  void reportError(
     SyntacticEntity errorEntity,
     Element element,
     String displayName,

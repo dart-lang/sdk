@@ -111,18 +111,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
     Element element,
     String displayName,
     String? message,
-  ) {
-    reportError2(errorEntity, element, displayName, message);
-  }
-
-  void reportError2(
-    SyntacticEntity errorEntity,
-    Element element,
-    String displayName,
-    String? message,
-  ) {
-    reportError(errorEntity, element, displayName, message);
-  }
+  );
 
   void simpleIdentifier(SimpleIdentifier node) {
     // Don't report declared identifiers.
