@@ -547,7 +547,7 @@ Object? dartifyRaw(WasmExternRef? ref, [int? refType]) {
   };
 }
 
-@pragma('wasm:entry-pint')
+@pragma('wasm:entry-point')
 int dartifyInt(WasmExternRef? ref) {
   final dartDouble = toDartNumber(ref);
   if (dartDouble.isFinite) {
