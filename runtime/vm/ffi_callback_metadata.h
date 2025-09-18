@@ -256,10 +256,7 @@ class FfiCallbackMetadata {
   };
 
   // Returns the Metadata object for the given trampoline.
-  Metadata LookupMetadataForTrampoline(Trampoline trampoline) const;
-
-  // The mutex that guards creation and destruction of callbacks.
-  Mutex* lock() { return &lock_; }
+  Metadata LookupMetadataForTrampolineUnlocked(Trampoline trampoline) const;
 
   // The number of trampolines that can be stored on a single page.
   static constexpr intptr_t NumCallbackTrampolinesPerPage() {
@@ -351,6 +348,13 @@ class FfiCallbackMetadata {
       ClosurePtr closure_ptr);
 
   // Visible for testing.
+#if defined(TESTING)
+
+ public:
+#else   // TESTING
+
+ private:
+#endif  // TESTING
   MetadataEntry* MetadataEntryOfTrampoline(Trampoline trampoline) const;
   Trampoline TrampolineOfMetadataEntry(MetadataEntry* metadata) const;
 
