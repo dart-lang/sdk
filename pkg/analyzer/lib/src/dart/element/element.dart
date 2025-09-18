@@ -2440,6 +2440,11 @@ abstract class ExecutableFragmentImpl extends FunctionTypedFragmentImpl
   @Deprecated('Use typeParameters instead')
   @override
   List<TypeParameterFragmentImpl> get typeParameters2 => typeParameters;
+
+  void addTypeParameter(TypeParameterFragmentImpl fragment) {
+    _typeParameters.add(fragment);
+    fragment.enclosingFragment = this;
+  }
 }
 
 @elementClass
@@ -3384,6 +3389,12 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   /// The element corresponding to this fragment.
   FormalParameterElementImpl? _element;
 
+  @override
+  FormalParameterFragmentImpl? nextFragment;
+
+  @override
+  FormalParameterFragmentImpl? previousFragment;
+
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
   FormalParameterFragmentImpl({
@@ -3521,14 +3532,6 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   @override
   String? get name2 => name;
 
-  @override
-  // TODO(augmentations): Support chaining between the fragments.
-  FormalParameterFragmentImpl? get nextFragment => null;
-
-  @override
-  // TODO(augmentations): Support chaining between the fragments.
-  FormalParameterFragmentImpl? get previousFragment => null;
-
   /// The type parameters defined by this parameter.
   ///
   /// A parameter will only define type parameters if it is a function typed
@@ -3546,9 +3549,40 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
     _typeParameters = typeParameters;
   }
 
+  void addFragment(FormalParameterFragmentImpl fragment) {
+    fragment.element = element;
+    fragment.previousFragment = this;
+    nextFragment = fragment;
+  }
+
   FormalParameterElementImpl _createElement(
     FormalParameterFragment firstFragment,
   ) => FormalParameterElementImpl(firstFragment as FormalParameterFragmentImpl);
+
+  static void _linkFragments<T extends FragmentImpl>(
+    List<T> fragments, {
+    required List<FormalParameterFragmentImpl> Function(T) getFragments,
+  }) {
+    DeferredResolutionReadingMixin.withoutLoadingResolution(() {
+      var firstFormalParameters = getFragments(fragments.first);
+      for (var i = 0; i < firstFormalParameters.length; i++) {
+        // Side effect: set element for the fragment.
+        var first = firstFormalParameters[i];
+        switch (first) {
+          case FieldFormalParameterFragmentImpl():
+            FieldFormalParameterElementImpl(first);
+          case SuperFormalParameterFragmentImpl():
+            SuperFormalParameterElementImpl(first);
+          default:
+            FormalParameterElementImpl(first);
+        }
+        fragments.reduce((previous, current) {
+          getFragments(previous)[i].addFragment(getFragments(current)[i]);
+          return current;
+        });
+      }
+    });
+  }
 }
 
 @GenerateFragmentImpl(modifiers: _FragmentImplModifiers.values)
@@ -8332,6 +8366,7 @@ class MethodFragmentImpl extends ExecutableFragmentImpl
     nextFragment = fragment;
   }
 
+  @override
   void addTypeParameter(TypeParameterFragmentImpl typeParameter) {
     _typeParameters.add(typeParameter);
     typeParameter.enclosingFragment = this;
@@ -10116,6 +10151,14 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl
       previous.addFragment(current);
       return current;
     });
+    TypeParameterFragmentImpl._linkFragments(
+      fragments,
+      getFragments: (f) => f.typeParameters,
+    );
+    FormalParameterFragmentImpl._linkFragments(
+      fragments,
+      getFragments: (f) => f.formalParameters,
+    );
   }
 }
 

@@ -616,6 +616,17 @@ class ElementBuilder {
     if (lastFragment is TopLevelFunctionFragmentImpl &&
         fragment.isAugmentation) {
       lastFragment.addFragment(fragment);
+
+      _linkTypeParameters(
+        lastFragments: lastFragment.typeParameters,
+        fragments: fragment.typeParameters,
+        add: fragment.addTypeParameter,
+      );
+
+      fragment.formalParameters = _linkFormalParameters(
+        lastFragments: lastFragment.formalParameters,
+        fragments: fragment.formalParameters,
+      );
       return;
     }
 
@@ -809,7 +820,82 @@ class ElementBuilder {
     }
   }
 
-  void _linkTypeParameters<T extends FragmentImpl>({
+  List<FormalParameterFragmentImpl> _linkFormalParameters({
+    required List<FormalParameterFragmentImpl> lastFragments,
+    required List<FormalParameterFragmentImpl> fragments,
+  }) {
+    int getPositionalSize(List<FormalParameterFragmentImpl> fragments) {
+      return fragments.takeWhile((f) => f.isPositional).length;
+    }
+
+    FormalParameterFragmentImpl createFragment(
+      FormalParameterFragmentImpl lastParameter,
+    ) {
+      switch (lastParameter) {
+        case FieldFormalParameterFragmentImpl():
+          return FieldFormalParameterFragmentImpl(
+            name: lastParameter.name,
+            nameOffset: null,
+            parameterKind: lastParameter.parameterKind,
+          )..isSynthetic = true;
+        case SuperFormalParameterFragmentImpl():
+          return SuperFormalParameterFragmentImpl(
+            name: lastParameter.name,
+            nameOffset: null,
+            parameterKind: lastParameter.parameterKind,
+          )..isSynthetic = true;
+        default:
+          return FormalParameterFragmentImpl(
+            name: lastParameter.name,
+            nameOffset: null,
+            parameterKind: lastParameter.parameterKind,
+          )..isSynthetic = true;
+      }
+    }
+
+    var positionalSize = getPositionalSize(fragments);
+    var positional = fragments.sublist(0, positionalSize);
+    var named = fragments.sublist(positionalSize);
+
+    var lastPositionalSize = getPositionalSize(lastFragments);
+    var lastPositional = lastFragments.sublist(0, lastPositionalSize);
+    var lastNamed = lastFragments.sublist(lastPositionalSize);
+
+    // Trim extra positional parameters.
+    if (lastPositional.length < positional.length) {
+      positional.length = lastPositional.length;
+    }
+
+    // Synthesize missing positional parameters.
+    if (lastPositional.length > positional.length) {
+      for (var i = positional.length; i < lastPositional.length; i++) {
+        var lastParameter = lastPositional[i];
+        positional.add(createFragment(lastParameter));
+      }
+    }
+
+    for (var i = 0; i < lastPositional.length; i++) {
+      lastPositional[i].addFragment(positional[i]);
+    }
+
+    var newNamed = <FormalParameterFragmentImpl>[];
+    var namedMap = <String, FormalParameterFragmentImpl>{};
+    for (var f in named) {
+      namedMap[f.name!] = f;
+    }
+
+    for (var lastParameter in lastNamed) {
+      var formalParameter = namedMap[lastParameter.name];
+      formalParameter ??= createFragment(lastParameter);
+
+      lastParameter.addFragment(formalParameter);
+      newNamed.add(formalParameter);
+    }
+
+    return [...positional, ...newNamed];
+  }
+
+  void _linkTypeParameters({
     required List<TypeParameterFragmentImpl> lastFragments,
     required List<TypeParameterFragmentImpl> fragments,
     required void Function(TypeParameterFragmentImpl) add,

@@ -382,7 +382,9 @@ class TypesBuilder {
 
   void _simpleFormalParameter(SimpleFormalParameterImpl node) {
     var fragment = node.declaredFragment!;
-    fragment.element.type = node.type?.type ?? _dynamicType;
+    if (fragment.previousFragment == null) {
+      fragment.element.type = node.type?.type ?? _dynamicType;
+    }
   }
 
   void _superFormalParameter(SuperFormalParameterImpl node) {

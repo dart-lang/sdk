@@ -758,10 +758,12 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeNonSyntheticElement(e);
       // _writeFieldFormalParameterField(e);
       // _writeSuperConstructorParameter(e);
+      _writeFragmentReference('previousFragment', f.previousFragment);
+      _writeFragmentReference('nextFragment', f.nextFragment);
     });
   }
 
-  void _writeFragentBodyModifiers(ExecutableFragment f) {
+  void _writeFragmentBodyModifiers(ExecutableFragment f) {
     if (f.isAsynchronous) {
       expect(f.isSynchronous, isFalse);
       _sink.write(' async');
@@ -1345,7 +1347,7 @@ class _Element2Writer extends _AbstractElementWriter {
       // _sink.writeIf(f.isExternal, 'external ');
 
       _writeFragmentName(f);
-      _writeFragentBodyModifiers(f);
+      _writeFragmentBodyModifiers(f);
     });
 
     _sink.withIndent(() {
@@ -1619,6 +1621,8 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeElementReference('element', f.element);
       _writeDocumentation(f.documentationComment);
       _writeMetadata(f.metadata);
+      _writeFragmentReference('previousFragment', f.previousFragment);
+      _writeFragmentReference('nextFragment', f.nextFragment);
       // _writeCodeRange(e);
       _writeFragmentList(
         'typeParameters',
