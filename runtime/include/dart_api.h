@@ -2603,6 +2603,26 @@ DART_EXPORT Dart_Handle Dart_MapContainsKey(Dart_Handle map, Dart_Handle key);
  */
 DART_EXPORT Dart_Handle Dart_MapKeys(Dart_Handle map);
 
+/**
+ * Returns a Map filled by key value pairs from the provided lists.
+ *
+ * \param keys_type Handle to a type of keys. E.g., from
+ *   Dart_Get<XXX>Type.
+ * \param keys_handle Handle to a list with keys. E.g., from
+ *   Dart_NewList<XXX>.
+ * \param values_type Handle to a type of values. E.g., from
+ *   Dart_Get<XXX>Type.
+ * \param values_handle Handle to a list with values. E.g., from
+ *   Dart_NewList<XXX>.
+ *
+ * \return The Map object if no error occurs. Otherwise returns
+ *   an error handle.
+ */
+DART_EXPORT Dart_Handle Dart_NewMap(Dart_Handle keys_type,
+                                    Dart_Handle keys_handle,
+                                    Dart_Handle values_type,
+                                    Dart_Handle values_handle);
+
 /*
  * ==========
  * Typed Data

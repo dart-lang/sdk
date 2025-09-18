@@ -207,6 +207,7 @@ class ObjectPointerVisitor;
   V(LocalVarDescriptors, "LocalVarDescriptors")                                \
   V(Map, "Map")                                                                \
   V(MapLiteralFactory, "Map._fromLiteral")                                     \
+  V(MapKeyValuesFactory, "Map._fromKeyValues")                                 \
   V(MegamorphicCache, "MegamorphicCache")                                      \
   V(MonomorphicSmiableCall, "MonomorphicSmiableCall")                          \
   V(MoveNext, "moveNext")                                                      \

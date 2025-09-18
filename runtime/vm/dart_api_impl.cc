@@ -3174,6 +3174,76 @@ DART_EXPORT Dart_Handle Dart_NewListOfType(Dart_Handle element_type,
   return Api::NewHandle(T, Array::New(length, type));
 }
 
+DART_EXPORT Dart_Handle Dart_NewMap(Dart_Handle keys_type,
+                                    Dart_Handle keys_handle,
+                                    Dart_Handle values_type,
+                                    Dart_Handle values_handle) {
+  {  // Validate that keys and values are lists.
+    if (!Dart_IsList(keys_handle)) {
+      return Api::NewError("%s expects argument 'keys_handle' to be a list.",
+                           CURRENT_FUNC);
+    }
+    if (!Dart_IsList(values_handle)) {
+      return Api::NewError("%s expects argument 'values_handle' to be a list.",
+                           CURRENT_FUNC);
+    }
+  }
+  {  // Validate length of keys and values
+    intptr_t keys_len = 0;
+    intptr_t values_len = 0;
+    Dart_Handle api_result = Dart_ListLength(keys_handle, &keys_len);
+    if (Dart_IsError(api_result)) {
+      return api_result;
+    }
+    api_result = Dart_ListLength(values_handle, &values_len);
+    if (Dart_IsError(api_result)) {
+      return api_result;
+    }
+    if (keys_len != values_len) {
+      return Api::NewError(
+          "%s expects length of 'keys_handle' list to be equal to length of "
+          "'values_handle' list.",
+          CURRENT_FUNC);
+    }
+  }
+
+  DARTSCOPE(Thread::Current());
+  CHECK_CALLBACK_STATE(T);
+
+  const Type& keys_type_obj = Api::UnwrapTypeHandle(Z, keys_type);
+  if (keys_type_obj.IsNull()) {
+    RETURN_TYPE_ERROR(Z, keys_type, Type);
+  }
+  const Type& values_type_obj = Api::UnwrapTypeHandle(Z, values_type);
+  if (values_type_obj.IsNull()) {
+    RETURN_TYPE_ERROR(Z, values_type, Type);
+  }
+  const Object& keys_obj = Object::Handle(Z, Api::UnwrapHandle(keys_handle));
+  const Object& values_obj =
+      Object::Handle(Z, Api::UnwrapHandle(values_handle));
+
+  // Init type arguments
+  auto& type_arguments =
+      TypeArguments::Handle(Z, TypeArguments::New(2, Heap::kOld));
+  type_arguments.SetTypeAt(0, keys_type_obj);
+  type_arguments.SetTypeAt(1, values_type_obj);
+  type_arguments ^= type_arguments.Canonicalize(T);
+
+  const Class& map_class =
+      Class::Handle(Z, T->isolate_group()->object_store()->map_class());
+  map_class.EnsureIsFinalized(T);
+
+  // Invoke Map._fromKeysValue class factory:
+  Function& factory_method = Function::ZoneHandle(Z);
+  factory_method = map_class.LookupFactoryAllowPrivate(
+      Library::PrivateCoreLibName(Symbols::MapKeyValuesFactory()));
+  const Array& args = Array::Handle(Z, Array::New(3));
+  args.SetAt(0, type_arguments);
+  args.SetAt(1, keys_obj);
+  args.SetAt(2, values_obj);
+  return Api::NewHandle(T, DartEntry::InvokeFunction(factory_method, args));
+}
+
 DART_EXPORT Dart_Handle Dart_NewListOfTypeFilled(Dart_Handle element_type,
                                                  Dart_Handle fill_object,
                                                  intptr_t length) {

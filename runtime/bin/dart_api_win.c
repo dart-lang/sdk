@@ -244,6 +244,10 @@ typedef Dart_Handle (*Dart_ListSetAsBytesType)(Dart_Handle,
 typedef Dart_Handle (*Dart_MapGetAtType)(Dart_Handle, Dart_Handle);
 typedef Dart_Handle (*Dart_MapContainsKeyType)(Dart_Handle, Dart_Handle);
 typedef Dart_Handle (*Dart_MapKeysType)(Dart_Handle);
+typedef Dart_Handle (*Dart_NewMapType)(Dart_Handle,
+                                       Dart_Handle,
+                                       Dart_Handle,
+                                       Dart_Handle);
 typedef Dart_TypedData_Type (*Dart_GetTypeOfTypedDataType)(Dart_Handle);
 typedef Dart_TypedData_Type (*Dart_GetTypeOfExternalTypedDataType)(Dart_Handle);
 typedef Dart_Handle (*Dart_NewTypedDataType)(Dart_TypedData_Type, intptr_t);
@@ -650,6 +654,7 @@ static Dart_ListSetAsBytesType Dart_ListSetAsBytesFn = NULL;
 static Dart_MapGetAtType Dart_MapGetAtFn = NULL;
 static Dart_MapContainsKeyType Dart_MapContainsKeyFn = NULL;
 static Dart_MapKeysType Dart_MapKeysFn = NULL;
+static Dart_NewMapType Dart_NewMapFn = NULL;
 static Dart_GetTypeOfTypedDataType Dart_GetTypeOfTypedDataFn = NULL;
 static Dart_GetTypeOfExternalTypedDataType Dart_GetTypeOfExternalTypedDataFn =
     NULL;
@@ -1135,6 +1140,7 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
     Dart_MapContainsKeyFn =
         (Dart_MapContainsKeyType)GetProcAddress(process, "Dart_MapContainsKey");
     Dart_MapKeysFn = (Dart_MapKeysType)GetProcAddress(process, "Dart_MapKeys");
+    Dart_NewMapFn = (Dart_NewMapType)GetProcAddress(process, "Dart_NewMap");
     Dart_GetTypeOfTypedDataFn = (Dart_GetTypeOfTypedDataType)GetProcAddress(
         process, "Dart_GetTypeOfTypedData");
     Dart_GetTypeOfExternalTypedDataFn =
@@ -2159,6 +2165,13 @@ Dart_Handle Dart_MapContainsKey(Dart_Handle map, Dart_Handle key) {
 
 Dart_Handle Dart_MapKeys(Dart_Handle map) {
   return Dart_MapKeysFn(map);
+}
+
+Dart_Handle Dart_NewMap(Dart_Handle keys_type,
+                        Dart_Handle keys_handle,
+                        Dart_Handle values_type,
+                        Dart_Handle values_handle) {
+  return Dart_NewMapFn(keys_type, keys_handle, values_type, values_handle);
 }
 
 Dart_TypedData_Type Dart_GetTypeOfTypedData(Dart_Handle object) {

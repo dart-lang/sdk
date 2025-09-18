@@ -255,6 +255,7 @@ main() {
     "Dart_NewList",
     "Dart_NewListOfType",
     "Dart_NewListOfTypeFilled",
+    "Dart_NewMap",
     "Dart_NewNativePort",
     "Dart_NewPersistentHandle",
     "Dart_NewSendPort",

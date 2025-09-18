@@ -2262,6 +2262,122 @@ TEST_CASE(DartAPI_MapAccess) {
   EXPECT(Dart_IsError(Dart_MapKeys(a)));
 }
 
+TEST_CASE(DartAPI_MapCreate) {
+  const char* kScriptChars =
+      R"(
+@pragma('vm:entry-point', 'call')
+String testMain(Map<String, Object?> mp) {
+    List result = [];
+    String dump = "";
+    // Test no modifications
+    for (var k in mp.keys) {
+        dump += "|" + k + ":" + mp[k].toString() + "|";
+    }
+    result.add(dump);
+    
+    dump = "";
+    // Test with modifications
+    mp["f"] = 42;
+    for (var k in mp.keys) {
+        dump += "|" + k + ":" + mp[k].toString() + "|";
+    }
+    result.add(dump);
+    return result.toString();
+})";
+  // Create a test library and Load up a test script in it.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+
+  Dart_Handle core_lib = Dart_LookupLibrary(NewString("dart:core"));
+  EXPECT_VALID(core_lib);
+
+  Dart_Handle key_type =
+      Dart_GetNonNullableType(core_lib, NewString("String"), 0, nullptr);
+  EXPECT_VALID(key_type);
+
+  Dart_Handle value_type =
+      Dart_GetNullableType(core_lib, NewString("Object"), 0, nullptr);
+  EXPECT_VALID(value_type);
+
+  {  // Test empty
+    // Init list of keys
+    Dart_Handle keys = Dart_NewList(0);
+    EXPECT_VALID(keys);
+
+    // Init list of values
+    Dart_Handle values = Dart_NewList(0);
+    EXPECT_VALID(values);
+
+    Dart_Handle dart_map = Dart_NewMap(key_type, keys, value_type, values);
+
+    // Invoke a function which returns an object of type String.
+    Dart_Handle result = Dart_Invoke(lib, NewString("testMain"), 1, &dart_map);
+    EXPECT_VALID(result);
+    const char* encoded_str = nullptr;
+    EXPECT_VALID(Dart_StringToCString(result, &encoded_str));
+    EXPECT_STREQ("[, |f:42|]", encoded_str);
+  }
+  {  // Test 5 elements
+    // Init list of keys
+    Dart_Handle keys = Dart_NewList(5);
+    EXPECT_VALID(keys);
+
+    // Init list of values
+    Dart_Handle values = Dart_NewList(5);
+    EXPECT_VALID(values);
+
+    // Fill map.
+    EXPECT_VALID(Dart_ListSetAt(keys, 0, NewString("a")));
+    EXPECT_VALID(Dart_ListSetAt(values, 0, Dart_NewInteger(5)));
+    EXPECT_VALID(Dart_ListSetAt(keys, 1, NewString("b")));
+    EXPECT_VALID(Dart_ListSetAt(values, 1, Dart_NewInteger(4)));
+    EXPECT_VALID(Dart_ListSetAt(keys, 2, NewString("c")));
+    EXPECT_VALID(Dart_ListSetAt(values, 2, NewString("oO")));
+    EXPECT_VALID(Dart_ListSetAt(keys, 3, NewString("d")));
+    EXPECT_VALID(Dart_ListSetAt(values, 3, Dart_NewInteger(2)));
+    EXPECT_VALID(Dart_ListSetAt(keys, 4, NewString("e")));
+    EXPECT_VALID(Dart_ListSetAt(values, 4, Dart_Null()));
+    Dart_Handle dart_map = Dart_NewMap(key_type, keys, value_type, values);
+
+    // Invoke a function which returns an object of type String.
+    Dart_Handle result = Dart_Invoke(lib, NewString("testMain"), 1, &dart_map);
+    EXPECT_VALID(result);
+    const char* encoded_str = nullptr;
+    EXPECT_VALID(Dart_StringToCString(result, &encoded_str));
+    EXPECT_STREQ(
+        "[|a:5||b:4||c:oO||d:2||e:null|, "
+        "|a:5||b:4||c:oO||d:2||e:null||f:42|]",
+        encoded_str);
+  }
+  {  // Test 10 elements
+    static constexpr int kElementCount = 10;
+    // Init list of keys
+    Dart_Handle keys = Dart_NewList(kElementCount);
+    EXPECT_VALID(keys);
+
+    // Init list of values
+    Dart_Handle values = Dart_NewList(kElementCount);
+    EXPECT_VALID(values);
+
+    // Fill map.
+    for (int i = 0; i < kElementCount; ++i) {
+      const char key[2] = {static_cast<char>('a' + i), '\0'};
+      EXPECT_VALID(Dart_ListSetAt(keys, i, NewString(key)));
+      EXPECT_VALID(Dart_ListSetAt(values, i, Dart_NewInteger(i)));
+    }
+    Dart_Handle dart_map = Dart_NewMap(key_type, keys, value_type, values);
+
+    // Invoke a function which returns an object of type String.
+    Dart_Handle result = Dart_Invoke(lib, NewString("testMain"), 1, &dart_map);
+    EXPECT_VALID(result);
+    const char* encoded_str = nullptr;
+    EXPECT_VALID(Dart_StringToCString(result, &encoded_str));
+    EXPECT_STREQ(
+        "[|a:0||b:1||c:2||d:3||e:4||f:5||g:6||h:7||i:8||j:9|, "
+        "|a:0||b:1||c:2||d:3||e:4||f:42||g:6||h:7||i:8||j:9|]",
+        encoded_str);
+  }
+}
+
 TEST_CASE(DartAPI_IsFuture) {
   const char* kScriptChars =
       "import 'dart:async';"
