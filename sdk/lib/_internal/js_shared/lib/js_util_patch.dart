@@ -620,8 +620,7 @@ bool isJavaScriptSimpleObject(value) {
       JS('bool', '# === null', proto);
 }
 
-bool _isJavaScriptPromise(value) =>
-    JS('bool', r'typeof Promise != "undefined" && # instanceof Promise', value);
+bool _isJavaScriptPromise(value) => JS('bool', r'# instanceof Promise', value);
 
 DateTime _dateToDateTime(date) {
   int millisSinceEpoch = JS('int', '#.getTime()', date);
