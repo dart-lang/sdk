@@ -8,6 +8,7 @@ library;
 import 'dart:convert';
 import 'dart:io' show exitCode;
 
+import 'package:analyzer_utilities/extensions/string.dart';
 import 'package:analyzer_utilities/messages.dart';
 
 Uri computeSharedGeneratedFile(Uri repoDir) {
@@ -70,6 +71,7 @@ part of 'cfe_codes.dart';
   final indexNameMap = new Map<int, String>();
 
   List<String> keys = frontEndAndSharedMessages.keys.toList()..sort();
+  var analyzerCodeValues = <String>{};
   for (String name in keys) {
     var errorCodeInfo = frontEndAndSharedMessages[name]!;
     var index = errorCodeInfo.index;
@@ -98,7 +100,7 @@ part of 'cfe_codes.dart';
         name: name,
         index: index,
         errorCodeInfo: errorCodeInfo,
-        forFeAnalyzerShared: forFeAnalyzerShared,
+        analyzerCodeValues: forFeAnalyzerShared ? analyzerCodeValues : null,
       ).compile();
     } catch (e, st) {
       Error.throwWithStackTrace('Error while compiling $name: $e', st);
@@ -109,6 +111,16 @@ part of 'cfe_codes.dart';
       cfeMessages.writeln(template);
     }
   }
+  sharedMessages.writeln();
+  sharedMessages.writeln(
+    '/// Enum containing analyzer error codes referenced by '
+    '[Code.analyzerCodes].',
+  );
+  sharedMessages.writeln('enum AnalyzerCode {');
+  for (var code in analyzerCodeValues.toList()..sort()) {
+    sharedMessages.writeln('  $code,');
+  }
+  sharedMessages.writeln('}');
   if (largestIndex > indexNameMap.length) {
     print(
       'Error: The "index:" field values should be unique, consecutive'
@@ -157,8 +169,12 @@ class _TemplateCompiler {
   final String? severity;
   final Map<String, ErrorCodeParameter> parameters;
 
-  /// Whether the template will be generated into `pkg/_fe_analyzer_shared`.
-  final bool forFeAnalyzerShared;
+  /// If the template will be generated into `pkg/_fe_analyzer_shared`, a set of
+  /// strings representing the values that will be generated for the
+  /// `AnalyzerCode` enum; otherwise `null`.
+  ///
+  /// The template compiler will add to this set as needed.
+  final Set<String>? analyzerCodeValues;
 
   late final Set<String> usedNames = {
     'conversions',
@@ -176,7 +192,7 @@ class _TemplateCompiler {
     required this.name,
     required this.index,
     required CfeStyleErrorCodeInfo errorCodeInfo,
-    required this.forFeAnalyzerShared,
+    required this.analyzerCodeValues,
   }) : problemMessage = errorCodeInfo.problemMessage,
        correctionMessage = errorCodeInfo.correctionMessage,
        analyzerCodes = errorCodeInfo.analyzerCodes,
@@ -187,10 +203,10 @@ class _TemplateCompiler {
     var codeArguments = <String>[
       if (index != null)
         'index: $index'
-      else if (forFeAnalyzerShared && analyzerCodes.isNotEmpty)
+      else if (analyzerCodeValues != null && analyzerCodes.isNotEmpty)
         // If "index:" is defined, then "analyzerCode:" should not be generated
         // in the front end. See comment in messages.yaml
-        'analyzerCodes: <String>["${analyzerCodes.join('", "')}"]',
+        'analyzerCodes: ${_encodeAnalyzerCodes()}',
       if (severity != null) 'severity: CfeSeverity.$severity',
     ];
 
@@ -305,5 +321,17 @@ Message _withArgumentsOld$name(${positionalParameters.join(', ')}) =>
       return "\${$interpolator}";
     });
     return "\"\"\"$text\"\"\"";
+  }
+
+  /// Creates the list literal that should populate the error code's
+  /// `analyzerCodes` value.
+  String _encodeAnalyzerCodes() {
+    var encodedCodes = <String>[];
+    for (var code in analyzerCodes) {
+      var camelCaseCode = code.toCamelCase();
+      analyzerCodeValues!.add(camelCaseCode);
+      encodedCodes.add('AnalyzerCode.$camelCaseCode');
+    }
+    return '<AnalyzerCode>[${encodedCodes.join(', ')}]';
   }
 }

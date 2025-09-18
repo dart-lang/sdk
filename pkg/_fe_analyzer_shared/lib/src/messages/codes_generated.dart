@@ -23,7 +23,7 @@ const MessageCode codeAbstractClassMember = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeAbstractExtensionField = const MessageCode(
   "AbstractExtensionField",
-  analyzerCodes: <String>["ABSTRACT_EXTENSION_FIELD"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.abstractExtensionField],
   problemMessage: r"""Extension fields can't be declared 'abstract'.""",
   correctionMessage: r"""Try removing the 'abstract' keyword.""",
 );
@@ -67,7 +67,7 @@ const MessageCode codeAbstractLateField = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeAbstractNotSync = const MessageCode(
   "AbstractNotSync",
-  analyzerCodes: <String>["NON_SYNC_ABSTRACT_METHOD"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.nonSyncAbstractMethod],
   problemMessage:
       r"""Abstract methods can't use 'async', 'async*', or 'sync*'.""",
 );
@@ -108,7 +108,7 @@ codeAsciiControlCharacter = const Template(
       r"""The control character #character can only be used in strings and comments.""",
   withArgumentsOld: _withArgumentsOldAsciiControlCharacter,
   withArguments: _withArgumentsAsciiControlCharacter,
-  analyzerCodes: <String>["ILLEGAL_CHARACTER"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.illegalCharacter],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -135,7 +135,7 @@ const MessageCode codeAssertAsExpression = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeAwaitAsIdentifier = const MessageCode(
   "AwaitAsIdentifier",
-  analyzerCodes: <String>["ASYNC_KEYWORD_USED_AS_IDENTIFIER"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.asyncKeywordUsedAsIdentifier],
   problemMessage:
       r"""'await' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.""",
 );
@@ -143,7 +143,7 @@ const MessageCode codeAwaitAsIdentifier = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeAwaitForNotAsync = const MessageCode(
   "AwaitForNotAsync",
-  analyzerCodes: <String>["ASYNC_FOR_IN_WRONG_CONTEXT"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.asyncForInWrongContext],
   problemMessage:
       r"""The asynchronous for-in can only be used in functions marked with 'async' or 'async*'.""",
   correctionMessage:
@@ -153,7 +153,7 @@ const MessageCode codeAwaitForNotAsync = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeAwaitNotAsync = const MessageCode(
   "AwaitNotAsync",
-  analyzerCodes: <String>["AWAIT_IN_WRONG_CONTEXT"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.awaitInWrongContext],
   problemMessage:
       r"""'await' can only be used in 'async' or 'async*' methods.""",
 );
@@ -223,7 +223,7 @@ codeBuiltInIdentifierAsType = const Template(
       r"""The built-in identifier '#lexeme' can't be used as a type.""",
   withArgumentsOld: _withArgumentsOldBuiltInIdentifierAsType,
   withArguments: _withArgumentsBuiltInIdentifierAsType,
-  analyzerCodes: <String>["BUILT_IN_IDENTIFIER_AS_TYPE"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.builtInIdentifierAsType],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -251,7 +251,7 @@ codeBuiltInIdentifierInDeclaration = const Template(
   problemMessageTemplate: r"""Can't use '#lexeme' as a name here.""",
   withArgumentsOld: _withArgumentsOldBuiltInIdentifierInDeclaration,
   withArguments: _withArgumentsBuiltInIdentifierInDeclaration,
-  analyzerCodes: <String>["BUILT_IN_IDENTIFIER_IN_DECLARATION"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.builtInIdentifierInDeclaration],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -360,7 +360,7 @@ const MessageCode codeConstClass = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeConstConstructorWithBody = const MessageCode(
   "ConstConstructorWithBody",
-  analyzerCodes: <String>["CONST_CONSTRUCTOR_WITH_BODY"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.constConstructorWithBody],
   problemMessage: r"""A const constructor can't have a body.""",
   correctionMessage:
       r"""Try removing either the 'const' keyword or the body.""",
@@ -389,7 +389,7 @@ codeConstFieldWithoutInitializer = const Template(
       r"""Try adding an initializer ('= expression') to the declaration.""",
   withArgumentsOld: _withArgumentsOldConstFieldWithoutInitializer,
   withArguments: _withArgumentsConstFieldWithoutInitializer,
-  analyzerCodes: <String>["CONST_NOT_INITIALIZED"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.constNotInitialized],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -598,7 +598,7 @@ Message _withArgumentsOldDuplicatedModifier(Token lexeme) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeEmptyNamedParameterList = const MessageCode(
   "EmptyNamedParameterList",
-  analyzerCodes: <String>["MISSING_IDENTIFIER"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.missingIdentifier],
   problemMessage: r"""Named parameter lists cannot be empty.""",
   correctionMessage: r"""Try adding a named parameter to the list.""",
 );
@@ -606,7 +606,7 @@ const MessageCode codeEmptyNamedParameterList = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeEmptyOptionalParameterList = const MessageCode(
   "EmptyOptionalParameterList",
-  analyzerCodes: <String>["MISSING_IDENTIFIER"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.missingIdentifier],
   problemMessage: r"""Optional parameter lists cannot be empty.""",
   correctionMessage: r"""Try adding an optional parameter to the list.""",
 );
@@ -654,7 +654,7 @@ codeExpectedAfterButGot = const Template(
   problemMessageTemplate: r"""Expected '#string' after this.""",
   withArgumentsOld: _withArgumentsOldExpectedAfterButGot,
   withArguments: _withArgumentsExpectedAfterButGot,
-  analyzerCodes: <String>["EXPECTED_TOKEN"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.expectedToken],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -681,7 +681,7 @@ const MessageCode codeExpectedAnInitializer = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExpectedBody = const MessageCode(
   "ExpectedBody",
-  analyzerCodes: <String>["MISSING_FUNCTION_BODY"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.missingFunctionBody],
   problemMessage: r"""Expected a function body or '=>'.""",
   correctionMessage: r"""Try adding {}.""",
 );
@@ -696,7 +696,7 @@ codeExpectedButGot = const Template(
   problemMessageTemplate: r"""Expected '#string' before this.""",
   withArgumentsOld: _withArgumentsOldExpectedButGot,
   withArguments: _withArgumentsExpectedButGot,
-  analyzerCodes: <String>["EXPECTED_TOKEN"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.expectedToken],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -740,7 +740,7 @@ codeExpectedClassMember = const Template(
   problemMessageTemplate: r"""Expected a class member, but got '#lexeme'.""",
   withArgumentsOld: _withArgumentsOldExpectedClassMember,
   withArguments: _withArgumentsExpectedClassMember,
-  analyzerCodes: <String>["EXPECTED_CLASS_MEMBER"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.expectedClassMember],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -767,7 +767,7 @@ codeExpectedDeclaration = const Template(
   problemMessageTemplate: r"""Expected a declaration, but got '#lexeme'.""",
   withArgumentsOld: _withArgumentsOldExpectedDeclaration,
   withArguments: _withArgumentsExpectedDeclaration,
-  analyzerCodes: <String>["EXPECTED_EXECUTABLE"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.expectedExecutable],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -803,7 +803,7 @@ codeExpectedEnumBody = const Template(
       r"""An enum definition must have a body with at least one constant name.""",
   withArgumentsOld: _withArgumentsOldExpectedEnumBody,
   withArguments: _withArgumentsExpectedEnumBody,
-  analyzerCodes: <String>["MISSING_ENUM_BODY"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.missingEnumBody],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -859,7 +859,7 @@ codeExpectedFunctionBody = const Template(
   problemMessageTemplate: r"""Expected a function body, but got '#lexeme'.""",
   withArgumentsOld: _withArgumentsOldExpectedFunctionBody,
   withArguments: _withArgumentsExpectedFunctionBody,
-  analyzerCodes: <String>["MISSING_FUNCTION_BODY"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.missingFunctionBody],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -879,7 +879,7 @@ Message _withArgumentsOldExpectedFunctionBody(Token lexeme) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExpectedHexDigit = const MessageCode(
   "ExpectedHexDigit",
-  analyzerCodes: <String>["MISSING_HEX_DIGIT"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.missingHexDigit],
   problemMessage: r"""A hex digit (0-9 or A-F) must follow '0x'.""",
 );
 
@@ -895,7 +895,7 @@ codeExpectedIdentifier = const Template(
       r"""Try inserting an identifier before '#lexeme'.""",
   withArgumentsOld: _withArgumentsOldExpectedIdentifier,
   withArguments: _withArgumentsExpectedIdentifier,
-  analyzerCodes: <String>["MISSING_IDENTIFIER"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.missingIdentifier],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -999,7 +999,7 @@ codeExpectedString = const Template(
   problemMessageTemplate: r"""Expected a String, but got '#lexeme'.""",
   withArgumentsOld: _withArgumentsOldExpectedString,
   withArguments: _withArgumentsExpectedString,
-  analyzerCodes: <String>["EXPECTED_STRING_LITERAL"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.expectedStringLiteral],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1044,7 +1044,7 @@ codeExpectedToken = const Template(
   problemMessageTemplate: r"""Expected to find '#string'.""",
   withArgumentsOld: _withArgumentsOldExpectedToken,
   withArguments: _withArgumentsExpectedToken,
-  analyzerCodes: <String>["EXPECTED_TOKEN"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.expectedToken],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1079,7 +1079,7 @@ codeExpectedType = const Template(
   problemMessageTemplate: r"""Expected a type, but got '#lexeme'.""",
   withArgumentsOld: _withArgumentsOldExpectedType,
   withArguments: _withArgumentsExpectedType,
-  analyzerCodes: <String>["EXPECTED_TYPE_NAME"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.expectedTypeName],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1204,7 +1204,7 @@ const MessageCode codeExtensionDeclaresConstructor = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExtensionDeclaresInstanceField = const MessageCode(
   "ExtensionDeclaresInstanceField",
-  analyzerCodes: <String>["EXTENSION_DECLARES_INSTANCE_FIELD"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.extensionDeclaresInstanceField],
   problemMessage: r"""Extensions can't declare instance fields""",
   correctionMessage:
       r"""Try removing the field declaration or making it a static field""",
@@ -1213,7 +1213,7 @@ const MessageCode codeExtensionDeclaresInstanceField = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExtensionTypeDeclaresAbstractMember = const MessageCode(
   "ExtensionTypeDeclaresAbstractMember",
-  analyzerCodes: <String>["EXTENSION_TYPE_WITH_ABSTRACT_MEMBER"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.extensionTypeWithAbstractMember],
   problemMessage: r"""Extension types can't declare abstract members.""",
   correctionMessage: r"""Try providing an implementation for the member.""",
 );
@@ -1221,7 +1221,9 @@ const MessageCode codeExtensionTypeDeclaresAbstractMember = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExtensionTypeDeclaresInstanceField = const MessageCode(
   "ExtensionTypeDeclaresInstanceField",
-  analyzerCodes: <String>["EXTENSION_TYPE_DECLARES_INSTANCE_FIELD"],
+  analyzerCodes: <AnalyzerCode>[
+    AnalyzerCode.extensionTypeDeclaresInstanceField,
+  ],
   problemMessage: r"""Extension types can't declare instance fields""",
   correctionMessage:
       r"""Try removing the field declaration or making it a static field""",
@@ -1447,7 +1449,7 @@ Message _withArgumentsOldExtraneousModifierInPrimaryConstructor(Token lexeme) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeFactoryNotSync = const MessageCode(
   "FactoryNotSync",
-  analyzerCodes: <String>["NON_SYNC_FACTORY"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.nonSyncFactory],
   problemMessage:
       r"""Factory bodies can't use 'async', 'async*', or 'sync*'.""",
 );
@@ -1555,7 +1557,7 @@ codeFinalFieldWithoutInitializer = const Template(
       r"""Try adding an initializer ('= expression') to the declaration.""",
   withArgumentsOld: _withArgumentsOldFinalFieldWithoutInitializer,
   withArguments: _withArgumentsFinalFieldWithoutInitializer,
-  analyzerCodes: <String>["FINAL_NOT_INITIALIZED"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.finalNotInitialized],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1593,7 +1595,7 @@ const MessageCode codeFinalMixinClass = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeFunctionTypeDefaultValue = const MessageCode(
   "FunctionTypeDefaultValue",
-  analyzerCodes: <String>["DEFAULT_VALUE_IN_FUNCTION_TYPE"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.defaultValueInFunctionType],
   problemMessage: r"""Can't have a default value in a function type.""",
 );
 
@@ -1609,7 +1611,7 @@ const MessageCode codeFunctionTypedParameterVar = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeGeneratorReturnsValue = const MessageCode(
   "GeneratorReturnsValue",
-  analyzerCodes: <String>["RETURN_IN_GENERATOR"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.returnInGenerator],
   problemMessage: r"""'sync*' and 'async*' can't return a value.""",
 );
 
@@ -1624,7 +1626,7 @@ const MessageCode codeGetterConstructor = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeGetterWithFormals = const MessageCode(
   "GetterWithFormals",
-  analyzerCodes: <String>["GETTER_WITH_PARAMETERS"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.getterWithParameters],
   problemMessage: r"""A getter can't have formal parameters.""",
   correctionMessage: r"""Try removing '(...)'.""",
 );
@@ -1900,7 +1902,7 @@ Message _withArgumentsOldInternalProblemUnsupported(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeInterpolationInUri = const MessageCode(
   "InterpolationInUri",
-  analyzerCodes: <String>["INVALID_LITERAL_IN_CONFIGURATION"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.invalidLiteralInConfiguration],
   problemMessage: r"""Can't use string interpolation in a URI.""",
 );
 
@@ -1917,7 +1919,7 @@ const MessageCode codeInvalidAwaitFor = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeInvalidCodePoint = const MessageCode(
   "InvalidCodePoint",
-  analyzerCodes: <String>["INVALID_CODE_POINT"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.invalidCodePoint],
   problemMessage:
       r"""The escape sequence starting with '\u' isn't a valid code point.""",
 );
@@ -2059,7 +2061,7 @@ const MessageCode codeInvalidInitializer = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeInvalidInlineFunctionType = const MessageCode(
   "InvalidInlineFunctionType",
-  analyzerCodes: <String>["INVALID_INLINE_FUNCTION_TYPE"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.invalidInlineFunctionType],
   problemMessage:
       r"""Inline function types cannot be used for parameters in a generic function type.""",
   correctionMessage:
@@ -2116,7 +2118,7 @@ const MessageCode codeInvalidSuperInInitializer = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeInvalidSyncModifier = const MessageCode(
   "InvalidSyncModifier",
-  analyzerCodes: <String>["MISSING_STAR_AFTER_SYNC"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.missingStarAfterSync],
   problemMessage: r"""Invalid modifier 'sync'.""",
   correctionMessage: r"""Try replacing 'sync' with 'sync*'.""",
 );
@@ -2156,7 +2158,7 @@ const MessageCode codeInvalidUnicodeEscapeUStarted = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeInvalidVoid = const MessageCode(
   "InvalidVoid",
-  analyzerCodes: <String>["EXPECTED_TYPE_NAME"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.expectedTypeName],
   problemMessage: r"""Type 'void' can't be used here.""",
   correctionMessage:
       r"""Try removing 'void' keyword or replace it with 'var', 'final', or a type.""",
@@ -2323,7 +2325,7 @@ const MessageCode codeMissingConstFinalVarOrType = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeMissingExponent = const MessageCode(
   "MissingExponent",
-  analyzerCodes: <String>["MISSING_DIGIT"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.missingDigit],
   problemMessage:
       r"""Numbers in exponential notation should always contain an exponent (an integer number with an optional sign).""",
   correctionMessage:
@@ -2342,7 +2344,7 @@ const MessageCode codeMissingExpressionInThrow = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeMissingFunctionParameters = const MessageCode(
   "MissingFunctionParameters",
-  analyzerCodes: <String>["MISSING_FUNCTION_PARAMETERS"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.missingFunctionParameters],
   problemMessage:
       r"""A function declaration needs an explicit list of parameters.""",
   correctionMessage:
@@ -2352,7 +2354,7 @@ const MessageCode codeMissingFunctionParameters = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeMissingMethodParameters = const MessageCode(
   "MissingMethodParameters",
-  analyzerCodes: <String>["MISSING_METHOD_PARAMETERS"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.missingMethodParameters],
   problemMessage:
       r"""A method declaration needs an explicit list of parameters.""",
   correctionMessage:
@@ -2400,7 +2402,7 @@ const MessageCode codeMissingPrimaryConstructorParameters = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeMissingTypedefParameters = const MessageCode(
   "MissingTypedefParameters",
-  analyzerCodes: <String>["MISSING_TYPEDEF_PARAMETERS"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.missingTypedefParameters],
   problemMessage: r"""A typedef needs an explicit list of parameters.""",
   correctionMessage: r"""Try adding a parameter list to the typedef.""",
 );
@@ -2504,7 +2506,7 @@ const MessageCode codeMultipleExtends = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeMultipleImplements = const MessageCode(
   "MultipleImplements",
-  analyzerCodes: <String>["MULTIPLE_IMPLEMENTS_CLAUSES"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.multipleImplementsClauses],
   problemMessage:
       r"""Each class definition can have at most one implements clause.""",
   correctionMessage:
@@ -2551,7 +2553,7 @@ const MessageCode codeMultipleWith = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNamedFunctionExpression = const MessageCode(
   "NamedFunctionExpression",
-  analyzerCodes: <String>["NAMED_FUNCTION_EXPRESSION"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.namedFunctionExpression],
   problemMessage: r"""A function expression can't have a name.""",
 );
 
@@ -2577,7 +2579,7 @@ codeNonAsciiIdentifier = const Template(
       r"""Try using an US-ASCII letter, a digit, '_' (an underscore), or '$' (a dollar sign).""",
   withArgumentsOld: _withArgumentsOldNonAsciiIdentifier,
   withArguments: _withArgumentsNonAsciiIdentifier,
-  analyzerCodes: <String>["ILLEGAL_CHARACTER"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.illegalCharacter],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2612,7 +2614,7 @@ codeNonAsciiWhitespace = const Template(
       r"""The non-ASCII space character #unicode can only be used in strings and comments.""",
   withArgumentsOld: _withArgumentsOldNonAsciiWhitespace,
   withArguments: _withArgumentsNonAsciiWhitespace,
-  analyzerCodes: <String>["ILLEGAL_CHARACTER"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.illegalCharacter],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2633,7 +2635,7 @@ Message _withArgumentsOldNonAsciiWhitespace(int unicode) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNonPartOfDirectiveInPart = const MessageCode(
   "NonPartOfDirectiveInPart",
-  analyzerCodes: <String>["NON_PART_OF_DIRECTIVE_IN_PART"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.nonPartOfDirectiveInPart],
   problemMessage:
       r"""The part-of directive must be the only directive in a part.""",
   correctionMessage:
@@ -2763,7 +2765,7 @@ codePatternVariableDeclarationOutsideFunctionOrMethod = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codePositionalAfterNamedArgument = const MessageCode(
   "PositionalAfterNamedArgument",
-  analyzerCodes: <String>["POSITIONAL_AFTER_NAMED_ARGUMENT"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.positionalAfterNamedArgument],
   problemMessage: r"""Place positional arguments before named arguments.""",
   correctionMessage:
       r"""Try moving the positional argument before the named arguments, or add a name to the argument.""",
@@ -2772,7 +2774,9 @@ const MessageCode codePositionalAfterNamedArgument = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codePositionalParameterWithEquals = const MessageCode(
   "PositionalParameterWithEquals",
-  analyzerCodes: <String>["WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER"],
+  analyzerCodes: <AnalyzerCode>[
+    AnalyzerCode.wrongSeparatorForPositionalParameter,
+  ],
   problemMessage:
       r"""Positional optional parameters can't use ':' to specify a default value.""",
   correctionMessage: r"""Try replacing ':' with '='.""",
@@ -2790,7 +2794,7 @@ const MessageCode codePrefixAfterCombinator = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codePrivateNamedParameter = const MessageCode(
   "PrivateNamedParameter",
-  analyzerCodes: <String>["PRIVATE_OPTIONAL_PARAMETER"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.privateOptionalParameter],
   problemMessage:
       r"""A named parameter can't start with an underscore ('_').""",
 );
@@ -2855,7 +2859,7 @@ const MessageCode codeRedirectionInNonFactory = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeRequiredParameterWithDefault = const MessageCode(
   "RequiredParameterWithDefault",
-  analyzerCodes: <String>["NAMED_PARAMETER_OUTSIDE_GROUP"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.namedParameterOutsideGroup],
   problemMessage: r"""Non-optional parameters can't have a default value.""",
   correctionMessage:
       r"""Try removing the default value or making the parameter optional.""",
@@ -2903,7 +2907,7 @@ const MessageCode codeSetterConstructor = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeSetterNotSync = const MessageCode(
   "SetterNotSync",
-  analyzerCodes: <String>["INVALID_MODIFIER_ON_SETTER"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.invalidModifierOnSetter],
   problemMessage: r"""Setters can't use 'async', 'async*', or 'sync*'.""",
 );
 
@@ -3027,7 +3031,7 @@ const MessageCode codeTypedefInClass = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeUnexpectedDollarInString = const MessageCode(
   "UnexpectedDollarInString",
-  analyzerCodes: <String>["UNEXPECTED_DOLLAR_IN_STRING"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.unexpectedDollarInString],
   problemMessage:
       r"""A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).""",
   correctionMessage: r"""Try adding a backslash (\) to escape the '$'.""",
@@ -3036,7 +3040,7 @@ const MessageCode codeUnexpectedDollarInString = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeUnexpectedSeparatorInNumber = const MessageCode(
   "UnexpectedSeparatorInNumber",
-  analyzerCodes: <String>["UNEXPECTED_SEPARATOR_IN_NUMBER"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.unexpectedSeparatorInNumber],
   problemMessage:
       r"""Digit separators ('_') in a number literal can only be placed between two digits.""",
   correctionMessage: r"""Try removing the '_'.""",
@@ -3052,7 +3056,7 @@ codeUnexpectedToken = const Template(
   problemMessageTemplate: r"""Unexpected token '#lexeme'.""",
   withArgumentsOld: _withArgumentsOldUnexpectedToken,
   withArguments: _withArgumentsUnexpectedToken,
-  analyzerCodes: <String>["UNEXPECTED_TOKEN"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.unexpectedToken],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3086,7 +3090,7 @@ codeUnmatchedToken = const Template(
   problemMessageTemplate: r"""Can't find '#string' to match '#lexeme'.""",
   withArgumentsOld: _withArgumentsOldUnmatchedToken,
   withArguments: _withArgumentsUnmatchedToken,
-  analyzerCodes: <String>["EXPECTED_TOKEN"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.expectedToken],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3143,7 +3147,7 @@ codeUnsupportedOperator = const Template(
   problemMessageTemplate: r"""The '#lexeme' operator is not supported.""",
   withArgumentsOld: _withArgumentsOldUnsupportedOperator,
   withArguments: _withArgumentsUnsupportedOperator,
-  analyzerCodes: <String>["UNSUPPORTED_OPERATOR"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.unsupportedOperator],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3163,7 +3167,7 @@ Message _withArgumentsOldUnsupportedOperator(Token lexeme) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeUnsupportedPrefixPlus = const MessageCode(
   "UnsupportedPrefixPlus",
-  analyzerCodes: <String>["MISSING_IDENTIFIER"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.missingIdentifier],
   problemMessage: r"""'+' is not a prefix operator.""",
   correctionMessage: r"""Try removing '+'.""",
 );
@@ -3171,7 +3175,7 @@ const MessageCode codeUnsupportedPrefixPlus = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeUnterminatedComment = const MessageCode(
   "UnterminatedComment",
-  analyzerCodes: <String>["UNTERMINATED_MULTI_LINE_COMMENT"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.unterminatedMultiLineComment],
   problemMessage: r"""Comment starting with '/*' must end with '*/'.""",
 );
 
@@ -3186,7 +3190,7 @@ codeUnterminatedString = const Template(
       r"""String starting with #string must end with #string2.""",
   withArgumentsOld: _withArgumentsOldUnterminatedString,
   withArguments: _withArgumentsUnterminatedString,
-  analyzerCodes: <String>["UNTERMINATED_STRING_LITERAL"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.unterminatedStringLiteral],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3254,7 +3258,7 @@ const MessageCode codeWithBeforeExtends = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeYieldAsIdentifier = const MessageCode(
   "YieldAsIdentifier",
-  analyzerCodes: <String>["ASYNC_KEYWORD_USED_AS_IDENTIFIER"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.asyncKeywordUsedAsIdentifier],
   problemMessage:
       r"""'yield' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.""",
 );
@@ -3262,7 +3266,61 @@ const MessageCode codeYieldAsIdentifier = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeYieldNotGenerator = const MessageCode(
   "YieldNotGenerator",
-  analyzerCodes: <String>["YIELD_IN_NON_GENERATOR"],
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.yieldInNonGenerator],
   problemMessage:
       r"""'yield' can only be used in 'sync*' or 'async*' methods.""",
 );
+
+/// Enum containing analyzer error codes referenced by [Code.analyzerCodes].
+enum AnalyzerCode {
+  abstractExtensionField,
+  asyncForInWrongContext,
+  asyncKeywordUsedAsIdentifier,
+  awaitInWrongContext,
+  builtInIdentifierAsType,
+  builtInIdentifierInDeclaration,
+  constConstructorWithBody,
+  constNotInitialized,
+  defaultValueInFunctionType,
+  expectedClassMember,
+  expectedExecutable,
+  expectedStringLiteral,
+  expectedToken,
+  expectedTypeName,
+  extensionDeclaresInstanceField,
+  extensionTypeDeclaresInstanceField,
+  extensionTypeWithAbstractMember,
+  finalNotInitialized,
+  getterWithParameters,
+  illegalCharacter,
+  invalidCodePoint,
+  invalidInlineFunctionType,
+  invalidLiteralInConfiguration,
+  invalidModifierOnSetter,
+  missingDigit,
+  missingEnumBody,
+  missingFunctionBody,
+  missingFunctionParameters,
+  missingHexDigit,
+  missingIdentifier,
+  missingMethodParameters,
+  missingStarAfterSync,
+  missingTypedefParameters,
+  multipleImplementsClauses,
+  namedFunctionExpression,
+  namedParameterOutsideGroup,
+  nonPartOfDirectiveInPart,
+  nonSyncAbstractMethod,
+  nonSyncFactory,
+  positionalAfterNamedArgument,
+  privateOptionalParameter,
+  returnInGenerator,
+  unexpectedDollarInString,
+  unexpectedSeparatorInNumber,
+  unexpectedToken,
+  unsupportedOperator,
+  unterminatedMultiLineComment,
+  unterminatedStringLiteral,
+  wrongSeparatorForPositionalParameter,
+  yieldInNonGenerator,
+}

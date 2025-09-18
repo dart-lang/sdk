@@ -28,7 +28,7 @@ class Code {
   /// this error to its corresponding Analyzer error.
   final int index;
 
-  final List<String>? analyzerCodes;
+  final List<AnalyzerCode>? analyzerCodes;
 
   final CfeSeverity severity;
 
