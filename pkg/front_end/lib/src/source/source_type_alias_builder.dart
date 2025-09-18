@@ -420,6 +420,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       annotatable: typedef,
       annotatableFileUri: typedef.fileUri,
       metadata: _introductory.metadata,
+      annotationsFileUri: _introductory.fileUri,
       bodyBuilderContext: bodyBuilderContext,
       libraryBuilder: libraryBuilder,
       scope: _introductory.enclosingScope,

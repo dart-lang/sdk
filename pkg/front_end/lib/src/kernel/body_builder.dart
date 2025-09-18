@@ -47,6 +47,7 @@ import '../api_prototype/experimental_flags.dart';
 import '../api_prototype/lowering_predicates.dart';
 import '../base/compiler_context.dart';
 import '../base/constant_context.dart' show ConstantContext;
+import '../base/crash.dart';
 import '../base/identifiers.dart'
     show
         Identifier,
@@ -61,7 +62,8 @@ import '../base/local_scope.dart';
 import '../base/lookup_result.dart';
 import '../base/messages.dart';
 import '../base/modifiers.dart' show Modifiers;
-import '../base/problems.dart' show internalProblem, unhandled, unsupported;
+import '../base/problems.dart'
+    show internalProblem, unhandled, unsupported, DebugAbort;
 import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
@@ -98,14 +100,15 @@ import '../source/stack_listener_impl.dart'
 import '../source/type_parameter_factory.dart';
 import '../source/value_kinds.dart';
 import '../type_inference/inference_results.dart'
-    show InitializerInferenceResult;
+    show InitializerInferenceResult, ExpressionInferenceResult;
 import '../type_inference/inference_visitor.dart'
     show ExpressionEvaluationHelper;
 import '../type_inference/type_inferrer.dart'
     show TypeInferrer, InferredFunctionBody;
+import '../type_inference/type_schema.dart';
 import '../util/helpers.dart';
 import '../util/local_stack.dart';
-import 'benchmarker.dart' show Benchmarker;
+import 'benchmarker.dart' show Benchmarker, BenchmarkSubdivides;
 import 'body_builder_context.dart';
 import 'collections.dart';
 import 'constness.dart' show Constness;
@@ -121,8 +124,94 @@ import 'utils.dart';
 
 part 'body_builder_helpers.dart';
 
-class BodyBuilder extends StackListenerImpl
-    implements ExpressionGeneratorHelper {
+abstract class BodyBuilder {
+  void buildInitializers({
+    required Token beginInitializers,
+    required SourceConstructorBuilder constructorBuilder,
+    required bool isConst,
+  });
+
+  List<Initializer>? buildInitializersUnfinished({
+    required Token beginInitializers,
+    required bool isConst,
+  });
+
+  Expression buildParameterInitializer({
+    required Token initializerToken,
+    required DartType declaredType,
+    required bool hasDeclaredInitializer,
+  });
+
+  void buildRedirectingFactoryMethod({
+    required Token token,
+    required Token? metadata,
+  });
+
+  void buildPrimaryConstructor({required Token startToken});
+
+  void buildFunctionBody({
+    required Token startToken,
+    required Token? metadata,
+    required MemberKind kind,
+  });
+
+  /// Builds the uninferred [Expression] for an annotation starting at
+  /// [atToken].
+  Expression buildUnfinishedAnnotation({required Token atToken});
+
+  /// Infers the [Expression]s created by [buildUnfinishedAnnotation].
+  void inferUnfinishedAnnotations({
+    required Annotatable parent,
+    required List<Expression> annotations,
+    required List<int> indices,
+  });
+
+  /// Returns the metadata [Expression]s parsed from [metadata].
+  List<Expression> buildMetadataList({
+    required Token metadata,
+    required Annotatable? parent,
+  });
+
+  void buildFields({
+    required OffsetMap offsetMap,
+    required Token startToken,
+    required Token? metadata,
+    required bool isTopLevel,
+  });
+
+  Expression buildFieldInitializerUnfinished({
+    required Token startToken,
+    required ConstantContext constantContext,
+    required bool isLate,
+  });
+
+  Expression buildFieldInitializer2({
+    required Token startToken,
+    required bool isConst,
+    required Uri fileUri,
+    required DartType declaredFieldType,
+  });
+
+  (Expression, DartType?) buildEnumConstant({
+    required Token? token,
+    required List<Expression> enumSyntheticArguments,
+    required int enumTypeParameterCount,
+    required List<DartType>? typeArguments,
+    required MemberBuilder? constructorBuilder,
+    required int fileOffset,
+    required String fullConstructorNameForErrors,
+  });
+
+  Expression buildSingleExpression({
+    required Token token,
+    required Procedure procedure,
+    required List<VariableDeclarationImpl> extraKnownVariables,
+    required ExpressionEvaluationHelper expressionEvaluationHelper,
+  });
+}
+
+class BodyBuilderImpl extends StackListenerImpl
+    implements BodyBuilder, ExpressionGeneratorHelper {
   @override
   final Forest forest;
 
@@ -307,7 +396,7 @@ class BodyBuilder extends StackListenerImpl
   /// Index for building unique lowered names for wildcard variables.
   int wildcardVariableIndex = 0;
 
-  BodyBuilder({
+  BodyBuilderImpl({
     required this.libraryBuilder,
     required BodyBuilderContext context,
     required this.enclosingScope,
@@ -341,7 +430,7 @@ class BodyBuilder extends StackListenerImpl
     }
   }
 
-  BodyBuilder.forField(
+  BodyBuilderImpl.forField(
     SourceLibraryBuilder libraryBuilder,
     BodyBuilderContext bodyBuilderContext,
     LookupScope enclosingScope,
@@ -359,7 +448,7 @@ class BodyBuilder extends StackListenerImpl
         typeInferrer: typeInferrer,
       );
 
-  BodyBuilder.forOutlineExpression(
+  BodyBuilderImpl.forOutlineExpression(
     SourceLibraryBuilder libraryBuilder,
     BodyBuilderContext bodyBuilderContext,
     LookupScope scope,
@@ -11993,5 +12082,350 @@ class BodyBuilder extends StackListenerImpl
     Object? dotShorthand = pop();
     constantContext = pop() as ConstantContext;
     push(dotShorthand);
+  }
+
+  @override
+  void buildInitializers({
+    required Token beginInitializers,
+    required SourceConstructorBuilder constructorBuilder,
+    required bool isConst,
+  }) {
+    if (isConst) {
+      constantContext = ConstantContext.required;
+    }
+    constructorBuilder.inferFormalTypes(hierarchy);
+    parseInitializers(beginInitializers, doFinishConstructor: isConst);
+    performBacklogComputations();
+  }
+
+  @override
+  List<Initializer>? buildInitializersUnfinished({
+    required Token beginInitializers,
+    required bool isConst,
+  }) {
+    if (isConst) {
+      constantContext = ConstantContext.required;
+    }
+    return parseInitializers(beginInitializers, doFinishConstructor: false);
+  }
+
+  @override
+  Expression buildParameterInitializer({
+    required Token initializerToken,
+    required DartType declaredType,
+    required bool hasDeclaredInitializer,
+  }) {
+    constantContext = ConstantContext.required;
+    Expression initializer = parseFieldInitializer(initializerToken);
+    initializer = typeInferrer.inferParameterInitializer(
+      fileUri: uri,
+      initializer: initializer,
+      declaredType: declaredType,
+      hasDeclaredInitializer: hasDeclaredInitializer,
+      constantContext: constantContext,
+    );
+
+    performBacklogComputations();
+    return initializer;
+  }
+
+  @override
+  void buildRedirectingFactoryMethod({
+    required Token token,
+    required Token? metadata,
+  }) {
+    try {
+      Parser parser = new Parser(
+        this,
+        useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+        allowPatterns: libraryFeatures.patterns.isEnabled,
+        enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled,
+      );
+      if (metadata != null) {
+        parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
+        pop(); // Pops metadata constants.
+      }
+
+      token = parser.parseFormalParametersOpt(
+        parser.syntheticPreviousToken(token),
+        MemberKind.Factory,
+      );
+      pop(); // Pops formal parameters.
+      finishRedirectingFactoryBody();
+      checkEmpty(token.next!.charOffset);
+    }
+    // Coverage-ignore(suite): Not run.
+    on DebugAbort {
+      rethrow;
+    } catch (e, s) {
+      throw new Crash(uri, token.charOffset, e, s);
+    }
+  }
+
+  @override
+  void buildPrimaryConstructor({required Token startToken}) {
+    Token token = startToken;
+    try {
+      Parser parser = new Parser(
+        this,
+        useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+        allowPatterns: libraryFeatures.patterns.isEnabled,
+        enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled,
+      );
+      token = parser.parseFormalParametersOpt(
+        parser.syntheticPreviousToken(token),
+        MemberKind.PrimaryConstructor,
+      );
+      FormalParameters? formals = pop() as FormalParameters?;
+      checkEmpty(token.next!.charOffset);
+      handleNoInitializers();
+      checkEmpty(token.charOffset);
+      finishFunction(formals, AsyncMarker.Sync, null);
+    }
+    // Coverage-ignore(suite): Not run.
+    on DebugAbort {
+      rethrow;
+    } catch (e, s) {
+      throw new Crash(uri, token.charOffset, e, s);
+    }
+  }
+
+  @override
+  void buildFunctionBody({
+    required Token startToken,
+    required Token? metadata,
+    required MemberKind kind,
+  }) {
+    Token token = startToken;
+    try {
+      Parser parser = new Parser(
+        this,
+        useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+        allowPatterns: libraryFeatures.patterns.isEnabled,
+        enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled,
+      );
+      if (metadata != null) {
+        parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
+        pop(); // Annotations.
+      }
+      token = parser.parseFormalParametersOpt(
+        parser.syntheticPreviousToken(token),
+        kind,
+      );
+      FormalParameters? formals = pop() as FormalParameters?;
+      checkEmpty(token.next!.charOffset);
+      token = parser.parseInitializersOpt(token);
+      token = parser.parseAsyncModifierOpt(token);
+      AsyncMarker asyncModifier = pop() as AsyncMarker? ?? AsyncMarker.Sync;
+      if (kind == MemberKind.Factory && asyncModifier != AsyncMarker.Sync) {
+        // Factories has to be sync. The parser issued an error.
+        // Recover to sync.
+        asyncModifier = AsyncMarker.Sync;
+      }
+      bool isExpression = false;
+      bool allowAbstract = asyncModifier == AsyncMarker.Sync;
+
+      benchmarker
+      // Coverage-ignore(suite): Not run.
+      ?.beginSubdivide(
+        BenchmarkSubdivides.diet_listener_buildFunctionBody_parseFunctionBody,
+      );
+      parser.parseFunctionBody(token, isExpression, allowAbstract);
+      Statement? body = pop() as Statement?;
+      benchmarker
+          // Coverage-ignore(suite): Not run.
+          ?.endSubdivide();
+      checkEmpty(token.charOffset);
+      finishFunction(formals, asyncModifier, body);
+    }
+    // Coverage-ignore(suite): Not run.
+    on DebugAbort {
+      rethrow;
+    } catch (e, s) {
+      throw new Crash(uri, token.charOffset, e, s);
+    }
+  }
+
+  @override
+  Expression buildUnfinishedAnnotation({required Token atToken}) {
+    return parseAnnotation(atToken);
+  }
+
+  @override
+  void inferUnfinishedAnnotations({
+    required Annotatable parent,
+    required List<Expression> annotations,
+    required List<int> indices,
+  }) {
+    inferAnnotations(parent, annotations, indices: indices);
+    performBacklogComputations();
+  }
+
+  @override
+  List<Expression> buildMetadataList({
+    required Token metadata,
+    required Annotatable? parent,
+  }) {
+    Parser parser = new Parser(
+      this,
+      useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+      allowPatterns: libraryFeatures.patterns.isEnabled,
+      enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled,
+    );
+    parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
+    return finishMetadata(parent);
+  }
+
+  @override
+  void buildFields({
+    required OffsetMap offsetMap,
+    required Token startToken,
+    required Token? metadata,
+    required bool isTopLevel,
+  }) {
+    Token token = startToken;
+    Parser parser = new Parser(
+      this,
+      useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+      allowPatterns: libraryFeatures.patterns.isEnabled,
+      enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled,
+    );
+    if (isTopLevel) {
+      token = parser.parseTopLevelMember(metadata ?? token);
+    } else {
+      // TODO(danrubel): disambiguate between class/mixin/extension members
+      token = parser.parseClassMember(metadata ?? token, null).next!;
+    }
+    finishFields(offsetMap);
+
+    checkEmpty(token.charOffset);
+  }
+
+  @override
+  Expression buildFieldInitializerUnfinished({
+    required Token startToken,
+    required ConstantContext constantContext,
+    required bool isLate,
+  }) {
+    this.constantContext = constantContext;
+    inFieldInitializer = true;
+    inLateFieldInitializer = isLate;
+    return parseFieldInitializer(startToken);
+  }
+
+  @override
+  Expression buildFieldInitializer2({
+    required Token startToken,
+    required bool isConst,
+    required Uri fileUri,
+    required DartType declaredFieldType,
+  }) {
+    ConstantContext constantContext = isConst
+        ? ConstantContext.inferred
+        : ConstantContext.required;
+    this.constantContext = constantContext;
+    Expression initializer = typeInferrer
+        .inferFieldInitializer(
+          fileUri: fileUri,
+          constantContext: constantContext,
+          declaredType: declaredFieldType,
+          initializer: parseFieldInitializer(startToken),
+        )
+        .expression;
+    performBacklogComputations();
+    return initializer;
+  }
+
+  @override
+  (Expression, DartType?) buildEnumConstant({
+    required Token? token,
+    required List<Expression> enumSyntheticArguments,
+    required int enumTypeParameterCount,
+    required List<DartType>? typeArguments,
+    required MemberBuilder? constructorBuilder,
+    required int fileOffset,
+    required String fullConstructorNameForErrors,
+  }) {
+    ConstantContext constantContext = ConstantContext.inferred;
+    this.constantContext = constantContext;
+
+    ArgumentsImpl arguments;
+    if (token != null) {
+      arguments = parseArguments(token);
+      // We pass `true` for [allowFurtherDelays] here because the members of
+      // the enums are built before the inference, and the resolution of the
+      // redirecting factories can't be completed at this moment and
+      // therefore should be delayed to another invocation of
+      // [BodyBuilderImpl.performBacklogComputations].
+      performBacklogComputations();
+
+      arguments.positional.insertAll(0, enumSyntheticArguments);
+      arguments.argumentsOriginalOrder?.insertAll(0, enumSyntheticArguments);
+    } else {
+      arguments = new ArgumentsImpl(enumSyntheticArguments);
+    }
+    if (typeArguments != null) {
+      arguments.setExplicitTypeArguments(typeArguments);
+    } else if (enumTypeParameterCount != 0) {
+      arguments.types.addAll(
+        new List<DartType>.filled(enumTypeParameterCount, const UnknownType()),
+      );
+    }
+    setParents(enumSyntheticArguments, arguments);
+    Expression initializer;
+    DartType? fieldType;
+    if (constructorBuilder == null ||
+        constructorBuilder is! SourceConstructorBuilder) {
+      initializer = buildUnresolvedError(
+        fullConstructorNameForErrors,
+        fileOffset,
+        kind: UnresolvedKind.Constructor,
+      );
+    } else {
+      initializer = buildConstructorInvocation(
+        constructorBuilder.invokeTarget,
+        arguments,
+        constness: Constness.explicitConst,
+        fileOffset: fileOffset,
+      );
+      ExpressionInferenceResult inferenceResult = typeInferrer
+          .inferFieldInitializer(
+            fileUri: uri,
+            constantContext: constantContext,
+            declaredType: const UnknownType(),
+            initializer: initializer,
+          );
+      initializer = inferenceResult.expression;
+      fieldType = inferenceResult.inferredType;
+    }
+    return (initializer, fieldType);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Expression buildSingleExpression({
+    required Token token,
+    required Procedure procedure,
+    required List<VariableDeclarationImpl> extraKnownVariables,
+    required ExpressionEvaluationHelper expressionEvaluationHelper,
+  }) {
+    for (VariableDeclaration variable
+        in procedure.function.positionalParameters) {
+      typeInferrer.assignedVariables.declare(variable);
+    }
+
+    return parseSingleExpression(
+      new Parser(
+        this,
+        useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+        allowPatterns: libraryBuilder.libraryFeatures.patterns.isEnabled,
+        enableFeatureEnhancedParts:
+            libraryBuilder.libraryFeatures.enhancedParts.isEnabled,
+      ),
+      token,
+      procedure.function,
+      extraKnownVariables,
+      expressionEvaluationHelper,
+    );
   }
 }

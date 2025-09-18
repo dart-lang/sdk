@@ -9,7 +9,6 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
-import '../../base/constant_context.dart';
 import '../../base/identifiers.dart';
 import '../../base/local_scope.dart';
 import '../../base/messages.dart';
@@ -23,9 +22,9 @@ import '../../builder/metadata_builder.dart';
 import '../../builder/omitted_type_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../builder/variable_builder.dart';
-import '../../kernel/body_builder.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../kernel/kernel_helper.dart';
+import '../../kernel/resolver.dart';
 import '../../kernel/type_algorithms.dart';
 import '../../source/check_helper.dart';
 import '../../source/name_scheme.dart';
@@ -244,19 +243,14 @@ mixin _ConstructorDeclarationMixin
       List<Initializer>? initializers;
       Token? beginInitializers = this._beginInitializers;
       if (beginInitializers != null) {
-        BodyBuilder bodyBuilder = libraryBuilder.loader
-            .createBodyBuilderForOutlineExpression(
-              libraryBuilder,
-              createBodyBuilderContext(constructorBuilder),
-              _typeParameterScope,
-              fileUri,
-            );
-        if (isConst) {
-          bodyBuilder.constantContext = ConstantContext.required;
-        }
-        initializers = bodyBuilder.parseInitializers(
-          beginInitializers,
-          doFinishConstructor: false,
+        Resolver resolver = libraryBuilder.loader.createResolver();
+        initializers = resolver.buildInitializersUnfinished(
+          libraryBuilder: libraryBuilder,
+          bodyBuilderContext: createBodyBuilderContext(constructorBuilder),
+          typeParameterScope: _typeParameterScope,
+          fileUri: fileUri,
+          beginInitializers: beginInitializers,
+          isConst: isConst,
         );
       }
       _finalizeSuperInitializingFormals(
@@ -575,23 +569,17 @@ mixin _ConstructorDeclarationMixin
       } else {
         formalParameterScope = null;
       }
-      BodyBuilder bodyBuilder = libraryBuilder.loader
-          .createBodyBuilderForOutlineExpression(
-            libraryBuilder,
-            createBodyBuilderContext(constructorBuilder),
-            _typeParameterScope,
-            fileUri,
-            formalParameterScope: formalParameterScope,
-          );
-      if (isConst) {
-        bodyBuilder.constantContext = ConstantContext.required;
-      }
-      constructorBuilder.inferFormalTypes(bodyBuilder.hierarchy);
-      bodyBuilder.parseInitializers(
-        _beginInitializers!,
-        doFinishConstructor: isConst,
+      Resolver resolver = libraryBuilder.loader.createResolver();
+      resolver.buildInitializers(
+        libraryBuilder: libraryBuilder,
+        constructorBuilder: constructorBuilder,
+        typeParameterScope: _typeParameterScope,
+        formalParameterScope: formalParameterScope,
+        bodyBuilderContext: createBodyBuilderContext(constructorBuilder),
+        fileUri: fileUri,
+        beginInitializers: _beginInitializers!,
+        isConst: isConst,
       );
-      bodyBuilder.performBacklogComputations();
     }
   }
 
@@ -998,6 +986,7 @@ class RegularConstructorDeclaration
         annotatable: annotatable,
         annotatableFileUri: annotatablesFileUri,
         metadata: _fragment.metadata,
+        annotationsFileUri: _fragment.fileUri,
         bodyBuilderContext: bodyBuilderContext,
         libraryBuilder: libraryBuilder,
         scope: _fragment.enclosingScope,

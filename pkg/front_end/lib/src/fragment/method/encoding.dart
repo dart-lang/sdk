@@ -176,6 +176,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
       annotatable: annotatable,
       annotatableFileUri: annotatableFileUri,
       metadata: _fragment.metadata,
+      annotationsFileUri: _fragment.fileUri,
     );
     buildTypeParametersForOutlineExpressions(
       classHierarchy,
@@ -479,6 +480,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       annotatable: annotatable,
       annotatableFileUri: annotatableFileUri,
       metadata: _fragment.metadata,
+      annotationsFileUri: _fragment.fileUri,
     );
 
     buildTypeParametersForOutlineExpressions(

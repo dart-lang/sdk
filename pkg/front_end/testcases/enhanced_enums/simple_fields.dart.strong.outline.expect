@@ -38,10 +38,10 @@ static method main() → dynamic
 
 Extra constant evaluation status:
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_fields.dart:6:3 -> InstanceConstant(const E1{E1.foo: 1, _Enum.index: 0, _Enum._name: "one"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_fields.dart:7:3 -> InstanceConstant(const E1{E1.foo: 2, _Enum.index: 1, _Enum._name: "two"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_fields.dart:7:7 -> InstanceConstant(const E1{E1.foo: 2, _Enum.index: 1, _Enum._name: "two"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///simple_fields.dart:5:6 -> ListConstant(const <E1>[const E1{E1.foo: 1, _Enum.index: 0, _Enum._name: "one"}, const E1{E1.foo: 2, _Enum.index: 1, _Enum._name: "two"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_fields.dart:17:3 -> InstanceConstant(const E2<int, String>{E2.foo: 1, E2.bar: "one", _Enum.index: 0, _Enum._name: "one"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_fields.dart:18:3 -> InstanceConstant(const E2<int, String>{E2.foo: 2, E2.bar: "two", _Enum.index: 1, _Enum._name: "two"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_fields.dart:19:3 -> InstanceConstant(const E2<String, String>{E2.foo: "three", E2.bar: "three", _Enum.index: 2, _Enum._name: "three"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_fields.dart:18:7 -> InstanceConstant(const E2<int, String>{E2.foo: 2, E2.bar: "two", _Enum.index: 1, _Enum._name: "two"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///simple_fields.dart:19:9 -> InstanceConstant(const E2<String, String>{E2.foo: "three", E2.bar: "three", _Enum.index: 2, _Enum._name: "three"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///simple_fields.dart:16:6 -> ListConstant(const <E2<dynamic, dynamic>>[const E2<int, String>{E2.foo: 1, E2.bar: "one", _Enum.index: 0, _Enum._name: "one"}, const E2<int, String>{E2.foo: 2, E2.bar: "two", _Enum.index: 1, _Enum._name: "two"}, const E2<String, String>{E2.foo: "three", E2.bar: "three", _Enum.index: 2, _Enum._name: "three"}])
 Extra constant evaluation: evaluated: 27, effectively constant: 7

@@ -10,6 +10,7 @@ import 'package:front_end/src/base/compiler_context.dart';
 import 'package:front_end/src/base/uri_translator.dart';
 import 'package:front_end/src/dill/dill_target.dart';
 import 'package:front_end/src/kernel/kernel_target.dart';
+import 'package:front_end/src/kernel/resolver.dart';
 import 'package:kernel/ast.dart' show CanonicalName, Class;
 import 'package:vm_service/vm_service.dart' as vmService;
 import "package:vm_service/vm_service_io.dart" as vmServiceIo;

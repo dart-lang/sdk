@@ -9,13 +9,28 @@ import 'package:kernel/clone.dart';
 
 import '../base/loader.dart';
 import '../base/scope.dart' show LookupScope;
-import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/body_builder_context.dart';
 import '../kernel/macro/metadata.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 bool computeSharedExpressionForTesting = false;
 bool delaySharedExpressionLookupForTesting = false;
+
+class Annotation {
+  final MetadataBuilder metadataBuilder;
+
+  final Token atToken;
+  final bool createFileUriExpression;
+
+  Annotation(
+    this.metadataBuilder,
+    this.atToken, {
+    required this.createFileUriExpression,
+  });
+
+  late int annotationIndex;
+  late Expression expression;
+}
 
 class MetadataBuilder {
   /// Token for `@` for annotations that have not yet been parsed.
@@ -56,30 +71,23 @@ class MetadataBuilder {
     required Annotatable annotatable,
     required Uri annotatableFileUri,
     required List<MetadataBuilder>? metadata,
+    required Uri annotationsFileUri,
     required BodyBuilderContext bodyBuilderContext,
     required SourceLibraryBuilder libraryBuilder,
     required LookupScope scope,
   }) {
     if (metadata == null) return;
 
-    // [BodyBuilder] used to build annotations from [Token]s.
-    BodyBuilder? bodyBuilder;
     // Cloner used to clone already parsed annotations.
     CloneVisitorNotMembers? cloner;
 
-    // Map from annotation builder of parsed annotations to the index of the
-    // corresponding annotation in `parent.annotations`.
-    //
-    // This is used to read the fully inferred annotation from [parent] and
-    // store it in `_expression` of the corresponding [MetadataBuilder].
-    Map<MetadataBuilder, int> parsedAnnotationBuilders = {};
-
-    List<int> indicesOfAnnotationsToBeInferred = [];
+    List<Annotation> annotations = [];
     for (int i = 0; i < metadata.length; ++i) {
       MetadataBuilder annotationBuilder = metadata[i];
       bool createFileUriExpression =
           annotatableFileUri != annotationBuilder.fileUri;
       Token? beginToken = annotationBuilder._atToken;
+      annotationBuilder._atToken = null;
       if (beginToken != null) {
         if (computeSharedExpressionForTesting) {
           // Coverage-ignore-block(suite): Not run.
@@ -102,29 +110,13 @@ class MetadataBuilder {
                 );
           }
         }
-
-        bodyBuilder ??= libraryBuilder.loader
-            .createBodyBuilderForOutlineExpression(
-              libraryBuilder,
-              bodyBuilderContext,
-              scope,
-              annotationBuilder.fileUri,
-            );
-        Expression annotation = bodyBuilder.parseAnnotation(beginToken);
-        annotationBuilder._atToken = null;
-        if (createFileUriExpression) {
-          annotation = new FileUriExpression(
-            annotation,
-            annotationBuilder.fileUri,
-          )..fileOffset = annotationBuilder.atOffset;
-        }
-        // Record the index of [annotation] in `parent.annotations`.
-        int annotationIndex = annotatable.annotations.length;
-        parsedAnnotationBuilders[annotationBuilder] = annotationIndex;
-        indicesOfAnnotationsToBeInferred.add(annotationIndex);
-        // It is important for the inference and backlog computations that the
-        // annotation is already a child of [parent].
-        annotatable.addAnnotation(annotation);
+        annotations.add(
+          new Annotation(
+            annotationBuilder,
+            beginToken,
+            createFileUriExpression: createFileUriExpression,
+          ),
+        );
       } else {
         // The annotation is needed for multiple declarations so we need to
         // clone the expression to use it more than once. For instance
@@ -157,19 +149,16 @@ class MetadataBuilder {
         annotatable.addAnnotation(annotation);
       }
     }
-    if (bodyBuilder != null) {
-      bodyBuilder.inferAnnotations(
-        annotatable,
-        annotatable.annotations,
-        indices: indicesOfAnnotationsToBeInferred,
-      );
-      bodyBuilder.performBacklogComputations();
-      for (MapEntry<MetadataBuilder, int> entry
-          in parsedAnnotationBuilders.entries) {
-        MetadataBuilder annotationBuilder = entry.key;
-        int index = entry.value;
-        annotationBuilder._expression = annotatable.annotations[index];
-      }
+    libraryBuilder.loader.createResolver().buildAnnotations(
+      libraryBuilder: libraryBuilder,
+      bodyBuilderContext: bodyBuilderContext,
+      annotationsFileUri: annotationsFileUri,
+      scope: scope,
+      annotatable: annotatable,
+      annotations: annotations,
+    );
+    for (Annotation annotation in annotations) {
+      annotation.metadataBuilder._expression = annotation.expression;
     }
   }
 }

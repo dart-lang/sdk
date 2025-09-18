@@ -47,7 +47,7 @@ static method main() → dynamic
 
 Extra constant evaluation status:
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_initializers.dart:6:3 -> InstanceConstant(const E1{E1.foo: 1, _Enum.index: 0, _Enum._name: "one"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_initializers.dart:7:3 -> InstanceConstant(const E1{E1.foo: 2, _Enum.index: 1, _Enum._name: "two"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_initializers.dart:7:7 -> InstanceConstant(const E1{E1.foo: 2, _Enum.index: 1, _Enum._name: "two"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///redirecting_initializers.dart:5:6 -> ListConstant(const <E1>[const E1{E1.foo: 1, _Enum.index: 0, _Enum._name: "one"}, const E1{E1.foo: 2, _Enum.index: 1, _Enum._name: "two"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_initializers.dart:16:3 -> InstanceConstant(const E2{E2.foo: 1, _Enum.index: 0, _Enum._name: "one"})
 Evaluated: StaticGet @ org-dartlang-testcase:///redirecting_initializers.dart:15:6 -> InstanceConstant(const E2{E2.foo: 1, _Enum.index: 0, _Enum._name: "one"})

@@ -36,8 +36,8 @@ Extra constant evaluation status:
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_constructor.dart:6:3 -> InstanceConstant(const C{C.log: "x=1, y=2, z=3", _Enum.index: 0, _Enum._name: "a"})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_constructor.dart:7:3 -> InstanceConstant(const C{C.log: "x=1, y=2, z=3", _Enum.index: 1, _Enum._name: "b"})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_constructor.dart:8:3 -> InstanceConstant(const C{C.log: "x=1, y=2, z=3", _Enum.index: 2, _Enum._name: "c"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_constructor.dart:9:3 -> InstanceConstant(const C{C.log: "x=1, y=2, z=3", _Enum.index: 3, _Enum._name: "d"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_constructor.dart:10:3 -> InstanceConstant(const C{C.log: "x=1, y=2, z=3", _Enum.index: 4, _Enum._name: "e"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_constructor.dart:11:3 -> InstanceConstant(const C{C.log: "x=1, y=2, z=3", _Enum.index: 5, _Enum._name: "f"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_constructor.dart:9:5 -> InstanceConstant(const C{C.log: "x=1, y=2, z=3", _Enum.index: 3, _Enum._name: "d"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_constructor.dart:10:5 -> InstanceConstant(const C{C.log: "x=1, y=2, z=3", _Enum.index: 4, _Enum._name: "e"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///redirecting_constructor.dart:11:5 -> InstanceConstant(const C{C.log: "x=1, y=2, z=3", _Enum.index: 5, _Enum._name: "f"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///redirecting_constructor.dart:5:6 -> ListConstant(const <C>[const C{C.log: "x=1, y=2, z=3", _Enum.index: 0, _Enum._name: "a"}, const C{C.log: "x=1, y=2, z=3", _Enum.index: 1, _Enum._name: "b"}, const C{C.log: "x=1, y=2, z=3", _Enum.index: 2, _Enum._name: "c"}, const C{C.log: "x=1, y=2, z=3", _Enum.index: 3, _Enum._name: "d"}, const C{C.log: "x=1, y=2, z=3", _Enum.index: 4, _Enum._name: "e"}, const C{C.log: "x=1, y=2, z=3", _Enum.index: 5, _Enum._name: "f"}])
 Extra constant evaluation: evaluated: 38, effectively constant: 7

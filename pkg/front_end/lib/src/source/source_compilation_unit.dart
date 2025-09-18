@@ -1109,6 +1109,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       annotatable: annotatable,
       annotatableFileUri: annotatableFileUri,
       metadata: metadata,
+      annotationsFileUri: fileUri,
       bodyBuilderContext: bodyBuilderContext,
       libraryBuilder: libraryBuilder,
       scope: compilationUnitScope,

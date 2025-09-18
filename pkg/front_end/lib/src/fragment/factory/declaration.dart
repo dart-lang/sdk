@@ -214,6 +214,7 @@ class FactoryDeclarationImpl
         annotatable: annotatable,
         annotatableFileUri: annotatablesFileUri,
         metadata: _fragment.metadata,
+        annotationsFileUri: _fragment.fileUri,
         bodyBuilderContext: bodyBuilderContext,
         libraryBuilder: libraryBuilder,
         scope: _fragment.enclosingScope,

@@ -248,6 +248,7 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
       annotatable: annotatable,
       annotatableFileUri: annotatableFileUri,
       metadata: _fragment.metadata,
+      annotationsFileUri: _fragment.fileUri,
     );
     buildTypeParametersForOutlineExpressions(
       classHierarchy,
@@ -520,6 +521,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
       annotatable: annotatable,
       annotatableFileUri: annotatableFileUri,
       metadata: _fragment.metadata,
+      annotationsFileUri: _fragment.fileUri,
     );
 
     buildTypeParametersForOutlineExpressions(

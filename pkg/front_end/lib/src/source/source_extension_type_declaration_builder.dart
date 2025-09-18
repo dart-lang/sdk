@@ -834,6 +834,7 @@ class SourceExtensionTypeDeclarationBuilder
       annotatable: extensionTypeDeclaration,
       annotatableFileUri: extensionTypeDeclaration.fileUri,
       metadata: _introductory.metadata,
+      annotationsFileUri: _introductory.fileUri,
       bodyBuilderContext: bodyBuilderContext,
       libraryBuilder: libraryBuilder,
       scope: _introductory.enclosingScope,

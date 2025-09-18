@@ -20,15 +20,14 @@ import '../../builder/metadata_builder.dart';
 import '../../builder/omitted_type_builder.dart';
 import '../../builder/property_builder.dart';
 import '../../builder/type_builder.dart';
-import '../../kernel/body_builder.dart';
 import '../../kernel/body_builder_context.dart';
-import '../../source/check_helper.dart';
 import '../../kernel/hierarchy/class_member.dart';
 import '../../kernel/hierarchy/members_builder.dart';
 import '../../kernel/implicit_field_type.dart';
 import '../../kernel/late_lowering.dart' as late_lowering;
 import '../../kernel/macro/metadata.dart';
 import '../../kernel/type_algorithms.dart';
+import '../../source/check_helper.dart';
 import '../../source/name_scheme.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_library_builder.dart';
@@ -243,6 +242,7 @@ class RegularFieldDeclaration
   List<ClassMember> get localSetters => _encoding.localSetters;
 
   @override
+  // Coverage-ignore(suite): Not run.
   List<MetadataBuilder>? get metadata => _fragment.metadata;
 
   @override
@@ -374,7 +374,8 @@ class RegularFieldDeclaration
         bodyBuilderContext: bodyBuilderContext,
         annotatable: annotatable,
         annotatableFileUri: annotatablesFileUri,
-        metadata: metadata,
+        metadata: _fragment.metadata,
+        annotationsFileUri: _fragment.fileUri,
       );
     }
     // For modular compilation we need to include initializers of all const
@@ -388,27 +389,18 @@ class RegularFieldDeclaration
                     .declaresConstConstructor)) &&
         token != null) {
       LookupScope scope = _fragment.enclosingScope;
-      BodyBuilder bodyBuilder = libraryBuilder.loader
-          .createBodyBuilderForOutlineExpression(
-            libraryBuilder,
-            createBodyBuilderContext(),
-            scope,
-            fileUri,
-          );
-      ConstantContext constantContext = _fragment.modifiers.isConst
-          ? ConstantContext.inferred
-          : ConstantContext.required;
-      bodyBuilder.constantContext = constantContext;
-      Expression initializer = bodyBuilder.typeInferrer
-          .inferFieldInitializer(
+      Expression initializer = libraryBuilder.loader
+          .createResolver()
+          .buildFieldInitializer2(
+            libraryBuilder: libraryBuilder,
+            bodyBuilderContext: bodyBuilderContext,
             fileUri: fileUri,
-            constantContext: constantContext,
-            declaredType: fieldType,
-            initializer: bodyBuilder.parseFieldInitializer(token),
-          )
-          .expression;
+            scope: scope,
+            isConst: isConst,
+            fieldType: fieldType,
+            startToken: token,
+          );
       buildBody(classHierarchy.coreTypes, initializer);
-      bodyBuilder.performBacklogComputations();
       if (computeSharedExpressionForTesting) {
         // Coverage-ignore-block(suite): Not run.
         _initializerExpression = parseFieldInitializer(
@@ -671,38 +663,22 @@ class RegularFieldDeclaration
                 )
           : null;
       LookupScope scope = _fragment.enclosingScope;
-      TypeInferrer typeInferrer = libraryBuilder.loader.typeInferenceEngine
-          .createTopLevelTypeInferrer(
-            fileUri,
-            enclosingClassThisType,
-            libraryBuilder,
-            scope,
-            builder
+      inferredType = libraryBuilder.loader
+          .createResolver()
+          .buildFieldInitializer1(
+            libraryBuilder: libraryBuilder,
+            fileUri: fileUri,
+            scope: scope,
+            enclosingClassThisType: enclosingClassThisType,
+            inferenceDataForTesting: builder
                 .dataForTesting
                 // Coverage-ignore(suite): Not run.
                 ?.inferenceData,
+            bodyBuilderContext: createBodyBuilderContext(),
+            startToken: token,
+            isConst: _fragment.modifiers.isConst,
+            isLate: _fragment.modifiers.isLate,
           );
-      BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
-      BodyBuilder bodyBuilder = libraryBuilder.loader.createBodyBuilderForField(
-        libraryBuilder,
-        bodyBuilderContext,
-        scope,
-        typeInferrer,
-        fileUri,
-      );
-      ConstantContext constantContext = _fragment.modifiers.isConst
-          ? ConstantContext.inferred
-          : ConstantContext.none;
-      bodyBuilder.constantContext = constantContext;
-      bodyBuilder.inFieldInitializer = true;
-      bodyBuilder.inLateFieldInitializer = _fragment.modifiers.isLate;
-      Expression initializer = bodyBuilder.parseFieldInitializer(token);
-
-      inferredType = typeInferrer.inferImplicitFieldType(
-        fileUri: fileUri,
-        constantContext: constantContext,
-        initializer: initializer,
-      );
     } else {
       inferredType = const DynamicType();
     }

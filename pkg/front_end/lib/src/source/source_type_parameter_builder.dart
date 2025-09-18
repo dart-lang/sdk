@@ -150,6 +150,7 @@ class RegularNominalParameterDeclaration
       annotatable: parameter,
       annotatableFileUri: annotatableFileUri,
       metadata: _fragment.metadata,
+      annotationsFileUri: _fragment.fileUri,
       bodyBuilderContext: bodyBuilderContext,
       libraryBuilder: libraryBuilder,
       scope: _fragment.typeParameterScope,

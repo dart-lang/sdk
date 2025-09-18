@@ -21,8 +21,7 @@ import 'package:front_end/src/dill/dill_target.dart';
 import 'package:front_end/src/kernel/body_builder.dart';
 import 'package:front_end/src/kernel/body_builder_context.dart';
 import 'package:front_end/src/kernel/kernel_target.dart';
-import 'package:front_end/src/source/diet_listener.dart';
-import 'package:front_end/src/source/offset_map.dart';
+import 'package:front_end/src/kernel/resolver.dart';
 import 'package:front_end/src/source/source_library_builder.dart';
 import 'package:front_end/src/source/source_loader.dart';
 import 'package:front_end/src/type_inference/type_inferrer.dart';
@@ -269,132 +268,16 @@ class SourceLoaderTest extends SourceLoader {
   ) : super(fileSystem, includeComments, target);
 
   @override
-  DietListener createDietListener(
-    SourceLibraryBuilder library,
-    LookupScope compilationUnitScope,
-    OffsetMap offsetMap,
-  ) {
-    return new DietListenerTest(
-      library,
-      compilationUnitScope,
-      hierarchy,
-      coreTypes,
-      typeInferenceEngine,
-      offsetMap,
-      bodyBuilderCreator,
-    );
-  }
-
-  @override
-  BodyBuilder createBodyBuilderForOutlineExpression(
-    SourceLibraryBuilder library,
-    BodyBuilderContext bodyBuilderContext,
-    LookupScope scope,
-    Uri fileUri, {
-    LocalScope? formalParameterScope,
-  }) {
-    return bodyBuilderCreator.createForOutlineExpression(
-      library,
-      bodyBuilderContext,
-      scope,
-      fileUri,
-      formalParameterScope: formalParameterScope,
-    );
-  }
-
-  @override
-  BodyBuilder createBodyBuilderForField(
-    SourceLibraryBuilder libraryBuilder,
-    BodyBuilderContext bodyBuilderContext,
-    LookupScope enclosingScope,
-    TypeInferrer typeInferrer,
-    Uri uri,
-  ) {
-    return bodyBuilderCreator.createForField(
-      libraryBuilder,
-      bodyBuilderContext,
-      enclosingScope,
-      typeInferrer,
-      uri,
-    );
-  }
-}
-
-class DietListenerTest extends DietListener {
-  final BodyBuilderCreator bodyBuilderCreator;
-
-  DietListenerTest(
-    super.library,
-    super.compilationUnitScope,
-    super.hierarchy,
-    super.coreTypes,
-    super.typeInferenceEngine,
-    super.offsetMap,
-    this.bodyBuilderCreator,
-  );
-
-  @override
-  BodyBuilder createListenerInternal(
-    BodyBuilderContext bodyBuilderContext,
-    LookupScope memberScope,
-    LocalScope? formalParameterScope,
-    VariableDeclaration? extensionThis,
-    List<TypeParameter>? extensionTypeParameters,
-    TypeInferrer typeInferrer,
-    ConstantContext constantContext,
-  ) {
-    return bodyBuilderCreator.create(
-      libraryBuilder: libraryBuilder,
-      context: bodyBuilderContext,
-      enclosingScope: memberScope,
-      formalParameterScope: formalParameterScope,
-      hierarchy: hierarchy,
+  Resolver createResolver() {
+    return new ResolverForTesting(
+      classHierarchy: hierarchy,
       coreTypes: coreTypes,
-      thisVariable: extensionThis,
-      thisTypeParameters: extensionTypeParameters,
-      uri: uri,
-      typeInferrer: typeInferrer,
-    )..constantContext = constantContext;
+      typeInferenceEngine: typeInferenceEngine,
+      benchmarker: target.benchmarker,
+      bodyBuilderCreator: bodyBuilderCreator,
+    );
   }
 }
-
-typedef BodyBuilderCreatorUnnamed =
-    BodyBuilderTest Function({
-      required SourceLibraryBuilder libraryBuilder,
-      required BodyBuilderContext context,
-      required LookupScope enclosingScope,
-      LocalScope? formalParameterScope,
-      required ClassHierarchy hierarchy,
-      required CoreTypes coreTypes,
-      VariableDeclaration? thisVariable,
-      List<TypeParameter>? thisTypeParameters,
-      required Uri uri,
-      required TypeInferrer typeInferrer,
-    });
-
-typedef BodyBuilderCreatorForField =
-    BodyBuilderTest Function(
-      SourceLibraryBuilder libraryBuilder,
-      BodyBuilderContext bodyBuilderContext,
-      LookupScope enclosingScope,
-      TypeInferrer typeInferrer,
-      Uri uri,
-    );
-
-typedef BodyBuilderCreatorForOutlineExpression =
-    BodyBuilderTest Function(
-      SourceLibraryBuilder library,
-      BodyBuilderContext bodyBuilderContext,
-      LookupScope scope,
-      Uri fileUri, {
-      LocalScope? formalParameterScope,
-    });
-
-typedef BodyBuilderCreator = ({
-  BodyBuilderCreatorUnnamed create,
-  BodyBuilderCreatorForField createForField,
-  BodyBuilderCreatorForOutlineExpression createForOutlineExpression,
-});
 
 const BodyBuilderCreator defaultBodyBuilderCreator = (
   create: BodyBuilderTest.new,
@@ -402,7 +285,7 @@ const BodyBuilderCreator defaultBodyBuilderCreator = (
   createForOutlineExpression: BodyBuilderTest.forOutlineExpression,
 );
 
-class BodyBuilderTest extends BodyBuilder {
+class BodyBuilderTest extends BodyBuilderImpl {
   @override
   BodyBuilderTest({
     required SourceLibraryBuilder libraryBuilder,
@@ -415,6 +298,7 @@ class BodyBuilderTest extends BodyBuilder {
     List<TypeParameter>? thisTypeParameters,
     required Uri uri,
     required TypeInferrer typeInferrer,
+    required ConstantContext constantContext,
   }) : super(
          libraryBuilder: libraryBuilder,
          context: context,
@@ -426,7 +310,9 @@ class BodyBuilderTest extends BodyBuilder {
          thisTypeParameters: thisTypeParameters,
          uri: uri,
          typeInferrer: typeInferrer,
-       );
+       ) {
+    this.constantContext = constantContext;
+  }
 
   @override
   BodyBuilderTest.forField(

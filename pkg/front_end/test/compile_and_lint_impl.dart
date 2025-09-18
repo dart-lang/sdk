@@ -19,7 +19,7 @@ import 'package:front_end/src/builder/declaration_builders.dart'
     show TypeDeclarationBuilder;
 import 'package:front_end/src/builder/type_builder.dart' show TypeBuilder;
 import 'package:front_end/src/codes/cfe_codes.dart' as cfe show codeUnspecified;
-import 'package:front_end/src/kernel/body_builder.dart' show BodyBuilder;
+import 'package:front_end/src/kernel/body_builder.dart' show BodyBuilderImpl;
 import 'package:front_end/src/kernel/constness.dart' show Constness;
 import 'package:front_end/src/kernel/expression_generator_helper.dart'
     show UnresolvedKind;
@@ -239,7 +239,7 @@ Set<Uri> _replaceParts(Uri packageConfigUri, Set<Uri> files) {
 
 class BodyBuilderTester = BodyBuilderTest with BodyBuilderTestMixin;
 
-mixin BodyBuilderTestMixin on BodyBuilder {
+mixin BodyBuilderTestMixin on BodyBuilderImpl {
   late Set<Uri> _ignoredDirs = {
     ..._ignoredDirectoryUris,
     ..._explicitCreationIgnoredDirectoryUris,
