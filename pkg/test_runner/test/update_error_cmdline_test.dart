@@ -73,20 +73,8 @@ Future<void> doTest(List<String> fileNameParts, List<String> testNameParts,
           await run(relativeUriPath, target, expectedLines, expectedUpdateText);
 
       var absoluteNativePath = File(relativeNativePath).absolute.path;
-      var result = await run(
+      errorFound |= await run(
           absoluteNativePath, target, expectedLines, expectedUpdateText);
-      if (Platform.isWindows) {
-        // TODO(johnniwinther,rnystrom): Support absolute paths on Windows.
-        if (!result) {
-          print('Error: Expected failure on Windows. '
-              'Update test to expect success on all platforms.');
-          errorFound = true;
-        } else {
-          print('Error on Windows is expected.');
-        }
-      } else {
-        errorFound |= result;
-      }
     }
 
     if (errorFound) {

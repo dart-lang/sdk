@@ -184,10 +184,13 @@ List<TestFile> _listFiles(List<String> pathGlobs,
     // or relative to the current directory.
     var root = pathGlob.startsWith("tests") ? "." : "tests";
 
-    // [Glob] doesn't handle Windows path delimiters, so we normalize it using
-    // [Path]. [Glob] doesn't handle absolute Windows paths, though, so this
-    // only supports the relative paths.
-    pathGlob = Path.normalize(pathGlob);
+    pathGlob = Uri.file(pathGlob).toFilePath(windows: false);
+    if (Platform.isWindows && p.isAbsolute(pathGlob)) {
+      // Trim absolute path's leading forward slash on Windows to accommodate
+      // Glob, which doesn't handle proper backslash-separated Windows paths
+      // and proper absolute file uri on Windows look like '/c:/abc/temp.txt'.
+      pathGlob = pathGlob.substring(1);
+    }
 
     for (var file in Glob(pathGlob, recursive: true).listSync(root: root)) {
       if (file is! File) continue;
