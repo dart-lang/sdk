@@ -405,8 +405,8 @@ class DiagnosticReporter {
   }
 }
 
-/// Used by [DiagnosticReporter._convertTypeNames] to keep track of an error
-/// argument that is an [Element], that is being converted to a display string.
+/// Used by [convertTypeNames] to keep track of an error argument that is an
+/// [Element], that is being converted to a display string.
 class _ElementToConvert implements _ToConvert {
   @override
   final int index;
@@ -421,8 +421,8 @@ class _ElementToConvert implements _ToConvert {
     : allElements = [element];
 }
 
-/// Used by [DiagnosticReporter._convertTypeNames] to keep track of an argument
-/// that is being converted to a display string.
+/// Used by [convertTypeNames] to keep track of an argument that is being
+/// converted to a display string.
 abstract class _ToConvert {
   /// A list of all elements involved in the [DartType] or [Element]'s display
   /// string.
@@ -436,8 +436,8 @@ abstract class _ToConvert {
   int get index;
 }
 
-/// Used by [DiagnosticReporter._convertTypeNames] to keep track of an error
-/// argument that is a [DartType], that is being converted to a display string.
+/// Used by [convertTypeNames] to keep track of an error argument that is a
+/// [DartType], that is being converted to a display string.
 class _TypeToConvert implements _ToConvert {
   @override
   final int index;

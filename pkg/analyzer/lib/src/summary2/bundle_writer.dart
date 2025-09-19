@@ -784,7 +784,7 @@ class BundleWriter {
     _resolutionSink.writeType(fragment.element.defaultType);
   }
 
-  /// Add [typeParameters] to the indexing scope, so make them available
+  /// Add [typeParameterFragments] to the indexing scope, so make them available
   /// when writing types that might reference them, and write the elements.
   void _writeTypeParameters(
     List<TypeParameterFragmentImpl> typeParameterFragments,

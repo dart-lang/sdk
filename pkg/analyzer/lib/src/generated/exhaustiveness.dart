@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analyzer/src/error/codes.dart';
+library;
+
 import 'package:_fe_analyzer_shared/src/exhaustiveness/dart_template_buffer.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/key.dart';
@@ -477,8 +480,8 @@ class MissingPatternEnumValuePart extends MissingPatternPart {
 
 abstract class MissingPatternPart {
   /// Expando associating each
-  /// [CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION] or
-  /// [CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT] diagnostic with a
+  /// [CompileTimeErrorCode.nonExhaustiveSwitchExpression] or
+  /// [CompileTimeErrorCode.nonExhaustiveSwitchStatement] diagnostic with a
   /// list of missing patterns; this data is used by the analysis server to add
   /// missing switch cases.
   static final byDiagnostic = Expando<List<List<MissingPatternPart>>>();
