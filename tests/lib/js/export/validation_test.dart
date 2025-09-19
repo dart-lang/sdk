@@ -190,15 +190,18 @@ void testCollisions() {
   createJSInteropWrapper(GetSetNoCollision());
 }
 
-// Class annotation values are warnings, not values, so they don't show up in
-// static error tests.
+// Class annotation values are warnings
 @JSExport('Invalid')
 class ClassWithValue {
+  //  ^
+  // [web] The value in the `@JSExport` annotation on the class or mixin 'ClassWithValue' will be ignored.
   int get getSet => throw '';
 }
 
 @JSExport('Invalid')
 mixin MixinWithValue {
+  //  ^
+  // [web] The value in the `@JSExport` annotation on the class or mixin 'MixinWithValue' will be ignored.
   int get getSet => throw '';
 }
 
