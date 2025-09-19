@@ -551,7 +551,6 @@ class _ClassVerifier {
   }
 
   /// Check that [classElement] is not a superinterface to itself.
-  /// The [path] is a list containing the potentially cyclic implements path.
   ///
   /// See [CompileTimeErrorCode.recursiveInterfaceInheritance],
   /// [CompileTimeErrorCode.recursiveInterfaceInheritanceExtends],
