@@ -282,7 +282,9 @@ class TypesBuilder {
 
     var fragment = node.declaredFragment!;
     var element = fragment.element;
-    element.returnType = returnType;
+    if (fragment.previousFragment == null) {
+      element.returnType = returnType;
+    }
     _setSyntheticVariableType(element);
   }
 
@@ -370,7 +372,10 @@ class TypesBuilder {
   void _setSyntheticVariableType(ExecutableElementImpl element) {
     switch (element) {
       case GetterElementImpl():
-        element.variable.type = element.returnType;
+        var variable = element.variable;
+        if (variable.isSynthetic) {
+          variable.type = element.returnType;
+        }
       case SetterElementImpl():
         var variable = element.variable;
         if (variable.isSynthetic && variable.getter == null) {
