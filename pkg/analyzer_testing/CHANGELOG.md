@@ -1,4 +1,4 @@
-## 0.1.3-dev
+## 0.1.3
 
 - Require version `8.2.0` of the `analyzer` package.
 - Require Dart SDK `^3.9.0`.
