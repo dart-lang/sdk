@@ -3695,12 +3695,6 @@ abstract class FragmentImpl with _FragmentImplMixin implements Fragment {
     return asElement2?.sinceSdkVersion;
   }
 
-  /// Whether to include the [nameOffset] in [identifier] to disambiguate
-  /// elements that might otherwise have the same identifier.
-  bool get _includeNameOffsetInIdentifier {
-    return false;
-  }
-
   @override
   bool operator ==(Object other) {
     return identical(this, other);
@@ -7592,13 +7586,6 @@ class LocalFunctionFragmentImpl extends FunctionFragmentImpl
     required super.name,
     required super.firstTokenOffset,
   });
-
-  @override
-  bool get _includeNameOffsetInIdentifier {
-    return super._includeNameOffsetInIdentifier ||
-        enclosingFragment is ExecutableFragment ||
-        enclosingFragment is VariableFragment;
-  }
 }
 
 class LocalVariableElementImpl extends PromotableElementImpl
