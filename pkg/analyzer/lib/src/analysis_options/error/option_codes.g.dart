@@ -375,6 +375,24 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     expectedTypes: [ExpectedType.string],
   );
 
+  /// An error code indicating plugins have been specified in an "inner"
+  /// analysis options file.
+  ///
+  /// Parameters:
+  /// String contextRoot: the root of the analysis context
+  static const AnalysisOptionsWarningTemplate<
+    LocatableDiagnostic Function({required String contextRoot})
+  >
+  pluginsInInnerOptions = AnalysisOptionsWarningTemplate(
+    'PLUGINS_IN_INNER_OPTIONS',
+    "Plugins can only be specified in the root of a pub workspace or the root "
+        "of a package that isn't in a workspace.",
+    correctionMessage:
+        "Try specifying plugins in an analysis options file at '{0}'.",
+    withArguments: _withArgumentsPluginsInInnerOptions,
+    expectedTypes: [ExpectedType.string],
+  );
+
   /// An error code indicating a specified include file includes itself recursively.
   ///
   /// Parameters:
@@ -669,6 +687,12 @@ class AnalysisOptionsWarningCode extends DiagnosticCodeWithExpectedTypes {
     required String p0,
   }) {
     return LocatableDiagnosticImpl(multiplePlugins, [p0]);
+  }
+
+  static LocatableDiagnostic _withArgumentsPluginsInInnerOptions({
+    required String contextRoot,
+  }) {
+    return LocatableDiagnosticImpl(pluginsInInnerOptions, [contextRoot]);
   }
 
   static LocatableDiagnostic _withArgumentsRecursiveIncludeFile({

@@ -115,6 +115,10 @@ AnalysisOptionsWarningCode.MULTIPLE_PLUGINS:
   notes: |-
     The fix is to remove the plugin name. Might not be worth the cost if we
     can address the question of if/how we're supporting plugins.
+AnalysisOptionsWarningCode.PLUGINS_IN_INNER_OPTIONS:
+  status: needsFix
+  notes: |-
+    The fix is to delete the 'plugins' section.
 AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE:
   status: noFix
   notes: |-

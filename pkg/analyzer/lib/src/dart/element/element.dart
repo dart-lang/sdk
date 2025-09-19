@@ -5139,9 +5139,8 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   }
 
   @override
-  @trackedDirectlyOpaque
+  @trackedIndirectly
   ExecutableElement? getInterfaceMember(Name name) {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'getInterfaceMember');
     return inheritanceManager.getMember(this, name);
   }
 
