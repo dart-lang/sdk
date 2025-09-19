@@ -149,6 +149,8 @@ extension ComplexAndOptionalInteropMethodsExtension
   external B Function(B _) nestedTypes(List<B> arg1, Map<Set<B>, B> arg2);
   external B optional(B b, [B? b2]);
   external B optionalSubtype(B b, [B b2 = const B()]);
+  //                                 ^
+  // [web] Initializers for parameters are ignored on static interop external functions.
 }
 
 @JSExport()

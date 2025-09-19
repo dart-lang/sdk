@@ -165,6 +165,8 @@ extension ExtensionNative on HtmlElement {
 
   external method();
   external optionalParameterMethod([int? a, int b = 0]);
+  //                                            ^
+  // [web] Initializers for parameters are ignored on static interop external functions.
 
   nonExternalMethod() => 1;
   static nonExternalStaticMethod() => 2;
