@@ -2179,7 +2179,11 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   /// so for them this flag is always `false`.
   @trackedIncludedInId
   bool get hasEnclosingTypeParameterReference {
-    return _firstFragment.hasEnclosingTypeParameterReference;
+    return !hasModifier(Modifier.NO_ENCLOSING_TYPE_PARAMETER_REFERENCE);
+  }
+
+  set hasEnclosingTypeParameterReference(bool value) {
+    setModifier(Modifier.NO_ENCLOSING_TYPE_PARAMETER_REFERENCE, !value);
   }
 
   @override
@@ -2381,17 +2385,6 @@ abstract class ExecutableFragmentImpl extends FunctionTypedFragmentImpl
       formalParameter.enclosingFragment = this;
     }
     _formalParameters = formalParameters;
-  }
-
-  /// Whether the type of this fragment references a type parameter of the
-  /// enclosing element. This includes not only explicitly specified type
-  /// annotations, but also inferred types.
-  bool get hasEnclosingTypeParameterReference {
-    return !hasModifier(Modifier.NO_ENCLOSING_TYPE_PARAMETER_REFERENCE);
-  }
-
-  set hasEnclosingTypeParameterReference(bool value) {
-    setModifier(Modifier.NO_ENCLOSING_TYPE_PARAMETER_REFERENCE, !value);
   }
 
   /// Whether the executable element is an operator.
@@ -2824,7 +2817,11 @@ class FieldElementImpl extends PropertyInducingElementImpl
   /// annotations, but also inferred types.
   @trackedIncludedInId
   bool get hasEnclosingTypeParameterReference {
-    return _firstFragment.hasEnclosingTypeParameterReference;
+    return !hasModifier(Modifier.NO_ENCLOSING_TYPE_PARAMETER_REFERENCE);
+  }
+
+  set hasEnclosingTypeParameterReference(bool value) {
+    setModifier(Modifier.NO_ENCLOSING_TYPE_PARAMETER_REFERENCE, !value);
   }
 
   @override
@@ -3081,17 +3078,6 @@ class FieldFragmentImpl extends PropertyInducingFragmentImpl
   @override
   InstanceFragmentImpl get enclosingFragment {
     return super.enclosingFragment as InstanceFragmentImpl;
-  }
-
-  /// Whether the type of this fragment references a type parameter of the
-  /// enclosing element. This includes not only explicitly specified type
-  /// annotations, but also inferred types.
-  bool get hasEnclosingTypeParameterReference {
-    return !hasModifier(Modifier.NO_ENCLOSING_TYPE_PARAMETER_REFERENCE);
-  }
-
-  set hasEnclosingTypeParameterReference(bool value) {
-    setModifier(Modifier.NO_ENCLOSING_TYPE_PARAMETER_REFERENCE, !value);
   }
 
   @override
@@ -3587,14 +3573,10 @@ abstract class FragmentImpl with _FragmentImplMixin implements Fragment {
   /// The unique integer identifier of this fragment.
   final int id = _NEXT_ID++;
 
-  /// The element that either physically or logically encloses this element.
+  /// The fragment that either physically or logically encloses this fragment.
   ///
-  /// For [LibraryElement] returns `null`, because libraries are the top-level
-  /// elements in the model.
-  ///
-  /// For [CompilationUnitElement] returns the [CompilationUnitElement] that
-  /// uses `part` directive to include this element, or `null` if this element
-  /// is the defining unit of the library.
+  /// For [LibraryFragment] returns `null`, because library fragments are the
+  /// top-level fragments in the model.
   @override
   FragmentImpl? enclosingFragment;
 
@@ -3707,12 +3689,6 @@ abstract class FragmentImpl with _FragmentImplMixin implements Fragment {
   /// a `@Since()` annotation applicable to it.
   Version? get sinceSdkVersion {
     return asElement2?.sinceSdkVersion;
-  }
-
-  /// Whether to include the [nameOffset] in [identifier] to disambiguate
-  /// elements that might otherwise have the same identifier.
-  bool get _includeNameOffsetInIdentifier {
-    return false;
   }
 
   @override
@@ -4220,6 +4196,10 @@ abstract class InstanceElementImpl extends ElementImpl
   List<GetterElementImpl> _getters = [];
   List<SetterElementImpl> _setters = [];
   List<MethodElementImpl> _methods = [];
+
+  @trackedInternal
+  InstanceElementRequirementState requirementState =
+      InstanceElementRequirementState();
 
   @override
   @trackedIncludedInId
@@ -6000,6 +5980,10 @@ class LibraryElementImpl extends ElementImpl
   LibraryManifest? manifest;
 
   @trackedInternal
+  LibraryElementRequirementState requirementState =
+      LibraryElementRequirementState();
+
+  @trackedInternal
   late final LibraryElementImplInternal internal = LibraryElementImplInternal(
     this,
   );
@@ -7598,13 +7582,6 @@ class LocalFunctionFragmentImpl extends FunctionFragmentImpl
     required super.name,
     required super.firstTokenOffset,
   });
-
-  @override
-  bool get _includeNameOffsetInIdentifier {
-    return super._includeNameOffsetInIdentifier ||
-        enclosingFragment is ExecutableFragment ||
-        enclosingFragment is VariableFragment;
-  }
 }
 
 class LocalVariableElementImpl extends PromotableElementImpl

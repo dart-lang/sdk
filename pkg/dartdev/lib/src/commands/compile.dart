@@ -901,8 +901,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
 
     if (!checkArtifactExists(sdk.wasmPlatformDill, warnIfBuildRoot: true) ||
         !checkArtifactExists(sdk.dartAotRuntime) ||
-        !checkArtifactExists(sdk.dart2wasmSnapshot) ||
-        !checkArtifactExists(sdk.wasmOpt)) {
+        !checkArtifactExists(sdk.dart2wasmSnapshot)) {
       return 255;
     }
 
@@ -956,6 +955,10 @@ class CompileWasmCommand extends CompileSubcommandCommand {
 
     final optimizationLevel = int.parse(args.option('optimization-level')!);
     final runWasmOpt = optimizationLevel >= 1;
+
+    if (runWasmOpt && !checkArtifactExists(sdk.wasmOpt)) {
+      return 255;
+    }
 
     void handleOverride(List<String> flags, String name, bool? value) {
       // If no override provided, default to what -O implies.

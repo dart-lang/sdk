@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/element/element.dart';
@@ -191,6 +192,27 @@ final class ExportRequirementShowCombinator
   }
 }
 
+class InstanceElementRequirementState {
+  RequirementsManifest? _owner;
+  _InstanceItemWithRequirements? _instanceResult;
+  _InterfaceItemWithRequirements? _interfaceResult;
+
+  void _dispose() {
+    _owner = null;
+    _instanceResult = null;
+    _interfaceResult = null;
+  }
+
+  void _ensureFor(RequirementsManifest owner) {
+    if (!identical(_owner, owner)) {
+      owner._instanceElementStates.add(this);
+      _owner = owner;
+      _instanceResult = null;
+      _interfaceResult = null;
+    }
+  }
+}
+
 /// Requirements for [InstanceElementImpl].
 ///
 /// If [InterfaceElementImpl], there are additional requirements in form
@@ -267,10 +289,10 @@ class InterfaceItemRequirements {
   /// The value of `hasNonFinalField`, if it was requested.
   bool? hasNonFinalField;
 
-  /// Set if [InstanceElementImpl.constructors] is invoked.
+  /// Set if [InterfaceElementImpl.constructors] is invoked.
   ManifestItemIdList? allConstructors;
 
-  /// Requested with [InstanceElementImpl.getNamedConstructor].
+  /// Requested with [InterfaceElementImpl.getNamedConstructor].
   final Map<LookupName, ManifestItemId?> requestedConstructors;
 
   /// These are "methods" in wide meaning: methods, getters, setters.
@@ -327,6 +349,24 @@ class InterfaceItemRequirements {
       writeKey: (index) => sink.writeInt64(index),
       writeValue: (map) => sink.writeNameToIdMap(map),
     );
+  }
+}
+
+class LibraryElementRequirementState {
+  RequirementsManifest? _owner;
+  LibraryRequirements? _result;
+
+  void _dispose() {
+    _owner = null;
+    _result = null;
+  }
+
+  void _ensureFor(RequirementsManifest owner) {
+    if (!identical(_owner, owner)) {
+      owner._libraryElementStates.add(this);
+      _owner = owner;
+      _result = null;
+    }
   }
 }
 
@@ -701,6 +741,29 @@ class OpaqueApiUse {
   }
 }
 
+/// Mutable state [RequirementsManifest] uses whenever a prefix-scope lookup
+/// happens. It binds to the current [RequirementsManifest] and suppresses
+/// duplicate recordings for the same identifier during that run.
+class PrefixScopeRequirementState {
+  RequirementsManifest? _owner;
+
+  /// The set of names for which we already recorded requirements.
+  HashSet<String> _idSet = HashSet();
+
+  void _dispose() {
+    _owner = null;
+    _idSet = HashSet();
+  }
+
+  void _ensureFor(RequirementsManifest owner) {
+    if (!identical(_owner, owner)) {
+      owner._prefixScopeStates.add(this);
+      _owner = owner;
+      _idSet = HashSet();
+    }
+  }
+}
+
 class RequirementsManifest {
   /// LibraryUri => LibraryRequirements
   final Map<Uri, LibraryRequirements> libraries = {};
@@ -713,6 +776,10 @@ class RequirementsManifest {
   final Set<Uri> _excludedLibraries = {};
 
   int _recordingLockLevel = 0;
+
+  final List<InstanceElementRequirementState> _instanceElementStates = [];
+  final List<LibraryElementRequirementState> _libraryElementStates = [];
+  final List<PrefixScopeRequirementState> _prefixScopeStates = [];
 
   RequirementsManifest();
 
@@ -1486,12 +1553,18 @@ class RequirementsManifest {
   /// Record that [id] was looked up in the import prefix scope that
   /// imports [importedLibraries].
   void record_importPrefixScope_lookup({
+    required PrefixScopeRequirementState state,
     required List<LibraryElementImpl> importedLibraries,
     required String id,
   }) {
     assert(!id.endsWith('='));
 
     if (_recordingLockLevel != 0) {
+      return;
+    }
+
+    state._ensureFor(this);
+    if (!state._idSet.add(id)) {
       return;
     }
 
@@ -1990,6 +2063,7 @@ class RequirementsManifest {
     required String name,
   }) {
     record_importPrefixScope_lookup(
+      state: PrefixScopeRequirementState(),
       importedLibraries: [element],
       id: name.removeSuffix('=') ?? name,
     );
@@ -2305,6 +2379,23 @@ class RequirementsManifest {
     }
   }
 
+  void stopRecording() {
+    for (var state in _instanceElementStates) {
+      state._dispose();
+    }
+    _instanceElementStates.clear();
+
+    for (var state in _libraryElementStates) {
+      state._dispose();
+    }
+    _libraryElementStates.clear();
+
+    for (var state in _prefixScopeStates) {
+      state._dispose();
+    }
+    _prefixScopeStates.clear();
+  }
+
   void write(BufferedSink sink) {
     sink.writeMap(
       libraries,
@@ -2321,6 +2412,11 @@ class RequirementsManifest {
   }
 
   _InstanceItemWithRequirements? _getInstanceItem(InstanceElementImpl element) {
+    var state = element.requirementState.._ensureFor(this);
+    if (state._instanceResult case var result?) {
+      return result;
+    }
+
     var libraryElement = element.library;
     var manifest = libraryElement.manifest;
 
@@ -2349,16 +2445,21 @@ class RequirementsManifest {
 
     var requirements = instancesMap[instanceName] ??=
         InstanceItemRequirements.empty();
-
-    return _InstanceItemWithRequirements(
+    var result = _InstanceItemWithRequirements(
       item: instanceItem,
       requirements: requirements,
     );
+    return state._instanceResult = result;
   }
 
   _InterfaceItemWithRequirements? _getInterfaceItem(
     InterfaceElementImpl element,
   ) {
+    var state = element.requirementState.._ensureFor(this);
+    if (state._interfaceResult case var result?) {
+      return result;
+    }
+
     var libraryElement = element.library;
     var manifest = libraryElement.manifest;
 
@@ -2386,14 +2487,21 @@ class RequirementsManifest {
 
     var requirements = interfacesMap[interfaceName] ??=
         InterfaceItemRequirements.empty();
-    return _InterfaceItemWithRequirements(
+    var result = _InterfaceItemWithRequirements(
       item: interfaceItem,
       requirements: requirements,
     );
+    return state._interfaceResult = result;
   }
 
   LibraryRequirements _getLibraryRequirements(LibraryElementImpl element) {
-    return libraries[element.uri] ??= LibraryRequirements.empty();
+    var state = element.requirementState.._ensureFor(this);
+    if (state._result case var result?) {
+      return result;
+    }
+
+    var result = libraries[element.uri] ??= LibraryRequirements.empty();
+    return state._result = result;
   }
 
   String _qualifiedMethodName(

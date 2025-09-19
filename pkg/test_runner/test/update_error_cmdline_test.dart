@@ -16,10 +16,10 @@ void main() async {
   const expectedLineCfe = 'Running CFE on 1 file...';
   final expectedUpdateTextCfe = '${testNamePartsCfe.last}.dart (3 errors)';
   final expectedLineCfeWeb =
-      'Running dart2js on ${toFileName(toFileNameParts(testNamePartsCfe))}...';
+      'Running dart2js on ${toFileNameParts(testNamePartsCfe).join('/')}...';
 
   final expectedLineWeb =
-      'Running dart2js on ${toFileName(toFileNameParts(testNamePartsWeb))}...';
+      'Running dart2js on ${toFileNameParts(testNamePartsWeb).join('/')}...';
   final expectedUpdateTextWeb = '${testNamePartsWeb.last}.dart (1 error)';
 
   await doTest(toFileNameParts(testNamePartsCfe), testNamePartsCfe,
