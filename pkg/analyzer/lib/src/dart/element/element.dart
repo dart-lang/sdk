@@ -2179,7 +2179,11 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   /// so for them this flag is always `false`.
   @trackedIncludedInId
   bool get hasEnclosingTypeParameterReference {
-    return _firstFragment.hasEnclosingTypeParameterReference;
+    return !hasModifier(Modifier.NO_ENCLOSING_TYPE_PARAMETER_REFERENCE);
+  }
+
+  set hasEnclosingTypeParameterReference(bool value) {
+    setModifier(Modifier.NO_ENCLOSING_TYPE_PARAMETER_REFERENCE, !value);
   }
 
   @override
@@ -2381,17 +2385,6 @@ abstract class ExecutableFragmentImpl extends FunctionTypedFragmentImpl
       formalParameter.enclosingFragment = this;
     }
     _formalParameters = formalParameters;
-  }
-
-  /// Whether the type of this fragment references a type parameter of the
-  /// enclosing element. This includes not only explicitly specified type
-  /// annotations, but also inferred types.
-  bool get hasEnclosingTypeParameterReference {
-    return !hasModifier(Modifier.NO_ENCLOSING_TYPE_PARAMETER_REFERENCE);
-  }
-
-  set hasEnclosingTypeParameterReference(bool value) {
-    setModifier(Modifier.NO_ENCLOSING_TYPE_PARAMETER_REFERENCE, !value);
   }
 
   /// Whether the executable element is an operator.
@@ -2824,7 +2817,11 @@ class FieldElementImpl extends PropertyInducingElementImpl
   /// annotations, but also inferred types.
   @trackedIncludedInId
   bool get hasEnclosingTypeParameterReference {
-    return _firstFragment.hasEnclosingTypeParameterReference;
+    return !hasModifier(Modifier.NO_ENCLOSING_TYPE_PARAMETER_REFERENCE);
+  }
+
+  set hasEnclosingTypeParameterReference(bool value) {
+    setModifier(Modifier.NO_ENCLOSING_TYPE_PARAMETER_REFERENCE, !value);
   }
 
   @override
@@ -3081,17 +3078,6 @@ class FieldFragmentImpl extends PropertyInducingFragmentImpl
   @override
   InstanceFragmentImpl get enclosingFragment {
     return super.enclosingFragment as InstanceFragmentImpl;
-  }
-
-  /// Whether the type of this fragment references a type parameter of the
-  /// enclosing element. This includes not only explicitly specified type
-  /// annotations, but also inferred types.
-  bool get hasEnclosingTypeParameterReference {
-    return !hasModifier(Modifier.NO_ENCLOSING_TYPE_PARAMETER_REFERENCE);
-  }
-
-  set hasEnclosingTypeParameterReference(bool value) {
-    setModifier(Modifier.NO_ENCLOSING_TYPE_PARAMETER_REFERENCE, !value);
   }
 
   @override

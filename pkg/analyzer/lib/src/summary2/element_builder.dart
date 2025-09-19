@@ -1218,7 +1218,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
       // Build the 'values' field.
       var valuesField = FieldFragmentImpl(name: 'values')
-        ..hasEnclosingTypeParameterReference = false
         ..isConst = true
         ..isStatic = true
         ..isSynthetic = true;
