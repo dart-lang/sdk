@@ -289,10 +289,10 @@ class InterfaceItemRequirements {
   /// The value of `hasNonFinalField`, if it was requested.
   bool? hasNonFinalField;
 
-  /// Set if [InstanceElementImpl.constructors] is invoked.
+  /// Set if [InterfaceElementImpl.constructors] is invoked.
   ManifestItemIdList? allConstructors;
 
-  /// Requested with [InstanceElementImpl.getNamedConstructor].
+  /// Requested with [InterfaceElementImpl.getNamedConstructor].
   final Map<LookupName, ManifestItemId?> requestedConstructors;
 
   /// These are "methods" in wide meaning: methods, getters, setters.
