@@ -518,6 +518,9 @@ class PrefixScope implements Scope {
 
   ImportsTrackingOfPrefix? _importsTracking;
 
+  final PrefixScopeRequirementState _requirementState =
+      PrefixScopeRequirementState();
+
   PrefixScope({
     required this.libraryFragment,
     required this.parent,
@@ -579,6 +582,7 @@ class PrefixScope implements Scope {
 
     if (globalResultRequirements case var resultRequirements?) {
       resultRequirements.record_importPrefixScope_lookup(
+        state: _requirementState,
         importedLibraries: _importedLibraries,
         id: id,
       );

@@ -4221,6 +4221,10 @@ abstract class InstanceElementImpl extends ElementImpl
   List<SetterElementImpl> _setters = [];
   List<MethodElementImpl> _methods = [];
 
+  @trackedInternal
+  InstanceElementRequirementState requirementState =
+      InstanceElementRequirementState();
+
   @override
   @trackedIncludedInId
   InstanceElement get baseElement => this;
@@ -5998,6 +6002,10 @@ class LibraryElementImpl extends ElementImpl
   /// With fine-grained dependencies, the manifest of the library.
   @trackedInternal
   LibraryManifest? manifest;
+
+  @trackedInternal
+  LibraryElementRequirementState requirementState =
+      LibraryElementRequirementState();
 
   @trackedInternal
   late final LibraryElementImplInternal internal = LibraryElementImplInternal(

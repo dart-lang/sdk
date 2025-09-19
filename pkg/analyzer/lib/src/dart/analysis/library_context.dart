@@ -332,6 +332,7 @@ class LibraryContext {
             elementFactory: elementFactory,
             libraryUriSet: cycle.libraryUris,
           );
+          globalResultRequirements?.stopRecording();
           globalResultRequirements = null;
           requirements.removeReqForLibs(cycle.libraryUris);
           assert(requirements.assertSerialization());

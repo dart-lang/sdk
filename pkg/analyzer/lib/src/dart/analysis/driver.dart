@@ -1395,6 +1395,7 @@ class AnalysisDriver {
 
         if (withFineDependencies) {
           assert(requirements!.assertSerialization());
+          globalResultRequirements?.stopRecording();
           globalResultRequirements = null;
         }
 
