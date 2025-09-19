@@ -3573,14 +3573,10 @@ abstract class FragmentImpl with _FragmentImplMixin implements Fragment {
   /// The unique integer identifier of this fragment.
   final int id = _NEXT_ID++;
 
-  /// The element that either physically or logically encloses this element.
+  /// The fragment that either physically or logically encloses this fragment.
   ///
-  /// For [LibraryElement] returns `null`, because libraries are the top-level
-  /// elements in the model.
-  ///
-  /// For [CompilationUnitElement] returns the [CompilationUnitElement] that
-  /// uses `part` directive to include this element, or `null` if this element
-  /// is the defining unit of the library.
+  /// For [LibraryFragment] returns `null`, because library fragments are the
+  /// top-level fragments in the model.
   @override
   FragmentImpl? enclosingFragment;
 

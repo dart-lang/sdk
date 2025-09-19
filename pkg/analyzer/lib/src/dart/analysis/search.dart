@@ -1598,7 +1598,7 @@ class _IndexRequest {
     return results;
   }
 
-  /// Return the identifier of the [CompilationUnitElementIml] containing the
+  /// Return the identifier of the [LibraryFragmentImpl] containing the
   /// [element] in the [index] or `-1` if not found.
   int getUnitId(Element element) {
     var unitElement = getUnitElement(element);
