@@ -66,7 +66,7 @@ abstract class ElementDeclarationResult {
   /// The [Fragment] that this object describes.
   Fragment get fragment;
 
-  /// The node that declares the [element]. Depending on whether it is returned
+  /// The node that declares the [Element]. Depending on whether it is returned
   /// from [ResolvedLibraryResult] or [ParsedLibraryResult] it might be resolved
   /// or just parsed.
   AstNode get node;

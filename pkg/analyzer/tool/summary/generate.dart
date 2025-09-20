@@ -677,6 +677,9 @@ class _CodeGenerator {
     out("// The generator sometimes generates unnecessary 'this' references.");
     out('// ignore_for_file: unnecessary_this');
     out();
+    out("/// @docImport 'package:analyzer/src/summary/idl.dart';");
+    out('library;');
+    out();
     out("import 'dart:convert' as convert;");
     out("import 'dart:typed_data' as typed_data;");
     out();
@@ -684,6 +687,7 @@ class _CodeGenerator {
     out("import 'package:analyzer/src/summary/flat_buffers.dart' as fb;");
     out("import 'package:analyzer/src/summary/idl.dart' as idl;");
     out();
+
     for (idl_model.EnumDeclaration enum_ in _idl.enums.values) {
       _EnumReaderGenerator(_idl, _outBuffer, enum_).generate();
       out();

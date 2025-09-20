@@ -756,7 +756,7 @@ class TypeSystemImpl implements TypeSystem {
     );
   }
 
-  /// Given uninstantiated [typeFormals], instantiate them to their bounds.
+  /// Given uninstantiated [typeParameters], instantiate them to their bounds.
   /// See the issue for the algorithm description.
   ///
   /// https://github.com/dart-lang/sdk/issues/27526#issuecomment-260021397

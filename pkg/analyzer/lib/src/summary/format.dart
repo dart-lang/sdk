@@ -10,6 +10,9 @@
 // The generator sometimes generates unnecessary 'this' references.
 // ignore_for_file: unnecessary_this
 
+/// @docImport 'package:analyzer/src/summary/idl.dart';
+library;
+
 import 'dart:convert' as convert;
 import 'dart:typed_data' as typed_data;
 

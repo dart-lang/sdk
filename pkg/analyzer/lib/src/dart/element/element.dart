@@ -3386,7 +3386,7 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   }) : assert(nameOffset == null || nameOffset >= 0),
        assert(name == null || name.isNotEmpty);
 
-  /// Creates a synthetic parameter with [name2], [type] and [parameterKind].
+  /// Creates a synthetic parameter with [name2] and [parameterKind].
   factory FormalParameterFragmentImpl.synthetic(
     String? name2,
     ParameterKind parameterKind,
@@ -3600,8 +3600,7 @@ abstract class FragmentImpl with _FragmentImplMixin implements Fragment {
   /// The length of the element's code, or `null` if the element is synthetic.
   int? _codeLength;
 
-  /// Initialize a newly created element to have the given [name] at the given
-  /// [_nameOffset].
+  /// Initialize a newly created fragment at the given [firstTokenOffset].
   FragmentImpl({this.firstTokenOffset});
 
   /// The length of the element's code, or `null` if the element is synthetic.
@@ -5989,7 +5988,7 @@ class LibraryElementImpl extends ElementImpl
   );
 
   /// Initialize a newly created library element in the given [context] to have
-  /// the given [name] and [offset].
+  /// the given [name] and [nameOffset].
   LibraryElementImpl(
     this._context,
     this._session,
