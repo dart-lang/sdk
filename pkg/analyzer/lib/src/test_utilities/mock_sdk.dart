@@ -35,15 +35,15 @@ abstract class Future<T> {
     throw 0;
   }
 
-  factory Future.value([FutureOr<T>? result]) {
+  factory Future.value([FutureOr<T>? value]) {
     throw 0;
   }
 
-  Future<T> catchError(Function onError, {bool test(Object error)});
+  Future<T> catchError(Function onError, {bool test(Object error)?});
 
   Future<R> then<R>(FutureOr<R> onValue(T value), {Function? onError});
 
-  Future<T> whenComplete(action());
+  Future<T> whenComplete(FutureOr<void> action());
 
   static Future<List<T>> wait<T>(Iterable<Future<T>> futures,
     {void cleanUp(T successValue)?}) => throw 0;
@@ -71,7 +71,7 @@ abstract class Timer {
   factory Timer(Duration duration, void Function() callback) {
     throw 0;
   }
-  static void run(void callback()) {}
+  static void run(void Function() callback) {}
 }
 
 @Since("2.15")
@@ -80,13 +80,12 @@ void unawaited(Future<void>? future) {}
   MockSdkLibraryUnit('async/stream.dart', r'''
 part of dart.async;
 
-abstract class Stream<T> {
-  Stream();
-  factory Stream.fromIterable(Iterable<T> data) {
+abstract mixin class Stream<T> {
+  const Stream();
+  factory Stream.fromIterable(Iterable<T> elements) {
     throw 0;
   }
 
-  @Since("2.5")
   factory Stream.value(T value) {
     throw 0;
   }
@@ -96,7 +95,7 @@ abstract class Stream<T> {
   StreamSubscription<T> listen(void onData(T event)?,
       {Function? onError, void onDone()?, bool? cancelOnError});
 
-  Stream<T> handleError(Function onError, {bool test(dynamic error)});
+  Stream<T> handleError(Function onError, {bool test(error)?});
 }
 
 abstract class StreamIterator<T> {}
@@ -105,7 +104,7 @@ abstract class StreamSubscription<T> {
   bool get isPaused;
 
   Future<E> asFuture<E>([E? futureValue]);
-  Future cancel();
+  Future<void> cancel();
   void onData(void handleData(T data)?);
   void onError(Function? handleError);
   void onDone(void handleDone()?);
