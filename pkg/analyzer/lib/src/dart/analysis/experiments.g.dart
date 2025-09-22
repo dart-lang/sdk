@@ -52,6 +52,7 @@ final _knownFeatures = <String, ExperimentalFeature>{
   EnableString.set_literals: ExperimentalFeatures.set_literals,
   EnableString.sound_flow_analysis: ExperimentalFeatures.sound_flow_analysis,
   EnableString.spread_collections: ExperimentalFeatures.spread_collections,
+  EnableString.static_extensions: ExperimentalFeatures.static_extensions,
   EnableString.super_parameters: ExperimentalFeatures.super_parameters,
   EnableString.test_experiment: ExperimentalFeatures.test_experiment,
   EnableString.triple_shift: ExperimentalFeatures.triple_shift,
@@ -159,6 +160,9 @@ class EnableString {
 
   /// String to enable the experiment "spread-collections"
   static const String spread_collections = 'spread-collections';
+
+  /// String to enable the experiment "static-extensions"
+  static const String static_extensions = 'static-extensions';
 
   /// String to enable the experiment "super-parameters"
   static const String super_parameters = 'super-parameters';
@@ -543,8 +547,19 @@ class ExperimentalFeatures {
     channels: ["stable", "beta", "dev", "main"],
   );
 
-  static final super_parameters = ExperimentalFeature(
+  static final static_extensions = ExperimentalFeature(
     index: 32,
+    enableString: EnableString.static_extensions,
+    isEnabledByDefault: IsEnabledByDefault.static_extensions,
+    isExpired: IsExpired.static_extensions,
+    documentation: 'Extensions with static capabilities.',
+    experimentalReleaseVersion: null,
+    releaseVersion: null,
+    channels: ["stable", "beta", "dev", "main"],
+  );
+
+  static final super_parameters = ExperimentalFeature(
+    index: 33,
     enableString: EnableString.super_parameters,
     isEnabledByDefault: IsEnabledByDefault.super_parameters,
     isExpired: IsExpired.super_parameters,
@@ -555,7 +570,7 @@ class ExperimentalFeatures {
   );
 
   static final test_experiment = ExperimentalFeature(
-    index: 33,
+    index: 34,
     enableString: EnableString.test_experiment,
     isEnabledByDefault: IsEnabledByDefault.test_experiment,
     isExpired: IsExpired.test_experiment,
@@ -567,7 +582,7 @@ class ExperimentalFeatures {
   );
 
   static final triple_shift = ExperimentalFeature(
-    index: 34,
+    index: 35,
     enableString: EnableString.triple_shift,
     isEnabledByDefault: IsEnabledByDefault.triple_shift,
     isExpired: IsExpired.triple_shift,
@@ -578,7 +593,7 @@ class ExperimentalFeatures {
   );
 
   static final unnamed_libraries = ExperimentalFeature(
-    index: 35,
+    index: 36,
     enableString: EnableString.unnamed_libraries,
     isEnabledByDefault: IsEnabledByDefault.unnamed_libraries,
     isExpired: IsExpired.unnamed_libraries,
@@ -589,7 +604,7 @@ class ExperimentalFeatures {
   );
 
   static final unquoted_imports = ExperimentalFeature(
-    index: 36,
+    index: 37,
     enableString: EnableString.unquoted_imports,
     isEnabledByDefault: IsEnabledByDefault.unquoted_imports,
     isExpired: IsExpired.unquoted_imports,
@@ -600,7 +615,7 @@ class ExperimentalFeatures {
   );
 
   static final variance = ExperimentalFeature(
-    index: 37,
+    index: 38,
     enableString: EnableString.variance,
     isEnabledByDefault: IsEnabledByDefault.variance,
     isExpired: IsExpired.variance,
@@ -611,7 +626,7 @@ class ExperimentalFeatures {
   );
 
   static final wildcard_variables = ExperimentalFeature(
-    index: 38,
+    index: 39,
     enableString: EnableString.wildcard_variables,
     isEnabledByDefault: IsEnabledByDefault.wildcard_variables,
     isExpired: IsExpired.wildcard_variables,
@@ -721,6 +736,9 @@ class IsEnabledByDefault {
 
   /// Default state of the experiment "spread-collections"
   static const bool spread_collections = true;
+
+  /// Default state of the experiment "static-extensions"
+  static const bool static_extensions = false;
 
   /// Default state of the experiment "super-parameters"
   static const bool super_parameters = true;
@@ -843,6 +861,9 @@ class IsExpired {
 
   /// Expiration status of the experiment "spread-collections"
   static const bool spread_collections = true;
+
+  /// Expiration status of the experiment "static-extensions"
+  static const bool static_extensions = false;
 
   /// Expiration status of the experiment "super-parameters"
   static const bool super_parameters = true;
@@ -977,6 +998,10 @@ mixin _CurrentState {
   /// Current state for the flag "spread-collections"
   bool get spread_collections =>
       isEnabled(ExperimentalFeatures.spread_collections);
+
+  /// Current state for the flag "static-extensions"
+  bool get static_extensions =>
+      isEnabled(ExperimentalFeatures.static_extensions);
 
   /// Current state for the flag "super-parameters"
   bool get super_parameters => isEnabled(ExperimentalFeatures.super_parameters);
