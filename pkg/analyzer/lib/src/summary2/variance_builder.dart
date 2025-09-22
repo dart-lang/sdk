@@ -225,6 +225,10 @@ class VarianceBuilder {
   }
 
   void _typeAliasElement(TypeAliasElementImpl element) {
+    if (!_linker.isLinkingElement(element)) {
+      return;
+    }
+
     var node = _linker.getLinkingNode2(element.firstFragment);
     if (node == null) {
       // Not linking.

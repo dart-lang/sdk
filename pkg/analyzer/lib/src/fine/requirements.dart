@@ -1574,7 +1574,7 @@ class RequirementsManifest {
     required List<LibraryElementImpl> importedLibraries,
     required String id,
   }) {
-    assert(!id.endsWith('='));
+    assert(!id.asLookupName.isSetter);
 
     if (_recordingLockLevel != 0) {
       return;
@@ -1702,7 +1702,7 @@ class RequirementsManifest {
     required InstanceElementImpl element,
     required String name,
   }) {
-    assert(!name.endsWith('='));
+    assert(!name.asLookupName.isSetter);
     var itemRequirements = _getInstanceItem(element);
     if (itemRequirements == null) {
       return;

@@ -3271,8 +3271,8 @@ class _InstanceCreationEvaluator {
               evaluationResult.contextMessages.add(
                 DiagnosticMessageImpl(
                   filePath: _constructor
-                      .firstFragment
-                      .libraryFragment
+                      .firstFragmentLocation
+                      .libraryFragment!
                       .source
                       .fullName,
                   length: evaluationResult.length,
