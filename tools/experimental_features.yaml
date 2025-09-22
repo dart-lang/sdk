@@ -153,6 +153,9 @@ features:
   inference-update-4:
     help: "A bundle of updates to type inference."
 
+  static-extensions:
+    help: "Extensions with static capabilities."
+
 # Experiment flag only used for testing.
   test-experiment:
     help: >-

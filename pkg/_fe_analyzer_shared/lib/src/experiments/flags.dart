@@ -266,6 +266,14 @@ enum ExperimentalFlag {
     experimentReleasedVersion: const Version(2, 0),
   ),
 
+  staticExtensions(
+    name: 'static-extensions',
+    isEnabledByDefault: false,
+    isExpired: false,
+    experimentEnabledVersion: defaultLanguageVersion,
+    experimentReleasedVersion: defaultLanguageVersion,
+  ),
+
   superParameters(
     name: 'super-parameters',
     isEnabledByDefault: true,

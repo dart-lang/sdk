@@ -350,6 +350,15 @@ class ExperimentalFlag {
     experimentReleasedVersion: const Version(2, 0),
   );
 
+  static const ExperimentalFlag staticExtensions = const ExperimentalFlag(
+    name: 'static-extensions',
+    isEnabledByDefault: false,
+    isExpired: false,
+    enabledVersion: defaultLanguageVersion,
+    experimentEnabledVersion: defaultLanguageVersion,
+    experimentReleasedVersion: defaultLanguageVersion,
+  );
+
   static const ExperimentalFlag superParameters = const ExperimentalFlag(
     name: 'super-parameters',
     isEnabledByDefault: true,
@@ -611,6 +620,10 @@ class GlobalFeatures {
   GlobalFeature? _spreadCollections;
   GlobalFeature get spreadCollections => _spreadCollections ??=
       _computeGlobalFeature(ExperimentalFlag.spreadCollections);
+
+  GlobalFeature? _staticExtensions;
+  GlobalFeature get staticExtensions => _staticExtensions ??=
+      _computeGlobalFeature(ExperimentalFlag.staticExtensions);
 
   GlobalFeature? _superParameters;
   GlobalFeature get superParameters => _superParameters ??=
@@ -916,6 +929,14 @@ class LibraryFeatures {
         libraryVersion,
       );
 
+  LibraryFeature? _staticExtensions;
+  LibraryFeature get staticExtensions =>
+      _staticExtensions ??= globalFeatures._computeLibraryFeature(
+        ExperimentalFlag.staticExtensions,
+        canonicalUri,
+        libraryVersion,
+      );
+
   LibraryFeature? _superParameters;
   LibraryFeature get superParameters =>
       _superParameters ??= globalFeatures._computeLibraryFeature(
@@ -1041,6 +1062,8 @@ class LibraryFeatures {
         return soundFlowAnalysis;
       case shared.ExperimentalFlag.spreadCollections:
         return spreadCollections;
+      case shared.ExperimentalFlag.staticExtensions:
+        return staticExtensions;
       case shared.ExperimentalFlag.superParameters:
         return superParameters;
       case shared.ExperimentalFlag.testExperiment:
@@ -1127,6 +1150,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.soundFlowAnalysis;
     case "spread-collections":
       return ExperimentalFlag.spreadCollections;
+    case "static-extensions":
+      return ExperimentalFlag.staticExtensions;
     case "super-parameters":
       return ExperimentalFlag.superParameters;
     case "test-experiment":
@@ -1204,6 +1229,8 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
       ExperimentalFlag.soundFlowAnalysis.isEnabledByDefault,
   ExperimentalFlag.spreadCollections:
       ExperimentalFlag.spreadCollections.isEnabledByDefault,
+  ExperimentalFlag.staticExtensions:
+      ExperimentalFlag.staticExtensions.isEnabledByDefault,
   ExperimentalFlag.superParameters:
       ExperimentalFlag.superParameters.isEnabledByDefault,
   ExperimentalFlag.testExperiment:
@@ -1264,6 +1291,7 @@ const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
   shared.ExperimentalFlag.setLiterals: ExperimentalFlag.setLiterals,
   shared.ExperimentalFlag.soundFlowAnalysis: ExperimentalFlag.soundFlowAnalysis,
   shared.ExperimentalFlag.spreadCollections: ExperimentalFlag.spreadCollections,
+  shared.ExperimentalFlag.staticExtensions: ExperimentalFlag.staticExtensions,
   shared.ExperimentalFlag.superParameters: ExperimentalFlag.superParameters,
   shared.ExperimentalFlag.testExperiment: ExperimentalFlag.testExperiment,
   shared.ExperimentalFlag.tripleShift: ExperimentalFlag.tripleShift,
