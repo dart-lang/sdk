@@ -806,7 +806,7 @@
             "-j2"
           ],
           "fileset": "vm",
-          "shards": 15
+          "shards": 10
         }
       ]
     },
