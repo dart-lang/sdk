@@ -30,6 +30,13 @@ void main() {
 
 @reflectiveTest
 class ArgumentListCompletionTest extends CompletionTestCase {
+  @override
+  setUp() async {
+    useLineEndingsForPlatform = false;
+
+    await super.setUp();
+  }
+
   Future<void> test_functionWithVoidReturnType_optionalNamed() async {
     await getTestCodeSuggestions('''
 void f(C c) {
@@ -76,6 +83,13 @@ extension on int {
 
 @reflectiveTest
 class AsExpressionCompletionTest extends CompletionTestCase {
+  @override
+  setUp() async {
+    useLineEndingsForPlatform = false;
+
+    await super.setUp();
+  }
+
   Future<void> test_type_dynamic() async {
     await getTestCodeSuggestions('''
 void f(Object o) {
@@ -117,6 +131,13 @@ void main() {
 
 @reflectiveTest
 class DeclaredIdentifierCompletionTest extends CompletionTestCase {
+  @override
+  setUp() async {
+    useLineEndingsForPlatform = false;
+
+    await super.setUp();
+  }
+
   Future<void> test_afterFinal_withIdentifier() async {
     await getTestCodeSuggestions('''
 class C {
@@ -142,6 +163,13 @@ class C {
 
 @reflectiveTest
 class ExpressionFunctionBodyCompletionTest extends CompletionTestCase {
+  @override
+  setUp() async {
+    useLineEndingsForPlatform = false;
+
+    await super.setUp();
+  }
+
   Future<void> test_voidReturn_localFunction() async {
     await getTestCodeSuggestions('''
 class C {
@@ -178,6 +206,13 @@ void g() {}
 
 @reflectiveTest
 class ExtensionCompletionTest extends CompletionTestCase {
+  @override
+  setUp() async {
+    useLineEndingsForPlatform = false;
+
+    await super.setUp();
+  }
+
   Future<void> test_explicitTarget_getter_sameUnit() async {
     await getTestCodeSuggestions('''
 void f(String s) {
@@ -615,6 +650,13 @@ typedef F = ^
 
 @reflectiveTest
 class PropertyAccessCompletionTest extends CompletionTestCase {
+  @override
+  setUp() async {
+    useLineEndingsForPlatform = false;
+
+    await super.setUp();
+  }
+
   Future<void> test_extension() async {
     await getTestCodeSuggestions('''
 void f(C c) {
@@ -751,6 +793,13 @@ class A {
 @reflectiveTest
 class RedirectingConstructorInvocationCompletionTest
     extends CompletionTestCase {
+  @override
+  setUp() async {
+    useLineEndingsForPlatform = false;
+
+    await super.setUp();
+  }
+
   Future<void> test_instanceMember() async {
     await getTestCodeSuggestions('''
 class C {
@@ -803,6 +852,13 @@ class C {
 
 @reflectiveTest
 class ReturnStatementTest extends CompletionTestCase {
+  @override
+  setUp() async {
+    useLineEndingsForPlatform = false;
+
+    await super.setUp();
+  }
+
   Future<void> test_voidFromVoid_localFunction() async {
     await getTestCodeSuggestions('''
 class C {
@@ -842,6 +898,13 @@ void g() {}
 
 @reflectiveTest
 class SuperConstructorInvocationCompletionTest extends CompletionTestCase {
+  @override
+  setUp() async {
+    useLineEndingsForPlatform = false;
+
+    await super.setUp();
+  }
+
   Future<void> test_namedConstructor_notVisible() async {
     newFile('$testPackageLibPath/a.dart', '''
 class A {
@@ -897,6 +960,13 @@ class B extends A {
 
 @reflectiveTest
 class VariableDeclarationListCompletionTest extends CompletionTestCase {
+  @override
+  setUp() async {
+    useLineEndingsForPlatform = false;
+
+    await super.setUp();
+  }
+
   Future<void> test_type_voidAfterFinal() async {
     await getTestCodeSuggestions('''
 class C {

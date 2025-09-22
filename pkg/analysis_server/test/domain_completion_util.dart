@@ -83,7 +83,9 @@ class AbstractCompletionDomainTest extends PubPackageAnalysisServerTest {
     required String content,
     int maxResults = 1 << 10,
   }) async {
-    var code = TestCode.parse(content);
+    var code = useLineEndingsForPlatform
+        ? TestCode.parseNormalized(content)
+        : TestCode.parse(content);
     var completionOffset = code.position.offset;
 
     newFile(path, code.code);
@@ -129,8 +131,6 @@ class AbstractCompletionDomainTest extends PubPackageAnalysisServerTest {
 
   @override
   Future<void> setUp() async {
-    useLineEndingsForPlatform = false;
-
     super.setUp();
     await setRoots(included: [workspaceRootPath], excluded: []);
   }
