@@ -448,7 +448,7 @@ abstract final class int extends num {
 
 abstract class Invocation {}
 
-abstract class Iterable<E> {
+abstract mixin class Iterable<E> {
   E get first;
   bool get isEmpty;
   bool get isNotEmpty;
@@ -461,17 +461,17 @@ abstract class Iterable<E> {
 
   bool contains(Object? element);
 
-  Iterable<T> expand<T>(Iterable<T> f(E element));
+  Iterable<T> expand<T>(Iterable<T> toElements(E element));
 
   E firstWhere(bool test(E element), {E orElse()?});
 
-  R fold<R>(R initialValue, R combine(R previousValue, E element));
+  T fold<T>(T initialValue, T combine(T previousValue, E element));
 
-  void forEach(void f(E element));
+  void forEach(void action(E element));
 
   E lastWhere(bool test(E element), {E orElse()?});
 
-  Iterable<R> map<R>(R f(E e));
+  Iterable<T> map<T>(T toElement(E e));
 
   E singleWhere(bool test(E element), {E orElse()?});
 
@@ -488,12 +488,9 @@ abstract class Iterator<E> {
   bool moveNext();
 }
 
-class List<E> implements Iterable<E> {
+abstract class List<E> implements Iterable<E> {
   external factory List.filled(int length, E fill, {bool growable = false});
-
-  @Since("2.9")
   external factory List.empty({bool growable = false});
-
   external factory List.from(Iterable elements, {bool growable = true});
   external factory List.of(Iterable<E> elements, {bool growable = true});
   external factory List.generate(int length, E generator(int index),
@@ -502,30 +499,29 @@ class List<E> implements Iterable<E> {
 
   E get last => throw 0;
   set length(int newLength) {}
-  E operator [](int index) => throw 0;
-  void operator []=(int index, E value) {}
-  void set first(E value) {}
+  E operator [](int index);
+  void operator []=(int index, E value);
+  void set first(E value);
 
-  void add(E value) {}
-  void addAll(Iterable<E> iterable) {}
-  Map<int, E> asMap() => throw 0;
-  void clear() {}
+  void add(E value);
+  void addAll(Iterable<E> iterable);
+  Map<int, E> asMap();
+  void clear();
   int indexOf(E element, [int start = 0]);
   bool remove(Object? value);
-  E removeLast() => throw 0;
 
-  noSuchMethod(Invocation invocation) => null;
+  E removeLast();
 }
 
 abstract class Map<K, V> {
   external factory Map();
-  external factory Map.from();
+  external factory Map.from(Map other);
   external Map.of(Map<K, V> other);
   external factory Map.unmodifiable(Map<dynamic, dynamic> other);
   external factory Map.identity();
 
   external factory Map.fromIterable(Iterable iterable,
-      {K key(element)?, V value(element)?});
+      {K key(dynamic element)?, V value(dynamic element)?});
 
   external factory Map.fromIterables(Iterable<K> keys, Iterable<V> values);
   external factory Map.fromEntries(Iterable<MapEntry<K, V>> entries);
@@ -533,7 +529,7 @@ abstract class Map<K, V> {
   Iterable<K> get keys;
   bool get isEmpty;
   bool get isNotEmpty;
-  int get length => 0;
+  int get length;
   Iterable<V> get values;
 
   V? operator [](Object? key);
