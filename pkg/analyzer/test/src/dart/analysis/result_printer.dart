@@ -118,7 +118,7 @@ class BundleRequirementsPrinter {
   }
 
   void _writeExportedTopLevels(LibraryRequirements requirements) {
-    var entries = requirements.exportedTopLevels.sorted;
+    var entries = requirements.exportMap.sorted;
     sink.writeElements('exportedTopLevels', entries, (entry) {
       _writeNamedId(entry);
     });

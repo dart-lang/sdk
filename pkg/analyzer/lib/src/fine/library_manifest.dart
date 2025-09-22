@@ -49,6 +49,21 @@ class LibraryManifest {
   final Map<LookupName, TopLevelFunctionItem> declaredFunctions;
   final Map<LookupName, TopLevelVariableItem> declaredVariables;
 
+  /// Map from exported public top-level names to manifest IDs.
+  ///
+  /// Includes names declared in this library and names re-exported from other
+  /// libraries. Excludes private names. If both a local declaration and a
+  /// re-export define the same name, the local declaration is used.
+  final Map<LookupName, ManifestItemId> exportMap;
+
+  /// Identifier that summarizes the contents of [exportMap].
+  ///
+  /// Each build generates a fresh ID. If the computed [exportMap] is equal to
+  /// the previous manifest's map for the same library, the previous ID is
+  /// reused. Equal IDs imply equal export maps; unequal IDs are inconclusive
+  /// and require an entry-by-entry comparison.
+  ManifestItemId exportMapId;
+
   /// All exported (declared or re-exported) extensions.
   ManifestItemIdList exportedExtensions;
 
@@ -71,6 +86,8 @@ class LibraryManifest {
     required this.declaredSetters,
     required this.declaredFunctions,
     required this.declaredVariables,
+    required this.exportMap,
+    required this.exportMapId,
     required this.exportedExtensions,
   });
 
@@ -114,6 +131,8 @@ class LibraryManifest {
       declaredVariables: reader.readLookupNameMap(
         readValue: () => TopLevelVariableItem.read(reader),
       ),
+      exportMap: reader.readLookupNameToIdMap(),
+      exportMapId: ManifestItemId.read(reader),
       exportedExtensions: ManifestItemIdList.read(reader),
     );
   }
@@ -155,7 +174,7 @@ class LibraryManifest {
   /// Returns the ID of a top-level element either declared or re-exported,
   /// or `null` if there is no such element.
   ManifestItemId? getExportedId(LookupName name) {
-    return getDeclaredId(name) ?? reExportMap[name];
+    return exportMap[name];
   }
 
   void write(BufferedSink sink) {
@@ -177,7 +196,29 @@ class LibraryManifest {
     declaredSetters.write(sink);
     declaredFunctions.write(sink);
     declaredVariables.write(sink);
+    exportMap.write(sink);
+    exportMapId.write(sink);
     exportedExtensions.write(sink);
+  }
+
+  void _fillExportMap() {
+    exportMap.addAll(reExportMap);
+
+    void addDeclared<T extends ManifestItem>(Map<LookupName, T> items) {
+      for (var entry in items.entries) {
+        exportMap[entry.key] = entry.value.id;
+      }
+    }
+
+    addDeclared(declaredClasses);
+    addDeclared(declaredEnums);
+    addDeclared(declaredExtensions);
+    addDeclared(declaredExtensionTypes);
+    addDeclared(declaredMixins);
+    addDeclared(declaredTypeAliases);
+    addDeclared(declaredGetters);
+    addDeclared(declaredSetters);
+    addDeclared(declaredFunctions);
   }
 }
 
@@ -233,6 +274,7 @@ class LibraryManifestBuilder {
     _buildManifests();
     _addExportedExtensions();
     _addReExports();
+    _fillExportMaps();
     assert(_assertSerialization());
 
     return newManifests;
@@ -902,6 +944,8 @@ class LibraryManifestBuilder {
         declaredSetters: newTopLevelSetters,
         declaredFunctions: newTopLevelFunctions,
         declaredVariables: newTopLevelVariables,
+        exportMap: {},
+        exportMapId: ManifestItemId.generate(),
         exportedExtensions: ManifestItemIdList([]),
       );
       libraryElement.manifest = newManifest;
@@ -912,6 +956,21 @@ class LibraryManifestBuilder {
     _addClassTypeAliasConstructors();
 
     return newManifests;
+  }
+
+  void _fillExportMaps() {
+    const mapEq = MapEquality<LookupName, ManifestItemId>();
+
+    for (var libraryElement in libraryElements) {
+      var libraryUri = libraryElement.uri;
+      var manifest = newManifests[libraryUri]!;
+      manifest._fillExportMap();
+
+      var inputManifest = _getInputManifest(libraryUri);
+      if (mapEq.equals(manifest.exportMap, inputManifest.exportMap)) {
+        manifest.exportMapId = inputManifest.exportMapId;
+      }
+    }
   }
 
   void _fillInterfaceElementInterface(InterfaceElementImpl element) {
@@ -1125,6 +1184,8 @@ class LibraryManifestBuilder {
           declaredSetters: {},
           declaredFunctions: {},
           declaredVariables: {},
+          exportMap: {},
+          exportMapId: ManifestItemId.generate(),
           exportedExtensions: ManifestItemIdList([]),
         );
   }
