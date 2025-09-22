@@ -323,6 +323,30 @@ class PluginServer {
   }
 
   /// Analyzes the libraries at the given [paths].
+  // TODO(srawlins): Refactor how libraries are analyzed using AnalysisDriver,
+  // to be similar to what analysis server does:
+  //
+  // 1. When the analysis roots change it creates the AnalysisContextCollection
+  //    and listens to the drivers' streams of results.
+  // 2. When a file changes, it lets the driver know about it.
+  // 3. As the driver analyzes the potentially impacted files it
+  //    a. runs the lints that have been enabled and
+  //    b. puts the result on the stream.
+  // 4. When a result is on the stream the server grabs the results and sends
+  //    the diagnostics to the client.
+  //
+  // It doesn't ever explicitly ask the driver which files were impacted and it
+  // doesn't explicitly run the lints directly because the driver will do that
+  // implicitly. There would be benefits to plugins working the same way:
+  //
+  // * The driver can do a more efficient job of scheduling analysis than the
+  //   server can (because of having a more complete picture).
+  // * It means there's only one way that we're trying to use the analyzer so it
+  //   will be easier to make changes to the analyzer when we need to (smaller
+  //   API exposure).
+  // * The logic for doing analysis is in one place so it's easier to reason
+  //   about.
+  // * We don't need to be familiar with two different architectures.
   Future<void> _analyzeLibraries({
     required AnalysisContext analysisContext,
     required Set<String> paths,
@@ -668,6 +692,13 @@ class PluginServer {
       byteStore: _byteStore,
       sdkPath: _sdkPath,
       fileContentCache: FileContentCache(_resourceProvider),
+      updateAnalysisOptions4:
+          // Disable extra warning computation and lint computation, because
+          // these are reported in the main analysis server isolate, not in the
+          // plugins isolate.
+          ({required AnalysisOptionsImpl analysisOptions}) => analysisOptions
+            ..warning = false
+            ..lint = false,
     );
     _contextCollection = contextCollection;
     await _analyzeAllFilesInContextCollection(
