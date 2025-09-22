@@ -1880,9 +1880,10 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
   LibraryCycle get libraryCycle {
     if (_libraryCycle == null) {
       computeLibraryCycle(
-        file._fsState.withFineDependencies,
-        file._fsState._saltForElements,
-        this,
+        withFineDependencies: file._fsState.withFineDependencies,
+        saltForElements: file._fsState._saltForElements,
+        sourceFactory: file._fsState._sourceFactory,
+        file: this,
       );
     }
 
