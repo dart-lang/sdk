@@ -5434,6 +5434,10 @@ mixin InternalConstructorElement on InternalExecutableElement
   @override
   ConstructorFragmentImpl get firstFragment;
 
+  /// The location of [firstFragment], without recording opaque requirement.
+  @trackedIncludedInId
+  FirstFragmentLocation get firstFragmentLocation;
+
   @override
   List<ConstructorFragmentImpl> get fragments;
 

@@ -498,8 +498,19 @@ class LibraryRequirements {
 
   List<Uri>? exportedLibraryUris;
 
-  /// TopName => ID
-  final Map<LookupName, ManifestItemId?> exportedTopLevels;
+  /// Exported top-level names observed while collecting requirements.
+  ///
+  /// Each key is a lookup name that was queried from the library's export
+  /// namespace. The value stores the manifest item ID that was seen for that
+  /// name, or `null` when the name was absent.
+  final Map<LookupName, ManifestItemId?> exportMap;
+
+  /// Snapshot of [LibraryManifest.exportMapId] captured while recording
+  /// [exportMap].
+  ///
+  /// Matching IDs let requirement checks skip per-name comparisons; mismatched
+  /// IDs trigger validation of individual [exportMap] entries.
+  ManifestItemId exportMapId;
 
   /// Names that must be in [LibraryManifest.reExportDeprecatedOnly].
   final Map<LookupName, bool> reExportDeprecatedOnly;
@@ -542,7 +553,8 @@ class LibraryRequirements {
     required this.languageVersion,
     required this.libraryMetadataId,
     required this.exportedLibraryUris,
-    required this.exportedTopLevels,
+    required this.exportMap,
+    required this.exportMapId,
     required this.instances,
     required this.interfaces,
     required this.exportedExtensions,
@@ -577,7 +589,8 @@ class LibraryRequirements {
       languageVersion: null,
       libraryMetadataId: null,
       exportedLibraryUris: null,
-      exportedTopLevels: {},
+      exportMap: {},
+      exportMapId: ManifestItemId.generate(),
       instances: {},
       interfaces: {},
       exportedExtensions: null,
@@ -613,7 +626,8 @@ class LibraryRequirements {
       languageVersion: ManifestLibraryLanguageVersion.readOptional(reader),
       libraryMetadataId: ManifestItemId.readOptional(reader),
       exportedLibraryUris: reader.readOptionalUriList(),
-      exportedTopLevels: reader.readNameToOptionalIdMap(),
+      exportMap: reader.readNameToOptionalIdMap(),
+      exportMapId: ManifestItemId.read(reader),
       instances: reader.readMap(
         readKey: () => LookupName.read(reader),
         readValue: () => InstanceItemRequirements.read(reader),
@@ -657,7 +671,8 @@ class LibraryRequirements {
     sink.writeOptionalObject(languageVersion, (it) => it.write(sink));
     libraryMetadataId.writeOptional(sink);
     sink.writeOptionalUriList(exportedLibraryUris);
-    sink.writeNameToIdMap(exportedTopLevels);
+    sink.writeNameToIdMap(exportMap);
+    exportMapId.write(sink);
 
     sink.writeMap(
       instances,
@@ -863,8 +878,7 @@ class RequirementsManifest {
       var libraryUri = libraryEntry.key;
       var libraryRequirements = libraryEntry.value;
 
-      var libraryElement = elementFactory.libraryOfUri(libraryUri);
-      var libraryManifest = libraryElement?.manifest;
+      var libraryManifest = elementFactory.libraryManifestOfUri(libraryUri);
       if (libraryManifest == null) {
         return LibraryMissing(uri: libraryUri);
       }
@@ -920,16 +934,19 @@ class RequirementsManifest {
         }
       }
 
-      for (var topLevelEntry in libraryRequirements.exportedTopLevels.entries) {
-        var name = topLevelEntry.key;
-        var actualId = libraryManifest.getExportedId(name);
-        if (topLevelEntry.value != actualId) {
-          return TopLevelIdMismatch(
-            libraryUri: libraryUri,
-            name: name,
-            expectedId: topLevelEntry.value,
-            actualId: actualId,
-          );
+      if (libraryRequirements.exportMapId != libraryManifest.exportMapId) {
+        for (var topLevelEntry in libraryRequirements.exportMap.entries) {
+          var name = topLevelEntry.key;
+          var expectedId = topLevelEntry.value;
+          var actualId = libraryManifest.getExportedId(name);
+          if (expectedId != actualId) {
+            return TopLevelIdMismatch(
+              libraryUri: libraryUri,
+              name: name,
+              expectedId: expectedId,
+              actualId: actualId,
+            );
+          }
         }
       }
 
@@ -1557,7 +1574,7 @@ class RequirementsManifest {
     required List<LibraryElementImpl> importedLibraries,
     required String id,
   }) {
-    assert(!id.endsWith('='));
+    assert(!id.asLookupName.isSetter);
 
     if (_recordingLockLevel != 0) {
       return;
@@ -1576,14 +1593,14 @@ class RequirementsManifest {
         var libraryRequirements = _getLibraryRequirements(importedLibrary);
 
         var getterId = manifest.getExportedId(getterLookupName);
-        libraryRequirements.exportedTopLevels[getterLookupName] = getterId;
+        libraryRequirements.exportMap[getterLookupName] = getterId;
         if (getterId != null) {
           libraryRequirements.reExportDeprecatedOnly[getterLookupName] =
               manifest.reExportDeprecatedOnly.contains(getterLookupName);
         }
 
         var setterId = manifest.getExportedId(setterLookupName);
-        libraryRequirements.exportedTopLevels[setterLookupName] = setterId;
+        libraryRequirements.exportMap[setterLookupName] = setterId;
         if (setterId != null) {
           libraryRequirements.reExportDeprecatedOnly[setterLookupName] =
               manifest.reExportDeprecatedOnly.contains(setterLookupName);
@@ -1685,7 +1702,7 @@ class RequirementsManifest {
     required InstanceElementImpl element,
     required String name,
   }) {
-    assert(!name.endsWith('='));
+    assert(!name.asLookupName.isSetter);
     var itemRequirements = _getInstanceItem(element);
     if (itemRequirements == null) {
       return;
@@ -1893,7 +1910,7 @@ class RequirementsManifest {
     }
 
     var requirements = _getLibraryRequirements(element);
-    requirements.exportedTopLevels.addAll(manifest.exportedIds);
+    requirements.exportMap.addAll(manifest.exportedIds);
   }
 
   void record_library_allExtensions({required LibraryElementImpl element}) {
@@ -2041,7 +2058,7 @@ class RequirementsManifest {
     var requirements = _getLibraryRequirements(element);
     var mainName = TopLevelFunctionElement.MAIN_FUNCTION_NAME.asLookupName;
     var id = manifest.getExportedId(mainName);
-    requirements.exportedTopLevels[mainName] = id;
+    requirements.exportMap[mainName] = id;
   }
 
   void record_library_exportedLibraries({required LibraryElementImpl element}) {
@@ -2500,7 +2517,15 @@ class RequirementsManifest {
       return result;
     }
 
-    var result = libraries[element.uri] ??= LibraryRequirements.empty();
+    var result = libraries[element.uri];
+    if (result != null) {
+      return result;
+    }
+
+    result = LibraryRequirements.empty();
+    result.exportMapId = element.manifest!.exportMapId;
+
+    libraries[element.uri] = result;
     return state._result = result;
   }
 

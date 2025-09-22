@@ -10,7 +10,7 @@ import 'package:test/test.dart';
 import 'domain_completion_util.dart';
 
 /// A base class for classes containing completion tests.
-class CompletionTestCase extends AbstractCompletionDomainTest {
+abstract class CompletionTestCase extends AbstractCompletionDomainTest {
   static const String CURSOR_MARKER = '!';
 
   List<String> get suggestedCompletions => suggestions

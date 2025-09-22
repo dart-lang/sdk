@@ -154,6 +154,10 @@ class LinkedElementFactory {
     return element;
   }
 
+  LibraryManifest? libraryManifestOfUri(Uri uri) {
+    return libraryManifests[uri];
+  }
+
   LibraryElementImpl? libraryOfUri(Uri uri) {
     var reference = rootReference.getChild('$uri');
     if (reference.element case LibraryElementImpl element) {
