@@ -7,7 +7,7 @@ Defaults for properties and dimensions used in main.star.
 
 load("//lib/helpers.star", "union")
 
-_PROPERTIES = {"clobber": False}
+_PROPERTIES = {"clobber": True}
 _DIMENSIONS = {
     "cpu": "x86-64",
     "host_class": "default",
