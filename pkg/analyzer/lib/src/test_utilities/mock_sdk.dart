@@ -342,7 +342,6 @@ abstract final class double extends num {
   static const double minPositive = 5e-324;
   static const double maxFinite = 1.7976931348623157e+308;
 
-  bool get isNaN;
   double get sign;
   double operator %(num other);
   double operator *(num other);
@@ -363,8 +362,7 @@ abstract final class double extends num {
   int truncate();
   double truncateToDouble();
 
-  external static double parse(String source,
-      [@deprecated double onError(String source)?]);
+  external static double parse(String source);
 
   external static double? tryParse(String source);
 }
@@ -420,8 +418,7 @@ abstract final class int extends num {
   external const factory int.fromEnvironment(String name,
       {int defaultValue = 0});
 
-  bool get isEven => false;
-  bool get isNegative;
+  bool get isEven;
   bool get isOdd;
   int get sign;
 
@@ -565,20 +562,17 @@ sealed class num implements Comparable<num> {
   num operator -();
   double operator /(num other);
   bool operator <(num other);
-  int operator <<(int other);
   bool operator <=(num other);
   bool operator ==(Object other);
   bool operator >(num other);
   bool operator >=(num other);
-  int operator >>(int other);
-  int operator ^(int other);
-  int operator |(int other);
-  int operator ~();
   int operator ~/(num other);
 
   num abs();
   num clamp(num lowerLimit, num upperLimit);
   int floor();
+  bool get isNaN;
+  bool get isNegative;
   num remainder(num other);
   int round();
   double toDouble();
