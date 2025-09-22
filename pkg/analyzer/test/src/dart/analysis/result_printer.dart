@@ -77,7 +77,7 @@ class BundleRequirementsPrinter {
             var idStr = idProvider.manifestId(id);
             sink.writelnWithIndent('libraryMetadataId: $idStr');
           }
-          _writeExportedTopLevels(libraryRequirements);
+          _writeExportMap(libraryRequirements);
           _writeLibraryDeclaredItems(libraryRequirements);
           _writeInstanceItems(libraryRequirements);
           _writeInterfaceItems(libraryRequirements);
@@ -117,11 +117,14 @@ class BundleRequirementsPrinter {
     }
   }
 
-  void _writeExportedTopLevels(LibraryRequirements requirements) {
-    var entries = requirements.exportMap.sorted;
-    sink.writeElements('exportedTopLevels', entries, (entry) {
-      _writeNamedId(entry);
-    });
+  void _writeExportMap(LibraryRequirements requirements) {
+    _writelnIdField('exportMapId', requirements.exportMapId);
+
+    sink.writeElements(
+      'exportMap',
+      requirements.exportMap.sorted,
+      _writelnIdLookupNameEntry,
+    );
 
     sink.writeElements(
       'reExportDeprecatedOnly',
@@ -158,7 +161,7 @@ class BundleRequirementsPrinter {
             sink.withIndent(() {
               _writeExportCombinators(fragment);
               for (var entry in fragment.exportedIds.sorted) {
-                _writeNamedId(entry);
+                _writelnIdLookupNameEntry(entry);
               }
             });
           },
@@ -178,7 +181,11 @@ class BundleRequirementsPrinter {
           String name,
           Map<LookupName, ManifestItemId?> nameToIdMap,
         ) {
-          sink.writeElements(name, nameToIdMap.sorted, _writeNamedId);
+          sink.writeElements(
+            name,
+            nameToIdMap.sorted,
+            _writelnIdLookupNameEntry,
+          );
         }
 
         writeRequestedDeclared(
@@ -237,17 +244,17 @@ class BundleRequirementsPrinter {
         sink.writeElements(
           'requestedConstructors',
           requirements.requestedConstructors.sorted,
-          _writeNamedId,
+          _writelnIdLookupNameEntry,
         );
         sink.writeElements(
           'methods',
           requirements.methods.sorted,
-          _writeNamedId,
+          _writelnIdLookupNameEntry,
         );
         sink.writeElements(
           'implementedMethods',
           requirements.implementedMethods.sorted,
-          _writeNamedId,
+          _writelnIdLookupNameEntry,
         );
         sink.writeElements(
           'superMethods',
@@ -258,7 +265,7 @@ class BundleRequirementsPrinter {
             sink.writelnWithIndent('[$index]');
             sink.withIndent(() {
               for (var entry in nameToId.sorted) {
-                _writeNamedId(entry);
+                _writelnIdLookupNameEntry(entry);
               }
             });
           },
@@ -270,7 +277,7 @@ class BundleRequirementsPrinter {
   void _writeLibraryDeclaredItems(LibraryRequirements requirements) {
     void writeRequested(String name, Map<LookupName, ManifestItemId?> map) {
       if (map.isEmpty) return;
-      sink.writeElements(name, map.sorted, _writeNamedId);
+      sink.writeElements(name, map.sorted, _writelnIdLookupNameEntry);
     }
 
     writeRequested(
@@ -332,6 +339,11 @@ class BundleRequirementsPrinter {
     _writelnIdList('allDeclaredSetters', requirements.allDeclaredSetters);
   }
 
+  void _writelnIdField(String name, ManifestItemId? id) {
+    var idStr = id != null ? idProvider.manifestId(id) : '<null>';
+    sink.writelnWithIndent('$name: $idStr');
+  }
+
   void _writelnIdList(String name, ManifestItemIdList? idList) {
     if (idList != null) {
       var idListStr = idList.asString(idProvider);
@@ -339,13 +351,12 @@ class BundleRequirementsPrinter {
     }
   }
 
-  void _writeNamedId(MapEntry<LookupName, ManifestItemId?> entry) {
-    if (entry.value case var id?) {
-      var idStr = idProvider.manifestId(id);
-      sink.writelnWithIndent('${entry.key}: $idStr');
-    } else {
-      sink.writelnWithIndent('${entry.key}: <null>');
-    }
+  void _writelnIdLookupName(LookupName name, ManifestItemId? id) {
+    _writelnIdField(name.asString, id);
+  }
+
+  void _writelnIdLookupNameEntry(MapEntry<LookupName, ManifestItemId?> entry) {
+    _writelnIdLookupName(entry.key, entry.value);
   }
 
   void _writeOpaqueApiUses(RequirementsManifest requirements) {
@@ -1237,6 +1248,13 @@ class LibraryManifestPrinter {
       _writeTopLevelVariableItem(item);
     });
 
+    _writelnIdField('exportMapId', manifest.exportMapId);
+    sink.writeElements(
+      'exportMap',
+      manifest.exportMap.sorted,
+      _writelnIdLookupNameEntry,
+    );
+
     var reExportEntries = manifest.reExportMap.sorted;
     if (reExportEntries.isNotEmpty) {
       sink.writelnWithIndent('reExportMap');
@@ -1688,6 +1706,19 @@ class LibraryManifestPrinter {
     ];
     var idStr = idProvider.manifestId(element.id);
     sink.writeln('(${parts.join(', ')}) $idStr');
+  }
+
+  void _writelnIdField(String name, ManifestItemId? id) {
+    var idStr = id != null ? idProvider.manifestId(id) : '<null>';
+    sink.writelnWithIndent('$name: $idStr');
+  }
+
+  void _writelnIdLookupName(LookupName name, ManifestItemId? id) {
+    _writelnIdField(name.asString, id);
+  }
+
+  void _writelnIdLookupNameEntry(MapEntry<LookupName, ManifestItemId?> entry) {
+    _writelnIdLookupName(entry.key, entry.value);
   }
 
   void _writelnNamedElement(String name, ManifestElement? element) {
