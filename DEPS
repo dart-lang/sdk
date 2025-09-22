@@ -136,8 +136,8 @@ vars = {
   "dartdoc_rev": "4df6dbe5e651e3c8a4f199e4752b12366d7eeef4",
   "ecosystem_rev": "36e514d52c5d056227e4cea98b784ade50b5b4f1",
   "flute_rev": "d5adc4d6439572db5da71a9261b9bf0c7c96daa4",
-  "http_rev": "d8e69290b1284210f7df1b8576b27d8acaf3b47f",
-  "i18n_rev": "a62bed2cf32482e531fbc5c719dfb30680f31c0d",
+  "http_rev": "d6dd5ec9a24e66b386cc38d52c6d4e8decb26902",
+  "i18n_rev": "09627d28f97e05858e1ba5c6e45ff45d56b1e786",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "native_rev": "445cb0af620328ff04aeed028a60065ec6e5c7ce", # rolled manually while native assets are experimental
@@ -147,7 +147,7 @@ vars = {
   "sync_http_rev": "6666fff944221891182e1f80bf56569338164d72",
   "tar_rev": "13479f7c2a18f499e840ad470cfcca8c579f6909",
   "test_rev": "b99d556ec6096965eb177111299c0783678200f6",
-  "tools_rev": "042b03e8284032088f851172ab7b2aed06da1d72",
+  "tools_rev": "6c1eb214e09f3703255b563f9effbbb2e6989f6b",
   "vector_math_rev": "3939545edc38ed657381381d33acde02c49ff827",
   "web_rev": "25a0b5b0a4a126788c06738331c5c4af8225f6f8",
   "webdev_rev": "23aefebea46c1f94c27703743b2c8db1f651bf29",
