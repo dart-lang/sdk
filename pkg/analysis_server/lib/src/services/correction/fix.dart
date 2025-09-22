@@ -39,13 +39,8 @@ abstract final class DartFixKind {
   );
   static const ADD_AWAIT = FixKind(
     'dart.fix.add.await',
-    DartFixKindPriority.standard,
+    DartFixKindPriority.standard + 1,
     "Add 'await' keyword",
-  );
-  static const ADD_AWAIT_MULTI = FixKind(
-    'dart.fix.add.await.multi',
-    DartFixKindPriority.inFile,
-    "Add 'await's everywhere in file",
   );
   static const ADD_CALL_SUPER = FixKind(
     'dart.fix.add.callSuper',
@@ -149,7 +144,7 @@ abstract final class DartFixKind {
   );
   static const ADD_EXPLICIT_CAST = FixKind(
     'dart.fix.add.explicitCast',
-    DartFixKindPriority.standard,
+    DartFixKindPriority.standard - 1,
     'Add cast',
   );
   static const ADD_EXPLICIT_CAST_MULTI = FixKind(
