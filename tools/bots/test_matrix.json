@@ -3513,7 +3513,7 @@
             "8",
             "--no-show-stats",
             "--time",
-            "2700"
+            "1800"
           ],
           "shards": 50,
           "fileset": "fuzzer"
