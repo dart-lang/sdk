@@ -381,6 +381,7 @@ abstract class AnalysisServer {
       analysisDriverScheduler,
       instrumentationService,
       enableBlazeWatcher: enableBlazeWatcher,
+      withFineDependencies: options.withFineDependencies,
     );
 
     _dartFixPrompt =
