@@ -1,3 +1,8 @@
+## 0.3.1
+
+- Write more of a README.
+- Perform less redundant work when producing diagnostics.
+
 ## 0.3.0
 
 - Require version `8.2.0` of the `analyzer` package.
