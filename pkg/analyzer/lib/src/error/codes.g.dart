@@ -10905,6 +10905,19 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// Parameters:
+  /// Object parameterName: the name of the parameter
+  static const WarningTemplate<
+    LocatableDiagnostic Function({required Object parameterName})
+  >
+  deprecatedOptional = WarningTemplate(
+    'DEPRECATED_OPTIONAL',
+    "Omitting an argument for the '{0}' parameter is deprecated.",
+    correctionMessage: "Try passing an argument for '{0}'.",
+    withArguments: _withArgumentsDeprecatedOptional,
+    expectedTypes: [ExpectedType.object],
+  );
+
+  /// Parameters:
   /// Object typeName: the name of the type
   static const WarningTemplate<
     LocatableDiagnostic Function({required Object typeName})
@@ -11391,6 +11404,21 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         'INVALID_DEPRECATED_MIXIN_ANNOTATION',
         "The annotation '@Deprecated.mixin' can only be applied to classes.",
         correctionMessage: "Try removing the '@Deprecated.mixin' annotation.",
+        expectedTypes: [],
+      );
+
+  /// This warning is generated anywhere where `@Deprecated.optional`
+  /// annotates something other than an optional parameter.
+  ///
+  /// No parameters.
+  static const WarningWithoutArguments invalidDeprecatedOptionalAnnotation =
+      WarningWithoutArguments(
+        'INVALID_DEPRECATED_OPTIONAL_ANNOTATION',
+        "The annotation '@Deprecated.optional' can only be applied to optional "
+            "parameters.",
+        correctionMessage:
+            "Try removing the '@Deprecated.optional' annotation.",
+        hasPublishedDocs: true,
         expectedTypes: [],
       );
 
@@ -12985,6 +13013,12 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     required Object typeName,
   }) {
     return LocatableDiagnosticImpl(deprecatedMixin, [typeName]);
+  }
+
+  static LocatableDiagnostic _withArgumentsDeprecatedOptional({
+    required Object parameterName,
+  }) {
+    return LocatableDiagnosticImpl(deprecatedOptional, [parameterName]);
   }
 
   static LocatableDiagnostic _withArgumentsDeprecatedSubclass({

@@ -337,9 +337,18 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void visitDotShorthandConstructorInvocation(
     DotShorthandConstructorInvocation node,
   ) {
+    _deprecatedFunctionalityVerifier.dotShorthandConstructorInvocation(node);
     _deprecatedMemberUseVerifier.dotShorthandConstructorInvocation(node);
     _checkForLiteralConstructorUseInDotShorthand(node);
     super.visitDotShorthandConstructorInvocation(node);
+  }
+
+  @override
+  void visitDotShorthandInvocation(DotShorthandInvocation node) {
+    _deprecatedFunctionalityVerifier.dotShorthandInvocation(node);
+    // TODO(srawlins): I imagine we need to check with
+    // `_deprecatedMemberUseVerifier` here...
+    super.visitDotShorthandInvocation(node);
   }
 
   @override
@@ -577,6 +586,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     covariant InstanceCreationExpressionImpl node,
   ) {
     _deprecatedMemberUseVerifier.instanceCreationExpression(node);
+    _deprecatedFunctionalityVerifier.instanceCreationExpression(node);
     _nullSafeApiVerifier.instanceCreation(node);
     _checkForLiteralConstructorUse(node);
     super.visitInstanceCreationExpression(node);
@@ -655,6 +665,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitMethodInvocation(covariant MethodInvocationImpl node) {
     _deprecatedMemberUseVerifier.methodInvocation(node);
+    _deprecatedFunctionalityVerifier.methodInvocation(node);
     _errorHandlerVerifier.verifyMethodInvocation(node);
     _nullSafeApiVerifier.methodInvocation(node);
     super.visitMethodInvocation(node);

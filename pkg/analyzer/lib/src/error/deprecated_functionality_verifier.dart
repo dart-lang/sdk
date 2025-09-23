@@ -43,9 +43,52 @@ class DeprecatedFunctionalityVerifier {
     }
   }
 
+  void dotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    var element = node.constructorName.element;
+    if (element is! ExecutableElement) return;
+    _checkForDeprecatedOptional(
+      element: element,
+      argumentList: node.argumentList,
+      errorNode: node.constructorName,
+    );
+  }
+
+  void dotShorthandInvocation(DotShorthandInvocation node) {
+    var element = node.memberName.element;
+    if (element is! ExecutableElement) return;
+    _checkForDeprecatedOptional(
+      element: element,
+      argumentList: node.argumentList,
+      errorNode: node.memberName,
+    );
+  }
+
   void enumDeclaration(EnumDeclaration node) {
     _checkForDeprecatedImplement(node.implementsClause?.interfaces);
     _checkForDeprecatedMixin(node.withClause);
+  }
+
+  void instanceCreationExpression(InstanceCreationExpression node) {
+    var constructor = node.constructorName.element;
+    if (constructor == null) return;
+    _checkForDeprecatedOptional(
+      element: constructor,
+      argumentList: node.argumentList,
+      errorNode: node.constructorName,
+    );
+  }
+
+  void methodInvocation(MethodInvocation node) {
+    var method = node.methodName.element;
+    if (method is! ExecutableElement) return;
+    if (method is LocalFunctionElement) return;
+    _checkForDeprecatedOptional(
+      element: method,
+      argumentList: node.argumentList,
+      errorNode: node.methodName,
+    );
   }
 
   void mixinDeclaration(MixinDeclaration node) {
@@ -112,6 +155,28 @@ class DeprecatedFunctionalityVerifier {
           mixin,
           WarningCode.deprecatedMixin,
           arguments: [element.name!],
+        );
+      }
+    }
+  }
+
+  void _checkForDeprecatedOptional({
+    required ExecutableElement element,
+    required ArgumentList argumentList,
+    required AstNode errorNode,
+  }) {
+    var omittedParameters = element.formalParameters.toList();
+    for (var argument in argumentList.arguments) {
+      var parameter = argument.correspondingParameter;
+      if (parameter == null) continue;
+      omittedParameters.remove(parameter);
+    }
+    for (var parameter in omittedParameters) {
+      if (parameter.isDeprecatedWithKind('optional')) {
+        _diagnosticReporter.atNode(
+          errorNode,
+          WarningCode.deprecatedOptional,
+          arguments: [parameter.name ?? '<unknown>'],
         );
       }
     }
