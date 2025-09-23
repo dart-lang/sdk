@@ -3531,7 +3531,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     _inTryOrLocalFunction = true;
     VariableDeclaration variable = node.variable;
     flowAnalysis.functionExpression_begin(node);
-    inferMetadata(this, variable, variable.annotations);
+    inferMetadata(this, variable);
     DartType? returnContext = node.hasImplicitReturnType
         ? null
         : node.function.returnType;

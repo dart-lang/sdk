@@ -4,31 +4,7 @@
 
 part of 'resolver.dart';
 
-typedef BodyBuilderCreator = ({
-  BodyBuilderCreatorUnnamed create,
-  BodyBuilderCreatorForField createForField,
-  BodyBuilderCreatorForOutlineExpression createForOutlineExpression,
-});
-
-typedef BodyBuilderCreatorForField =
-    BodyBuilder Function(
-      SourceLibraryBuilder libraryBuilder,
-      BodyBuilderContext bodyBuilderContext,
-      LookupScope enclosingScope,
-      TypeInferrer typeInferrer,
-      Uri uri,
-    );
-
-typedef BodyBuilderCreatorForOutlineExpression =
-    BodyBuilder Function(
-      SourceLibraryBuilder library,
-      BodyBuilderContext bodyBuilderContext,
-      LookupScope scope,
-      Uri fileUri, {
-      LocalScope? formalParameterScope,
-    });
-
-typedef BodyBuilderCreatorUnnamed =
+typedef BodyBuilderCreator =
     BodyBuilder Function({
       required SourceLibraryBuilder libraryBuilder,
       required BodyBuilderContext context,
@@ -39,7 +15,8 @@ typedef BodyBuilderCreatorUnnamed =
       VariableDeclaration? thisVariable,
       List<TypeParameter>? thisTypeParameters,
       required Uri uri,
-      required TypeInferrer typeInferrer,
+      required AssignedVariables assignedVariables,
+      required TypeEnvironment typeEnvironment,
       required ConstantContext constantContext,
     });
 
@@ -56,53 +33,17 @@ class ResolverForTesting extends Resolver {
   });
 
   @override
-  BodyBuilder _createBodyBuilderForField(
-    SourceLibraryBuilder libraryBuilder,
-    BodyBuilderContext bodyBuilderContext,
-    LookupScope enclosingScope,
-    TypeInferrer typeInferrer,
-    Uri uri,
-  ) {
-    return bodyBuilderCreator.createForField(
-      libraryBuilder,
-      bodyBuilderContext,
-      enclosingScope,
-      typeInferrer,
-      uri,
-    );
-  }
-
-  @override
-  BodyBuilder _createBodyBuilderForOutlineExpression(
-    SourceLibraryBuilder libraryBuilder,
-    BodyBuilderContext bodyBuilderContext,
-    LookupScope scope,
-    Uri fileUri, {
-    LocalScope? formalParameterScope,
-  }) {
-    return bodyBuilderCreator.createForOutlineExpression(
-      libraryBuilder,
-      bodyBuilderContext,
-      scope,
-      fileUri,
-      formalParameterScope: formalParameterScope,
-    );
-  }
-
-  @override
   BodyBuilder _createBodyBuilderInternal({
-    required SourceLibraryBuilder libraryBuilder,
+    required _ResolverContext context,
     required BodyBuilderContext bodyBuilderContext,
-    required Uri fileUri,
     required LookupScope scope,
     required LocalScope? formalParameterScope,
     required VariableDeclaration? thisVariable,
     required List<TypeParameter>? thisTypeParameters,
-    required TypeInferrer typeInferrer,
     required ConstantContext constantContext,
   }) {
-    return bodyBuilderCreator.create(
-      libraryBuilder: libraryBuilder,
+    return bodyBuilderCreator(
+      libraryBuilder: context.libraryBuilder,
       context: bodyBuilderContext,
       enclosingScope: scope,
       formalParameterScope: formalParameterScope,
@@ -110,9 +51,147 @@ class ResolverForTesting extends Resolver {
       coreTypes: _coreTypes,
       thisVariable: thisVariable,
       thisTypeParameters: thisTypeParameters,
-      uri: fileUri,
-      typeInferrer: typeInferrer,
+      uri: context.fileUri,
+      assignedVariables: context.assignedVariables,
+      typeEnvironment: context.typeEnvironment,
       constantContext: constantContext,
     );
+  }
+}
+
+class _ResolverContext {
+  final SourceLibraryBuilder libraryBuilder;
+  final TypeInferrer typeInferrer;
+  final TypeEnvironment typeEnvironment;
+  final AssignedVariables assignedVariables;
+  final Uri fileUri;
+
+  late final CloneVisitorNotMembers _simpleCloner =
+      new CloneVisitorNotMembers();
+
+  _ResolverContext._({
+    required this.libraryBuilder,
+    required this.typeInferrer,
+    required this.typeEnvironment,
+    required this.assignedVariables,
+    required this.fileUri,
+  });
+
+  factory _ResolverContext({
+    required TypeInferenceEngineImpl typeInferenceEngine,
+    required SourceLibraryBuilder libraryBuilder,
+    required BodyBuilderContext bodyBuilderContext,
+    required LookupScope scope,
+    required bool isTopLevel,
+    required Uri fileUri,
+    InferenceDataForTesting? inferenceDataForTesting,
+  }) {
+    TypeInferrer typeInferrer;
+    if (isTopLevel) {
+      typeInferrer = typeInferenceEngine.createTopLevelTypeInferrer(
+        fileUri,
+        bodyBuilderContext.thisType,
+        libraryBuilder,
+        scope,
+        inferenceDataForTesting,
+      );
+    } else {
+      typeInferrer = typeInferenceEngine.createLocalTypeInferrer(
+        fileUri,
+        bodyBuilderContext.thisType,
+        libraryBuilder,
+        scope,
+        inferenceDataForTesting,
+      );
+    }
+    TypeEnvironment typeEnvironment = typeInferrer.typeSchemaEnvironment;
+    AssignedVariables assignedVariables = typeInferrer.assignedVariables;
+    return new _ResolverContext._(
+      libraryBuilder: libraryBuilder,
+      typeInferrer: typeInferrer,
+      typeEnvironment: typeEnvironment,
+      assignedVariables: assignedVariables,
+      fileUri: fileUri,
+    );
+  }
+
+  /// Infers the annotations of [annotatable].
+  ///
+  /// If [indices] is provided, only the annotations at the given indices are
+  /// inferred. Otherwise all annotations are inferred.
+  void _inferAnnotations({
+    required ConstantContext constantContext,
+    required Annotatable annotatable,
+    List<int>? indices,
+  }) {
+    typeInferrer.inferMetadata(
+      fileUri: fileUri,
+      annotatable: annotatable,
+      indices: indices,
+      // TODO(johnniwinther): Should this always be implicit?
+      constantContext: constantContext,
+    );
+  }
+
+  void inferSingleTargetAnnotation({
+    required ConstantContext constantContext,
+    required SingleTargetAnnotations singleTarget,
+  }) {
+    _inferAnnotations(
+      constantContext: constantContext,
+      annotatable: singleTarget.target,
+      indices: singleTarget.indicesOfAnnotationsToBeInferred,
+    );
+  }
+
+  void _inferPendingAnnotations({
+    required ConstantContext constantContext,
+    required PendingAnnotations annotations,
+  }) {
+    List<SingleTargetAnnotations>? singleTargetAnnotations =
+        annotations.singleTargetAnnotations;
+    if (singleTargetAnnotations != null) {
+      for (int i = 0; i < singleTargetAnnotations.length; i++) {
+        SingleTargetAnnotations singleTarget = singleTargetAnnotations[i];
+        inferSingleTargetAnnotation(
+          constantContext: constantContext,
+          singleTarget: singleTarget,
+        );
+      }
+    }
+
+    List<MultiTargetAnnotations>? multiTargetAnnotations =
+        annotations.multiTargetAnnotations;
+    if (multiTargetAnnotations != null) {
+      for (int i = 0; i < multiTargetAnnotations.length; i++) {
+        MultiTargetAnnotations multiTarget = multiTargetAnnotations[i];
+        List<Annotatable> targets = multiTarget.targets;
+        Annotatable firstTarget = targets.first;
+        List<Expression> annotations = firstTarget.annotations;
+        _inferAnnotations(
+          constantContext: constantContext,
+          annotatable: firstTarget,
+        );
+        for (int i = 1; i < targets.length; i++) {
+          Annotatable target = targets[i];
+          for (int i = 0; i < annotations.length; i++) {
+            target.addAnnotation(_simpleCloner.cloneInContext(annotations[i]));
+          }
+        }
+      }
+    }
+  }
+
+  void performBacklog(
+    PendingAnnotations? annotations,
+    ConstantContext constantContext,
+  ) {
+    if (annotations != null) {
+      _inferPendingAnnotations(
+        constantContext: constantContext,
+        annotations: annotations,
+      );
+    }
+    libraryBuilder.checkPendingBoundsChecks(typeEnvironment);
   }
 }

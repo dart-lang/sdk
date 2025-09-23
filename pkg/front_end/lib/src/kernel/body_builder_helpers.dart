@@ -461,3 +461,115 @@ extension on MemberKind {
     }
   }
 }
+
+/// Annotations that needs to be inferred about the body has been inferred.
+class PendingAnnotations {
+  final List<SingleTargetAnnotations>? singleTargetAnnotations;
+  final List<MultiTargetAnnotations>? multiTargetAnnotations;
+
+  PendingAnnotations(this.singleTargetAnnotations, this.multiTargetAnnotations);
+}
+
+/// A single target holding annotations to be inferred.
+class SingleTargetAnnotations {
+  final Annotatable target;
+  final List<int>? indicesOfAnnotationsToBeInferred;
+
+  SingleTargetAnnotations(this.target, [this.indicesOfAnnotationsToBeInferred]);
+}
+
+/// A multiple targets holding annotations to be inferred.
+///
+/// The annotations are on the first target and needs to be cloned to the
+/// subsequent targets after inference.
+class MultiTargetAnnotations {
+  final List<Annotatable> targets;
+
+  MultiTargetAnnotations(this.targets);
+}
+
+class BuildInitializersResult {
+  final List<Initializer>? initializers;
+  final bool needsImplicitSuperInitializer;
+  final PendingAnnotations? annotations;
+
+  BuildInitializersResult(
+    this.initializers,
+    this.needsImplicitSuperInitializer,
+    this.annotations,
+  );
+}
+
+class BuildParameterInitializerResult {
+  final Expression initializer;
+  final PendingAnnotations? annotations;
+
+  BuildParameterInitializerResult(this.initializer, this.annotations);
+}
+
+class BuildRedirectingFactoryMethodResult {
+  final PendingAnnotations? annotations;
+
+  BuildRedirectingFactoryMethodResult(this.annotations);
+}
+
+class BuildFieldsResult {
+  final Map<Identifier, Expression?> fieldInitializers;
+  final PendingAnnotations? annotations;
+
+  BuildFieldsResult(this.fieldInitializers, this.annotations);
+}
+
+class BuildPrimaryConstructorResult {
+  final FormalParameters? formals;
+  final PendingAnnotations? annotations;
+
+  BuildPrimaryConstructorResult(this.formals, this.annotations);
+}
+
+class BuildFunctionBodyResult {
+  final FormalParameters? formals;
+  final AsyncMarker asyncModifier;
+  final Statement? body;
+  final List<Initializer>? initializers;
+  final bool needsImplicitSuperInitializer;
+  final PendingAnnotations? annotations;
+
+  BuildFunctionBodyResult({
+    required this.formals,
+    required this.asyncModifier,
+    required this.body,
+    required this.initializers,
+    required this.needsImplicitSuperInitializer,
+    required this.annotations,
+  });
+}
+
+class BuildMetadataListResult {
+  final List<Expression> expressions;
+  final PendingAnnotations? annotations;
+
+  BuildMetadataListResult(this.expressions, this.annotations);
+}
+
+class BuildFieldInitializerResult {
+  final Expression initializer;
+  final PendingAnnotations? annotations;
+
+  BuildFieldInitializerResult(this.initializer, this.annotations);
+}
+
+class BuildEnumConstantResult {
+  final ArgumentsImpl arguments;
+  final PendingAnnotations? annotations;
+
+  BuildEnumConstantResult(this.arguments, this.annotations);
+}
+
+// Coverage-ignore(suite): Not run.
+class BuildSingleExpressionResult {
+  final Expression expression;
+  final PendingAnnotations? annotations;
+
+  BuildSingleExpressionResult(this.expression, this.annotations);
+}

@@ -2,17 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/base/messages.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/transformations/flags.dart';
 
+import '../../base/compiler_context.dart';
 import '../../base/constant_context.dart';
 import '../../base/identifiers.dart';
 import '../../base/local_scope.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../kernel/body_builder_context.dart';
-import '../../kernel/expression_generator_helper.dart';
 import '../../source/source_constructor_builder.dart';
 import '../../source/source_property_builder.dart';
 import '../../type_inference/inference_results.dart';
@@ -101,28 +102,36 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  void addInitializer(
+  bool addInitializer(
+    CompilerContext compilerContext,
+    ProblemReporting problemReporting,
     Initializer initializer,
-    ExpressionGeneratorHelper helper,
+    Uri fileUri,
   ) {
-    _builder.addInitializer(
+    return _builder.addInitializer(
+      compilerContext,
+      problemReporting,
       initializer,
-      helper,
       inferenceResult: null,
       parent: _member,
+      fileUri: fileUri,
     );
   }
 
   @override
-  void addInferredInitializer(
+  bool addInferredInitializer(
+    CompilerContext compilerContext,
+    ProblemReporting problemReporting,
     InitializerInferenceResult inferenceResult,
-    ExpressionGeneratorHelper helper,
+    Uri fileUri,
   ) {
-    _builder.addInitializer(
+    return _builder.addInitializer(
+      compilerContext,
+      problemReporting,
       inferenceResult.initializer,
-      helper,
       inferenceResult: inferenceResult,
       parent: _member,
+      fileUri: fileUri,
     );
   }
 

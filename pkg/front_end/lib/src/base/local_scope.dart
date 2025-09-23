@@ -85,7 +85,6 @@ mixin LocalScopeMixin implements LocalScope {
   void _recordUse(String name, int charOffset) {}
 
   @override
-  // Coverage-ignore(suite): Not run.
   void forEachExtension(void Function(ExtensionBuilder) f) {
     _parent?.forEachExtension(f);
   }
@@ -255,7 +254,6 @@ final class EnclosingLocalScope extends BaseLocalScope
   VariableBuilder? lookupLocalVariable(String name) => null;
 
   @override
-  // Coverage-ignore(suite): Not run.
   void forEachExtension(void Function(ExtensionBuilder) f) {
     _scope.forEachExtension(f);
   }

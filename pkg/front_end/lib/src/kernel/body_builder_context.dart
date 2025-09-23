@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/base/messages.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/transformations/flags.dart';
 
+import '../base/compiler_context.dart';
 import '../base/constant_context.dart' show ConstantContext;
 import '../base/identifiers.dart' show Identifier;
 import '../base/local_scope.dart';
@@ -30,7 +32,6 @@ import '../source/source_type_alias_builder.dart';
 import '../type_inference/inference_results.dart'
     show InitializerInferenceResult;
 import '../type_inference/type_inferrer.dart' show TypeInferrer;
-import 'expression_generator_helper.dart';
 import 'internal_ast.dart';
 
 /// Interface that defines the interface between the [BodyBuilder] and the
@@ -350,18 +351,22 @@ abstract class BodyBuilderContext {
   }
 
   /// Adds [initializer] to generative constructor currently being built.
-  void addInitializer(
+  bool addInitializer(
+    CompilerContext compilerContext,
+    ProblemReporting problemReporting,
     Initializer initializer,
-    ExpressionGeneratorHelper helper,
+    Uri fileUri,
   ) {
     throw new UnsupportedError('${runtimeType}.addInitializer');
   }
 
   /// Adds the inferred [Initializer] from the [inferenceResult] to generative
   /// constructor currently being built.
-  void addInferredInitializer(
+  bool addInferredInitializer(
+    CompilerContext compilerContext,
+    ProblemReporting problemReporting,
     InitializerInferenceResult inferenceResult,
-    ExpressionGeneratorHelper helper,
+    Uri fileUri,
   ) {
     throw new UnsupportedError('${runtimeType}.addInferredInitializer');
   }

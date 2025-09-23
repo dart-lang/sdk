@@ -2528,7 +2528,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         new SharedTypeView(parameter.type),
         initialized: true,
       );
-      inferMetadata(visitor, parameter, parameter.annotations);
+      inferMetadata(visitor, parameter);
       if (parameter.initializer != null) {
         ExpressionInferenceResult initializerResult = visitor.inferExpression(
           parameter.initializer!,
@@ -2544,7 +2544,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         new SharedTypeView(parameter.type),
         initialized: true,
       );
-      inferMetadata(visitor, parameter, parameter.annotations);
+      inferMetadata(visitor, parameter);
       if (parameter.initializer != null) {
         ExpressionInferenceResult initializerResult = visitor.inferExpression(
           parameter.initializer!,
@@ -2633,26 +2633,24 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// inferred. Otherwise all annotations are inferred.
   void inferMetadata(
     InferenceVisitor visitor,
-    TreeNode? parent,
-    List<Expression>? annotations, {
+    Annotatable annotatable, {
     List<int>? indices,
   }) {
-    if (annotations != null) {
-      if (indices != null) {
-        for (int index in indices) {
-          _inferMetadataAt(visitor, parent, annotations, index);
-        }
-      } else {
-        for (int index = 0; index < annotations.length; index++) {
-          _inferMetadataAt(visitor, parent, annotations, index);
-        }
+    List<Expression> annotations = annotatable.annotations;
+    if (indices != null) {
+      for (int index in indices) {
+        _inferMetadataAt(visitor, annotatable, annotations, index);
+      }
+    } else {
+      for (int index = 0; index < annotations.length; index++) {
+        _inferMetadataAt(visitor, annotatable, annotations, index);
       }
     }
   }
 
   void _inferMetadataAt(
     InferenceVisitor visitor,
-    TreeNode? parent,
+    Annotatable annotatable,
     List<Expression> annotations,
     int index,
   ) {
@@ -2660,7 +2658,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       annotations[index],
       const UnknownType(),
     );
-    annotations[index] = result.expression..parent = parent;
+    annotations[index] = result.expression..parent = annotatable;
   }
 
   StaticInvocation createExtensionInvocation(

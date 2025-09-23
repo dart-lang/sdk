@@ -122,11 +122,7 @@ Future<int> runCompileAndLintTest({
       }
     },
     repoDir: repoDir,
-    bodyBuilderCreator: (
-      create: BodyBuilderTester.new,
-      createForField: BodyBuilderTester.forField,
-      createForOutlineExpression: BodyBuilderTester.forOutlineExpression,
-    ),
+    bodyBuilderCreator: BodyBuilderTester.new,
     splitCompileAndCompileLess: true,
   );
 

@@ -25,8 +25,7 @@ abstract class ComputedNameSpace implements NameSpace {
   /// Returns a filtered iterator of members and setters mapped in this name
   /// space.
   ///
-  /// Only members of type [T] are included. If [parent] is provided, on members
-  /// declared in [parent] are included. Duplicates are not included.
+  /// Only members of type [T] are included. Duplicates are not included.
   Iterator<T> filteredIterator<T extends NamedBuilder>();
 }
 
