@@ -43,10 +43,12 @@ class RunCommand extends DartdevCommand {
   }
 
   final bool nativeAssetsExperimentEnabled;
+  final bool dataAssetsExperimentEnabled;
 
   RunCommand({
     bool verbose = false,
     this.nativeAssetsExperimentEnabled = false,
+    this.dataAssetsExperimentEnabled = false,
   }) : super(
           cmdName,
           'Run a Dart program.',
@@ -143,8 +145,7 @@ class RunCommand extends DartdevCommand {
       )
       ..addFlag(
         'warn-on-pause-with-no-debugger',
-        help:
-            'Print a warning when an isolate pauses with no attached debugger'
+        help: 'Print a warning when an isolate pauses with no attached debugger'
             ' when running with --enable-vm-service.',
         hide: !verbose,
       )
@@ -187,15 +188,14 @@ class RunCommand extends DartdevCommand {
             'timeline stream.',
       )
       ..addFlag('profile-startup',
-        hide: !verbose,
-        negatable: false,
-        help: 'Make the profiler discard new samples once the profiler '
-            'sample buffer is full. When this flag is not set, the '
-            'profiler sample buffer is used as a ring buffer, meaning that '
-            'once it is full, new samples start overwriting the oldest '
-            'ones. This flag itself does not enable the profiler; the '
-            'profiler must be enabled separately, e.g. with --profiler.'
-      );
+          hide: !verbose,
+          negatable: false,
+          help: 'Make the profiler discard new samples once the profiler '
+              'sample buffer is full. When this flag is not set, the '
+              'profiler sample buffer is used as a ring buffer, meaning that '
+              'once it is full, new samples start overwriting the oldest '
+              'ones. This flag itself does not enable the profiler; the '
+              'profiler must be enabled separately, e.g. with --profiler.');
 
     argParser.addSeparator('Logging options:');
     argParser.addOption(
@@ -282,8 +282,7 @@ class RunCommand extends DartdevCommand {
       )
       ..addFlag('dds',
           hide: !verbose,
-          help:
-              'Use the Dart Development Service (DDS) for enhanced debugging '
+          help: 'Use the Dart Development Service (DDS) for enhanced debugging '
               'functionality. Note: Disabling DDS may break some '
               'functionality in IDEs and other tooling.',
           defaultsTo: true)
@@ -415,6 +414,7 @@ class RunCommand extends DartdevCommand {
           runPackageName: runPackageName,
           includeDevDependencies: false,
           verbose: verbose,
+          dataAssetsExperimentEnabled: dataAssetsExperimentEnabled,
         );
         if (!nativeAssetsExperimentEnabled) {
           if (await builder.warnOnNativeAssets()) {

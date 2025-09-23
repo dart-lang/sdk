@@ -25,6 +25,8 @@ import 'body_builder.dart';
 import 'body_builder_context.dart';
 import 'internal_ast.dart';
 
+part 'resolver_helpers.dart';
+
 class Resolver {
   final ClassHierarchy _classHierarchy;
 
@@ -43,141 +45,6 @@ class Resolver {
        this._coreTypes = coreTypes,
        _typeInferenceEngine = typeInferenceEngine,
        _benchmarker = benchmarker;
-
-  void buildInitializers({
-    required SourceLibraryBuilder libraryBuilder,
-    required SourceConstructorBuilder constructorBuilder,
-    required BodyBuilderContext bodyBuilderContext,
-    required LookupScope typeParameterScope,
-    required LocalScope? formalParameterScope,
-    required Uri fileUri,
-    required Token beginInitializers,
-    required bool isConst,
-  }) {
-    BodyBuilder bodyBuilder = _createBodyBuilderForOutlineExpression(
-      libraryBuilder,
-      bodyBuilderContext,
-      typeParameterScope,
-      fileUri,
-      formalParameterScope: formalParameterScope,
-    );
-    bodyBuilder.buildInitializers(
-      beginInitializers: beginInitializers,
-      constructorBuilder: constructorBuilder,
-      isConst: isConst,
-    );
-  }
-
-  List<Initializer>? buildInitializersUnfinished({
-    required SourceLibraryBuilder libraryBuilder,
-    required BodyBuilderContext bodyBuilderContext,
-    required LookupScope typeParameterScope,
-    required Uri fileUri,
-    required Token beginInitializers,
-    required bool isConst,
-  }) {
-    BodyBuilder bodyBuilder = _createBodyBuilderForOutlineExpression(
-      libraryBuilder,
-      bodyBuilderContext,
-      typeParameterScope,
-      fileUri,
-    );
-    return bodyBuilder.buildInitializersUnfinished(
-      beginInitializers: beginInitializers,
-      isConst: isConst,
-    );
-  }
-
-  Expression buildParameterInitializer({
-    required SourceLibraryBuilder libraryBuilder,
-    required BodyBuilderContext bodyBuilderContext,
-    required LookupScope scope,
-    required Uri fileUri,
-    required Token initializerToken,
-    required DartType declaredType,
-    required bool hasDeclaredInitializer,
-  }) {
-    BodyBuilder bodyBuilder = _createBodyBuilderForOutlineExpression(
-      libraryBuilder,
-      bodyBuilderContext,
-      scope,
-      fileUri,
-    );
-    return bodyBuilder.buildParameterInitializer(
-      initializerToken: initializerToken,
-      declaredType: declaredType,
-      hasDeclaredInitializer: hasDeclaredInitializer,
-    );
-  }
-
-  void buildRedirectingFactoryMethod({
-    required SourceLibraryBuilder libraryBuilder,
-    required FunctionBodyBuildingContext functionBodyBuildingContext,
-    required Uri fileUri,
-    required Token token,
-    required Token? metadata,
-  }) {
-    _benchmarker
-    // Coverage-ignore(suite): Not run.
-    ?.beginSubdivide(
-      BenchmarkSubdivides.diet_listener_buildRedirectingFactoryMethod,
-    );
-    BodyBuilder bodyBuilder = _createBodyBuilderForFunctionBody(
-      libraryBuilder: libraryBuilder,
-      fileUri: fileUri,
-      functionBodyBuildingContext: functionBodyBuildingContext,
-    );
-    bodyBuilder.buildRedirectingFactoryMethod(token: token, metadata: metadata);
-    _benchmarker
-        // Coverage-ignore(suite): Not run.
-        ?.endSubdivide();
-  }
-
-  void buildPrimaryConstructor({
-    required SourceLibraryBuilder libraryBuilder,
-    required FunctionBodyBuildingContext functionBodyBuildingContext,
-    required Uri fileUri,
-    required Token startToken,
-  }) {
-    _benchmarker
-    // Coverage-ignore(suite): Not run.
-    ?.beginSubdivide(BenchmarkSubdivides.diet_listener_buildPrimaryConstructor);
-    BodyBuilder bodyBuilder = _createBodyBuilderForFunctionBody(
-      libraryBuilder: libraryBuilder,
-      fileUri: fileUri,
-      functionBodyBuildingContext: functionBodyBuildingContext,
-    );
-    bodyBuilder.buildPrimaryConstructor(startToken: startToken);
-    _benchmarker
-        // Coverage-ignore(suite): Not run.
-        ?.endSubdivide();
-  }
-
-  void buildFunctionBody({
-    required SourceLibraryBuilder libraryBuilder,
-    required FunctionBodyBuildingContext functionBodyBuildingContext,
-    required Uri fileUri,
-    required Token startToken,
-    required Token? metadata,
-  }) {
-    _benchmarker
-    // Coverage-ignore(suite): Not run.
-    ?.beginSubdivide(BenchmarkSubdivides.resolver_buildFunctionBody);
-    BodyBuilder bodyBuilder = _createBodyBuilderForFunctionBody(
-      libraryBuilder: libraryBuilder,
-      fileUri: fileUri,
-      functionBodyBuildingContext: functionBodyBuildingContext,
-    );
-
-    bodyBuilder.buildFunctionBody(
-      startToken: startToken,
-      metadata: metadata,
-      kind: functionBodyBuildingContext.memberKind,
-    );
-    _benchmarker
-        // Coverage-ignore(suite): Not run.
-        ?.endSubdivide();
-  }
 
   void buildAnnotations({
     required SourceLibraryBuilder libraryBuilder,
@@ -227,48 +94,39 @@ class Resolver {
     }
   }
 
-  List<Expression>? buildMetadata({
+  (Expression, DartType?) buildEnumConstant({
     required SourceLibraryBuilder libraryBuilder,
     required BodyBuilderContext bodyBuilderContext,
-    required Uri fileUri,
     required LookupScope scope,
-    required Token metadata,
-    required Annotatable? parent,
-  }) {
-    BodyBuilder bodyBuilder = _createBodyBuilder(
-      libraryBuilder: libraryBuilder,
-      fileUri: fileUri,
-      bodyBuilderContext: bodyBuilderContext,
-      scope: scope,
-    );
-    return bodyBuilder.buildMetadataList(metadata: metadata, parent: parent);
-  }
-
-  void buildFields({
-    required SourceLibraryBuilder libraryBuilder,
-    required BodyBuilderContext bodyBuilderContext,
+    required Token? token,
+    required List<Expression> enumSyntheticArguments,
+    required int enumTypeParameterCount,
+    required List<DartType>? typeArguments,
+    required MemberBuilder? constructorBuilder,
     required Uri fileUri,
-    required OffsetMap offsetMap,
-    required LookupScope scope,
-    required InferenceDataForTesting? inferenceDataForTesting,
-    required Token startToken,
-    required Token? metadata,
-    required bool isTopLevel,
+    required int fileOffset,
+    required String fullConstructorNameForErrors,
   }) {
-    // TODO(paulberry): don't re-parse the field if we've already parsed it
-    // for type inference.
-    BodyBuilder bodyBuilder = _createBodyBuilder(
-      libraryBuilder: libraryBuilder,
-      bodyBuilderContext: bodyBuilderContext,
-      fileUri: fileUri,
-      scope: scope,
-      inferenceDataForTesting: inferenceDataForTesting,
+    // We need to create a BodyBuilder to solve the following: 1) if
+    // the arguments token is provided, we'll use the BodyBuilder to
+    // parse them and perform inference, 2) if the type arguments
+    // aren't provided, but required, we'll use it to infer them, and
+    // 3) in case of erroneous code the constructor invocation should
+    // be built via a body builder to detect potential errors.
+    BodyBuilder bodyBuilder = _createBodyBuilderForOutlineExpression(
+      libraryBuilder,
+      bodyBuilderContext,
+      scope,
+      fileUri,
     );
-    bodyBuilder.buildFields(
-      offsetMap: offsetMap,
-      startToken: startToken,
-      metadata: metadata,
-      isTopLevel: isTopLevel,
+    return bodyBuilder.buildEnumConstant(
+      token: token,
+      enumSyntheticArguments: enumSyntheticArguments,
+      enumTypeParameterCount: enumTypeParameterCount,
+      typeArguments: typeArguments,
+      constructorBuilder: constructorBuilder,
+      fileOffset: fileOffset,
+      fullConstructorNameForErrors: fullConstructorNameForErrors,
     );
   }
 
@@ -337,40 +195,184 @@ class Resolver {
     );
   }
 
-  (Expression, DartType?) buildEnumConstant({
+  void buildFields({
+    required SourceLibraryBuilder libraryBuilder,
+    required BodyBuilderContext bodyBuilderContext,
+    required Uri fileUri,
+    required OffsetMap offsetMap,
+    required LookupScope scope,
+    required InferenceDataForTesting? inferenceDataForTesting,
+    required Token startToken,
+    required Token? metadata,
+    required bool isTopLevel,
+  }) {
+    // TODO(paulberry): don't re-parse the field if we've already parsed it
+    // for type inference.
+    BodyBuilder bodyBuilder = _createBodyBuilder(
+      libraryBuilder: libraryBuilder,
+      bodyBuilderContext: bodyBuilderContext,
+      fileUri: fileUri,
+      scope: scope,
+      inferenceDataForTesting: inferenceDataForTesting,
+    );
+    bodyBuilder.buildFields(
+      offsetMap: offsetMap,
+      startToken: startToken,
+      metadata: metadata,
+      isTopLevel: isTopLevel,
+    );
+  }
+
+  void buildFunctionBody({
+    required SourceLibraryBuilder libraryBuilder,
+    required FunctionBodyBuildingContext functionBodyBuildingContext,
+    required Uri fileUri,
+    required Token startToken,
+    required Token? metadata,
+  }) {
+    _benchmarker
+    // Coverage-ignore(suite): Not run.
+    ?.beginSubdivide(BenchmarkSubdivides.resolver_buildFunctionBody);
+    BodyBuilder bodyBuilder = _createBodyBuilderForFunctionBody(
+      libraryBuilder: libraryBuilder,
+      fileUri: fileUri,
+      functionBodyBuildingContext: functionBodyBuildingContext,
+    );
+
+    bodyBuilder.buildFunctionBody(
+      startToken: startToken,
+      metadata: metadata,
+      kind: functionBodyBuildingContext.memberKind,
+    );
+    _benchmarker
+        // Coverage-ignore(suite): Not run.
+        ?.endSubdivide();
+  }
+
+  void buildInitializers({
+    required SourceLibraryBuilder libraryBuilder,
+    required SourceConstructorBuilder constructorBuilder,
+    required BodyBuilderContext bodyBuilderContext,
+    required LookupScope typeParameterScope,
+    required LocalScope? formalParameterScope,
+    required Uri fileUri,
+    required Token beginInitializers,
+    required bool isConst,
+  }) {
+    BodyBuilder bodyBuilder = _createBodyBuilderForOutlineExpression(
+      libraryBuilder,
+      bodyBuilderContext,
+      typeParameterScope,
+      fileUri,
+      formalParameterScope: formalParameterScope,
+    );
+    bodyBuilder.buildInitializers(
+      beginInitializers: beginInitializers,
+      constructorBuilder: constructorBuilder,
+      isConst: isConst,
+    );
+  }
+
+  List<Initializer>? buildInitializersUnfinished({
+    required SourceLibraryBuilder libraryBuilder,
+    required BodyBuilderContext bodyBuilderContext,
+    required LookupScope typeParameterScope,
+    required Uri fileUri,
+    required Token beginInitializers,
+    required bool isConst,
+  }) {
+    BodyBuilder bodyBuilder = _createBodyBuilderForOutlineExpression(
+      libraryBuilder,
+      bodyBuilderContext,
+      typeParameterScope,
+      fileUri,
+    );
+    return bodyBuilder.buildInitializersUnfinished(
+      beginInitializers: beginInitializers,
+      isConst: isConst,
+    );
+  }
+
+  List<Expression>? buildMetadata({
+    required SourceLibraryBuilder libraryBuilder,
+    required BodyBuilderContext bodyBuilderContext,
+    required Uri fileUri,
+    required LookupScope scope,
+    required Token metadata,
+    required Annotatable? parent,
+  }) {
+    BodyBuilder bodyBuilder = _createBodyBuilder(
+      libraryBuilder: libraryBuilder,
+      fileUri: fileUri,
+      bodyBuilderContext: bodyBuilderContext,
+      scope: scope,
+    );
+    return bodyBuilder.buildMetadataList(metadata: metadata, parent: parent);
+  }
+
+  Expression buildParameterInitializer({
     required SourceLibraryBuilder libraryBuilder,
     required BodyBuilderContext bodyBuilderContext,
     required LookupScope scope,
-    required Token? token,
-    required List<Expression> enumSyntheticArguments,
-    required int enumTypeParameterCount,
-    required List<DartType>? typeArguments,
-    required MemberBuilder? constructorBuilder,
     required Uri fileUri,
-    required int fileOffset,
-    required String fullConstructorNameForErrors,
+    required Token initializerToken,
+    required DartType declaredType,
+    required bool hasDeclaredInitializer,
   }) {
-    // We need to create a BodyBuilder to solve the following: 1) if
-    // the arguments token is provided, we'll use the BodyBuilder to
-    // parse them and perform inference, 2) if the type arguments
-    // aren't provided, but required, we'll use it to infer them, and
-    // 3) in case of erroneous code the constructor invocation should
-    // be built via a body builder to detect potential errors.
     BodyBuilder bodyBuilder = _createBodyBuilderForOutlineExpression(
       libraryBuilder,
       bodyBuilderContext,
       scope,
       fileUri,
     );
-    return bodyBuilder.buildEnumConstant(
-      token: token,
-      enumSyntheticArguments: enumSyntheticArguments,
-      enumTypeParameterCount: enumTypeParameterCount,
-      typeArguments: typeArguments,
-      constructorBuilder: constructorBuilder,
-      fileOffset: fileOffset,
-      fullConstructorNameForErrors: fullConstructorNameForErrors,
+    return bodyBuilder.buildParameterInitializer(
+      initializerToken: initializerToken,
+      declaredType: declaredType,
+      hasDeclaredInitializer: hasDeclaredInitializer,
     );
+  }
+
+  void buildPrimaryConstructor({
+    required SourceLibraryBuilder libraryBuilder,
+    required FunctionBodyBuildingContext functionBodyBuildingContext,
+    required Uri fileUri,
+    required Token startToken,
+  }) {
+    _benchmarker
+    // Coverage-ignore(suite): Not run.
+    ?.beginSubdivide(BenchmarkSubdivides.diet_listener_buildPrimaryConstructor);
+    BodyBuilder bodyBuilder = _createBodyBuilderForFunctionBody(
+      libraryBuilder: libraryBuilder,
+      fileUri: fileUri,
+      functionBodyBuildingContext: functionBodyBuildingContext,
+    );
+    bodyBuilder.buildPrimaryConstructor(startToken: startToken);
+    _benchmarker
+        // Coverage-ignore(suite): Not run.
+        ?.endSubdivide();
+  }
+
+  void buildRedirectingFactoryMethod({
+    required SourceLibraryBuilder libraryBuilder,
+    required FunctionBodyBuildingContext functionBodyBuildingContext,
+    required Uri fileUri,
+    required Token token,
+    required Token? metadata,
+  }) {
+    _benchmarker
+    // Coverage-ignore(suite): Not run.
+    ?.beginSubdivide(
+      BenchmarkSubdivides.diet_listener_buildRedirectingFactoryMethod,
+    );
+    BodyBuilder bodyBuilder = _createBodyBuilderForFunctionBody(
+      libraryBuilder: libraryBuilder,
+      fileUri: fileUri,
+      functionBodyBuildingContext: functionBodyBuildingContext,
+    );
+    bodyBuilder.buildRedirectingFactoryMethod(token: token, metadata: metadata);
+    _benchmarker
+        // Coverage-ignore(suite): Not run.
+        ?.endSubdivide();
   }
 
   // Coverage-ignore(suite): Not run.
@@ -397,61 +399,6 @@ class Resolver {
       procedure: procedure,
       extraKnownVariables: extraKnownVariables,
       expressionEvaluationHelper: expressionEvaluationHelper,
-    );
-  }
-
-  BodyBuilder _createBodyBuilderForFunctionBody({
-    required SourceLibraryBuilder libraryBuilder,
-    required Uri fileUri,
-    required FunctionBodyBuildingContext functionBodyBuildingContext,
-  }) {
-    final LookupScope typeParameterScope =
-        functionBodyBuildingContext.typeParameterScope;
-    final LocalScope formalParameterScope = functionBodyBuildingContext
-        .computeFormalParameterScope(typeParameterScope);
-    return _createBodyBuilder(
-      libraryBuilder: libraryBuilder,
-      bodyBuilderContext: functionBodyBuildingContext
-          .createBodyBuilderContext(),
-      fileUri: fileUri,
-      scope: typeParameterScope,
-      thisVariable: functionBodyBuildingContext.thisVariable,
-      thisTypeParameters: functionBodyBuildingContext.thisTypeParameters,
-      formalParameterScope: formalParameterScope,
-      inferenceDataForTesting:
-          functionBodyBuildingContext.inferenceDataForTesting,
-    );
-  }
-
-  BodyBuilder _createBodyBuilderForOutlineExpression(
-    SourceLibraryBuilder libraryBuilder,
-    BodyBuilderContext bodyBuilderContext,
-    LookupScope scope,
-    Uri fileUri, {
-    LocalScope? formalParameterScope,
-  }) {
-    return new BodyBuilderImpl.forOutlineExpression(
-      libraryBuilder,
-      bodyBuilderContext,
-      scope,
-      fileUri,
-      formalParameterScope: formalParameterScope,
-    );
-  }
-
-  BodyBuilder _createBodyBuilderForField(
-    SourceLibraryBuilder libraryBuilder,
-    BodyBuilderContext bodyBuilderContext,
-    LookupScope enclosingScope,
-    TypeInferrer typeInferrer,
-    Uri uri,
-  ) {
-    return new BodyBuilderImpl.forField(
-      libraryBuilder,
-      bodyBuilderContext,
-      enclosingScope,
-      typeInferrer,
-      uri,
     );
   }
 
@@ -497,6 +444,61 @@ class Resolver {
     return result;
   }
 
+  BodyBuilder _createBodyBuilderForField(
+    SourceLibraryBuilder libraryBuilder,
+    BodyBuilderContext bodyBuilderContext,
+    LookupScope enclosingScope,
+    TypeInferrer typeInferrer,
+    Uri uri,
+  ) {
+    return new BodyBuilderImpl.forField(
+      libraryBuilder,
+      bodyBuilderContext,
+      enclosingScope,
+      typeInferrer,
+      uri,
+    );
+  }
+
+  BodyBuilder _createBodyBuilderForFunctionBody({
+    required SourceLibraryBuilder libraryBuilder,
+    required Uri fileUri,
+    required FunctionBodyBuildingContext functionBodyBuildingContext,
+  }) {
+    final LookupScope typeParameterScope =
+        functionBodyBuildingContext.typeParameterScope;
+    final LocalScope formalParameterScope = functionBodyBuildingContext
+        .computeFormalParameterScope(typeParameterScope);
+    return _createBodyBuilder(
+      libraryBuilder: libraryBuilder,
+      bodyBuilderContext: functionBodyBuildingContext
+          .createBodyBuilderContext(),
+      fileUri: fileUri,
+      scope: typeParameterScope,
+      thisVariable: functionBodyBuildingContext.thisVariable,
+      thisTypeParameters: functionBodyBuildingContext.thisTypeParameters,
+      formalParameterScope: formalParameterScope,
+      inferenceDataForTesting:
+          functionBodyBuildingContext.inferenceDataForTesting,
+    );
+  }
+
+  BodyBuilder _createBodyBuilderForOutlineExpression(
+    SourceLibraryBuilder libraryBuilder,
+    BodyBuilderContext bodyBuilderContext,
+    LookupScope scope,
+    Uri fileUri, {
+    LocalScope? formalParameterScope,
+  }) {
+    return new BodyBuilderImpl.forOutlineExpression(
+      libraryBuilder,
+      bodyBuilderContext,
+      scope,
+      fileUri,
+      formalParameterScope: formalParameterScope,
+    );
+  }
+
   BodyBuilder _createBodyBuilderInternal({
     required SourceLibraryBuilder libraryBuilder,
     required BodyBuilderContext bodyBuilderContext,
@@ -520,118 +522,5 @@ class Resolver {
       uri: fileUri,
       typeInferrer: typeInferrer,
     )..constantContext = constantContext;
-  }
-}
-
-typedef BodyBuilderCreatorUnnamed =
-    BodyBuilder Function({
-      required SourceLibraryBuilder libraryBuilder,
-      required BodyBuilderContext context,
-      required LookupScope enclosingScope,
-      LocalScope? formalParameterScope,
-      required ClassHierarchy hierarchy,
-      required CoreTypes coreTypes,
-      VariableDeclaration? thisVariable,
-      List<TypeParameter>? thisTypeParameters,
-      required Uri uri,
-      required TypeInferrer typeInferrer,
-      required ConstantContext constantContext,
-    });
-
-typedef BodyBuilderCreatorForField =
-    BodyBuilder Function(
-      SourceLibraryBuilder libraryBuilder,
-      BodyBuilderContext bodyBuilderContext,
-      LookupScope enclosingScope,
-      TypeInferrer typeInferrer,
-      Uri uri,
-    );
-
-typedef BodyBuilderCreatorForOutlineExpression =
-    BodyBuilder Function(
-      SourceLibraryBuilder library,
-      BodyBuilderContext bodyBuilderContext,
-      LookupScope scope,
-      Uri fileUri, {
-      LocalScope? formalParameterScope,
-    });
-
-typedef BodyBuilderCreator = ({
-  BodyBuilderCreatorUnnamed create,
-  BodyBuilderCreatorForField createForField,
-  BodyBuilderCreatorForOutlineExpression createForOutlineExpression,
-});
-
-// Coverage-ignore(suite): Not run.
-class ResolverForTesting extends Resolver {
-  final BodyBuilderCreator bodyBuilderCreator;
-
-  ResolverForTesting({
-    required super.classHierarchy,
-    required super.coreTypes,
-    required super.typeInferenceEngine,
-    required super.benchmarker,
-    required this.bodyBuilderCreator,
-  });
-
-  @override
-  BodyBuilder _createBodyBuilderForField(
-    SourceLibraryBuilder libraryBuilder,
-    BodyBuilderContext bodyBuilderContext,
-    LookupScope enclosingScope,
-    TypeInferrer typeInferrer,
-    Uri uri,
-  ) {
-    return bodyBuilderCreator.createForField(
-      libraryBuilder,
-      bodyBuilderContext,
-      enclosingScope,
-      typeInferrer,
-      uri,
-    );
-  }
-
-  @override
-  BodyBuilder _createBodyBuilderForOutlineExpression(
-    SourceLibraryBuilder libraryBuilder,
-    BodyBuilderContext bodyBuilderContext,
-    LookupScope scope,
-    Uri fileUri, {
-    LocalScope? formalParameterScope,
-  }) {
-    return bodyBuilderCreator.createForOutlineExpression(
-      libraryBuilder,
-      bodyBuilderContext,
-      scope,
-      fileUri,
-      formalParameterScope: formalParameterScope,
-    );
-  }
-
-  @override
-  BodyBuilder _createBodyBuilderInternal({
-    required SourceLibraryBuilder libraryBuilder,
-    required BodyBuilderContext bodyBuilderContext,
-    required Uri fileUri,
-    required LookupScope scope,
-    required LocalScope? formalParameterScope,
-    required VariableDeclaration? thisVariable,
-    required List<TypeParameter>? thisTypeParameters,
-    required TypeInferrer typeInferrer,
-    required ConstantContext constantContext,
-  }) {
-    return bodyBuilderCreator.create(
-      libraryBuilder: libraryBuilder,
-      context: bodyBuilderContext,
-      enclosingScope: scope,
-      formalParameterScope: formalParameterScope,
-      hierarchy: _classHierarchy,
-      coreTypes: _coreTypes,
-      thisVariable: thisVariable,
-      thisTypeParameters: thisTypeParameters,
-      uri: fileUri,
-      typeInferrer: typeInferrer,
-      constantContext: constantContext,
-    );
   }
 }

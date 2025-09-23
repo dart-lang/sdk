@@ -265,6 +265,7 @@ You can specify three different values for the <package> argument:
       packageConfigUri: helperPackageConfigFile.uri,
       pubspecUri: sourcePackagePubspecFile.uri,
       recordUseEnabled: false,
+      dataAssetsExperimentEnabled: false,
       verbose: verbose,
       verbosity: 'all',
     );

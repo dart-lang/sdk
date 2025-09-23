@@ -102,12 +102,13 @@ class DartdevRunner extends CommandRunner<int> {
     addCommand(CompilationServerCommand(verbose: verbose));
     final nativeAssetsExperimentEnabled =
         nativeAssetsEnabled(vmEnabledExperiments);
+    final dataAssetsExperimentEnabled = dataAssetsEnabled(vmEnabledExperiments);
     if (nativeAssetsExperimentEnabled) {
       final recordUseExperimentEnabled = recordUseEnabled(vmEnabledExperiments);
       addCommand(BuildCommand(
-        verbose: verbose,
-        recordUseEnabled: recordUseExperimentEnabled,
-      ));
+          verbose: verbose,
+          recordUseEnabled: recordUseExperimentEnabled,
+          dataAssetsExperimentEnabled: dataAssetsExperimentEnabled));
     }
     addCommand(CompileCommand(
       verbose: verbose,
@@ -133,10 +134,11 @@ class DartdevRunner extends CommandRunner<int> {
     addCommand(RunCommand(
       verbose: verbose,
       nativeAssetsExperimentEnabled: nativeAssetsExperimentEnabled,
+      dataAssetsExperimentEnabled: dataAssetsExperimentEnabled,
     ));
     addCommand(TestCommand(
-      nativeAssetsExperimentEnabled: nativeAssetsExperimentEnabled,
-    ));
+        nativeAssetsExperimentEnabled: nativeAssetsExperimentEnabled,
+        dataAssetsExperimentEnabled: dataAssetsExperimentEnabled));
     addCommand(ToolingDaemonCommand(verbose: verbose));
     if (nativeAssetsExperimentEnabled) {
       addCommand(InstallCommand(verbose: verbose));

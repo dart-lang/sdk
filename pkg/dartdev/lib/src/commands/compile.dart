@@ -636,6 +636,7 @@ Remove debugging information from the output and save it separately to the speci
             packageConfig: packageConfig,
             runPackageName: runPackageName,
             includeDevDependencies: false,
+            dataAssetsExperimentEnabled: false,
             verbose: verbose,
             target: target);
         if (!nativeAssetsExperimentEnabled) {

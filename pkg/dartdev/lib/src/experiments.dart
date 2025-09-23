@@ -105,6 +105,10 @@ bool nativeAssetsEnabled(List<String> vmEnabledExperiments) =>
 bool recordUseEnabled(List<String> vmEnabledExperiments) =>
     vmEnabledExperiments.contains(ExperimentalFeatures.record_use.enableString);
 
+bool dataAssetsEnabled(List<String> vmEnabledExperiments) =>
+    vmEnabledExperiments
+        .contains(ExperimentalFeatures.data_assets.enableString);
+
 List<String> validateExperiments(List<String> vmEnabledExperiments) {
   final errors = <String>[];
   for (final enabledExperiment in vmEnabledExperiments) {

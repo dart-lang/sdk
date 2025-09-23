@@ -58,6 +58,14 @@ enum ExperimentalFlag {
     experimentReleasedVersion: const Version(2, 0),
   ),
 
+  dataAssets(
+    name: 'data-assets',
+    isEnabledByDefault: false,
+    isExpired: false,
+    experimentEnabledVersion: defaultLanguageVersion,
+    experimentReleasedVersion: defaultLanguageVersion,
+  ),
+
   digitSeparators(
     name: 'digit-separators',
     isEnabledByDefault: true,
