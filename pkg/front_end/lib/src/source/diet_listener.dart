@@ -607,9 +607,9 @@ class DietListener extends StackListenerImpl {
     );
     if (importUri.startsWith("dart-ext:")) return;
 
-    LibraryDependency? dependency = _offsetMap
+    LibraryDependency dependency = _offsetMap
         .lookupImport(importKeyword)
-        .libraryDependency;
+        .libraryDependency!;
     parseMetadata(
       libraryBuilder.createBodyBuilderContext(),
       metadata,
@@ -1353,7 +1353,7 @@ class DietListener extends StackListenerImpl {
   List<Expression>? parseMetadata(
     BodyBuilderContext bodyBuilderContext,
     Token? metadata,
-    Annotatable? parent,
+    Annotatable parent,
   ) {
     if (metadata != null) {
       return libraryBuilder.loader.createResolver().buildMetadata(
@@ -1362,7 +1362,7 @@ class DietListener extends StackListenerImpl {
         fileUri: uri,
         scope: _memberScope,
         metadata: metadata,
-        parent: parent,
+        annotatable: parent,
       );
     }
     return null;

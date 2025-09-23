@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart' as api;
 import 'package:front_end/src/api_prototype/file_system.dart' as api;
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
@@ -24,11 +25,11 @@ import 'package:front_end/src/kernel/kernel_target.dart';
 import 'package:front_end/src/kernel/resolver.dart';
 import 'package:front_end/src/source/source_library_builder.dart';
 import 'package:front_end/src/source/source_loader.dart';
-import 'package:front_end/src/type_inference/type_inferrer.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
+import 'package:kernel/type_environment.dart';
 import 'package:testing/testing.dart';
 import "package:vm/modular/target/vm.dart" show VmTarget;
 
@@ -279,11 +280,7 @@ class SourceLoaderTest extends SourceLoader {
   }
 }
 
-const BodyBuilderCreator defaultBodyBuilderCreator = (
-  create: BodyBuilderTest.new,
-  createForField: BodyBuilderTest.forField,
-  createForOutlineExpression: BodyBuilderTest.forOutlineExpression,
-);
+const BodyBuilderCreator defaultBodyBuilderCreator = BodyBuilderTest.new;
 
 class BodyBuilderTest extends BodyBuilderImpl {
   @override
@@ -297,7 +294,8 @@ class BodyBuilderTest extends BodyBuilderImpl {
     VariableDeclaration? thisVariable,
     List<TypeParameter>? thisTypeParameters,
     required Uri uri,
-    required TypeInferrer typeInferrer,
+    required AssignedVariables assignedVariables,
+    required TypeEnvironment typeEnvironment,
     required ConstantContext constantContext,
   }) : super(
          libraryBuilder: libraryBuilder,
@@ -309,38 +307,8 @@ class BodyBuilderTest extends BodyBuilderImpl {
          thisVariable: thisVariable,
          thisTypeParameters: thisTypeParameters,
          uri: uri,
-         typeInferrer: typeInferrer,
-       ) {
-    this.constantContext = constantContext;
-  }
-
-  @override
-  BodyBuilderTest.forField(
-    SourceLibraryBuilder libraryBuilder,
-    BodyBuilderContext bodyBuilderContext,
-    LookupScope enclosingScope,
-    TypeInferrer typeInferrer,
-    Uri uri,
-  ) : super.forField(
-        libraryBuilder,
-        bodyBuilderContext,
-        enclosingScope,
-        typeInferrer,
-        uri,
-      );
-
-  @override
-  BodyBuilderTest.forOutlineExpression(
-    SourceLibraryBuilder library,
-    BodyBuilderContext bodyBuilderContext,
-    LookupScope scope,
-    Uri fileUri, {
-    LocalScope? formalParameterScope,
-  }) : super.forOutlineExpression(
-         library,
-         bodyBuilderContext,
-         scope,
-         fileUri,
-         formalParameterScope: formalParameterScope,
+         assignedVariables: assignedVariables,
+         typeEnvironment: typeEnvironment,
+         constantContext: constantContext,
        );
 }

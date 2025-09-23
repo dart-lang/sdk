@@ -624,8 +624,8 @@ class ElementBuilder {
       );
 
       fragment.formalParameters = _linkFormalParameters(
-        lastFragments: lastFragment.formalParameters,
-        fragments: fragment.formalParameters,
+        previousFragments: lastFragment.formalParameters,
+        currentFragments: fragment.formalParameters,
       );
       return;
     }
@@ -822,78 +822,94 @@ class ElementBuilder {
   }
 
   List<FormalParameterFragmentImpl> _linkFormalParameters({
-    required List<FormalParameterFragmentImpl> lastFragments,
-    required List<FormalParameterFragmentImpl> fragments,
+    required List<FormalParameterFragmentImpl> previousFragments,
+    required List<FormalParameterFragmentImpl> currentFragments,
   }) {
     int getPositionalSize(List<FormalParameterFragmentImpl> fragments) {
       return fragments.takeWhile((f) => f.isPositional).length;
     }
 
     FormalParameterFragmentImpl createFragment(
-      FormalParameterFragmentImpl lastParameter,
+      FormalParameterFragmentImpl previousParameter,
     ) {
-      switch (lastParameter) {
+      switch (previousParameter) {
         case FieldFormalParameterFragmentImpl():
           return FieldFormalParameterFragmentImpl(
-            name: lastParameter.name,
+            name: previousParameter.name,
             nameOffset: null,
-            parameterKind: lastParameter.parameterKind,
+            parameterKind: previousParameter.parameterKind,
           )..isSynthetic = true;
         case SuperFormalParameterFragmentImpl():
           return SuperFormalParameterFragmentImpl(
-            name: lastParameter.name,
+            name: previousParameter.name,
             nameOffset: null,
-            parameterKind: lastParameter.parameterKind,
+            parameterKind: previousParameter.parameterKind,
           )..isSynthetic = true;
         default:
           return FormalParameterFragmentImpl(
-            name: lastParameter.name,
+            name: previousParameter.name,
             nameOffset: null,
-            parameterKind: lastParameter.parameterKind,
+            parameterKind: previousParameter.parameterKind,
           )..isSynthetic = true;
       }
     }
 
-    var positionalSize = getPositionalSize(fragments);
-    var positional = fragments.sublist(0, positionalSize);
-    var named = fragments.sublist(positionalSize);
+    var currentPositionalSize = getPositionalSize(currentFragments);
+    var resultPositional = currentFragments.sublist(0, currentPositionalSize);
+    var currentNamed = currentFragments.sublist(currentPositionalSize);
 
-    var lastPositionalSize = getPositionalSize(lastFragments);
-    var lastPositional = lastFragments.sublist(0, lastPositionalSize);
-    var lastNamed = lastFragments.sublist(lastPositionalSize);
+    var previousPositionalSize = getPositionalSize(previousFragments);
+    var previousPositional = previousFragments.sublist(
+      0,
+      previousPositionalSize,
+    );
+    var previousNamed = previousFragments.sublist(previousPositionalSize);
 
     // Trim extra positional parameters.
-    if (lastPositional.length < positional.length) {
-      positional.length = lastPositional.length;
+    if (previousPositionalSize < currentPositionalSize) {
+      resultPositional.length = previousPositional.length;
     }
 
     // Synthesize missing positional parameters.
-    if (lastPositional.length > positional.length) {
-      for (var i = positional.length; i < lastPositional.length; i++) {
-        var lastParameter = lastPositional[i];
-        positional.add(createFragment(lastParameter));
+    if (previousPositional.length > resultPositional.length) {
+      for (var i = currentPositionalSize; i < previousPositionalSize; i++) {
+        var previousParameter = previousPositional[i];
+        resultPositional.add(createFragment(previousParameter));
       }
     }
 
-    for (var i = 0; i < lastPositional.length; i++) {
-      lastPositional[i].addFragment(positional[i]);
+    for (var i = 0; i < resultPositional.length; i++) {
+      previousPositional[i].addFragment(resultPositional[i]);
     }
 
-    var newNamed = <FormalParameterFragmentImpl>[];
-    var namedMap = <String, FormalParameterFragmentImpl>{};
-    for (var f in named) {
-      namedMap[f.name!] = f;
+    var resultNamed = <FormalParameterFragmentImpl>[];
+    var previousNamedMap = <String, List<FormalParameterFragmentImpl>>{};
+    for (var previousParameter in previousNamed) {
+      (previousNamedMap[previousParameter.name!] ??=
+              <FormalParameterFragmentImpl>[])
+          .add(previousParameter);
     }
 
-    for (var lastParameter in lastNamed) {
-      var formalParameter = namedMap[lastParameter.name];
-      formalParameter ??= createFragment(lastParameter);
-
-      lastParameter.addFragment(formalParameter);
-      newNamed.add(formalParameter);
+    // Link common formal parameters between previous and current fragments.
+    for (var currentParameter in currentNamed) {
+      var previousParameters = previousNamedMap[currentParameter.name];
+      if (previousParameters != null && previousParameters.isNotEmpty) {
+        var previousParameter = previousParameters.removeAt(0);
+        previousParameter.addFragment(currentParameter);
+        resultNamed.add(currentParameter);
+      }
     }
 
-    return [...positional, ...newNamed];
+    // Synthesize missing named parameters.
+    for (var previousParameters in previousNamedMap.values) {
+      for (var previousParameter in previousParameters) {
+        var parameter = createFragment(previousParameter);
+        previousParameter.addFragment(parameter);
+        resultNamed.add(parameter);
+      }
+    }
+
+    return [...resultPositional, ...resultNamed];
   }
 
   void _linkTypeParameters({

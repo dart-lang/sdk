@@ -88,8 +88,7 @@ abstract class TypeInferrer {
   /// inferred. Otherwise all annotations are inferred.
   void inferMetadata({
     required Uri fileUri,
-    required TreeNode? parent,
-    required List<Expression>? annotations,
+    required Annotatable annotatable,
     required List<int>? indices,
     required ConstantContext constantContext,
   });
@@ -402,22 +401,16 @@ class TypeInferrerImpl implements TypeInferrer {
   @override
   void inferMetadata({
     required Uri fileUri,
-    required TreeNode? parent,
-    required List<Expression>? annotations,
+    required Annotatable annotatable,
     required List<int>? indices,
     required ConstantContext constantContext,
   }) {
-    if (annotations != null) {
-      // We bypass the check for assignment of the helper during top-level
-      // inference and use `_helper = helper` instead of `this.helper = helper`
-      // because inference on metadata requires the helper.
-      InferenceVisitorBase visitor = _createInferenceVisitor(
-        fileUri: fileUri,
-        constantContext: constantContext,
-      );
-      visitor.inferMetadata(visitor, parent, annotations, indices: indices);
-      visitor.checkCleanState();
-    }
+    InferenceVisitorBase visitor = _createInferenceVisitor(
+      fileUri: fileUri,
+      constantContext: constantContext,
+    );
+    visitor.inferMetadata(visitor, annotatable, indices: indices);
+    visitor.checkCleanState();
   }
 
   @override
@@ -568,16 +561,14 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
   @override
   void inferMetadata({
     required Uri fileUri,
-    required TreeNode? parent,
-    required List<Expression>? annotations,
+    required Annotatable annotatable,
     required List<int>? indices,
     required ConstantContext constantContext,
   }) {
     benchmarker.beginSubdivide(BenchmarkSubdivides.inferMetadata);
     impl.inferMetadata(
       fileUri: fileUri,
-      parent: parent,
-      annotations: annotations,
+      annotatable: annotatable,
       indices: indices,
       constantContext: constantContext,
     );

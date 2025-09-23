@@ -8,6 +8,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show Token, scanString;
 import 'package:expect/expect.dart' show Expect;
 import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
+import 'package:front_end/src/base/constant_context.dart';
 import 'package:front_end/src/base/local_scope.dart';
 import 'package:front_end/src/base/name_space.dart';
 import 'package:front_end/src/base/scope.dart';
@@ -34,6 +35,7 @@ import 'package:front_end/src/source/source_library_builder.dart'
     show ImplicitLanguageVersion, SourceLibraryBuilder;
 import 'package:front_end/src/source/source_loader.dart';
 import 'package:front_end/src/type_inference/type_inference_engine.dart';
+import 'package:front_end/src/type_inference/type_inferrer.dart';
 import 'package:kernel/ast.dart'
     show
         Class,
@@ -178,6 +180,14 @@ Future<void> main() async {
     TypeInferenceEngineImpl engine = new TypeInferenceEngineImpl(null, null);
     engine.prepareTopLevel(coreTypes, hierarchy);
 
+    TypeInferrer typeInferrer = engine.createTopLevelTypeInferrer(
+      uri,
+      null,
+      libraryBuilder,
+      compilationUnit.compilationUnitScope,
+      null,
+    );
+
     ExpressionGeneratorHelper helper = new BodyBuilderImpl(
       libraryBuilder: libraryBuilder,
       context: new LibraryBodyBuilderContext(libraryBuilder),
@@ -188,13 +198,9 @@ Future<void> main() async {
       ),
       coreTypes: coreTypes,
       hierarchy: hierarchy,
-      typeInferrer: engine.createTopLevelTypeInferrer(
-        uri,
-        null,
-        libraryBuilder,
-        compilationUnit.compilationUnitScope,
-        null,
-      ),
+      assignedVariables: typeInferrer.assignedVariables,
+      typeEnvironment: typeInferrer.typeSchemaEnvironment,
+      constantContext: ConstantContext.none,
     );
 
     Generator generator = new ThisAccessGenerator(

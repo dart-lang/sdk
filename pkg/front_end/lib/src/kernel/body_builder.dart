@@ -32,12 +32,10 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart'
 import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart'
     show isBinaryOperator, isMinusOperator, isUserDefinableOperator;
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
-import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
-import 'package:kernel/clone.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/names.dart' show minusName, plusName;
 import 'package:kernel/src/bounds_checks.dart' hide calculateBounds;
@@ -85,11 +83,8 @@ import '../builder/type_builder.dart';
 import '../builder/variable_builder.dart';
 import '../builder/void_type_builder.dart';
 import '../codes/cfe_codes.dart' as cfe;
-import '../dill/dill_type_parameter_builder.dart';
-import '../fragment/fragment.dart';
 import '../source/check_helper.dart';
 import '../source/diet_parser.dart';
-import '../source/offset_map.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
@@ -99,13 +94,6 @@ import '../source/stack_listener_impl.dart'
     show StackListenerImpl, offsetForToken;
 import '../source/type_parameter_factory.dart';
 import '../source/value_kinds.dart';
-import '../type_inference/inference_results.dart'
-    show InitializerInferenceResult, ExpressionInferenceResult;
-import '../type_inference/inference_visitor.dart'
-    show ExpressionEvaluationHelper;
-import '../type_inference/type_inferrer.dart'
-    show TypeInferrer, InferredFunctionBody;
-import '../type_inference/type_schema.dart';
 import '../util/helpers.dart';
 import '../util/local_stack.dart';
 import 'benchmarker.dart' show Benchmarker, BenchmarkSubdivides;
@@ -125,88 +113,60 @@ import 'utils.dart';
 part 'body_builder_helpers.dart';
 
 abstract class BodyBuilder {
-  void buildInitializers({
-    required Token beginInitializers,
-    required SourceConstructorBuilder constructorBuilder,
-    required bool isConst,
-  });
+  BuildInitializersResult buildInitializers({required Token beginInitializers});
 
   List<Initializer>? buildInitializersUnfinished({
     required Token beginInitializers,
-    required bool isConst,
   });
 
-  Expression buildParameterInitializer({
+  BuildParameterInitializerResult buildParameterInitializer({
     required Token initializerToken,
-    required DartType declaredType,
-    required bool hasDeclaredInitializer,
   });
 
-  void buildRedirectingFactoryMethod({
+  BuildRedirectingFactoryMethodResult buildRedirectingFactoryMethod({
     required Token token,
     required Token? metadata,
   });
 
-  void buildPrimaryConstructor({required Token startToken});
+  BuildPrimaryConstructorResult buildPrimaryConstructor({
+    required Token startToken,
+  });
 
-  void buildFunctionBody({
+  BuildFunctionBodyResult buildFunctionBody({
     required Token startToken,
     required Token? metadata,
     required MemberKind kind,
   });
 
-  /// Builds the uninferred [Expression] for an annotation starting at
-  /// [atToken].
-  Expression buildUnfinishedAnnotation({required Token atToken});
-
-  /// Infers the [Expression]s created by [buildUnfinishedAnnotation].
-  void inferUnfinishedAnnotations({
-    required Annotatable parent,
-    required List<Expression> annotations,
-    required List<int> indices,
-  });
+  /// Builds a single [Expression] for an annotation starting at [atToken].
+  Expression buildAnnotation({required Token atToken});
 
   /// Returns the metadata [Expression]s parsed from [metadata].
-  List<Expression> buildMetadataList({
-    required Token metadata,
-    required Annotatable? parent,
-  });
+  BuildMetadataListResult buildMetadataList({required Token metadata});
 
-  void buildFields({
-    required OffsetMap offsetMap,
+  BuildFieldsResult buildFields({
     required Token startToken,
     required Token? metadata,
     required bool isTopLevel,
   });
 
-  Expression buildFieldInitializerUnfinished({
+  BuildFieldInitializerResult buildFieldInitializer1({
     required Token startToken,
-    required ConstantContext constantContext,
     required bool isLate,
   });
 
-  Expression buildFieldInitializer2({
+  BuildFieldInitializerResult buildFieldInitializer2({
     required Token startToken,
-    required bool isConst,
-    required Uri fileUri,
-    required DartType declaredFieldType,
   });
 
-  (Expression, DartType?) buildEnumConstant({
-    required Token? token,
-    required List<Expression> enumSyntheticArguments,
-    required int enumTypeParameterCount,
-    required List<DartType>? typeArguments,
-    required MemberBuilder? constructorBuilder,
-    required int fileOffset,
-    required String fullConstructorNameForErrors,
-  });
+  BuildEnumConstantResult buildEnumConstant({required Token token});
 
-  Expression buildSingleExpression({
+  BuildSingleExpressionResult buildSingleExpression({
     required Token token,
-    required Procedure procedure,
     required List<VariableDeclarationImpl> extraKnownVariables,
-    required ExpressionEvaluationHelper expressionEvaluationHelper,
+    required List<NominalParameterBuilder>? typeParameterBuilders,
+    required List<FormalParameterBuilder>? formals,
+    required int fileOffset,
   });
 }
 
@@ -232,7 +192,10 @@ class BodyBuilderImpl extends StackListenerImpl
   @override
   final Uri uri;
 
-  final TypeInferrer typeInferrer;
+  final AssignedVariables assignedVariables;
+
+  @override
+  final TypeEnvironment typeEnvironment;
 
   final Benchmarker? benchmarker;
 
@@ -246,7 +209,7 @@ class BodyBuilderImpl extends StackListenerImpl
   /// 3. if there is a redirecting (this) initializer, or
   /// 4. if a compile-time error prevented us from generating code for an
   ///    initializer. This avoids cascading errors.
-  bool needsImplicitSuperInitializer;
+  bool _needsImplicitSuperInitializer;
 
   LocalScope? formalParameterScope;
 
@@ -354,8 +317,6 @@ class BodyBuilderImpl extends StackListenerImpl
 
   final LocalStack<LabelScope?> _switchScopes = new LocalStack([]);
 
-  late CloneVisitorNotMembers _simpleCloner = new CloneVisitorNotMembers();
-
   @override
   ConstantContext constantContext = ConstantContext.none;
 
@@ -369,13 +330,9 @@ class BodyBuilderImpl extends StackListenerImpl
   /// and where that was.
   Map<String, int>? initializedFields;
 
-  /// Variables with metadata.  Their types need to be inferred late, for
-  /// example, in [finishFunction].
-  List<VariableDeclaration>? variablesWithMetadata;
+  List<SingleTargetAnnotations>? _singleTargetAnnotations;
 
-  /// More than one variable declared in a single statement that has metadata.
-  /// Their types need to be inferred late, for example, in [finishFunction].
-  List<List<VariableDeclaration>>? multiVariablesWithMetadata;
+  List<MultiTargetAnnotations>? _multiTargetAnnotations;
 
   /// If the current member is an instance member in an extension declaration or
   /// an instance member or constructor in and extension type declaration,
@@ -406,13 +363,15 @@ class BodyBuilderImpl extends StackListenerImpl
     this.thisVariable,
     this.thisTypeParameters,
     required this.uri,
-    required this.typeInferrer,
+    required this.assignedVariables,
+    required this.typeEnvironment,
+    required this.constantContext,
   }) : _context = context,
        forest = const Forest(),
        enableNative = libraryBuilder.loader.target.backendTarget.enableNative(
          libraryBuilder.importUri,
        ),
-       needsImplicitSuperInitializer = context.needsImplicitSuperInitializer(
+       _needsImplicitSuperInitializer = context.needsImplicitSuperInitializer(
          coreTypes,
        ),
        benchmarker = libraryBuilder.loader.target.benchmarker,
@@ -420,58 +379,15 @@ class BodyBuilderImpl extends StackListenerImpl
        _labelScopes = new LocalStack([new LabelScopeImpl()]) {
     if (formalParameterScope != null) {
       for (VariableBuilder builder in formalParameterScope!.localVariables) {
-        typeInferrer.assignedVariables.declare(builder.variable!);
+        assignedVariables.declare(builder.variable!);
       }
     }
     if (thisVariable != null && context.isConstructor) {
       // The this variable is not part of the [formalParameterScope] in
       // constructors.
-      typeInferrer.assignedVariables.declare(thisVariable!);
+      assignedVariables.declare(thisVariable!);
     }
   }
-
-  BodyBuilderImpl.forField(
-    SourceLibraryBuilder libraryBuilder,
-    BodyBuilderContext bodyBuilderContext,
-    LookupScope enclosingScope,
-    TypeInferrer typeInferrer,
-    Uri uri,
-  ) : this(
-        libraryBuilder: libraryBuilder,
-        context: bodyBuilderContext,
-        enclosingScope: new EnclosingLocalScope(enclosingScope),
-        formalParameterScope: null,
-        hierarchy: libraryBuilder.loader.hierarchy,
-        coreTypes: libraryBuilder.loader.coreTypes,
-        thisVariable: null,
-        uri: uri,
-        typeInferrer: typeInferrer,
-      );
-
-  BodyBuilderImpl.forOutlineExpression(
-    SourceLibraryBuilder libraryBuilder,
-    BodyBuilderContext bodyBuilderContext,
-    LookupScope scope,
-    Uri fileUri, {
-    LocalScope? formalParameterScope,
-  }) : this(
-         libraryBuilder: libraryBuilder,
-         context: bodyBuilderContext,
-         enclosingScope: new EnclosingLocalScope(scope),
-         formalParameterScope: formalParameterScope,
-         hierarchy: libraryBuilder.loader.hierarchy,
-         coreTypes: libraryBuilder.loader.coreTypes,
-         thisVariable: null,
-         uri: fileUri,
-         typeInferrer: libraryBuilder.loader.typeInferenceEngine
-             .createLocalTypeInferrer(
-               fileUri,
-               bodyBuilderContext.thisType,
-               libraryBuilder,
-               scope,
-               null,
-             ),
-       );
 
   @override
   ProblemReporting get problemReporting => libraryBuilder;
@@ -703,9 +619,6 @@ class BodyBuilderImpl extends StackListenerImpl
     return _context.instanceTypeParameterAccessState;
   }
 
-  @override
-  TypeEnvironment get typeEnvironment => typeInferrer.typeSchemaEnvironment;
-
   DartType get implicitTypeArgument => const ImplicitTypeArgument();
 
   void _enterLocalState({bool inLateLocalInitializer = false}) {
@@ -720,7 +633,7 @@ class BodyBuilderImpl extends StackListenerImpl
 
   @override
   void registerVariableAssignment(VariableDeclaration variable) {
-    typeInferrer.assignedVariables.write(variable);
+    assignedVariables.write(variable);
   }
 
   @override
@@ -730,7 +643,7 @@ class BodyBuilderImpl extends StackListenerImpl
     VariableDeclarationImpl variable = forest.createVariableDeclarationForValue(
       expression,
     );
-    typeInferrer.assignedVariables.declare(variable);
+    assignedVariables.declare(variable);
     return variable;
   }
 
@@ -982,26 +895,6 @@ class BodyBuilderImpl extends StackListenerImpl
     return new JumpTarget(kind, functionNestingLevel, uri, charOffset);
   }
 
-  /// Infers the [annotations].
-  ///
-  /// If [indices] is provided, only the annotations at the given indices are
-  /// inferred. Otherwise all annotations are inferred.
-  void inferAnnotations(
-    TreeNode? parent,
-    List<Expression>? annotations, {
-    List<int>? indices,
-  }) {
-    if (annotations != null) {
-      typeInferrer.inferMetadata(
-        fileUri: uri,
-        parent: parent,
-        annotations: annotations,
-        indices: indices,
-        constantContext: constantContext,
-      );
-    }
-  }
-
   @override
   void beginMetadata(Token token) {
     debugEvent("beginMetadata");
@@ -1167,69 +1060,22 @@ class BodyBuilderImpl extends StackListenerImpl
     assert(checkState(beginToken, [ValueKinds.Integer]));
   }
 
-  void finishFields(OffsetMap offsetMap) {
-    debugEvent("finishFields");
-    assert(checkState(null, [/*field count*/ ValueKinds.Integer]));
-    int count = pop() as int;
-    for (int i = 0; i < count; i++) {
-      assert(
-        checkState(null, [
-          ValueKinds.FieldInitializerOrNull,
-          ValueKinds.Identifier,
-        ]),
-      );
-      Expression? initializer = pop() as Expression?;
-      Identifier identifier = pop() as Identifier;
-      FieldFragment fieldFragment = offsetMap.lookupField(identifier);
-      fieldFragment.declaration.buildFieldInitializer(
-        typeInferrer: typeInferrer,
-        coreTypes: coreTypes,
-        fileUri: uri,
-        constantContext: constantContext,
-        initializer: initializer,
+  /// Returns the cached of annotations that need to be inferred and clears the
+  /// cache.
+  PendingAnnotations? _takePendingAnnotations() {
+    if (_singleTargetAnnotations != null || _multiTargetAnnotations != null) {
+      List<SingleTargetAnnotations>? singleTargetAnnotations =
+          _singleTargetAnnotations;
+      _singleTargetAnnotations = null;
+      List<MultiTargetAnnotations>? multiTargetAnnotations =
+          _multiTargetAnnotations;
+      _multiTargetAnnotations = null;
+      return new PendingAnnotations(
+        singleTargetAnnotations,
+        multiTargetAnnotations,
       );
     }
-    assert(
-      checkState(null, [
-        ValueKinds.TypeOrNull,
-        ValueKinds.AnnotationListOrNull,
-      ]),
-    );
-    {
-      // TODO(ahe): The type we compute here may be different from what is
-      // computed in the outline phase. We should make sure that the outline
-      // phase computes the same type. See
-      // pkg/front_end/testcases/regress/issue_32200.dart for an example where
-      // not calling [buildDartType] leads to a missing compile-time
-      // error. Also, notice that the type of the problematic field isn't
-      // `invalid-type`.
-      TypeBuilder? type = pop() as TypeBuilder?;
-      if (type != null) {
-        buildDartType(
-          type,
-          TypeUse.fieldType,
-          allowPotentiallyConstantType: false,
-        );
-      }
-    }
-    pop(); // Annotations.
-
-    performBacklogComputations();
-    assert(stack.length == 0);
-  }
-
-  /// Perform delayed computations that were put on back log during body
-  /// building.
-  ///
-  /// Back logged computations include resolution of redirecting factory
-  /// invocations and checking of typedef types.
-  void performBacklogComputations() {
-    _finishVariableMetadata();
-    libraryBuilder.checkPendingBoundsChecks(typeEnvironment);
-  }
-
-  void finishRedirectingFactoryBody() {
-    performBacklogComputations();
+    return null;
   }
 
   @override
@@ -1283,7 +1129,16 @@ class BodyBuilderImpl extends StackListenerImpl
               );
             }
             for (Initializer initializer in initializers) {
-              _context.addInitializer(initializer, this);
+              if (!_context.addInitializer(
+                compilerContext,
+                problemReporting,
+                initializer,
+                uri,
+              )) {
+                // Coverage-ignore-block(suite): Not run.
+                // Erroneous initializer, implicit super call is not needed.
+                _needsImplicitSuperInitializer = false;
+              }
             }
           }
         }
@@ -1401,215 +1256,6 @@ class BodyBuilderImpl extends StackListenerImpl
     _initializers!.addAll(initializers);
   }
 
-  List<Object>? createSuperParametersAsArguments(
-    List<FormalParameterBuilder> formals,
-  ) {
-    List<Object>? superParametersAsArguments;
-    for (int i = 0; i < formals.length; i++) {
-      FormalParameterBuilder formal = formals[i];
-      if (formal.isSuperInitializingFormal) {
-        if (formal.isNamed) {
-          (superParametersAsArguments ??= <Object>[]).add(
-            new NamedExpression(
-              formal.name,
-              createVariableGet(formal.variable!, formal.fileOffset),
-            )..fileOffset = formal.fileOffset,
-          );
-        } else {
-          (superParametersAsArguments ??= <Object>[]).add(
-            createVariableGet(formal.variable!, formal.fileOffset),
-          );
-        }
-      }
-    }
-    return superParametersAsArguments;
-  }
-
-  void finishFunction(
-    FormalParameters? formals,
-    AsyncMarker asyncModifier,
-    Statement? body,
-  ) {
-    debugEvent("finishFunction");
-
-    // Create variable get expressions for super parameters before finishing
-    // the analysis of the assigned variables. Creating the expressions later
-    // that point results in a flow analysis error.
-    List<Object>? superParametersAsArguments;
-    if (formals != null) {
-      List<FormalParameterBuilder>? formalParameters = formals.parameters;
-      if (formalParameters != null) {
-        superParametersAsArguments = createSuperParametersAsArguments(
-          formalParameters,
-        );
-      }
-    }
-    typeInferrer.assignedVariables.finish();
-
-    FunctionNode function = _context.function;
-    _declareFormals();
-    if (formals?.parameters != null) {
-      for (int i = 0; i < formals!.parameters!.length; i++) {
-        FormalParameterBuilder parameter = formals.parameters![i];
-        Expression? initializer = parameter.variable!.initializer;
-        bool inferInitializer;
-        if (parameter.isSuperInitializingFormal) {
-          // Super-parameters can inherit the default value from the super
-          // constructor so we only handle explicit default values here.
-          inferInitializer = parameter.hasImmediatelyDeclaredInitializer;
-        } else if (initializer != null) {
-          inferInitializer = true;
-        } else {
-          inferInitializer = parameter.isOptional;
-        }
-        if (inferInitializer) {
-          if (!parameter.initializerWasInferred) {
-            // Coverage-ignore(suite): Not run.
-            initializer ??= forest.createNullLiteral(
-              // TODO(ahe): Should store: originParameter.fileOffset
-              // https://github.com/dart-lang/sdk/issues/32289
-              noLocation,
-            );
-            VariableDeclaration originParameter = _context.getFormalParameter(
-              i,
-            );
-            initializer = typeInferrer.inferParameterInitializer(
-              fileUri: uri,
-              initializer: initializer,
-              declaredType: originParameter.type,
-              hasDeclaredInitializer: parameter.hasDeclaredInitializer,
-              constantContext: constantContext,
-            );
-            originParameter.initializer = initializer..parent = originParameter;
-            if (initializer is InvalidExpression) {
-              originParameter.isErroneouslyInitialized = true;
-            }
-            parameter.initializerWasInferred = true;
-          }
-          VariableDeclaration? tearOffParameter = _context.getTearOffParameter(
-            i,
-          );
-          if (tearOffParameter != null) {
-            Expression tearOffInitializer = _simpleCloner.cloneInContext(
-              initializer!,
-            );
-            tearOffParameter.initializer = tearOffInitializer
-              ..parent = tearOffParameter;
-            tearOffParameter.isErroneouslyInitialized =
-                parameter.variable!.isErroneouslyInitialized;
-          }
-        }
-      }
-    }
-
-    if (_context.isConstructor) {
-      finishConstructor(
-        asyncModifier,
-        body,
-        superParametersAsArguments: superParametersAsArguments,
-      );
-    } else if (body != null) {
-      _context.setAsyncModifier(asyncModifier);
-    }
-
-    InferredFunctionBody? inferredFunctionBody;
-    if (body != null) {
-      inferredFunctionBody = typeInferrer.inferFunctionBody(
-        fileUri: uri,
-        fileOffset: _context.memberNameOffset,
-        returnType: _context.returnTypeContext,
-        constantContext: constantContext,
-        asyncMarker: asyncModifier,
-        body: body,
-      );
-      body = inferredFunctionBody.body;
-      function.emittedValueType = inferredFunctionBody.emittedValueType;
-      assert(
-        function.asyncMarker == AsyncMarker.Sync ||
-            function.emittedValueType != null,
-      );
-    }
-
-    if (_context.returnType is! OmittedTypeBuilder) {
-      checkAsyncReturnType(
-        asyncModifier,
-        function.returnType,
-        _context.memberNameOffset,
-        _context.memberNameLength,
-      );
-    }
-
-    if (_context.isSetter) {
-      if (formals?.parameters == null ||
-          formals!.parameters!.length != 1 ||
-          formals.parameters!.single.isOptionalPositional) {
-        int charOffset =
-            formals?.charOffset ??
-            // Coverage-ignore(suite): Not run.
-            body?.fileOffset ??
-            // Coverage-ignore(suite): Not run.
-            _context.memberNameOffset;
-        if (body == null) {
-          body = new EmptyStatement()..fileOffset = charOffset;
-        }
-        if (_context.formals != null) {
-          // Illegal parameters were removed by the function builder.
-          // Add them as local variable to put them in scope of the body.
-          List<Statement> statements = <Statement>[];
-          List<FormalParameterBuilder> formals = _context.formals!;
-          for (int i = 0; i < formals.length; i++) {
-            FormalParameterBuilder parameter = formals[i];
-            VariableDeclaration variable = parameter.variable!;
-            // #this should not be redeclared.
-            if (i == 0 && identical(variable, thisVariable)) {
-              continue;
-            }
-            statements.add(parameter.variable!);
-          }
-          statements.add(body);
-          body = forest.createBlock(charOffset, noLocation, statements);
-        }
-        body = forest.createBlock(charOffset, noLocation, <Statement>[
-          forest.createExpressionStatement(
-            noLocation,
-            // This error is added after type inference is done, so we
-            // don't need to wrap errors in SyntheticExpressionJudgment.
-            buildProblem(
-              message: cfe.codeSetterWithWrongNumberOfFormals,
-              fileUri: uri,
-              fileOffset: charOffset,
-              length: noLength,
-            ),
-          ),
-          body,
-        ]);
-      }
-    }
-    // No-such-method forwarders get their bodies injected during outline
-    // building, so we should skip them here.
-    bool isNoSuchMethodForwarder =
-        (function.parent is Procedure &&
-        (function.parent as Procedure).isNoSuchMethodForwarder);
-    if (body != null) {
-      if (_context.isExternalFunction || isNoSuchMethodForwarder) {
-        body = new Block(<Statement>[
-          new ExpressionStatement(
-            buildProblem(
-              message: cfe.codeExternalMethodWithBody,
-              fileUri: uri,
-              fileOffset: body.fileOffset,
-              length: noLength,
-            ),
-          )..fileOffset = body.fileOffset,
-          body,
-        ])..fileOffset = body.fileOffset;
-      }
-      _context.registerFunctionBody(body);
-    }
-
-    performBacklogComputations();
-  }
-
   void checkAsyncReturnType(
     AsyncMarker asyncModifier,
     DartType returnType,
@@ -1666,207 +1312,7 @@ class BodyBuilderImpl extends StackListenerImpl
     }
   }
 
-  void _finishVariableMetadata() {
-    List<VariableDeclaration>? variablesWithMetadata =
-        this.variablesWithMetadata;
-    this.variablesWithMetadata = null;
-    List<List<VariableDeclaration>>? multiVariablesWithMetadata =
-        this.multiVariablesWithMetadata;
-    this.multiVariablesWithMetadata = null;
-
-    if (variablesWithMetadata != null) {
-      for (int i = 0; i < variablesWithMetadata.length; i++) {
-        inferAnnotations(
-          variablesWithMetadata[i],
-          variablesWithMetadata[i].annotations,
-        );
-      }
-    }
-    if (multiVariablesWithMetadata != null) {
-      for (int i = 0; i < multiVariablesWithMetadata.length; i++) {
-        List<VariableDeclaration> variables = multiVariablesWithMetadata[i];
-        List<Expression> annotations = variables.first.annotations;
-        inferAnnotations(variables.first, annotations);
-        for (int i = 1; i < variables.length; i++) {
-          VariableDeclaration variable = variables[i];
-          for (int i = 0; i < annotations.length; i++) {
-            variable.addAnnotation(
-              _simpleCloner.cloneInContext(annotations[i]),
-            );
-          }
-        }
-      }
-    }
-  }
-
-  List<Expression> finishMetadata(Annotatable? parent) {
-    assert(checkState(null, [ValueKinds.AnnotationList]));
-    List<Expression> expressions = pop() as List<Expression>;
-    inferAnnotations(parent, expressions);
-
-    // The invocation of [resolveRedirectingFactoryTargets] below may change the
-    // root nodes of the annotation expressions.  We need to have a parent of
-    // the annotation nodes before the resolution is performed, to collect and
-    // return them later.  If [parent] is not provided, [temporaryParent] is
-    // used.
-    ListLiteral? temporaryParent;
-
-    if (parent != null) {
-      for (Expression expression in expressions) {
-        parent.addAnnotation(expression);
-      }
-    } else {
-      // Coverage-ignore-block(suite): Not run.
-      temporaryParent = new ListLiteral(expressions);
-    }
-    performBacklogComputations();
-    // Coverage-ignore(suite): Not run.
-    return temporaryParent != null ? temporaryParent.expressions : expressions;
-  }
-
-  // Coverage-ignore(suite): Only used in expression compilation.
-  Expression parseSingleExpression(
-    Parser parser,
-    Token token,
-    FunctionNode parameters,
-    List<VariableDeclarationImpl> extraKnownVariables,
-    ExpressionEvaluationHelper expressionEvaluationHelper,
-  ) {
-    int fileOffset = offsetForToken(token);
-    List<NominalParameterBuilder>? typeParameterBuilders;
-    for (TypeParameter typeParameter in parameters.typeParameters) {
-      typeParameterBuilders ??= <NominalParameterBuilder>[];
-      typeParameterBuilders.add(
-        new DillNominalParameterBuilder(
-          typeParameter,
-          loader: libraryBuilder.loader,
-        ),
-      );
-    }
-    enterNominalVariablesScope(typeParameterBuilders);
-
-    List<FormalParameterBuilder>? formals =
-        parameters.positionalParameters.length == 0
-        ? null
-        : new List<FormalParameterBuilder>.generate(
-            parameters.positionalParameters.length,
-            (int i) {
-              VariableDeclaration formal = parameters.positionalParameters[i];
-              String formalName = formal.name!;
-              bool isWildcard =
-                  libraryFeatures.wildcardVariables.isEnabled &&
-                  formalName == '_';
-              if (isWildcard) {
-                formalName = createWildcardFormalParameterName(
-                  wildcardVariableIndex,
-                );
-                wildcardVariableIndex++;
-              }
-              return new FormalParameterBuilder(
-                FormalParameterKind.requiredPositional,
-                Modifiers.empty,
-                const ImplicitTypeBuilder(),
-                formalName,
-                formal.fileOffset,
-                fileUri: uri,
-                hasImmediatelyDeclaredInitializer: false,
-                isWildcard: isWildcard,
-              )..variable = formal;
-            },
-            growable: false,
-          );
-    enterLocalScope(
-      new FormalParameters(
-        formals,
-        fileOffset,
-        noLength,
-        uri,
-      ).computeFormalParameterScope(
-        _localScope,
-        this,
-        wildcardVariablesEnabled: libraryFeatures.wildcardVariables.isEnabled,
-      ),
-    );
-
-    if (extraKnownVariables.isNotEmpty) {
-      LocalScope extraKnownVariablesScope = _localScope.createNestedScope(
-        debugName: "expression compilation extra known variables scope",
-        kind: ScopeKind.ifElement,
-      );
-      enterLocalScope(extraKnownVariablesScope);
-      for (VariableDeclarationImpl extraVariable in extraKnownVariables) {
-        declareVariable(extraVariable, _localScope);
-        typeInferrer.assignedVariables.declare(extraVariable);
-      }
-    }
-
-    Token endToken = parser.parseExpression(
-      parser.syntheticPreviousToken(token),
-    );
-
-    assert(
-      checkState(token, [
-        unionOfKinds([ValueKinds.Expression, ValueKinds.Generator]),
-      ]),
-    );
-    Expression expression = popForValue();
-    Token eof = endToken.next!;
-
-    if (!eof.isEof) {
-      expression = problemReporting.wrapInLocatedProblem(
-        compilerContext: compilerContext,
-        expression: expression,
-        message: cfe.codeExpectedOneExpression.withLocation(
-          uri,
-          eof.charOffset,
-          eof.length,
-        ),
-      );
-    }
-
-    ReturnStatementImpl fakeReturn = new ReturnStatementImpl(true, expression);
-    if (formals != null) {
-      for (int i = 0; i < formals.length; i++) {
-        VariableDeclaration variable = formals[i].variable!;
-        typeInferrer.flowAnalysis.declare(
-          variable,
-          new SharedTypeView(variable.type),
-          initialized: true,
-        );
-      }
-    }
-    for (VariableDeclarationImpl extraVariable in extraKnownVariables) {
-      typeInferrer.flowAnalysis.declare(
-        extraVariable,
-        new SharedTypeView(extraVariable.type),
-        initialized: true,
-      );
-    }
-
-    InferredFunctionBody inferredFunctionBody = typeInferrer.inferFunctionBody(
-      fileUri: uri,
-      fileOffset: fileOffset,
-      returnType: const DynamicType(),
-      constantContext: constantContext,
-      asyncMarker: AsyncMarker.Sync,
-      body: fakeReturn,
-      expressionEvaluationHelper: expressionEvaluationHelper,
-    );
-    assert(
-      fakeReturn == inferredFunctionBody.body,
-      "Previously implicit assumption about inferFunctionBody "
-      "not returning anything different.",
-    );
-
-    performBacklogComputations();
-
-    return fakeReturn.expression!;
-  }
-
-  List<Initializer>? parseInitializers(
-    Token token, {
-    bool doFinishConstructor = true,
-  }) {
+  List<Initializer>? parseInitializers(Token token) {
     Parser parser = new Parser(
       this,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
@@ -1878,18 +1324,6 @@ class BodyBuilderImpl extends StackListenerImpl
       checkEmpty(token.charOffset);
     } else {
       handleNoInitializers();
-    }
-    if (doFinishConstructor) {
-      List<FormalParameterBuilder>? formals = _context.formals;
-      List<Object>? superParametersAsArguments = formals != null
-          ? createSuperParametersAsArguments(formals)
-          : null;
-      _declareFormals();
-      finishConstructor(
-        AsyncMarker.Sync,
-        null,
-        superParametersAsArguments: superParametersAsArguments,
-      );
     }
     return _initializers;
   }
@@ -1909,6 +1343,7 @@ class BodyBuilderImpl extends StackListenerImpl
         unionOfKinds([ValueKinds.Expression, ValueKinds.Generator]),
       ]),
     );
+    //print(constantContext);
     Expression expression = popForValue();
     checkEmpty(endToken.charOffset);
     return expression;
@@ -1939,496 +1374,6 @@ class BodyBuilderImpl extends StackListenerImpl
     ArgumentsImpl arguments = pop() as ArgumentsImpl;
     checkEmpty(token.charOffset);
     return arguments;
-  }
-
-  void _declareFormals() {
-    if (thisVariable != null && _context.isConstructor) {
-      // `thisVariable` usually appears in `_context.formals`, but for a
-      // constructor, it doesn't. So declare it separately.
-      typeInferrer.flowAnalysis.declare(
-        thisVariable!,
-        new SharedTypeView(thisVariable!.type),
-        initialized: true,
-      );
-    }
-    List<FormalParameterBuilder>? formals = _context.formals;
-    if (formals != null) {
-      for (int i = 0; i < formals.length; i++) {
-        FormalParameterBuilder parameter = formals[i];
-        VariableDeclaration variable = parameter.variable!;
-        typeInferrer.flowAnalysis.declare(
-          variable,
-          new SharedTypeView(variable.type),
-          initialized: true,
-        );
-      }
-    }
-  }
-
-  void finishConstructor(
-    AsyncMarker asyncModifier,
-    Statement? body, {
-    required List<Object /* Expression | NamedExpression */>?
-    superParametersAsArguments,
-  }) {
-    /// Quotes below are from [Dart Programming Language Specification, 4th
-    /// Edition](
-    /// https://ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf).
-    assert(
-      () {
-        if (superParametersAsArguments == null) {
-          return true;
-        }
-        for (Object superParameterAsArgument in superParametersAsArguments) {
-          if (superParameterAsArgument is! Expression &&
-              superParameterAsArgument is! NamedExpression) {
-            return false;
-          }
-        }
-        return true;
-      }(),
-      "Expected 'superParametersAsArguments' "
-      "to contain nothing but Expressions and NamedExpressions.",
-    );
-    assert(
-      () {
-        if (superParametersAsArguments == null) {
-          return true;
-        }
-        int previousOffset = -1;
-        for (Object superParameterAsArgument in superParametersAsArguments) {
-          int offset;
-          if (superParameterAsArgument is Expression) {
-            offset = superParameterAsArgument.fileOffset;
-          } else if (superParameterAsArgument is NamedExpression) {
-            offset = superParameterAsArgument.value.fileOffset;
-          } else {
-            return false;
-          }
-          if (previousOffset > offset) {
-            return false;
-          }
-          previousOffset = offset;
-        }
-        return true;
-      }(),
-      "Expected 'superParametersAsArguments' "
-      "to be sorted by occurrence in file.",
-    );
-
-    FunctionNode function = _context.function;
-
-    Set<String>? namedSuperParameterNames;
-    List<Expression>? positionalSuperParametersAsArguments;
-    List<NamedExpression>? namedSuperParametersAsArguments;
-    List<FormalParameterBuilder>? formals = _context.formals;
-    if (superParametersAsArguments != null) {
-      for (Object superParameterAsArgument in superParametersAsArguments) {
-        if (superParameterAsArgument is Expression) {
-          (positionalSuperParametersAsArguments ??= <Expression>[]).add(
-            superParameterAsArgument,
-          );
-        } else {
-          NamedExpression namedSuperParameterAsArgument =
-              superParameterAsArgument as NamedExpression;
-          (namedSuperParametersAsArguments ??= <NamedExpression>[]).add(
-            namedSuperParameterAsArgument,
-          );
-          (namedSuperParameterNames ??= <String>{}).add(
-            namedSuperParameterAsArgument.name,
-          );
-        }
-      }
-    } else if (formals != null) {
-      for (FormalParameterBuilder formal in formals) {
-        if (formal.isSuperInitializingFormal) {
-          // Coverage-ignore-block(suite): Not run.
-          if (formal.isNamed) {
-            NamedExpression superParameterAsArgument = new NamedExpression(
-              formal.name,
-              createVariableGet(formal.variable!, formal.fileOffset),
-            )..fileOffset = formal.fileOffset;
-            (namedSuperParametersAsArguments ??= <NamedExpression>[]).add(
-              superParameterAsArgument,
-            );
-            (namedSuperParameterNames ??= <String>{}).add(formal.name);
-            (superParametersAsArguments ??= <Object>[]).add(
-              superParameterAsArgument,
-            );
-          } else {
-            Expression superParameterAsArgument = createVariableGet(
-              formal.variable!,
-              formal.fileOffset,
-            );
-            (positionalSuperParametersAsArguments ??= <Expression>[]).add(
-              superParameterAsArgument,
-            );
-            (superParametersAsArguments ??= <Object>[]).add(
-              superParameterAsArgument,
-            );
-          }
-        }
-      }
-    }
-
-    List<Initializer>? initializers = _initializers;
-    if (initializers != null && initializers.isNotEmpty) {
-      if (_context.isMixinClass) {
-        // Report an error if a mixin class has a constructor with an
-        // initializer.
-        buildProblem(
-          message: cfe.codeIllegalMixinDueToConstructors.withArgumentsOld(
-            _context.className,
-          ),
-          fileUri: uri,
-          fileOffset: _context.memberNameOffset,
-          length: noLength,
-        );
-      }
-      Initializer last = initializers.last;
-      if (last is SuperInitializer) {
-        if (_context.isEnumClass) {
-          initializers[initializers.length - 1] = buildInvalidInitializer(
-            buildProblem(
-              message: cfe.codeEnumConstructorSuperInitializer,
-              fileUri: uri,
-              fileOffset: last.fileOffset,
-              length: noLength,
-            ),
-          )..parent = last.parent;
-        } else if (libraryFeatures.superParameters.isEnabled) {
-          ArgumentsImpl arguments = last.arguments as ArgumentsImpl;
-
-          if (positionalSuperParametersAsArguments != null) {
-            if (arguments.positional.isNotEmpty) {
-              addProblem(
-                cfe.codePositionalSuperParametersAndArguments,
-                arguments.fileOffset,
-                noLength,
-                context: <LocatedMessage>[
-                  cfe.codeSuperInitializerParameter.withLocation(
-                    uri,
-                    (positionalSuperParametersAsArguments.first as VariableGet)
-                        .variable
-                        .fileOffset,
-                    noLength,
-                  ),
-                ],
-              );
-            } else {
-              arguments.positional.addAll(positionalSuperParametersAsArguments);
-              setParents(positionalSuperParametersAsArguments, arguments);
-              arguments.positionalAreSuperParameters = true;
-            }
-          }
-          if (namedSuperParametersAsArguments != null) {
-            // TODO(cstefantsova): Report name conflicts.
-            arguments.named.addAll(namedSuperParametersAsArguments);
-            setParents(namedSuperParametersAsArguments, arguments);
-            arguments.namedSuperParameterNames = namedSuperParameterNames;
-          }
-          if (superParametersAsArguments != null) {
-            arguments.argumentsOriginalOrder?.insertAll(
-              0,
-              superParametersAsArguments,
-            );
-          }
-        }
-      } else if (last is RedirectingInitializer) {
-        if (_context.isEnumClass && libraryFeatures.enhancedEnums.isEnabled) {
-          ArgumentsImpl arguments = last.arguments as ArgumentsImpl;
-          List<Expression> enumSyntheticArguments = [
-            new VariableGet(function.positionalParameters[0])
-              ..parent = last.arguments,
-            new VariableGet(function.positionalParameters[1])
-              ..parent = last.arguments,
-          ];
-          arguments.positional.insertAll(0, enumSyntheticArguments);
-          arguments.argumentsOriginalOrder?.insertAll(
-            0,
-            enumSyntheticArguments,
-          );
-        }
-      }
-
-      List<InitializerInferenceResult> inferenceResults =
-          new List<InitializerInferenceResult>.generate(
-            initializers.length,
-            (index) => _context.inferInitializer(
-              typeInferrer: typeInferrer,
-              constantContext: constantContext,
-              fileUri: uri,
-              initializer: initializers[index],
-            ),
-            growable: false,
-          );
-
-      if (!_context.isExternalConstructor) {
-        for (InitializerInferenceResult result in inferenceResults) {
-          _context.addInferredInitializer(result, this);
-        }
-      }
-    }
-
-    if (asyncModifier != AsyncMarker.Sync) {
-      _context.addInitializer(
-        buildInvalidInitializer(
-          buildProblem(
-            message: cfe.codeConstructorNotSync,
-            fileUri: uri,
-            fileOffset: body!.fileOffset,
-            length: noLength,
-          ),
-        ),
-        this,
-      );
-    }
-    if (needsImplicitSuperInitializer) {
-      /// >If no superinitializer is provided, an implicit superinitializer
-      /// >of the form super() is added at the end of k’s initializer list,
-      /// >unless the enclosing class is class Object.
-      Initializer? initializer;
-      ArgumentsImpl arguments;
-      List<Expression>? positionalArguments;
-      List<NamedExpression>? namedArguments;
-      if (libraryFeatures.superParameters.isEnabled) {
-        positionalArguments = positionalSuperParametersAsArguments;
-        namedArguments = namedSuperParametersAsArguments;
-      }
-      if (_context.isEnumClass) {
-        assert(
-          function.positionalParameters.length >= 2 &&
-              function.positionalParameters[0].name == "#index" &&
-              function.positionalParameters[1].name == "#name",
-        );
-        (positionalArguments ??= <Expression>[]).insertAll(0, [
-          new VariableGet(function.positionalParameters[0]),
-          new VariableGet(function.positionalParameters[1]),
-        ]);
-      }
-
-      int argumentsOffset = -1;
-      if (superParametersAsArguments != null) {
-        for (Object argument in superParametersAsArguments) {
-          assert(argument is Expression || argument is NamedExpression);
-          int currentArgumentOffset;
-          if (argument is Expression) {
-            currentArgumentOffset = argument.fileOffset;
-          } else {
-            currentArgumentOffset = (argument as NamedExpression).fileOffset;
-          }
-          argumentsOffset = argumentsOffset <= currentArgumentOffset
-              ? argumentsOffset
-              : currentArgumentOffset;
-        }
-      }
-      SuperInitializer? explicitSuperInitializer;
-      if (_initializers case [..., SuperInitializer superInitializer]
-          when argumentsOffset == // Coverage-ignore(suite): Not run.
-              -1) {
-        // Coverage-ignore-block(suite): Not run.
-        argumentsOffset = superInitializer.fileOffset;
-        explicitSuperInitializer = superInitializer;
-      }
-      if (argumentsOffset == -1) {
-        argumentsOffset = _context.memberNameOffset;
-      }
-
-      if (positionalArguments != null || namedArguments != null) {
-        arguments = forest.createArguments(
-          argumentsOffset,
-          positionalArguments ?? <Expression>[],
-          named: namedArguments,
-        );
-      } else {
-        arguments = forest.createArgumentsEmpty(argumentsOffset);
-      }
-
-      arguments.positionalAreSuperParameters =
-          positionalSuperParametersAsArguments != null;
-      arguments.namedSuperParameterNames = namedSuperParameterNames;
-
-      MemberLookupResult? result = lookupSuperConstructor(
-        '',
-        libraryBuilder.nameOriginBuilder,
-      );
-      Constructor? superTarget;
-      if (result != null) {
-        if (result.isInvalidLookup) {
-          int length = _context.memberNameLength;
-          if (length == 0) {
-            length = _context.className.length;
-          }
-          initializer = buildInvalidInitializer(
-            LookupResult.createDuplicateExpression(
-              result,
-              context: libraryBuilder.loader.target.context,
-              name: '',
-              fileUri: uri,
-              fileOffset: _context.memberNameOffset,
-              length: noLength,
-            ),
-            _context.memberNameOffset,
-          );
-        } else {
-          MemberBuilder? memberBuilder = result.getable;
-          Member? member = memberBuilder?.invokeTarget;
-          if (member is Constructor) {
-            superTarget = member;
-          }
-        }
-      }
-      if (initializer == null) {
-        if (superTarget == null) {
-          String superclass = _context.superClassName;
-          int length = _context.memberNameLength;
-          if (length == 0) {
-            length = _context.className.length;
-          }
-          initializer = buildInvalidInitializer(
-            buildProblem(
-              message: cfe.codeSuperclassHasNoDefaultConstructor
-                  .withArgumentsOld(superclass),
-              fileUri: uri,
-              fileOffset: _context.memberNameOffset,
-              length: length,
-            ),
-            _context.memberNameOffset,
-          );
-        } else if (problemReporting.checkArgumentsForFunction(
-              function: superTarget.function,
-              arguments: arguments,
-              fileOffset: _context.memberNameOffset,
-              fileUri: uri,
-              typeParameters: const <TypeParameter>[],
-            )
-            case LocatedMessage argumentIssue) {
-          List<int>? positionalSuperParametersIssueOffsets;
-          if (positionalSuperParametersAsArguments != null) {
-            for (
-              int positionalSuperParameterIndex =
-                  superTarget.function.positionalParameters.length;
-              positionalSuperParameterIndex <
-                  positionalSuperParametersAsArguments.length;
-              positionalSuperParameterIndex++
-            ) {
-              (positionalSuperParametersIssueOffsets ??= []).add(
-                positionalSuperParametersAsArguments[ // force line break
-                    positionalSuperParameterIndex]
-                    .fileOffset,
-              );
-            }
-          }
-
-          List<int>? namedSuperParametersIssueOffsets;
-          if (namedSuperParametersAsArguments != null) {
-            Set<String> superTargetNamedParameterNames = {
-              for (VariableDeclaration namedParameter
-                  in superTarget.function.namedParameters)
-                if (namedParameter // Coverage-ignore(suite): Not run.
-                        .name !=
-                    null)
-                  // Coverage-ignore(suite): Not run.
-                  namedParameter.name!,
-            };
-            for (NamedExpression namedSuperParameter
-                in namedSuperParametersAsArguments) {
-              if (!superTargetNamedParameterNames.contains(
-                namedSuperParameter.name,
-              )) {
-                (namedSuperParametersIssueOffsets ??= []).add(
-                  namedSuperParameter.fileOffset,
-                );
-              }
-            }
-          }
-
-          Initializer? errorMessageInitializer;
-          if (positionalSuperParametersIssueOffsets != null) {
-            for (int issueOffset in positionalSuperParametersIssueOffsets) {
-              Expression errorMessageExpression = buildProblem(
-                message: cfe.codeMissingPositionalSuperConstructorParameter,
-                fileUri: uri,
-                fileOffset: issueOffset,
-                length: noLength,
-              );
-              errorMessageInitializer ??= buildInvalidInitializer(
-                errorMessageExpression,
-              );
-            }
-          }
-          if (namedSuperParametersIssueOffsets != null) {
-            for (int issueOffset in namedSuperParametersIssueOffsets) {
-              Expression errorMessageExpression = buildProblem(
-                message: cfe.codeMissingNamedSuperConstructorParameter,
-                fileUri: uri,
-                fileOffset: issueOffset,
-                length: noLength,
-              );
-              errorMessageInitializer ??= buildInvalidInitializer(
-                errorMessageExpression,
-              );
-            }
-          }
-          if (explicitSuperInitializer == null) {
-            errorMessageInitializer ??= buildInvalidInitializer(
-              buildProblem(
-                message: cfe.codeImplicitSuperInitializerMissingArguments
-                    .withArgumentsOld(superTarget.enclosingClass.name),
-                fileUri: uri,
-                fileOffset: argumentIssue.charOffset,
-                length: argumentIssue.length,
-              ),
-            );
-          }
-          // Coverage-ignore-block(suite): Not run.
-          errorMessageInitializer ??= buildInvalidInitializer(
-            buildProblem(
-              message: argumentIssue.messageObject,
-              fileUri: uri,
-              fileOffset: argumentIssue.charOffset,
-              length: argumentIssue.length,
-            ),
-          );
-          initializer = errorMessageInitializer;
-        } else {
-          initializer = buildSuperInitializer(
-            true,
-            superTarget,
-            arguments,
-            _context.memberNameOffset,
-          );
-        }
-      }
-      if (libraryFeatures.superParameters.isEnabled) {
-        InitializerInferenceResult inferenceResult = _context.inferInitializer(
-          typeInferrer: typeInferrer,
-          fileUri: uri,
-          constantContext: constantContext,
-          initializer: initializer,
-        );
-        _context.addInferredInitializer(inferenceResult, this);
-      } else {
-        _context.addInitializer(initializer, this);
-      }
-    }
-    if (body == null && !_context.isExternalConstructor) {
-      /// >If a generative constructor c is not a redirecting constructor
-      /// >and no body is provided, then c implicitly has an empty body {}.
-      /// We use an empty statement instead.
-      _context.registerNoBodyConstructor();
-    } else if (body != null && _context.isMixinClass && !_context.isFactory) {
-      // Report an error if a mixin class has a non-factory constructor with a
-      // body.
-      buildProblem(
-        message: cfe.codeIllegalMixinDueToConstructors.withArgumentsOld(
-          _context.className,
-        ),
-        fileUri: uri,
-        fileOffset: _context.memberNameOffset,
-        length: noLength,
-      );
-    }
   }
 
   @override
@@ -2910,7 +1855,7 @@ class BodyBuilderImpl extends StackListenerImpl
       // This is matched by the call to [endNode] in
       // [doLogicalExpression].
       if (isAnd) {
-        typeInferrer.assignedVariables.beginNode();
+        assignedVariables.beginNode();
       }
       push(lhs);
     }
@@ -3164,7 +2109,7 @@ class BodyBuilderImpl extends StackListenerImpl
         ];
         for (VariableDeclaration variable in jointVariables) {
           declareVariable(variable, _localScope);
-          typeInferrer.assignedVariables.declare(variable);
+          assignedVariables.declare(variable);
         }
         push(
           forest.createOrPattern(
@@ -3266,7 +2211,7 @@ class BodyBuilderImpl extends StackListenerImpl
     if (token.isA(TokenType.AMPERSAND_AMPERSAND)) {
       // This is matched by the call to [beginNode] in
       // [beginBinaryExpression].
-      typeInferrer.assignedVariables.endNode(logicalExpression);
+      assignedVariables.endNode(logicalExpression);
     }
     assert(checkState(token, <ValueKind>[ValueKinds.Expression]));
   }
@@ -3673,7 +2618,7 @@ class BodyBuilderImpl extends StackListenerImpl
   void registerVariableRead(VariableDeclaration variable) {
     if (!(variable as VariableDeclarationImpl).isLocalFunction &&
         !variable.isWildcard) {
-      typeInferrer.assignedVariables.read(variable);
+      assignedVariables.read(variable);
     }
   }
 
@@ -4386,7 +3331,7 @@ class BodyBuilderImpl extends StackListenerImpl
     assert(checkState(token, [ValueKinds.Condition]));
     // This is matched by the call to [deferNode] in
     // [endThenStatement].
-    typeInferrer.assignedVariables.beginNode();
+    assignedVariables.beginNode();
     Condition condition = pop() as Condition;
     PatternGuard? patternGuard = condition.patternGuard;
     if (patternGuard != null && patternGuard.guard != null) {
@@ -4434,7 +3379,7 @@ class BodyBuilderImpl extends StackListenerImpl
     // This is matched by the call to [beginNode] in
     // [beginThenStatement] and by the call to [storeInfo] in
     // [endIfStatement].
-    push(typeInferrer.assignedVariables.deferNode());
+    push(assignedVariables.deferNode());
   }
 
   @override
@@ -4477,7 +3422,7 @@ class BodyBuilderImpl extends StackListenerImpl
     }
     // This is matched by the call to [deferNode] in
     // [endThenStatement].
-    typeInferrer.assignedVariables.storeInfo(node, assignedVariablesInfo);
+    assignedVariables.storeInfo(node, assignedVariablesInfo);
     push(node);
   }
 
@@ -4485,7 +3430,7 @@ class BodyBuilderImpl extends StackListenerImpl
   void beginVariableInitializer(Token token) {
     if (currentLocalVariableModifiers.isLate) {
       // This is matched by the call to [endNode] in [endVariableInitializer].
-      typeInferrer.assignedVariables.beginNode();
+      assignedVariables.beginNode();
     }
   }
 
@@ -4497,7 +3442,7 @@ class BodyBuilderImpl extends StackListenerImpl
     bool isLate = currentLocalVariableModifiers.isLate;
     Expression initializer = popForValue();
     if (isLate) {
-      assignedVariablesInfo = typeInferrer.assignedVariables.deferNode(
+      assignedVariablesInfo = assignedVariables.deferNode(
         isClosureOrLateVariableInitializer: true,
       );
     }
@@ -4506,7 +3451,7 @@ class BodyBuilderImpl extends StackListenerImpl
       VariableDeclaration node = peek() as VariableDeclaration;
       // This is matched by the call to [beginNode] in
       // [beginVariableInitializer].
-      typeInferrer.assignedVariables.storeInfo(node, assignedVariablesInfo!);
+      assignedVariables.storeInfo(node, assignedVariablesInfo!);
     }
   }
 
@@ -4572,7 +3517,7 @@ class BodyBuilderImpl extends StackListenerImpl
           )
           ..fileOffset = identifier.nameOffset
           ..fileEqualsOffset = offsetForToken(equalsToken);
-    typeInferrer.assignedVariables.declare(variable);
+    assignedVariables.declare(variable);
     push(variable);
   }
 
@@ -4680,7 +3625,8 @@ class BodyBuilderImpl extends StackListenerImpl
         for (int i = 0; i < annotations.length; i++) {
           variable.addAnnotation(annotations[i]);
         }
-        (variablesWithMetadata ??= <VariableDeclaration>[]).add(variable);
+        _registerSingleTargetAnnotations(variable);
+        //(variablesWithMetadata ??= <VariableDeclaration>[]).add(variable);
       }
       push(variable);
     } else {
@@ -4703,9 +3649,7 @@ class BodyBuilderImpl extends StackListenerImpl
         for (int i = 0; i < annotations.length; i++) {
           first.addAnnotation(annotations[i]);
         }
-        (multiVariablesWithMetadata ??= <List<VariableDeclaration>>[]).add(
-          variables,
-        );
+        _registerMultiTargetAnnotations(variables);
       }
       push(forest.variablesDeclaration(variables, uri));
     }
@@ -4726,11 +3670,11 @@ class BodyBuilderImpl extends StackListenerImpl
   void beginBlock(Token token, BlockKind blockKind) {
     if (blockKind == BlockKind.tryStatement) {
       // This is matched by the call to [endNode] in [endBlock].
-      typeInferrer.assignedVariables.beginNode();
+      assignedVariables.beginNode();
     } else if (blockKind == BlockKind.finallyClause) {
       // This is matched by the call to [beginNode] in [beginTryStatement].
       tryStatementInfoStack = tryStatementInfoStack.prepend(
-        typeInferrer.assignedVariables.deferNode(),
+        assignedVariables.deferNode(),
       );
     }
     debugEvent("beginBlock");
@@ -4753,7 +3697,7 @@ class BodyBuilderImpl extends StackListenerImpl
     push(block);
     if (blockKind == BlockKind.tryStatement) {
       // This is matched by the call to [beginNode] in [beginBlock].
-      typeInferrer.assignedVariables.endNode(block);
+      assignedVariables.endNode(block);
     }
   }
 
@@ -4865,7 +3809,7 @@ class BodyBuilderImpl extends StackListenerImpl
     push(NullValues.Expression);
     // This is matched by the call to [deferNode] in [endForStatement] or
     // [endForControlFlow].
-    typeInferrer.assignedVariables.beginNode();
+    assignedVariables.beginNode();
   }
 
   @override
@@ -4874,7 +3818,7 @@ class BodyBuilderImpl extends StackListenerImpl
     if (!forIn) {
       // This is matched by the call to [deferNode] in [endForStatement] or
       // [endForControlFlow].
-      typeInferrer.assignedVariables.beginNode();
+      assignedVariables.beginNode();
     }
   }
 
@@ -4891,7 +3835,7 @@ class BodyBuilderImpl extends StackListenerImpl
     } else {
       // This is matched by the call to [deferNode] in [endForStatement] or
       // [endForControlFlow].
-      typeInferrer.assignedVariables.beginNode();
+      assignedVariables.beginNode();
     }
   }
 
@@ -4955,7 +3899,7 @@ class BodyBuilderImpl extends StackListenerImpl
         internalVariables.add(internalVariable);
 
         declareVariable(internalVariable, _localScope);
-        typeInferrer.assignedVariables.declare(internalVariable);
+        assignedVariables.declare(internalVariable);
       }
       push(intermediateVariables);
       push(internalVariables);
@@ -4970,7 +3914,7 @@ class BodyBuilderImpl extends StackListenerImpl
     }
 
     // This is matched by the call to [deferNode] in [endForStatement].
-    typeInferrer.assignedVariables.beginNode();
+    assignedVariables.beginNode();
   }
 
   @override
@@ -5031,7 +3975,7 @@ class BodyBuilderImpl extends StackListenerImpl
     if (constantContext != ConstantContext.none) {
       pop(); // Pop variable or expression.
       exitLocalScope();
-      typeInferrer.assignedVariables.discardNode();
+      assignedVariables.discardNode();
 
       push(
         buildProblem(
@@ -5050,8 +3994,7 @@ class BodyBuilderImpl extends StackListenerImpl
     // [handleForInitializerPatternVariableAssignment],
     // [handleForInitializerExpressionStatement], and
     // [handleForInitializerLocalVariableDeclaration].
-    AssignedVariablesNodeInfo assignedVariablesNodeInfo = typeInferrer
-        .assignedVariables
+    AssignedVariablesNodeInfo assignedVariablesNodeInfo = assignedVariables
         .popNode();
 
     Object? variableOrExpression = pop();
@@ -5065,7 +4008,7 @@ class BodyBuilderImpl extends StackListenerImpl
     }
     exitLocalScope();
 
-    typeInferrer.assignedVariables.pushNode(assignedVariablesNodeInfo);
+    assignedVariables.pushNode(assignedVariablesNodeInfo);
     Expression? condition;
     if (conditionStatement is ExpressionStatement) {
       condition = conditionStatement.expression;
@@ -5093,7 +4036,7 @@ class BodyBuilderImpl extends StackListenerImpl
           entry,
         );
       }
-      typeInferrer.assignedVariables.endNode(result);
+      assignedVariables.endNode(result);
       push(result);
     } else {
       TreeNode result;
@@ -5116,7 +4059,7 @@ class BodyBuilderImpl extends StackListenerImpl
           toValue(entry),
         );
       }
-      typeInferrer.assignedVariables.endNode(result);
+      assignedVariables.endNode(result);
       push(result);
     }
   }
@@ -5170,8 +4113,7 @@ class BodyBuilderImpl extends StackListenerImpl
     // [handleForInitializerPatternVariableAssignment],
     // [handleForInitializerExpressionStatement], and
     // [handleForInitializerLocalVariableDeclaration].
-    AssignedVariablesNodeInfo assignedVariablesNodeInfo = typeInferrer
-        .assignedVariables
+    AssignedVariablesNodeInfo assignedVariablesNodeInfo = assignedVariables
         .deferNode();
 
     Object? variableOrExpression = pop();
@@ -5208,10 +4150,7 @@ class BodyBuilderImpl extends StackListenerImpl
       updates,
       body,
     );
-    typeInferrer.assignedVariables.storeInfo(
-      forStatement,
-      assignedVariablesNodeInfo,
-    );
+    assignedVariables.storeInfo(forStatement, assignedVariablesNodeInfo);
     if (continueStatements != null) {
       for (BreakStatementImpl continueStatement in continueStatements) {
         continueStatement.targetStatement = forStatement;
@@ -5705,7 +4644,7 @@ class BodyBuilderImpl extends StackListenerImpl
             problemReporting,
             libraryBuilder.loader.target.context,
             uri,
-            typeInferrer.assignedVariables.reassignInfo,
+            assignedVariables.reassignInfo,
           );
         }
       }
@@ -6377,7 +5316,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Expression condition = popForValue();
     // This is matched by the call to [deferNode] in
     // [handleConditionalExpressionColon].
-    typeInferrer.assignedVariables.beginNode();
+    assignedVariables.beginNode();
     push(condition);
     super.beginConditionalExpression(question);
   }
@@ -6388,7 +5327,7 @@ class BodyBuilderImpl extends StackListenerImpl
     // This is matched by the call to [beginNode] in
     // [beginConditionalExpression] and by the call to [storeInfo] in
     // [endConditionalExpression].
-    push(typeInferrer.assignedVariables.deferNode());
+    push(assignedVariables.deferNode());
     push(then);
     super.handleConditionalExpressionColon();
   }
@@ -6410,7 +5349,7 @@ class BodyBuilderImpl extends StackListenerImpl
     push(node);
     // This is matched by the call to [deferNode] in
     // [handleConditionalExpressionColon].
-    typeInferrer.assignedVariables.storeInfo(node, assignedVariablesInfo);
+    assignedVariables.storeInfo(node, assignedVariablesInfo);
   }
 
   @override
@@ -6572,18 +5511,21 @@ class BodyBuilderImpl extends StackListenerImpl
         ..parent = variable;
     }
     if (annotations != null) {
-      if (functionNestingLevel == 0) {
-        inferAnnotations(variable, annotations);
-      }
       variable.clearAnnotations();
       for (Expression annotation in annotations) {
         variable.addAnnotation(annotation);
+      }
+      // TODO(johnniwinther): This seems wrong. If we add the annotations, we
+      //  should infer them.
+      if (functionNestingLevel == 0) {
+        _registerSingleTargetAnnotations(variable);
+        //inferAnnotations(variable, annotations);
       }
     }
     push(parameter);
     // We pass `ignoreDuplicates: true` because the variable might have been
     // previously passed to `declare` in the `BodyBuilder` constructor.
-    typeInferrer.assignedVariables.declare(variable, ignoreDuplicates: true);
+    assignedVariables.declare(variable, ignoreDuplicates: true);
   }
 
   @override
@@ -6919,7 +5861,7 @@ class BodyBuilderImpl extends StackListenerImpl
   @override
   void beginTryStatement(Token token) {
     // This is matched by the call to [endNode] in [endTryStatement].
-    typeInferrer.assignedVariables.beginNode();
+    assignedVariables.beginNode();
   }
 
   @override
@@ -6935,7 +5877,7 @@ class BodyBuilderImpl extends StackListenerImpl
     } else {
       // This is matched by the call to [beginNode] in [beginTryStatement].
       tryStatementInfoStack = tryStatementInfoStack.prepend(
-        typeInferrer.assignedVariables.deferNode(),
+        assignedVariables.deferNode(),
       );
     }
     List<Catch>? catchBlocks;
@@ -6965,10 +5907,7 @@ class BodyBuilderImpl extends StackListenerImpl
       catchBlocks,
       finallyBlock,
     );
-    typeInferrer.assignedVariables.storeInfo(
-      result,
-      tryStatementInfoStack.head,
-    );
+    assignedVariables.storeInfo(result, tryStatementInfoStack.head);
     tryStatementInfoStack = tryStatementInfoStack.tail!;
 
     if (compileTimeErrors != null) {
@@ -8182,7 +7121,7 @@ class BodyBuilderImpl extends StackListenerImpl
     // This is matched by the call to [deferNode] in
     // [handleElseControlFlow] and by the call to [endNode] in
     // [endIfControlFlow].
-    typeInferrer.assignedVariables.beginNode();
+    assignedVariables.beginNode();
 
     Condition condition = pop() as Condition;
     PatternGuard? patternGuard = condition.patternGuard;
@@ -8245,7 +7184,7 @@ class BodyBuilderImpl extends StackListenerImpl
     // This is matched by the call to [beginNode] in
     // [handleThenControlFlow] and by the call to [storeInfo] in
     // [endIfElseControlFlow].
-    push(typeInferrer.assignedVariables.deferNode());
+    push(assignedVariables.deferNode());
     push(then);
   }
 
@@ -8307,7 +7246,7 @@ class BodyBuilderImpl extends StackListenerImpl
     push(node);
     // This is matched by the call to [beginNode] in
     // [handleThenControlFlow].
-    typeInferrer.assignedVariables.endNode(node);
+    assignedVariables.endNode(node);
   }
 
   @override
@@ -8361,7 +7300,7 @@ class BodyBuilderImpl extends StackListenerImpl
         }
       } else if (elseEntry is ControlFlowElement) {
         MapLiteralEntry? elseMapEntry = elseEntry.toMapLiteralEntry(
-          typeInferrer.assignedVariables.reassignInfo,
+          assignedVariables.reassignInfo,
         );
         if (elseMapEntry != null) {
           if (patternGuard == null) {
@@ -8412,7 +7351,7 @@ class BodyBuilderImpl extends StackListenerImpl
     } else if (elseEntry is MapLiteralEntry) {
       if (thenEntry is ControlFlowElement) {
         MapLiteralEntry? thenMapEntry = thenEntry.toMapLiteralEntry(
-          typeInferrer.assignedVariables.reassignInfo,
+          assignedVariables.reassignInfo,
         );
         if (thenMapEntry != null) {
           if (patternGuard == null) {
@@ -8483,7 +7422,7 @@ class BodyBuilderImpl extends StackListenerImpl
     push(node);
     // This is matched by the call to [deferNode] in
     // [handleElseControlFlow].
-    typeInferrer.assignedVariables.storeInfo(node, assignedVariablesInfo);
+    assignedVariables.storeInfo(node, assignedVariablesInfo);
   }
 
   @override
@@ -8716,7 +7655,7 @@ class BodyBuilderImpl extends StackListenerImpl
     inCatchBlock = false;
     // This is matched by the call to [endNode] in [pushNamedFunction] or
     // [endFunctionExpression].
-    typeInferrer.assignedVariables.beginNode();
+    assignedVariables.beginNode();
     assert(checkState(null, [/* inCatchBlock */ ValueKinds.Bool]));
   }
 
@@ -8832,7 +7771,7 @@ class BodyBuilderImpl extends StackListenerImpl
         statement = declaration;
       }
       // This is matched by the call to [beginNode] in [enterFunction].
-      typeInferrer.assignedVariables.endNode(
+      assignedVariables.endNode(
         declaration,
         isClosureOrLateVariableInitializer: true,
       );
@@ -8926,10 +7865,7 @@ class BodyBuilderImpl extends StackListenerImpl
     }
     push(result);
     // This is matched by the call to [beginNode] in [enterFunction].
-    typeInferrer.assignedVariables.endNode(
-      result,
-      isClosureOrLateVariableInitializer: true,
-    );
+    assignedVariables.endNode(result, isClosureOrLateVariableInitializer: true);
     assert(
       checkState(beginToken, [
         /* function expression or problem */ ValueKinds.Expression,
@@ -8941,7 +7877,7 @@ class BodyBuilderImpl extends StackListenerImpl
   void beginDoWhileStatement(Token token) {
     debugEvent("beginDoWhileStatement");
     // This is matched by the [endNode] call in [endDoWhileStatement].
-    typeInferrer.assignedVariables.beginNode();
+    assignedVariables.beginNode();
     enterLoop(token.charOffset);
   }
 
@@ -8984,7 +7920,7 @@ class BodyBuilderImpl extends StackListenerImpl
       expression,
     );
     // This is matched by the [beginNode] call in [beginDoWhileStatement].
-    typeInferrer.assignedVariables.endNode(doStatement);
+    assignedVariables.endNode(doStatement);
     if (continueStatements != null) {
       for (BreakStatementImpl continueStatement in continueStatements) {
         continueStatement.targetStatement = doStatement;
@@ -9060,7 +7996,7 @@ class BodyBuilderImpl extends StackListenerImpl
     push(inKeyword);
     // This is matched by the call to [deferNode] in [endForIn] or
     // [endForInControlFlow].
-    typeInferrer.assignedVariables.beginNode();
+    assignedVariables.beginNode();
   }
 
   @override
@@ -9075,7 +8011,7 @@ class BodyBuilderImpl extends StackListenerImpl
       popForValue(); // Pop iterable
       pop(); // Pop lvalue
       exitLocalScope();
-      typeInferrer.assignedVariables.discardNode();
+      assignedVariables.discardNode();
 
       push(
         buildProblem(
@@ -9090,8 +8026,7 @@ class BodyBuilderImpl extends StackListenerImpl
     }
 
     // This is matched by the call to [beginNode] in [handleForInLoopParts].
-    AssignedVariablesNodeInfo assignedVariablesNodeInfo = typeInferrer
-        .assignedVariables
+    AssignedVariablesNodeInfo assignedVariablesNodeInfo = assignedVariables
         .popNode();
 
     Expression iterable = popForValue();
@@ -9104,7 +8039,7 @@ class BodyBuilderImpl extends StackListenerImpl
       lvalue,
       null,
     );
-    typeInferrer.assignedVariables.pushNode(assignedVariablesNodeInfo);
+    assignedVariables.pushNode(assignedVariablesNodeInfo);
     VariableDeclaration variable = elements.variable;
     Expression? problem = elements.expressionProblem;
     if (entry is MapLiteralEntry) {
@@ -9118,7 +8053,7 @@ class BodyBuilderImpl extends StackListenerImpl
         problem,
         isAsync: awaitToken != null,
       );
-      typeInferrer.assignedVariables.endNode(result);
+      assignedVariables.endNode(result);
       push(result);
     } else {
       ForInElement result = forest.createForInElement(
@@ -9131,7 +8066,7 @@ class BodyBuilderImpl extends StackListenerImpl
         problem,
         isAsync: awaitToken != null,
       );
-      typeInferrer.assignedVariables.endNode(result);
+      assignedVariables.endNode(result);
       push(result);
     }
   }
@@ -9286,8 +8221,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Token? awaitToken = pop(NullValues.AwaitToken) as Token?;
 
     // This is matched by the call to [beginNode] in [handleForInLoopParts].
-    AssignedVariablesNodeInfo assignedVariablesNodeInfo = typeInferrer
-        .assignedVariables
+    AssignedVariablesNodeInfo assignedVariablesNodeInfo = assignedVariables
         .deferNode();
 
     Expression expression = popForValue();
@@ -9337,10 +8271,7 @@ class BodyBuilderImpl extends StackListenerImpl
             ..fileOffset = awaitToken?.charOffset ?? forToken.charOffset
             ..bodyOffset = body.fileOffset; // TODO(ahe): Isn't this redundant?
     }
-    typeInferrer.assignedVariables.storeInfo(
-      forInStatement,
-      assignedVariablesNodeInfo,
-    );
+    assignedVariables.storeInfo(forInStatement, assignedVariablesNodeInfo);
     if (continueStatements != null) {
       for (BreakStatementImpl continueStatement in continueStatements) {
         continueStatement.targetStatement = forInStatement;
@@ -9474,7 +8405,7 @@ class BodyBuilderImpl extends StackListenerImpl
   void beginWhileStatement(Token token) {
     debugEvent("beginWhileStatement");
     // This is matched by the [endNode] call in [endWhileStatement].
-    typeInferrer.assignedVariables.beginNode();
+    assignedVariables.beginNode();
     enterLoop(token.charOffset);
   }
 
@@ -9528,7 +8459,7 @@ class BodyBuilderImpl extends StackListenerImpl
     }
     exitLoopOrSwitch(result);
     // This is matched by the [beginNode] call in [beginWhileStatement].
-    typeInferrer.assignedVariables.endNode(whileStatement);
+    assignedVariables.endNode(whileStatement);
   }
 
   @override
@@ -9646,7 +8577,7 @@ class BodyBuilderImpl extends StackListenerImpl
   void beginSwitchBlock(Token token) {
     debugEvent("beginSwitchBlock");
     // This is matched by the [endNode] call in [endSwitchStatement].
-    typeInferrer.assignedVariables.beginNode();
+    assignedVariables.beginNode();
     createAndEnterLocalScope(
       debugName: "switch block",
       kind: ScopeKind.switchBlock,
@@ -9823,7 +8754,7 @@ class BodyBuilderImpl extends StackListenerImpl
           for (VariableDeclaration jointVariable in jointPatternVariables) {
             assert(_localScope.kind == ScopeKind.jointVariables);
             declareVariable(jointVariable, _localScope);
-            typeInferrer.assignedVariables.declare(jointVariable);
+            assignedVariables.declare(jointVariable);
           }
         }
       }
@@ -10221,7 +9152,7 @@ class BodyBuilderImpl extends StackListenerImpl
     }
     exitLoopOrSwitch(result);
     // This is matched by the [beginNode] call in [beginSwitchBlock].
-    typeInferrer.assignedVariables.endNode(switchStatement);
+    assignedVariables.endNode(switchStatement);
   }
 
   @override
@@ -10624,10 +9555,11 @@ class BodyBuilderImpl extends StackListenerImpl
           }
           break;
         case NominalParameterBuilder():
-          inferAnnotations(variable.parameter, annotations);
+          //inferAnnotations(variable.parameter, annotations);
           for (Expression annotation in annotations) {
             variable.parameter.addAnnotation(annotation);
           }
+          _registerSingleTargetAnnotations(variable.parameter);
           break;
       }
     }
@@ -10812,7 +9744,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Expression expression, [
     int charOffset = -1,
   ]) {
-    needsImplicitSuperInitializer = false;
+    _needsImplicitSuperInitializer = false;
     return new ShadowInvalidInitializer(
       new VariableDeclaration.forValue(expression),
     )..fileOffset = charOffset;
@@ -11014,7 +9946,7 @@ class BodyBuilderImpl extends StackListenerImpl
         constructor.name.text.length,
       );
     }
-    needsImplicitSuperInitializer = false;
+    _needsImplicitSuperInitializer = false;
     return new SuperInitializer(constructor, arguments)
       ..fileOffset = charOffset
       ..isSynthetic = isSynthetic;
@@ -11062,7 +9994,7 @@ class BodyBuilderImpl extends StackListenerImpl
           }
         }
       }
-      needsImplicitSuperInitializer = false;
+      _needsImplicitSuperInitializer = false;
       return _context.buildRedirectingInitializer(
         constructorBuilder,
         arguments,
@@ -11860,7 +10792,7 @@ class BodyBuilderImpl extends StackListenerImpl
         declaredVariable,
       );
       declareVariable(declaredVariable, _localScope);
-      typeInferrer.assignedVariables.declare(declaredVariable);
+      assignedVariables.declare(declaredVariable);
     }
     push(pattern);
   }
@@ -12085,52 +11017,37 @@ class BodyBuilderImpl extends StackListenerImpl
   }
 
   @override
-  void buildInitializers({
+  BuildInitializersResult buildInitializers({
     required Token beginInitializers,
-    required SourceConstructorBuilder constructorBuilder,
-    required bool isConst,
   }) {
-    if (isConst) {
-      constantContext = ConstantContext.required;
-    }
-    constructorBuilder.inferFormalTypes(hierarchy);
-    parseInitializers(beginInitializers, doFinishConstructor: isConst);
-    performBacklogComputations();
+    parseInitializers(beginInitializers);
+    return new BuildInitializersResult(
+      _initializers,
+      _needsImplicitSuperInitializer,
+      _takePendingAnnotations(),
+    );
   }
 
   @override
   List<Initializer>? buildInitializersUnfinished({
     required Token beginInitializers,
-    required bool isConst,
   }) {
-    if (isConst) {
-      constantContext = ConstantContext.required;
-    }
-    return parseInitializers(beginInitializers, doFinishConstructor: false);
+    return parseInitializers(beginInitializers);
   }
 
   @override
-  Expression buildParameterInitializer({
+  BuildParameterInitializerResult buildParameterInitializer({
     required Token initializerToken,
-    required DartType declaredType,
-    required bool hasDeclaredInitializer,
   }) {
-    constantContext = ConstantContext.required;
     Expression initializer = parseFieldInitializer(initializerToken);
-    initializer = typeInferrer.inferParameterInitializer(
-      fileUri: uri,
-      initializer: initializer,
-      declaredType: declaredType,
-      hasDeclaredInitializer: hasDeclaredInitializer,
-      constantContext: constantContext,
+    return new BuildParameterInitializerResult(
+      initializer,
+      _takePendingAnnotations(),
     );
-
-    performBacklogComputations();
-    return initializer;
   }
 
   @override
-  void buildRedirectingFactoryMethod({
+  BuildRedirectingFactoryMethodResult buildRedirectingFactoryMethod({
     required Token token,
     required Token? metadata,
   }) {
@@ -12151,8 +11068,9 @@ class BodyBuilderImpl extends StackListenerImpl
         MemberKind.Factory,
       );
       pop(); // Pops formal parameters.
-      finishRedirectingFactoryBody();
+      //finishRedirectingFactoryBody();
       checkEmpty(token.next!.charOffset);
+      return new BuildRedirectingFactoryMethodResult(_takePendingAnnotations());
     }
     // Coverage-ignore(suite): Not run.
     on DebugAbort {
@@ -12163,109 +11081,92 @@ class BodyBuilderImpl extends StackListenerImpl
   }
 
   @override
-  void buildPrimaryConstructor({required Token startToken}) {
+  BuildPrimaryConstructorResult buildPrimaryConstructor({
+    required Token startToken,
+  }) {
     Token token = startToken;
-    try {
-      Parser parser = new Parser(
-        this,
-        useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-        allowPatterns: libraryFeatures.patterns.isEnabled,
-        enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled,
-      );
-      token = parser.parseFormalParametersOpt(
-        parser.syntheticPreviousToken(token),
-        MemberKind.PrimaryConstructor,
-      );
-      FormalParameters? formals = pop() as FormalParameters?;
-      checkEmpty(token.next!.charOffset);
-      handleNoInitializers();
-      checkEmpty(token.charOffset);
-      finishFunction(formals, AsyncMarker.Sync, null);
-    }
-    // Coverage-ignore(suite): Not run.
-    on DebugAbort {
-      rethrow;
-    } catch (e, s) {
-      throw new Crash(uri, token.charOffset, e, s);
-    }
+    Parser parser = new Parser(
+      this,
+      useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+      allowPatterns: libraryFeatures.patterns.isEnabled,
+      enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled,
+    );
+    token = parser.parseFormalParametersOpt(
+      parser.syntheticPreviousToken(token),
+      MemberKind.PrimaryConstructor,
+    );
+    FormalParameters? formals = pop() as FormalParameters?;
+    checkEmpty(token.next!.charOffset);
+    handleNoInitializers();
+    checkEmpty(token.charOffset);
+    return new BuildPrimaryConstructorResult(
+      formals,
+      _takePendingAnnotations(),
+    );
   }
 
   @override
-  void buildFunctionBody({
+  BuildFunctionBodyResult buildFunctionBody({
     required Token startToken,
     required Token? metadata,
     required MemberKind kind,
   }) {
     Token token = startToken;
-    try {
-      Parser parser = new Parser(
-        this,
-        useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-        allowPatterns: libraryFeatures.patterns.isEnabled,
-        enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled,
-      );
-      if (metadata != null) {
-        parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
-        pop(); // Annotations.
-      }
-      token = parser.parseFormalParametersOpt(
-        parser.syntheticPreviousToken(token),
-        kind,
-      );
-      FormalParameters? formals = pop() as FormalParameters?;
-      checkEmpty(token.next!.charOffset);
-      token = parser.parseInitializersOpt(token);
-      token = parser.parseAsyncModifierOpt(token);
-      AsyncMarker asyncModifier = pop() as AsyncMarker? ?? AsyncMarker.Sync;
-      if (kind == MemberKind.Factory && asyncModifier != AsyncMarker.Sync) {
-        // Factories has to be sync. The parser issued an error.
-        // Recover to sync.
-        asyncModifier = AsyncMarker.Sync;
-      }
-      bool isExpression = false;
-      bool allowAbstract = asyncModifier == AsyncMarker.Sync;
+    Parser parser = new Parser(
+      this,
+      useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+      allowPatterns: libraryFeatures.patterns.isEnabled,
+      enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled,
+    );
+    if (metadata != null) {
+      parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
+      pop(); // Annotations.
+    }
+    token = parser.parseFormalParametersOpt(
+      parser.syntheticPreviousToken(token),
+      kind,
+    );
+    FormalParameters? formals = pop() as FormalParameters?;
+    checkEmpty(token.next!.charOffset);
+    token = parser.parseInitializersOpt(token);
+    token = parser.parseAsyncModifierOpt(token);
+    AsyncMarker asyncModifier = pop() as AsyncMarker? ?? AsyncMarker.Sync;
+    if (kind == MemberKind.Factory && asyncModifier != AsyncMarker.Sync) {
+      // Factories has to be sync. The parser issued an error.
+      // Recover to sync.
+      asyncModifier = AsyncMarker.Sync;
+    }
+    bool isExpression = false;
+    bool allowAbstract = asyncModifier == AsyncMarker.Sync;
 
-      benchmarker
-      // Coverage-ignore(suite): Not run.
-      ?.beginSubdivide(
-        BenchmarkSubdivides.diet_listener_buildFunctionBody_parseFunctionBody,
-      );
-      parser.parseFunctionBody(token, isExpression, allowAbstract);
-      Statement? body = pop() as Statement?;
-      benchmarker
-          // Coverage-ignore(suite): Not run.
-          ?.endSubdivide();
-      checkEmpty(token.charOffset);
-      finishFunction(formals, asyncModifier, body);
-    }
+    benchmarker
     // Coverage-ignore(suite): Not run.
-    on DebugAbort {
-      rethrow;
-    } catch (e, s) {
-      throw new Crash(uri, token.charOffset, e, s);
-    }
+    ?.beginSubdivide(
+      BenchmarkSubdivides.diet_listener_buildFunctionBody_parseFunctionBody,
+    );
+    parser.parseFunctionBody(token, isExpression, allowAbstract);
+    Statement? body = pop() as Statement?;
+    benchmarker
+        // Coverage-ignore(suite): Not run.
+        ?.endSubdivide();
+    checkEmpty(token.charOffset);
+    return new BuildFunctionBodyResult(
+      formals: formals,
+      asyncModifier: asyncModifier,
+      body: body,
+      initializers: _initializers,
+      needsImplicitSuperInitializer: _needsImplicitSuperInitializer,
+      annotations: _takePendingAnnotations(),
+    );
   }
 
   @override
-  Expression buildUnfinishedAnnotation({required Token atToken}) {
+  Expression buildAnnotation({required Token atToken}) {
     return parseAnnotation(atToken);
   }
 
   @override
-  void inferUnfinishedAnnotations({
-    required Annotatable parent,
-    required List<Expression> annotations,
-    required List<int> indices,
-  }) {
-    inferAnnotations(parent, annotations, indices: indices);
-    performBacklogComputations();
-  }
-
-  @override
-  List<Expression> buildMetadataList({
-    required Token metadata,
-    required Annotatable? parent,
-  }) {
+  BuildMetadataListResult buildMetadataList({required Token metadata}) {
     Parser parser = new Parser(
       this,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
@@ -12273,12 +11174,13 @@ class BodyBuilderImpl extends StackListenerImpl
       enableFeatureEnhancedParts: libraryFeatures.enhancedParts.isEnabled,
     );
     parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
-    return finishMetadata(parent);
+    assert(checkState(null, [ValueKinds.AnnotationList]));
+    List<Expression> expressions = pop() as List<Expression>;
+    return new BuildMetadataListResult(expressions, _takePendingAnnotations());
   }
 
   @override
-  void buildFields({
-    required OffsetMap offsetMap,
+  BuildFieldsResult buildFields({
     required Token startToken,
     required Token? metadata,
     required bool isTopLevel,
@@ -12296,136 +11198,172 @@ class BodyBuilderImpl extends StackListenerImpl
       // TODO(danrubel): disambiguate between class/mixin/extension members
       token = parser.parseClassMember(metadata ?? token, null).next!;
     }
-    finishFields(offsetMap);
+
+    assert(checkState(null, [/*field count*/ ValueKinds.Integer]));
+    int count = pop() as int;
+    Map<Identifier, Expression?> result = {};
+    for (int i = 0; i < count; i++) {
+      assert(
+        checkState(null, [
+          ValueKinds.FieldInitializerOrNull,
+          ValueKinds.Identifier,
+        ]),
+      );
+      Expression? initializer = pop() as Expression?;
+      Identifier identifier = pop() as Identifier;
+      result[identifier] = initializer;
+    }
+    assert(
+      checkState(null, [
+        ValueKinds.TypeOrNull,
+        ValueKinds.AnnotationListOrNull,
+      ]),
+    );
+    {
+      // TODO(ahe): The type we compute here may be different from what is
+      // computed in the outline phase. We should make sure that the outline
+      // phase computes the same type. See
+      // pkg/front_end/testcases/regress/issue_32200.dart for an example where
+      // not calling [buildDartType] leads to a missing compile-time
+      // error. Also, notice that the type of the problematic field isn't
+      // `invalid-type`.
+      TypeBuilder? type = pop() as TypeBuilder?;
+      if (type != null) {
+        buildDartType(
+          type,
+          TypeUse.fieldType,
+          allowPotentiallyConstantType: false,
+        );
+      }
+    }
+    pop(); // Annotations.
 
     checkEmpty(token.charOffset);
+
+    return new BuildFieldsResult(result, _takePendingAnnotations());
   }
 
   @override
-  Expression buildFieldInitializerUnfinished({
+  BuildFieldInitializerResult buildFieldInitializer1({
     required Token startToken,
-    required ConstantContext constantContext,
     required bool isLate,
   }) {
-    this.constantContext = constantContext;
     inFieldInitializer = true;
     inLateFieldInitializer = isLate;
-    return parseFieldInitializer(startToken);
+    Expression initializer = parseFieldInitializer(startToken);
+    return new BuildFieldInitializerResult(
+      initializer,
+      _takePendingAnnotations(),
+    );
   }
 
   @override
-  Expression buildFieldInitializer2({
+  BuildFieldInitializerResult buildFieldInitializer2({
     required Token startToken,
-    required bool isConst,
-    required Uri fileUri,
-    required DartType declaredFieldType,
   }) {
-    ConstantContext constantContext = isConst
-        ? ConstantContext.inferred
-        : ConstantContext.required;
-    this.constantContext = constantContext;
-    Expression initializer = typeInferrer
-        .inferFieldInitializer(
-          fileUri: fileUri,
-          constantContext: constantContext,
-          declaredType: declaredFieldType,
-          initializer: parseFieldInitializer(startToken),
-        )
-        .expression;
-    performBacklogComputations();
-    return initializer;
+    Expression initializer = parseFieldInitializer(startToken);
+    return new BuildFieldInitializerResult(
+      initializer,
+      _takePendingAnnotations(),
+    );
   }
 
   @override
-  (Expression, DartType?) buildEnumConstant({
-    required Token? token,
-    required List<Expression> enumSyntheticArguments,
-    required int enumTypeParameterCount,
-    required List<DartType>? typeArguments,
-    required MemberBuilder? constructorBuilder,
-    required int fileOffset,
-    required String fullConstructorNameForErrors,
-  }) {
-    ConstantContext constantContext = ConstantContext.inferred;
-    this.constantContext = constantContext;
-
-    ArgumentsImpl arguments;
-    if (token != null) {
-      arguments = parseArguments(token);
-      // We pass `true` for [allowFurtherDelays] here because the members of
-      // the enums are built before the inference, and the resolution of the
-      // redirecting factories can't be completed at this moment and
-      // therefore should be delayed to another invocation of
-      // [BodyBuilderImpl.performBacklogComputations].
-      performBacklogComputations();
-
-      arguments.positional.insertAll(0, enumSyntheticArguments);
-      arguments.argumentsOriginalOrder?.insertAll(0, enumSyntheticArguments);
-    } else {
-      arguments = new ArgumentsImpl(enumSyntheticArguments);
-    }
-    if (typeArguments != null) {
-      arguments.setExplicitTypeArguments(typeArguments);
-    } else if (enumTypeParameterCount != 0) {
-      arguments.types.addAll(
-        new List<DartType>.filled(enumTypeParameterCount, const UnknownType()),
-      );
-    }
-    setParents(enumSyntheticArguments, arguments);
-    Expression initializer;
-    DartType? fieldType;
-    if (constructorBuilder == null ||
-        constructorBuilder is! SourceConstructorBuilder) {
-      initializer = buildUnresolvedError(
-        fullConstructorNameForErrors,
-        fileOffset,
-        kind: UnresolvedKind.Constructor,
-      );
-    } else {
-      initializer = buildConstructorInvocation(
-        constructorBuilder.invokeTarget,
-        arguments,
-        constness: Constness.explicitConst,
-        fileOffset: fileOffset,
-      );
-      ExpressionInferenceResult inferenceResult = typeInferrer
-          .inferFieldInitializer(
-            fileUri: uri,
-            constantContext: constantContext,
-            declaredType: const UnknownType(),
-            initializer: initializer,
-          );
-      initializer = inferenceResult.expression;
-      fieldType = inferenceResult.inferredType;
-    }
-    return (initializer, fieldType);
+  BuildEnumConstantResult buildEnumConstant({required Token token}) {
+    ArgumentsImpl arguments = parseArguments(token);
+    return new BuildEnumConstantResult(arguments, _takePendingAnnotations());
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  Expression buildSingleExpression({
+  BuildSingleExpressionResult buildSingleExpression({
     required Token token,
-    required Procedure procedure,
     required List<VariableDeclarationImpl> extraKnownVariables,
-    required ExpressionEvaluationHelper expressionEvaluationHelper,
+    required List<NominalParameterBuilder>? typeParameterBuilders,
+    required List<FormalParameterBuilder>? formals,
+    required int fileOffset,
   }) {
-    for (VariableDeclaration variable
-        in procedure.function.positionalParameters) {
-      typeInferrer.assignedVariables.declare(variable);
+    Parser parser = new Parser(
+      this,
+      useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+      allowPatterns: libraryBuilder.libraryFeatures.patterns.isEnabled,
+      enableFeatureEnhancedParts:
+          libraryBuilder.libraryFeatures.enhancedParts.isEnabled,
+    );
+
+    if (formals != null) {
+      for (FormalParameterBuilder formalParameterBuilder in formals) {
+        assignedVariables.declare(formalParameterBuilder.variable!);
+      }
     }
 
-    return parseSingleExpression(
-      new Parser(
+    enterNominalVariablesScope(typeParameterBuilders);
+
+    enterLocalScope(
+      new FormalParameters(
+        formals,
+        fileOffset,
+        noLength,
+        uri,
+      ).computeFormalParameterScope(
+        _localScope,
         this,
-        useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-        allowPatterns: libraryBuilder.libraryFeatures.patterns.isEnabled,
-        enableFeatureEnhancedParts:
-            libraryBuilder.libraryFeatures.enhancedParts.isEnabled,
+        wildcardVariablesEnabled: libraryFeatures.wildcardVariables.isEnabled,
       ),
-      token,
-      procedure.function,
-      extraKnownVariables,
-      expressionEvaluationHelper,
     );
+
+    if (extraKnownVariables.isNotEmpty) {
+      LocalScope extraKnownVariablesScope = _localScope.createNestedScope(
+        debugName: "expression compilation extra known variables scope",
+        kind: ScopeKind.ifElement,
+      );
+      enterLocalScope(extraKnownVariablesScope);
+      for (VariableDeclarationImpl extraVariable in extraKnownVariables) {
+        declareVariable(extraVariable, _localScope);
+        assignedVariables.declare(extraVariable);
+      }
+    }
+
+    Token endToken = parser.parseExpression(
+      parser.syntheticPreviousToken(token),
+    );
+
+    assert(
+      checkState(token, [
+        unionOfKinds([ValueKinds.Expression, ValueKinds.Generator]),
+      ]),
+    );
+    Expression expression = popForValue();
+    Token eof = endToken.next!;
+
+    if (!eof.isEof) {
+      expression = problemReporting.wrapInLocatedProblem(
+        compilerContext: compilerContext,
+        expression: expression,
+        message: cfe.codeExpectedOneExpression.withLocation(
+          uri,
+          eof.charOffset,
+          eof.length,
+        ),
+      );
+    }
+
+    return new BuildSingleExpressionResult(
+      expression,
+      _takePendingAnnotations(),
+    );
+  }
+
+  void _registerSingleTargetAnnotations(
+    Annotatable target, [
+    List<int>? indicesOfAnnotationsToBeInferred,
+  ]) {
+    (_singleTargetAnnotations ??= []).add(
+      new SingleTargetAnnotations(target, indicesOfAnnotationsToBeInferred),
+    );
+  }
+
+  void _registerMultiTargetAnnotations(List<Annotatable> targets) {
+    (_multiTargetAnnotations ??= []).add(new MultiTargetAnnotations(targets));
   }
 }

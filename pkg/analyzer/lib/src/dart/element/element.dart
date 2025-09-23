@@ -3549,22 +3549,46 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   }) {
     DeferredResolutionReadingMixin.withoutLoadingResolution(() {
       var firstFormalParameters = getFragments(fragments.first);
-      for (var i = 0; i < firstFormalParameters.length; i++) {
-        // Side effect: set element for the fragment.
-        var first = firstFormalParameters[i];
-        switch (first) {
+      for (var fragment in firstFormalParameters) {
+        switch (fragment) {
           case FieldFormalParameterFragmentImpl():
-            FieldFormalParameterElementImpl(first);
+            FieldFormalParameterElementImpl(fragment);
           case SuperFormalParameterFragmentImpl():
-            SuperFormalParameterElementImpl(first);
+            SuperFormalParameterElementImpl(fragment);
           default:
-            FormalParameterElementImpl(first);
+            FormalParameterElementImpl(fragment);
         }
-        fragments.reduce((previous, current) {
-          getFragments(previous)[i].addFragment(getFragments(current)[i]);
-          return current;
-        });
       }
+
+      var length = firstFormalParameters.length;
+      fragments.reduce((previous, current) {
+        var previousFragments = getFragments(previous);
+        var currentFragments = getFragments(current);
+
+        var index = 0;
+        while (index < previousFragments.length) {
+          var previousFragment = previousFragments[index];
+          if (!previousFragment.isPositional) {
+            break;
+          }
+          previousFragments[index].addFragment(currentFragments[index]);
+          index++;
+        }
+
+        var namedMap = <String, List<FormalParameterFragmentImpl>>{};
+        for (var i = index; i < length; i++) {
+          var f = currentFragments[i];
+          (namedMap[f.name!] ??= <FormalParameterFragmentImpl>[]).add(f);
+        }
+
+        for (var i = index; i < length; i++) {
+          var previousParameter = previousFragments[i];
+          var currentParameter = namedMap[previousParameter.name]!.removeAt(0);
+          previousParameter.addFragment(currentParameter);
+        }
+
+        return current;
+      });
     });
   }
 }

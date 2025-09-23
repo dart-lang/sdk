@@ -13,10 +13,12 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/dart/element/element.dart'; // ignore: implementation_imports
-import 'package:analyzer/src/dart/element/extensions.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/error/deprecated_member_use_verifier.dart' // ignore: implementation_imports
-    show BaseDeprecatedMemberUseVerifier;
+    show DeprecatedElementUsageSet, normalizeDeprecationMessage;
+import 'package:analyzer/src/error/element_usage_detector.dart' // ignore: implementation_imports
+    show ElementUsageReporter;
+import 'package:analyzer/src/error/element_usage_frontier_detector.dart' // ignore: implementation_imports
+    show ElementUsageFrontierDetector;
 import 'package:analyzer/src/utilities/extensions/ast.dart'; // ignore: implementation_imports
 import 'package:analyzer/workspace/workspace.dart';
 
@@ -49,63 +51,57 @@ class DeprecatedMemberUseFromSamePackage extends MultiAnalysisRule {
   }
 }
 
-class _DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
+class _DeprecatedElementUsageReporter extends ElementUsageReporter<String> {
   final MultiAnalysisRule _rule;
-  final WorkspacePackage _workspacePackage;
 
-  _DeprecatedMemberUseVerifier(this._rule, this._workspacePackage);
+  _DeprecatedElementUsageReporter({required MultiAnalysisRule rule})
+    : _rule = rule;
 
   @override
-  void reportError(
-    SyntacticEntity errorEntity,
-    Element element,
+  void report(
+    SyntacticEntity usageSite,
     String displayName,
-    String? message,
-  ) {
-    var library = element is LibraryElement ? element : element.library;
-    if (library case LibraryElementImpl library) {
-      if (!_workspacePackage.contains(library.source)) {
-        // In this case, `DEPRECATED_MEMBER_USE` is reported by the analyzer.
-        return;
-      }
+    String tagInfo, {
+    required bool isInSamePackage,
+    required Element element,
+  }) {
+    if (!isInSamePackage) {
+      // In this case, `DEPRECATED_MEMBER_USE` is reported by the analyzer.
+      return;
     }
 
-    var normalizedMessage = message?.trim();
-    if (normalizedMessage == null ||
-        normalizedMessage.isEmpty ||
-        normalizedMessage == '.') {
+    if (normalizeDeprecationMessage(tagInfo) case var message?) {
       _rule.reportAtOffset(
-        errorEntity.offset,
-        errorEntity.length,
+        usageSite.offset,
+        usageSite.length,
+        arguments: [displayName, message],
+        diagnosticCode:
+            LinterLintCode.deprecatedMemberUseFromSamePackageWithMessage,
+      );
+    } else {
+      _rule.reportAtOffset(
+        usageSite.offset,
+        usageSite.length,
         arguments: [displayName],
         diagnosticCode:
             LinterLintCode.deprecatedMemberUseFromSamePackageWithoutMessage,
-      );
-    } else {
-      if (!normalizedMessage.endsWith('.') &&
-          !normalizedMessage.endsWith('?') &&
-          !normalizedMessage.endsWith('!')) {
-        normalizedMessage = '$message.';
-      }
-      _rule.reportAtOffset(
-        errorEntity.offset,
-        errorEntity.length,
-        arguments: [displayName, normalizedMessage],
-        diagnosticCode:
-            LinterLintCode.deprecatedMemberUseFromSamePackageWithMessage,
       );
     }
   }
 }
 
-/// This visitor uses a [DeprecatedMemberUseVerifier] to both report uses of
+/// This visitor uses an [ElementUsageFrontierDetector] to both report uses of
 /// deprecated elements, and to track the deprecated-ness of ancestor
 /// declaration nodes.
 class _RecursiveVisitor extends RecursiveAstVisitor<void> {
-  final _DeprecatedMemberUseVerifier _deprecatedVerifier;
+  final ElementUsageFrontierDetector<String> _deprecatedVerifier;
 
   _RecursiveVisitor(MultiAnalysisRule rule, WorkspacePackage package)
-    : _deprecatedVerifier = _DeprecatedMemberUseVerifier(rule, package);
+    : _deprecatedVerifier = ElementUsageFrontierDetector(
+        workspacePackage: package,
+        elementUsageSet: const DeprecatedElementUsageSet(),
+        elementUsageReporter: _DeprecatedElementUsageReporter(rule: rule),
+      );
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
@@ -139,7 +135,7 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
     if (library == null) {
       return;
     }
-    _deprecatedVerifier.pushInDeprecatedValue(library.isUseDeprecated);
+    _deprecatedVerifier.pushElement(library);
 
     super.visitCompilationUnit(node);
   }
@@ -199,14 +195,12 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
-    _deprecatedVerifier.pushInDeprecatedValue(
-      node.firstVariableElement.isUseDeprecated,
-    );
+    _deprecatedVerifier.pushElement(node.firstVariableElement);
 
     try {
       super.visitFieldDeclaration(node);
     } finally {
-      _deprecatedVerifier.popInDeprecated();
+      _deprecatedVerifier.popElement();
     }
   }
 
@@ -329,14 +323,12 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    _deprecatedVerifier.pushInDeprecatedValue(
-      node.firstVariableElement.isUseDeprecated,
-    );
+    _deprecatedVerifier.pushElement(node.firstVariableElement);
 
     try {
       super.visitTopLevelVariableDeclaration(node);
     } finally {
-      _deprecatedVerifier.popInDeprecated();
+      _deprecatedVerifier.popElement();
     }
   }
 
@@ -355,12 +347,11 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
   }
 
   void _withDeprecatedFragment(Fragment? fragment, void Function() recurse) {
-    var isDeprecated = fragment?.element.isUseDeprecated ?? false;
-    _deprecatedVerifier.pushInDeprecatedValue(isDeprecated);
+    _deprecatedVerifier.pushElement(fragment?.element);
     try {
       recurse();
     } finally {
-      _deprecatedVerifier.popInDeprecated();
+      _deprecatedVerifier.popElement();
     }
   }
 }

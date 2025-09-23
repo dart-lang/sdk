@@ -31,6 +31,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/deprecated_functionality_verifier.dart';
 import 'package:analyzer/src/error/deprecated_member_use_verifier.dart';
 import 'package:analyzer/src/error/doc_comment_verifier.dart';
+import 'package:analyzer/src/error/element_usage_frontier_detector.dart';
 import 'package:analyzer/src/error/error_handler_verifier.dart';
 import 'package:analyzer/src/error/must_call_super_verifier.dart';
 import 'package:analyzer/src/error/null_safe_api_verifier.dart';
@@ -67,7 +68,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   final DeprecatedFunctionalityVerifier _deprecatedFunctionalityVerifier;
 
-  final DeprecatedMemberUseVerifier _deprecatedMemberUseVerifier;
+  final ElementUsageFrontierDetector<String> _deprecatedMemberUseVerifier;
 
   final ErrorHandlerVerifier _errorHandlerVerifier;
 
@@ -114,9 +115,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
          _diagnosticReporter,
          _currentLibrary,
        ),
-       _deprecatedMemberUseVerifier = DeprecatedMemberUseVerifier(
-         workspacePackage,
-         _diagnosticReporter,
+       _deprecatedMemberUseVerifier = ElementUsageFrontierDetector(
+         workspacePackage: workspacePackage,
+         elementUsageSet: const DeprecatedElementUsageSet(),
+         elementUsageReporter: DeprecatedElementUsageReporter(
+           diagnosticReporter: _diagnosticReporter,
+         ),
        ),
        _errorHandlerVerifier = ErrorHandlerVerifier(
          _diagnosticReporter,
@@ -137,9 +141,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
        ),
        _widgetPreviewVerifier = WidgetPreviewVerifier(_diagnosticReporter),
        _workspacePackage = workspacePackage {
-    _deprecatedMemberUseVerifier.pushInDeprecatedValue(
-      _currentLibrary.isUseDeprecated,
-    );
+    _deprecatedMemberUseVerifier.pushElement(_currentLibrary);
     _inDoNotStoreMember = _currentLibrary.metadata.hasDoNotStore;
   }
 
@@ -213,7 +215,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
     bool wasInDoNotStoreMember = _inDoNotStoreMember;
     _deprecatedFunctionalityVerifier.classDeclaration(node);
-    _deprecatedMemberUseVerifier.pushInDeprecatedValue(element.isUseDeprecated);
+    _deprecatedMemberUseVerifier.pushElement(element);
     if (element.metadata.hasDoNotStore) {
       _inDoNotStoreMember = true;
     }
@@ -225,7 +227,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     } finally {
       _enclosingClass = null;
       _invalidAccessVerifier._enclosingClass = null;
-      _deprecatedMemberUseVerifier.popInDeprecated();
+      _deprecatedMemberUseVerifier.popElement();
       _inDoNotStoreMember = wasInDoNotStoreMember;
     }
   }
@@ -235,14 +237,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     _checkForImmutable(node);
     _checkForInvalidSealedSuperclass(node);
     _deprecatedFunctionalityVerifier.classTypeAlias(node);
-    _deprecatedMemberUseVerifier.pushInDeprecatedValue(
-      node.declaredFragment!.element.isUseDeprecated,
-    );
+    _deprecatedMemberUseVerifier.pushElement(node.declaredFragment!.element);
 
     try {
       super.visitClassTypeAlias(node);
     } finally {
-      _deprecatedMemberUseVerifier.popInDeprecated();
+      _deprecatedMemberUseVerifier.popElement();
     }
   }
 
@@ -289,11 +289,11 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       body: node.body,
       initializers: node.initializers,
     );
-    _deprecatedMemberUseVerifier.pushInDeprecatedValue(element.isUseDeprecated);
+    _deprecatedMemberUseVerifier.pushElement(element);
     try {
       super.visitConstructorDeclaration(node);
     } finally {
-      _deprecatedMemberUseVerifier.popInDeprecated();
+      _deprecatedMemberUseVerifier.popElement();
     }
   }
 
@@ -324,14 +324,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         );
       }
     }
-    _deprecatedMemberUseVerifier.pushInDeprecatedValue(
-      node.declaredFragment!.element.isUseDeprecated,
-    );
+    _deprecatedMemberUseVerifier.pushElement(node.declaredFragment!.element);
 
     try {
       super.visitDefaultFormalParameter(node);
     } finally {
-      _deprecatedMemberUseVerifier.popInDeprecated();
+      _deprecatedMemberUseVerifier.popElement();
     }
   }
 
@@ -346,15 +344,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
-    _deprecatedMemberUseVerifier.pushInDeprecatedValue(
-      node.declaredFragment!.element.isUseDeprecated,
-    );
+    _deprecatedMemberUseVerifier.pushElement(node.declaredFragment!.element);
     _deprecatedFunctionalityVerifier.enumDeclaration(node);
 
     try {
       super.visitEnumDeclaration(node);
     } finally {
-      _deprecatedMemberUseVerifier.popInDeprecated();
+      _deprecatedMemberUseVerifier.popElement();
     }
   }
 
@@ -375,14 +371,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
-    _deprecatedMemberUseVerifier.pushInDeprecatedValue(
-      node.declaredFragment!.element.isUseDeprecated,
-    );
+    _deprecatedMemberUseVerifier.pushElement(node.declaredFragment!.element);
 
     try {
       super.visitExtensionDeclaration(node);
     } finally {
-      _deprecatedMemberUseVerifier.popInDeprecated();
+      _deprecatedMemberUseVerifier.popElement();
     }
   }
 
@@ -394,22 +388,18 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    _deprecatedMemberUseVerifier.pushInDeprecatedValue(
-      node.declaredFragment!.element.isUseDeprecated,
-    );
+    _deprecatedMemberUseVerifier.pushElement(node.declaredFragment!.element);
 
     try {
       super.visitExtensionTypeDeclaration(node);
     } finally {
-      _deprecatedMemberUseVerifier.popInDeprecated();
+      _deprecatedMemberUseVerifier.popElement();
     }
   }
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
-    _deprecatedMemberUseVerifier.pushInDeprecatedValue(
-      node.firstVariableElement.isUseDeprecated,
-    );
+    _deprecatedMemberUseVerifier.pushElement(node.firstVariableElement);
 
     try {
       super.visitFieldDeclaration(node);
@@ -450,7 +440,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         }
       }
     } finally {
-      _deprecatedMemberUseVerifier.popInDeprecated();
+      _deprecatedMemberUseVerifier.popElement();
     }
   }
 
@@ -470,7 +460,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void visitFunctionDeclaration(FunctionDeclaration node) {
     bool wasInDoNotStoreMember = _inDoNotStoreMember;
     var element = node.declaredFragment!.element;
-    _deprecatedMemberUseVerifier.pushInDeprecatedValue(element.isUseDeprecated);
+    _deprecatedMemberUseVerifier.pushElement(element);
     if (element.metadata.hasDoNotStore) {
       _inDoNotStoreMember = true;
     }
@@ -489,7 +479,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       );
       super.visitFunctionDeclaration(node);
     } finally {
-      _deprecatedMemberUseVerifier.popInDeprecated();
+      _deprecatedMemberUseVerifier.popElement();
       _inDoNotStoreMember = wasInDoNotStoreMember;
     }
   }
@@ -521,14 +511,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     _checkStrictInferenceReturnType(node.returnType, node, node.name.lexeme);
     _checkStrictInferenceInParameters(node.parameters);
-    _deprecatedMemberUseVerifier.pushInDeprecatedValue(
-      node.declaredFragment!.element.isUseDeprecated,
-    );
+    _deprecatedMemberUseVerifier.pushElement(node.declaredFragment!.element);
 
     try {
       super.visitFunctionTypeAlias(node);
     } finally {
-      _deprecatedMemberUseVerifier.popInDeprecated();
+      _deprecatedMemberUseVerifier.popElement();
     }
   }
 
@@ -558,14 +546,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         node.name.lexeme,
       );
     }
-    _deprecatedMemberUseVerifier.pushInDeprecatedValue(
-      node.declaredFragment!.element.isUseDeprecated,
-    );
+    _deprecatedMemberUseVerifier.pushElement(node.declaredFragment!.element);
 
     try {
       super.visitGenericTypeAlias(node);
     } finally {
-      _deprecatedMemberUseVerifier.popInDeprecated();
+      _deprecatedMemberUseVerifier.popElement();
     }
   }
 
@@ -608,7 +594,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     var element = node.declaredFragment!.element;
     var enclosingElement = element.enclosingElement;
 
-    _deprecatedMemberUseVerifier.pushInDeprecatedValue(element.isUseDeprecated);
+    _deprecatedMemberUseVerifier.pushElement(element);
     if (element.metadata.hasDoNotStore) {
       _inDoNotStoreMember = true;
     }
@@ -661,7 +647,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
       super.visitMethodDeclaration(node);
     } finally {
-      _deprecatedMemberUseVerifier.popInDeprecated();
+      _deprecatedMemberUseVerifier.popElement();
       _inDoNotStoreMember = wasInDoNotStoreMember;
     }
   }
@@ -682,7 +668,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     _invalidAccessVerifier._enclosingClass = _enclosingClass;
 
     _deprecatedFunctionalityVerifier.mixinDeclaration(node);
-    _deprecatedMemberUseVerifier.pushInDeprecatedValue(element.isUseDeprecated);
+    _deprecatedMemberUseVerifier.pushElement(element);
 
     try {
       _checkForImmutable(node);
@@ -691,7 +677,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     } finally {
       _enclosingClass = null;
       _invalidAccessVerifier._enclosingClass = null;
-      _deprecatedMemberUseVerifier.popInDeprecated();
+      _deprecatedMemberUseVerifier.popElement();
     }
   }
 
@@ -784,9 +770,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    _deprecatedMemberUseVerifier.pushInDeprecatedValue(
-      node.firstVariableElement.isUseDeprecated,
-    );
+    _deprecatedMemberUseVerifier.pushElement(node.firstVariableElement);
 
     if (!_invalidAccessVerifier._inTestDirectory) {
       for (var decl in node.variables.variables) {
@@ -797,7 +781,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     try {
       super.visitTopLevelVariableDeclaration(node);
     } finally {
-      _deprecatedMemberUseVerifier.popInDeprecated();
+      _deprecatedMemberUseVerifier.popElement();
     }
   }
 
