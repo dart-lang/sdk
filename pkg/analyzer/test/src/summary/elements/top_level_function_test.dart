@@ -2505,6 +2505,156 @@ library
 ''');
   }
 
+  test_formalParameters_requiredNamed_repeated() async {
+    var library = await buildLibrary(r'''
+void foo({required int n1, required int n1}) {}
+augment void foo({required int n1, required int n1}) {}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@function::foo
+          nextFragment: #F2
+          formalParameters
+            #F3 n1 (nameOffset:23) (firstTokenOffset:10) (offset:23)
+              element: <testLibrary>::@function::foo::@formalParameter::n1
+              nextFragment: #F4
+            #F5 n1 (nameOffset:40) (firstTokenOffset:27) (offset:40)
+              element: <testLibrary>::@function::foo::@formalParameter::n1
+              nextFragment: #F6
+        #F2 foo (nameOffset:61) (firstTokenOffset:48) (offset:61)
+          element: <testLibrary>::@function::foo
+          previousFragment: #F1
+          formalParameters
+            #F4 n1 (nameOffset:79) (firstTokenOffset:66) (offset:79)
+              element: <testLibrary>::@function::foo::@formalParameter::n1
+              previousFragment: #F3
+            #F6 n1 (nameOffset:96) (firstTokenOffset:83) (offset:96)
+              element: <testLibrary>::@function::foo::@formalParameter::n1
+              previousFragment: #F5
+  functions
+    foo
+      reference: <testLibrary>::@function::foo
+      firstFragment: #F1
+      formalParameters
+        #E0 requiredNamed n1
+          firstFragment: #F3
+          type: int
+        #E1 requiredNamed n1
+          firstFragment: #F5
+          type: int
+      returnType: void
+  exportedReferences
+    declared <testLibrary>::@function::foo
+  exportNamespace
+    foo: <testLibrary>::@function::foo
+''');
+  }
+
+  test_formalParameters_requiredNamed_repeated_12() async {
+    var library = await buildLibrary(r'''
+void foo({required int n1) {}
+augment void foo({required int n1, required int n1}}) {}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@function::foo
+          nextFragment: #F2
+          formalParameters
+            #F3 n1 (nameOffset:23) (firstTokenOffset:10) (offset:23)
+              element: <testLibrary>::@function::foo::@formalParameter::n1
+              nextFragment: #F4
+        #F2 foo (nameOffset:43) (firstTokenOffset:30) (offset:43)
+          element: <testLibrary>::@function::foo
+          previousFragment: #F1
+          formalParameters
+            #F4 n1 (nameOffset:61) (firstTokenOffset:48) (offset:61)
+              element: <testLibrary>::@function::foo::@formalParameter::n1
+              previousFragment: #F3
+  functions
+    foo
+      reference: <testLibrary>::@function::foo
+      firstFragment: #F1
+      formalParameters
+        #E0 requiredNamed n1
+          firstFragment: #F3
+          type: int
+      returnType: void
+  exportedReferences
+    declared <testLibrary>::@function::foo
+  exportNamespace
+    foo: <testLibrary>::@function::foo
+''');
+  }
+
+  test_formalParameters_requiredNamed_repeated_21() async {
+    var library = await buildLibrary(r'''
+void foo({required int n1, required int n1}) {}
+augment void foo({required int n1}) {}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 foo (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@function::foo
+          nextFragment: #F2
+          formalParameters
+            #F3 n1 (nameOffset:23) (firstTokenOffset:10) (offset:23)
+              element: <testLibrary>::@function::foo::@formalParameter::n1
+              nextFragment: #F4
+            #F5 n1 (nameOffset:40) (firstTokenOffset:27) (offset:40)
+              element: <testLibrary>::@function::foo::@formalParameter::n1
+              nextFragment: #F6
+        #F2 foo (nameOffset:61) (firstTokenOffset:48) (offset:61)
+          element: <testLibrary>::@function::foo
+          previousFragment: #F1
+          formalParameters
+            #F4 n1 (nameOffset:79) (firstTokenOffset:66) (offset:79)
+              element: <testLibrary>::@function::foo::@formalParameter::n1
+              previousFragment: #F3
+            #F6 n1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
+              element: <testLibrary>::@function::foo::@formalParameter::n1
+              previousFragment: #F5
+  functions
+    foo
+      reference: <testLibrary>::@function::foo
+      firstFragment: #F1
+      formalParameters
+        #E0 requiredNamed n1
+          firstFragment: #F3
+          type: int
+        #E1 requiredNamed n1
+          firstFragment: #F5
+          type: int
+      returnType: void
+  exportedReferences
+    declared <testLibrary>::@function::foo
+  exportNamespace
+    foo: <testLibrary>::@function::foo
+''');
+  }
+
   test_formalParameters_requiredNamed_swapped() async {
     var library = await buildLibrary(r'''
 void foo({required int n2, required int n1}) {}
@@ -2533,12 +2683,12 @@ library
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
-            #F4 n2 (nameOffset:79) (firstTokenOffset:66) (offset:79)
-              element: <testLibrary>::@function::foo::@formalParameter::n2
-              previousFragment: #F3
-            #F6 n1 (nameOffset:96) (firstTokenOffset:83) (offset:96)
+            #F6 n1 (nameOffset:79) (firstTokenOffset:66) (offset:79)
               element: <testLibrary>::@function::foo::@formalParameter::n1
               previousFragment: #F5
+            #F4 n2 (nameOffset:96) (firstTokenOffset:83) (offset:96)
+              element: <testLibrary>::@function::foo::@formalParameter::n2
+              previousFragment: #F3
   functions
     foo
       reference: <testLibrary>::@function::foo
