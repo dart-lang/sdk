@@ -1440,12 +1440,17 @@
     {
       "builders": [
         "vm-asan-linux-release-x64",
+        "vm-asan-mac-release-arm64",
         "vm-asan-mac-release-x64",
         "vm-asan-win-release-x64",
         "vm-msan-linux-release-x64",
         "vm-tsan-linux-release-x64",
         "vm-tsan-mac-release-arm64",
-        "vm-ubsan-linux-release-x64"
+        "vm-tsan-mac-release-x64",
+        "vm-ubsan-linux-release-x64",
+        "vm-ubsan-mac-release-arm64",
+        "vm-ubsan-mac-release-x64",
+        "vm-ubsan-win-release-x64"
       ],
       "meta": {
         "description": "This configuration is used by the sanitizers (high capacity machine pools)."
