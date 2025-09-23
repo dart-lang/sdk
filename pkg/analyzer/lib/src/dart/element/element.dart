@@ -2163,9 +2163,12 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   @trackedIncludedInId
   List<FormalParameterElementImpl> get formalParameters {
     _ensureReadResolution();
-    return _firstFragment.formalParameters
-        .map((fragment) => fragment.asElement2)
-        .toList();
+    // We don't use `.map(...).toList()` because it's a lot slower.
+    // This singular change caused the analyzer as a whole to speed up ~1%.
+    var formalParameters = _firstFragment.formalParameters;
+    return List.generate(formalParameters.length, (index) {
+      return formalParameters[index].asElement2;
+    }, growable: false);
   }
 
   @override
