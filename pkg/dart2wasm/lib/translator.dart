@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchySubtypes, ClosedWorldClassHierarchy;
@@ -1866,7 +1868,14 @@ class Translator with KernelNodes {
       return false;
     }
 
-    if (hasUnpairedSurrogate(s)) {
+    // Maximum length in bytes of an import name (JSC & JSShell will issue a
+    // wasm validation error if we import names larger than this).
+    const maxStringBytes = 100_000;
+    // A code unit of Dart string can take up max 3 bytes, we use it as first
+    // condition to avoid `utf8.encode()` in most situations.
+    final stringInBytesIsToLarge = (s.length * 3) > maxStringBytes &&
+        utf8.encode(s).length > maxStringBytes;
+    if (hasUnpairedSurrogate(s) || stringInBytesIsToLarge) {
       // Unpaired surrogates can't be encoded as UTF-8, import them from JS
       // runtime.
       final i = internalizedStringsForJSRuntime.length;
