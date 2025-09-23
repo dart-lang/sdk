@@ -261,40 +261,36 @@ import "dart:_internal" as internal show Symbol;
 @Since("2.1")
 export 'dart:async' show Future, Stream;
 
-const deprecated = const Deprecated("next release");
+const Deprecated deprecated = Deprecated("next release");
 
-const override = const _Override();
+const Object override = _Override();
 
 external bool identical(Object? a, Object? b);
 
 void print(Object? object) {}
 
 class ArgumentError extends Error {
-  ArgumentError([message]);
+  ArgumentError([dynamic message, @Since("2.14") String? name]);
 
-  @Since("2.1")
-  static T checkNotNull<@Since("2.8") T>(T? argument, [String? name]) => argument!;
+  static T checkNotNull<T>(T? argument, [String? name]) => argument!;
 }
 
 abstract final class BigInt implements Comparable<BigInt> {
-  int compareTo(BigInt other) => 0;
-  static BigInt parse(String source, {int? radix}) => throw 0;
+  int compareTo(BigInt other);
+  external static BigInt parse(String source, {int? radix});
 }
 
-abstract final class bool extends Object {
+final class bool {
   external const factory bool.fromEnvironment(String name,
       {bool defaultValue = false});
 
   external const factory bool.hasEnvironment(String name);
 
-  @Since("2.1")
-  bool operator &(bool other);
+  bool operator &(bool other) => throw 0;
 
-  @Since("2.1")
-  bool operator |(bool other);
+  bool operator |(bool other) => throw 0;
 
-  @Since("2.1")
-  bool operator ^(bool other);
+  bool operator ^(bool other) => throw 0;
 }
 
 abstract class Comparable<T> {
@@ -304,14 +300,15 @@ abstract class Comparable<T> {
 
 typedef Comparator<T> = int Function(T a, T b);
 
-class DateTime extends Object {
+class DateTime implements Comparable<DateTime> {
   external DateTime._now();
   DateTime.now() : this._now();
+  external int compareTo(DateTime other);
   external bool isBefore(DateTime other);
   external int get millisecondsSinceEpoch;
 }
 
-class Deprecated extends Object {
+class Deprecated {
   final String? message;
   final _DeprecationKind _kind;
   const Deprecated(this.message) : _kind = _DeprecationKind.use;
@@ -329,7 +326,7 @@ enum _DeprecationKind {
   use, implement, extend, subclass, instantiate, mixin, optional;
 }
 
-class pragma {
+final class pragma {
   final String name;
   final Object? options;
   const pragma(this.name, [this.options]);
@@ -404,7 +401,7 @@ class Error {
   external StackTrace? get stackTrace;
 }
 
-class Exception {
+abstract interface class Exception {
   factory Exception([var message]) {
     throw 0;
   }
@@ -437,8 +434,7 @@ abstract final class int extends num {
   String toString();
   int truncate();
 
-  external static int parse(String source,
-      {int? radix, @deprecated int onError(String source)?});
+  external static int parse(String source, {int? radix});
 
   external static int? tryParse(String source, {int? radix});
 }
@@ -541,7 +537,7 @@ abstract class Map<K, V> {
   V? remove(Object? key);
 }
 
-final class Null extends Object {
+final class Null {
   factory Null._uninstantiable() {
     throw 0;
   }
@@ -636,11 +632,11 @@ abstract class Set<E> implements Iterable<E> {
       throw '';
 }
 
-abstract class Sink {
+abstract interface class Sink<T> {
   void close();
 }
 
-class StackTrace {}
+abstract interface class StackTrace {}
 
 abstract final class String implements Comparable<String>, Pattern {
   external factory String.fromCharCodes(Iterable<int> charCodes,
@@ -652,9 +648,9 @@ abstract final class String implements Comparable<String>, Pattern {
       {String defaultValue = ""});
 
   List<int> get codeUnits;
-  bool get isEmpty => false;
-  bool get isNotEmpty => false;
-  int get length => 0;
+  bool get isEmpty;
+  bool get isNotEmpty;
+  int get length;
 
   bool operator ==(Object other);
   String operator [](int index);
@@ -662,14 +658,14 @@ abstract final class String implements Comparable<String>, Pattern {
   String operator *(int times);
 
   int codeUnitAt(int index);
-  bool contains(String other, [int startIndex = 0]);
+  bool contains(Pattern other, [int startIndex = 0]);
   int indexOf(Pattern pattern, [int start = 0]);
   int lastIndexOf(Pattern pattern, [int? start]);
   bool startsWith(Pattern pattern, [int index = 0]);
   List<String> split(Pattern pattern);
   String splitMapJoin(Pattern pattern,
       {String Function(Match)? onMatch, String Function(String)? onNonMatch});
-  String substring(int startIndex, [int? endIndex]);
+  String substring(int start, [int? end]);
   String toLowerCase();
   String toUpperCase();
 }
@@ -684,15 +680,15 @@ class Symbol {
   const factory Symbol(String name) = internal.Symbol;
 }
 
-class Type {}
+abstract interface class Type {}
 
 class TypeError extends Error {}
 
-class UnsupportedError {
+class UnsupportedError extends Error {
   UnsupportedError(String message);
 }
 
-class Uri {
+abstract interface class Uri {
   factory Uri({
     String? scheme,
     String? userInfo,
