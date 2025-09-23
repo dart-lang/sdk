@@ -69,7 +69,7 @@ class InformativeDataApplier {
     unitElement.setCodeRange(unitInfo.codeOffset, unitInfo.codeLength);
     unitElement.lineInfo = LineInfo(unitInfo.lineStarts);
 
-    DeferredResolutionReadingMixin.withoutLoadingResolution(() {
+    DeferredResolutionReadingHelper.withoutLoadingResolution(() {
       _applyToImports(unitElement.libraryImports, unitInfo);
       _applyToExports(unitElement.libraryExports, unitInfo);
       _applyToPartIncludes(unitElement.parts, unitInfo);
@@ -173,7 +173,7 @@ class InformativeDataApplier {
       element.nameOffset = info.nameOffset;
       element.documentationComment = info.documentationComment;
 
-      DeferredResolutionReadingMixin.withoutLoadingResolution(() {
+      DeferredResolutionReadingHelper.withoutLoadingResolution(() {
         _applyToFormalParameters(element.formalParameters, info.parameters);
       });
 
@@ -194,7 +194,7 @@ class InformativeDataApplier {
     element.nameOffset = info.nameOffset;
     element.documentationComment = info.documentationComment;
 
-    DeferredResolutionReadingMixin.withoutLoadingResolution(() {
+    DeferredResolutionReadingHelper.withoutLoadingResolution(() {
       _applyToTypeParameters(element.typeParameters, info.typeParameters);
     });
 
@@ -204,7 +204,7 @@ class InformativeDataApplier {
     });
 
     _scheduleApplyMembersOffsets(element, () {
-      DeferredResolutionReadingMixin.withoutLoadingResolution(() {
+      DeferredResolutionReadingHelper.withoutLoadingResolution(() {
         _applyToConstructors(element.constructors, info.constructors);
         _applyToFields(element.fields, info.fields);
         _applyToAccessors(element.getters, info.getters);
@@ -223,7 +223,7 @@ class InformativeDataApplier {
     element.nameOffset = info.nameOffset;
     element.documentationComment = info.documentationComment;
 
-    DeferredResolutionReadingMixin.withoutLoadingResolution(() {
+    DeferredResolutionReadingHelper.withoutLoadingResolution(() {
       _applyToTypeParameters(element.typeParameters, info.typeParameters);
     });
 
@@ -266,7 +266,7 @@ class InformativeDataApplier {
       element.nameOffset = info.nameOffset;
       element.documentationComment = info.documentationComment;
 
-      DeferredResolutionReadingMixin.withoutLoadingResolution(() {
+      DeferredResolutionReadingHelper.withoutLoadingResolution(() {
         _applyToFormalParameters(element.formalParameters, info.parameters);
       });
 
@@ -287,7 +287,7 @@ class InformativeDataApplier {
     element.nameOffset = info.nameOffset;
     element.documentationComment = info.documentationComment;
 
-    DeferredResolutionReadingMixin.withoutLoadingResolution(() {
+    DeferredResolutionReadingHelper.withoutLoadingResolution(() {
       _applyToTypeParameters(element.typeParameters, info.typeParameters);
       _applyToConstructors(element.constructors, info.constructors);
       _applyToFields(element.fields, info.fields);
@@ -318,7 +318,7 @@ class InformativeDataApplier {
     element.nameOffset = info.nameOffset;
     element.documentationComment = info.documentationComment;
 
-    DeferredResolutionReadingMixin.withoutLoadingResolution(() {
+    DeferredResolutionReadingHelper.withoutLoadingResolution(() {
       _applyToTypeParameters(element.typeParameters, info.typeParameters);
     });
 
@@ -342,7 +342,7 @@ class InformativeDataApplier {
     element.nameOffset = info.nameOffset;
     element.documentationComment = info.documentationComment;
 
-    DeferredResolutionReadingMixin.withoutLoadingResolution(() {
+    DeferredResolutionReadingHelper.withoutLoadingResolution(() {
       _applyToTypeParameters(element.typeParameters, info.typeParameters);
     });
 
@@ -358,7 +358,7 @@ class InformativeDataApplier {
       applier.applyToMetadata(representationField.metadata);
     });
 
-    DeferredResolutionReadingMixin.withoutLoadingResolution(() {
+    DeferredResolutionReadingHelper.withoutLoadingResolution(() {
       var primaryConstructor = element.constructors.first;
       primaryConstructor.setCodeRange(infoRep.codeOffset, infoRep.codeLength);
       primaryConstructor.typeNameOffset = info.nameOffset;
@@ -367,7 +367,7 @@ class InformativeDataApplier {
       primaryConstructor.nameOffset = infoRep.constructorNameOffset;
       primaryConstructor.nameEnd = infoRep.constructorNameEnd;
 
-      DeferredResolutionReadingMixin.withoutLoadingResolution(() {
+      DeferredResolutionReadingHelper.withoutLoadingResolution(() {
         var representation = primaryConstructor.formalParameters.first;
         representation.firstTokenOffset = infoRep.firstTokenOffset;
         representation.nameOffset = infoRep.fieldNameOffset;
@@ -431,7 +431,7 @@ class InformativeDataApplier {
     element.nameOffset = info.nameOffset;
     element.documentationComment = info.documentationComment;
 
-    DeferredResolutionReadingMixin.withoutLoadingResolution(() {
+    DeferredResolutionReadingHelper.withoutLoadingResolution(() {
       _applyToTypeParameters(element.typeParameters, info.typeParameters);
       _applyToFormalParameters(element.formalParameters, info.parameters);
     });
@@ -452,7 +452,7 @@ class InformativeDataApplier {
     element.nameOffset = info.nameOffset;
     element.documentationComment = info.documentationComment;
 
-    DeferredResolutionReadingMixin.withoutLoadingResolution(() {
+    DeferredResolutionReadingHelper.withoutLoadingResolution(() {
       _applyToTypeParameters(element.typeParameters, info.typeParameters);
       if (element.aliasedElement case GenericFunctionTypeFragmentImpl aliased) {
         _applyToFormalParameters(aliased.formalParameters, info.parameters);
@@ -475,7 +475,7 @@ class InformativeDataApplier {
     element.nameOffset = info.nameOffset;
     element.documentationComment = info.documentationComment;
 
-    DeferredResolutionReadingMixin.withoutLoadingResolution(() {
+    DeferredResolutionReadingHelper.withoutLoadingResolution(() {
       _applyToTypeParameters(element.typeParameters, info.typeParameters);
       if (element.aliasedElement case GenericFunctionTypeFragmentImpl aliased) {
         _applyToTypeParameters(
@@ -528,7 +528,7 @@ class InformativeDataApplier {
       element.nameOffset = info.nameOffset;
       element.documentationComment = info.documentationComment;
 
-      DeferredResolutionReadingMixin.withoutLoadingResolution(() {
+      DeferredResolutionReadingHelper.withoutLoadingResolution(() {
         _applyToTypeParameters(element.typeParameters, info.typeParameters);
         _applyToFormalParameters(element.formalParameters, info.parameters);
       });
@@ -550,7 +550,7 @@ class InformativeDataApplier {
     element.nameOffset = info.nameOffset;
     element.documentationComment = info.documentationComment;
 
-    DeferredResolutionReadingMixin.withoutLoadingResolution(() {
+    DeferredResolutionReadingHelper.withoutLoadingResolution(() {
       _applyToTypeParameters(element.typeParameters, info.typeParameters);
       _applyToConstructors(element.constructors, info.constructors);
       _applyToFields(element.fields, info.fields);

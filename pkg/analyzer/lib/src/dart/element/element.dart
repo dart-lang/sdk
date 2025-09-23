@@ -1002,13 +1002,22 @@ mixin DeferredMembersReadingMixin {
   }
 }
 
+class DeferredResolutionReadingHelper {
+  static int _lockResolutionLoading = 0;
+
+  static void withoutLoadingResolution(void Function() operation) {
+    _lockResolutionLoading++;
+    operation();
+    _lockResolutionLoading--;
+  }
+}
+
 /// This mixin is used to set up loading resolution information from summaries
 /// on demand, and after all elements are loaded, so for example types can
 /// reference them. The summary reader uses [deferReadResolution], and getters
 /// invoke [_ensureReadResolution].
 mixin DeferredResolutionReadingMixin {
   // TODO(scheglov): review whether we need this
-  static int _lockResolutionLoading = 0;
   void Function()? _readResolutionCallback;
   void Function()? _applyResolutionConstantOffsets;
 
@@ -1023,7 +1032,7 @@ mixin DeferredResolutionReadingMixin {
   }
 
   void _ensureReadResolution() {
-    if (_lockResolutionLoading > 0) {
+    if (DeferredResolutionReadingHelper._lockResolutionLoading > 0) {
       return;
     }
 
@@ -1037,12 +1046,6 @@ mixin DeferredResolutionReadingMixin {
         callback();
       }
     }
-  }
-
-  static void withoutLoadingResolution(void Function() operation) {
-    _lockResolutionLoading++;
-    operation();
-    _lockResolutionLoading--;
   }
 }
 
@@ -3547,7 +3550,7 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
     List<T> fragments, {
     required List<FormalParameterFragmentImpl> Function(T) getFragments,
   }) {
-    DeferredResolutionReadingMixin.withoutLoadingResolution(() {
+    DeferredResolutionReadingHelper.withoutLoadingResolution(() {
       var firstFormalParameters = getFragments(fragments.first);
       for (var fragment in firstFormalParameters) {
         switch (fragment) {
@@ -11045,7 +11048,7 @@ class TypeParameterFragmentImpl extends FragmentImpl
     List<T> fragments, {
     required List<TypeParameterFragmentImpl> Function(T) getFragments,
   }) {
-    DeferredResolutionReadingMixin.withoutLoadingResolution(() {
+    DeferredResolutionReadingHelper.withoutLoadingResolution(() {
       var firstFragments = getFragments(fragments.first);
       for (var i = 0; i < firstFragments.length; i++) {
         // Side effect: set element for the fragment.
