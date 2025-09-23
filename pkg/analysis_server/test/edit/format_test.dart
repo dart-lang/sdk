@@ -5,6 +5,8 @@
 import 'dart:async';
 
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -21,8 +23,6 @@ void main() {
 class FormatTest extends PubPackageAnalysisServerTest {
   @override
   Future<void> setUp() async {
-    useLineEndingsForPlatform = false;
-
     super.setUp();
     await setRoots(included: [workspaceRootPath], excluded: []);
   }
@@ -52,7 +52,7 @@ class FormatTest extends PubPackageAnalysisServerTest {
         }).toRequest('2', clientUriConverter: server.uriConverter),
       ),
     );
-    var formatResult = await _formatAt(0, 0);
+    var formatResult = await _format();
 
     // Expect no edits, because the last overlay was already formatted.
     expect(formatResult.edits, hasLength(0));
@@ -63,20 +63,11 @@ class FormatTest extends PubPackageAnalysisServerTest {
 formatter:
   page_width: 100
 ''');
-    var content = '''
+    await _expectNoFormatting('''
 fun(firstParam, secondParam, thirdParam, fourthParam) {
   if (firstParam.noNull && secondParam.noNull && thirdParam.noNull && fourthParam.noNull) {}
 }
-''';
-    addTestFile(content);
-    await waitForTasksFinished();
-    var formatResult = await _formatAt(0, 3);
-
-    expect(formatResult.edits, isNotNull);
-    expect(formatResult.edits, hasLength(0));
-
-    expect(formatResult.selectionOffset, equals(0));
-    expect(formatResult.selectionLength, equals(3));
+''');
   }
 
   Future<void> test_format_longLine_analysisOptions_overridesParameter() async {
@@ -84,96 +75,53 @@ fun(firstParam, secondParam, thirdParam, fourthParam) {
 formatter:
   page_width: 100
 ''');
-    var content = '''
+    await _expectNoFormatting('''
 fun(firstParam, secondParam, thirdParam, fourthParam) {
   if (firstParam.noNull && secondParam.noNull && thirdParam.noNull && fourthParam.noNull) {}
 }
-''';
-    addTestFile(content);
-    await waitForTasksFinished();
-    var formatResult = await _formatAt(0, 3, lineLength: 50);
-
-    expect(formatResult.edits, isNotNull);
-    expect(formatResult.edits, hasLength(0));
-
-    expect(formatResult.selectionOffset, equals(0));
-    expect(formatResult.selectionLength, equals(3));
+''', lineLength: 50);
   }
 
   Future<void> test_format_longLine_parameter() async {
-    var content = '''
+    await _expectNoFormatting('''
 fun(firstParam, secondParam, thirdParam, fourthParam) {
   if (firstParam.noNull && secondParam.noNull && thirdParam.noNull && fourthParam.noNull) {}
 }
-''';
-    addTestFile(content);
-    await waitForTasksFinished();
-    var formatResult = await _formatAt(0, 3, lineLength: 100);
-
-    expect(formatResult.edits, isNotNull);
-    expect(formatResult.edits, hasLength(0));
-
-    expect(formatResult.selectionOffset, equals(0));
-    expect(formatResult.selectionLength, equals(3));
+''', lineLength: 100);
   }
 
   Future<void> test_format_noOp() async {
     // Already formatted source
-    addTestFile('''
+    await _expectNoFormatting('''
 void f() {
   int x = 3;
 }
 ''');
-    await waitForTasksFinished();
-    var formatResult = await _formatAt(0, 3);
-    expect(formatResult.edits, isNotNull);
-    expect(formatResult.edits, hasLength(0));
   }
 
   Future<void> test_format_noSelection() async {
-    addTestFile('''
+    var content = '''
 void f() { int x = 3; }
-''');
-    await waitForTasksFinished();
-    var formatResult = await _formatAt(0, 0);
+''';
 
-    expect(formatResult.edits, isNotNull);
-    expect(formatResult.edits, hasLength(1));
-
-    var edit = formatResult.edits[0];
-    expect(
-      edit.replacement,
-      equals('''
+    var expected = '''
 void f() {
   int x = 3;
 }
-'''),
-    );
-    expect(formatResult.selectionOffset, equals(0));
-    expect(formatResult.selectionLength, equals(0));
+''';
+    await _expectFormatted(content, expected);
   }
 
   Future<void> test_format_simple() async {
-    addTestFile('''
-void f() { int x = 3; }
-''');
-    await waitForTasksFinished();
-    var formatResult = await _formatAt(0, 3);
-
-    expect(formatResult.edits, isNotNull);
-    expect(formatResult.edits, hasLength(1));
-
-    var edit = formatResult.edits[0];
-    expect(
-      edit.replacement,
-      equals('''
+    var content = '''
+void f() { [!int!] x = 3; }
+''';
+    var expected = '''
 void f() {
-  int x = 3;
+  [!int!] x = 3;
 }
-'''),
-    );
-    expect(formatResult.selectionOffset, equals(0));
-    expect(formatResult.selectionLength, equals(3));
+''';
+    await _expectFormatted(content, expected);
   }
 
   Future<void> test_format_trailingCommas_automate() async {
@@ -187,16 +135,10 @@ enum A {
   b,
 }
 ''';
-    addTestFile(content);
-    await waitForTasksFinished();
-    var formatResult = await _formatAt(0, 3);
-
-    expect(
-      formatResult.edits.single.replacement,
-      equals('''
+    var expected = '''
 enum A { a, b }
-'''),
-    );
+''';
+    await _expectFormatted(content, expected);
   }
 
   Future<void> test_format_trailingCommas_preserve() async {
@@ -207,19 +149,13 @@ formatter:
     var content = '''
 enum A { a, b, }
 ''';
-    addTestFile(content);
-    await waitForTasksFinished();
-    var formatResult = await _formatAt(0, 3);
-
-    expect(
-      formatResult.edits.single.replacement,
-      equals('''
+    var expected = '''
 enum A {
   a,
   b,
 }
-'''),
-    );
+''';
+    await _expectFormatted(content, expected);
   }
 
   Future<void> test_format_trailingCommas_unspecified() async {
@@ -229,74 +165,102 @@ enum A {
   b,
 }
 ''';
-    addTestFile(content);
-    await waitForTasksFinished();
-    var formatResult = await _formatAt(0, 3);
-
-    expect(
-      formatResult.edits.single.replacement,
-      equals('''
+    var expected = '''
 enum A { a, b }
-'''),
-    );
+''';
+    await _expectFormatted(content, expected);
   }
 
   /// Verify version 2.19 is passed to the formatter so it will not produce any
   /// edits for code containing records (since it fails to parse).
   Future<void> test_format_version_2_19() async {
     writeTestPackageConfig(languageVersion: '2.19');
-    addTestFile('''
+    await _expectFormatError('''
 var          a = (1, 2);
 ''');
-    await waitForTasksFinished();
-    await _expectFormatError(0, 3);
   }
 
   /// Verify version 3.0 is passed to the formatter so will produce edits for
   /// code containing records.
   Future<void> test_format_version_3_0() async {
-    addTestFile('''
+    var content = '''
 var          a = (1, 2);
-''');
-    await waitForTasksFinished();
-    var formatResult = await _formatAt(0, 3);
-
-    expect(formatResult.edits, isNotNull);
-    expect(formatResult.edits, hasLength(1));
+''';
+    var expected = '''
+var a = (1, 2);
+''';
+    await _expectFormatted(content, expected);
   }
 
   Future<void> test_format_withErrors() async {
-    addTestFile('''
+    await _expectFormatError('''
 void f() { int x =
 ''');
-    await waitForTasksFinished();
-    await _expectFormatError(0, 3);
   }
 
-  Future<void> _expectFormatError(
-    int selectionOffset,
-    int selectionLength, {
-    int? lineLength,
-  }) async {
+  Future<void> _expectFormatError(String content) async {
+    addTestFile(content);
+    await waitForTasksFinished();
+
     var request = EditFormatParams(
       testFile.path,
-      selectionOffset,
-      selectionLength,
-      lineLength: lineLength,
+      0,
+      0,
     ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleRequest(request);
     expect(response, isResponseFailure('0'));
   }
 
-  Future<EditFormatResult> _formatAt(
-    int selectionOffset,
-    int selectionLength, {
+  Future<void> _expectFormatted(String content, String expectedContent) async {
+    addTestFile(content);
+    var selection = parsedTestCode.ranges.isNotEmpty
+        ? parsedTestCode.range.sourceRange
+        : SourceRange(0, 0);
+
+    var expectedCode = TestCode.parseNormalized(expectedContent);
+    var expectedSelection = expectedCode.ranges.isNotEmpty
+        ? expectedCode.range.sourceRange
+        : SourceRange(0, 0);
+
+    await waitForTasksFinished();
+    var formatResult = await _format(selection: selection);
+
+    expect(formatResult.edits, isNotNull);
+    expect(formatResult.edits, hasLength(1));
+
+    var edit = formatResult.edits[0];
+    expect(edit.replacement, equals(expectedCode.code));
+    expect(formatResult.selectionOffset, equals(expectedSelection.offset));
+    expect(formatResult.selectionLength, equals(expectedSelection.length));
+  }
+
+  Future<void> _expectNoFormatting(String content, {int? lineLength}) async {
+    addTestFile(content);
+    await waitForTasksFinished();
+    var selection = parsedRanges.isNotEmpty
+        ? parsedSourceRange
+        : SourceRange(0, 0);
+    var formatResult = await _format(
+      selection: selection,
+      lineLength: lineLength,
+    );
+
+    expect(formatResult.edits, isNotNull);
+    expect(formatResult.edits, hasLength(0));
+
+    // No change in selection
+    expect(formatResult.selectionOffset, equals(selection.offset));
+    expect(formatResult.selectionLength, equals(selection.length));
+  }
+
+  Future<EditFormatResult> _format({
+    SourceRange? selection,
     int? lineLength,
   }) async {
     var request = EditFormatParams(
       testFile.path,
-      selectionOffset,
-      selectionLength,
+      selection?.offset ?? 0,
+      selection?.length ?? 0,
       lineLength: lineLength,
     ).toRequest('0', clientUriConverter: server.uriConverter);
     var response = await handleSuccessfulRequest(request);
