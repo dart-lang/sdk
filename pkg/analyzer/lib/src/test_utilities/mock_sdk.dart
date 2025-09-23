@@ -737,10 +737,9 @@ abstract final class SizedNativeType implements NativeType {}
 @Since('2.9')
 abstract final class Handle implements NativeType {}
 
-@Since('2.12')
 abstract base class Opaque implements NativeType {}
 
-final class Void implements NativeType {}
+abstract final class Void implements NativeType {}
 
 final class Int8 implements SizedNativeType {
   const Int8();
@@ -813,22 +812,26 @@ final class IntPtr extends AbiSpecificInteger {
 final class Pointer<T extends NativeType> implements SizedNativeType {
   external factory Pointer.fromAddress(int ptr);
 
-  static Pointer<NativeFunction<T>> fromFunction<T extends Function>(
-      @DartRepresentationOf("T") Function f,
-      [Object exceptionalReturn]) {}
+  external static Pointer<NativeFunction<T>> fromFunction<T extends Function>(
+    @DartRepresentationOf('T') Function f, [
+    Object? exceptionalReturn,
+  ]);
 
   external Pointer<U> cast<U extends NativeType>();
-
 }
 
 final Pointer<Never> nullptr = Pointer.fromAddress(0);
 
-class NativeCallable<T extends Function> {
-  NativeCallable.isolateLocal(
-      @DartRepresentationOf("T") Function callback,
-      {Object? exceptionalReturn}) {}
+@Since('3.1')
+abstract final class NativeCallable<T extends Function> {
+  factory NativeCallable.isolateLocal(
+    @DartRepresentationOf("T") Function callback, {
+    Object? exceptionalReturn,
+  }) => throw 0;
 
-  NativeCallable.listener(@DartRepresentationOf("T") Function callback) {}
+  factory NativeCallable.listener(
+    @DartRepresentationOf("T") Function callback,
+  ) => throw 0;
 
   Pointer<NativeFunction<T>> get nativeFunction;
 
@@ -840,7 +843,7 @@ extension NativeFunctionPointer<NF extends Function>
   external DF asFunction<DF extends Function>({bool isLeaf = false});
 }
 
-abstract final class _Compound implements NativeType {}
+final class _Compound implements NativeType {}
 
 abstract base class Struct extends _Compound implements SizedNativeType {
   @Since('3.4')
@@ -864,15 +867,16 @@ final class Packed {
   const Packed(this.memberAlignment);
 }
 
-abstract final class DynamicLibrary {
-  external factory DynamicLibrary.open(String name);
-
+final class DynamicLibrary {
+  external factory DynamicLibrary.open(String path);
   external Pointer<T> lookup<T extends NativeType>(String symbolName);
 }
 
 extension DynamicLibraryExtension on DynamicLibrary {
   external F lookupFunction<T extends Function, F extends Function>(
-      String symbolName, {bool isLeaf:false});
+    String symbolName, {
+    bool isLeaf = false,
+  });
 }
 
 abstract final class NativeFunction<T extends Function> implements NativeType {}
@@ -990,30 +994,25 @@ extension StructPointer<T extends Struct> on Pointer<T> {
 @Since('2.19')
 final class Native<T> {
   final String? symbol;
-  final String? asset;
+  final String? assetId;
   final bool isLeaf;
 
-  const Native({
-    this.asset,
-    this.isLeaf: false,
-    this.symbol,
-  });
+  const Native({this.assetId, this.isLeaf = false, this.symbol});
 
+  @Since('3.3')
   external static Pointer<T> addressOf<T extends NativeType>(
-      @DartRepresentationOf('T') Object object);
+    @DartRepresentationOf('T') Object native,
+  );
 }
 
+@Since('2.19')
 final class DefaultAsset {
   final String id;
   const DefaultAsset(this.id);
 }
 
-final class Asset {
-  final String asset;
-  const Asset(this.asset);
-}
-
-final class Abi {
+@Since('2.16')
+class Abi {
   static const androidArm = _androidArm;
   static const androidArm64 = _androidArm64;
   static const androidIA32 = _androidIA32;
