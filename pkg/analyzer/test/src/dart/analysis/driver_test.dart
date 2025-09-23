@@ -79530,6 +79530,245 @@ extension type A<T, U>(int it) {}
     );
   }
 
+  test_manifest_key_differentPackages() async {
+    newFile('/packages/foo_v1/lib/foo.dart', r'''
+class A {}
+''');
+
+    newFile('/packages/foo_v2/lib/foo.dart', r'''
+class A extends A2 {}
+class A2 {}
+''');
+
+    newFile('/packages/bar/lib/bar.dart', r'''
+import 'package:foo/foo.dart';
+class B extends A {}
+''');
+
+    writePackageConfig(
+      '$workspaceRootPath/test_1',
+      PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: '/packages/foo_v1')
+        ..add(name: 'bar', rootPath: '/packages/bar')
+        ..add(name: 'test', rootPath: '$workspaceRootPath/test_1'),
+    );
+
+    writePackageConfig(
+      '$workspaceRootPath/test_2',
+      PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: '/packages/foo_v2')
+        ..add(name: 'bar', rootPath: '/packages/bar')
+        ..add(name: 'test', rootPath: '$workspaceRootPath/test_2'),
+    );
+
+    var testFile1 = newFile('$workspaceRootPath/test_1/lib/test.dart', r'''
+import 'package:bar/bar.dart';
+class X extends B {}
+''');
+
+    var testFile2 = newFile('$workspaceRootPath/test_2/lib/test.dart', r'''
+import 'package:bar/bar.dart';
+class X extends B {}
+''');
+
+    configuration
+      ..withGetLibraryByUri = false
+      ..withLibraryManifest = true
+      ..withLinkLibraryCycle = true
+      ..withSchedulerStatus = false;
+
+    {
+      var driver = driverFor(testFile1);
+      var collector = DriverEventCollector(driver, idProvider: idProvider);
+
+      var libraryUri = Uri.parse('package:bar/bar.dart');
+      collector.getLibraryByUri('T1', '$libraryUri');
+
+      await assertEventsText(collector, r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:foo/foo.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+    exportMapId: #M2
+    exportMap
+      A: #M0
+[operation] linkLibraryCycle
+  package:bar/bar.dart
+    declaredClasses
+      B: #M3
+        interface: #M4
+    exportMapId: #M5
+    exportMap
+      B: #M3
+''');
+    }
+
+    {
+      var driver = driverFor(testFile2);
+      var collector = DriverEventCollector(driver, idProvider: idProvider);
+
+      var libraryUri = Uri.parse('package:bar/bar.dart');
+      collector.getLibraryByUri('T2', '$libraryUri');
+
+      // Note: new library manifests.
+      // We don't try to reuse `package:bar` library bundle.
+      // Because URI resolution is different in T2, keys are different.
+      await assertEventsText(collector, r'''
+[operation] reuseLinkedBundle SDK
+[operation] linkLibraryCycle
+  package:foo/foo.dart
+    declaredClasses
+      A: #M6
+        interface: #M7
+      A2: #M8
+        interface: #M9
+    exportMapId: #M10
+    exportMap
+      A: #M6
+      A2: #M8
+[operation] linkLibraryCycle
+  package:bar/bar.dart
+    declaredClasses
+      B: #M11
+        interface: #M12
+    exportMapId: #M13
+    exportMap
+      B: #M11
+''');
+    }
+
+    await disposeAnalysisContextCollection();
+
+    {
+      var driver = driverFor(testFile1);
+      var collector = DriverEventCollector(driver, idProvider: idProvider);
+
+      var libraryUri = Uri.parse('package:bar/bar.dart');
+      collector.getLibraryByUri('T3', '$libraryUri');
+
+      // We used different keys in T1 and T2, so both can be used.
+      // This is important, because they use different `package:foo`.
+      await assertEventsText(collector, r'''
+[operation] reuseLinkedBundle SDK
+[operation] reuseLinkedBundle
+  package:foo/foo.dart
+[operation] reuseLinkedBundle
+  package:bar/bar.dart
+''');
+    }
+
+    {
+      var driver = driverFor(testFile2);
+      var collector = DriverEventCollector(driver, idProvider: idProvider);
+
+      var libraryUri = Uri.parse('package:bar/bar.dart');
+      collector.getLibraryByUri('T4', '$libraryUri');
+
+      // We used different keys in T1 and T2, so both can be used.
+      // This is important, because they use different `package:foo`.
+      await assertEventsText(collector, r'''
+[operation] reuseLinkedBundle SDK
+[operation] reuseLinkedBundle
+  package:foo/foo.dart
+[operation] reuseLinkedBundle
+  package:bar/bar.dart
+''');
+    }
+  }
+
+  test_manifest_key_samePackages() async {
+    newFile('/packages/foo/lib/foo.dart', r'''
+class A {}
+''');
+
+    newFile('/packages/bar/lib/bar.dart', r'''
+import 'package:foo/foo.dart';
+class B extends A {}
+''');
+
+    writePackageConfig(
+      '$workspaceRootPath/test_1',
+      PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: '/packages/foo')
+        ..add(name: 'test', rootPath: '$workspaceRootPath/test_1'),
+    );
+
+    writePackageConfig(
+      '$workspaceRootPath/test_2',
+      PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: '/packages/foo')
+        ..add(name: 'bar', rootPath: '/packages/bar')
+        ..add(name: 'test', rootPath: '$workspaceRootPath/test_2'),
+    );
+
+    var testFile1 = newFile('$workspaceRootPath/test_1/lib/test.dart', r'''
+import 'package:foo/foo.dart';
+''');
+
+    var testFile2 = newFile('$workspaceRootPath/test_2/lib/test.dart', r'''
+import 'package:foo/foo.dart';
+import 'package:bar/bar.dart';
+''');
+
+    configuration
+      ..withGetLibraryByUri = false
+      ..withLibraryManifest = true
+      ..withLinkLibraryCycle = true
+      ..withSchedulerStatus = false;
+
+    {
+      var driver = driverFor(testFile1);
+      var collector = DriverEventCollector(driver, idProvider: idProvider);
+
+      var libraryUri = Uri.parse('package:test/test.dart');
+      collector.getLibraryByUri('T1', '$libraryUri');
+
+      await assertEventsText(collector, r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:foo/foo.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+    exportMapId: #M2
+    exportMap
+      A: #M0
+[operation] linkLibraryCycle
+  package:test/test.dart
+    exportMapId: #M3
+''');
+    }
+
+    {
+      var driver = driverFor(testFile2);
+      var collector = DriverEventCollector(driver, idProvider: idProvider);
+
+      var libraryUri = Uri.parse('package:test/test.dart');
+      collector.getLibraryByUri('T2', '$libraryUri');
+
+      // Note, we reuse `package:foo`, even though T2 has different total
+      // URI resolution rules. But for `package:foo` everything it the same.
+      await assertEventsText(collector, r'''
+[operation] reuseLinkedBundle SDK
+[operation] reuseLinkedBundle
+  package:foo/foo.dart
+[operation] linkLibraryCycle
+  package:bar/bar.dart
+    declaredClasses
+      B: #M4
+        interface: #M5
+    exportMapId: #M6
+    exportMap
+      B: #M4
+[operation] linkLibraryCycle
+  package:test/test.dart
+    exportMapId: #M7
+''');
+    }
+  }
+
   test_manifest_library_metadata_add() async {
     await _runLibraryManifestScenario(
       initialCode: r'''

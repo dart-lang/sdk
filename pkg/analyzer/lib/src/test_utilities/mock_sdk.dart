@@ -35,15 +35,15 @@ abstract class Future<T> {
     throw 0;
   }
 
-  factory Future.value([FutureOr<T>? result]) {
+  factory Future.value([FutureOr<T>? value]) {
     throw 0;
   }
 
-  Future<T> catchError(Function onError, {bool test(Object error)});
+  Future<T> catchError(Function onError, {bool test(Object error)?});
 
   Future<R> then<R>(FutureOr<R> onValue(T value), {Function? onError});
 
-  Future<T> whenComplete(action());
+  Future<T> whenComplete(FutureOr<void> action());
 
   static Future<List<T>> wait<T>(Iterable<Future<T>> futures,
     {void cleanUp(T successValue)?}) => throw 0;
@@ -71,7 +71,7 @@ abstract class Timer {
   factory Timer(Duration duration, void Function() callback) {
     throw 0;
   }
-  static void run(void callback()) {}
+  static void run(void Function() callback) {}
 }
 
 @Since("2.15")
@@ -80,13 +80,12 @@ void unawaited(Future<void>? future) {}
   MockSdkLibraryUnit('async/stream.dart', r'''
 part of dart.async;
 
-abstract class Stream<T> {
-  Stream();
-  factory Stream.fromIterable(Iterable<T> data) {
+abstract mixin class Stream<T> {
+  const Stream();
+  factory Stream.fromIterable(Iterable<T> elements) {
     throw 0;
   }
 
-  @Since("2.5")
   factory Stream.value(T value) {
     throw 0;
   }
@@ -96,7 +95,7 @@ abstract class Stream<T> {
   StreamSubscription<T> listen(void onData(T event)?,
       {Function? onError, void onDone()?, bool? cancelOnError});
 
-  Stream<T> handleError(Function onError, {bool test(dynamic error)});
+  Stream<T> handleError(Function onError, {bool test(error)?});
 }
 
 abstract class StreamIterator<T> {}
@@ -105,7 +104,7 @@ abstract class StreamSubscription<T> {
   bool get isPaused;
 
   Future<E> asFuture<E>([E? futureValue]);
-  Future cancel();
+  Future<void> cancel();
   void onData(void handleData(T data)?);
   void onError(Function? handleError);
   void onDone(void handleDone()?);
@@ -342,7 +341,6 @@ abstract final class double extends num {
   static const double minPositive = 5e-324;
   static const double maxFinite = 1.7976931348623157e+308;
 
-  bool get isNaN;
   double get sign;
   double operator %(num other);
   double operator *(num other);
@@ -363,8 +361,7 @@ abstract final class double extends num {
   int truncate();
   double truncateToDouble();
 
-  external static double parse(String source,
-      [@deprecated double onError(String source)?]);
+  external static double parse(String source);
 
   external static double? tryParse(String source);
 }
@@ -420,8 +417,7 @@ abstract final class int extends num {
   external const factory int.fromEnvironment(String name,
       {int defaultValue = 0});
 
-  bool get isEven => false;
-  bool get isNegative;
+  bool get isEven;
   bool get isOdd;
   int get sign;
 
@@ -448,7 +444,7 @@ abstract final class int extends num {
 
 abstract class Invocation {}
 
-abstract class Iterable<E> {
+abstract mixin class Iterable<E> {
   E get first;
   bool get isEmpty;
   bool get isNotEmpty;
@@ -461,17 +457,17 @@ abstract class Iterable<E> {
 
   bool contains(Object? element);
 
-  Iterable<T> expand<T>(Iterable<T> f(E element));
+  Iterable<T> expand<T>(Iterable<T> toElements(E element));
 
   E firstWhere(bool test(E element), {E orElse()?});
 
-  R fold<R>(R initialValue, R combine(R previousValue, E element));
+  T fold<T>(T initialValue, T combine(T previousValue, E element));
 
-  void forEach(void f(E element));
+  void forEach(void action(E element));
 
   E lastWhere(bool test(E element), {E orElse()?});
 
-  Iterable<R> map<R>(R f(E e));
+  Iterable<T> map<T>(T toElement(E e));
 
   E singleWhere(bool test(E element), {E orElse()?});
 
@@ -488,12 +484,9 @@ abstract class Iterator<E> {
   bool moveNext();
 }
 
-class List<E> implements Iterable<E> {
+abstract class List<E> implements Iterable<E> {
   external factory List.filled(int length, E fill, {bool growable = false});
-
-  @Since("2.9")
   external factory List.empty({bool growable = false});
-
   external factory List.from(Iterable elements, {bool growable = true});
   external factory List.of(Iterable<E> elements, {bool growable = true});
   external factory List.generate(int length, E generator(int index),
@@ -502,30 +495,29 @@ class List<E> implements Iterable<E> {
 
   E get last => throw 0;
   set length(int newLength) {}
-  E operator [](int index) => throw 0;
-  void operator []=(int index, E value) {}
-  void set first(E value) {}
+  E operator [](int index);
+  void operator []=(int index, E value);
+  void set first(E value);
 
-  void add(E value) {}
-  void addAll(Iterable<E> iterable) {}
-  Map<int, E> asMap() => throw 0;
-  void clear() {}
+  void add(E value);
+  void addAll(Iterable<E> iterable);
+  Map<int, E> asMap();
+  void clear();
   int indexOf(E element, [int start = 0]);
   bool remove(Object? value);
-  E removeLast() => throw 0;
 
-  noSuchMethod(Invocation invocation) => null;
+  E removeLast();
 }
 
 abstract class Map<K, V> {
   external factory Map();
-  external factory Map.from();
+  external factory Map.from(Map other);
   external Map.of(Map<K, V> other);
   external factory Map.unmodifiable(Map<dynamic, dynamic> other);
   external factory Map.identity();
 
   external factory Map.fromIterable(Iterable iterable,
-      {K key(element)?, V value(element)?});
+      {K key(dynamic element)?, V value(dynamic element)?});
 
   external factory Map.fromIterables(Iterable<K> keys, Iterable<V> values);
   external factory Map.fromEntries(Iterable<MapEntry<K, V>> entries);
@@ -533,7 +525,7 @@ abstract class Map<K, V> {
   Iterable<K> get keys;
   bool get isEmpty;
   bool get isNotEmpty;
-  int get length => 0;
+  int get length;
   Iterable<V> get values;
 
   V? operator [](Object? key);
@@ -569,20 +561,17 @@ sealed class num implements Comparable<num> {
   num operator -();
   double operator /(num other);
   bool operator <(num other);
-  int operator <<(int other);
   bool operator <=(num other);
   bool operator ==(Object other);
   bool operator >(num other);
   bool operator >=(num other);
-  int operator >>(int other);
-  int operator ^(int other);
-  int operator |(int other);
-  int operator ~();
   int operator ~/(num other);
 
   num abs();
   num clamp(num lowerLimit, num upperLimit);
   int floor();
+  bool get isNaN;
+  bool get isNegative;
   num remainder(num other);
   int round();
   double toDouble();
