@@ -162,7 +162,7 @@ class ElementBuilder {
               fragment,
             );
           case TypeAliasFragmentImpl():
-            _handleTypeAliasFragment(libraryFragment, lastFragment, fragment);
+            _handleTypeAliasFragment(libraryFragment, fragment);
           default:
             throw UnimplementedError('${fragment.runtimeType}');
         }
@@ -804,21 +804,16 @@ class ElementBuilder {
 
   void _handleTypeAliasFragment(
     LibraryFragmentImpl libraryFragment,
-    FragmentImpl? lastFragment,
     TypeAliasFragmentImpl fragment,
   ) {
     libraryFragment.addTypeAlias(fragment);
 
-    if (lastFragment is TypeAliasFragmentImpl && fragment.isAugmentation) {
-      lastFragment.addFragment(fragment);
-    } else {
-      var element = TypeAliasElementImpl(
-        _addTopReference('@typeAlias', fragment.name),
-        fragment,
-      );
-      libraryElement.typeAliases.add(element);
-      libraryBuilder.declare(element, element.reference);
-    }
+    var element = TypeAliasElementImpl(
+      _addTopReference('@typeAlias', fragment.name),
+      fragment,
+    );
+    libraryElement.typeAliases.add(element);
+    libraryBuilder.declare(element, element.reference);
   }
 
   List<FormalParameterFragmentImpl> _linkFormalParameters({

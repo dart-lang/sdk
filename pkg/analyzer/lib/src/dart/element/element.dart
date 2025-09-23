@@ -10697,10 +10697,10 @@ class TypeAliasFragmentImpl extends FragmentImpl
   List<TypeParameterFragmentImpl> _typeParameters = const [];
 
   @override
-  TypeAliasFragmentImpl? previousFragment;
+  Null previousFragment;
 
   @override
-  TypeAliasFragmentImpl? nextFragment;
+  Null nextFragment;
 
   /// Is `true` if the element has direct or indirect reference to itself
   /// from anywhere except a class element or type parameter bounds.
@@ -10775,12 +10775,6 @@ class TypeAliasFragmentImpl extends FragmentImpl
   @Deprecated('Use typeParameters instead')
   @override
   List<TypeParameterFragmentImpl> get typeParameters2 => typeParameters;
-
-  void addFragment(TypeAliasFragmentImpl fragment) {
-    fragment.element = element;
-    fragment.previousFragment = this;
-    nextFragment = fragment;
-  }
 }
 
 class TypeParameterElementImpl extends ElementImpl

@@ -3943,10 +3943,10 @@ abstract class TypeAliasFragment
   LibraryFragment? get enclosingFragment;
 
   @override
-  TypeAliasFragment? get nextFragment;
+  Null get nextFragment;
 
   @override
-  TypeAliasFragment? get previousFragment;
+  Null get previousFragment;
 }
 
 /// An element that defines a type.
