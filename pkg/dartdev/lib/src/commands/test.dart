@@ -20,8 +20,11 @@ class TestCommand extends DartdevCommand {
   static const String cmdName = 'test';
 
   final bool nativeAssetsExperimentEnabled;
+  final bool dataAssetsExperimentEnabled;
 
-  TestCommand({this.nativeAssetsExperimentEnabled = false})
+  TestCommand(
+      {this.nativeAssetsExperimentEnabled = false,
+      this.dataAssetsExperimentEnabled = false})
       : super(cmdName, 'Run tests for a project.', false);
 
   // This argument parser is here solely to ensure that VM specific flags are
@@ -72,6 +75,7 @@ Run "${runner!.executableName} help" to see global options.''');
           runPackageName: runPackageName,
           includeDevDependencies: true,
           verbose: verbose,
+          dataAssetsExperimentEnabled: dataAssetsExperimentEnabled,
         );
         if (!nativeAssetsExperimentEnabled) {
           if (await builder.warnOnNativeAssets()) {

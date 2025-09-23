@@ -139,6 +139,10 @@ features:
     help: "Output arguments used by static functions."
     channels: [ "main", "dev" ]
 
+  data-assets:
+    help: "Enable data assets in hooks."
+    channels: [ "main", "dev" ]
+
   enhanced-parts:
     experimentalReleaseVersion: '3.6.0'
     help: "Generalize parts to be nested and have exports/imports."

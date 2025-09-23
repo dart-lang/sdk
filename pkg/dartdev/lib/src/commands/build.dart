@@ -26,13 +26,18 @@ class BuildCommand extends DartdevCommand {
   static const String formatOptionName = 'format';
   static const int genericErrorExitCode = 255;
   final bool recordUseEnabled;
+  final bool dataAssetsExperimentEnabled;
 
-  BuildCommand({bool verbose = false, required this.recordUseEnabled})
+  BuildCommand(
+      {bool verbose = false,
+      required this.recordUseEnabled,
+      required this.dataAssetsExperimentEnabled})
       : super(cmdName, 'Build a Dart application including native assets.',
             verbose) {
     addSubcommand(BuildCliSubcommand(
       verbose: verbose,
       recordUseEnabled: recordUseEnabled,
+      dataAssetsExperimentEnabled: dataAssetsExperimentEnabled,
     ));
   }
 
@@ -51,7 +56,12 @@ class BuildCliSubcommand extends CompileSubcommandCommand {
   static final OS targetOS = OS.current;
   late final List<File> entryPoints;
 
-  BuildCliSubcommand({bool verbose = false, required this.recordUseEnabled})
+  final bool dataAssetsExperimentEnabled;
+
+  BuildCliSubcommand(
+      {bool verbose = false,
+      required this.recordUseEnabled,
+      required this.dataAssetsExperimentEnabled})
       : super(
             cmdName,
             '''Build a Dart application with a command line interface (CLI).
@@ -173,6 +183,7 @@ See documentation on https://dart.dev/interop/c-interop#native-assets.
       packageConfigUri: packageConfigUri!,
       pubspecUri: pubspecUri,
       recordUseEnabled: recordUseEnabled,
+      dataAssetsExperimentEnabled: dataAssetsExperimentEnabled,
       verbose: verbose,
       verbosity: verbosity,
     );
@@ -184,6 +195,7 @@ See documentation on https://dart.dev/interop/c-interop#native-assets.
     required Uri packageConfigUri,
     required Uri? pubspecUri,
     required bool recordUseEnabled,
+    required bool dataAssetsExperimentEnabled,
     required List<String> enabledExperiments,
     required bool verbose,
     required String verbosity,
@@ -239,6 +251,7 @@ See documentation on https://dart.dev/interop/c-interop#native-assets.
       runPackageName: runPackageName!,
       includeDevDependencies: false,
       verbose: verbose,
+      dataAssetsExperimentEnabled: dataAssetsExperimentEnabled,
     );
     final buildResult = await builder.buildNativeAssetsAOT();
     if (buildResult == null) {

@@ -23,6 +23,7 @@ final _knownFeatures = <String, ExperimentalFeature>{
   EnableString.constructor_tearoffs: ExperimentalFeatures.constructor_tearoffs,
   EnableString.control_flow_collections:
       ExperimentalFeatures.control_flow_collections,
+  EnableString.data_assets: ExperimentalFeatures.data_assets,
   EnableString.digit_separators: ExperimentalFeatures.digit_separators,
   EnableString.dot_shorthands: ExperimentalFeatures.dot_shorthands,
   EnableString.enhanced_enums: ExperimentalFeatures.enhanced_enums,
@@ -82,6 +83,9 @@ class EnableString {
 
   /// String to enable the experiment "control-flow-collections"
   static const String control_flow_collections = 'control-flow-collections';
+
+  /// String to enable the experiment "data-assets"
+  static const String data_assets = 'data-assets';
 
   /// String to enable the experiment "digit-separators"
   static const String digit_separators = 'digit-separators';
@@ -255,8 +259,19 @@ class ExperimentalFeatures {
     channels: ["stable", "beta", "dev", "main"],
   );
 
-  static final digit_separators = ExperimentalFeature(
+  static final data_assets = ExperimentalFeature(
     index: 6,
+    enableString: EnableString.data_assets,
+    isEnabledByDefault: IsEnabledByDefault.data_assets,
+    isExpired: IsExpired.data_assets,
+    documentation: 'Enable data assets in hooks.',
+    experimentalReleaseVersion: null,
+    releaseVersion: null,
+    channels: ["main", "dev"],
+  );
+
+  static final digit_separators = ExperimentalFeature(
+    index: 7,
     enableString: EnableString.digit_separators,
     isEnabledByDefault: IsEnabledByDefault.digit_separators,
     isExpired: IsExpired.digit_separators,
@@ -267,7 +282,7 @@ class ExperimentalFeatures {
   );
 
   static final dot_shorthands = ExperimentalFeature(
-    index: 7,
+    index: 8,
     enableString: EnableString.dot_shorthands,
     isEnabledByDefault: IsEnabledByDefault.dot_shorthands,
     isExpired: IsExpired.dot_shorthands,
@@ -278,7 +293,7 @@ class ExperimentalFeatures {
   );
 
   static final enhanced_enums = ExperimentalFeature(
-    index: 8,
+    index: 9,
     enableString: EnableString.enhanced_enums,
     isEnabledByDefault: IsEnabledByDefault.enhanced_enums,
     isExpired: IsExpired.enhanced_enums,
@@ -289,7 +304,7 @@ class ExperimentalFeatures {
   );
 
   static final enhanced_parts = ExperimentalFeature(
-    index: 9,
+    index: 10,
     enableString: EnableString.enhanced_parts,
     isEnabledByDefault: IsEnabledByDefault.enhanced_parts,
     isExpired: IsExpired.enhanced_parts,
@@ -300,7 +315,7 @@ class ExperimentalFeatures {
   );
 
   static final extension_methods = ExperimentalFeature(
-    index: 10,
+    index: 11,
     enableString: EnableString.extension_methods,
     isEnabledByDefault: IsEnabledByDefault.extension_methods,
     isExpired: IsExpired.extension_methods,
@@ -311,7 +326,7 @@ class ExperimentalFeatures {
   );
 
   static final generic_metadata = ExperimentalFeature(
-    index: 11,
+    index: 12,
     enableString: EnableString.generic_metadata,
     isEnabledByDefault: IsEnabledByDefault.generic_metadata,
     isExpired: IsExpired.generic_metadata,
@@ -323,7 +338,7 @@ class ExperimentalFeatures {
   );
 
   static final getter_setter_error = ExperimentalFeature(
-    index: 12,
+    index: 13,
     enableString: EnableString.getter_setter_error,
     isEnabledByDefault: IsEnabledByDefault.getter_setter_error,
     isExpired: IsExpired.getter_setter_error,
@@ -335,7 +350,7 @@ class ExperimentalFeatures {
   );
 
   static final inference_update_1 = ExperimentalFeature(
-    index: 13,
+    index: 14,
     enableString: EnableString.inference_update_1,
     isEnabledByDefault: IsEnabledByDefault.inference_update_1,
     isExpired: IsExpired.inference_update_1,
@@ -347,7 +362,7 @@ class ExperimentalFeatures {
   );
 
   static final inference_update_2 = ExperimentalFeature(
-    index: 14,
+    index: 15,
     enableString: EnableString.inference_update_2,
     isEnabledByDefault: IsEnabledByDefault.inference_update_2,
     isExpired: IsExpired.inference_update_2,
@@ -358,7 +373,7 @@ class ExperimentalFeatures {
   );
 
   static final inference_update_3 = ExperimentalFeature(
-    index: 15,
+    index: 16,
     enableString: EnableString.inference_update_3,
     isEnabledByDefault: IsEnabledByDefault.inference_update_3,
     isExpired: IsExpired.inference_update_3,
@@ -370,7 +385,7 @@ class ExperimentalFeatures {
   );
 
   static final inference_update_4 = ExperimentalFeature(
-    index: 16,
+    index: 17,
     enableString: EnableString.inference_update_4,
     isEnabledByDefault: IsEnabledByDefault.inference_update_4,
     isExpired: IsExpired.inference_update_4,
@@ -381,7 +396,7 @@ class ExperimentalFeatures {
   );
 
   static final inference_using_bounds = ExperimentalFeature(
-    index: 17,
+    index: 18,
     enableString: EnableString.inference_using_bounds,
     isEnabledByDefault: IsEnabledByDefault.inference_using_bounds,
     isExpired: IsExpired.inference_using_bounds,
@@ -393,7 +408,7 @@ class ExperimentalFeatures {
   );
 
   static final inline_class = ExperimentalFeature(
-    index: 18,
+    index: 19,
     enableString: EnableString.inline_class,
     isEnabledByDefault: IsEnabledByDefault.inline_class,
     isExpired: IsExpired.inline_class,
@@ -404,7 +419,7 @@ class ExperimentalFeatures {
   );
 
   static final macros = ExperimentalFeature(
-    index: 19,
+    index: 20,
     enableString: EnableString.macros,
     isEnabledByDefault: IsEnabledByDefault.macros,
     isExpired: IsExpired.macros,
@@ -415,7 +430,7 @@ class ExperimentalFeatures {
   );
 
   static final named_arguments_anywhere = ExperimentalFeature(
-    index: 20,
+    index: 21,
     enableString: EnableString.named_arguments_anywhere,
     isEnabledByDefault: IsEnabledByDefault.named_arguments_anywhere,
     isExpired: IsExpired.named_arguments_anywhere,
@@ -426,7 +441,7 @@ class ExperimentalFeatures {
   );
 
   static final native_assets = ExperimentalFeature(
-    index: 21,
+    index: 22,
     enableString: EnableString.native_assets,
     isEnabledByDefault: IsEnabledByDefault.native_assets,
     isExpired: IsExpired.native_assets,
@@ -437,7 +452,7 @@ class ExperimentalFeatures {
   );
 
   static final non_nullable = ExperimentalFeature(
-    index: 22,
+    index: 23,
     enableString: EnableString.non_nullable,
     isEnabledByDefault: IsEnabledByDefault.non_nullable,
     isExpired: IsExpired.non_nullable,
@@ -448,7 +463,7 @@ class ExperimentalFeatures {
   );
 
   static final nonfunction_type_aliases = ExperimentalFeature(
-    index: 23,
+    index: 24,
     enableString: EnableString.nonfunction_type_aliases,
     isEnabledByDefault: IsEnabledByDefault.nonfunction_type_aliases,
     isExpired: IsExpired.nonfunction_type_aliases,
@@ -459,7 +474,7 @@ class ExperimentalFeatures {
   );
 
   static final null_aware_elements = ExperimentalFeature(
-    index: 24,
+    index: 25,
     enableString: EnableString.null_aware_elements,
     isEnabledByDefault: IsEnabledByDefault.null_aware_elements,
     isExpired: IsExpired.null_aware_elements,
@@ -470,7 +485,7 @@ class ExperimentalFeatures {
   );
 
   static final patterns = ExperimentalFeature(
-    index: 25,
+    index: 26,
     enableString: EnableString.patterns,
     isEnabledByDefault: IsEnabledByDefault.patterns,
     isExpired: IsExpired.patterns,
@@ -481,7 +496,7 @@ class ExperimentalFeatures {
   );
 
   static final record_use = ExperimentalFeature(
-    index: 26,
+    index: 27,
     enableString: EnableString.record_use,
     isEnabledByDefault: IsEnabledByDefault.record_use,
     isExpired: IsExpired.record_use,
@@ -492,7 +507,7 @@ class ExperimentalFeatures {
   );
 
   static final records = ExperimentalFeature(
-    index: 27,
+    index: 28,
     enableString: EnableString.records,
     isEnabledByDefault: IsEnabledByDefault.records,
     isExpired: IsExpired.records,
@@ -503,7 +518,7 @@ class ExperimentalFeatures {
   );
 
   static final sealed_class = ExperimentalFeature(
-    index: 28,
+    index: 29,
     enableString: EnableString.sealed_class,
     isEnabledByDefault: IsEnabledByDefault.sealed_class,
     isExpired: IsExpired.sealed_class,
@@ -514,7 +529,7 @@ class ExperimentalFeatures {
   );
 
   static final set_literals = ExperimentalFeature(
-    index: 29,
+    index: 30,
     enableString: EnableString.set_literals,
     isEnabledByDefault: IsEnabledByDefault.set_literals,
     isExpired: IsExpired.set_literals,
@@ -525,7 +540,7 @@ class ExperimentalFeatures {
   );
 
   static final sound_flow_analysis = ExperimentalFeature(
-    index: 30,
+    index: 31,
     enableString: EnableString.sound_flow_analysis,
     isEnabledByDefault: IsEnabledByDefault.sound_flow_analysis,
     isExpired: IsExpired.sound_flow_analysis,
@@ -537,7 +552,7 @@ class ExperimentalFeatures {
   );
 
   static final spread_collections = ExperimentalFeature(
-    index: 31,
+    index: 32,
     enableString: EnableString.spread_collections,
     isEnabledByDefault: IsEnabledByDefault.spread_collections,
     isExpired: IsExpired.spread_collections,
@@ -548,7 +563,7 @@ class ExperimentalFeatures {
   );
 
   static final static_extensions = ExperimentalFeature(
-    index: 32,
+    index: 33,
     enableString: EnableString.static_extensions,
     isEnabledByDefault: IsEnabledByDefault.static_extensions,
     isExpired: IsExpired.static_extensions,
@@ -559,7 +574,7 @@ class ExperimentalFeatures {
   );
 
   static final super_parameters = ExperimentalFeature(
-    index: 33,
+    index: 34,
     enableString: EnableString.super_parameters,
     isEnabledByDefault: IsEnabledByDefault.super_parameters,
     isExpired: IsExpired.super_parameters,
@@ -570,7 +585,7 @@ class ExperimentalFeatures {
   );
 
   static final test_experiment = ExperimentalFeature(
-    index: 34,
+    index: 35,
     enableString: EnableString.test_experiment,
     isEnabledByDefault: IsEnabledByDefault.test_experiment,
     isExpired: IsExpired.test_experiment,
@@ -582,7 +597,7 @@ class ExperimentalFeatures {
   );
 
   static final triple_shift = ExperimentalFeature(
-    index: 35,
+    index: 36,
     enableString: EnableString.triple_shift,
     isEnabledByDefault: IsEnabledByDefault.triple_shift,
     isExpired: IsExpired.triple_shift,
@@ -593,7 +608,7 @@ class ExperimentalFeatures {
   );
 
   static final unnamed_libraries = ExperimentalFeature(
-    index: 36,
+    index: 37,
     enableString: EnableString.unnamed_libraries,
     isEnabledByDefault: IsEnabledByDefault.unnamed_libraries,
     isExpired: IsExpired.unnamed_libraries,
@@ -604,7 +619,7 @@ class ExperimentalFeatures {
   );
 
   static final unquoted_imports = ExperimentalFeature(
-    index: 37,
+    index: 38,
     enableString: EnableString.unquoted_imports,
     isEnabledByDefault: IsEnabledByDefault.unquoted_imports,
     isExpired: IsExpired.unquoted_imports,
@@ -615,7 +630,7 @@ class ExperimentalFeatures {
   );
 
   static final variance = ExperimentalFeature(
-    index: 38,
+    index: 39,
     enableString: EnableString.variance,
     isEnabledByDefault: IsEnabledByDefault.variance,
     isExpired: IsExpired.variance,
@@ -626,7 +641,7 @@ class ExperimentalFeatures {
   );
 
   static final wildcard_variables = ExperimentalFeature(
-    index: 39,
+    index: 40,
     enableString: EnableString.wildcard_variables,
     isEnabledByDefault: IsEnabledByDefault.wildcard_variables,
     isExpired: IsExpired.wildcard_variables,
@@ -658,6 +673,9 @@ class IsEnabledByDefault {
 
   /// Default state of the experiment "control-flow-collections"
   static const bool control_flow_collections = true;
+
+  /// Default state of the experiment "data-assets"
+  static const bool data_assets = false;
 
   /// Default state of the experiment "digit-separators"
   static const bool digit_separators = true;
@@ -784,6 +802,9 @@ class IsExpired {
   /// Expiration status of the experiment "control-flow-collections"
   static const bool control_flow_collections = true;
 
+  /// Expiration status of the experiment "data-assets"
+  static const bool data_assets = false;
+
   /// Expiration status of the experiment "digit-separators"
   static const bool digit_separators = true;
 
@@ -908,6 +929,9 @@ mixin _CurrentState {
   /// Current state for the flag "control-flow-collections"
   bool get control_flow_collections =>
       isEnabled(ExperimentalFeatures.control_flow_collections);
+
+  /// Current state for the flag "data-assets"
+  bool get data_assets => isEnabled(ExperimentalFeatures.data_assets);
 
   /// Current state for the flag "digit-separators"
   bool get digit_separators => isEnabled(ExperimentalFeatures.digit_separators);

@@ -9,6 +9,7 @@ import 'package:code_assets/code_assets.dart';
 import 'package:dartdev/src/native_assets_bundling.dart';
 import 'package:dartdev/src/sdk.dart';
 import 'package:dartdev/src/utils.dart';
+import 'package:data_assets/data_assets.dart';
 import 'package:file/local.dart';
 import 'package:hooks/hooks.dart';
 import 'package:hooks_runner/hooks_runner.dart';
@@ -25,6 +26,7 @@ class DartNativeAssetsBuilder {
   final String runPackageName;
   final bool includeDevDependencies;
   final bool verbose;
+  final bool dataAssetsExperimentEnabled;
 
   static const _fileSystem = LocalFileSystem();
 
@@ -71,6 +73,7 @@ class DartNativeAssetsBuilder {
     required this.runPackageName,
     required this.includeDevDependencies,
     required this.verbose,
+    required this.dataAssetsExperimentEnabled,
     Target? target,
   }) : target = target ?? Target.current;
 
@@ -134,9 +137,7 @@ class DartNativeAssetsBuilder {
       macOS: _macOSConfig,
       cCompiler: _cCompilerConfig,
     ),
-    // TODO(dacoharkes,mosum): This should be gated behind a data-assets
-    // experiment flag.
-    // DataAssetsExtension(),
+    if (dataAssetsExperimentEnabled) DataAssetsExtension(),
   ];
 
   Future<BuildResult?> _buildNativeAssetsShared({
