@@ -37,9 +37,6 @@ class AddAwait extends ResolvedCorrectionProducer {
   @override
   FixKind get fixKind => DartFixKind.ADD_AWAIT;
 
-  @override
-  FixKind get multiFixKind => DartFixKind.ADD_AWAIT_MULTI;
-
   FunctionBody? get _functionBodyIfNotAsync {
     var body = node.thisOrAncestorOfType<FunctionBody>();
     if (body != null && !body.isAsynchronous && body.star == null) {
