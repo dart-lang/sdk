@@ -256,6 +256,9 @@ class ContextManagerImpl implements ContextManager {
   /// `--enable-experiment` command-line option.
   final List<String> _enabledExperiments;
 
+  /// Whether to enable fine-grained dependencies.
+  final bool withFineDependencies;
+
   /// Information about the current/last queued context rebuild.
   ///
   /// This is used when a new build is requested to cancel any in-progress
@@ -274,6 +277,7 @@ class ContextManagerImpl implements ContextManager {
     this._scheduler,
     this._instrumentationService, {
     required bool enableBlazeWatcher,
+    this.withFineDependencies = false,
   }) : pathContext = resourceProvider.pathContext {
     if (enableBlazeWatcher) {
       blazeWatcherService = BlazeFileWatcherService(_instrumentationService);
@@ -597,6 +601,7 @@ class ContextManagerImpl implements ContextManager {
           fileContentCache: _fileContentCache,
           unlinkedUnitStore: _unlinkedUnitStore,
           enabledExperiments: _enabledExperiments,
+          withFineDependencies: withFineDependencies,
         );
 
         for (var analysisContext in collection.contexts) {

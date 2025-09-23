@@ -4168,8 +4168,8 @@ package:analyzer/dart/element/element.dart:
     new (constructor: TypeAliasFragment Function())
     element (getter: TypeAliasElement)
     enclosingFragment (getter: LibraryFragment?)
-    nextFragment (getter: TypeAliasFragment?)
-    previousFragment (getter: TypeAliasFragment?)
+    nextFragment (getter: Null)
+    previousFragment (getter: Null)
   TypeDefiningElement (class extends Object implements Element, Annotatable):
     new (constructor: TypeDefiningElement Function())
     firstFragment (getter: TypeDefiningFragment)

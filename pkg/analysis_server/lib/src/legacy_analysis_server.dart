@@ -175,6 +175,9 @@ class AnalysisServerOptions {
   /// Experiments which have been enabled (or disabled) via the
   /// `--enable-experiment` command-line option.
   List<String> enabledExperiments = [];
+
+  /// Whether to enable fine-grained dependencies.
+  bool withFineDependencies = false;
 }
 
 /// Instances of the class [LegacyAnalysisServer] implement a server that

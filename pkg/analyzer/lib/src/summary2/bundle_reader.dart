@@ -35,7 +35,7 @@ import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 class BundleReader {
-  final SummaryDataReader _reader;
+  final BinaryReader _reader;
   final Map<Uri, Uint8List> _unitsInformativeBytes;
 
   final Map<Uri, LibraryReader> libraryMap = {};
@@ -45,7 +45,7 @@ class BundleReader {
     required Uint8List resolutionBytes,
     Map<Uri, Uint8List> unitsInformativeBytes = const {},
     required Map<Uri, LibraryManifest> libraryManifests,
-  }) : _reader = SummaryDataReader(resolutionBytes),
+  }) : _reader = BinaryReader(resolutionBytes),
        _unitsInformativeBytes = unitsInformativeBytes {
     const bytesOfU32 = 4;
     const countOfU32 = 4;
@@ -90,7 +90,7 @@ class BundleReader {
 
 class LibraryReader {
   final LinkedElementFactory _elementFactory;
-  final SummaryDataReader _reader;
+  final BinaryReader _reader;
   final Uri uri;
   final Map<Uri, Uint8List> _unitsInformativeBytes;
   final int _baseResolutionOffset;
@@ -106,7 +106,7 @@ class LibraryReader {
 
   LibraryReader._({
     required LinkedElementFactory elementFactory,
-    required SummaryDataReader reader,
+    required BinaryReader reader,
     required this.uri,
     required Map<Uri, Uint8List> unitsInformativeBytes,
     required int baseResolutionOffset,
@@ -1472,7 +1472,7 @@ class LibraryReader {
 class ResolutionReader {
   final LinkedElementFactory _elementFactory;
   final _ReferenceReader _referenceReader;
-  final SummaryDataReader _reader;
+  final BinaryReader _reader;
 
   late LibraryFragmentImpl currentLibraryFragment;
 
@@ -1962,7 +1962,7 @@ class _LibraryHeader {
 
 class _ReferenceReader {
   final LinkedElementFactory elementFactory;
-  final SummaryDataReader _reader;
+  final BinaryReader _reader;
   late final Uint32List _parents;
   late final Uint32List _names;
   late final List<Reference?> _references;

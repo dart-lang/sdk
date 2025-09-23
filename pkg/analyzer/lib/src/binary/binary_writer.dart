@@ -5,8 +5,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-/// Puts a buffer in front of a [Sink<List<int>>].
-class BufferedSink {
+/// Buffered writer for binary formats.
+class BinaryWriter {
   static const int _SIZE = 128 * 1024;
   static const int _SAFE_LENGTH = _SIZE - 5;
 
@@ -21,7 +21,7 @@ class BufferedSink {
   final Float64List _doubleBuffer = Float64List(1);
   late final Uint8List _doubleBufferUint8 = _doubleBuffer.buffer.asUint8List();
 
-  BufferedSink();
+  BinaryWriter();
 
   int get offset => _builder.length + _length;
 

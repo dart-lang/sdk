@@ -136,6 +136,9 @@ class Driver implements ServerStarter {
   /// Flag to not use a (Evicting)FileByteStore.
   static const String DISABLE_FILE_BYTE_STORE = 'disable-file-byte-store';
 
+  /// The name of the flag to enable fine-grained dependencies.
+  static const String WITH_FINE_DEPENDENCIES = 'with-fine-dependencies';
+
   /// The builder for attachments that should be included into crash reports.
   CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder =
       CrashReportingAttachmentsBuilder.empty;
@@ -184,6 +187,9 @@ class Driver implements ServerStarter {
     analysisServerOptions.packagesFile = results.option(PACKAGES_FILE);
     analysisServerOptions.reportProtocolVersion = results.option(
       REPORT_PROTOCOL_VERSION,
+    );
+    analysisServerOptions.withFineDependencies = results.flag(
+      WITH_FINE_DEPENDENCIES,
     );
 
     analysisServerOptions.enabledExperiments = results.multiOption(
@@ -849,6 +855,11 @@ class Driver implements ServerStarter {
       DISABLE_FILE_BYTE_STORE,
       help:
           'Disable use of (Evicting)FileByteStore. Intended for benchmarking.',
+      hide: true,
+    );
+    parser.addFlag(
+      WITH_FINE_DEPENDENCIES,
+      help: 'Enable fine-grained dependencies.',
       hide: true,
     );
     parser.addFlag(

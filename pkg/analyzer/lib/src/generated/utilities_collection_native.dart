@@ -13,7 +13,7 @@ import 'package:analyzer/src/binary/binary_writer.dart';
 extension type EnumSet<T extends Enum>(int _bits) {
   EnumSet.empty() : this(0);
 
-  factory EnumSet.read(SummaryDataReader reader) {
+  factory EnumSet.read(BinaryReader reader) {
     return EnumSet(reader.readInt64());
   }
 
@@ -39,7 +39,7 @@ extension type EnumSet<T extends Enum>(int _bits) {
     }
   }
 
-  void write(BufferedSink writer) {
+  void write(BinaryWriter writer) {
     writer.writeInt64(_bits);
   }
 

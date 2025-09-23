@@ -28,8 +28,8 @@ final class ManifestDynamicType extends ManifestType {
   }
 
   @override
-  void write(BufferedSink sink) {
-    sink.writeEnum(_ManifestTypeKind.dynamic);
+  void write(BinaryWriter writer) {
+    writer.writeEnum(_ManifestTypeKind.dynamic);
   }
 }
 
@@ -62,14 +62,14 @@ sealed class ManifestFunctionFormalParameter {
         defaultValue.match(context, element.constantInitializer);
   }
 
-  void write(BufferedSink sink) {
-    metadata.write(sink);
-    sink.writeBool(isRequired);
-    sink.writeBool(isCovariant);
-    sink.writeBool(isInitializingFormal);
-    sink.writeBool(isSuperFormal);
-    type.write(sink);
-    defaultValue.writeOptional(sink);
+  void write(BinaryWriter writer) {
+    metadata.write(writer);
+    writer.writeBool(isRequired);
+    writer.writeBool(isCovariant);
+    writer.writeBool(isInitializingFormal);
+    writer.writeBool(isSuperFormal);
+    type.write(writer);
+    defaultValue.writeOptional(writer);
   }
 }
 
@@ -93,7 +93,7 @@ class ManifestFunctionNamedFormalParameter
     );
   }
 
-  factory ManifestFunctionNamedFormalParameter.read(SummaryDataReader reader) {
+  factory ManifestFunctionNamedFormalParameter.read(BinaryReader reader) {
     return ManifestFunctionNamedFormalParameter._(
       metadata: ManifestMetadata.read(reader),
       isRequired: reader.readBool(),
@@ -125,9 +125,9 @@ class ManifestFunctionNamedFormalParameter
   }
 
   @override
-  void write(BufferedSink sink) {
-    super.write(sink);
-    sink.writeStringUtf8(name);
+  void write(BinaryWriter writer) {
+    super.write(writer);
+    writer.writeStringUtf8(name);
   }
 }
 
@@ -148,9 +148,7 @@ class ManifestFunctionPositionalFormalParameter
     );
   }
 
-  factory ManifestFunctionPositionalFormalParameter.read(
-    SummaryDataReader reader,
-  ) {
+  factory ManifestFunctionPositionalFormalParameter.read(BinaryReader reader) {
     return ManifestFunctionPositionalFormalParameter._(
       metadata: ManifestMetadata.read(reader),
       isRequired: reader.readBool(),
@@ -209,7 +207,7 @@ final class ManifestFunctionType extends ManifestType {
     });
   }
 
-  factory ManifestFunctionType.read(SummaryDataReader reader) {
+  factory ManifestFunctionType.read(BinaryReader reader) {
     return ManifestFunctionType._(
       typeParameters: reader.readTypedList(() {
         return ManifestTypeParameter.read(reader);
@@ -287,17 +285,17 @@ final class ManifestFunctionType extends ManifestType {
   }
 
   @override
-  void write(BufferedSink sink) {
-    sink.writeEnum(_ManifestTypeKind.function);
-    writeNoTag(sink);
+  void write(BinaryWriter writer) {
+    writer.writeEnum(_ManifestTypeKind.function);
+    writeNoTag(writer);
   }
 
-  void writeNoTag(BufferedSink sink) {
-    sink.writeList(typeParameters, (e) => e.write(sink));
-    returnType.write(sink);
-    sink.writeList(positional, (e) => e.write(sink));
-    sink.writeList(named, (e) => e.write(sink));
-    sink.writeEnum(nullabilitySuffix);
+  void writeNoTag(BinaryWriter writer) {
+    writer.writeList(typeParameters, (e) => e.write(writer));
+    returnType.write(writer);
+    writer.writeList(positional, (e) => e.write(writer));
+    writer.writeList(named, (e) => e.write(writer));
+    writer.writeEnum(nullabilitySuffix);
   }
 }
 
@@ -316,7 +314,7 @@ final class ManifestInterfaceType extends ManifestType {
     );
   }
 
-  factory ManifestInterfaceType.read(SummaryDataReader reader) {
+  factory ManifestInterfaceType.read(BinaryReader reader) {
     return ManifestInterfaceType._(
       element: ManifestElement.read(reader),
       arguments: reader.readTypedList(() {
@@ -359,13 +357,13 @@ final class ManifestInterfaceType extends ManifestType {
   }
 
   @override
-  void write(BufferedSink sink) {
-    sink.writeEnum(_ManifestTypeKind.interface);
-    element.write(sink);
-    sink.writeList(arguments, (argument) {
-      argument.write(sink);
+  void write(BinaryWriter writer) {
+    writer.writeEnum(_ManifestTypeKind.interface);
+    element.write(writer);
+    writer.writeList(arguments, (argument) {
+      argument.write(writer);
     });
-    sink.writeEnum(nullabilitySuffix);
+    writer.writeEnum(nullabilitySuffix);
   }
 }
 
@@ -380,8 +378,8 @@ final class ManifestInvalidType extends ManifestType {
   }
 
   @override
-  void write(BufferedSink sink) {
-    sink.writeEnum(_ManifestTypeKind.invalid);
+  void write(BinaryWriter writer) {
+    writer.writeEnum(_ManifestTypeKind.invalid);
   }
 }
 
@@ -390,7 +388,7 @@ final class ManifestNeverType extends ManifestType {
     return ManifestNeverType._(nullabilitySuffix: type.nullabilitySuffix);
   }
 
-  factory ManifestNeverType.read(SummaryDataReader reader) {
+  factory ManifestNeverType.read(BinaryReader reader) {
     return ManifestNeverType._(
       nullabilitySuffix: reader.readEnum(NullabilitySuffix.values),
     );
@@ -410,9 +408,9 @@ final class ManifestNeverType extends ManifestType {
   }
 
   @override
-  void write(BufferedSink sink) {
-    sink.writeEnum(_ManifestTypeKind.never);
-    sink.writeEnum(nullabilitySuffix);
+  void write(BinaryWriter writer) {
+    writer.writeEnum(_ManifestTypeKind.never);
+    writer.writeEnum(nullabilitySuffix);
   }
 }
 
@@ -437,7 +435,7 @@ final class ManifestRecordType extends ManifestType {
     );
   }
 
-  factory ManifestRecordType.read(SummaryDataReader reader) {
+  factory ManifestRecordType.read(BinaryReader reader) {
     return ManifestRecordType._(
       positionalFields: reader.readTypedList(() {
         return ManifestType.read(reader);
@@ -491,11 +489,11 @@ final class ManifestRecordType extends ManifestType {
   }
 
   @override
-  void write(BufferedSink sink) {
-    sink.writeEnum(_ManifestTypeKind.record);
-    sink.writeList(positionalFields, (e) => e.write(sink));
-    sink.writeList(namedFields, (e) => e.write(sink));
-    sink.writeEnum(nullabilitySuffix);
+  void write(BinaryWriter writer) {
+    writer.writeEnum(_ManifestTypeKind.record);
+    writer.writeList(positionalFields, (e) => e.write(writer));
+    writer.writeList(namedFields, (e) => e.write(writer));
+    writer.writeEnum(nullabilitySuffix);
   }
 }
 
@@ -513,7 +511,7 @@ class ManifestRecordTypeNamedField {
     );
   }
 
-  factory ManifestRecordTypeNamedField.read(SummaryDataReader reader) {
+  factory ManifestRecordTypeNamedField.read(BinaryReader reader) {
     return ManifestRecordTypeNamedField._(
       name: reader.readStringUtf8(),
       type: ManifestType.read(reader),
@@ -526,9 +524,9 @@ class ManifestRecordTypeNamedField {
     return field.name == name && type.match(context, field.type);
   }
 
-  void write(BufferedSink sink) {
-    sink.writeStringUtf8(name);
-    type.write(sink);
+  void write(BinaryWriter writer) {
+    writer.writeStringUtf8(name);
+    type.write(writer);
   }
 }
 
@@ -539,9 +537,9 @@ sealed class ManifestType {
 
   bool match(MatchContext context, DartType type);
 
-  void write(BufferedSink sink);
+  void write(BinaryWriter writer);
 
-  static ManifestType read(SummaryDataReader reader) {
+  static ManifestType read(BinaryReader reader) {
     var kind = reader.readEnum(_ManifestTypeKind.values);
     switch (kind) {
       case _ManifestTypeKind.dynamic:
@@ -563,11 +561,11 @@ sealed class ManifestType {
     }
   }
 
-  static List<ManifestType> readList(SummaryDataReader reader) {
+  static List<ManifestType> readList(BinaryReader reader) {
     return reader.readTypedList(() => ManifestType.read(reader));
   }
 
-  static ManifestType? readOptional(SummaryDataReader reader) {
+  static ManifestType? readOptional(BinaryReader reader) {
     return reader.readOptionalObject(() => ManifestType.read(reader));
   }
 }
@@ -586,7 +584,7 @@ class ManifestTypeParameter {
     );
   }
 
-  factory ManifestTypeParameter.read(SummaryDataReader reader) {
+  factory ManifestTypeParameter.read(BinaryReader reader) {
     return ManifestTypeParameter._(
       variance: reader.readEnum(shared.Variance.values),
       bound: ManifestType.readOptional(reader),
@@ -599,12 +597,12 @@ class ManifestTypeParameter {
     return element.variance == variance && bound.match(context, element.bound);
   }
 
-  void write(BufferedSink sink) {
-    sink.writeEnum(variance);
-    bound.writeOptional(sink);
+  void write(BinaryWriter writer) {
+    writer.writeEnum(variance);
+    bound.writeOptional(writer);
   }
 
-  static List<ManifestTypeParameter> readList(SummaryDataReader reader) {
+  static List<ManifestTypeParameter> readList(BinaryReader reader) {
     return reader.readTypedList(() => ManifestTypeParameter.read(reader));
   }
 }
@@ -622,7 +620,7 @@ final class ManifestTypeParameterType extends ManifestType {
     );
   }
 
-  factory ManifestTypeParameterType.read(SummaryDataReader reader) {
+  factory ManifestTypeParameterType.read(BinaryReader reader) {
     return ManifestTypeParameterType._(
       index: reader.readUint30(),
       nullabilitySuffix: reader.readEnum(NullabilitySuffix.values),
@@ -653,10 +651,10 @@ final class ManifestTypeParameterType extends ManifestType {
   }
 
   @override
-  void write(BufferedSink sink) {
-    sink.writeEnum(_ManifestTypeKind.typeParameter);
-    sink.writeUint30(index);
-    sink.writeEnum(nullabilitySuffix);
+  void write(BinaryWriter writer) {
+    writer.writeEnum(_ManifestTypeKind.typeParameter);
+    writer.writeUint30(index);
+    writer.writeEnum(nullabilitySuffix);
   }
 }
 
@@ -671,8 +669,8 @@ final class ManifestVoidType extends ManifestType {
   }
 
   @override
-  void write(BufferedSink sink) {
-    sink.writeEnum(_ManifestTypeKind.void_);
+  void write(BinaryWriter writer) {
+    writer.writeEnum(_ManifestTypeKind.void_);
   }
 }
 
@@ -738,8 +736,8 @@ extension ListOfManifestTypeExtension on List<ManifestType> {
     return true;
   }
 
-  void writeList(BufferedSink sink) {
-    sink.writeList(this, (x) => x.write(sink));
+  void writeList(BinaryWriter writer) {
+    writer.writeList(this, (x) => x.write(writer));
   }
 }
 
@@ -756,8 +754,8 @@ extension ListOfManifestTypeParameterExtension on List<ManifestTypeParameter> {
     return true;
   }
 
-  void write(BufferedSink sink) {
-    sink.writeList(this, (x) => x.write(sink));
+  void write(BinaryWriter writer) {
+    writer.writeList(this, (x) => x.write(writer));
   }
 }
 
@@ -770,8 +768,8 @@ extension ManifestTypeOrNullExtension on ManifestType? {
     return self.match(context, type);
   }
 
-  void writeOptional(BufferedSink sink) {
-    sink.writeOptionalObject(this, (x) => x.write(sink));
+  void writeOptional(BinaryWriter writer) {
+    writer.writeOptionalObject(this, (x) => x.write(writer));
   }
 }
 

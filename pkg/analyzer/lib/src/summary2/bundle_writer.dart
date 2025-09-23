@@ -1266,7 +1266,7 @@ class _LocalElementIndexer {
   }
 }
 
-class _SummaryDataWriter extends BufferedSink {
+class _SummaryDataWriter extends BinaryWriter {
   final StringIndexer _stringIndexer;
 
   _SummaryDataWriter({required StringIndexer stringIndexer})

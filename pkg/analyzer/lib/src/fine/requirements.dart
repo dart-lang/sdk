@@ -39,7 +39,7 @@ class ExportRequirement {
     required this.exportedIds,
   });
 
-  factory ExportRequirement.read(SummaryDataReader reader) {
+  factory ExportRequirement.read(BinaryReader reader) {
     return ExportRequirement(
       fragmentUri: reader.readUri(),
       exportedUri: reader.readUri(),
@@ -106,14 +106,14 @@ class ExportRequirement {
     return null;
   }
 
-  void write(BufferedSink sink) {
-    sink.writeUri(fragmentUri);
-    sink.writeUri(exportedUri);
-    sink.writeList(combinators, (combinator) => combinator.write(sink));
-    sink.writeMap(
+  void write(BinaryWriter writer) {
+    writer.writeUri(fragmentUri);
+    writer.writeUri(exportedUri);
+    writer.writeList(combinators, (combinator) => combinator.write(writer));
+    writer.writeMap(
       exportedIds,
-      writeKey: (lookupName) => lookupName.write(sink),
-      writeValue: (id) => id.write(sink),
+      writeKey: (lookupName) => lookupName.write(writer),
+      writeValue: (id) => id.write(writer),
     );
   }
 
@@ -139,7 +139,7 @@ class ExportRequirement {
 sealed class ExportRequirementCombinator {
   ExportRequirementCombinator();
 
-  factory ExportRequirementCombinator.read(SummaryDataReader reader) {
+  factory ExportRequirementCombinator.read(BinaryReader reader) {
     var kind = reader.readEnum(_ExportRequirementCombinatorKind.values);
     switch (kind) {
       case _ExportRequirementCombinatorKind.hide:
@@ -149,7 +149,7 @@ sealed class ExportRequirementCombinator {
     }
   }
 
-  void write(BufferedSink sink);
+  void write(BinaryWriter writer);
 }
 
 @visibleForTesting
@@ -159,16 +159,16 @@ final class ExportRequirementHideCombinator
 
   ExportRequirementHideCombinator({required this.hiddenBaseNames});
 
-  factory ExportRequirementHideCombinator.read(SummaryDataReader reader) {
+  factory ExportRequirementHideCombinator.read(BinaryReader reader) {
     return ExportRequirementHideCombinator(
       hiddenBaseNames: reader.readBaseNameSet(),
     );
   }
 
   @override
-  void write(BufferedSink sink) {
-    sink.writeEnum(_ExportRequirementCombinatorKind.hide);
-    sink.writeBaseNameIterable(hiddenBaseNames);
+  void write(BinaryWriter writer) {
+    writer.writeEnum(_ExportRequirementCombinatorKind.hide);
+    writer.writeBaseNameIterable(hiddenBaseNames);
   }
 }
 
@@ -179,16 +179,16 @@ final class ExportRequirementShowCombinator
 
   ExportRequirementShowCombinator({required this.shownBaseNames});
 
-  factory ExportRequirementShowCombinator.read(SummaryDataReader reader) {
+  factory ExportRequirementShowCombinator.read(BinaryReader reader) {
     return ExportRequirementShowCombinator(
       shownBaseNames: reader.readBaseNameSet(),
     );
   }
 
   @override
-  void write(BufferedSink sink) {
-    sink.writeEnum(_ExportRequirementCombinatorKind.show);
-    sink.writeBaseNameIterable(shownBaseNames);
+  void write(BinaryWriter writer) {
+    writer.writeEnum(_ExportRequirementCombinatorKind.show);
+    writer.writeBaseNameIterable(shownBaseNames);
   }
 }
 
@@ -252,7 +252,7 @@ class InstanceItemRequirements {
     );
   }
 
-  factory InstanceItemRequirements.read(SummaryDataReader reader) {
+  factory InstanceItemRequirements.read(BinaryReader reader) {
     return InstanceItemRequirements(
       requestedDeclaredFields: reader.readNameToOptionalIdMap(),
       requestedDeclaredGetters: reader.readNameToOptionalIdMap(),
@@ -265,15 +265,15 @@ class InstanceItemRequirements {
     );
   }
 
-  void write(BufferedSink sink) {
-    sink.writeNameToIdMap(requestedDeclaredFields);
-    sink.writeNameToIdMap(requestedDeclaredGetters);
-    sink.writeNameToIdMap(requestedDeclaredSetters);
-    sink.writeNameToIdMap(requestedDeclaredMethods);
-    allDeclaredFields.writeOptional(sink);
-    allDeclaredGetters.writeOptional(sink);
-    allDeclaredSetters.writeOptional(sink);
-    allDeclaredMethods.writeOptional(sink);
+  void write(BinaryWriter writer) {
+    writer.writeNameToIdMap(requestedDeclaredFields);
+    writer.writeNameToIdMap(requestedDeclaredGetters);
+    writer.writeNameToIdMap(requestedDeclaredSetters);
+    writer.writeNameToIdMap(requestedDeclaredMethods);
+    allDeclaredFields.writeOptional(writer);
+    allDeclaredGetters.writeOptional(writer);
+    allDeclaredSetters.writeOptional(writer);
+    allDeclaredMethods.writeOptional(writer);
   }
 }
 
@@ -322,7 +322,7 @@ class InterfaceItemRequirements {
     );
   }
 
-  factory InterfaceItemRequirements.read(SummaryDataReader reader) {
+  factory InterfaceItemRequirements.read(BinaryReader reader) {
     return InterfaceItemRequirements(
       interfaceId: ManifestItemId.readOptional(reader),
       hasNonFinalField: reader.readOptionalBool(),
@@ -337,17 +337,17 @@ class InterfaceItemRequirements {
     );
   }
 
-  void write(BufferedSink sink) {
-    interfaceId.writeOptional(sink);
-    sink.writeOptionalBool(hasNonFinalField);
-    allConstructors.writeOptional(sink);
-    sink.writeNameToIdMap(requestedConstructors);
-    sink.writeNameToIdMap(methods);
-    sink.writeNameToIdMap(implementedMethods);
-    sink.writeMap(
+  void write(BinaryWriter writer) {
+    interfaceId.writeOptional(writer);
+    writer.writeOptionalBool(hasNonFinalField);
+    allConstructors.writeOptional(writer);
+    writer.writeNameToIdMap(requestedConstructors);
+    writer.writeNameToIdMap(methods);
+    writer.writeNameToIdMap(implementedMethods);
+    writer.writeMap(
       superMethods,
-      writeKey: (index) => sink.writeInt64(index),
-      writeValue: (map) => sink.writeNameToIdMap(map),
+      writeKey: (index) => writer.writeInt64(index),
+      writeValue: (map) => writer.writeNameToIdMap(map),
     );
   }
 }
@@ -383,7 +383,7 @@ class LibraryExportRequirements {
     required this.exports,
   });
 
-  factory LibraryExportRequirements.read(SummaryDataReader reader) {
+  factory LibraryExportRequirements.read(BinaryReader reader) {
     return LibraryExportRequirements(
       libraryUri: reader.readUri(),
       declaredTopNames: reader.readLookupNameSet(),
@@ -404,10 +404,10 @@ class LibraryExportRequirements {
     return null;
   }
 
-  void write(BufferedSink sink) {
-    sink.writeUri(libraryUri);
-    declaredTopNames.write(sink);
-    sink.writeList(exports, (export) => export.write(sink));
+  void write(BinaryWriter writer) {
+    writer.writeUri(libraryUri);
+    declaredTopNames.write(writer);
+    writer.writeList(exports, (export) => export.write(writer));
   }
 
   static LibraryExportRequirements? build(LibraryElementImpl libraryElement) {
@@ -618,7 +618,7 @@ class LibraryRequirements {
     );
   }
 
-  factory LibraryRequirements.read(SummaryDataReader reader) {
+  factory LibraryRequirements.read(BinaryReader reader) {
     return LibraryRequirements(
       name: reader.readOptionalStringUtf8(),
       isSynthetic: reader.readOptionalBool(),
@@ -664,57 +664,57 @@ class LibraryRequirements {
     );
   }
 
-  void write(BufferedSink sink) {
-    sink.writeOptionalStringUtf8(name);
-    sink.writeOptionalBool(isSynthetic);
-    sink.writeOptionalUint8List(featureSet);
-    sink.writeOptionalObject(languageVersion, (it) => it.write(sink));
-    libraryMetadataId.writeOptional(sink);
-    sink.writeOptionalUriList(exportedLibraryUris);
-    sink.writeNameToIdMap(exportMap);
-    exportMapId.write(sink);
+  void write(BinaryWriter writer) {
+    writer.writeOptionalStringUtf8(name);
+    writer.writeOptionalBool(isSynthetic);
+    writer.writeOptionalUint8List(featureSet);
+    writer.writeOptionalObject(languageVersion, (it) => it.write(writer));
+    libraryMetadataId.writeOptional(writer);
+    writer.writeOptionalUriList(exportedLibraryUris);
+    writer.writeNameToIdMap(exportMap);
+    exportMapId.write(writer);
 
-    sink.writeMap(
+    writer.writeMap(
       instances,
-      writeKey: (name) => name.write(sink),
-      writeValue: (instance) => instance.write(sink),
+      writeKey: (name) => name.write(writer),
+      writeValue: (instance) => instance.write(writer),
     );
 
-    sink.writeMap(
+    writer.writeMap(
       interfaces,
-      writeKey: (name) => name.write(sink),
-      writeValue: (interface) => interface.write(sink),
+      writeKey: (name) => name.write(writer),
+      writeValue: (interface) => interface.write(writer),
     );
 
-    exportedExtensions.writeOptional(sink);
+    exportedExtensions.writeOptional(writer);
 
-    sink.writeNameToIdMap(requestedDeclaredClasses);
-    sink.writeNameToIdMap(requestedDeclaredEnums);
-    sink.writeNameToIdMap(requestedDeclaredExtensions);
-    sink.writeNameToIdMap(requestedDeclaredExtensionTypes);
-    sink.writeNameToIdMap(requestedDeclaredMixins);
-    sink.writeNameToIdMap(requestedDeclaredTypeAliases);
-    sink.writeNameToIdMap(requestedDeclaredFunctions);
-    sink.writeNameToIdMap(requestedDeclaredVariables);
-    sink.writeNameToIdMap(requestedDeclaredGetters);
-    sink.writeNameToIdMap(requestedDeclaredSetters);
+    writer.writeNameToIdMap(requestedDeclaredClasses);
+    writer.writeNameToIdMap(requestedDeclaredEnums);
+    writer.writeNameToIdMap(requestedDeclaredExtensions);
+    writer.writeNameToIdMap(requestedDeclaredExtensionTypes);
+    writer.writeNameToIdMap(requestedDeclaredMixins);
+    writer.writeNameToIdMap(requestedDeclaredTypeAliases);
+    writer.writeNameToIdMap(requestedDeclaredFunctions);
+    writer.writeNameToIdMap(requestedDeclaredVariables);
+    writer.writeNameToIdMap(requestedDeclaredGetters);
+    writer.writeNameToIdMap(requestedDeclaredSetters);
 
-    sink.writeMap(
+    writer.writeMap(
       reExportDeprecatedOnly,
-      writeKey: (name) => name.write(sink),
-      writeValue: (value) => sink.writeBool(value),
+      writeKey: (name) => name.write(writer),
+      writeValue: (value) => writer.writeBool(value),
     );
 
-    allDeclaredClasses.writeOptional(sink);
-    allDeclaredEnums.writeOptional(sink);
-    allDeclaredExtensions.writeOptional(sink);
-    allDeclaredExtensionTypes.writeOptional(sink);
-    allDeclaredMixins.writeOptional(sink);
-    allDeclaredTypeAliases.writeOptional(sink);
-    allDeclaredFunctions.writeOptional(sink);
-    allDeclaredVariables.writeOptional(sink);
-    allDeclaredGetters.writeOptional(sink);
-    allDeclaredSetters.writeOptional(sink);
+    allDeclaredClasses.writeOptional(writer);
+    allDeclaredEnums.writeOptional(writer);
+    allDeclaredExtensions.writeOptional(writer);
+    allDeclaredExtensionTypes.writeOptional(writer);
+    allDeclaredMixins.writeOptional(writer);
+    allDeclaredTypeAliases.writeOptional(writer);
+    allDeclaredFunctions.writeOptional(writer);
+    allDeclaredVariables.writeOptional(writer);
+    allDeclaredGetters.writeOptional(writer);
+    allDeclaredSetters.writeOptional(writer);
   }
 }
 
@@ -734,7 +734,7 @@ class OpaqueApiUse {
     this.targetElementName,
   });
 
-  factory OpaqueApiUse.read(SummaryDataReader reader) {
+  factory OpaqueApiUse.read(BinaryReader reader) {
     return OpaqueApiUse(
       targetRuntimeType: reader.readStringUtf8(),
       methodName: reader.readStringUtf8(),
@@ -745,14 +745,14 @@ class OpaqueApiUse {
     );
   }
 
-  void write(BufferedSink sink) {
-    sink.writeStringUtf8(targetRuntimeType);
-    sink.writeStringUtf8(methodName);
-    sink.writeOptionalObject(
+  void write(BinaryWriter writer) {
+    writer.writeStringUtf8(targetRuntimeType);
+    writer.writeStringUtf8(methodName);
+    writer.writeOptionalObject(
       targetElementLibraryUri,
-      (uri) => sink.writeUri(uri),
+      (uri) => writer.writeUri(uri),
     );
-    sink.writeOptionalStringUtf8(targetElementName);
+    writer.writeOptionalStringUtf8(targetElementName);
   }
 }
 
@@ -798,7 +798,7 @@ class RequirementsManifest {
 
   RequirementsManifest();
 
-  factory RequirementsManifest.read(SummaryDataReader reader) {
+  factory RequirementsManifest.read(BinaryReader reader) {
     var result = RequirementsManifest();
 
     result.libraries.addAll(
@@ -847,14 +847,14 @@ class RequirementsManifest {
   /// Returns `true` if everything matches. Throws [StateError] if not.
   bool assertSerialization() {
     Uint8List manifestAsBytes(RequirementsManifest manifest) {
-      var sink = BufferedSink();
-      manifest.write(sink);
-      return sink.takeBytes();
+      var writer = BinaryWriter();
+      manifest.write(writer);
+      return writer.takeBytes();
     }
 
     var bytes = manifestAsBytes(this);
 
-    var readManifest = RequirementsManifest.read(SummaryDataReader(bytes));
+    var readManifest = RequirementsManifest.read(BinaryReader(bytes));
     var bytes2 = manifestAsBytes(readManifest);
 
     if (!const ListEquality<int>().equals(bytes, bytes2)) {
@@ -2413,19 +2413,16 @@ class RequirementsManifest {
     _prefixScopeStates.clear();
   }
 
-  void write(BufferedSink sink) {
-    sink.writeMap(
+  void write(BinaryWriter writer) {
+    writer.writeMap(
       libraries,
-      writeKey: (uri) => sink.writeUri(uri),
-      writeValue: (library) => library.write(sink),
+      writeKey: (uri) => writer.writeUri(uri),
+      writeValue: (library) => library.write(writer),
     );
 
-    sink.writeList(
-      exportRequirements,
-      (requirement) => requirement.write(sink),
-    );
+    writer.writeList(exportRequirements, (export) => export.write(writer));
 
-    sink.writeList(opaqueApiUses, (usage) => usage.write(sink));
+    writer.writeList(opaqueApiUses, (usage) => usage.write(writer));
   }
 
   _InstanceItemWithRequirements? _getInstanceItem(InstanceElementImpl element) {
@@ -2596,7 +2593,24 @@ extension RequirementsManifestExtension on RequirementsManifest? {
   }
 }
 
-extension _BufferedSinkExtension on BufferedSink {
+extension _BinaryReaderExtension on BinaryReader {
+  Map<LookupName, ManifestItemId?> readNameToOptionalIdMap() {
+    return readMap(
+      readKey: () => LookupName.read(this),
+      readValue: () => ManifestItemId.readOptional(this),
+    );
+  }
+
+  bool? readOptionalBool() {
+    if (readBool()) {
+      return readBool();
+    } else {
+      return null;
+    }
+  }
+}
+
+extension _BinaryWriterExtension on BinaryWriter {
   void writeNameToIdMap(Map<LookupName, ManifestItemId?> map) {
     writeMap(
       map,
@@ -2611,23 +2625,6 @@ extension _BufferedSinkExtension on BufferedSink {
     } else {
       writeBool(true);
       writeBool(value);
-    }
-  }
-}
-
-extension _SummaryDataReaderExtension on SummaryDataReader {
-  Map<LookupName, ManifestItemId?> readNameToOptionalIdMap() {
-    return readMap(
-      readKey: () => LookupName.read(this),
-      readValue: () => ManifestItemId.readOptional(this),
-    );
-  }
-
-  bool? readOptionalBool() {
-    if (readBool()) {
-      return readBool();
-    } else {
-      return null;
     }
   }
 }

@@ -1002,13 +1002,22 @@ mixin DeferredMembersReadingMixin {
   }
 }
 
+class DeferredResolutionReadingHelper {
+  static int _lockResolutionLoading = 0;
+
+  static void withoutLoadingResolution(void Function() operation) {
+    _lockResolutionLoading++;
+    operation();
+    _lockResolutionLoading--;
+  }
+}
+
 /// This mixin is used to set up loading resolution information from summaries
 /// on demand, and after all elements are loaded, so for example types can
 /// reference them. The summary reader uses [deferReadResolution], and getters
 /// invoke [_ensureReadResolution].
 mixin DeferredResolutionReadingMixin {
   // TODO(scheglov): review whether we need this
-  static int _lockResolutionLoading = 0;
   void Function()? _readResolutionCallback;
   void Function()? _applyResolutionConstantOffsets;
 
@@ -1023,7 +1032,7 @@ mixin DeferredResolutionReadingMixin {
   }
 
   void _ensureReadResolution() {
-    if (_lockResolutionLoading > 0) {
+    if (DeferredResolutionReadingHelper._lockResolutionLoading > 0) {
       return;
     }
 
@@ -1037,12 +1046,6 @@ mixin DeferredResolutionReadingMixin {
         callback();
       }
     }
-  }
-
-  static void withoutLoadingResolution(void Function() operation) {
-    _lockResolutionLoading++;
-    operation();
-    _lockResolutionLoading--;
   }
 }
 
@@ -1924,7 +1927,7 @@ abstract class ElementImpl implements Element {
   }
 
   @trackedInternal
-  void readModifiers(SummaryDataReader reader) {
+  void readModifiers(BinaryReader reader) {
     _modifiers = EnumSet.read(reader);
   }
 
@@ -1997,7 +2000,7 @@ abstract class ElementImpl implements Element {
   }
 
   @trackedInternal
-  void writeModifiers(BufferedSink writer) {
+  void writeModifiers(BinaryWriter writer) {
     _modifiers.write(writer);
   }
 }
@@ -3547,7 +3550,7 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
     List<T> fragments, {
     required List<FormalParameterFragmentImpl> Function(T) getFragments,
   }) {
-    DeferredResolutionReadingMixin.withoutLoadingResolution(() {
+    DeferredResolutionReadingHelper.withoutLoadingResolution(() {
       var firstFormalParameters = getFragments(fragments.first);
       for (var fragment in firstFormalParameters) {
         switch (fragment) {
@@ -3738,7 +3741,7 @@ abstract class FragmentImpl with _FragmentImplMixin implements Fragment {
   @override
   bool hasModifier(Modifier modifier) => _modifiers[modifier];
 
-  void readModifiers(SummaryDataReader reader) {
+  void readModifiers(BinaryReader reader) {
     _modifiers = EnumSet.read(reader);
   }
 
@@ -3760,7 +3763,7 @@ abstract class FragmentImpl with _FragmentImplMixin implements Fragment {
     return "fragmentOf: $element";
   }
 
-  void writeModifiers(BufferedSink writer) {
+  void writeModifiers(BinaryWriter writer) {
     _modifiers.write(writer);
   }
 }
@@ -10694,10 +10697,10 @@ class TypeAliasFragmentImpl extends FragmentImpl
   List<TypeParameterFragmentImpl> _typeParameters = const [];
 
   @override
-  TypeAliasFragmentImpl? previousFragment;
+  Null previousFragment;
 
   @override
-  TypeAliasFragmentImpl? nextFragment;
+  Null nextFragment;
 
   /// Is `true` if the element has direct or indirect reference to itself
   /// from anywhere except a class element or type parameter bounds.
@@ -10772,12 +10775,6 @@ class TypeAliasFragmentImpl extends FragmentImpl
   @Deprecated('Use typeParameters instead')
   @override
   List<TypeParameterFragmentImpl> get typeParameters2 => typeParameters;
-
-  void addFragment(TypeAliasFragmentImpl fragment) {
-    fragment.element = element;
-    fragment.previousFragment = this;
-    nextFragment = fragment;
-  }
 }
 
 class TypeParameterElementImpl extends ElementImpl
@@ -11045,7 +11042,7 @@ class TypeParameterFragmentImpl extends FragmentImpl
     List<T> fragments, {
     required List<TypeParameterFragmentImpl> Function(T) getFragments,
   }) {
-    DeferredResolutionReadingMixin.withoutLoadingResolution(() {
+    DeferredResolutionReadingHelper.withoutLoadingResolution(() {
       var firstFragments = getFragments(fragments.first);
       for (var i = 0; i < firstFragments.length; i++) {
         // Side effect: set element for the fragment.

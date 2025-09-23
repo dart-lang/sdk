@@ -8889,6 +8889,183 @@ class A {
     );
   }
 
+  test_dependency_class_instanceMethod_add_implementedInterface_warmInterfaceType() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+abstract class A {}
+''',
+      testCode: r'''
+import 'a.dart';
+class B implements A {}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      beforeInitialOperation: (driver) async {
+        var a = await driver.getLibraryByUri('package:test/a.dart');
+        var A = (a as LibraryElementResult).element.getClass('A')!;
+        // InterfaceTypeImpl caches getters, setters, methods.
+        // And `thisType` is reused for all instantiations of `A`.
+        // But we still want to have requirements recorded.
+        A.thisType.getters;
+        A.thisType.setters;
+        A.thisType.methods;
+      },
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        interface: #M1
+    exportMapId: #M2
+    exportMap
+      A: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      B: #M3
+        interface: #M4
+    exportMapId: #M5
+    exportMap
+      B: #M3
+  requirements
+    libraries
+      package:test/a.dart
+        exportMapId: #M2
+        exportMap
+          A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+        interfaces
+          A
+            interfaceId: #M1
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        featureSet: <not-null>
+        libraryMetadataId: #M6
+        exportMapId: #M2
+        exportMap
+          A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+        instances
+          A
+            allDeclaredGetters: []
+            allDeclaredSetters: []
+            allDeclaredMethods: []
+[status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+''',
+      updatedA: r'''
+abstract class A {
+  int get foo;
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M7
+        declaredGetters
+          foo: #M8
+        interface: #M9
+          map
+            foo: #M8
+    exportMapId: #M2
+    exportMap
+      A: #M0
+  requirements
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
+  interfaceIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    expectedId: #M1
+    actualId: #M9
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      B: #M3
+        interface: #M10
+          map
+            foo: #M8
+          inherited
+            foo: #M8
+    exportMapId: #M5
+    exportMap
+      B: #M3
+  requirements
+    libraries
+      package:test/a.dart
+        exportMapId: #M2
+        exportMap
+          A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+        interfaces
+          A
+            interfaceId: #M9
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  instanceChildrenIdsMismatch
+    libraryUri: package:test/a.dart
+    instanceName: A
+    childrenPropertyName: getters
+    expectedIds: []
+    actualIds: #M8
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        featureSet: <not-null>
+        libraryMetadataId: #M6
+        exportMapId: #M2
+        exportMap
+          A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+        instances
+          A
+            requestedDeclaredFields
+              foo: #M7
+            allDeclaredGetters: #M8
+            allDeclaredSetters: []
+            allDeclaredMethods: []
+[status] idle
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      23 +1 NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER
+''',
+    );
+  }
+
   test_dependency_class_instanceMethod_add_invoked() async {
     configuration.withStreamResolvedUnitResults = false;
     await _runChangeScenarioTA(
@@ -94582,6 +94759,7 @@ void f(A _) {}
 
   Future<void> _runChangeScenario({
     required _FineOperation operation,
+    Future<void> Function(AnalysisDriver)? beforeInitialOperation,
     String? expectedInitialEvents,
     required List<File> Function() updateFiles,
     required String expectedUpdatedEvents,
@@ -94602,6 +94780,10 @@ void f(A _) {}
       ..withLibraryFragments = false
       ..withReferences = false
       ..withSyntheticGetters = false;
+
+    if (beforeInitialOperation != null) {
+      await beforeInitialOperation(driver);
+    }
 
     switch (operation) {
       case _FineOperationAddTestFile():
@@ -94647,6 +94829,7 @@ void f(A _) {}
     required String initialA,
     required String testCode,
     required _FineOperation operation,
+    Future<void> Function(AnalysisDriver)? beforeInitialOperation,
     String? expectedInitialEvents,
     required String updatedA,
     required String expectedUpdatedEvents,
@@ -94656,6 +94839,7 @@ void f(A _) {}
 
     await _runChangeScenario(
       operation: operation,
+      beforeInitialOperation: beforeInitialOperation,
       expectedInitialEvents: expectedInitialEvents,
       updateFiles: () {
         modifyFile2(a, updatedA);

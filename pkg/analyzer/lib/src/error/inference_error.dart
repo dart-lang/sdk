@@ -16,7 +16,7 @@ class TopLevelInferenceError {
 
   TopLevelInferenceError({required this.kind, required this.arguments});
 
-  factory TopLevelInferenceError.read(SummaryDataReader reader) {
+  factory TopLevelInferenceError.read(BinaryReader reader) {
     return TopLevelInferenceError(
       kind: reader.readEnum(TopLevelInferenceErrorKind.values),
       arguments: reader.readStringUtf8List(),
@@ -30,12 +30,12 @@ class TopLevelInferenceError {
         const ListEquality<String>().equals(other.arguments, arguments);
   }
 
-  void write(BufferedSink sink) {
-    sink.writeEnum(kind);
-    sink.writeStringUtf8Iterable(arguments);
+  void write(BinaryWriter writer) {
+    writer.writeEnum(kind);
+    writer.writeStringUtf8Iterable(arguments);
   }
 
-  static TopLevelInferenceError? readOptional(SummaryDataReader reader) {
+  static TopLevelInferenceError? readOptional(BinaryReader reader) {
     return reader.readOptionalObject(() => TopLevelInferenceError.read(reader));
   }
 }
@@ -48,7 +48,7 @@ enum TopLevelInferenceErrorKind {
 }
 
 extension TopLevelInferenceErrorExtension on TopLevelInferenceError? {
-  void writeOptional(BufferedSink sink) {
-    sink.writeOptionalObject(this, (it) => it.write(sink));
+  void writeOptional(BinaryWriter writer) {
+    writer.writeOptionalObject(this, (it) => it.write(writer));
   }
 }

@@ -115,7 +115,7 @@ class ManifestNode {
     }
   }
 
-  factory ManifestNode.read(SummaryDataReader reader) {
+  factory ManifestNode.read(BinaryReader reader) {
     return ManifestNode._(
       isValid: reader.readBool(),
       tokenBuffer: reader.readStringUtf8(),
@@ -193,19 +193,19 @@ class ManifestNode {
     return true;
   }
 
-  void write(BufferedSink sink) {
-    sink.writeBool(isValid);
-    sink.writeStringUtf8(tokenBuffer);
-    sink.writeUint30List(tokenLengthList);
-    sink.writeList(elements, (e) => e.write(sink));
-    sink.writeUint30List(elementIndexList);
+  void write(BinaryWriter writer) {
+    writer.writeBool(isValid);
+    writer.writeStringUtf8(tokenBuffer);
+    writer.writeUint30List(tokenLengthList);
+    writer.writeList(elements, (e) => e.write(writer));
+    writer.writeUint30List(elementIndexList);
   }
 
-  static List<ManifestNode> readList(SummaryDataReader reader) {
+  static List<ManifestNode> readList(BinaryReader reader) {
     return reader.readTypedList(() => ManifestNode.read(reader));
   }
 
-  static ManifestNode? readOptional(SummaryDataReader reader) {
+  static ManifestNode? readOptional(BinaryReader reader) {
     return reader.readOptionalObject(() => ManifestNode.read(reader));
   }
 }
@@ -487,8 +487,8 @@ extension ListOfManifestNodeExtension on List<ManifestNode> {
     return true;
   }
 
-  void writeList(BufferedSink sink) {
-    sink.writeList(this, (x) => x.write(sink));
+  void writeList(BinaryWriter writer) {
+    writer.writeList(this, (x) => x.write(writer));
   }
 }
 
@@ -502,7 +502,7 @@ extension ManifestNodeOrNullExtension on ManifestNode? {
     }
   }
 
-  void writeOptional(BufferedSink sink) {
-    sink.writeOptionalObject(this, (it) => it.write(sink));
+  void writeOptional(BinaryWriter writer) {
+    writer.writeOptionalObject(this, (it) => it.write(writer));
   }
 }

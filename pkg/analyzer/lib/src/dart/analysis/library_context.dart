@@ -551,7 +551,7 @@ class LinkedBundleProvider {
     }
 
     performance.getDataInt('bytesLength').add(bytes.length);
-    var reader = SummaryDataReader(bytes);
+    var reader = BinaryReader(bytes);
     var nonTransitiveApiSignature = reader.readStringUtf8();
     var libraryManifests = reader.readMap(
       readKey: () => reader.readUri(),
@@ -582,18 +582,18 @@ class LinkedBundleProvider {
     required LinkedBundleEntry entry,
     required OperationPerformanceImpl performance,
   }) {
-    var sink = BufferedSink();
+    var writer = BinaryWriter();
 
-    sink.writeStringUtf8(entry.nonTransitiveApiSignature);
-    sink.writeMap(
+    writer.writeStringUtf8(entry.nonTransitiveApiSignature);
+    writer.writeMap(
       entry.libraryManifests,
-      writeKey: (uri) => sink.writeUri(uri),
-      writeValue: (manifest) => manifest.write(sink),
+      writeKey: (uri) => writer.writeUri(uri),
+      writeValue: (manifest) => manifest.write(writer),
     );
-    entry.requirements.write(sink);
-    sink.writeUint8List(entry.linkedBytes);
+    entry.requirements.write(writer);
+    writer.writeUint8List(entry.linkedBytes);
 
-    var bytes = sink.takeBytes();
+    var bytes = writer.takeBytes();
     byteStore.putGet(key, bytes);
     performance.getDataInt('bytes').add(bytes.length);
 

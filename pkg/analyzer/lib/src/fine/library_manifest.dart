@@ -91,7 +91,7 @@ class LibraryManifest {
     required this.exportedExtensions,
   });
 
-  factory LibraryManifest.read(SummaryDataReader reader) {
+  factory LibraryManifest.read(BinaryReader reader) {
     return LibraryManifest(
       name: reader.readOptionalStringUtf8(),
       isSynthetic: reader.readBool(),
@@ -177,28 +177,28 @@ class LibraryManifest {
     return exportMap[name];
   }
 
-  void write(BufferedSink sink) {
-    sink.writeOptionalStringUtf8(name);
-    sink.writeBool(isSynthetic);
-    sink.writeUint8List(featureSet);
-    languageVersion.write(sink);
-    libraryMetadata.write(sink);
-    sink.writeUriList(exportedLibraryUris);
-    reExportMap.write(sink);
-    reExportDeprecatedOnly.write(sink);
-    declaredClasses.write(sink);
-    declaredEnums.write(sink);
-    declaredExtensions.write(sink);
-    declaredExtensionTypes.write(sink);
-    declaredMixins.write(sink);
-    declaredTypeAliases.write(sink);
-    declaredGetters.write(sink);
-    declaredSetters.write(sink);
-    declaredFunctions.write(sink);
-    declaredVariables.write(sink);
-    exportMap.write(sink);
-    exportMapId.write(sink);
-    exportedExtensions.write(sink);
+  void write(BinaryWriter writer) {
+    writer.writeOptionalStringUtf8(name);
+    writer.writeBool(isSynthetic);
+    writer.writeUint8List(featureSet);
+    languageVersion.write(writer);
+    libraryMetadata.write(writer);
+    writer.writeUriList(exportedLibraryUris);
+    reExportMap.write(writer);
+    reExportDeprecatedOnly.write(writer);
+    declaredClasses.write(writer);
+    declaredEnums.write(writer);
+    declaredExtensions.write(writer);
+    declaredExtensionTypes.write(writer);
+    declaredMixins.write(writer);
+    declaredTypeAliases.write(writer);
+    declaredGetters.write(writer);
+    declaredSetters.write(writer);
+    declaredFunctions.write(writer);
+    declaredVariables.write(writer);
+    exportMap.write(writer);
+    exportMapId.write(writer);
+    exportedExtensions.write(writer);
   }
 
   void _fillExportMap() {
@@ -796,15 +796,15 @@ class LibraryManifestBuilder {
   /// results in the same manifest.
   bool _assertSerialization() {
     Uint8List manifestAsBytes(LibraryManifest manifest) {
-      var byteSink = BufferedSink();
-      manifest.write(byteSink);
-      return byteSink.takeBytes();
+      var writer = BinaryWriter();
+      manifest.write(writer);
+      return writer.takeBytes();
     }
 
     newManifests.forEach((uri, manifest) {
       var bytes = manifestAsBytes(manifest);
 
-      var readManifest = LibraryManifest.read(SummaryDataReader(bytes));
+      var readManifest = LibraryManifest.read(BinaryReader(bytes));
       var readBytes = manifestAsBytes(readManifest);
 
       if (!const ListEquality<int>().equals(bytes, readBytes)) {

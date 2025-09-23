@@ -21,29 +21,29 @@ class StringIndexer {
     return result;
   }
 
-  int write(BufferedSink sink) {
-    var bytesOffset = sink.offset;
+  int write(BinaryWriter writer) {
+    var bytesOffset = writer.offset;
 
     var length = _index.length;
     var lengths = Uint32List(length);
     var lengthsIndex = 0;
     for (var key in _index.keys) {
-      var stringStart = sink.offset;
-      _writeWtf8(sink, key);
-      lengths[lengthsIndex++] = sink.offset - stringStart;
+      var stringStart = writer.offset;
+      _writeWtf8(writer, key);
+      lengths[lengthsIndex++] = writer.offset - stringStart;
     }
 
-    var resultOffset = sink.offset;
+    var resultOffset = writer.offset;
 
-    var lengthOfBytes = sink.offset - bytesOffset;
-    sink.writeUint30(lengthOfBytes);
-    sink.writeUint30List(lengths);
+    var lengthOfBytes = writer.offset - bytesOffset;
+    writer.writeUint30(lengthOfBytes);
+    writer.writeUint30List(lengths);
 
     return resultOffset;
   }
 
-  /// Write [source] string into [sink].
-  static void _writeWtf8(BufferedSink sink, String source) {
+  /// Write [source] string into [writer].
+  static void _writeWtf8(BinaryWriter writer, String source) {
     var end = source.length;
     if (end == 0) {
       return;
@@ -54,11 +54,11 @@ class StringIndexer {
       var codeUnit = source.codeUnitAt(i++);
       if (codeUnit < 128) {
         // ASCII.
-        sink.writeByte(codeUnit);
+        writer.writeByte(codeUnit);
       } else if (codeUnit < 0x800) {
         // Two-byte sequence (11-bit unicode value).
-        sink.writeByte(0xC0 | (codeUnit >> 6));
-        sink.writeByte(0x80 | (codeUnit & 0x3f));
+        writer.writeByte(0xC0 | (codeUnit >> 6));
+        writer.writeByte(0x80 | (codeUnit & 0x3f));
       } else if ((codeUnit & 0xFC00) == 0xD800 &&
           i < end &&
           (source.codeUnitAt(i) & 0xFC00) == 0xDC00) {
@@ -66,16 +66,16 @@ class StringIndexer {
         int codeUnit2 = source.codeUnitAt(i++);
         int unicode =
             0x10000 + ((codeUnit & 0x3FF) << 10) + (codeUnit2 & 0x3FF);
-        sink.writeByte(0xF0 | (unicode >> 18));
-        sink.writeByte(0x80 | ((unicode >> 12) & 0x3F));
-        sink.writeByte(0x80 | ((unicode >> 6) & 0x3F));
-        sink.writeByte(0x80 | (unicode & 0x3F));
+        writer.writeByte(0xF0 | (unicode >> 18));
+        writer.writeByte(0x80 | ((unicode >> 12) & 0x3F));
+        writer.writeByte(0x80 | ((unicode >> 6) & 0x3F));
+        writer.writeByte(0x80 | (unicode & 0x3F));
       } else {
         // Three-byte sequence (16-bit unicode value), including lone
         // surrogates.
-        sink.writeByte(0xE0 | (codeUnit >> 12));
-        sink.writeByte(0x80 | ((codeUnit >> 6) & 0x3f));
-        sink.writeByte(0x80 | (codeUnit & 0x3f));
+        writer.writeByte(0xE0 | (codeUnit >> 12));
+        writer.writeByte(0x80 | ((codeUnit >> 6) & 0x3f));
+        writer.writeByte(0x80 | (codeUnit & 0x3f));
       }
     } while (i < end);
   }

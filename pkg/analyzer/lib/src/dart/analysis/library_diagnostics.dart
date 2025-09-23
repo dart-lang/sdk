@@ -32,7 +32,7 @@ class LibraryDiagnosticsBundle {
   });
 
   factory LibraryDiagnosticsBundle.fromBytes(Uint8List bytes) {
-    var reader = SummaryDataReader(bytes);
+    var reader = BinaryReader(bytes);
     return LibraryDiagnosticsBundle(
       requirements: RequirementsManifest.read(reader),
       serializedFileResults: reader.readMap(
@@ -51,13 +51,13 @@ class LibraryDiagnosticsBundle {
   }
 
   Uint8List toBytes() {
-    var sink = BufferedSink();
-    requirements.write(sink);
-    sink.writeMap(
+    var writer = BinaryWriter();
+    requirements.write(writer);
+    writer.writeMap(
       serializedFileResults,
-      writeKey: (uri) => sink.writeUri(uri),
-      writeValue: (bytes) => sink.writeUint8List(bytes),
+      writeKey: (uri) => writer.writeUri(uri),
+      writeValue: (bytes) => writer.writeUint8List(bytes),
     );
-    return sink.takeBytes();
+    return writer.takeBytes();
   }
 }
