@@ -65,7 +65,7 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
     });
   }
 
-  factory ClassItem.read(SummaryDataReader reader) {
+  factory ClassItem.read(BinaryReader reader) {
     return ClassItem(
       id: ManifestItemId.read(reader),
       flags: _ClassItemFlags.read(reader),
@@ -143,7 +143,7 @@ class ConstructorItem extends ExecutableItem<ConstructorElementImpl> {
     });
   }
 
-  factory ConstructorItem.read(SummaryDataReader reader) {
+  factory ConstructorItem.read(BinaryReader reader) {
     return ConstructorItem(
       id: ManifestItemId.read(reader),
       flags: _ConstructorItemFlags.read(reader),
@@ -171,14 +171,14 @@ class ConstructorItem extends ExecutableItem<ConstructorElementImpl> {
   }
 
   @override
-  void write(BufferedSink sink) {
-    super.write(sink);
-    constantInitializers.writeList(sink);
-    redirectedConstructor.writeOptional(sink);
-    superConstructor.writeOptional(sink);
+  void write(BinaryWriter writer) {
+    super.write(writer);
+    constantInitializers.writeList(writer);
+    redirectedConstructor.writeOptional(writer);
+    superConstructor.writeOptional(writer);
   }
 
-  static Map<LookupName, ConstructorItem> readMap(SummaryDataReader reader) {
+  static Map<LookupName, ConstructorItem> readMap(BinaryReader reader) {
     return reader.readMap(
       readKey: () => LookupName.read(reader),
       readValue: () => ConstructorItem.read(reader),
@@ -233,7 +233,7 @@ class EnumItem extends InterfaceItem<EnumElementImpl> {
     });
   }
 
-  factory EnumItem.read(SummaryDataReader reader) {
+  factory EnumItem.read(BinaryReader reader) {
     return EnumItem(
       id: ManifestItemId.read(reader),
       flags: _InterfaceItemFlags.read(reader),
@@ -285,9 +285,9 @@ sealed class ExecutableItem<E extends ExecutableElementImpl>
   }
 
   @override
-  void write(BufferedSink sink) {
-    super.write(sink);
-    functionType.writeNoTag(sink);
+  void write(BinaryWriter writer) {
+    super.write(writer);
+    functionType.writeNoTag(writer);
   }
 }
 
@@ -333,7 +333,7 @@ class ExtensionItem<E extends ExtensionElementImpl> extends InstanceItem<E> {
     });
   }
 
-  factory ExtensionItem.read(SummaryDataReader reader) {
+  factory ExtensionItem.read(BinaryReader reader) {
     return ExtensionItem(
       id: ManifestItemId.read(reader),
       flags: _InstanceItemFlags.read(reader),
@@ -357,9 +357,9 @@ class ExtensionItem<E extends ExtensionElementImpl> extends InstanceItem<E> {
   }
 
   @override
-  void write(BufferedSink sink) {
-    super.write(sink);
-    extendedType.write(sink);
+  void write(BinaryWriter writer) {
+    super.write(writer);
+    extendedType.write(writer);
   }
 }
 
@@ -417,7 +417,7 @@ class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl> {
     });
   }
 
-  factory ExtensionTypeItem.read(SummaryDataReader reader) {
+  factory ExtensionTypeItem.read(BinaryReader reader) {
     return ExtensionTypeItem(
       id: ManifestItemId.read(reader),
       flags: _ExtensionTypeItemFlags.read(reader),
@@ -455,10 +455,10 @@ class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl> {
   }
 
   @override
-  void write(BufferedSink sink) {
-    super.write(sink);
-    representationType.write(sink);
-    typeErasure.write(sink);
+  void write(BinaryWriter writer) {
+    super.write(writer);
+    representationType.write(writer);
+    typeErasure.write(writer);
   }
 }
 
@@ -485,7 +485,7 @@ class FieldItem extends VariableItem<FieldElementImpl> {
     );
   }
 
-  factory FieldItem.read(SummaryDataReader reader) {
+  factory FieldItem.read(BinaryReader reader) {
     return FieldItem(
       id: ManifestItemId.read(reader),
       flags: _FieldItemFlags.read(reader),
@@ -510,7 +510,7 @@ class FieldItem extends VariableItem<FieldElementImpl> {
         flags.isPromotable == element.isPromotable;
   }
 
-  static Map<LookupName, FieldItem> readMap(SummaryDataReader reader) {
+  static Map<LookupName, FieldItem> readMap(BinaryReader reader) {
     return reader.readMap(
       readKey: () => LookupName.read(reader),
       readValue: () => FieldItem.read(reader),
@@ -542,7 +542,7 @@ class GetterItem extends ExecutableItem<GetterElementImpl> {
     );
   }
 
-  factory GetterItem.read(SummaryDataReader reader) {
+  factory GetterItem.read(BinaryReader reader) {
     return GetterItem(
       id: ManifestItemId.read(reader),
       flags: _ExecutableItemFlags.read(reader),
@@ -551,7 +551,7 @@ class GetterItem extends ExecutableItem<GetterElementImpl> {
     );
   }
 
-  static Map<LookupName, GetterItem> readMap(SummaryDataReader reader) {
+  static Map<LookupName, GetterItem> readMap(BinaryReader reader) {
     return reader.readMap(
       readKey: () => LookupName.read(reader),
       readValue: () => GetterItem.read(reader),
@@ -754,16 +754,16 @@ sealed class InstanceItem<E extends InstanceElementImpl>
   }
 
   @override
-  void write(BufferedSink sink) {
-    super.write(sink);
-    typeParameters.write(sink);
-    declaredConflicts.write(sink);
-    declaredFields.write(sink);
-    declaredGetters.write(sink);
-    declaredSetters.write(sink);
-    declaredMethods.write(sink);
-    declaredConstructors.write(sink);
-    inheritedConstructors.write(sink);
+  void write(BinaryWriter writer) {
+    super.write(writer);
+    typeParameters.write(writer);
+    declaredConflicts.write(writer);
+    declaredFields.write(writer);
+    declaredGetters.write(writer);
+    declaredSetters.write(writer);
+    declaredMethods.write(writer);
+    declaredConstructors.write(writer);
+    inheritedConstructors.write(writer);
   }
 
   void _makeNameConflict(LookupName lookupName2) {
@@ -838,13 +838,13 @@ sealed class InterfaceItem<E extends InterfaceElementImpl>
   }
 
   @override
-  void write(BufferedSink sink) {
-    super.write(sink);
-    sink.writeBool(hasNonFinalField);
-    supertype.writeOptional(sink);
-    mixins.writeList(sink);
-    interfaces.writeList(sink);
-    interface.write(sink);
+  void write(BinaryWriter writer) {
+    super.write(writer);
+    writer.writeBool(hasNonFinalField);
+    supertype.writeOptional(writer);
+    mixins.writeList(writer);
+    interfaces.writeList(writer);
+    interface.write(writer);
   }
 }
 
@@ -875,7 +875,7 @@ class LibraryMetadataItem extends ManifestItem<LibraryElementImpl> {
     );
   }
 
-  factory LibraryMetadataItem.read(SummaryDataReader reader) {
+  factory LibraryMetadataItem.read(BinaryReader reader) {
     return LibraryMetadataItem(
       id: ManifestItemId.read(reader),
       flags: _ManifestItemFlags.read(reader),
@@ -891,7 +891,7 @@ class ManifestAnnotation {
 
   ManifestAnnotation({required this.ast});
 
-  factory ManifestAnnotation.read(SummaryDataReader reader) {
+  factory ManifestAnnotation.read(BinaryReader reader) {
     return ManifestAnnotation(ast: ManifestNode.read(reader));
   }
 
@@ -899,8 +899,8 @@ class ManifestAnnotation {
     return ast.match(context, annotation.annotationAst);
   }
 
-  void write(BufferedSink sink) {
-    ast.write(sink);
+  void write(BinaryWriter writer) {
+    ast.write(writer);
   }
 
   static ManifestAnnotation encode(
@@ -969,7 +969,7 @@ class ManifestInterface {
     );
   }
 
-  factory ManifestInterface.read(SummaryDataReader reader) {
+  factory ManifestInterface.read(BinaryReader reader) {
     return ManifestInterface(
       id: ManifestItemId.read(reader),
       map: reader.readLookupNameToIdMap(),
@@ -1020,16 +1020,16 @@ class ManifestInterface {
     combinedIds = {};
   }
 
-  void write(BufferedSink sink) {
-    id.write(sink);
-    map.write(sink);
-    implemented.write(sink);
-    sink.writeList(superImplemented, (map) => map.write(sink));
-    inherited.write(sink);
-    sink.writeMap(
+  void write(BinaryWriter writer) {
+    id.write(writer);
+    map.write(writer);
+    implemented.write(writer);
+    writer.writeList(superImplemented, (map) => map.write(writer));
+    inherited.write(writer);
+    writer.writeMap(
       combinedIds,
-      writeKey: (key) => key.write(sink),
-      writeValue: (id) => id.write(sink),
+      writeKey: (key) => key.write(writer),
+      writeValue: (id) => id.write(writer),
     );
   }
 }
@@ -1049,10 +1049,10 @@ sealed class ManifestItem<E extends ElementImpl> {
   }
 
   @mustCallSuper
-  void write(BufferedSink sink) {
-    id.write(sink);
-    flags.write(sink);
-    metadata.write(sink);
+  void write(BinaryWriter writer) {
+    id.write(writer);
+    flags.write(writer);
+    metadata.write(writer);
   }
 }
 
@@ -1078,7 +1078,7 @@ class ManifestLibraryLanguageVersion {
     );
   }
 
-  factory ManifestLibraryLanguageVersion.read(SummaryDataReader reader) {
+  factory ManifestLibraryLanguageVersion.read(BinaryReader reader) {
     return ManifestLibraryLanguageVersion(
       packageVersion: _readVersion(reader),
       overrideVersion: reader.readOptionalObject(() => _readVersion(reader)),
@@ -1107,28 +1107,29 @@ class ManifestLibraryLanguageVersion {
     return result;
   }
 
-  void write(BufferedSink sink) {
-    _writeVersion(sink, packageVersion);
-    sink.writeOptionalObject(overrideVersion, (it) => _writeVersion(sink, it));
+  void write(BinaryWriter writer) {
+    _writeVersion(writer, packageVersion);
+    writer.writeOptionalObject(
+      overrideVersion,
+      (it) => _writeVersion(writer, it),
+    );
   }
 
-  static ManifestLibraryLanguageVersion? readOptional(
-    SummaryDataReader reader,
-  ) {
+  static ManifestLibraryLanguageVersion? readOptional(BinaryReader reader) {
     return reader.readOptionalObject(
       () => ManifestLibraryLanguageVersion.read(reader),
     );
   }
 
-  static Version _readVersion(SummaryDataReader reader) {
+  static Version _readVersion(BinaryReader reader) {
     var major = reader.readUint30();
     var minor = reader.readUint30();
     return Version(major, minor, 0);
   }
 
-  static void _writeVersion(BufferedSink sink, Version version) {
-    sink.writeUint30(version.major);
-    sink.writeUint30(version.minor);
+  static void _writeVersion(BinaryWriter writer, Version version) {
+    writer.writeUint30(version.major);
+    writer.writeUint30(version.minor);
   }
 }
 
@@ -1148,7 +1149,7 @@ class ManifestMetadata {
     );
   }
 
-  factory ManifestMetadata.read(SummaryDataReader reader) {
+  factory ManifestMetadata.read(BinaryReader reader) {
     return ManifestMetadata(
       annotations: reader.readTypedList(() {
         return ManifestAnnotation.read(reader);
@@ -1171,8 +1172,8 @@ class ManifestMetadata {
     return true;
   }
 
-  void write(BufferedSink sink) {
-    sink.writeList(annotations, (x) => x.write(sink));
+  void write(BinaryWriter writer) {
+    writer.writeList(annotations, (x) => x.write(writer));
   }
 }
 
@@ -1201,7 +1202,7 @@ class MethodItem extends ExecutableItem<MethodElementImpl> {
     );
   }
 
-  factory MethodItem.read(SummaryDataReader reader) {
+  factory MethodItem.read(BinaryReader reader) {
     return MethodItem(
       id: ManifestItemId.read(reader),
       flags: _MethodItemFlags.read(reader),
@@ -1223,12 +1224,12 @@ class MethodItem extends ExecutableItem<MethodElementImpl> {
   }
 
   @override
-  void write(BufferedSink sink) {
-    super.write(sink);
-    typeInferenceError.writeOptional(sink);
+  void write(BinaryWriter writer) {
+    super.write(writer);
+    typeInferenceError.writeOptional(writer);
   }
 
-  static Map<LookupName, MethodItem> readMap(SummaryDataReader reader) {
+  static Map<LookupName, MethodItem> readMap(BinaryReader reader) {
     return reader.readMap(
       readKey: () => LookupName.read(reader),
       readValue: () => MethodItem.read(reader),
@@ -1294,7 +1295,7 @@ class MixinItem extends InterfaceItem<MixinElementImpl> {
     });
   }
 
-  factory MixinItem.read(SummaryDataReader reader) {
+  factory MixinItem.read(BinaryReader reader) {
     return MixinItem(
       id: ManifestItemId.read(reader),
       flags: _MixinItemFlags.read(reader),
@@ -1332,10 +1333,10 @@ class MixinItem extends InterfaceItem<MixinElementImpl> {
   }
 
   @override
-  void write(BufferedSink sink) {
-    super.write(sink);
-    superclassConstraints.writeList(sink);
-    superInvokedNames.write(sink);
+  void write(BinaryWriter writer) {
+    super.write(writer);
+    superclassConstraints.writeList(writer);
+    superInvokedNames.write(writer);
   }
 }
 
@@ -1363,7 +1364,7 @@ class SetterItem extends ExecutableItem<SetterElementImpl> {
     );
   }
 
-  factory SetterItem.read(SummaryDataReader reader) {
+  factory SetterItem.read(BinaryReader reader) {
     return SetterItem(
       id: ManifestItemId.read(reader),
       flags: _ExecutableItemFlags.read(reader),
@@ -1372,7 +1373,7 @@ class SetterItem extends ExecutableItem<SetterElementImpl> {
     );
   }
 
-  static Map<LookupName, SetterItem> readMap(SummaryDataReader reader) {
+  static Map<LookupName, SetterItem> readMap(BinaryReader reader) {
     return reader.readMap(
       readKey: () => LookupName.read(reader),
       readValue: () => SetterItem.read(reader),
@@ -1401,7 +1402,7 @@ class TopLevelFunctionItem extends ExecutableItem<TopLevelFunctionElementImpl> {
     );
   }
 
-  factory TopLevelFunctionItem.read(SummaryDataReader reader) {
+  factory TopLevelFunctionItem.read(BinaryReader reader) {
     return TopLevelFunctionItem(
       id: ManifestItemId.read(reader),
       flags: _ExecutableItemFlags.read(reader),
@@ -1434,7 +1435,7 @@ class TopLevelVariableItem extends VariableItem<TopLevelVariableElementImpl> {
     );
   }
 
-  factory TopLevelVariableItem.read(SummaryDataReader reader) {
+  factory TopLevelVariableItem.read(BinaryReader reader) {
     return TopLevelVariableItem(
       id: ManifestItemId.read(reader),
       flags: _TopLevelVariableItemFlags.read(reader),
@@ -1483,7 +1484,7 @@ class TypeAliasItem extends ManifestItem<TypeAliasElementImpl> {
     });
   }
 
-  factory TypeAliasItem.read(SummaryDataReader reader) {
+  factory TypeAliasItem.read(BinaryReader reader) {
     return TypeAliasItem(
       id: ManifestItemId.read(reader),
       flags: _TypeAliasItemFlags.read(reader),
@@ -1507,10 +1508,10 @@ class TypeAliasItem extends ManifestItem<TypeAliasElementImpl> {
   }
 
   @override
-  void write(BufferedSink sink) {
-    super.write(sink);
-    typeParameters.write(sink);
-    aliasedType.write(sink);
+  void write(BinaryWriter writer) {
+    super.write(writer);
+    typeParameters.write(writer);
+    aliasedType.write(writer);
   }
 }
 
@@ -1546,10 +1547,10 @@ sealed class VariableItem<E extends PropertyInducingElementImpl>
   }
 
   @override
-  void write(BufferedSink sink) {
-    super.write(sink);
-    type.write(sink);
-    constInitializer.writeOptional(sink);
+  void write(BinaryWriter writer) {
+    super.write(writer);
+    type.write(writer);
+    constInitializer.writeOptional(writer);
   }
 }
 
@@ -1643,7 +1644,7 @@ extension type _ClassItemFlags._(int _bits) implements _InterfaceItemFlags {
     return _ClassItemFlags._(bits);
   }
 
-  factory _ClassItemFlags.read(SummaryDataReader reader) {
+  factory _ClassItemFlags.read(BinaryReader reader) {
     return _ClassItemFlags._(reader.readUint30());
   }
 
@@ -1675,8 +1676,8 @@ extension type _ClassItemFlags._(int _bits) implements _InterfaceItemFlags {
     return _has(_ClassItemFlag.isSealed);
   }
 
-  void write(BufferedSink sink) {
-    sink.writeUint30(_bits);
+  void write(BinaryWriter writer) {
+    writer.writeUint30(_bits);
   }
 
   bool _has(_ClassItemFlag flag) {
@@ -1705,7 +1706,7 @@ extension type _ConstructorItemFlags._(int _bits)
     return _ConstructorItemFlags._(bits);
   }
 
-  factory _ConstructorItemFlags.read(SummaryDataReader reader) {
+  factory _ConstructorItemFlags.read(BinaryReader reader) {
     return _ConstructorItemFlags._(reader.readUint30());
   }
 
@@ -1717,8 +1718,8 @@ extension type _ConstructorItemFlags._(int _bits)
     return _has(_ConstructorItemFlag.isFactory);
   }
 
-  void write(BufferedSink sink) {
-    sink.writeUint30(_bits);
+  void write(BinaryWriter writer) {
+    writer.writeUint30(_bits);
   }
 
   bool _has(_ConstructorItemFlag flag) {
@@ -1765,7 +1766,7 @@ extension type _ExecutableItemFlags._(int _bits) implements _ManifestItemFlags {
     return _ExecutableItemFlags._(bits);
   }
 
-  factory _ExecutableItemFlags.read(SummaryDataReader reader) {
+  factory _ExecutableItemFlags.read(BinaryReader reader) {
     return _ExecutableItemFlags._(reader.readUint30());
   }
 
@@ -1801,8 +1802,8 @@ extension type _ExecutableItemFlags._(int _bits) implements _ManifestItemFlags {
     return _has(_ExecutableItemFlag.isStatic);
   }
 
-  void write(BufferedSink sink) {
-    sink.writeUint30(_bits);
+  void write(BinaryWriter writer) {
+    writer.writeUint30(_bits);
   }
 
   bool _has(_ExecutableItemFlag flag) {
@@ -1831,7 +1832,7 @@ extension type _ExtensionTypeItemFlags._(int _bits)
     return _ExtensionTypeItemFlags._(bits);
   }
 
-  factory _ExtensionTypeItemFlags.read(SummaryDataReader reader) {
+  factory _ExtensionTypeItemFlags.read(BinaryReader reader) {
     return _ExtensionTypeItemFlags._(reader.readUint30());
   }
 
@@ -1843,8 +1844,8 @@ extension type _ExtensionTypeItemFlags._(int _bits)
     return _has(_ExtensionTypeItemFlag.hasRepresentationSelfReference);
   }
 
-  void write(BufferedSink sink) {
-    sink.writeUint30(_bits);
+  void write(BinaryWriter writer) {
+    writer.writeUint30(_bits);
   }
 
   bool _has(_ExtensionTypeItemFlag flag) {
@@ -1884,7 +1885,7 @@ extension type _FieldItemFlags._(int _bits) implements _VariableItemFlags {
     return _FieldItemFlags._(bits);
   }
 
-  factory _FieldItemFlags.read(SummaryDataReader reader) {
+  factory _FieldItemFlags.read(BinaryReader reader) {
     return _FieldItemFlags._(reader.readUint30());
   }
 
@@ -1912,8 +1913,8 @@ extension type _FieldItemFlags._(int _bits) implements _VariableItemFlags {
     return _has(_FieldItemFlag.isPromotable);
   }
 
-  void write(BufferedSink sink) {
-    sink.writeUint30(_bits);
+  void write(BinaryWriter writer) {
+    writer.writeUint30(_bits);
   }
 
   bool _has(_FieldItemFlag flag) {
@@ -1939,7 +1940,7 @@ extension type _InstanceItemFlags._(int _bits) implements _ManifestItemFlags {
     return _InstanceItemFlags._(bits);
   }
 
-  factory _InstanceItemFlags.read(SummaryDataReader reader) {
+  factory _InstanceItemFlags.read(BinaryReader reader) {
     return _InstanceItemFlags._(reader.readUint30());
   }
 
@@ -1947,8 +1948,8 @@ extension type _InstanceItemFlags._(int _bits) implements _ManifestItemFlags {
     return _has(_InstanceItemFlag.isSimplyBounded);
   }
 
-  void write(BufferedSink sink) {
-    sink.writeUint30(_bits);
+  void write(BinaryWriter writer) {
+    writer.writeUint30(_bits);
   }
 
   bool _has(_InstanceItemFlag flag) {
@@ -1971,12 +1972,12 @@ extension type _InterfaceItemFlags._(int _bits) implements _InstanceItemFlags {
     return _InterfaceItemFlags._(bits);
   }
 
-  factory _InterfaceItemFlags.read(SummaryDataReader reader) {
+  factory _InterfaceItemFlags.read(BinaryReader reader) {
     return _InterfaceItemFlags._(reader.readUint30());
   }
 
-  void write(BufferedSink sink) {
-    sink.writeUint30(_bits);
+  void write(BinaryWriter writer) {
+    writer.writeUint30(_bits);
   }
 }
 
@@ -1996,7 +1997,7 @@ extension type _ManifestItemFlags._(int _bits) {
     return _ManifestItemFlags._(bits);
   }
 
-  factory _ManifestItemFlags.read(SummaryDataReader reader) {
+  factory _ManifestItemFlags.read(BinaryReader reader) {
     return _ManifestItemFlags._(reader.readUint30());
   }
 
@@ -2004,8 +2005,8 @@ extension type _ManifestItemFlags._(int _bits) {
     return _has(_ManifestItemFlag.isSynthetic);
   }
 
-  void write(BufferedSink sink) {
-    sink.writeUint30(_bits);
+  void write(BinaryWriter writer) {
+    writer.writeUint30(_bits);
   }
 
   bool _has(_ManifestItemFlag flag) {
@@ -2032,7 +2033,7 @@ extension type _MethodItemFlags._(int _bits) implements _ExecutableItemFlags {
     return _MethodItemFlags._(bits);
   }
 
-  factory _MethodItemFlags.read(SummaryDataReader reader) {
+  factory _MethodItemFlags.read(BinaryReader reader) {
     return _MethodItemFlags._(reader.readUint30());
   }
 
@@ -2040,8 +2041,8 @@ extension type _MethodItemFlags._(int _bits) implements _ExecutableItemFlags {
     return _has(_MethodItemFlag.isOperatorEqualWithParameterTypeFromObject);
   }
 
-  void write(BufferedSink sink) {
-    sink.writeUint30(_bits);
+  void write(BinaryWriter writer) {
+    writer.writeUint30(_bits);
   }
 
   bool _has(_MethodItemFlag flag) {
@@ -2066,7 +2067,7 @@ extension type _MixinItemFlags._(int _bits) implements _InterfaceItemFlags {
     return _MixinItemFlags._(bits);
   }
 
-  factory _MixinItemFlags.read(SummaryDataReader reader) {
+  factory _MixinItemFlags.read(BinaryReader reader) {
     return _MixinItemFlags._(reader.readUint30());
   }
 
@@ -2074,8 +2075,8 @@ extension type _MixinItemFlags._(int _bits) implements _InterfaceItemFlags {
     return _has(_MixinItemFlag.isBase);
   }
 
-  void write(BufferedSink sink) {
-    sink.writeUint30(_bits);
+  void write(BinaryWriter writer) {
+    writer.writeUint30(_bits);
   }
 
   bool _has(_MixinItemFlag flag) {
@@ -2103,7 +2104,7 @@ extension type _TopLevelVariableItemFlags._(int _bits)
     return _TopLevelVariableItemFlags._(bits);
   }
 
-  factory _TopLevelVariableItemFlags.read(SummaryDataReader reader) {
+  factory _TopLevelVariableItemFlags.read(BinaryReader reader) {
     return _TopLevelVariableItemFlags._(reader.readUint30());
   }
 
@@ -2111,8 +2112,8 @@ extension type _TopLevelVariableItemFlags._(int _bits)
     return _has(_TopLevelVariableItemFlag.isExternal);
   }
 
-  void write(BufferedSink sink) {
-    sink.writeUint30(_bits);
+  void write(BinaryWriter writer) {
+    writer.writeUint30(_bits);
   }
 
   bool _has(_TopLevelVariableItemFlag flag) {
@@ -2140,7 +2141,7 @@ extension type _TypeAliasItemFlags._(int _bits) implements _ManifestItemFlags {
     return _TypeAliasItemFlags._(bits);
   }
 
-  factory _TypeAliasItemFlags.read(SummaryDataReader reader) {
+  factory _TypeAliasItemFlags.read(BinaryReader reader) {
     return _TypeAliasItemFlags._(reader.readUint30());
   }
 
@@ -2152,8 +2153,8 @@ extension type _TypeAliasItemFlags._(int _bits) implements _ManifestItemFlags {
     return _has(_TypeAliasItemFlag.isSimplyBounded);
   }
 
-  void write(BufferedSink sink) {
-    sink.writeUint30(_bits);
+  void write(BinaryWriter writer) {
+    writer.writeUint30(_bits);
   }
 
   bool _has(_TypeAliasItemFlag flag) {
@@ -2225,8 +2226,8 @@ extension type _VariableItemFlags._(int _bits) implements _ManifestItemFlags {
     return _has(_VariableItemFlag.shouldUseTypeForInitializerInference);
   }
 
-  void write(BufferedSink sink) {
-    sink.writeUint30(_bits);
+  void write(BinaryWriter writer) {
+    writer.writeUint30(_bits);
   }
 
   bool _has(_VariableItemFlag flag) {
@@ -2240,27 +2241,7 @@ extension type _VariableItemFlags._(int _bits) implements _ManifestItemFlags {
   }
 }
 
-extension LookupNameToIdMapExtension on Map<LookupName, ManifestItemId> {
-  void write(BufferedSink sink) {
-    sink.writeMap(
-      this,
-      writeKey: (name) => name.write(sink),
-      writeValue: (items) => items.write(sink),
-    );
-  }
-}
-
-extension LookupNameToItemMapExtension on Map<LookupName, ManifestItem> {
-  void write(BufferedSink sink) {
-    sink.writeMap(
-      this,
-      writeKey: (name) => name.write(sink),
-      writeValue: (items) => items.write(sink),
-    );
-  }
-}
-
-extension SummaryDataReaderExtension on SummaryDataReader {
+extension BinaryReaderExtension on BinaryReader {
   Map<LookupName, V> readLookupNameMap<V>({required V Function() readValue}) {
     return readMap(
       readKey: () => LookupName.read(this),
@@ -2270,6 +2251,26 @@ extension SummaryDataReaderExtension on SummaryDataReader {
 
   Map<LookupName, ManifestItemId> readLookupNameToIdMap() {
     return readLookupNameMap(readValue: () => ManifestItemId.read(this));
+  }
+}
+
+extension LookupNameToIdMapExtension on Map<LookupName, ManifestItemId> {
+  void write(BinaryWriter writer) {
+    writer.writeMap(
+      this,
+      writeKey: (name) => name.write(writer),
+      writeValue: (items) => items.write(writer),
+    );
+  }
+}
+
+extension LookupNameToItemMapExtension on Map<LookupName, ManifestItem> {
+  void write(BinaryWriter writer) {
+    writer.writeMap(
+      this,
+      writeKey: (name) => name.write(writer),
+      writeValue: (items) => items.write(writer),
+    );
   }
 }
 
@@ -2290,51 +2291,51 @@ extension _AstNodeExtension on AstNode {
 
 extension _LookupNameToConstructorItemMapExtension
     on Map<LookupName, ConstructorItem> {
-  void write(BufferedSink sink) {
-    sink.writeMap(
+  void write(BinaryWriter writer) {
+    writer.writeMap(
       this,
-      writeKey: (name) => name.write(sink),
-      writeValue: (items) => items.write(sink),
+      writeKey: (name) => name.write(writer),
+      writeValue: (items) => items.write(writer),
     );
   }
 }
 
 extension _LookupNameToFieldItemMapExtension on Map<LookupName, FieldItem> {
-  void write(BufferedSink sink) {
-    sink.writeMap(
+  void write(BinaryWriter writer) {
+    writer.writeMap(
       this,
-      writeKey: (name) => name.write(sink),
-      writeValue: (items) => items.write(sink),
+      writeKey: (name) => name.write(writer),
+      writeValue: (items) => items.write(writer),
     );
   }
 }
 
 extension _LookupNameToGetterItemMapExtension on Map<LookupName, GetterItem> {
-  void write(BufferedSink sink) {
-    sink.writeMap(
+  void write(BinaryWriter writer) {
+    writer.writeMap(
       this,
-      writeKey: (name) => name.write(sink),
-      writeValue: (items) => items.write(sink),
+      writeKey: (name) => name.write(writer),
+      writeValue: (items) => items.write(writer),
     );
   }
 }
 
 extension _LookupNameToMethodItemMapExtension on Map<LookupName, MethodItem> {
-  void write(BufferedSink sink) {
-    sink.writeMap(
+  void write(BinaryWriter writer) {
+    writer.writeMap(
       this,
-      writeKey: (name) => name.write(sink),
-      writeValue: (items) => items.write(sink),
+      writeKey: (name) => name.write(writer),
+      writeValue: (items) => items.write(writer),
     );
   }
 }
 
 extension _LookupNameToSetterItemMapExtension on Map<LookupName, SetterItem> {
-  void write(BufferedSink sink) {
-    sink.writeMap(
+  void write(BinaryWriter writer) {
+    writer.writeMap(
       this,
-      writeKey: (name) => name.write(sink),
-      writeValue: (items) => items.write(sink),
+      writeKey: (name) => name.write(writer),
+      writeValue: (items) => items.write(writer),
     );
   }
 }

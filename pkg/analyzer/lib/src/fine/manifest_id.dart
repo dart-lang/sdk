@@ -34,7 +34,7 @@ class ManifestItemId implements Comparable<ManifestItemId> {
     return ManifestItemId._(_hi32, _nextLo32);
   }
 
-  factory ManifestItemId.read(SummaryDataReader reader) {
+  factory ManifestItemId.read(BinaryReader reader) {
     return ManifestItemId._(reader.readUint32(), reader.readUint32());
   }
 
@@ -60,16 +60,16 @@ class ManifestItemId implements Comparable<ManifestItemId> {
   @override
   String toString() => '($hi32, $lo32)';
 
-  void write(BufferedSink sink) {
-    sink.writeUint32(hi32);
-    sink.writeUint32(lo32);
+  void write(BinaryWriter writer) {
+    writer.writeUint32(hi32);
+    writer.writeUint32(lo32);
   }
 
-  static List<ManifestItemId> readList(SummaryDataReader reader) {
+  static List<ManifestItemId> readList(BinaryReader reader) {
     return reader.readTypedList(() => ManifestItemId.read(reader));
   }
 
-  static ManifestItemId? readOptional(SummaryDataReader reader) {
+  static ManifestItemId? readOptional(BinaryReader reader) {
     return reader.readOptionalObject(() => ManifestItemId.read(reader));
   }
 }
@@ -79,7 +79,7 @@ class ManifestItemIdList {
 
   ManifestItemIdList(this.ids);
 
-  factory ManifestItemIdList.read(SummaryDataReader reader) {
+  factory ManifestItemIdList.read(BinaryReader reader) {
     return ManifestItemIdList(ManifestItemId.readList(reader));
   }
 
@@ -104,25 +104,25 @@ class ManifestItemIdList {
     return '[${ids.join(', ')}]';
   }
 
-  void write(BufferedSink sink) {
-    sink.writeList(ids, (id) => id.write(sink));
+  void write(BinaryWriter writer) {
+    writer.writeList(ids, (id) => id.write(writer));
   }
 
-  static ManifestItemIdList? readOptional(SummaryDataReader reader) {
+  static ManifestItemIdList? readOptional(BinaryReader reader) {
     return reader.readOptionalObject(() => ManifestItemIdList.read(reader));
   }
 }
 
 extension ManifestItemIdExtension on ManifestItemId? {
-  void writeOptional(BufferedSink sink) {
-    sink.writeOptionalObject(this, (it) {
-      it.write(sink);
+  void writeOptional(BinaryWriter writer) {
+    writer.writeOptionalObject(this, (it) {
+      it.write(writer);
     });
   }
 }
 
 extension ManifestItemIdListOrNullExtension on ManifestItemIdList? {
-  void writeOptional(BufferedSink sink) {
-    sink.writeOptionalObject(this, (it) => it.write(sink));
+  void writeOptional(BinaryWriter writer) {
+    writer.writeOptionalObject(this, (it) => it.write(writer));
   }
 }

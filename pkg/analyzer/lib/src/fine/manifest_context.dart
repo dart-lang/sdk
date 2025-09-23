@@ -113,7 +113,7 @@ final class ManifestElement {
     required this.id,
   });
 
-  factory ManifestElement.read(SummaryDataReader reader) {
+  factory ManifestElement.read(BinaryReader reader) {
     return ManifestElement(
       libraryUri: reader.readUri(),
       kind: reader.readEnum(ManifestElementKind.values),
@@ -170,12 +170,12 @@ final class ManifestElement {
     return true;
   }
 
-  void write(BufferedSink sink) {
-    sink.writeUri(libraryUri);
-    sink.writeEnum(kind);
-    sink.writeStringUtf8(topLevelName);
-    sink.writeOptionalStringUtf8(memberName);
-    id.writeOptional(sink);
+  void write(BinaryWriter writer) {
+    writer.writeUri(libraryUri);
+    writer.writeEnum(kind);
+    writer.writeStringUtf8(topLevelName);
+    writer.writeOptionalStringUtf8(memberName);
+    id.writeOptional(writer);
   }
 
   static ManifestElement encode(EncodeContext context, Element element) {
@@ -206,11 +206,11 @@ final class ManifestElement {
     return element != null ? encode(context, element) : null;
   }
 
-  static List<ManifestElement> readList(SummaryDataReader reader) {
+  static List<ManifestElement> readList(BinaryReader reader) {
     return reader.readTypedList(() => ManifestElement.read(reader));
   }
 
-  static ManifestElement? readOptional(SummaryDataReader reader) {
+  static ManifestElement? readOptional(BinaryReader reader) {
     return reader.readOptionalObject(() => ManifestElement.read(reader));
   }
 }
@@ -455,9 +455,9 @@ extension ManifestElementExtension on ManifestElement? {
     return element == null;
   }
 
-  void writeOptional(BufferedSink sink) {
-    sink.writeOptionalObject(this, (it) {
-      it.write(sink);
+  void writeOptional(BinaryWriter writer) {
+    writer.writeOptionalObject(this, (it) {
+      it.write(writer);
     });
   }
 }

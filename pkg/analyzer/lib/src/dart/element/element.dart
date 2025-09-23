@@ -1927,7 +1927,7 @@ abstract class ElementImpl implements Element {
   }
 
   @trackedInternal
-  void readModifiers(SummaryDataReader reader) {
+  void readModifiers(BinaryReader reader) {
     _modifiers = EnumSet.read(reader);
   }
 
@@ -2000,7 +2000,7 @@ abstract class ElementImpl implements Element {
   }
 
   @trackedInternal
-  void writeModifiers(BufferedSink writer) {
+  void writeModifiers(BinaryWriter writer) {
     _modifiers.write(writer);
   }
 }
@@ -3741,7 +3741,7 @@ abstract class FragmentImpl with _FragmentImplMixin implements Fragment {
   @override
   bool hasModifier(Modifier modifier) => _modifiers[modifier];
 
-  void readModifiers(SummaryDataReader reader) {
+  void readModifiers(BinaryReader reader) {
     _modifiers = EnumSet.read(reader);
   }
 
@@ -3763,7 +3763,7 @@ abstract class FragmentImpl with _FragmentImplMixin implements Fragment {
     return "fragmentOf: $element";
   }
 
-  void writeModifiers(BufferedSink writer) {
+  void writeModifiers(BinaryWriter writer) {
     _modifiers.write(writer);
   }
 }

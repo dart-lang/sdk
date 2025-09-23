@@ -8,8 +8,8 @@ import 'dart:typed_data';
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:analyzer/src/binary/string_table.dart';
 
-/// Helper for reading primitive types from bytes.
-class SummaryDataReader {
+/// Reader for binary formats.
+class BinaryReader {
   final Uint8List bytes;
   int offset = 0;
 
@@ -21,7 +21,7 @@ class SummaryDataReader {
   final Float64List _doubleBuffer = Float64List(1);
   late final Uint8List _doubleBufferUint8 = _doubleBuffer.buffer.asUint8List();
 
-  SummaryDataReader(this.bytes);
+  BinaryReader(this.bytes);
 
   void createStringTable(int offset) {
     _stringTable = StringTable(bytes: bytes, startOffset: offset);
@@ -29,8 +29,8 @@ class SummaryDataReader {
 
   /// Create a new instance with the given [offset].
   /// It shares the same bytes and string reader.
-  SummaryDataReader fork(int offset) {
-    var result = SummaryDataReader(bytes);
+  BinaryReader fork(int offset) {
+    var result = BinaryReader(bytes);
     result.offset = offset;
     result._stringTable = _stringTable;
     return result;

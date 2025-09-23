@@ -24,26 +24,26 @@ class PackageBundleBuilder {
     required Uint8List resolutionBytes,
     PackageBundleSdk? sdk,
   }) {
-    var sink = BufferedSink();
+    var writer = BinaryWriter();
 
     if (sdk != null) {
-      sink.writeByte(1);
-      sdk._write(sink);
+      writer.writeByte(1);
+      sdk._write(writer);
     } else {
-      sink.writeByte(0);
+      writer.writeByte(0);
     }
 
-    sink.writeList(_libraries, (PackageBundleLibrary library) {
-      sink.writeStringUtf8(library.uriStr);
-      sink.writeList(
+    writer.writeList(_libraries, (PackageBundleLibrary library) {
+      writer.writeStringUtf8(library.uriStr);
+      writer.writeList(
         library.units,
-        (PackageBundleUnit unit) => sink.writeStringUtf8(unit.uriStr),
+        (PackageBundleUnit unit) => writer.writeStringUtf8(unit.uriStr),
       );
     });
 
-    sink.writeUint8List(resolutionBytes);
+    writer.writeUint8List(resolutionBytes);
 
-    return sink.takeBytes();
+    return writer.takeBytes();
   }
 }
 
@@ -61,7 +61,7 @@ class PackageBundleReader {
   late final Uint8List _resolutionBytes;
 
   PackageBundleReader(Uint8List bytes) {
-    var reader = SummaryDataReader(bytes);
+    var reader = BinaryReader(bytes);
 
     var hasSdk = reader.readByte() != 0;
     if (hasSdk) {
@@ -100,7 +100,7 @@ class PackageBundleSdk {
     required this.allowedExperimentsJson,
   });
 
-  factory PackageBundleSdk._fromReader(SummaryDataReader reader) {
+  factory PackageBundleSdk._fromReader(BinaryReader reader) {
     return PackageBundleSdk(
       languageVersionMajor: reader.readUint30(),
       languageVersionMinor: reader.readUint30(),
@@ -108,10 +108,10 @@ class PackageBundleSdk {
     );
   }
 
-  void _write(BufferedSink sink) {
-    sink.writeUint30(languageVersionMajor);
-    sink.writeUint30(languageVersionMinor);
-    sink.writeStringUtf8(allowedExperimentsJson);
+  void _write(BinaryWriter writer) {
+    writer.writeUint30(languageVersionMajor);
+    writer.writeUint30(languageVersionMinor);
+    writer.writeStringUtf8(allowedExperimentsJson);
   }
 }
 

@@ -34,10 +34,10 @@ class AnalysisDriverUnlinkedUnit {
   });
 
   factory AnalysisDriverUnlinkedUnit.fromBytes(Uint8List bytes) {
-    return AnalysisDriverUnlinkedUnit.read(SummaryDataReader(bytes));
+    return AnalysisDriverUnlinkedUnit.read(BinaryReader(bytes));
   }
 
-  factory AnalysisDriverUnlinkedUnit.read(SummaryDataReader reader) {
+  factory AnalysisDriverUnlinkedUnit.read(BinaryReader reader) {
     return AnalysisDriverUnlinkedUnit(
       definedClassMemberNames: reader.readStringUtf8Set(),
       definedTopLevelNames: reader.readStringUtf8Set(),
@@ -48,17 +48,17 @@ class AnalysisDriverUnlinkedUnit {
   }
 
   Uint8List toBytes() {
-    var sink = BufferedSink();
-    write(sink);
-    return sink.takeBytes();
+    var writer = BinaryWriter();
+    write(writer);
+    return writer.takeBytes();
   }
 
-  void write(BufferedSink sink) {
-    sink.writeStringUtf8Iterable(definedClassMemberNames);
-    sink.writeStringUtf8Iterable(definedTopLevelNames);
-    sink.writeStringUtf8Iterable(referencedNames);
-    sink.writeStringUtf8Iterable(subtypedNames);
-    unit.write(sink);
+  void write(BinaryWriter writer) {
+    writer.writeStringUtf8Iterable(definedClassMemberNames);
+    writer.writeStringUtf8Iterable(definedTopLevelNames);
+    writer.writeStringUtf8Iterable(referencedNames);
+    writer.writeStringUtf8Iterable(subtypedNames);
+    unit.write(writer);
   }
 }
 
@@ -75,7 +75,7 @@ class UnlinkedCombinator {
     required this.names,
   });
 
-  factory UnlinkedCombinator.read(SummaryDataReader reader) {
+  factory UnlinkedCombinator.read(BinaryReader reader) {
     return UnlinkedCombinator(
       keywordOffset: reader.readUint30(),
       endOffset: reader.readUint30(),
@@ -84,11 +84,11 @@ class UnlinkedCombinator {
     );
   }
 
-  void write(BufferedSink sink) {
-    sink.writeUint30(keywordOffset);
-    sink.writeUint30(endOffset);
-    sink.writeBool(isShow);
-    sink.writeStringUtf8Iterable(names);
+  void write(BinaryWriter writer) {
+    writer.writeUint30(keywordOffset);
+    writer.writeUint30(endOffset);
+    writer.writeBool(isShow);
+    writer.writeStringUtf8Iterable(names);
   }
 }
 
@@ -108,16 +108,16 @@ class UnlinkedDartdocTemplate {
 
   UnlinkedDartdocTemplate({required this.name, required this.value});
 
-  factory UnlinkedDartdocTemplate.read(SummaryDataReader reader) {
+  factory UnlinkedDartdocTemplate.read(BinaryReader reader) {
     return UnlinkedDartdocTemplate(
       name: reader.readStringUtf8(),
       value: reader.readStringUtf8(),
     );
   }
 
-  void write(BufferedSink sink) {
-    sink.writeStringUtf8(name);
-    sink.writeStringUtf8(value);
+  void write(BinaryWriter writer) {
+    writer.writeStringUtf8(name);
+    writer.writeStringUtf8(value);
   }
 }
 
@@ -129,7 +129,7 @@ class UnlinkedLibraryDirective {
 
   UnlinkedLibraryDirective({required this.docImports, required this.name});
 
-  factory UnlinkedLibraryDirective.read(SummaryDataReader reader) {
+  factory UnlinkedLibraryDirective.read(BinaryReader reader) {
     return UnlinkedLibraryDirective(
       docImports: reader.readTypedList(
         () => UnlinkedLibraryImportDirective.read(reader),
@@ -138,11 +138,11 @@ class UnlinkedLibraryDirective {
     );
   }
 
-  void write(BufferedSink sink) {
-    sink.writeList(docImports, (docImport) {
-      docImport.write(sink);
+  void write(BinaryWriter writer) {
+    writer.writeList(docImports, (docImport) {
+      docImport.write(writer);
     });
-    sink.writeOptionalStringUtf8(name);
+    writer.writeOptionalStringUtf8(name);
   }
 }
 
@@ -157,7 +157,7 @@ class UnlinkedLibraryExportDirective extends UnlinkedNamespaceDirective {
     required super.uri,
   });
 
-  factory UnlinkedLibraryExportDirective.read(SummaryDataReader reader) {
+  factory UnlinkedLibraryExportDirective.read(BinaryReader reader) {
     return UnlinkedLibraryExportDirective(
       combinators: reader.readTypedList(() => UnlinkedCombinator.read(reader)),
       configurations: reader.readTypedList(
@@ -168,15 +168,15 @@ class UnlinkedLibraryExportDirective extends UnlinkedNamespaceDirective {
     );
   }
 
-  void write(BufferedSink sink) {
-    sink.writeList<UnlinkedCombinator>(combinators, (x) => x.write(sink));
-    sink.writeList<UnlinkedNamespaceDirectiveConfiguration>(configurations, (
+  void write(BinaryWriter writer) {
+    writer.writeList<UnlinkedCombinator>(combinators, (x) => x.write(writer));
+    writer.writeList<UnlinkedNamespaceDirectiveConfiguration>(configurations, (
       x,
     ) {
-      x.write(sink);
+      x.write(writer);
     });
-    sink.writeUint30(exportKeywordOffset);
-    sink.writeOptionalStringUtf8(uri);
+    writer.writeUint30(exportKeywordOffset);
+    writer.writeOptionalStringUtf8(uri);
   }
 }
 
@@ -197,7 +197,7 @@ class UnlinkedLibraryImportDirective extends UnlinkedNamespaceDirective {
     required super.uri,
   });
 
-  factory UnlinkedLibraryImportDirective.read(SummaryDataReader reader) {
+  factory UnlinkedLibraryImportDirective.read(BinaryReader reader) {
     return UnlinkedLibraryImportDirective(
       combinators: reader.readTypedList(() => UnlinkedCombinator.read(reader)),
       configurations: reader.readTypedList(
@@ -213,21 +213,21 @@ class UnlinkedLibraryImportDirective extends UnlinkedNamespaceDirective {
     );
   }
 
-  void write(BufferedSink sink) {
-    sink.writeList<UnlinkedCombinator>(combinators, (x) => x.write(sink));
-    sink.writeList<UnlinkedNamespaceDirectiveConfiguration>(configurations, (
+  void write(BinaryWriter writer) {
+    writer.writeList<UnlinkedCombinator>(combinators, (x) => x.write(writer));
+    writer.writeList<UnlinkedNamespaceDirectiveConfiguration>(configurations, (
       x,
     ) {
-      x.write(sink);
+      x.write(writer);
     });
-    sink.writeUint30(1 + importKeywordOffset);
-    sink.writeBool(isDocImport);
-    sink.writeBool(isSyntheticDartCore);
-    sink.writeOptionalObject<UnlinkedLibraryImportPrefix>(
+    writer.writeUint30(1 + importKeywordOffset);
+    writer.writeBool(isDocImport);
+    writer.writeBool(isSyntheticDartCore);
+    writer.writeOptionalObject<UnlinkedLibraryImportPrefix>(
       prefix,
-      (x) => x.write(sink),
+      (x) => x.write(writer),
     );
-    sink.writeOptionalStringUtf8(uri);
+    writer.writeOptionalStringUtf8(uri);
   }
 }
 
@@ -244,7 +244,7 @@ class UnlinkedLibraryImportPrefix {
     required this.name,
   });
 
-  factory UnlinkedLibraryImportPrefix.read(SummaryDataReader reader) {
+  factory UnlinkedLibraryImportPrefix.read(BinaryReader reader) {
     return UnlinkedLibraryImportPrefix(
       deferredOffset: reader.readOptionalUint30(),
       asOffset: reader.readUint30(),
@@ -255,12 +255,12 @@ class UnlinkedLibraryImportPrefix {
     );
   }
 
-  void write(BufferedSink sink) {
-    sink.writeOptionalUint30(deferredOffset);
-    sink.writeUint30(asOffset);
-    sink.writeUint30(nameOffset);
-    sink.writeOptionalObject(name, (name) {
-      name.write(sink);
+  void write(BinaryWriter writer) {
+    writer.writeOptionalUint30(deferredOffset);
+    writer.writeUint30(asOffset);
+    writer.writeUint30(nameOffset);
+    writer.writeOptionalObject(name, (name) {
+      name.write(writer);
     });
   }
 }
@@ -274,16 +274,16 @@ class UnlinkedLibraryImportPrefixName {
     required this.nameOffset,
   });
 
-  factory UnlinkedLibraryImportPrefixName.read(SummaryDataReader reader) {
+  factory UnlinkedLibraryImportPrefixName.read(BinaryReader reader) {
     return UnlinkedLibraryImportPrefixName(
       name: reader.readStringUtf8(),
       nameOffset: reader.readUint30(),
     );
   }
 
-  void write(BufferedSink sink) {
-    sink.writeStringUtf8(name);
-    sink.writeUint30(nameOffset);
+  void write(BinaryWriter writer) {
+    writer.writeStringUtf8(name);
+    writer.writeUint30(nameOffset);
   }
 }
 
@@ -316,9 +316,7 @@ class UnlinkedNamespaceDirectiveConfiguration {
     required this.value,
   });
 
-  factory UnlinkedNamespaceDirectiveConfiguration.read(
-    SummaryDataReader reader,
-  ) {
+  factory UnlinkedNamespaceDirectiveConfiguration.read(BinaryReader reader) {
     return UnlinkedNamespaceDirectiveConfiguration(
       name: reader.readStringUtf8(),
       uri: reader.readOptionalStringUtf8(),
@@ -334,10 +332,10 @@ class UnlinkedNamespaceDirectiveConfiguration {
     }
   }
 
-  void write(BufferedSink sink) {
-    sink.writeStringUtf8(name);
-    sink.writeOptionalStringUtf8(uri);
-    sink.writeStringUtf8(value);
+  void write(BinaryWriter writer) {
+    writer.writeStringUtf8(name);
+    writer.writeOptionalStringUtf8(uri);
+    writer.writeStringUtf8(value);
   }
 }
 
@@ -350,7 +348,7 @@ class UnlinkedPartDirective extends UnlinkedConfigurableUriDirective {
     required super.uri,
   });
 
-  factory UnlinkedPartDirective.read(SummaryDataReader reader) {
+  factory UnlinkedPartDirective.read(BinaryReader reader) {
     return UnlinkedPartDirective(
       configurations: reader.readTypedList(
         () => UnlinkedNamespaceDirectiveConfiguration.read(reader),
@@ -360,14 +358,14 @@ class UnlinkedPartDirective extends UnlinkedConfigurableUriDirective {
     );
   }
 
-  void write(BufferedSink sink) {
-    sink.writeList<UnlinkedNamespaceDirectiveConfiguration>(configurations, (
+  void write(BinaryWriter writer) {
+    writer.writeList<UnlinkedNamespaceDirectiveConfiguration>(configurations, (
       x,
     ) {
-      x.write(sink);
+      x.write(writer);
     });
-    sink.writeUint30(partKeywordOffset);
-    sink.writeOptionalStringUtf8(uri);
+    writer.writeUint30(partKeywordOffset);
+    writer.writeOptionalStringUtf8(uri);
   }
 }
 
@@ -384,7 +382,7 @@ class UnlinkedPartOfNameDirective {
     required this.nameRange,
   });
 
-  factory UnlinkedPartOfNameDirective.read(SummaryDataReader reader) {
+  factory UnlinkedPartOfNameDirective.read(BinaryReader reader) {
     return UnlinkedPartOfNameDirective(
       docImports: reader.readTypedList(
         () => UnlinkedLibraryImportDirective.read(reader),
@@ -394,12 +392,12 @@ class UnlinkedPartOfNameDirective {
     );
   }
 
-  void write(BufferedSink sink) {
-    sink.writeList(docImports, (docImport) {
-      docImport.write(sink);
+  void write(BinaryWriter writer) {
+    writer.writeList(docImports, (docImport) {
+      docImport.write(writer);
     });
-    sink.writeStringUtf8(name);
-    nameRange.write(sink);
+    writer.writeStringUtf8(name);
+    nameRange.write(writer);
   }
 }
 
@@ -416,7 +414,7 @@ class UnlinkedPartOfUriDirective {
     required this.uriRange,
   });
 
-  factory UnlinkedPartOfUriDirective.read(SummaryDataReader reader) {
+  factory UnlinkedPartOfUriDirective.read(BinaryReader reader) {
     return UnlinkedPartOfUriDirective(
       docImports: reader.readTypedList(
         () => UnlinkedLibraryImportDirective.read(reader),
@@ -426,12 +424,12 @@ class UnlinkedPartOfUriDirective {
     );
   }
 
-  void write(BufferedSink sink) {
-    sink.writeList(docImports, (docImport) {
-      docImport.write(sink);
+  void write(BinaryWriter writer) {
+    writer.writeList(docImports, (docImport) {
+      docImport.write(writer);
     });
-    sink.writeOptionalStringUtf8(uri);
-    uriRange.write(sink);
+    writer.writeOptionalStringUtf8(uri);
+    uriRange.write(writer);
   }
 }
 
@@ -444,16 +442,16 @@ class UnlinkedSourceRange {
     RangeError.checkNotNegative(length);
   }
 
-  factory UnlinkedSourceRange.read(SummaryDataReader reader) {
+  factory UnlinkedSourceRange.read(BinaryReader reader) {
     return UnlinkedSourceRange(
       offset: reader.readUint30(),
       length: reader.readUint30(),
     );
   }
 
-  void write(BufferedSink sink) {
-    sink.writeUint30(offset);
-    sink.writeUint30(length);
+  void write(BinaryWriter writer) {
+    writer.writeUint30(offset);
+    writer.writeUint30(length);
   }
 }
 
@@ -516,7 +514,7 @@ class UnlinkedUnit {
     required this.dartdocTemplates,
   });
 
-  factory UnlinkedUnit.read(SummaryDataReader reader) {
+  factory UnlinkedUnit.read(BinaryReader reader) {
     return UnlinkedUnit(
       apiSignature: reader.readUint8List(),
       exports: reader.readTypedList(
@@ -546,36 +544,36 @@ class UnlinkedUnit {
     );
   }
 
-  void write(BufferedSink sink) {
-    sink.writeUint8List(apiSignature);
-    sink.writeList<UnlinkedLibraryExportDirective>(exports, (x) {
-      x.write(sink);
+  void write(BinaryWriter writer) {
+    writer.writeUint8List(apiSignature);
+    writer.writeList<UnlinkedLibraryExportDirective>(exports, (x) {
+      x.write(writer);
     });
-    sink.writeBool(hasDartCoreImport);
-    sink.writeList<UnlinkedLibraryImportDirective>(imports, (x) {
-      x.write(sink);
+    writer.writeBool(hasDartCoreImport);
+    writer.writeList<UnlinkedLibraryImportDirective>(imports, (x) {
+      x.write(writer);
     });
-    sink.writeUint8List(informativeBytes);
-    sink.writeBool(isDartCore);
-    sink.writeOptionalObject<UnlinkedLibraryDirective>(
+    writer.writeUint8List(informativeBytes);
+    writer.writeBool(isDartCore);
+    writer.writeOptionalObject<UnlinkedLibraryDirective>(
       libraryDirective,
-      (x) => x.write(sink),
+      (x) => x.write(writer),
     );
-    sink.writeUint30List(lineStarts);
-    sink.writeList<UnlinkedPartDirective>(parts, (x) {
-      x.write(sink);
+    writer.writeUint30List(lineStarts);
+    writer.writeList<UnlinkedPartDirective>(parts, (x) {
+      x.write(writer);
     });
-    sink.writeOptionalObject<UnlinkedPartOfNameDirective>(
+    writer.writeOptionalObject<UnlinkedPartOfNameDirective>(
       partOfNameDirective,
-      (x) => x.write(sink),
+      (x) => x.write(writer),
     );
-    sink.writeOptionalObject<UnlinkedPartOfUriDirective>(
+    writer.writeOptionalObject<UnlinkedPartOfUriDirective>(
       partOfUriDirective,
-      (x) => x.write(sink),
+      (x) => x.write(writer),
     );
-    sink.writeStringUtf8Iterable(topLevelDeclarations);
-    sink.writeList(dartdocTemplates, (x) {
-      x.write(sink);
+    writer.writeStringUtf8Iterable(topLevelDeclarations);
+    writer.writeList(dartdocTemplates, (x) {
+      x.write(writer);
     });
   }
 }
