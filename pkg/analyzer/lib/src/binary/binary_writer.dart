@@ -5,6 +5,9 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:analyzer/src/binary/binary_reader.dart';
+import 'package:analyzer/src/binary/string_table.dart';
+
 /// Buffered writer for binary formats.
 class BinaryWriter {
   static const int _SIZE = 128 * 1024;
@@ -21,9 +24,18 @@ class BinaryWriter {
   final Float64List _doubleBuffer = Float64List(1);
   late final Uint8List _doubleBufferUint8 = _doubleBuffer.buffer.asUint8List();
 
-  BinaryWriter();
+  final StringIndexer _stringIndexer;
+
+  BinaryWriter() : this.withStringIndexer(stringIndexer: StringIndexer());
+
+  BinaryWriter.withStringIndexer({required StringIndexer stringIndexer})
+    : _stringIndexer = stringIndexer;
 
   int get offset => _builder.length + _length;
+
+  BinaryWriter clone() {
+    return BinaryWriter.withStringIndexer(stringIndexer: _stringIndexer);
+  }
 
   Uint8List takeBytes() {
     _builder.add(_buffer.sublist(0, _length));
@@ -162,6 +174,15 @@ class BinaryWriter {
     }
   }
 
+  void writeOptionalStringReference(String? value) {
+    if (value != null) {
+      writeBool(true);
+      writeStringReference(value);
+    } else {
+      writeBool(false);
+    }
+  }
+
   void writeOptionalStringUtf8(String? value) {
     if (value != null) {
       writeBool(true);
@@ -196,6 +217,30 @@ class BinaryWriter {
     } else {
       writeBool(false);
     }
+  }
+
+  void writeStringList(List<String> values) {
+    writeList(values, writeStringReference);
+  }
+
+  void writeStringReference(String value) {
+    var index = _stringIndexer[value];
+    writeUint30(index);
+  }
+
+  /// Writes the string table and its starting offset.
+  ///
+  /// This method writes the collected string data first, then writes the
+  /// `uint32` offset where that data begins.
+  ///
+  /// It must be called after all other data has been written and immediately
+  /// before [takeBytes]. This ensures the last 4 bytes reliably point to
+  /// the string table, which a reader will use to decode string references.
+  ///
+  /// This is the counterpart to [BinaryReader.initializeStringTableFromEnd].
+  void writeStringTableAtEnd() {
+    var offset = _stringIndexer.write(this);
+    writeUint32(offset);
   }
 
   /// Write the [value] as UTF8 encoded byte array.

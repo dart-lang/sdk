@@ -37,7 +37,7 @@ class BundleWriter {
   /// require any other declaration read it later. For example type inference
   /// errors, or whether a parameter inherits `covariant`, or a class is
   /// simply bounded.
-  late _SummaryDataWriter _sink = _SummaryDataWriter(
+  late BinaryWriter _sink = BinaryWriter.withStringIndexer(
     stringIndexer: _stringIndexer,
   );
 
@@ -74,13 +74,13 @@ class BundleWriter {
 
     var librariesOffset = _sink.offset;
     _sink.writeList<_Library>(_libraries, (library) {
-      _sink._writeStringReference(library.uriStr);
+      _sink.writeStringReference(library.uriStr);
       _sink.writeUint30(library.offset);
     });
 
     var referencesOffset = _sink.offset;
     _sink.writeUint30List(_references._referenceParents);
-    _sink._writeStringList(_references._referenceNames);
+    _sink.writeStringList(_references._referenceNames);
     _references._clearIndexes();
 
     var stringTableOffset = _stringIndexer.write(_sink);
@@ -99,7 +99,7 @@ class BundleWriter {
     var libraryOffset = _sink.offset;
 
     // Write non-resolution data for the library.
-    _sink._writeStringReference(libraryElement.name);
+    _sink.writeStringReference(libraryElement.name);
     _writeFeatureSet(libraryElement.featureSet);
     libraryElement.writeModifiers(_sink);
     _writeLanguageVersion(libraryElement.languageVersion);
@@ -205,7 +205,7 @@ class BundleWriter {
 
   void _writeConstructorFragment(ConstructorFragmentImpl fragment) {
     _writeTemplateFragment(fragment, () {
-      _sink._writeOptionalStringReference(fragment.typeName);
+      _sink.writeOptionalStringReference(fragment.typeName);
       _writeTypeParameters(fragment.typeParameters, () {
         _sink.writeList(fragment.formalParameters, _writeParameterElement);
         _resolutionSink._writeMetadata(fragment.metadata);
@@ -219,17 +219,17 @@ class BundleWriter {
 
   void _writeDirectiveUri(DirectiveUri element) {
     void writeWithUriString(DirectiveUriWithRelativeUriString element) {
-      _sink._writeStringReference(element.relativeUriString);
+      _sink.writeStringReference(element.relativeUriString);
     }
 
     void writeWithRelativeUri(DirectiveUriWithRelativeUri element) {
       writeWithUriString(element);
-      _sink._writeStringReference('${element.relativeUri}');
+      _sink.writeStringReference('${element.relativeUri}');
     }
 
     void writeWithSource(DirectiveUriWithSource element) {
       writeWithRelativeUri(element);
-      _sink._writeStringReference('${element.source.uri}');
+      _sink.writeStringReference('${element.source.uri}');
     }
 
     if (element is DirectiveUriWithLibrary) {
@@ -432,7 +432,7 @@ class BundleWriter {
       _resolutionSink.writeMap(
         info,
         writeKey: (key) {
-          _resolutionSink._writeStringReference(key);
+          _resolutionSink.writeStringReference(key);
         },
         writeValue: (value) {
           _resolutionSink._writeElementList(value.conflictingFields);
@@ -468,7 +468,7 @@ class BundleWriter {
   }
 
   void _writeFragmentName(Fragment fragment) {
-    _sink._writeOptionalStringReference(fragment.name);
+    _sink.writeOptionalStringReference(fragment.name);
   }
 
   void _writeFragments(List<FragmentImpl> fragments) {
@@ -591,7 +591,7 @@ class BundleWriter {
 
   void _writeMixinFragment(MixinFragmentImpl fragment) {
     _writeTemplateFragment(fragment, () {
-      _sink._writeStringList(fragment.superInvokedNames);
+      _sink.writeStringList(fragment.superInvokedNames);
 
       _writeTypeParameters(fragment.typeParameters, () {
         _resolutionSink._writeMetadata(fragment.metadata);
@@ -611,12 +611,12 @@ class BundleWriter {
       case HideElementCombinator():
         _sink.writeByte(Tag.HideCombinator);
         _sink.writeList<String>(combinator.hiddenNames, (name) {
-          _sink._writeStringReference(name);
+          _sink.writeStringReference(name);
         });
       case ShowElementCombinator():
         _sink.writeByte(Tag.ShowCombinator);
         _sink.writeList<String>(combinator.shownNames, (name) {
-          _sink._writeStringReference(name);
+          _sink.writeStringReference(name);
         });
     }
   }
@@ -868,14 +868,15 @@ class BundleWriterResult {
   BundleWriterResult({required this.resolutionBytes});
 }
 
-class ResolutionSink extends _SummaryDataWriter {
+class ResolutionSink extends BinaryWriter {
   final _BundleWriterReferences _references;
   final _LocalElementIndexer localElements = _LocalElementIndexer();
 
   ResolutionSink({
     required super.stringIndexer,
     required _BundleWriterReferences references,
-  }) : _references = references;
+  }) : _references = references,
+       super.withStringIndexer();
 
   void withTypeParameters(
     List<TypeParameterElementImpl> typeParameters,
@@ -1010,7 +1011,7 @@ class ResolutionSink extends _SummaryDataWriter {
   }
 
   void _writeElementName(Element element) {
-    _writeOptionalStringReference(element.name);
+    writeOptionalStringReference(element.name);
   }
 
   void _writeFormalParameters(
@@ -1058,7 +1059,7 @@ class ResolutionSink extends _SummaryDataWriter {
   }
 
   void _writeFragmentName(Fragment fragment) {
-    _writeOptionalStringReference(fragment.name);
+    writeOptionalStringReference(fragment.name);
   }
 
   void _writeFunctionType(FunctionTypeImpl type) {
@@ -1080,7 +1081,7 @@ class ResolutionSink extends _SummaryDataWriter {
   }
 
   void _writeNode(AstNode node) {
-    var astWriter = AstBinaryWriter(sink: this, stringIndexer: _stringIndexer);
+    var astWriter = AstBinaryWriter(sink: this);
     node.accept(astWriter);
   }
 
@@ -1105,7 +1106,7 @@ class ResolutionSink extends _SummaryDataWriter {
     });
 
     writeList<RecordTypeNamedField>(type.namedFields, (field) {
-      _writeStringReference(field.name);
+      writeStringReference(field.name);
       writeType(field.type);
     });
 
@@ -1266,16 +1267,13 @@ class _LocalElementIndexer {
   }
 }
 
-class _SummaryDataWriter extends BinaryWriter {
-  final StringIndexer _stringIndexer;
-
-  _SummaryDataWriter({required StringIndexer stringIndexer})
-    : _stringIndexer = stringIndexer;
-
-  _SummaryDataWriter clone() {
-    return _SummaryDataWriter(stringIndexer: _stringIndexer);
+extension on Map<FragmentImpl, int> {
+  int getId(FragmentImpl fragment) {
+    return this[fragment] ??= length;
   }
+}
 
+extension _BinaryWriterExtension on BinaryWriter {
   void _writeFormalParameterKind(FormalParameterFragmentImpl p) {
     if (p.isRequiredPositional) {
       writeByte(Tag.ParameterKindRequiredPositional);
@@ -1304,36 +1302,12 @@ class _SummaryDataWriter extends BinaryWriter {
     }
   }
 
-  void _writeOptionalStringReference(String? value) {
-    if (value != null) {
-      writeBool(true);
-      _writeStringReference(value);
-    } else {
-      writeBool(false);
-    }
-  }
-
-  void _writeStringList(List<String> values) {
-    writeList(values, _writeStringReference);
-  }
-
-  void _writeStringReference(String string) {
-    var index = _stringIndexer[string];
-    writeUint30(index);
-  }
-
   void _writeTopLevelInferenceError(TopLevelInferenceError? error) {
     if (error != null) {
       writeByte(error.kind.index);
-      _writeStringList(error.arguments);
+      writeStringList(error.arguments);
     } else {
       writeByte(TopLevelInferenceErrorKind.none.index);
     }
-  }
-}
-
-extension on Map<FragmentImpl, int> {
-  int getId(FragmentImpl fragment) {
-    return this[fragment] ??= length;
   }
 }
