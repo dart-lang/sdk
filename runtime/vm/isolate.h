@@ -1123,7 +1123,9 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
 
   bool HasPendingMessages();
 
-  Thread* mutator_thread() const;
+  Thread* mutator_thread() const { return mutator_thread_; }
+  NO_SANITIZE_THREAD
+  Thread* mutator_thread_ignore_race() const { return mutator_thread_; }
 
   const char* name() const { return name_; }
   void set_name(const char* name);
