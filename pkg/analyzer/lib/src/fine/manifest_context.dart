@@ -117,8 +117,8 @@ final class ManifestElement {
     return ManifestElement(
       libraryUri: reader.readUri(),
       kind: reader.readEnum(ManifestElementKind.values),
-      topLevelName: reader.readStringUtf8(),
-      memberName: reader.readOptionalStringUtf8(),
+      topLevelName: reader.readStringReference(),
+      memberName: reader.readOptionalStringReference(),
       id: reader.readOptionalObject(() => ManifestItemId.read(reader)),
     );
   }
@@ -173,8 +173,8 @@ final class ManifestElement {
   void write(BinaryWriter writer) {
     writer.writeUri(libraryUri);
     writer.writeEnum(kind);
-    writer.writeStringUtf8(topLevelName);
-    writer.writeOptionalStringUtf8(memberName);
+    writer.writeStringReference(topLevelName);
+    writer.writeOptionalStringReference(memberName);
     id.writeOptional(writer);
   }
 

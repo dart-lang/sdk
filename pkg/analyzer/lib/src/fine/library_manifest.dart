@@ -798,13 +798,17 @@ class LibraryManifestBuilder {
     Uint8List manifestAsBytes(LibraryManifest manifest) {
       var writer = BinaryWriter();
       manifest.write(writer);
+      writer.writeStringTableAtEnd();
       return writer.takeBytes();
     }
 
     newManifests.forEach((uri, manifest) {
       var bytes = manifestAsBytes(manifest);
 
-      var readManifest = LibraryManifest.read(BinaryReader(bytes));
+      var reader = BinaryReader(bytes);
+      reader.initializeStringTableFromEnd();
+
+      var readManifest = LibraryManifest.read(reader);
       var readBytes = manifestAsBytes(readManifest);
 
       if (!const ListEquality<int>().equals(bytes, readBytes)) {

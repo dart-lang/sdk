@@ -552,6 +552,7 @@ class LinkedBundleProvider {
 
     performance.getDataInt('bytesLength').add(bytes.length);
     var reader = BinaryReader(bytes);
+    reader.initializeStringTableFromEnd();
     var nonTransitiveApiSignature = reader.readStringUtf8();
     var libraryManifests = reader.readMap(
       readKey: () => reader.readUri(),
@@ -593,7 +594,9 @@ class LinkedBundleProvider {
     entry.requirements.write(writer);
     writer.writeUint8List(entry.linkedBytes);
 
+    writer.writeStringTableAtEnd();
     var bytes = writer.takeBytes();
+
     byteStore.putGet(key, bytes);
     performance.getDataInt('bytes').add(bytes.length);
 

@@ -11,7 +11,7 @@ import 'package:analyzer/src/utilities/extensions/string.dart';
 /// In contrast to [LookupName] there is no `=` at the end.
 extension type BaseName(String _it) {
   factory BaseName.read(BinaryReader reader) {
-    var str = reader.readStringUtf8();
+    var str = reader.readStringReference();
     return BaseName(str);
   }
 
@@ -19,7 +19,7 @@ extension type BaseName(String _it) {
   String get asString => _it;
 
   void write(BinaryWriter writer) {
-    writer.writeStringUtf8(_it);
+    writer.writeStringReference(_it);
   }
 
   static int compare(BaseName left, BaseName right) {
@@ -32,7 +32,7 @@ extension type BaseName(String _it) {
 /// Specifically, for setters there is `=` at the end.
 extension type LookupName(String _it) {
   factory LookupName.read(BinaryReader reader) {
-    var str = reader.readStringUtf8();
+    var str = reader.readStringReference();
     return LookupName(str);
   }
 
@@ -109,7 +109,7 @@ extension type LookupName(String _it) {
   }
 
   void write(BinaryWriter writer) {
-    writer.writeStringUtf8(_it);
+    writer.writeStringReference(_it);
   }
 
   static int compare(LookupName left, LookupName right) {
