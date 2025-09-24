@@ -351,8 +351,6 @@ class LibraryReader {
       element.linkFragments(fragments);
       element.readModifiers(_reader);
 
-      // TODO(scheglov): type parameters
-      // TODO(scheglov): formal parameters
       element.deferReadResolution(
         _createDeferredReadResolutionCallback((reader) {
           var enclosingElement = element.enclosingElement;
@@ -914,12 +912,9 @@ class LibraryReader {
         firstFragment: fragments.first,
       );
       element.linkFragments(fragments);
-
       element.readModifiers(_reader);
       element.typeInferenceError = _readTopLevelInferenceError();
 
-      // TODO(scheglov): type parameters
-      // TODO(scheglov): formal parameters
       element.deferReadResolution(
         _createDeferredReadResolutionCallback((reader) {
           var enclosingElement = element.enclosingElement;

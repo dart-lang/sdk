@@ -4723,6 +4723,7 @@ library
               formalParameters
                 #F9 a (nameOffset:21) (firstTokenOffset:21) (offset:21)
                   element: <testLibrary>::@mixin::B::@method::foo::@formalParameter::a
+                  nextFragment: #F10
         #F6 mixin B (nameOffset:86) (firstTokenOffset:72) (offset:86)
           element: <testLibrary>::@mixin::B
           previousFragment: #F5
@@ -4733,6 +4734,7 @@ library
               formalParameters
                 #F10 a (nameOffset:104) (firstTokenOffset:104) (offset:104)
                   element: <testLibrary>::@mixin::B::@method::foo::@formalParameter::a
+                  previousFragment: #F9
   classes
     class A
       reference: <testLibrary>::@class::A

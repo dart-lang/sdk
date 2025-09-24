@@ -2560,8 +2560,8 @@ library
 
   test_formalParameters_requiredNamed_repeated_12() async {
     var library = await buildLibrary(r'''
-void foo({required int n1) {}
-augment void foo({required int n1, required int n1}}) {}
+void foo({required int n1}) {}
+augment void foo({required int n1, required int n1}) {}
 ''');
 
     configuration.withExportScope = true;
@@ -2579,11 +2579,11 @@ library
             #F3 n1 (nameOffset:23) (firstTokenOffset:10) (offset:23)
               element: <testLibrary>::@function::foo::@formalParameter::n1
               nextFragment: #F4
-        #F2 foo (nameOffset:43) (firstTokenOffset:30) (offset:43)
+        #F2 foo (nameOffset:44) (firstTokenOffset:31) (offset:44)
           element: <testLibrary>::@function::foo
           previousFragment: #F1
           formalParameters
-            #F4 n1 (nameOffset:61) (firstTokenOffset:48) (offset:61)
+            #F4 n1 (nameOffset:62) (firstTokenOffset:49) (offset:62)
               element: <testLibrary>::@function::foo::@formalParameter::n1
               previousFragment: #F3
   functions

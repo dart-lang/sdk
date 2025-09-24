@@ -311,6 +311,18 @@ class ElementBuilder {
 
     if (fragment.isAugmentation && lastFragment is ConstructorFragmentImpl) {
       lastFragment.addFragment(fragment);
+
+      _linkTypeParameters(
+        lastFragments: lastFragment.typeParameters,
+        fragments: fragment.typeParameters,
+        add: fragment.addTypeParameter,
+      );
+
+      fragment.formalParameters = _linkFormalParameters(
+        previousFragments: lastFragment.formalParameters,
+        currentFragments: fragment.formalParameters,
+      );
+
       return;
     }
 
@@ -495,6 +507,11 @@ class ElementBuilder {
         lastFragments: lastFragment.typeParameters,
         fragments: fragment.typeParameters,
         add: fragment.addTypeParameter,
+      );
+
+      fragment.formalParameters = _linkFormalParameters(
+        previousFragments: lastFragment.formalParameters,
+        currentFragments: fragment.formalParameters,
       );
 
       return;

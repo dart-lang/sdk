@@ -849,6 +849,15 @@ class ConstructorElementImpl extends ExecutableElementImpl
       previous.addFragment(current);
       return current;
     });
+    TypeParameterFragmentImpl._linkFragments(
+      fragments,
+      getFragments: (f) => f.typeParameters,
+    );
+
+    FormalParameterFragmentImpl._linkFragments(
+      fragments,
+      getFragments: (f) => f.formalParameters,
+    );
   }
 
   @override
@@ -8300,6 +8309,10 @@ class MethodElementImpl extends ExecutableElementImpl
     TypeParameterFragmentImpl._linkFragments(
       fragments,
       getFragments: (f) => f.typeParameters,
+    );
+    FormalParameterFragmentImpl._linkFragments(
+      fragments,
+      getFragments: (f) => f.formalParameters,
     );
   }
 }

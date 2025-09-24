@@ -26389,6 +26389,1627 @@ library
 ''');
   }
 
+  test_constructor_formalParameters_optionalPositional_11() async {
+    var library = await buildLibrary(r'''
+class A {
+  A.named([int p1]);
+}
+augment class A {
+  augment A.named([int p1]);
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 named (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 12
+              periodOffset: 13
+              formalParameters
+                #F4 p1 (nameOffset:25) (firstTokenOffset:21) (offset:25)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
+                  nextFragment: #F5
+              nextFragment: #F6
+        #F2 class A (nameOffset:47) (firstTokenOffset:33) (offset:47)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          constructors
+            #F6 augment named (nameOffset:63) (firstTokenOffset:53) (offset:63)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 61
+              periodOffset: 62
+              formalParameters
+                #F5 p1 (nameOffset:74) (firstTokenOffset:70) (offset:74)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
+                  previousFragment: #F4
+              previousFragment: #F3
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F3
+          formalParameters
+            #E0 optionalPositional p1
+              firstFragment: #F4
+              type: int
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_constructor_formalParameters_optionalPositional_12() async {
+    var library = await buildLibrary(r'''
+class A {
+  A.named([int p1]);
+}
+augment class A {
+  augment A.named([int p1, int p2]);
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 named (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 12
+              periodOffset: 13
+              formalParameters
+                #F4 p1 (nameOffset:25) (firstTokenOffset:21) (offset:25)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
+                  nextFragment: #F5
+              nextFragment: #F6
+        #F2 class A (nameOffset:47) (firstTokenOffset:33) (offset:47)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          constructors
+            #F6 augment named (nameOffset:63) (firstTokenOffset:53) (offset:63)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 61
+              periodOffset: 62
+              formalParameters
+                #F5 p1 (nameOffset:74) (firstTokenOffset:70) (offset:74)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
+                  previousFragment: #F4
+              previousFragment: #F3
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F3
+          formalParameters
+            #E0 optionalPositional p1
+              firstFragment: #F4
+              type: int
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_constructor_formalParameters_optionalPositional_21() async {
+    var library = await buildLibrary(r'''
+class A {
+  A.named([int p1, int p2]);
+}
+augment class A {
+  augment A.named([int p1]);
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 named (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 12
+              periodOffset: 13
+              formalParameters
+                #F4 p1 (nameOffset:25) (firstTokenOffset:21) (offset:25)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
+                  nextFragment: #F5
+                #F6 p2 (nameOffset:33) (firstTokenOffset:29) (offset:33)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p2
+                  nextFragment: #F7
+              nextFragment: #F8
+        #F2 class A (nameOffset:55) (firstTokenOffset:41) (offset:55)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          constructors
+            #F8 augment named (nameOffset:71) (firstTokenOffset:61) (offset:71)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 69
+              periodOffset: 70
+              formalParameters
+                #F5 p1 (nameOffset:82) (firstTokenOffset:78) (offset:82)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
+                  previousFragment: #F4
+                #F7 p2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p2
+                  previousFragment: #F6
+              previousFragment: #F3
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F3
+          formalParameters
+            #E0 optionalPositional p1
+              firstFragment: #F4
+              type: int
+            #E1 optionalPositional p2
+              firstFragment: #F6
+              type: int
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_constructor_formalParameters_optionalPositional_differentType() async {
+    var library = await buildLibrary(r'''
+class A {
+  A.named([int p1]);
+}
+augment class A {
+  augment A.named([double p1]);
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 named (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 12
+              periodOffset: 13
+              formalParameters
+                #F4 p1 (nameOffset:25) (firstTokenOffset:21) (offset:25)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
+                  nextFragment: #F5
+              nextFragment: #F6
+        #F2 class A (nameOffset:47) (firstTokenOffset:33) (offset:47)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          constructors
+            #F6 augment named (nameOffset:63) (firstTokenOffset:53) (offset:63)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 61
+              periodOffset: 62
+              formalParameters
+                #F5 p1 (nameOffset:77) (firstTokenOffset:70) (offset:77)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
+                  previousFragment: #F4
+              previousFragment: #F3
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F3
+          formalParameters
+            #E0 optionalPositional p1
+              firstFragment: #F4
+              type: int
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_constructor_formalParameters_optionalPositional_swapped() async {
+    var library = await buildLibrary(r'''
+class A {
+  A.named([int p2, int p1]);
+}
+augment class A {
+  augment A.named([int p1, int p2]);
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 named (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 12
+              periodOffset: 13
+              formalParameters
+                #F4 p2 (nameOffset:25) (firstTokenOffset:21) (offset:25)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p2
+                  nextFragment: #F5
+                #F6 p1 (nameOffset:33) (firstTokenOffset:29) (offset:33)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
+                  nextFragment: #F7
+              nextFragment: #F8
+        #F2 class A (nameOffset:55) (firstTokenOffset:41) (offset:55)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          constructors
+            #F8 augment named (nameOffset:71) (firstTokenOffset:61) (offset:71)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 69
+              periodOffset: 70
+              formalParameters
+                #F5 p1 (nameOffset:82) (firstTokenOffset:78) (offset:82)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p2
+                  previousFragment: #F4
+                #F7 p2 (nameOffset:90) (firstTokenOffset:86) (offset:90)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
+                  previousFragment: #F6
+              previousFragment: #F3
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F3
+          formalParameters
+            #E0 optionalPositional p2
+              firstFragment: #F4
+              type: int
+            #E1 optionalPositional p1
+              firstFragment: #F6
+              type: int
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_constructor_formalParameters_positional_11() async {
+    var library = await buildLibrary(r'''
+class A {
+  A.named(int n1);
+}
+augment class A {
+  augment A.named(int n1);
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 named (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 12
+              periodOffset: 13
+              formalParameters
+                #F4 n1 (nameOffset:24) (firstTokenOffset:20) (offset:24)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
+                  nextFragment: #F5
+              nextFragment: #F6
+        #F2 class A (nameOffset:45) (firstTokenOffset:31) (offset:45)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          constructors
+            #F6 augment named (nameOffset:61) (firstTokenOffset:51) (offset:61)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 59
+              periodOffset: 60
+              formalParameters
+                #F5 n1 (nameOffset:71) (firstTokenOffset:67) (offset:71)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
+                  previousFragment: #F4
+              previousFragment: #F3
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional n1
+              firstFragment: #F4
+              type: int
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_constructor_formalParameters_positional_12() async {
+    var library = await buildLibrary(r'''
+class A {
+  A.named(int n1);
+}
+augment class A {
+  augment A.named(int n1, int n2);
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 named (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 12
+              periodOffset: 13
+              formalParameters
+                #F4 n1 (nameOffset:24) (firstTokenOffset:20) (offset:24)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
+                  nextFragment: #F5
+              nextFragment: #F6
+        #F2 class A (nameOffset:45) (firstTokenOffset:31) (offset:45)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          constructors
+            #F6 augment named (nameOffset:61) (firstTokenOffset:51) (offset:61)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 59
+              periodOffset: 60
+              formalParameters
+                #F5 n1 (nameOffset:71) (firstTokenOffset:67) (offset:71)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
+                  previousFragment: #F4
+              previousFragment: #F3
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional n1
+              firstFragment: #F4
+              type: int
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_constructor_formalParameters_positional_21() async {
+    var library = await buildLibrary(r'''
+class A {
+  A.named(int n1, int n2);
+}
+augment class A {
+  augment A.named(int n1);
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 named (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 12
+              periodOffset: 13
+              formalParameters
+                #F4 n1 (nameOffset:24) (firstTokenOffset:20) (offset:24)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
+                  nextFragment: #F5
+                #F6 n2 (nameOffset:32) (firstTokenOffset:28) (offset:32)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n2
+                  nextFragment: #F7
+              nextFragment: #F8
+        #F2 class A (nameOffset:53) (firstTokenOffset:39) (offset:53)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          constructors
+            #F8 augment named (nameOffset:69) (firstTokenOffset:59) (offset:69)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 67
+              periodOffset: 68
+              formalParameters
+                #F5 n1 (nameOffset:79) (firstTokenOffset:75) (offset:79)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
+                  previousFragment: #F4
+                #F7 n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n2
+                  previousFragment: #F6
+              previousFragment: #F3
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional n1
+              firstFragment: #F4
+              type: int
+            #E1 requiredPositional n2
+              firstFragment: #F6
+              type: int
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_constructor_formalParameters_positional_differentName() async {
+    var library = await buildLibrary(r'''
+class A {
+  A.named(int p1);
+}
+augment class A {
+  augment A.named(int p2);
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 named (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 12
+              periodOffset: 13
+              formalParameters
+                #F4 p1 (nameOffset:24) (firstTokenOffset:20) (offset:24)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
+                  nextFragment: #F5
+              nextFragment: #F6
+        #F2 class A (nameOffset:45) (firstTokenOffset:31) (offset:45)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          constructors
+            #F6 augment named (nameOffset:61) (firstTokenOffset:51) (offset:61)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 59
+              periodOffset: 60
+              formalParameters
+                #F5 p2 (nameOffset:71) (firstTokenOffset:67) (offset:71)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
+                  previousFragment: #F4
+              previousFragment: #F3
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional p1
+              firstFragment: #F4
+              type: int
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_constructor_formalParameters_positional_differentType() async {
+    var library = await buildLibrary(r'''
+class A {
+  A.named(int p1);
+}
+augment class A {
+  augment A.named(double p1);
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 named (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 12
+              periodOffset: 13
+              formalParameters
+                #F4 p1 (nameOffset:24) (firstTokenOffset:20) (offset:24)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
+                  nextFragment: #F5
+              nextFragment: #F6
+        #F2 class A (nameOffset:45) (firstTokenOffset:31) (offset:45)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          constructors
+            #F6 augment named (nameOffset:61) (firstTokenOffset:51) (offset:61)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 59
+              periodOffset: 60
+              formalParameters
+                #F5 p1 (nameOffset:74) (firstTokenOffset:67) (offset:74)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
+                  previousFragment: #F4
+              previousFragment: #F3
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional p1
+              firstFragment: #F4
+              type: int
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_constructor_formalParameters_positional_requiredNamed_11() async {
+    var library = await buildLibrary(r'''
+class A {
+  A.named(int p1, {required int n1});
+}
+augment class A {
+  augment A.named(int p1, {required int n1});
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 named (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 12
+              periodOffset: 13
+              formalParameters
+                #F4 p1 (nameOffset:24) (firstTokenOffset:20) (offset:24)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
+                  nextFragment: #F5
+                #F6 n1 (nameOffset:42) (firstTokenOffset:29) (offset:42)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
+                  nextFragment: #F7
+              nextFragment: #F8
+        #F2 class A (nameOffset:64) (firstTokenOffset:50) (offset:64)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          constructors
+            #F8 augment named (nameOffset:80) (firstTokenOffset:70) (offset:80)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 78
+              periodOffset: 79
+              formalParameters
+                #F5 p1 (nameOffset:90) (firstTokenOffset:86) (offset:90)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
+                  previousFragment: #F4
+                #F7 n1 (nameOffset:108) (firstTokenOffset:95) (offset:108)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
+                  previousFragment: #F6
+              previousFragment: #F3
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional p1
+              firstFragment: #F4
+              type: int
+            #E1 requiredNamed n1
+              firstFragment: #F6
+              type: int
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_constructor_formalParameters_positional_requiredNamed_12() async {
+    var library = await buildLibrary(r'''
+class A {
+  A.named(int p1, {required int n1});
+}
+augment class A {
+  augment A.named(int p1, int p2, {required int n1, required int n2});
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 named (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 12
+              periodOffset: 13
+              formalParameters
+                #F4 p1 (nameOffset:24) (firstTokenOffset:20) (offset:24)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
+                  nextFragment: #F5
+                #F6 n1 (nameOffset:42) (firstTokenOffset:29) (offset:42)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
+                  nextFragment: #F7
+              nextFragment: #F8
+        #F2 class A (nameOffset:64) (firstTokenOffset:50) (offset:64)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          constructors
+            #F8 augment named (nameOffset:80) (firstTokenOffset:70) (offset:80)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 78
+              periodOffset: 79
+              formalParameters
+                #F5 p1 (nameOffset:90) (firstTokenOffset:86) (offset:90)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
+                  previousFragment: #F4
+                #F7 n1 (nameOffset:98) (firstTokenOffset:94) (offset:98)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
+                  previousFragment: #F6
+              previousFragment: #F3
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional p1
+              firstFragment: #F4
+              type: int
+            #E1 requiredNamed n1
+              firstFragment: #F6
+              type: int
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_constructor_formalParameters_positional_requiredNamed_21() async {
+    var library = await buildLibrary(r'''
+class A {
+  A.named(int p1, int p2, {required int n1, required int n2});
+}
+augment class A {
+  augment A.named(int p1, {required int n1});
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 named (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 12
+              periodOffset: 13
+              formalParameters
+                #F4 p1 (nameOffset:24) (firstTokenOffset:20) (offset:24)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
+                  nextFragment: #F5
+                #F6 p2 (nameOffset:32) (firstTokenOffset:28) (offset:32)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p2
+                  nextFragment: #F7
+                #F8 n1 (nameOffset:50) (firstTokenOffset:37) (offset:50)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
+                  nextFragment: #F9
+                #F10 n2 (nameOffset:67) (firstTokenOffset:54) (offset:67)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n2
+                  nextFragment: #F11
+              nextFragment: #F12
+        #F2 class A (nameOffset:89) (firstTokenOffset:75) (offset:89)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          constructors
+            #F12 augment named (nameOffset:105) (firstTokenOffset:95) (offset:105)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 103
+              periodOffset: 104
+              formalParameters
+                #F5 p1 (nameOffset:115) (firstTokenOffset:111) (offset:115)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
+                  previousFragment: #F4
+                #F7 p2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:105)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p2
+                  previousFragment: #F6
+                #F9 n1 (nameOffset:133) (firstTokenOffset:120) (offset:133)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
+                  previousFragment: #F8
+                #F11 n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:105)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n2
+                  previousFragment: #F10
+              previousFragment: #F3
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional p1
+              firstFragment: #F4
+              type: int
+            #E1 requiredPositional p2
+              firstFragment: #F6
+              type: int
+            #E2 requiredNamed n1
+              firstFragment: #F8
+              type: int
+            #E3 requiredNamed n2
+              firstFragment: #F10
+              type: int
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_constructor_formalParameters_positional_requiredNamed_differentType() async {
+    var library = await buildLibrary(r'''
+class A {
+  A.named(int p1, {required int n1});
+}
+augment class A {
+  augment A.named(double p1, {required double n1});
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 named (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 12
+              periodOffset: 13
+              formalParameters
+                #F4 p1 (nameOffset:24) (firstTokenOffset:20) (offset:24)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
+                  nextFragment: #F5
+                #F6 n1 (nameOffset:42) (firstTokenOffset:29) (offset:42)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
+                  nextFragment: #F7
+              nextFragment: #F8
+        #F2 class A (nameOffset:64) (firstTokenOffset:50) (offset:64)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          constructors
+            #F8 augment named (nameOffset:80) (firstTokenOffset:70) (offset:80)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 78
+              periodOffset: 79
+              formalParameters
+                #F5 p1 (nameOffset:93) (firstTokenOffset:86) (offset:93)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
+                  previousFragment: #F4
+                #F7 n1 (nameOffset:114) (firstTokenOffset:98) (offset:114)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
+                  previousFragment: #F6
+              previousFragment: #F3
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional p1
+              firstFragment: #F4
+              type: int
+            #E1 requiredNamed n1
+              firstFragment: #F6
+              type: int
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_constructor_formalParameters_positional_swapped() async {
+    var library = await buildLibrary(r'''
+class A {
+  A.named(int p1, int p2);
+}
+augment class A {
+  augment A.named(int p2, int p1);
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 named (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 12
+              periodOffset: 13
+              formalParameters
+                #F4 p1 (nameOffset:24) (firstTokenOffset:20) (offset:24)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
+                  nextFragment: #F5
+                #F6 p2 (nameOffset:32) (firstTokenOffset:28) (offset:32)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p2
+                  nextFragment: #F7
+              nextFragment: #F8
+        #F2 class A (nameOffset:53) (firstTokenOffset:39) (offset:53)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          constructors
+            #F8 augment named (nameOffset:69) (firstTokenOffset:59) (offset:69)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 67
+              periodOffset: 68
+              formalParameters
+                #F5 p2 (nameOffset:79) (firstTokenOffset:75) (offset:79)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
+                  previousFragment: #F4
+                #F7 p1 (nameOffset:87) (firstTokenOffset:83) (offset:87)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p2
+                  previousFragment: #F6
+              previousFragment: #F3
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional p1
+              firstFragment: #F4
+              type: int
+            #E1 requiredPositional p2
+              firstFragment: #F6
+              type: int
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_constructor_formalParameters_requiredNamed_11() async {
+    var library = await buildLibrary(r'''
+class A {
+  A.named({required int n1});
+}
+augment class A {
+  augment A.named({required int n1});
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 named (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 12
+              periodOffset: 13
+              formalParameters
+                #F4 n1 (nameOffset:34) (firstTokenOffset:21) (offset:34)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
+                  nextFragment: #F5
+              nextFragment: #F6
+        #F2 class A (nameOffset:56) (firstTokenOffset:42) (offset:56)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          constructors
+            #F6 augment named (nameOffset:72) (firstTokenOffset:62) (offset:72)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 70
+              periodOffset: 71
+              formalParameters
+                #F5 n1 (nameOffset:92) (firstTokenOffset:79) (offset:92)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
+                  previousFragment: #F4
+              previousFragment: #F3
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredNamed n1
+              firstFragment: #F4
+              type: int
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_constructor_formalParameters_requiredNamed_12() async {
+    var library = await buildLibrary(r'''
+class A {
+  A.named({required int n1});
+}
+augment class A {
+  augment A.named({required int n1, required int n2});
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 named (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 12
+              periodOffset: 13
+              formalParameters
+                #F4 n1 (nameOffset:34) (firstTokenOffset:21) (offset:34)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
+                  nextFragment: #F5
+              nextFragment: #F6
+        #F2 class A (nameOffset:56) (firstTokenOffset:42) (offset:56)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          constructors
+            #F6 augment named (nameOffset:72) (firstTokenOffset:62) (offset:72)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 70
+              periodOffset: 71
+              formalParameters
+                #F5 n1 (nameOffset:92) (firstTokenOffset:79) (offset:92)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
+                  previousFragment: #F4
+              previousFragment: #F3
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredNamed n1
+              firstFragment: #F4
+              type: int
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_constructor_formalParameters_requiredNamed_21() async {
+    var library = await buildLibrary(r'''
+class A {
+  A.named({required int n1, required int n2});
+}
+augment class A {
+  augment A.named({required int n1});
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 named (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 12
+              periodOffset: 13
+              formalParameters
+                #F4 n1 (nameOffset:34) (firstTokenOffset:21) (offset:34)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
+                  nextFragment: #F5
+                #F6 n2 (nameOffset:51) (firstTokenOffset:38) (offset:51)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n2
+                  nextFragment: #F7
+              nextFragment: #F8
+        #F2 class A (nameOffset:73) (firstTokenOffset:59) (offset:73)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          constructors
+            #F8 augment named (nameOffset:89) (firstTokenOffset:79) (offset:89)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 87
+              periodOffset: 88
+              formalParameters
+                #F5 n1 (nameOffset:109) (firstTokenOffset:96) (offset:109)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
+                  previousFragment: #F4
+                #F7 n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:89)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n2
+                  previousFragment: #F6
+              previousFragment: #F3
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredNamed n1
+              firstFragment: #F4
+              type: int
+            #E1 requiredNamed n2
+              firstFragment: #F6
+              type: int
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_constructor_formalParameters_requiredNamed_differentType() async {
+    var library = await buildLibrary(r'''
+class A {
+  A.named({required int n1});
+}
+augment class A {
+  augment A.named({required double n1});
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 named (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 12
+              periodOffset: 13
+              formalParameters
+                #F4 n1 (nameOffset:34) (firstTokenOffset:21) (offset:34)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
+                  nextFragment: #F5
+              nextFragment: #F6
+        #F2 class A (nameOffset:56) (firstTokenOffset:42) (offset:56)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          constructors
+            #F6 augment named (nameOffset:72) (firstTokenOffset:62) (offset:72)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 70
+              periodOffset: 71
+              formalParameters
+                #F5 n1 (nameOffset:95) (firstTokenOffset:79) (offset:95)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
+                  previousFragment: #F4
+              previousFragment: #F3
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredNamed n1
+              firstFragment: #F4
+              type: int
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_constructor_formalParameters_requiredNamed_repeated() async {
+    var library = await buildLibrary(r'''
+class A {
+  A.named({required int n1, required int n1});
+}
+augment class A {
+  augment A.named({required int n1, required int n1});
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 named (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 12
+              periodOffset: 13
+              formalParameters
+                #F4 n1 (nameOffset:34) (firstTokenOffset:21) (offset:34)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
+                  nextFragment: #F5
+                #F6 n1 (nameOffset:51) (firstTokenOffset:38) (offset:51)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
+                  nextFragment: #F7
+              nextFragment: #F8
+        #F2 class A (nameOffset:73) (firstTokenOffset:59) (offset:73)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          constructors
+            #F8 augment named (nameOffset:89) (firstTokenOffset:79) (offset:89)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 87
+              periodOffset: 88
+              formalParameters
+                #F5 n1 (nameOffset:109) (firstTokenOffset:96) (offset:109)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
+                  previousFragment: #F4
+                #F7 n1 (nameOffset:126) (firstTokenOffset:113) (offset:126)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
+                  previousFragment: #F6
+              previousFragment: #F3
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredNamed n1
+              firstFragment: #F4
+              type: int
+            #E1 requiredNamed n1
+              firstFragment: #F6
+              type: int
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_constructor_formalParameters_requiredNamed_repeated_12() async {
+    var library = await buildLibrary(r'''
+class A {
+  A.named({required int n1});
+}
+augment class A {
+  augment A.named({required int n1, required int n1});
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 named (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 12
+              periodOffset: 13
+              formalParameters
+                #F4 n1 (nameOffset:34) (firstTokenOffset:21) (offset:34)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
+                  nextFragment: #F5
+              nextFragment: #F6
+        #F2 class A (nameOffset:56) (firstTokenOffset:42) (offset:56)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          constructors
+            #F6 augment named (nameOffset:72) (firstTokenOffset:62) (offset:72)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 70
+              periodOffset: 71
+              formalParameters
+                #F5 n1 (nameOffset:92) (firstTokenOffset:79) (offset:92)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
+                  previousFragment: #F4
+              previousFragment: #F3
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredNamed n1
+              firstFragment: #F4
+              type: int
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_constructor_formalParameters_requiredNamed_repeated_21() async {
+    var library = await buildLibrary(r'''
+class A {
+  A.named({required int n1, required int n1});
+}
+augment class A {
+  augment A.named({required int n1});
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 named (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 12
+              periodOffset: 13
+              formalParameters
+                #F4 n1 (nameOffset:34) (firstTokenOffset:21) (offset:34)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
+                  nextFragment: #F5
+                #F6 n1 (nameOffset:51) (firstTokenOffset:38) (offset:51)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
+                  nextFragment: #F7
+              nextFragment: #F8
+        #F2 class A (nameOffset:73) (firstTokenOffset:59) (offset:73)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          constructors
+            #F8 augment named (nameOffset:89) (firstTokenOffset:79) (offset:89)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 87
+              periodOffset: 88
+              formalParameters
+                #F5 n1 (nameOffset:109) (firstTokenOffset:96) (offset:109)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
+                  previousFragment: #F4
+                #F7 n1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:89)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
+                  previousFragment: #F6
+              previousFragment: #F3
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredNamed n1
+              firstFragment: #F4
+              type: int
+            #E1 requiredNamed n1
+              firstFragment: #F6
+              type: int
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_constructor_formalParameters_requiredNamed_swapped() async {
+    var library = await buildLibrary(r'''
+class A {
+  A.named({required int n2, required int n1});
+}
+augment class A {
+  augment A.named({required int n1, required int n2});
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 named (nameOffset:14) (firstTokenOffset:12) (offset:14)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 12
+              periodOffset: 13
+              formalParameters
+                #F4 n2 (nameOffset:34) (firstTokenOffset:21) (offset:34)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n2
+                  nextFragment: #F5
+                #F6 n1 (nameOffset:51) (firstTokenOffset:38) (offset:51)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
+                  nextFragment: #F7
+              nextFragment: #F8
+        #F2 class A (nameOffset:73) (firstTokenOffset:59) (offset:73)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          constructors
+            #F8 augment named (nameOffset:89) (firstTokenOffset:79) (offset:89)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 87
+              periodOffset: 88
+              formalParameters
+                #F7 n1 (nameOffset:109) (firstTokenOffset:96) (offset:109)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
+                  previousFragment: #F6
+                #F5 n2 (nameOffset:126) (firstTokenOffset:113) (offset:126)
+                  element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n2
+                  previousFragment: #F4
+              previousFragment: #F3
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredNamed n2
+              firstFragment: #F4
+              type: int
+            #E1 requiredNamed n1
+              firstFragment: #F6
+              type: int
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
   test_constructors_augment2() async {
     var library = await buildLibrary(r'''
 class A {
@@ -26841,17 +28462,18 @@ library
               formalParameters
                 #F6 a (nameOffset:26) (firstTokenOffset:26) (offset:26)
                   element: <testLibrary>::@class::B::@method::foo::@formalParameter::a
-        #F7 class A (nameOffset:44) (firstTokenOffset:38) (offset:44)
+                  nextFragment: #F7
+        #F8 class A (nameOffset:44) (firstTokenOffset:38) (offset:44)
           element: <testLibrary>::@class::A
           constructors
-            #F8 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+            #F9 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F9 foo (nameOffset:54) (firstTokenOffset:50) (offset:54)
+            #F10 foo (nameOffset:54) (firstTokenOffset:50) (offset:54)
               element: <testLibrary>::@class::A::@method::foo
               formalParameters
-                #F10 a (nameOffset:65) (firstTokenOffset:58) (offset:65)
+                #F11 a (nameOffset:65) (firstTokenOffset:58) (offset:65)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::a
         #F2 class B (nameOffset:91) (firstTokenOffset:77) (offset:91)
           element: <testLibrary>::@class::B
@@ -26861,8 +28483,9 @@ library
               element: <testLibrary>::@class::B::@method::foo
               previousFragment: #F4
               formalParameters
-                #F11 a (nameOffset:109) (firstTokenOffset:109) (offset:109)
+                #F7 a (nameOffset:109) (firstTokenOffset:109) (offset:109)
                   element: <testLibrary>::@class::B::@method::foo::@formalParameter::a
+                  previousFragment: #F6
   classes
     class B
       reference: <testLibrary>::@class::B
@@ -26884,20 +28507,1613 @@ library
           returnType: int
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: #F7
+      firstFragment: #F8
       constructors
         synthetic new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F8
+          firstFragment: #F9
       methods
         foo
           reference: <testLibrary>::@class::A::@method::foo
-          firstFragment: #F9
+          firstFragment: #F10
           formalParameters
             #E1 requiredPositional a
-              firstFragment: #F10
+              firstFragment: #F11
               type: String
           returnType: int
+''');
+  }
+
+  test_method_formalParameters_differentClass() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo(int p1) {}
+}
+
+augment class A {
+  augment void foo(int p1) {}
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          methods
+            #F4 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F5
+              formalParameters
+                #F6 p1 (nameOffset:25) (firstTokenOffset:21) (offset:25)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
+                  nextFragment: #F7
+        #F2 class A (nameOffset:49) (firstTokenOffset:35) (offset:49)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          methods
+            #F5 augment foo (nameOffset:68) (firstTokenOffset:55) (offset:68)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F4
+              formalParameters
+                #F7 p1 (nameOffset:76) (firstTokenOffset:72) (offset:76)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
+                  previousFragment: #F6
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F4
+          formalParameters
+            #E0 requiredPositional p1
+              firstFragment: #F6
+              type: int
+          returnType: void
+''');
+  }
+
+  test_method_formalParameters_optionalPositional_11() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo([int p1]) {}
+  augment void foo([int p1]) {}
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          methods
+            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F4
+              formalParameters
+                #F5 p1 (nameOffset:26) (firstTokenOffset:22) (offset:26)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
+                  nextFragment: #F6
+            #F4 augment foo (nameOffset:49) (firstTokenOffset:36) (offset:49)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F3
+              formalParameters
+                #F6 p1 (nameOffset:58) (firstTokenOffset:54) (offset:58)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
+                  previousFragment: #F5
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          formalParameters
+            #E0 optionalPositional p1
+              firstFragment: #F5
+              type: int
+          returnType: void
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_method_formalParameters_optionalPositional_12() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo([int p1]) {}
+  augment void foo([int p1, int p2]) {}
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          methods
+            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F4
+              formalParameters
+                #F5 p1 (nameOffset:26) (firstTokenOffset:22) (offset:26)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
+                  nextFragment: #F6
+            #F4 augment foo (nameOffset:49) (firstTokenOffset:36) (offset:49)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F3
+              formalParameters
+                #F6 p1 (nameOffset:58) (firstTokenOffset:54) (offset:58)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
+                  previousFragment: #F5
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          formalParameters
+            #E0 optionalPositional p1
+              firstFragment: #F5
+              type: int
+          returnType: void
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_method_formalParameters_optionalPositional_21() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo([int p1, int p2]) {}
+  augment void foo([int p1]) {}
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          methods
+            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F4
+              formalParameters
+                #F5 p1 (nameOffset:26) (firstTokenOffset:22) (offset:26)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
+                  nextFragment: #F6
+                #F7 p2 (nameOffset:34) (firstTokenOffset:30) (offset:34)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::p2
+                  nextFragment: #F8
+            #F4 augment foo (nameOffset:57) (firstTokenOffset:44) (offset:57)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F3
+              formalParameters
+                #F6 p1 (nameOffset:66) (firstTokenOffset:62) (offset:66)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
+                  previousFragment: #F5
+                #F8 p2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::p2
+                  previousFragment: #F7
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          formalParameters
+            #E0 optionalPositional p1
+              firstFragment: #F5
+              type: int
+            #E1 optionalPositional p2
+              firstFragment: #F7
+              type: int
+          returnType: void
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_method_formalParameters_optionalPositional_differentType() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo([int p1]) {}
+  augment void foo([double p1]) {}
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          methods
+            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F4
+              formalParameters
+                #F5 p1 (nameOffset:26) (firstTokenOffset:22) (offset:26)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
+                  nextFragment: #F6
+            #F4 augment foo (nameOffset:49) (firstTokenOffset:36) (offset:49)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F3
+              formalParameters
+                #F6 p1 (nameOffset:61) (firstTokenOffset:54) (offset:61)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
+                  previousFragment: #F5
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          formalParameters
+            #E0 optionalPositional p1
+              firstFragment: #F5
+              type: int
+          returnType: void
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_method_formalParameters_optionalPositional_swapped() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo([int p2, int p1]) {}
+  augment void foo([int p1, int p2]) {}
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          methods
+            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F4
+              formalParameters
+                #F5 p2 (nameOffset:26) (firstTokenOffset:22) (offset:26)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::p2
+                  nextFragment: #F6
+                #F7 p1 (nameOffset:34) (firstTokenOffset:30) (offset:34)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
+                  nextFragment: #F8
+            #F4 augment foo (nameOffset:57) (firstTokenOffset:44) (offset:57)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F3
+              formalParameters
+                #F6 p1 (nameOffset:66) (firstTokenOffset:62) (offset:66)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::p2
+                  previousFragment: #F5
+                #F8 p2 (nameOffset:74) (firstTokenOffset:70) (offset:74)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
+                  previousFragment: #F7
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          formalParameters
+            #E0 optionalPositional p2
+              firstFragment: #F5
+              type: int
+            #E1 optionalPositional p1
+              firstFragment: #F7
+              type: int
+          returnType: void
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_method_formalParameters_positional_11() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo(int n1) {}
+  augment void foo(int n1) {}
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          methods
+            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F4
+              formalParameters
+                #F5 n1 (nameOffset:25) (firstTokenOffset:21) (offset:25)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
+                  nextFragment: #F6
+            #F4 augment foo (nameOffset:47) (firstTokenOffset:34) (offset:47)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F3
+              formalParameters
+                #F6 n1 (nameOffset:55) (firstTokenOffset:51) (offset:55)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
+                  previousFragment: #F5
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional n1
+              firstFragment: #F5
+              type: int
+          returnType: void
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_method_formalParameters_positional_12() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo(int n1) {}
+  augment void foo(int n1, int n2) {}
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          methods
+            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F4
+              formalParameters
+                #F5 n1 (nameOffset:25) (firstTokenOffset:21) (offset:25)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
+                  nextFragment: #F6
+            #F4 augment foo (nameOffset:47) (firstTokenOffset:34) (offset:47)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F3
+              formalParameters
+                #F6 n1 (nameOffset:55) (firstTokenOffset:51) (offset:55)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
+                  previousFragment: #F5
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional n1
+              firstFragment: #F5
+              type: int
+          returnType: void
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_method_formalParameters_positional_21() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo(int n1, int n2) {}
+  augment void foo(int n1) {}
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          methods
+            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F4
+              formalParameters
+                #F5 n1 (nameOffset:25) (firstTokenOffset:21) (offset:25)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
+                  nextFragment: #F6
+                #F7 n2 (nameOffset:33) (firstTokenOffset:29) (offset:33)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n2
+                  nextFragment: #F8
+            #F4 augment foo (nameOffset:55) (firstTokenOffset:42) (offset:55)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F3
+              formalParameters
+                #F6 n1 (nameOffset:63) (firstTokenOffset:59) (offset:63)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
+                  previousFragment: #F5
+                #F8 n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n2
+                  previousFragment: #F7
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional n1
+              firstFragment: #F5
+              type: int
+            #E1 requiredPositional n2
+              firstFragment: #F7
+              type: int
+          returnType: void
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_method_formalParameters_positional_differentName() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo(int p1) {}
+  augment void foo(int p2) {}
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          methods
+            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F4
+              formalParameters
+                #F5 p1 (nameOffset:25) (firstTokenOffset:21) (offset:25)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
+                  nextFragment: #F6
+            #F4 augment foo (nameOffset:47) (firstTokenOffset:34) (offset:47)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F3
+              formalParameters
+                #F6 p2 (nameOffset:55) (firstTokenOffset:51) (offset:55)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
+                  previousFragment: #F5
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional p1
+              firstFragment: #F5
+              type: int
+          returnType: void
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_method_formalParameters_positional_differentType() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo(int p1) {}
+  augment void foo(double p1) {}
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          methods
+            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F4
+              formalParameters
+                #F5 p1 (nameOffset:25) (firstTokenOffset:21) (offset:25)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
+                  nextFragment: #F6
+            #F4 augment foo (nameOffset:47) (firstTokenOffset:34) (offset:47)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F3
+              formalParameters
+                #F6 p1 (nameOffset:58) (firstTokenOffset:51) (offset:58)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
+                  previousFragment: #F5
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional p1
+              firstFragment: #F5
+              type: int
+          returnType: void
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_method_formalParameters_positional_requiredNamed_11() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo(int p1, {required int n1}) {}
+  augment void foo(int p1, {required int n1}) {}
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          methods
+            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F4
+              formalParameters
+                #F5 p1 (nameOffset:25) (firstTokenOffset:21) (offset:25)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
+                  nextFragment: #F6
+                #F7 n1 (nameOffset:43) (firstTokenOffset:30) (offset:43)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
+                  nextFragment: #F8
+            #F4 augment foo (nameOffset:66) (firstTokenOffset:53) (offset:66)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F3
+              formalParameters
+                #F6 p1 (nameOffset:74) (firstTokenOffset:70) (offset:74)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
+                  previousFragment: #F5
+                #F8 n1 (nameOffset:92) (firstTokenOffset:79) (offset:92)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
+                  previousFragment: #F7
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional p1
+              firstFragment: #F5
+              type: int
+            #E1 requiredNamed n1
+              firstFragment: #F7
+              type: int
+          returnType: void
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_method_formalParameters_positional_requiredNamed_12() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo(int p1, {required int n1}) {}
+  augment void foo(int p1, int p2, {required int n1, required int n2}) {}
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          methods
+            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F4
+              formalParameters
+                #F5 p1 (nameOffset:25) (firstTokenOffset:21) (offset:25)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
+                  nextFragment: #F6
+                #F7 n1 (nameOffset:43) (firstTokenOffset:30) (offset:43)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
+                  nextFragment: #F8
+            #F4 augment foo (nameOffset:66) (firstTokenOffset:53) (offset:66)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F3
+              formalParameters
+                #F6 p1 (nameOffset:74) (firstTokenOffset:70) (offset:74)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
+                  previousFragment: #F5
+                #F8 n1 (nameOffset:82) (firstTokenOffset:78) (offset:82)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
+                  previousFragment: #F7
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional p1
+              firstFragment: #F5
+              type: int
+            #E1 requiredNamed n1
+              firstFragment: #F7
+              type: int
+          returnType: void
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_method_formalParameters_positional_requiredNamed_21() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo(int p1, int p2, {required int n1, required int n2}) {}
+  augment void foo(int p1, {required int n1}) {}
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          methods
+            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F4
+              formalParameters
+                #F5 p1 (nameOffset:25) (firstTokenOffset:21) (offset:25)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
+                  nextFragment: #F6
+                #F7 p2 (nameOffset:33) (firstTokenOffset:29) (offset:33)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::p2
+                  nextFragment: #F8
+                #F9 n1 (nameOffset:51) (firstTokenOffset:38) (offset:51)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
+                  nextFragment: #F10
+                #F11 n2 (nameOffset:68) (firstTokenOffset:55) (offset:68)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n2
+                  nextFragment: #F12
+            #F4 augment foo (nameOffset:91) (firstTokenOffset:78) (offset:91)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F3
+              formalParameters
+                #F6 p1 (nameOffset:99) (firstTokenOffset:95) (offset:99)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
+                  previousFragment: #F5
+                #F8 p2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:91)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::p2
+                  previousFragment: #F7
+                #F10 n1 (nameOffset:117) (firstTokenOffset:104) (offset:117)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
+                  previousFragment: #F9
+                #F12 n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:91)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n2
+                  previousFragment: #F11
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional p1
+              firstFragment: #F5
+              type: int
+            #E1 requiredPositional p2
+              firstFragment: #F7
+              type: int
+            #E2 requiredNamed n1
+              firstFragment: #F9
+              type: int
+            #E3 requiredNamed n2
+              firstFragment: #F11
+              type: int
+          returnType: void
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_method_formalParameters_positional_requiredNamed_differentType() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo(int p1, {required int n1}) {}
+  augment void foo(double p1, {required double n1}) {}
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          methods
+            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F4
+              formalParameters
+                #F5 p1 (nameOffset:25) (firstTokenOffset:21) (offset:25)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
+                  nextFragment: #F6
+                #F7 n1 (nameOffset:43) (firstTokenOffset:30) (offset:43)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
+                  nextFragment: #F8
+            #F4 augment foo (nameOffset:66) (firstTokenOffset:53) (offset:66)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F3
+              formalParameters
+                #F6 p1 (nameOffset:77) (firstTokenOffset:70) (offset:77)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
+                  previousFragment: #F5
+                #F8 n1 (nameOffset:98) (firstTokenOffset:82) (offset:98)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
+                  previousFragment: #F7
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional p1
+              firstFragment: #F5
+              type: int
+            #E1 requiredNamed n1
+              firstFragment: #F7
+              type: int
+          returnType: void
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_method_formalParameters_positional_swapped() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo(int p1, int p2) {}
+  augment void foo(int p2, int p1) {}
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          methods
+            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F4
+              formalParameters
+                #F5 p1 (nameOffset:25) (firstTokenOffset:21) (offset:25)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
+                  nextFragment: #F6
+                #F7 p2 (nameOffset:33) (firstTokenOffset:29) (offset:33)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::p2
+                  nextFragment: #F8
+            #F4 augment foo (nameOffset:55) (firstTokenOffset:42) (offset:55)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F3
+              formalParameters
+                #F6 p2 (nameOffset:63) (firstTokenOffset:59) (offset:63)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
+                  previousFragment: #F5
+                #F8 p1 (nameOffset:71) (firstTokenOffset:67) (offset:71)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::p2
+                  previousFragment: #F7
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional p1
+              firstFragment: #F5
+              type: int
+            #E1 requiredPositional p2
+              firstFragment: #F7
+              type: int
+          returnType: void
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_method_formalParameters_requiredNamed_11() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo({required int n1}) {}
+  augment void foo({required int n1}) {}
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          methods
+            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F4
+              formalParameters
+                #F5 n1 (nameOffset:35) (firstTokenOffset:22) (offset:35)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
+                  nextFragment: #F6
+            #F4 augment foo (nameOffset:58) (firstTokenOffset:45) (offset:58)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F3
+              formalParameters
+                #F6 n1 (nameOffset:76) (firstTokenOffset:63) (offset:76)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
+                  previousFragment: #F5
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredNamed n1
+              firstFragment: #F5
+              type: int
+          returnType: void
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_method_formalParameters_requiredNamed_12() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo({required int n1}) {}
+  augment void foo({required int n1, required int n2}) {}
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          methods
+            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F4
+              formalParameters
+                #F5 n1 (nameOffset:35) (firstTokenOffset:22) (offset:35)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
+                  nextFragment: #F6
+            #F4 augment foo (nameOffset:58) (firstTokenOffset:45) (offset:58)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F3
+              formalParameters
+                #F6 n1 (nameOffset:76) (firstTokenOffset:63) (offset:76)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
+                  previousFragment: #F5
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredNamed n1
+              firstFragment: #F5
+              type: int
+          returnType: void
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_method_formalParameters_requiredNamed_21() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo({required int n1, required int n2}) {}
+  augment void foo({required int n1}) {}
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          methods
+            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F4
+              formalParameters
+                #F5 n1 (nameOffset:35) (firstTokenOffset:22) (offset:35)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
+                  nextFragment: #F6
+                #F7 n2 (nameOffset:52) (firstTokenOffset:39) (offset:52)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n2
+                  nextFragment: #F8
+            #F4 augment foo (nameOffset:75) (firstTokenOffset:62) (offset:75)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F3
+              formalParameters
+                #F6 n1 (nameOffset:93) (firstTokenOffset:80) (offset:93)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
+                  previousFragment: #F5
+                #F8 n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:75)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n2
+                  previousFragment: #F7
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredNamed n1
+              firstFragment: #F5
+              type: int
+            #E1 requiredNamed n2
+              firstFragment: #F7
+              type: int
+          returnType: void
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_method_formalParameters_requiredNamed_differentType() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo({required int n1}) {}
+  augment void foo({required double n1}) {}
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          methods
+            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F4
+              formalParameters
+                #F5 n1 (nameOffset:35) (firstTokenOffset:22) (offset:35)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
+                  nextFragment: #F6
+            #F4 augment foo (nameOffset:58) (firstTokenOffset:45) (offset:58)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F3
+              formalParameters
+                #F6 n1 (nameOffset:79) (firstTokenOffset:63) (offset:79)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
+                  previousFragment: #F5
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredNamed n1
+              firstFragment: #F5
+              type: int
+          returnType: void
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_method_formalParameters_requiredNamed_repeated() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo({required int n1, required int n1}) {}
+  augment void foo({required int n1, required int n1}) {}
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          methods
+            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F4
+              formalParameters
+                #F5 n1 (nameOffset:35) (firstTokenOffset:22) (offset:35)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
+                  nextFragment: #F6
+                #F7 n1 (nameOffset:52) (firstTokenOffset:39) (offset:52)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
+                  nextFragment: #F8
+            #F4 augment foo (nameOffset:75) (firstTokenOffset:62) (offset:75)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F3
+              formalParameters
+                #F6 n1 (nameOffset:93) (firstTokenOffset:80) (offset:93)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
+                  previousFragment: #F5
+                #F8 n1 (nameOffset:110) (firstTokenOffset:97) (offset:110)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
+                  previousFragment: #F7
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredNamed n1
+              firstFragment: #F5
+              type: int
+            #E1 requiredNamed n1
+              firstFragment: #F7
+              type: int
+          returnType: void
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_method_formalParameters_requiredNamed_repeated_12() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo({required int n1}) {}
+  augment void foo({required int n1, required int n1}}) {}
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          methods
+            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F4
+              formalParameters
+                #F5 n1 (nameOffset:35) (firstTokenOffset:22) (offset:35)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
+                  nextFragment: #F6
+            #F4 augment foo (nameOffset:58) (firstTokenOffset:45) (offset:58)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F3
+              formalParameters
+                #F6 n1 (nameOffset:76) (firstTokenOffset:63) (offset:76)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
+                  previousFragment: #F5
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredNamed n1
+              firstFragment: #F5
+              type: int
+          returnType: void
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_method_formalParameters_requiredNamed_repeated_21() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo({required int n1, required int n1}) {}
+  augment void foo({required int n1}) {}
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          methods
+            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F4
+              formalParameters
+                #F5 n1 (nameOffset:35) (firstTokenOffset:22) (offset:35)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
+                  nextFragment: #F6
+                #F7 n1 (nameOffset:52) (firstTokenOffset:39) (offset:52)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
+                  nextFragment: #F8
+            #F4 augment foo (nameOffset:75) (firstTokenOffset:62) (offset:75)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F3
+              formalParameters
+                #F6 n1 (nameOffset:93) (firstTokenOffset:80) (offset:93)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
+                  previousFragment: #F5
+                #F8 n1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:75)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
+                  previousFragment: #F7
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredNamed n1
+              firstFragment: #F5
+              type: int
+            #E1 requiredNamed n1
+              firstFragment: #F7
+              type: int
+          returnType: void
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
+''');
+  }
+
+  test_method_formalParameters_requiredNamed_swapped() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo({required int n2, required int n1}) {}
+  augment void foo({required int n1, required int n2}) {}
+}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          methods
+            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F4
+              formalParameters
+                #F5 n2 (nameOffset:35) (firstTokenOffset:22) (offset:35)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n2
+                  nextFragment: #F6
+                #F7 n1 (nameOffset:52) (firstTokenOffset:39) (offset:52)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
+                  nextFragment: #F8
+            #F4 augment foo (nameOffset:75) (firstTokenOffset:62) (offset:75)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F3
+              formalParameters
+                #F8 n1 (nameOffset:93) (firstTokenOffset:80) (offset:93)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
+                  previousFragment: #F7
+                #F6 n2 (nameOffset:110) (firstTokenOffset:97) (offset:110)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::n2
+                  previousFragment: #F5
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+      methods
+        foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredNamed n2
+              firstFragment: #F5
+              type: int
+            #E1 requiredNamed n1
+              firstFragment: #F7
+              type: int
+          returnType: void
+  exportedReferences
+    declared <testLibrary>::@class::A
+  exportNamespace
+    A: <testLibrary>::@class::A
 ''');
   }
 
