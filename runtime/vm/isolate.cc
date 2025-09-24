@@ -1999,11 +1999,6 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
   return result;
 }
 
-Thread* Isolate::mutator_thread() const {
-  ASSERT(thread_registry() != nullptr);
-  return mutator_thread_;
-}
-
 ObjectPtr IsolateGroup::CallTagHandler(Dart_LibraryTag tag,
                                        const Object& arg1,
                                        const Object& arg2) {
