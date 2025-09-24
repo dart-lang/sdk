@@ -10,7 +10,6 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../../api_prototype/experimental_flags.dart';
-import '../../base/constant_context.dart';
 import '../../base/messages.dart';
 import '../../base/problems.dart';
 import '../../base/scope.dart';
@@ -314,7 +313,6 @@ class RegularFieldDeclaration
     required TypeInferrer typeInferrer,
     required CoreTypes coreTypes,
     required Uri fileUri,
-    required ConstantContext constantContext,
     Expression? initializer,
   }) {
     if (initializer != null) {
@@ -322,7 +320,6 @@ class RegularFieldDeclaration
         initializer = typeInferrer
             .inferFieldInitializer(
               fileUri: fileUri,
-              constantContext: constantContext,
               declaredType: fieldType,
               initializer: initializer,
             )
@@ -920,7 +917,6 @@ abstract class FieldFragmentDeclaration {
     required TypeInferrer typeInferrer,
     required CoreTypes coreTypes,
     required Uri fileUri,
-    required ConstantContext constantContext,
     Expression? initializer,
   });
 

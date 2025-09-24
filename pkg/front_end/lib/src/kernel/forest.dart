@@ -6,9 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/src/printer.dart';
 
 import '../base/problems.dart' show unsupported;
-
 import '../type_inference/type_schema.dart';
-
 import 'collections.dart'
     show
         ForElement,
@@ -24,7 +22,6 @@ import 'collections.dart'
         PatternForElement,
         PatternForMapEntry,
         SpreadElement;
-
 import 'internal_ast.dart';
 
 /// A shadow tree factory.

@@ -128,7 +128,7 @@ void main() {
     _testBreakStatementImpl();
     _testCascade();
     _testDeferredCheck();
-    _testFactoryConstructorInvocationJudgment();
+    _testFactoryConstructorInvocation();
     _testTypeAliasedConstructorInvocation(c);
     _testTypeAliasedFactoryInvocation(c);
     _testFunctionDeclarationImpl();
@@ -632,7 +632,7 @@ void _testDeferredCheck() {
 let final dynamic #0 = pre.checkLibraryIsLoaded() in 0''');
 }
 
-void _testFactoryConstructorInvocationJudgment() {
+void _testFactoryConstructorInvocation() {
   Library library = new Library(dummyUri, fileUri: dummyUri);
   Class cls = new Class(name: 'Class', fileUri: dummyUri);
   library.addClass(cls);
@@ -645,7 +645,11 @@ void _testFactoryConstructorInvocationJudgment() {
   cls.addProcedure(factoryConstructor);
 
   testExpression(
-    new FactoryConstructorInvocation(factoryConstructor, new ArgumentsImpl([])),
+    new FactoryConstructorInvocation(
+      factoryConstructor,
+      new ArgumentsImpl([]),
+      isConst: false,
+    ),
     '''
 new Class()''',
     verbose: '''
@@ -655,11 +659,23 @@ new library test:dummy::Class()''',
   testExpression(
     new FactoryConstructorInvocation(
       factoryConstructor,
+      new ArgumentsImpl([]),
+      isConst: true,
+    ),
+    '''
+const Class()''',
+    verbose: '''
+const library test:dummy::Class()''',
+  );
+
+  testExpression(
+    new FactoryConstructorInvocation(
+      factoryConstructor,
       new ArgumentsImpl(
         [new IntLiteral(0)],
-
         named: [new NamedExpression('bar', new IntLiteral(1))],
       )..setExplicitTypeArguments([const VoidType()]),
+      isConst: false,
     ),
     '''
 new Class<void>(0, bar: 1)''',
@@ -675,6 +691,7 @@ new library test:dummy::Class<void>(0, bar: 1)''',
         [new IntLiteral(0)],
         named: [new NamedExpression('bar', new IntLiteral(1))],
       )..setExplicitTypeArguments([const VoidType()]),
+      isConst: false,
     ),
     '''
 new Class<void>.foo(0, bar: 1)''',
@@ -824,6 +841,7 @@ void _testTypeAliasedFactoryInvocation(CompilerContext c) {
       typeAliasBuilder,
       factoryConstructor,
       new ArgumentsImpl([]),
+      isConst: false,
     ),
     '''
 new Typedef()''',
@@ -839,6 +857,7 @@ new library test:dummy::Typedef()''',
         [new IntLiteral(0)],
         named: [new NamedExpression('bar', new IntLiteral(1))],
       )..setExplicitTypeArguments([const VoidType()]),
+      isConst: false,
     ),
     '''
 new Typedef<void>(0, bar: 1)''',
@@ -855,6 +874,7 @@ new library test:dummy::Typedef<void>(0, bar: 1)''',
         [new IntLiteral(0)],
         named: [new NamedExpression('bar', new IntLiteral(1))],
       )..setExplicitTypeArguments([const VoidType()]),
+      isConst: false,
     ),
     '''
 new Typedef<void>.foo(0, bar: 1)''',

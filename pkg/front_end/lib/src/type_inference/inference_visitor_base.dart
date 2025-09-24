@@ -23,7 +23,6 @@ import 'package:kernel/type_environment.dart';
 import '../api_prototype/experimental_flags.dart';
 import '../api_prototype/lowering_predicates.dart';
 import '../base/compiler_context.dart';
-import '../base/constant_context.dart';
 import '../base/instrumentation.dart'
     show
         Instrumentation,
@@ -148,12 +147,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   final Uri fileUri;
 
-  final ConstantContext constantContext;
-
   InferenceVisitorBase(
     this._inferrer,
     this.fileUri,
-    this.constantContext,
     this.expressionEvaluationHelper,
   );
 

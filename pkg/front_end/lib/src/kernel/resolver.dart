@@ -122,14 +122,13 @@ class Resolver {
       annotatable.addAnnotation(expression);
     }
     context.inferSingleTargetAnnotation(
-      constantContext: constantContext,
       singleTarget: new SingleTargetAnnotations(
         annotatable,
         indicesOfAnnotationsToBeInferred,
       ),
     );
     // TODO(johnniwinther): We need to process annotations within annotations.
-    context.performBacklog(null, constantContext);
+    context.performBacklog(null);
 
     for (Annotation annotation in annotations) {
       annotation.expression =
@@ -211,7 +210,6 @@ class Resolver {
         problemReporting: problemReporting,
         libraryFeatures: libraryFeatures,
         typeEnvironment: context.typeEnvironment,
-        constantContext: constantContext,
         target: constructorBuilder.invokeTarget,
         arguments: arguments,
         fileUri: fileUri,
@@ -220,14 +218,13 @@ class Resolver {
       ExpressionInferenceResult inferenceResult = context.typeInferrer
           .inferFieldInitializer(
             fileUri: fileUri,
-            constantContext: constantContext,
             declaredType: const UnknownType(),
             initializer: initializer,
           );
       initializer = inferenceResult.expression;
       fieldType = inferenceResult.inferredType;
     }
-    context.performBacklog(result?.annotations, constantContext);
+    context.performBacklog(result?.annotations);
 
     return (initializer, fieldType);
   }
@@ -267,7 +264,6 @@ class Resolver {
     );
     DartType inferredType = context.typeInferrer.inferImplicitFieldType(
       fileUri: fileUri,
-      constantContext: constantContext,
       initializer: result.initializer,
     );
     // TODO(johnniwinther): We through away the initializer and don't process
@@ -307,12 +303,11 @@ class Resolver {
     Expression initializer = context.typeInferrer
         .inferFieldInitializer(
           fileUri: fileUri,
-          constantContext: constantContext,
           declaredType: fieldType,
           initializer: result.initializer,
         )
         .expression;
-    context.performBacklog(result.annotations, constantContext);
+    context.performBacklog(result.annotations);
     return initializer;
   }
 
@@ -359,11 +354,10 @@ class Resolver {
         typeInferrer: context.typeInferrer,
         coreTypes: _coreTypes,
         fileUri: fileUri,
-        constantContext: constantContext,
         initializer: initializer,
       );
     }
-    context.performBacklog(result.annotations, constantContext);
+    context.performBacklog(result.annotations);
   }
 
   void buildFunctionBody({
@@ -430,7 +424,7 @@ class Resolver {
         constantContext: constantContext,
         needsImplicitSuperInitializer: result.needsImplicitSuperInitializer,
       );
-      context.performBacklog(result.annotations, constantContext);
+      context.performBacklog(result.annotations);
     }
     // Coverage-ignore(suite): Not run.
     on DebugAbort {
@@ -510,7 +504,7 @@ class Resolver {
         initializers: initializers,
       );
     }
-    context.performBacklog(result.annotations, constantContext);
+    context.performBacklog(result.annotations);
   }
 
   List<Initializer>? buildInitializersUnfinished({
@@ -581,11 +575,10 @@ class Resolver {
       annotatable.addAnnotation(expression);
     }
     context.inferSingleTargetAnnotation(
-      constantContext: constantContext,
       singleTarget: new SingleTargetAnnotations(annotatable),
     );
     List<Expression> expressions = annotatable.annotations;
-    context.performBacklog(result.annotations, constantContext);
+    context.performBacklog(result.annotations);
     return expressions;
   }
 
@@ -620,9 +613,8 @@ class Resolver {
       initializer: result.initializer,
       declaredType: declaredType,
       hasDeclaredInitializer: hasDeclaredInitializer,
-      constantContext: constantContext,
     );
-    context.performBacklog(result.annotations, constantContext);
+    context.performBacklog(result.annotations);
     return initializer;
   }
 
@@ -686,7 +678,7 @@ class Resolver {
         needsImplicitSuperInitializer: bodyBuilderContext
             .needsImplicitSuperInitializer(_coreTypes),
       );
-      context.performBacklog(result.annotations, constantContext);
+      context.performBacklog(result.annotations);
     }
     // Coverage-ignore(suite): Not run.
     on DebugAbort {
@@ -739,7 +731,7 @@ class Resolver {
     );
     BuildRedirectingFactoryMethodResult result = bodyBuilder
         .buildRedirectingFactoryMethod(token: token, metadata: metadata);
-    context.performBacklog(result.annotations, constantContext);
+    context.performBacklog(result.annotations);
     _benchmarker
         // Coverage-ignore(suite): Not run.
         ?.endSubdivide();
@@ -854,7 +846,6 @@ class Resolver {
           fileUri: fileUri,
           fileOffset: fileOffset,
           returnType: const DynamicType(),
-          constantContext: constantContext,
           asyncMarker: AsyncMarker.Sync,
           body: fakeReturn,
           expressionEvaluationHelper: expressionEvaluationHelper,
@@ -864,7 +855,7 @@ class Resolver {
       "Previously implicit assumption about inferFunctionBody "
       "not returning anything different.",
     );
-    context.performBacklog(result.annotations, constantContext);
+    context.performBacklog(result.annotations);
     return fakeReturn.expression!;
   }
 
@@ -873,7 +864,6 @@ class Resolver {
     required ProblemReporting problemReporting,
     required LibraryFeatures libraryFeatures,
     required TypeEnvironment typeEnvironment,
-    required ConstantContext constantContext,
     required Member target,
     required ArgumentsImpl arguments,
     required Uri fileUri,
@@ -1308,7 +1298,6 @@ class Resolver {
             initializers.length,
             (index) => bodyBuilderContext.inferInitializer(
               typeInferrer: context.typeInferrer,
-              constantContext: constantContext,
               fileUri: fileUri,
               initializer: initializers[index],
             ),
@@ -1585,7 +1574,6 @@ class Resolver {
             .inferInitializer(
               typeInferrer: context.typeInferrer,
               fileUri: fileUri,
-              constantContext: constantContext,
               initializer: initializer,
             );
         if (!bodyBuilderContext.addInferredInitializer(
@@ -1700,7 +1688,6 @@ class Resolver {
               initializer: initializer,
               declaredType: originParameter.type,
               hasDeclaredInitializer: parameter.hasDeclaredInitializer,
-              constantContext: constantContext,
             );
             originParameter.initializer = initializer..parent = originParameter;
             if (initializer is InvalidExpression) {
@@ -1749,7 +1736,6 @@ class Resolver {
         fileUri: fileUri,
         fileOffset: bodyBuilderContext.memberNameOffset,
         returnType: bodyBuilderContext.returnTypeContext,
-        constantContext: constantContext,
         asyncMarker: asyncModifier,
         body: body,
       );

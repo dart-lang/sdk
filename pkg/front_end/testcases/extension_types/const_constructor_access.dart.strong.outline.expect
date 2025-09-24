@@ -16,11 +16,6 @@ library;
 // const newConst1 = new ExtensionType1(0); /* Error */
 //                   ^^^
 //
-// pkg/front_end/testcases/extension_types/const_constructor_access.dart:9:23: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-// Try using a constructor or factory that is 'const'.
-// const newConst1 = new ExtensionType1(0); /* Error */
-//                       ^
-//
 // pkg/front_end/testcases/extension_types/const_constructor_access.dart:13:31: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 // Try using a constructor or factory that is 'const'.
 // const implicitConstAliased1 = Typedef1(0); /* Error */
@@ -34,11 +29,6 @@ library;
 // pkg/front_end/testcases/extension_types/const_constructor_access.dart:15:26: Error: New expression is not a constant expression.
 // const newConstAliased1 = new Typedef1(0); /* Error */
 //                          ^^^
-//
-// pkg/front_end/testcases/extension_types/const_constructor_access.dart:15:30: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-// Try using a constructor or factory that is 'const'.
-// const newConstAliased1 = new Typedef1(0); /* Error */
-//                              ^
 //
 // pkg/front_end/testcases/extension_types/const_constructor_access.dart:21:19: Error: New expression is not a constant expression.
 // const newConst2 = new ExtensionType2(0); /* Error */
@@ -68,25 +58,27 @@ Try using a constructor or factory that is 'const'.
 const implicitConst1 = ExtensionType1(0); /* Error */
                        ^^^^^^^^^^^^^^";
 static field invalid-type explicitConst1;
-static const field self::ExtensionType1% /* erasure=core::int, declared=! */ newConst1 = invalid-expression "pkg/front_end/testcases/extension_types/const_constructor_access.dart:9:23: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-Try using a constructor or factory that is 'const'.
+static const field invalid-type newConst1 = invalid-expression "pkg/front_end/testcases/extension_types/const_constructor_access.dart:9:19: Error: New expression is not a constant expression.
 const newConst1 = new ExtensionType1(0); /* Error */
-                      ^";
+                  ^^^";
 static const field invalid-type implicitConstAliased1 = invalid-expression "pkg/front_end/testcases/extension_types/const_constructor_access.dart:13:31: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 Try using a constructor or factory that is 'const'.
 const implicitConstAliased1 = Typedef1(0); /* Error */
                               ^^^^^^^^";
 static field invalid-type explicitConstAliased1;
-static const field self::ExtensionType1% /* erasure=core::int, declared=! */ newConstAliased1 = invalid-expression "pkg/front_end/testcases/extension_types/const_constructor_access.dart:15:30: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-Try using a constructor or factory that is 'const'.
+static const field invalid-type newConstAliased1 = invalid-expression "pkg/front_end/testcases/extension_types/const_constructor_access.dart:15:26: Error: New expression is not a constant expression.
 const newConstAliased1 = new Typedef1(0); /* Error */
-                             ^";
+                         ^^^";
 static const field self::ExtensionType2% /* erasure=core::int, declared=! */ implicitConst2 = const self::ExtensionType2|constructor#(0);
 static field self::ExtensionType2% /* erasure=core::int, declared=! */ explicitConst2;
-static const field self::ExtensionType2% /* erasure=core::int, declared=! */ newConst2 = const self::ExtensionType2|constructor#(0);
+static const field invalid-type newConst2 = invalid-expression "pkg/front_end/testcases/extension_types/const_constructor_access.dart:21:19: Error: New expression is not a constant expression.
+const newConst2 = new ExtensionType2(0); /* Error */
+                  ^^^";
 static const field self::ExtensionType2% /* erasure=core::int, declared=! */ implicitConstAliased2 = const self::ExtensionType2|constructor#(0);
 static field self::ExtensionType2% /* erasure=core::int, declared=! */ explicitConstAliased2;
-static const field self::ExtensionType2% /* erasure=core::int, declared=! */ newConstAliased2 = const self::ExtensionType2|constructor#(0);
+static const field invalid-type newConstAliased2 = invalid-expression "pkg/front_end/testcases/extension_types/const_constructor_access.dart:27:26: Error: New expression is not a constant expression.
+const newConstAliased2 = new Typedef2(0); /* Error */
+                         ^^^";
 static extension-type-member method ExtensionType1|constructor#(core::int i) → self::ExtensionType1% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method ExtensionType1|constructor#_#new#tearOff(core::int i) → self::ExtensionType1% /* erasure=core::int, declared=! */
@@ -105,7 +97,5 @@ static synthetic method _#Typedef2#new#tearOff<unrelated X extends core::Object?
 
 Extra constant evaluation status:
 Evaluated: StaticInvocation @ org-dartlang-testcase:///const_constructor_access.dart:19:24 -> IntConstant(0)
-Evaluated: StaticInvocation @ org-dartlang-testcase:///const_constructor_access.dart:21:23 -> IntConstant(0)
 Evaluated: StaticInvocation @ org-dartlang-testcase:///const_constructor_access.dart:25:31 -> IntConstant(0)
-Evaluated: StaticInvocation @ org-dartlang-testcase:///const_constructor_access.dart:27:30 -> IntConstant(0)
-Extra constant evaluation: evaluated: 14, effectively constant: 4
+Extra constant evaluation: evaluated: 12, effectively constant: 2

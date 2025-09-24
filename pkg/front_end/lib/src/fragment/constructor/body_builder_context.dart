@@ -139,12 +139,10 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
   InitializerInferenceResult inferInitializer({
     required TypeInferrer typeInferrer,
     required Uri fileUri,
-    required ConstantContext constantContext,
     required Initializer initializer,
   }) {
     return typeInferrer.inferInitializer(
       fileUri: fileUri,
-      constantContext: constantContext,
       constructorBuilder: _builder,
       initializer: initializer,
     );

@@ -130,7 +130,6 @@ class PrimaryConstructorFieldDeclaration
     required TypeInferrer typeInferrer,
     required CoreTypes coreTypes,
     required Uri fileUri,
-    required ConstantContext constantContext,
     Expression? initializer,
   }) {
     if (initializer != null) {
@@ -138,7 +137,6 @@ class PrimaryConstructorFieldDeclaration
         initializer = typeInferrer
             .inferFieldInitializer(
               fileUri: fileUri,
-              constantContext: constantContext,
               declaredType: fieldType,
               initializer: initializer,
             )

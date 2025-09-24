@@ -23,7 +23,6 @@ import 'package:kernel/type_algebra.dart';
 
 import '../api_prototype/experimental_flags.dart';
 import '../base/compiler_context.dart';
-import '../base/constant_context.dart';
 import '../base/instrumentation.dart'
     show
         InstrumentationValueForMember,
@@ -197,7 +196,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   InferenceVisitorImpl(
     super.inferrer,
     super.fileUri,
-    super.constantContext,
     this._constructorBuilder,
     this.operations,
     this.typeAnalyzerOptions,
@@ -2620,7 +2618,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (result != null) {
       return result;
     }
-    isConst |= constantContext != ConstantContext.none;
     if (target is Constructor) {
       if (isConst && !target.isConst) {
         // Coverage-ignore-block(suite): Not run.
@@ -2645,6 +2642,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else {
       Procedure procedure = target as Procedure;
       if (isConst && !procedure.isConst) {
+        // Coverage-ignore-block(suite): Not run.
         if (procedure.isExtensionTypeMember) {
           // Both generative constructors and factory constructors from
           // extension type declarations are encoded as procedures so we use
