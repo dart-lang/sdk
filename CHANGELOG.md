@@ -90,6 +90,12 @@ instead.
 
 ### Libraries
 
+#### `dart:async`
+
+- Added `Future.syncValue` constructor for creating a future with a 
+  known value. Unlike `Future.value`, it does not allow an asynchronous
+  `Future<T>` as the value of a new `Future<T>`.
+
 #### `dart:core`
 
 - **Breaking Change** [#61392][]: The `Uri.parseIPv4Address` function
