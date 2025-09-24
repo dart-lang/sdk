@@ -67,8 +67,25 @@ instead.
 
 #### Analyzer
 
+- The analyzer includes a new plugin system. You can use this system to write
+  your own analysis rules and IDE quick fixes.
+
+  - **Analysis rules:** Static analysis checks that report diagnostics (lints
+    or warnings). You see these in your IDE and at the command line via `dart
+    analyze` or `flutter analyze`.
+  - **Quick fixes:** Local refactorings that correct a reported lint or
+    warning.
+  - **Quick assists:** Local refactorings available in the IDE that are not
+    associated with a specific diagnostic.
+
+  See the documentation for [writing an analyzer plugin][], and the
+  documentation for [using analyzer plugins][] to learn more.
+
 - Lint rules which are incompatible with each other and which are specified in
   included analysis options files are now reported.
+
+[writing an analyzer plugin]: https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server_plugin/doc/writing_a_plugin.md
+[using analyzer plugins]: https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server_plugin/doc/using_plugins.md
 
 #### Dart CLI and Dart VM
 
