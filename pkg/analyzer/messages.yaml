@@ -24150,6 +24150,59 @@ WarningCode:
     problemMessage: "Mixing in 'Function' is deprecated."
     correctionMessage: "Try removing 'Function' from the 'with' clause."
     hasPublishedDocs: true
+  DEPRECATED_OPTIONAL:
+    parameters:
+      Object parameterName: the name of the parameter
+    problemMessage: "Omitting an argument for the '#parameterName' parameter is deprecated."
+    correctionMessage: Try passing an argument for '#parameterName'.
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an argument is omitted for an
+      optional parameter annotated with `@Deprecated.optional`. This annotation
+      indicates that omitting an argument for the parameter is deprecated, and
+      the parameter will soon become required.
+
+      #### Example
+
+      Given a library `p` that defines a function with an optional parameter
+      annotated with `@Deprecated.optional`:
+
+      ```dart
+      %uri="package:p/p.dart"
+      void f({@Deprecated.optional() int a = 0}) {}
+      ```
+
+      The following code produces this diagnostic, because the invocation
+      doesn't pass a value for the parameter `a`:
+
+      ```dart
+      import 'package:p/p.dart';
+
+      void g() {
+        [!f!]();
+      }
+      ```
+
+      #### Common fixes
+
+      Follow any specific instructions provided in the `@Deprecated.optional`
+      annotation.
+
+      If no instructions are present, pass an appropriate argument for the
+      corresponding parameter:
+
+
+      ```dart
+      import 'package:p/p.dart';
+
+      void g() {
+        f(a: 0);
+      }
+      ```
+
+      Using the default value will preserve the current behavior of the code.
   DEPRECATED_NEW_IN_COMMENT_REFERENCE:
     parameters: none
     problemMessage: "Using the 'new' keyword in a comment reference is deprecated."
@@ -25065,9 +25118,9 @@ WarningCode:
 
       The analyzer produces this diagnostic when anything other than an
       extendable class is annotated with
-      Deprecated.extend. An extendable class is a
-      class not declared with the `interface`, `final`, or `sealed` keywords,
-      and with at least one public generative constructor.
+      @Deprecated.extend. An extendable class is a class that isn't declared
+      with the `interface`, `final`, or `sealed` keywords and also has at least
+      one public generative constructor.
 
       #### Example
 
@@ -25098,9 +25151,8 @@ WarningCode:
 
       The analyzer produces this diagnostic when anything other than an
       implementable class or mixin is annotated with
-      Deprecated.implement. An implementable
-      class or mixin is one not declared with the `base`, `final`, or `sealed`
-      keywords.
+      @Deprecated.implement. An implementable class or mixin is one not declared
+      with the `base`, `final`, or `sealed` keywords.
 
       #### Example
 
@@ -25128,7 +25180,7 @@ WarningCode:
       #### Description
 
       The analyzer produces this diagnostic when anything other than an
-      instantiable class is annotated with Deprecated.instantiate. An
+      instantiable class is annotated with @Deprecated.instantiate. An
       instantiable class is one not declared with the `abstract` or `sealed`
       keywords, and with at least one public, generative constructor.
 
@@ -25157,11 +25209,13 @@ WarningCode:
     comment: |-
       This warning is generated anywhere where `@Deprecated.mixin` annotates
       something other than a mixin class.
+    # TODO(srawlins): link Deprecated.mixin below with:
+    # [`Deprecated.mixin`][meta-deprecated-mixin]
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when anything other than a
-      mixin class is annotated with Deprecated.mixin.
+      The analyzer produces this diagnostic when the `@Deprecated.mixin`
+      annotation is applied to a declaration that isn't a mixin class.
 
       #### Example
 
@@ -25180,6 +25234,42 @@ WarningCode:
       ```dart
       class C {}
       ```
+  INVALID_DEPRECATED_OPTIONAL_ANNOTATION:
+    parameters: none
+    problemMessage: "The annotation '@Deprecated.optional' can only be applied to optional parameters."
+    correctionMessage: Try removing the '@Deprecated.optional' annotation.
+    hasPublishedDocs: true
+    comment: |-
+      This warning is generated anywhere where `@Deprecated.optional`
+      annotates something other than an optional parameter.
+    # TODO(srawlins): link Deprecated.optional below with:
+    # [`Deprecated.optional`][meta-deprecated-optional]
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the `@Deprecated.optional`
+      annotation is applied to a parameter that isn't an optional parameter. The
+      annotation must not be used on a parameter in a local function, an
+      anonymous function, a function-typed parameter, or a typedef. It is only
+      valid on optional parameters in a top-level function, a method, or a
+      constructor.
+
+      #### Example
+
+      The following code produces this diagnostic because the annotation is on a
+      required parameter:
+
+      ```dart
+      void f(@[!Deprecated.optional!]() int p) {}
+      ```
+
+      #### Common fixes
+
+      Remove the annotation:
+
+      ```dart
+      void f(int p) {}
+      ```
   INVALID_DEPRECATED_SUBCLASS_ANNOTATION:
     parameters: none
     problemMessage: "The annotation '@Deprecated.subclass' can only be applied to subclassable classes and mixins."
@@ -25192,7 +25282,7 @@ WarningCode:
 
       The analyzer produces this diagnostic when anything other than a
       subclassable class or mixin is annotated with
-      Deprecated.subclass. A subclassable
+      @Deprecated.subclass. A subclassable
       class is a class not declared with the `final` or `sealed` keywords. A
       subclassable mixin is a mixin not declared with the `base` keyword.
 

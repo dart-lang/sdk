@@ -3497,6 +3497,8 @@ WarningCode.DEPRECATED_MIXIN_FUNCTION:
     The fix is to remove `Function` from where it's referenced.
 WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE:
   status: hasFix
+WarningCode.DEPRECATED_OPTIONAL:
+  status: needsEvaluation
 WarningCode.DEPRECATED_SUBCLASS:
   status: hasFix
 WarningCode.DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT:
@@ -3576,6 +3578,7 @@ WarningCode.INVALID_ANNOTATION_TARGET:
   status: hasFix
 WarningCode.INVALID_AWAIT_NOT_REQUIRED_ANNOTATION:
   status: needsFix
+  notes: The fix is to remove the annotation.
 WarningCode.INVALID_DEPRECATED_EXTEND_ANNOTATION:
   status: needsFix
   notes: The fix is to remove the annotation.
@@ -3586,6 +3589,9 @@ WarningCode.INVALID_DEPRECATED_INSTANTIATE_ANNOTATION:
   status: needsFix
   notes: The fix is to remove the annotation.
 WarningCode.INVALID_DEPRECATED_MIXIN_ANNOTATION:
+  status: needsFix
+  notes: The fix is to remove the annotation.
+WarningCode.INVALID_DEPRECATED_OPTIONAL_ANNOTATION:
   status: needsFix
   notes: The fix is to remove the annotation.
 WarningCode.INVALID_DEPRECATED_SUBCLASS_ANNOTATION:

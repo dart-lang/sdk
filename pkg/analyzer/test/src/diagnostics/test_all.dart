@@ -190,6 +190,7 @@ import 'deprecated_instantiate_test.dart' as deprecated_instantiate;
 import 'deprecated_member_use_test.dart' as deprecated_member_use;
 import 'deprecated_mixin_function_test.dart' as deprecated_mixin_function;
 import 'deprecated_mixin_test.dart' as deprecated_mixin;
+import 'deprecated_optional_test.dart' as deprecated_optional;
 import 'deprecated_subclass_test.dart' as deprecated_subclass;
 import 'doc_directive_argument_wrong_format_test.dart'
     as doc_directive_argument_wrong_format;
@@ -448,6 +449,8 @@ import 'invalid_deprecated_instantiate_annotation_test.dart'
     as invalid_deprecated_instantiate_annotation;
 import 'invalid_deprecated_mixin_annotation_test.dart'
     as invalid_deprecated_mixin_annotation;
+import 'invalid_deprecated_optional_annotation_test.dart'
+    as invalid_deprecated_optional_annotation;
 import 'invalid_deprecated_subclass_annotation_test.dart'
     as invalid_deprecated_subclass_annotation;
 import 'invalid_do_not_submit_test.dart' as invalid_do_not_submit;
@@ -1082,6 +1085,7 @@ main() {
     deprecated_member_use.main();
     deprecated_mixin_function.main();
     deprecated_mixin.main();
+    deprecated_optional.main();
     deprecated_subclass.main();
     doc_directive_argument_wrong_format.main();
     doc_directive_has_extra_arguments.main();
@@ -1241,6 +1245,7 @@ main() {
     invalid_deprecated_implement_annotation.main();
     invalid_deprecated_instantiate_annotation.main();
     invalid_deprecated_mixin_annotation.main();
+    invalid_deprecated_optional_annotation.main();
     invalid_deprecated_subclass_annotation.main();
     invalid_do_not_submit.main();
     invalid_exception_value.main();

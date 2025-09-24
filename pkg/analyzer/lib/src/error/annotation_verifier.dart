@@ -121,25 +121,27 @@ class AnnotationVerifier {
     assert(element.isDeprecated);
     switch (element.deprecationKind) {
       case 'extend':
-        _checkDeprecatedExtend(node, node.parent);
+        _checkDeprecatedExtend(node);
       case 'implement':
-        _checkDeprecatedImplement(node, node.parent);
+        _checkDeprecatedImplement(node);
       case 'instantiate':
-        _checkDeprecatedInstantiate(node, node.parent);
+        _checkDeprecatedInstantiate(node);
       case 'mixin':
-        _checkDeprecatedMixin(node, node.parent);
+        _checkDeprecatedMixin(node);
+      case 'optional':
+        _checkDeprecatedOptional(node);
       case 'subclass':
-        _checkDeprecatedSubclass(node, node.parent);
+        _checkDeprecatedSubclass(node);
     }
   }
 
-  void _checkDeprecatedExtend(Annotation node, AstNode parent) {
+  void _checkDeprecatedExtend(Annotation node) {
     Element? declaredElement;
-    if (parent
+    if (node.parent
         case ClassDeclaration(:var declaredFragment) ||
             ClassTypeAlias(:var declaredFragment)) {
       declaredElement = declaredFragment!.element;
-    } else if (parent is GenericTypeAlias) {
+    } else if (node.parent case GenericTypeAlias parent) {
       declaredElement = parent.type.type?.element;
     }
 
@@ -157,15 +159,15 @@ class AnnotationVerifier {
     );
   }
 
-  void _checkDeprecatedImplement(Annotation node, AstNode parent) {
+  void _checkDeprecatedImplement(Annotation node) {
     Element? declaredElement;
-    if (parent
+    if (node.parent
         case ClassDeclaration(:var declaredFragment) ||
             ClassTypeAlias(:var declaredFragment)) {
       declaredElement = declaredFragment!.element;
-    } else if (parent is MixinDeclaration) {
+    } else if (node.parent case MixinDeclaration parent) {
       declaredElement = parent.declaredFragment!.element;
-    } else if (parent is GenericTypeAlias) {
+    } else if (node.parent case GenericTypeAlias parent) {
       declaredElement = parent.type.type?.element;
     }
 
@@ -185,13 +187,13 @@ class AnnotationVerifier {
     );
   }
 
-  void _checkDeprecatedInstantiate(Annotation node, AstNode parent) {
+  void _checkDeprecatedInstantiate(Annotation node) {
     Element? declaredElement;
-    if (parent
+    if (node.parent
         case ClassDeclaration(:var declaredFragment) ||
             ClassTypeAlias(:var declaredFragment)) {
       declaredElement = declaredFragment!.element;
-    } else if (parent is GenericTypeAlias) {
+    } else if (node.parent case GenericTypeAlias parent) {
       declaredElement = parent.type.type?.element;
     }
 
@@ -208,7 +210,8 @@ class AnnotationVerifier {
     );
   }
 
-  void _checkDeprecatedMixin(Annotation node, AstNode parent) {
+  void _checkDeprecatedMixin(Annotation node) {
+    var parent = node.parent;
     if (parent is ClassDeclaration &&
         parent.declaredFragment!.element.isPublic &&
         parent.mixinKeyword != null) {
@@ -221,15 +224,48 @@ class AnnotationVerifier {
     );
   }
 
-  void _checkDeprecatedSubclass(Annotation node, AstNode parent) {
+  void _checkDeprecatedOptional(Annotation node) {
+    var parent = node.parent;
+    if (parent is FormalParameter) {
+      FormalParameterList parameterList;
+      if (parent.parent case FormalParameterList parent2) {
+        parameterList = parent2;
+      } else if (parent.parent case DefaultFormalParameter(
+        parent: FormalParameterList parent2,
+      )) {
+        parameterList = parent2;
+      } else {
+        // We shouldn't get here; if we do, don't report the annotation.
+        return;
+      }
+
+      // This annotation is only valid on method declarations, constructor
+      // declarations, and top-level function declarations.
+      var isValidFunction =
+          parameterList.parent is MethodDeclaration ||
+          parameterList.parent is ConstructorDeclaration ||
+          (parameterList.parent is FunctionExpression &&
+              parameterList.parent?.parent is FunctionDeclaration &&
+              parameterList.parent?.parent?.parent is CompilationUnit);
+
+      if (parent.isOptional && isValidFunction) return;
+    }
+
+    _diagnosticReporter.atNode(
+      node.name,
+      WarningCode.invalidDeprecatedOptionalAnnotation,
+    );
+  }
+
+  void _checkDeprecatedSubclass(Annotation node) {
     Element? declaredElement;
-    if (parent
+    if (node.parent
         case ClassDeclaration(:var declaredFragment) ||
             ClassTypeAlias(:var declaredFragment)) {
       declaredElement = declaredFragment!.element;
-    } else if (parent is MixinDeclaration) {
+    } else if (node.parent case MixinDeclaration parent) {
       declaredElement = parent.declaredFragment!.element;
-    } else if (parent is GenericTypeAlias) {
+    } else if (node.parent case GenericTypeAlias parent) {
       declaredElement = parent.type.type?.element;
     }
 
