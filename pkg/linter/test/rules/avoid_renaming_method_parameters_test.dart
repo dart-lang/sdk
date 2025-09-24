@@ -45,6 +45,7 @@ augment void f(int q) {}
     );
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentedMethod() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';

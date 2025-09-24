@@ -294,21 +294,31 @@ abstract interface class Future<T> {
     return result;
   }
 
-  /// Returns a future containing the result of immediately calling
-  /// [computation].
+  /// The result of calling [computation] as a future.
   ///
-  /// If calling [computation] throws, the returned future is completed with the
-  /// error.
+  /// Mainly used when working with functions returning a `FutureOr<T>`,
+  /// or non-async functions in a non-`async` asynchronous function,
+  /// where you want to capture any error in a future.
+  ///
+  /// If calling [computation] throws, the returned future is completed
+  /// with the error.
   ///
   /// If calling [computation] returns a `Future<T>`, that future is returned.
   ///
-  /// If calling [computation] returns a non-future value,
-  /// a future is returned which has been completed with that value.
+  /// If calling [computation] returns a non-`Future<T>` value,
+  /// a future is created which has been completed with that value.
   ///
   /// Example:
   /// ```dart
-  /// final result = await Future<int>.sync(() => 12);
+  /// Future<int> asyncAdd(
+  ///   FutureOr<int> Function() a,
+  ///   FutureOr<int> Function() b,
+  /// ) =>
+  ///   (Future.sync(a), Future.sync(b)).wait.then((ab) => ab.$1 + ab.$2);
   /// ```
+  ///
+  /// To create a future with a known value, use [Future.syncValue] instead,
+  /// as `Future.syncValue(12)`.
   factory Future.sync(FutureOr<T> computation()) {
     FutureOr<T> result;
     try {
@@ -319,6 +329,17 @@ abstract interface class Future<T> {
     }
     return result is Future<T> ? result : _Future<T>.value(result);
   }
+
+  /// Creates a future completed with [value].
+  ///
+  /// The future is guaranteed to not have an error.
+  ///
+  /// If a synchronous computation can throw,
+  /// rather than doing `Future.syncValue(computation())` and wrapping that in
+  /// a `try`/`catch`, you can use [Future.sync] which catches an error
+  /// into its returned future, as `Future.sync(() => computation())`.
+  @Since("3.10")
+  factory Future.syncValue(T value) => _Future<T>().._setValue(value);
 
   /// Creates a future completed with [value].
   ///

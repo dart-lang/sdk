@@ -2354,45 +2354,49 @@ library
               formalParameters
                 #F6 this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              nextFragment: #F7
+                  nextFragment: #F7
+              nextFragment: #F8
           getters
-            #F8 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F9 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@extensionType::A::@getter::it
         #F2 extension type A (nameOffset:52) (firstTokenOffset:29) (offset:52)
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
-          nextFragment: #F9
+          nextFragment: #F10
           fields
             #F4 augment it (nameOffset:58) (firstTokenOffset:53) (offset:58)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
-              nextFragment: #F10
+              nextFragment: #F11
           constructors
-            #F7 augment new (nameOffset:<null>) (firstTokenOffset:53) (offset:52)
+            #F8 augment new (nameOffset:<null>) (firstTokenOffset:53) (offset:52)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 52
               formalParameters
-                #F11 this.it (nameOffset:58) (firstTokenOffset:53) (offset:58)
+                #F7 this.it (nameOffset:58) (firstTokenOffset:53) (offset:58)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              nextFragment: #F12
+                  previousFragment: #F6
+                  nextFragment: #F12
+              nextFragment: #F13
               previousFragment: #F5
-        #F9 extension type A (nameOffset:89) (firstTokenOffset:66) (offset:89)
+        #F10 extension type A (nameOffset:89) (firstTokenOffset:66) (offset:89)
           element: <testLibrary>::@extensionType::A
           previousFragment: #F2
           fields
-            #F10 augment it (nameOffset:95) (firstTokenOffset:90) (offset:95)
+            #F11 augment it (nameOffset:95) (firstTokenOffset:90) (offset:95)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F4
           constructors
-            #F12 augment new (nameOffset:<null>) (firstTokenOffset:90) (offset:89)
+            #F13 augment new (nameOffset:<null>) (firstTokenOffset:90) (offset:89)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 89
               formalParameters
-                #F13 this.it (nameOffset:95) (firstTokenOffset:90) (offset:95)
+                #F12 this.it (nameOffset:95) (firstTokenOffset:90) (offset:95)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              previousFragment: #F7
+                  previousFragment: #F7
+              previousFragment: #F8
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -2417,7 +2421,7 @@ library
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F8
+          firstFragment: #F9
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
   exportedReferences
@@ -2460,12 +2464,13 @@ library
               formalParameters
                 #F6 this.it (nameOffset:29) (firstTokenOffset:24) (offset:29)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              nextFragment: #F7
+                  nextFragment: #F7
+              nextFragment: #F8
           getters
-            #F8 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+            #F9 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@extensionType::A::@getter::it
           methods
-            #F9 foo1 (nameOffset:42) (firstTokenOffset:37) (offset:42)
+            #F10 foo1 (nameOffset:42) (firstTokenOffset:37) (offset:42)
               element: <testLibrary>::@extensionType::A::@method::foo1
         #F2 extension type A (nameOffset:78) (firstTokenOffset:55) (offset:78)
           element: <testLibrary>::@extensionType::A
@@ -2475,13 +2480,14 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
-            #F7 augment new (nameOffset:<null>) (firstTokenOffset:79) (offset:78)
+            #F8 augment new (nameOffset:<null>) (firstTokenOffset:79) (offset:78)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 78
               formalParameters
-                #F10 this.it (nameOffset:84) (firstTokenOffset:79) (offset:84)
+                #F7 this.it (nameOffset:84) (firstTokenOffset:79) (offset:84)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+                  previousFragment: #F6
               previousFragment: #F5
           methods
             #F11 foo2 (nameOffset:97) (firstTokenOffset:92) (offset:97)
@@ -2510,13 +2516,13 @@ library
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F8
+          firstFragment: #F9
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
       methods
         isExtensionTypeMember foo1
           reference: <testLibrary>::@extensionType::A::@method::foo1
-          firstFragment: #F9
+          firstFragment: #F10
           returnType: void
         isExtensionTypeMember foo2
           reference: <testLibrary>::@extensionType::A::@method::foo2
@@ -2556,9 +2562,10 @@ library
               formalParameters
                 #F6 this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              nextFragment: #F7
+                  nextFragment: #F7
+              nextFragment: #F8
           getters
-            #F8 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F9 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@extensionType::A::@getter::it
         #F2 extension type A (nameOffset:52) (firstTokenOffset:29) (offset:52)
           element: <testLibrary>::@extensionType::A
@@ -2568,13 +2575,14 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
-            #F7 augment new (nameOffset:<null>) (firstTokenOffset:53) (offset:52)
+            #F8 augment new (nameOffset:<null>) (firstTokenOffset:53) (offset:52)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 52
               formalParameters
-                #F9 this.it (nameOffset:58) (firstTokenOffset:53) (offset:58)
+                #F7 this.it (nameOffset:58) (firstTokenOffset:53) (offset:58)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+                  previousFragment: #F6
               previousFragment: #F5
             #F10 named (nameOffset:68) (firstTokenOffset:66) (offset:68)
               element: <testLibrary>::@extensionType::A::@constructor::named
@@ -2608,7 +2616,7 @@ library
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F8
+          firstFragment: #F9
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
 ''');
@@ -2649,9 +2657,10 @@ library
               formalParameters
                 #F8 this.it (nameOffset:24) (firstTokenOffset:19) (offset:24)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              nextFragment: #F9
+                  nextFragment: #F9
+              nextFragment: #F10
           getters
-            #F10 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+            #F11 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@extensionType::A::@getter::it
         #F2 extension type A (nameOffset:55) (firstTokenOffset:32) (offset:55)
           element: <testLibrary>::@extensionType::A
@@ -2665,13 +2674,14 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F5
           constructors
-            #F9 augment new (nameOffset:<null>) (firstTokenOffset:59) (offset:55)
+            #F10 augment new (nameOffset:<null>) (firstTokenOffset:59) (offset:55)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 55
               formalParameters
-                #F11 this.it (nameOffset:64) (firstTokenOffset:59) (offset:64)
+                #F9 this.it (nameOffset:64) (firstTokenOffset:59) (offset:64)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+                  previousFragment: #F8
               previousFragment: #F7
             #F12 named (nameOffset:74) (firstTokenOffset:72) (offset:74)
               element: <testLibrary>::@extensionType::A::@constructor::named
@@ -2715,7 +2725,7 @@ library
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F10
+          firstFragment: #F11
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
 ''');
@@ -2753,9 +2763,10 @@ library
               formalParameters
                 #F6 this.it (nameOffset:27) (firstTokenOffset:16) (offset:27)
                   element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
-              nextFragment: #F7
+                  nextFragment: #F7
+              nextFragment: #F8
           getters
-            #F8 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F9 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@extensionType::A::@getter::it
         #F2 extension type A (nameOffset:58) (firstTokenOffset:35) (offset:58)
           element: <testLibrary>::@extensionType::A
@@ -2765,14 +2776,15 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
-            #F7 augment named (nameOffset:60) (firstTokenOffset:59) (offset:60)
+            #F8 augment named (nameOffset:60) (firstTokenOffset:59) (offset:60)
               element: <testLibrary>::@extensionType::A::@constructor::named
               typeName: A
               typeNameOffset: 58
               periodOffset: 59
               formalParameters
-                #F9 this.it (nameOffset:70) (firstTokenOffset:59) (offset:70)
+                #F7 this.it (nameOffset:70) (firstTokenOffset:59) (offset:70)
                   element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
+                  previousFragment: #F6
               previousFragment: #F5
             #F10 new (nameOffset:<null>) (firstTokenOffset:78) (offset:78)
               element: <testLibrary>::@extensionType::A::@constructor::new
@@ -2805,7 +2817,7 @@ library
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F8
+          firstFragment: #F9
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
 ''');
@@ -2847,17 +2859,18 @@ library
               formalParameters
                 #F8 this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              nextFragment: #F9
+                  nextFragment: #F9
+              nextFragment: #F10
           getters
-            #F10 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F11 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@extensionType::A::@getter::it
-            #F11 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F12 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@extensionType::A::@getter::foo
           setters
-            #F12 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F13 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@extensionType::A::@setter::foo
               formalParameters
-                #F13 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+                #F14 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
                   element: <testLibrary>::@extensionType::A::@setter::foo::@formalParameter::value
         #F2 extension type A (nameOffset:75) (firstTokenOffset:52) (offset:75)
           element: <testLibrary>::@extensionType::A
@@ -2870,13 +2883,14 @@ library
               element: <testLibrary>::@extensionType::A::@field::foo
               previousFragment: #F5
           constructors
-            #F9 augment new (nameOffset:<null>) (firstTokenOffset:76) (offset:75)
+            #F10 augment new (nameOffset:<null>) (firstTokenOffset:76) (offset:75)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
               formalParameters
-                #F14 this.it (nameOffset:81) (firstTokenOffset:76) (offset:81)
+                #F9 this.it (nameOffset:81) (firstTokenOffset:76) (offset:81)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+                  previousFragment: #F8
               previousFragment: #F7
   extensionTypes
     extension type A
@@ -2908,21 +2922,21 @@ library
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F10
+          firstFragment: #F11
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
         synthetic static isExtensionTypeMember foo
           reference: <testLibrary>::@extensionType::A::@getter::foo
-          firstFragment: #F11
+          firstFragment: #F12
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::foo
       setters
         synthetic static isExtensionTypeMember foo
           reference: <testLibrary>::@extensionType::A::@setter::foo
-          firstFragment: #F12
+          firstFragment: #F13
           formalParameters
             #E1 requiredPositional value
-              firstFragment: #F13
+              firstFragment: #F14
               type: int
           returnType: void
           variable: <testLibrary>::@extensionType::A::@field::foo
@@ -2969,60 +2983,64 @@ library
               formalParameters
                 #F8 this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              nextFragment: #F9
+                  nextFragment: #F9
+              nextFragment: #F10
           getters
-            #F10 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F11 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@extensionType::A::@getter::it
-            #F11 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F12 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@extensionType::A::@getter::foo
           setters
-            #F12 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F13 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@extensionType::A::@setter::foo
               formalParameters
-                #F13 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+                #F14 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
                   element: <testLibrary>::@extensionType::A::@setter::foo::@formalParameter::value
         #F2 extension type A (nameOffset:75) (firstTokenOffset:52) (offset:75)
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
-          nextFragment: #F14
+          nextFragment: #F15
           fields
             #F4 augment it (nameOffset:81) (firstTokenOffset:76) (offset:81)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
-              nextFragment: #F15
+              nextFragment: #F16
             #F6 augment hasInitializer foo (nameOffset:108) (firstTokenOffset:108) (offset:108)
               element: <testLibrary>::@extensionType::A::@field::foo
               previousFragment: #F5
-              nextFragment: #F16
+              nextFragment: #F17
           constructors
-            #F9 augment new (nameOffset:<null>) (firstTokenOffset:76) (offset:75)
+            #F10 augment new (nameOffset:<null>) (firstTokenOffset:76) (offset:75)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
               formalParameters
-                #F17 this.it (nameOffset:81) (firstTokenOffset:76) (offset:81)
+                #F9 this.it (nameOffset:81) (firstTokenOffset:76) (offset:81)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              nextFragment: #F18
+                  previousFragment: #F8
+                  nextFragment: #F18
+              nextFragment: #F19
               previousFragment: #F7
-        #F14 extension type A (nameOffset:143) (firstTokenOffset:120) (offset:143)
+        #F15 extension type A (nameOffset:143) (firstTokenOffset:120) (offset:143)
           element: <testLibrary>::@extensionType::A
           previousFragment: #F2
           fields
-            #F15 augment it (nameOffset:149) (firstTokenOffset:144) (offset:149)
+            #F16 augment it (nameOffset:149) (firstTokenOffset:144) (offset:149)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F4
-            #F16 augment hasInitializer foo (nameOffset:176) (firstTokenOffset:176) (offset:176)
+            #F17 augment hasInitializer foo (nameOffset:176) (firstTokenOffset:176) (offset:176)
               element: <testLibrary>::@extensionType::A::@field::foo
               previousFragment: #F6
           constructors
-            #F18 augment new (nameOffset:<null>) (firstTokenOffset:144) (offset:143)
+            #F19 augment new (nameOffset:<null>) (firstTokenOffset:144) (offset:143)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 143
               formalParameters
-                #F19 this.it (nameOffset:149) (firstTokenOffset:144) (offset:149)
+                #F18 this.it (nameOffset:149) (firstTokenOffset:144) (offset:149)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              previousFragment: #F9
+                  previousFragment: #F9
+              previousFragment: #F10
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -3053,21 +3071,21 @@ library
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F10
+          firstFragment: #F11
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
         synthetic static isExtensionTypeMember foo
           reference: <testLibrary>::@extensionType::A::@getter::foo
-          firstFragment: #F11
+          firstFragment: #F12
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::foo
       setters
         synthetic static isExtensionTypeMember foo
           reference: <testLibrary>::@extensionType::A::@setter::foo
-          firstFragment: #F12
+          firstFragment: #F13
           formalParameters
             #E1 requiredPositional value
-              firstFragment: #F13
+              firstFragment: #F14
               type: int
           returnType: void
           variable: <testLibrary>::@extensionType::A::@field::foo
@@ -3114,61 +3132,65 @@ library
               formalParameters
                 #F8 this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              nextFragment: #F9
+                  nextFragment: #F9
+              nextFragment: #F10
           getters
-            #F10 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F11 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@extensionType::A::@getter::it
-            #F11 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F12 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@extensionType::A::@getter::foo
-              nextFragment: #F12
+              nextFragment: #F13
           setters
-            #F13 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F14 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@extensionType::A::@setter::foo
               formalParameters
-                #F14 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+                #F15 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
                   element: <testLibrary>::@extensionType::A::@setter::foo::@formalParameter::value
         #F2 extension type A (nameOffset:75) (firstTokenOffset:52) (offset:75)
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
-          nextFragment: #F15
+          nextFragment: #F16
           fields
             #F4 augment it (nameOffset:81) (firstTokenOffset:76) (offset:81)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
-              nextFragment: #F16
+              nextFragment: #F17
           constructors
-            #F9 augment new (nameOffset:<null>) (firstTokenOffset:76) (offset:75)
+            #F10 augment new (nameOffset:<null>) (firstTokenOffset:76) (offset:75)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
               formalParameters
-                #F17 this.it (nameOffset:81) (firstTokenOffset:76) (offset:81)
+                #F9 this.it (nameOffset:81) (firstTokenOffset:76) (offset:81)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              nextFragment: #F18
+                  previousFragment: #F8
+                  nextFragment: #F18
+              nextFragment: #F19
               previousFragment: #F7
           getters
-            #F12 augment foo (nameOffset:112) (firstTokenOffset:89) (offset:112)
+            #F13 augment foo (nameOffset:112) (firstTokenOffset:89) (offset:112)
               element: <testLibrary>::@extensionType::A::@getter::foo
-              previousFragment: #F11
-        #F15 extension type A (nameOffset:148) (firstTokenOffset:125) (offset:148)
+              previousFragment: #F12
+        #F16 extension type A (nameOffset:148) (firstTokenOffset:125) (offset:148)
           element: <testLibrary>::@extensionType::A
           previousFragment: #F2
           fields
-            #F16 augment it (nameOffset:154) (firstTokenOffset:149) (offset:154)
+            #F17 augment it (nameOffset:154) (firstTokenOffset:149) (offset:154)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F4
             #F6 augment hasInitializer foo (nameOffset:181) (firstTokenOffset:181) (offset:181)
               element: <testLibrary>::@extensionType::A::@field::foo
               previousFragment: #F5
           constructors
-            #F18 augment new (nameOffset:<null>) (firstTokenOffset:149) (offset:148)
+            #F19 augment new (nameOffset:<null>) (firstTokenOffset:149) (offset:148)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 148
               formalParameters
-                #F19 this.it (nameOffset:154) (firstTokenOffset:149) (offset:154)
+                #F18 this.it (nameOffset:154) (firstTokenOffset:149) (offset:154)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              previousFragment: #F9
+                  previousFragment: #F9
+              previousFragment: #F10
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -3199,21 +3221,21 @@ library
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F10
+          firstFragment: #F11
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
         synthetic static isExtensionTypeMember foo
           reference: <testLibrary>::@extensionType::A::@getter::foo
-          firstFragment: #F11
+          firstFragment: #F12
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::foo
       setters
         synthetic static isExtensionTypeMember foo
           reference: <testLibrary>::@extensionType::A::@setter::foo
-          firstFragment: #F13
+          firstFragment: #F14
           formalParameters
             #E1 requiredPositional value
-              firstFragment: #F14
+              firstFragment: #F15
               type: int
           returnType: void
           variable: <testLibrary>::@extensionType::A::@field::foo
@@ -3260,64 +3282,68 @@ library
               formalParameters
                 #F8 this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              nextFragment: #F9
+                  nextFragment: #F9
+              nextFragment: #F10
           getters
-            #F10 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F11 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@extensionType::A::@getter::it
-            #F11 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F12 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@extensionType::A::@getter::foo
           setters
-            #F12 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F13 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@extensionType::A::@setter::foo
               formalParameters
-                #F13 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+                #F14 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
                   element: <testLibrary>::@extensionType::A::@setter::foo::@formalParameter::value
-              nextFragment: #F14
+              nextFragment: #F15
         #F2 extension type A (nameOffset:75) (firstTokenOffset:52) (offset:75)
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
-          nextFragment: #F15
+          nextFragment: #F16
           fields
             #F4 augment it (nameOffset:81) (firstTokenOffset:76) (offset:81)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
-              nextFragment: #F16
+              nextFragment: #F17
           constructors
-            #F9 augment new (nameOffset:<null>) (firstTokenOffset:76) (offset:75)
+            #F10 augment new (nameOffset:<null>) (firstTokenOffset:76) (offset:75)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
               formalParameters
-                #F17 this.it (nameOffset:81) (firstTokenOffset:76) (offset:81)
+                #F9 this.it (nameOffset:81) (firstTokenOffset:76) (offset:81)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              nextFragment: #F18
+                  previousFragment: #F8
+                  nextFragment: #F18
+              nextFragment: #F19
               previousFragment: #F7
           setters
-            #F14 augment foo (nameOffset:108) (firstTokenOffset:89) (offset:108)
+            #F15 augment foo (nameOffset:108) (firstTokenOffset:89) (offset:108)
               element: <testLibrary>::@extensionType::A::@setter::foo
               formalParameters
-                #F19 _ (nameOffset:116) (firstTokenOffset:112) (offset:116)
+                #F20 _ (nameOffset:116) (firstTokenOffset:112) (offset:116)
                   element: <testLibrary>::@extensionType::A::@setter::foo::@formalParameter::_
-              previousFragment: #F12
-        #F15 extension type A (nameOffset:148) (firstTokenOffset:125) (offset:148)
+              previousFragment: #F13
+        #F16 extension type A (nameOffset:148) (firstTokenOffset:125) (offset:148)
           element: <testLibrary>::@extensionType::A
           previousFragment: #F2
           fields
-            #F16 augment it (nameOffset:154) (firstTokenOffset:149) (offset:154)
+            #F17 augment it (nameOffset:154) (firstTokenOffset:149) (offset:154)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F4
             #F6 augment hasInitializer foo (nameOffset:181) (firstTokenOffset:181) (offset:181)
               element: <testLibrary>::@extensionType::A::@field::foo
               previousFragment: #F5
           constructors
-            #F18 augment new (nameOffset:<null>) (firstTokenOffset:149) (offset:148)
+            #F19 augment new (nameOffset:<null>) (firstTokenOffset:149) (offset:148)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 148
               formalParameters
-                #F20 this.it (nameOffset:154) (firstTokenOffset:149) (offset:154)
+                #F18 this.it (nameOffset:154) (firstTokenOffset:149) (offset:154)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              previousFragment: #F9
+                  previousFragment: #F9
+              previousFragment: #F10
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -3348,21 +3374,21 @@ library
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F10
+          firstFragment: #F11
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
         synthetic static isExtensionTypeMember foo
           reference: <testLibrary>::@extensionType::A::@getter::foo
-          firstFragment: #F11
+          firstFragment: #F12
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::foo
       setters
         synthetic static isExtensionTypeMember foo
           reference: <testLibrary>::@extensionType::A::@setter::foo
-          firstFragment: #F12
+          firstFragment: #F13
           formalParameters
             #E1 requiredPositional value
-              firstFragment: #F13
+              firstFragment: #F14
               type: int
           returnType: void
           variable: <testLibrary>::@extensionType::A::@field::foo
@@ -3405,17 +3431,18 @@ library
               formalParameters
                 #F8 this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              nextFragment: #F9
+                  nextFragment: #F9
+              nextFragment: #F10
           getters
-            #F10 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F11 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@extensionType::A::@getter::it
-            #F11 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F12 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@extensionType::A::@getter::foo
           setters
-            #F12 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F13 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@extensionType::A::@setter::foo
               formalParameters
-                #F13 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+                #F14 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
                   element: <testLibrary>::@extensionType::A::@setter::foo::@formalParameter::value
         #F2 extension type A (nameOffset:75) (firstTokenOffset:52) (offset:75)
           element: <testLibrary>::@extensionType::A
@@ -3428,13 +3455,14 @@ library
               element: <testLibrary>::@extensionType::A::@field::foo
               previousFragment: #F5
           constructors
-            #F9 augment new (nameOffset:<null>) (firstTokenOffset:76) (offset:75)
+            #F10 augment new (nameOffset:<null>) (firstTokenOffset:76) (offset:75)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
               formalParameters
-                #F14 this.it (nameOffset:81) (firstTokenOffset:76) (offset:81)
+                #F9 this.it (nameOffset:81) (firstTokenOffset:76) (offset:81)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+                  previousFragment: #F8
               previousFragment: #F7
   extensionTypes
     extension type A
@@ -3466,21 +3494,21 @@ library
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F10
+          firstFragment: #F11
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
         synthetic static isExtensionTypeMember foo
           reference: <testLibrary>::@extensionType::A::@getter::foo
-          firstFragment: #F11
+          firstFragment: #F12
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::foo
       setters
         synthetic static isExtensionTypeMember foo
           reference: <testLibrary>::@extensionType::A::@setter::foo
-          firstFragment: #F12
+          firstFragment: #F13
           formalParameters
             #E1 requiredPositional value
-              firstFragment: #F13
+              firstFragment: #F14
               type: int
           returnType: void
           variable: <testLibrary>::@extensionType::A::@field::foo
@@ -3525,11 +3553,12 @@ library
               formalParameters
                 #F8 this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              nextFragment: #F9
+                  nextFragment: #F9
+              nextFragment: #F10
           getters
-            #F10 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F11 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@extensionType::A::@getter::it
-            #F11 foo (nameOffset:44) (firstTokenOffset:29) (offset:44)
+            #F12 foo (nameOffset:44) (firstTokenOffset:29) (offset:44)
               element: <testLibrary>::@extensionType::A::@getter::foo
         #F2 extension type A (nameOffset:80) (firstTokenOffset:57) (offset:80)
           element: <testLibrary>::@extensionType::A
@@ -3542,13 +3571,14 @@ library
               element: <testLibrary>::@extensionType::A::@field::foo
               previousFragment: #F5
           constructors
-            #F9 augment new (nameOffset:<null>) (firstTokenOffset:81) (offset:80)
+            #F10 augment new (nameOffset:<null>) (firstTokenOffset:81) (offset:80)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 80
               formalParameters
-                #F12 this.it (nameOffset:86) (firstTokenOffset:81) (offset:86)
+                #F9 this.it (nameOffset:86) (firstTokenOffset:81) (offset:86)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+                  previousFragment: #F8
               previousFragment: #F7
   extensionTypes
     extension type A
@@ -3579,12 +3609,12 @@ library
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F10
+          firstFragment: #F11
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
         static isExtensionTypeMember foo
           reference: <testLibrary>::@extensionType::A::@getter::foo
-          firstFragment: #F11
+          firstFragment: #F12
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::foo
 ''');
@@ -3625,17 +3655,18 @@ library
               formalParameters
                 #F7 this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              nextFragment: #F8
+                  nextFragment: #F8
+              nextFragment: #F9
           getters
-            #F9 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F10 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@extensionType::A::@getter::it
-            #F10 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F11 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@extensionType::A::@getter::foo1
           setters
-            #F11 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F12 synthetic foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@extensionType::A::@setter::foo1
               formalParameters
-                #F12 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+                #F13 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
                   element: <testLibrary>::@extensionType::A::@setter::foo1::@formalParameter::value
         #F2 extension type A (nameOffset:76) (firstTokenOffset:53) (offset:76)
           element: <testLibrary>::@extensionType::A
@@ -3644,16 +3675,17 @@ library
             #F4 augment it (nameOffset:82) (firstTokenOffset:77) (offset:82)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
-            #F13 hasInitializer foo2 (nameOffset:101) (firstTokenOffset:101) (offset:101)
+            #F14 hasInitializer foo2 (nameOffset:101) (firstTokenOffset:101) (offset:101)
               element: <testLibrary>::@extensionType::A::@field::foo2
           constructors
-            #F8 augment new (nameOffset:<null>) (firstTokenOffset:77) (offset:76)
+            #F9 augment new (nameOffset:<null>) (firstTokenOffset:77) (offset:76)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 76
               formalParameters
-                #F14 this.it (nameOffset:82) (firstTokenOffset:77) (offset:82)
+                #F8 this.it (nameOffset:82) (firstTokenOffset:77) (offset:82)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+                  previousFragment: #F7
               previousFragment: #F6
           getters
             #F15 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:101)
@@ -3685,7 +3717,7 @@ library
           setter: <testLibrary>::@extensionType::A::@setter::foo1
         static hasInitializer foo2
           reference: <testLibrary>::@extensionType::A::@field::foo2
-          firstFragment: #F13
+          firstFragment: #F14
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::foo2
           setter: <testLibrary>::@extensionType::A::@setter::foo2
@@ -3700,12 +3732,12 @@ library
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F9
+          firstFragment: #F10
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
         synthetic static isExtensionTypeMember foo1
           reference: <testLibrary>::@extensionType::A::@getter::foo1
-          firstFragment: #F10
+          firstFragment: #F11
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::foo1
         synthetic static isExtensionTypeMember foo2
@@ -3716,10 +3748,10 @@ library
       setters
         synthetic static isExtensionTypeMember foo1
           reference: <testLibrary>::@extensionType::A::@setter::foo1
-          firstFragment: #F11
+          firstFragment: #F12
           formalParameters
             #E1 requiredPositional value
-              firstFragment: #F12
+              firstFragment: #F13
               type: int
           returnType: void
           variable: <testLibrary>::@extensionType::A::@field::foo1
@@ -3770,11 +3802,12 @@ library
               formalParameters
                 #F7 this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              nextFragment: #F8
+                  nextFragment: #F8
+              nextFragment: #F9
           getters
-            #F9 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F10 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@extensionType::A::@getter::it
-            #F10 foo1 (nameOffset:37) (firstTokenOffset:29) (offset:37)
+            #F11 foo1 (nameOffset:37) (firstTokenOffset:29) (offset:37)
               element: <testLibrary>::@extensionType::A::@getter::foo1
         #F2 extension type A (nameOffset:74) (firstTokenOffset:51) (offset:74)
           element: <testLibrary>::@extensionType::A
@@ -3783,16 +3816,17 @@ library
             #F4 augment it (nameOffset:80) (firstTokenOffset:75) (offset:80)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
-            #F11 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
+            #F12 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
               element: <testLibrary>::@extensionType::A::@field::foo2
           constructors
-            #F8 augment new (nameOffset:<null>) (firstTokenOffset:75) (offset:74)
+            #F9 augment new (nameOffset:<null>) (firstTokenOffset:75) (offset:74)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 74
               formalParameters
-                #F12 this.it (nameOffset:80) (firstTokenOffset:75) (offset:80)
+                #F8 this.it (nameOffset:80) (firstTokenOffset:75) (offset:80)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+                  previousFragment: #F7
               previousFragment: #F6
           getters
             #F13 foo2 (nameOffset:96) (firstTokenOffset:88) (offset:96)
@@ -3817,7 +3851,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::foo1
         synthetic foo2
           reference: <testLibrary>::@extensionType::A::@field::foo2
-          firstFragment: #F11
+          firstFragment: #F12
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::foo2
       constructors
@@ -3831,12 +3865,12 @@ library
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F9
+          firstFragment: #F10
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
         isExtensionTypeMember foo1
           reference: <testLibrary>::@extensionType::A::@getter::foo1
-          firstFragment: #F10
+          firstFragment: #F11
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::foo1
         isExtensionTypeMember foo2
@@ -3886,11 +3920,12 @@ library
               formalParameters
                 #F9 this.it (nameOffset:24) (firstTokenOffset:19) (offset:24)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              nextFragment: #F10
+                  nextFragment: #F10
+              nextFragment: #F11
           getters
-            #F11 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+            #F12 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@extensionType::A::@getter::it
-            #F12 foo1 (nameOffset:38) (firstTokenOffset:32) (offset:38)
+            #F13 foo1 (nameOffset:38) (firstTokenOffset:32) (offset:38)
               element: <testLibrary>::@extensionType::A::@getter::foo1
         #F2 extension type A (nameOffset:70) (firstTokenOffset:47) (offset:70)
           element: <testLibrary>::@extensionType::A
@@ -3903,16 +3938,17 @@ library
             #F6 augment it (nameOffset:79) (firstTokenOffset:74) (offset:79)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F5
-            #F13 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:70)
+            #F14 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:70)
               element: <testLibrary>::@extensionType::A::@field::foo2
           constructors
-            #F10 augment new (nameOffset:<null>) (firstTokenOffset:74) (offset:70)
+            #F11 augment new (nameOffset:<null>) (firstTokenOffset:74) (offset:70)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 70
               formalParameters
-                #F14 this.it (nameOffset:79) (firstTokenOffset:74) (offset:79)
+                #F10 this.it (nameOffset:79) (firstTokenOffset:74) (offset:79)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+                  previousFragment: #F9
               previousFragment: #F8
           getters
             #F15 foo2 (nameOffset:93) (firstTokenOffset:87) (offset:93)
@@ -3941,7 +3977,7 @@ library
           getter: <testLibrary>::@extensionType::A::@getter::foo1
         synthetic foo2
           reference: <testLibrary>::@extensionType::A::@field::foo2
-          firstFragment: #F13
+          firstFragment: #F14
           hasEnclosingTypeParameterReference: true
           type: T
           getter: <testLibrary>::@extensionType::A::@getter::foo2
@@ -3956,12 +3992,12 @@ library
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F11
+          firstFragment: #F12
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
         abstract isExtensionTypeMember foo1
           reference: <testLibrary>::@extensionType::A::@getter::foo1
-          firstFragment: #F12
+          firstFragment: #F13
           hasEnclosingTypeParameterReference: true
           returnType: T
           variable: <testLibrary>::@extensionType::A::@field::foo1
@@ -4009,18 +4045,19 @@ library
               formalParameters
                 #F7 this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              nextFragment: #F8
+                  nextFragment: #F8
+              nextFragment: #F9
           getters
-            #F9 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F10 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@extensionType::A::@getter::it
-            #F10 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F11 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@extensionType::A::@getter::foo
-              nextFragment: #F11
+              nextFragment: #F12
           setters
-            #F12 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F13 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@extensionType::A::@setter::foo
               formalParameters
-                #F13 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+                #F14 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
                   element: <testLibrary>::@extensionType::A::@setter::foo::@formalParameter::value
         #F2 extension type A (nameOffset:75) (firstTokenOffset:52) (offset:75)
           element: <testLibrary>::@extensionType::A
@@ -4030,18 +4067,19 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
-            #F8 augment new (nameOffset:<null>) (firstTokenOffset:76) (offset:75)
+            #F9 augment new (nameOffset:<null>) (firstTokenOffset:76) (offset:75)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
               formalParameters
-                #F14 this.it (nameOffset:81) (firstTokenOffset:76) (offset:81)
+                #F8 this.it (nameOffset:81) (firstTokenOffset:76) (offset:81)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+                  previousFragment: #F7
               previousFragment: #F6
           getters
-            #F11 augment foo (nameOffset:112) (firstTokenOffset:89) (offset:112)
+            #F12 augment foo (nameOffset:112) (firstTokenOffset:89) (offset:112)
               element: <testLibrary>::@extensionType::A::@getter::foo
-              previousFragment: #F10
+              previousFragment: #F11
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -4072,21 +4110,21 @@ library
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F9
+          firstFragment: #F10
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
         synthetic static isExtensionTypeMember foo
           reference: <testLibrary>::@extensionType::A::@getter::foo
-          firstFragment: #F10
+          firstFragment: #F11
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::foo
       setters
         synthetic static isExtensionTypeMember foo
           reference: <testLibrary>::@extensionType::A::@setter::foo
-          firstFragment: #F12
+          firstFragment: #F13
           formalParameters
             #E1 requiredPositional value
-              firstFragment: #F13
+              firstFragment: #F14
               type: int
           returnType: void
           variable: <testLibrary>::@extensionType::A::@field::foo
@@ -4132,63 +4170,67 @@ library
               formalParameters
                 #F7 this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              nextFragment: #F8
+                  nextFragment: #F8
+              nextFragment: #F9
           getters
-            #F9 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F10 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@extensionType::A::@getter::it
-            #F10 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F11 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@extensionType::A::@getter::foo
-              nextFragment: #F11
+              nextFragment: #F12
           setters
-            #F12 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F13 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@extensionType::A::@setter::foo
               formalParameters
-                #F13 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+                #F14 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
                   element: <testLibrary>::@extensionType::A::@setter::foo::@formalParameter::value
         #F2 extension type A (nameOffset:75) (firstTokenOffset:52) (offset:75)
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
-          nextFragment: #F14
+          nextFragment: #F15
           fields
             #F4 augment it (nameOffset:81) (firstTokenOffset:76) (offset:81)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
-              nextFragment: #F15
+              nextFragment: #F16
           constructors
-            #F8 augment new (nameOffset:<null>) (firstTokenOffset:76) (offset:75)
+            #F9 augment new (nameOffset:<null>) (firstTokenOffset:76) (offset:75)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
               formalParameters
-                #F16 this.it (nameOffset:81) (firstTokenOffset:76) (offset:81)
+                #F8 this.it (nameOffset:81) (firstTokenOffset:76) (offset:81)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              nextFragment: #F17
+                  previousFragment: #F7
+                  nextFragment: #F17
+              nextFragment: #F18
               previousFragment: #F6
           getters
-            #F11 augment foo (nameOffset:112) (firstTokenOffset:89) (offset:112)
+            #F12 augment foo (nameOffset:112) (firstTokenOffset:89) (offset:112)
               element: <testLibrary>::@extensionType::A::@getter::foo
-              previousFragment: #F10
-              nextFragment: #F18
-        #F14 extension type A (nameOffset:148) (firstTokenOffset:125) (offset:148)
+              previousFragment: #F11
+              nextFragment: #F19
+        #F15 extension type A (nameOffset:148) (firstTokenOffset:125) (offset:148)
           element: <testLibrary>::@extensionType::A
           previousFragment: #F2
           fields
-            #F15 augment it (nameOffset:154) (firstTokenOffset:149) (offset:154)
+            #F16 augment it (nameOffset:154) (firstTokenOffset:149) (offset:154)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F4
           constructors
-            #F17 augment new (nameOffset:<null>) (firstTokenOffset:149) (offset:148)
+            #F18 augment new (nameOffset:<null>) (firstTokenOffset:149) (offset:148)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 148
               formalParameters
-                #F19 this.it (nameOffset:154) (firstTokenOffset:149) (offset:154)
+                #F17 this.it (nameOffset:154) (firstTokenOffset:149) (offset:154)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              previousFragment: #F8
+                  previousFragment: #F8
+              previousFragment: #F9
           getters
-            #F18 augment foo (nameOffset:185) (firstTokenOffset:162) (offset:185)
+            #F19 augment foo (nameOffset:185) (firstTokenOffset:162) (offset:185)
               element: <testLibrary>::@extensionType::A::@getter::foo
-              previousFragment: #F11
+              previousFragment: #F12
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -4219,21 +4261,21 @@ library
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F9
+          firstFragment: #F10
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
         synthetic static isExtensionTypeMember foo
           reference: <testLibrary>::@extensionType::A::@getter::foo
-          firstFragment: #F10
+          firstFragment: #F11
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::foo
       setters
         synthetic static isExtensionTypeMember foo
           reference: <testLibrary>::@extensionType::A::@setter::foo
-          firstFragment: #F12
+          firstFragment: #F13
           formalParameters
             #E1 requiredPositional value
-              firstFragment: #F13
+              firstFragment: #F14
               type: int
           returnType: void
           variable: <testLibrary>::@extensionType::A::@field::foo
@@ -4278,14 +4320,15 @@ library
               formalParameters
                 #F8 this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              nextFragment: #F9
+                  nextFragment: #F9
+              nextFragment: #F10
           getters
-            #F10 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F11 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@extensionType::A::@getter::it
-            #F11 foo1 (nameOffset:37) (firstTokenOffset:29) (offset:37)
+            #F12 foo1 (nameOffset:37) (firstTokenOffset:29) (offset:37)
               element: <testLibrary>::@extensionType::A::@getter::foo1
-              nextFragment: #F12
-            #F13 foo2 (nameOffset:58) (firstTokenOffset:50) (offset:58)
+              nextFragment: #F13
+            #F14 foo2 (nameOffset:58) (firstTokenOffset:50) (offset:58)
               element: <testLibrary>::@extensionType::A::@getter::foo2
         #F2 extension type A (nameOffset:95) (firstTokenOffset:72) (offset:95)
           element: <testLibrary>::@extensionType::A
@@ -4295,18 +4338,19 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
-            #F9 augment new (nameOffset:<null>) (firstTokenOffset:96) (offset:95)
+            #F10 augment new (nameOffset:<null>) (firstTokenOffset:96) (offset:95)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 95
               formalParameters
-                #F14 this.it (nameOffset:101) (firstTokenOffset:96) (offset:101)
+                #F9 this.it (nameOffset:101) (firstTokenOffset:96) (offset:101)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+                  previousFragment: #F8
               previousFragment: #F7
           getters
-            #F12 augment foo1 (nameOffset:125) (firstTokenOffset:109) (offset:125)
+            #F13 augment foo1 (nameOffset:125) (firstTokenOffset:109) (offset:125)
               element: <testLibrary>::@extensionType::A::@getter::foo1
-              previousFragment: #F11
+              previousFragment: #F12
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -4341,17 +4385,17 @@ library
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F10
+          firstFragment: #F11
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
         isExtensionTypeMember foo1
           reference: <testLibrary>::@extensionType::A::@getter::foo1
-          firstFragment: #F11
+          firstFragment: #F12
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::foo1
         isExtensionTypeMember foo2
           reference: <testLibrary>::@extensionType::A::@getter::foo2
-          firstFragment: #F13
+          firstFragment: #F14
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::foo2
 ''');
@@ -4396,57 +4440,61 @@ library
               formalParameters
                 #F7 this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              nextFragment: #F8
+                  nextFragment: #F8
+              nextFragment: #F9
           getters
-            #F9 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F10 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@extensionType::A::@getter::it
-            #F10 foo (nameOffset:37) (firstTokenOffset:29) (offset:37)
+            #F11 foo (nameOffset:37) (firstTokenOffset:29) (offset:37)
               element: <testLibrary>::@extensionType::A::@getter::foo
-              nextFragment: #F11
+              nextFragment: #F12
         #F2 extension type A (nameOffset:73) (firstTokenOffset:50) (offset:73)
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
-          nextFragment: #F12
+          nextFragment: #F13
           fields
             #F4 augment it (nameOffset:79) (firstTokenOffset:74) (offset:79)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
-              nextFragment: #F13
+              nextFragment: #F14
           constructors
-            #F8 augment new (nameOffset:<null>) (firstTokenOffset:74) (offset:73)
+            #F9 augment new (nameOffset:<null>) (firstTokenOffset:74) (offset:73)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 73
               formalParameters
-                #F14 this.it (nameOffset:79) (firstTokenOffset:74) (offset:79)
+                #F8 this.it (nameOffset:79) (firstTokenOffset:74) (offset:79)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              nextFragment: #F15
+                  previousFragment: #F7
+                  nextFragment: #F15
+              nextFragment: #F16
               previousFragment: #F6
           getters
-            #F11 augment foo (nameOffset:103) (firstTokenOffset:87) (offset:103)
+            #F12 augment foo (nameOffset:103) (firstTokenOffset:87) (offset:103)
               element: <testLibrary>::@extensionType::A::@getter::foo
-              previousFragment: #F10
-              nextFragment: #F16
-        #F12 extension type A (nameOffset:139) (firstTokenOffset:116) (offset:139)
+              previousFragment: #F11
+              nextFragment: #F17
+        #F13 extension type A (nameOffset:139) (firstTokenOffset:116) (offset:139)
           element: <testLibrary>::@extensionType::A
           previousFragment: #F2
           fields
-            #F13 augment it (nameOffset:145) (firstTokenOffset:140) (offset:145)
+            #F14 augment it (nameOffset:145) (firstTokenOffset:140) (offset:145)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F4
           constructors
-            #F15 augment new (nameOffset:<null>) (firstTokenOffset:140) (offset:139)
+            #F16 augment new (nameOffset:<null>) (firstTokenOffset:140) (offset:139)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 139
               formalParameters
-                #F17 this.it (nameOffset:145) (firstTokenOffset:140) (offset:145)
+                #F15 this.it (nameOffset:145) (firstTokenOffset:140) (offset:145)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              previousFragment: #F8
+                  previousFragment: #F8
+              previousFragment: #F9
           getters
-            #F16 augment foo (nameOffset:169) (firstTokenOffset:153) (offset:169)
+            #F17 augment foo (nameOffset:169) (firstTokenOffset:153) (offset:169)
               element: <testLibrary>::@extensionType::A::@getter::foo
-              previousFragment: #F11
+              previousFragment: #F12
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -4476,12 +4524,12 @@ library
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F9
+          firstFragment: #F10
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
         isExtensionTypeMember foo
           reference: <testLibrary>::@extensionType::A::@getter::foo
-          firstFragment: #F10
+          firstFragment: #F11
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::foo
 ''');
@@ -4632,77 +4680,81 @@ library
               formalParameters
                 #F6 this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              nextFragment: #F7
+                  nextFragment: #F7
+              nextFragment: #F8
           getters
-            #F8 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F9 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@extensionType::A::@getter::it
-        #F9 extension type I1 (nameOffset:57) (firstTokenOffset:42) (offset:57)
+        #F10 extension type I1 (nameOffset:57) (firstTokenOffset:42) (offset:57)
           element: <testLibrary>::@extensionType::I1
           fields
-            #F10 it (nameOffset:64) (firstTokenOffset:59) (offset:64)
+            #F11 it (nameOffset:64) (firstTokenOffset:59) (offset:64)
               element: <testLibrary>::@extensionType::I1::@field::it
           constructors
-            #F11 new (nameOffset:<null>) (firstTokenOffset:59) (offset:57)
+            #F12 new (nameOffset:<null>) (firstTokenOffset:59) (offset:57)
               element: <testLibrary>::@extensionType::I1::@constructor::new
               typeName: I1
               typeNameOffset: 57
               formalParameters
-                #F12 this.it (nameOffset:64) (firstTokenOffset:59) (offset:64)
+                #F13 this.it (nameOffset:64) (firstTokenOffset:59) (offset:64)
                   element: <testLibrary>::@extensionType::I1::@constructor::new::@formalParameter::it
           getters
-            #F13 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
+            #F14 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
               element: <testLibrary>::@extensionType::I1::@getter::it
         #F2 extension type A (nameOffset:95) (firstTokenOffset:72) (offset:95)
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
-          nextFragment: #F14
+          nextFragment: #F15
           fields
             #F4 augment it (nameOffset:101) (firstTokenOffset:96) (offset:101)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
-              nextFragment: #F15
+              nextFragment: #F16
           constructors
-            #F7 augment new (nameOffset:<null>) (firstTokenOffset:96) (offset:95)
+            #F8 augment new (nameOffset:<null>) (firstTokenOffset:96) (offset:95)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 95
               formalParameters
-                #F16 this.it (nameOffset:101) (firstTokenOffset:96) (offset:101)
+                #F7 this.it (nameOffset:101) (firstTokenOffset:96) (offset:101)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              nextFragment: #F17
+                  previousFragment: #F6
+                  nextFragment: #F17
+              nextFragment: #F18
               previousFragment: #F5
-        #F18 extension type I2 (nameOffset:137) (firstTokenOffset:122) (offset:137)
+        #F19 extension type I2 (nameOffset:137) (firstTokenOffset:122) (offset:137)
           element: <testLibrary>::@extensionType::I2
           fields
-            #F19 it (nameOffset:144) (firstTokenOffset:139) (offset:144)
+            #F20 it (nameOffset:144) (firstTokenOffset:139) (offset:144)
               element: <testLibrary>::@extensionType::I2::@field::it
           constructors
-            #F20 new (nameOffset:<null>) (firstTokenOffset:139) (offset:137)
+            #F21 new (nameOffset:<null>) (firstTokenOffset:139) (offset:137)
               element: <testLibrary>::@extensionType::I2::@constructor::new
               typeName: I2
               typeNameOffset: 137
               formalParameters
-                #F21 this.it (nameOffset:144) (firstTokenOffset:139) (offset:144)
+                #F22 this.it (nameOffset:144) (firstTokenOffset:139) (offset:144)
                   element: <testLibrary>::@extensionType::I2::@constructor::new::@formalParameter::it
           getters
-            #F22 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:144)
+            #F23 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:144)
               element: <testLibrary>::@extensionType::I2::@getter::it
-        #F14 extension type A (nameOffset:175) (firstTokenOffset:152) (offset:175)
+        #F15 extension type A (nameOffset:175) (firstTokenOffset:152) (offset:175)
           element: <testLibrary>::@extensionType::A
           previousFragment: #F2
           fields
-            #F15 augment it (nameOffset:181) (firstTokenOffset:176) (offset:181)
+            #F16 augment it (nameOffset:181) (firstTokenOffset:176) (offset:181)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F4
           constructors
-            #F17 augment new (nameOffset:<null>) (firstTokenOffset:176) (offset:175)
+            #F18 augment new (nameOffset:<null>) (firstTokenOffset:176) (offset:175)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 175
               formalParameters
-                #F23 this.it (nameOffset:181) (firstTokenOffset:176) (offset:181)
+                #F17 this.it (nameOffset:181) (firstTokenOffset:176) (offset:181)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              previousFragment: #F7
+                  previousFragment: #F7
+              previousFragment: #F8
         #F24 extension type I3 (nameOffset:217) (firstTokenOffset:202) (offset:217)
           element: <testLibrary>::@extensionType::I3
           fields
@@ -4747,59 +4799,59 @@ library
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F8
+          firstFragment: #F9
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
     extension type I1
       reference: <testLibrary>::@extensionType::I1
-      firstFragment: #F9
+      firstFragment: #F10
       representation: <testLibrary>::@extensionType::I1::@field::it
       primaryConstructor: <testLibrary>::@extensionType::I1::@constructor::new
       typeErasure: int
       fields
         final it
           reference: <testLibrary>::@extensionType::I1::@field::it
-          firstFragment: #F10
+          firstFragment: #F11
           type: int
           getter: <testLibrary>::@extensionType::I1::@getter::it
       constructors
         isExtensionTypeMember new
           reference: <testLibrary>::@extensionType::I1::@constructor::new
-          firstFragment: #F11
+          firstFragment: #F12
           formalParameters
             #E1 requiredPositional final hasImplicitType it
-              firstFragment: #F12
+              firstFragment: #F13
               type: int
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::I1::@getter::it
-          firstFragment: #F13
+          firstFragment: #F14
           returnType: int
           variable: <testLibrary>::@extensionType::I1::@field::it
     extension type I2
       reference: <testLibrary>::@extensionType::I2
-      firstFragment: #F18
+      firstFragment: #F19
       representation: <testLibrary>::@extensionType::I2::@field::it
       primaryConstructor: <testLibrary>::@extensionType::I2::@constructor::new
       typeErasure: int
       fields
         final it
           reference: <testLibrary>::@extensionType::I2::@field::it
-          firstFragment: #F19
+          firstFragment: #F20
           type: int
           getter: <testLibrary>::@extensionType::I2::@getter::it
       constructors
         isExtensionTypeMember new
           reference: <testLibrary>::@extensionType::I2::@constructor::new
-          firstFragment: #F20
+          firstFragment: #F21
           formalParameters
             #E2 requiredPositional final hasImplicitType it
-              firstFragment: #F21
+              firstFragment: #F22
               type: int
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::I2::@getter::it
-          firstFragment: #F22
+          firstFragment: #F23
           returnType: int
           variable: <testLibrary>::@extensionType::I2::@field::it
     extension type I3
@@ -4866,25 +4918,26 @@ library
               formalParameters
                 #F8 this.it (nameOffset:24) (firstTokenOffset:19) (offset:24)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              nextFragment: #F9
+                  nextFragment: #F9
+              nextFragment: #F10
           getters
-            #F10 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+            #F11 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@extensionType::A::@getter::it
-        #F11 extension type I1 (nameOffset:60) (firstTokenOffset:45) (offset:60)
+        #F12 extension type I1 (nameOffset:60) (firstTokenOffset:45) (offset:60)
           element: <testLibrary>::@extensionType::I1
           fields
-            #F12 it (nameOffset:67) (firstTokenOffset:62) (offset:67)
+            #F13 it (nameOffset:67) (firstTokenOffset:62) (offset:67)
               element: <testLibrary>::@extensionType::I1::@field::it
           constructors
-            #F13 new (nameOffset:<null>) (firstTokenOffset:62) (offset:60)
+            #F14 new (nameOffset:<null>) (firstTokenOffset:62) (offset:60)
               element: <testLibrary>::@extensionType::I1::@constructor::new
               typeName: I1
               typeNameOffset: 60
               formalParameters
-                #F14 this.it (nameOffset:67) (firstTokenOffset:62) (offset:67)
+                #F15 this.it (nameOffset:67) (firstTokenOffset:62) (offset:67)
                   element: <testLibrary>::@extensionType::I1::@constructor::new::@formalParameter::it
           getters
-            #F15 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:67)
+            #F16 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:67)
               element: <testLibrary>::@extensionType::I1::@getter::it
         #F2 extension type A (nameOffset:98) (firstTokenOffset:75) (offset:98)
           element: <testLibrary>::@extensionType::A
@@ -4898,13 +4951,14 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F5
           constructors
-            #F9 augment new (nameOffset:<null>) (firstTokenOffset:102) (offset:98)
+            #F10 augment new (nameOffset:<null>) (firstTokenOffset:102) (offset:98)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 98
               formalParameters
-                #F16 this.it (nameOffset:107) (firstTokenOffset:102) (offset:107)
+                #F9 this.it (nameOffset:107) (firstTokenOffset:102) (offset:107)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+                  previousFragment: #F8
               previousFragment: #F7
         #F17 extension type I2 (nameOffset:146) (firstTokenOffset:131) (offset:146)
           element: <testLibrary>::@extensionType::I2
@@ -4955,33 +5009,33 @@ library
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F10
+          firstFragment: #F11
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
     extension type I1
       reference: <testLibrary>::@extensionType::I1
-      firstFragment: #F11
+      firstFragment: #F12
       representation: <testLibrary>::@extensionType::I1::@field::it
       primaryConstructor: <testLibrary>::@extensionType::I1::@constructor::new
       typeErasure: int
       fields
         final it
           reference: <testLibrary>::@extensionType::I1::@field::it
-          firstFragment: #F12
+          firstFragment: #F13
           type: int
           getter: <testLibrary>::@extensionType::I1::@getter::it
       constructors
         isExtensionTypeMember new
           reference: <testLibrary>::@extensionType::I1::@constructor::new
-          firstFragment: #F13
+          firstFragment: #F14
           formalParameters
             #E3 requiredPositional final hasImplicitType it
-              firstFragment: #F14
+              firstFragment: #F15
               type: int
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::I1::@getter::it
-          firstFragment: #F15
+          firstFragment: #F16
           returnType: int
           variable: <testLibrary>::@extensionType::I1::@field::it
     extension type I2
@@ -5051,25 +5105,26 @@ library
               formalParameters
                 #F8 this.it (nameOffset:24) (firstTokenOffset:19) (offset:24)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              nextFragment: #F9
+                  nextFragment: #F9
+              nextFragment: #F10
           getters
-            #F10 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+            #F11 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@extensionType::A::@getter::it
-        #F11 extension type I1 (nameOffset:60) (firstTokenOffset:45) (offset:60)
+        #F12 extension type I1 (nameOffset:60) (firstTokenOffset:45) (offset:60)
           element: <testLibrary>::@extensionType::I1
           fields
-            #F12 it (nameOffset:67) (firstTokenOffset:62) (offset:67)
+            #F13 it (nameOffset:67) (firstTokenOffset:62) (offset:67)
               element: <testLibrary>::@extensionType::I1::@field::it
           constructors
-            #F13 new (nameOffset:<null>) (firstTokenOffset:62) (offset:60)
+            #F14 new (nameOffset:<null>) (firstTokenOffset:62) (offset:60)
               element: <testLibrary>::@extensionType::I1::@constructor::new
               typeName: I1
               typeNameOffset: 60
               formalParameters
-                #F14 this.it (nameOffset:67) (firstTokenOffset:62) (offset:67)
+                #F15 this.it (nameOffset:67) (firstTokenOffset:62) (offset:67)
                   element: <testLibrary>::@extensionType::I1::@constructor::new::@formalParameter::it
           getters
-            #F15 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:67)
+            #F16 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:67)
               element: <testLibrary>::@extensionType::I1::@getter::it
         #F2 extension type A (nameOffset:98) (firstTokenOffset:75) (offset:98)
           element: <testLibrary>::@extensionType::A
@@ -5083,13 +5138,14 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F5
           constructors
-            #F9 augment new (nameOffset:<null>) (firstTokenOffset:105) (offset:98)
+            #F10 augment new (nameOffset:<null>) (firstTokenOffset:105) (offset:98)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 98
               formalParameters
-                #F16 this.it (nameOffset:110) (firstTokenOffset:105) (offset:110)
+                #F9 this.it (nameOffset:110) (firstTokenOffset:105) (offset:110)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+                  previousFragment: #F8
               previousFragment: #F7
         #F17 extension type I2 (nameOffset:149) (firstTokenOffset:134) (offset:149)
           element: <testLibrary>::@extensionType::I2
@@ -5140,33 +5196,33 @@ library
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F10
+          firstFragment: #F11
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
     extension type I1
       reference: <testLibrary>::@extensionType::I1
-      firstFragment: #F11
+      firstFragment: #F12
       representation: <testLibrary>::@extensionType::I1::@field::it
       primaryConstructor: <testLibrary>::@extensionType::I1::@constructor::new
       typeErasure: int
       fields
         final it
           reference: <testLibrary>::@extensionType::I1::@field::it
-          firstFragment: #F12
+          firstFragment: #F13
           type: int
           getter: <testLibrary>::@extensionType::I1::@getter::it
       constructors
         isExtensionTypeMember new
           reference: <testLibrary>::@extensionType::I1::@constructor::new
-          firstFragment: #F13
+          firstFragment: #F14
           formalParameters
             #E3 requiredPositional final hasImplicitType it
-              firstFragment: #F14
+              firstFragment: #F15
               type: int
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::I1::@getter::it
-          firstFragment: #F15
+          firstFragment: #F16
           returnType: int
           variable: <testLibrary>::@extensionType::I1::@field::it
     extension type I2
@@ -5234,12 +5290,13 @@ library
               formalParameters
                 #F6 this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              nextFragment: #F7
+                  nextFragment: #F7
+              nextFragment: #F8
           getters
-            #F8 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F9 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@extensionType::A::@getter::it
           methods
-            #F9 foo (nameOffset:34) (firstTokenOffset:29) (offset:34)
+            #F10 foo (nameOffset:34) (firstTokenOffset:29) (offset:34)
               element: <testLibrary>::@extensionType::A::@method::foo
         #F2 extension type A (nameOffset:69) (firstTokenOffset:46) (offset:69)
           element: <testLibrary>::@extensionType::A
@@ -5249,13 +5306,14 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
-            #F7 augment new (nameOffset:<null>) (firstTokenOffset:70) (offset:69)
+            #F8 augment new (nameOffset:<null>) (firstTokenOffset:70) (offset:69)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 69
               formalParameters
-                #F10 this.it (nameOffset:75) (firstTokenOffset:70) (offset:75)
+                #F7 this.it (nameOffset:75) (firstTokenOffset:70) (offset:75)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+                  previousFragment: #F6
               previousFragment: #F5
           methods
             #F11 bar (nameOffset:88) (firstTokenOffset:83) (offset:88)
@@ -5284,13 +5342,13 @@ library
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F8
+          firstFragment: #F9
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
       methods
         isExtensionTypeMember foo
           reference: <testLibrary>::@extensionType::A::@method::foo
-          firstFragment: #F9
+          firstFragment: #F10
           returnType: void
         isExtensionTypeMember bar
           reference: <testLibrary>::@extensionType::A::@method::bar
@@ -5333,15 +5391,16 @@ library
               formalParameters
                 #F6 this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              nextFragment: #F7
+                  nextFragment: #F7
+              nextFragment: #F8
           getters
-            #F8 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F9 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@extensionType::A::@getter::it
           methods
-            #F9 foo1 (nameOffset:34) (firstTokenOffset:29) (offset:34)
+            #F10 foo1 (nameOffset:34) (firstTokenOffset:29) (offset:34)
               element: <testLibrary>::@extensionType::A::@method::foo1
-              nextFragment: #F10
-            #F11 foo2 (nameOffset:51) (firstTokenOffset:46) (offset:51)
+              nextFragment: #F11
+            #F12 foo2 (nameOffset:51) (firstTokenOffset:46) (offset:51)
               element: <testLibrary>::@extensionType::A::@method::foo2
         #F2 extension type A (nameOffset:87) (firstTokenOffset:64) (offset:87)
           element: <testLibrary>::@extensionType::A
@@ -5351,18 +5410,19 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
-            #F7 augment new (nameOffset:<null>) (firstTokenOffset:88) (offset:87)
+            #F8 augment new (nameOffset:<null>) (firstTokenOffset:88) (offset:87)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 87
               formalParameters
-                #F12 this.it (nameOffset:93) (firstTokenOffset:88) (offset:93)
+                #F7 this.it (nameOffset:93) (firstTokenOffset:88) (offset:93)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+                  previousFragment: #F6
               previousFragment: #F5
           methods
-            #F10 augment foo1 (nameOffset:114) (firstTokenOffset:101) (offset:114)
+            #F11 augment foo1 (nameOffset:114) (firstTokenOffset:101) (offset:114)
               element: <testLibrary>::@extensionType::A::@method::foo1
-              previousFragment: #F9
+              previousFragment: #F10
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -5387,17 +5447,17 @@ library
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F8
+          firstFragment: #F9
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
       methods
         isExtensionTypeMember foo1
           reference: <testLibrary>::@extensionType::A::@method::foo1
-          firstFragment: #F9
+          firstFragment: #F10
           returnType: void
         isExtensionTypeMember foo2
           reference: <testLibrary>::@extensionType::A::@method::foo2
-          firstFragment: #F11
+          firstFragment: #F12
           returnType: void
 ''');
   }
@@ -5439,58 +5499,62 @@ library
               formalParameters
                 #F6 this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              nextFragment: #F7
+                  nextFragment: #F7
+              nextFragment: #F8
           getters
-            #F8 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F9 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@extensionType::A::@getter::it
           methods
-            #F9 foo (nameOffset:34) (firstTokenOffset:29) (offset:34)
+            #F10 foo (nameOffset:34) (firstTokenOffset:29) (offset:34)
               element: <testLibrary>::@extensionType::A::@method::foo
-              nextFragment: #F10
+              nextFragment: #F11
         #F2 extension type A (nameOffset:69) (firstTokenOffset:46) (offset:69)
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
-          nextFragment: #F11
+          nextFragment: #F12
           fields
             #F4 augment it (nameOffset:75) (firstTokenOffset:70) (offset:75)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
-              nextFragment: #F12
+              nextFragment: #F13
           constructors
-            #F7 augment new (nameOffset:<null>) (firstTokenOffset:70) (offset:69)
+            #F8 augment new (nameOffset:<null>) (firstTokenOffset:70) (offset:69)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 69
               formalParameters
-                #F13 this.it (nameOffset:75) (firstTokenOffset:70) (offset:75)
+                #F7 this.it (nameOffset:75) (firstTokenOffset:70) (offset:75)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              nextFragment: #F14
+                  previousFragment: #F6
+                  nextFragment: #F14
+              nextFragment: #F15
               previousFragment: #F5
           methods
-            #F10 augment foo (nameOffset:96) (firstTokenOffset:83) (offset:96)
+            #F11 augment foo (nameOffset:96) (firstTokenOffset:83) (offset:96)
               element: <testLibrary>::@extensionType::A::@method::foo
-              previousFragment: #F9
-              nextFragment: #F15
-        #F11 extension type A (nameOffset:131) (firstTokenOffset:108) (offset:131)
+              previousFragment: #F10
+              nextFragment: #F16
+        #F12 extension type A (nameOffset:131) (firstTokenOffset:108) (offset:131)
           element: <testLibrary>::@extensionType::A
           previousFragment: #F2
           fields
-            #F12 augment it (nameOffset:137) (firstTokenOffset:132) (offset:137)
+            #F13 augment it (nameOffset:137) (firstTokenOffset:132) (offset:137)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F4
           constructors
-            #F14 augment new (nameOffset:<null>) (firstTokenOffset:132) (offset:131)
+            #F15 augment new (nameOffset:<null>) (firstTokenOffset:132) (offset:131)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 131
               formalParameters
-                #F16 this.it (nameOffset:137) (firstTokenOffset:132) (offset:137)
+                #F14 this.it (nameOffset:137) (firstTokenOffset:132) (offset:137)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              previousFragment: #F7
+                  previousFragment: #F7
+              previousFragment: #F8
           methods
-            #F15 augment foo (nameOffset:158) (firstTokenOffset:145) (offset:158)
+            #F16 augment foo (nameOffset:158) (firstTokenOffset:145) (offset:158)
               element: <testLibrary>::@extensionType::A::@method::foo
-              previousFragment: #F10
+              previousFragment: #F11
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -5515,13 +5579,13 @@ library
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F8
+          firstFragment: #F9
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
       methods
         isExtensionTypeMember foo
           reference: <testLibrary>::@extensionType::A::@method::foo
-          firstFragment: #F9
+          firstFragment: #F10
           returnType: void
 ''');
   }
@@ -5563,12 +5627,13 @@ library
               formalParameters
                 #F8 this.it (nameOffset:24) (firstTokenOffset:19) (offset:24)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              nextFragment: #F9
+                  nextFragment: #F9
+              nextFragment: #F10
           getters
-            #F10 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+            #F11 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@extensionType::A::@getter::it
           methods
-            #F11 foo (nameOffset:34) (firstTokenOffset:32) (offset:34)
+            #F12 foo (nameOffset:34) (firstTokenOffset:32) (offset:34)
               element: <testLibrary>::@extensionType::A::@method::foo
         #F2 extension type A (nameOffset:78) (firstTokenOffset:55) (offset:78)
           element: <testLibrary>::@extensionType::A
@@ -5582,13 +5647,14 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F5
           constructors
-            #F9 augment new (nameOffset:<null>) (firstTokenOffset:82) (offset:78)
+            #F10 augment new (nameOffset:<null>) (firstTokenOffset:82) (offset:78)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 78
               formalParameters
-                #F12 this.it (nameOffset:87) (firstTokenOffset:82) (offset:87)
+                #F9 this.it (nameOffset:87) (firstTokenOffset:82) (offset:87)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+                  previousFragment: #F8
               previousFragment: #F7
           methods
             #F13 bar (nameOffset:97) (firstTokenOffset:95) (offset:97)
@@ -5620,13 +5686,13 @@ library
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F10
+          firstFragment: #F11
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
       methods
         isExtensionTypeMember foo
           reference: <testLibrary>::@extensionType::A::@method::foo
-          firstFragment: #F11
+          firstFragment: #F12
           hasEnclosingTypeParameterReference: true
           returnType: T
         isExtensionTypeMember bar
@@ -5674,14 +5740,15 @@ library
               formalParameters
                 #F8 this.it (nameOffset:24) (firstTokenOffset:19) (offset:24)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              nextFragment: #F9
+                  nextFragment: #F9
+              nextFragment: #F10
           getters
-            #F10 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+            #F11 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@extensionType::A::@getter::it
           methods
-            #F11 foo (nameOffset:34) (firstTokenOffset:32) (offset:34)
+            #F12 foo (nameOffset:34) (firstTokenOffset:32) (offset:34)
               element: <testLibrary>::@extensionType::A::@method::foo
-              nextFragment: #F12
+              nextFragment: #F13
         #F2 extension type A (nameOffset:78) (firstTokenOffset:55) (offset:78)
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
@@ -5694,18 +5761,19 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F5
           constructors
-            #F9 augment new (nameOffset:<null>) (firstTokenOffset:82) (offset:78)
+            #F10 augment new (nameOffset:<null>) (firstTokenOffset:82) (offset:78)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 78
               formalParameters
-                #F13 this.it (nameOffset:87) (firstTokenOffset:82) (offset:87)
+                #F9 this.it (nameOffset:87) (firstTokenOffset:82) (offset:87)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+                  previousFragment: #F8
               previousFragment: #F7
           methods
-            #F12 augment foo (nameOffset:105) (firstTokenOffset:95) (offset:105)
+            #F13 augment foo (nameOffset:105) (firstTokenOffset:95) (offset:105)
               element: <testLibrary>::@extensionType::A::@method::foo
-              previousFragment: #F11
+              previousFragment: #F12
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -5733,13 +5801,13 @@ library
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F10
+          firstFragment: #F11
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
       methods
         isExtensionTypeMember foo
           reference: <testLibrary>::@extensionType::A::@method::foo
-          firstFragment: #F11
+          firstFragment: #F12
           hasEnclosingTypeParameterReference: true
           returnType: T
 ''');
@@ -5779,15 +5847,16 @@ library
               formalParameters
                 #F6 this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              nextFragment: #F7
+                  nextFragment: #F7
+              nextFragment: #F8
           getters
-            #F8 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F9 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@extensionType::A::@getter::it
           methods
-            #F9 foo (nameOffset:34) (firstTokenOffset:29) (offset:34)
+            #F10 foo (nameOffset:34) (firstTokenOffset:29) (offset:34)
               element: <testLibrary>::@extensionType::A::@method::foo
-              nextFragment: #F10
-            #F11 bar (nameOffset:50) (firstTokenOffset:45) (offset:50)
+              nextFragment: #F11
+            #F12 bar (nameOffset:50) (firstTokenOffset:45) (offset:50)
               element: <testLibrary>::@extensionType::A::@method::bar
         #F2 extension type A (nameOffset:85) (firstTokenOffset:62) (offset:85)
           element: <testLibrary>::@extensionType::A
@@ -5797,18 +5866,19 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
-            #F7 augment new (nameOffset:<null>) (firstTokenOffset:89) (offset:85)
+            #F8 augment new (nameOffset:<null>) (firstTokenOffset:89) (offset:85)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 85
               formalParameters
-                #F12 this.it (nameOffset:94) (firstTokenOffset:89) (offset:94)
+                #F7 this.it (nameOffset:94) (firstTokenOffset:89) (offset:94)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+                  previousFragment: #F6
               previousFragment: #F5
           methods
-            #F10 augment foo (nameOffset:115) (firstTokenOffset:102) (offset:115)
+            #F11 augment foo (nameOffset:115) (firstTokenOffset:102) (offset:115)
               element: <testLibrary>::@extensionType::A::@method::foo
-              previousFragment: #F9
+              previousFragment: #F10
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -5833,17 +5903,17 @@ library
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F8
+          firstFragment: #F9
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
       methods
         isExtensionTypeMember foo
           reference: <testLibrary>::@extensionType::A::@method::foo
-          firstFragment: #F9
+          firstFragment: #F10
           returnType: void
         isExtensionTypeMember bar
           reference: <testLibrary>::@extensionType::A::@method::bar
-          firstFragment: #F11
+          firstFragment: #F12
           returnType: void
 ''');
   }
@@ -5883,15 +5953,16 @@ library
               formalParameters
                 #F7 this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              nextFragment: #F8
+                  nextFragment: #F8
+              nextFragment: #F9
           getters
-            #F9 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F10 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@extensionType::A::@getter::it
           setters
-            #F10 foo1 (nameOffset:33) (firstTokenOffset:29) (offset:33)
+            #F11 foo1 (nameOffset:33) (firstTokenOffset:29) (offset:33)
               element: <testLibrary>::@extensionType::A::@setter::foo1
               formalParameters
-                #F11 _ (nameOffset:42) (firstTokenOffset:38) (offset:42)
+                #F12 _ (nameOffset:42) (firstTokenOffset:38) (offset:42)
                   element: <testLibrary>::@extensionType::A::@setter::foo1::@formalParameter::_
         #F2 extension type A (nameOffset:74) (firstTokenOffset:51) (offset:74)
           element: <testLibrary>::@extensionType::A
@@ -5900,16 +5971,17 @@ library
             #F4 augment it (nameOffset:80) (firstTokenOffset:75) (offset:80)
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
-            #F12 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
+            #F13 synthetic foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
               element: <testLibrary>::@extensionType::A::@field::foo2
           constructors
-            #F8 augment new (nameOffset:<null>) (firstTokenOffset:75) (offset:74)
+            #F9 augment new (nameOffset:<null>) (firstTokenOffset:75) (offset:74)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 74
               formalParameters
-                #F13 this.it (nameOffset:80) (firstTokenOffset:75) (offset:80)
+                #F8 this.it (nameOffset:80) (firstTokenOffset:75) (offset:80)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+                  previousFragment: #F7
               previousFragment: #F6
           setters
             #F14 foo2 (nameOffset:92) (firstTokenOffset:88) (offset:92)
@@ -5937,7 +6009,7 @@ library
           setter: <testLibrary>::@extensionType::A::@setter::foo1
         synthetic foo2
           reference: <testLibrary>::@extensionType::A::@field::foo2
-          firstFragment: #F12
+          firstFragment: #F13
           type: int
           setter: <testLibrary>::@extensionType::A::@setter::foo2
       constructors
@@ -5951,16 +6023,16 @@ library
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F9
+          firstFragment: #F10
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
       setters
         isExtensionTypeMember foo1
           reference: <testLibrary>::@extensionType::A::@setter::foo1
-          firstFragment: #F10
+          firstFragment: #F11
           formalParameters
             #E1 requiredPositional _
-              firstFragment: #F11
+              firstFragment: #F12
               type: int
           returnType: void
           variable: <testLibrary>::@extensionType::A::@field::foo1
@@ -6011,19 +6083,20 @@ library
               formalParameters
                 #F7 this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              nextFragment: #F8
+                  nextFragment: #F8
+              nextFragment: #F9
           getters
-            #F9 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F10 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@extensionType::A::@getter::it
-            #F10 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F11 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@extensionType::A::@getter::foo
           setters
-            #F11 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F12 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@extensionType::A::@setter::foo
               formalParameters
-                #F12 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+                #F13 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
                   element: <testLibrary>::@extensionType::A::@setter::foo::@formalParameter::value
-              nextFragment: #F13
+              nextFragment: #F14
         #F2 extension type A (nameOffset:75) (firstTokenOffset:52) (offset:75)
           element: <testLibrary>::@extensionType::A
           previousFragment: #F1
@@ -6032,21 +6105,22 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
-            #F8 augment new (nameOffset:<null>) (firstTokenOffset:76) (offset:75)
+            #F9 augment new (nameOffset:<null>) (firstTokenOffset:76) (offset:75)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
               formalParameters
-                #F14 this.it (nameOffset:81) (firstTokenOffset:76) (offset:81)
+                #F8 this.it (nameOffset:81) (firstTokenOffset:76) (offset:81)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+                  previousFragment: #F7
               previousFragment: #F6
           setters
-            #F13 augment foo (nameOffset:108) (firstTokenOffset:89) (offset:108)
+            #F14 augment foo (nameOffset:108) (firstTokenOffset:89) (offset:108)
               element: <testLibrary>::@extensionType::A::@setter::foo
               formalParameters
                 #F15 _ (nameOffset:116) (firstTokenOffset:112) (offset:116)
                   element: <testLibrary>::@extensionType::A::@setter::foo::@formalParameter::_
-              previousFragment: #F11
+              previousFragment: #F12
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -6077,21 +6151,21 @@ library
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F9
+          firstFragment: #F10
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
         synthetic static isExtensionTypeMember foo
           reference: <testLibrary>::@extensionType::A::@getter::foo
-          firstFragment: #F10
+          firstFragment: #F11
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::foo
       setters
         synthetic static isExtensionTypeMember foo
           reference: <testLibrary>::@extensionType::A::@setter::foo
-          firstFragment: #F11
+          firstFragment: #F12
           formalParameters
             #E1 requiredPositional value
-              firstFragment: #F12
+              firstFragment: #F13
               type: int
           returnType: void
           variable: <testLibrary>::@extensionType::A::@field::foo
@@ -6136,21 +6210,22 @@ library
               formalParameters
                 #F8 this.it (nameOffset:21) (firstTokenOffset:16) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-              nextFragment: #F9
+                  nextFragment: #F9
+              nextFragment: #F10
           getters
-            #F10 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F11 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@extensionType::A::@getter::it
           setters
-            #F11 foo1 (nameOffset:33) (firstTokenOffset:29) (offset:33)
+            #F12 foo1 (nameOffset:33) (firstTokenOffset:29) (offset:33)
               element: <testLibrary>::@extensionType::A::@setter::foo1
               formalParameters
-                #F12 _ (nameOffset:42) (firstTokenOffset:38) (offset:42)
+                #F13 _ (nameOffset:42) (firstTokenOffset:38) (offset:42)
                   element: <testLibrary>::@extensionType::A::@setter::foo1::@formalParameter::_
-              nextFragment: #F13
-            #F14 foo2 (nameOffset:54) (firstTokenOffset:50) (offset:54)
+              nextFragment: #F14
+            #F15 foo2 (nameOffset:54) (firstTokenOffset:50) (offset:54)
               element: <testLibrary>::@extensionType::A::@setter::foo2
               formalParameters
-                #F15 _ (nameOffset:63) (firstTokenOffset:59) (offset:63)
+                #F16 _ (nameOffset:63) (firstTokenOffset:59) (offset:63)
                   element: <testLibrary>::@extensionType::A::@setter::foo2::@formalParameter::_
         #F2 extension type A (nameOffset:95) (firstTokenOffset:72) (offset:95)
           element: <testLibrary>::@extensionType::A
@@ -6160,21 +6235,22 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
               previousFragment: #F3
           constructors
-            #F9 augment new (nameOffset:<null>) (firstTokenOffset:96) (offset:95)
+            #F10 augment new (nameOffset:<null>) (firstTokenOffset:96) (offset:95)
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 95
               formalParameters
-                #F16 this.it (nameOffset:101) (firstTokenOffset:96) (offset:101)
+                #F9 this.it (nameOffset:101) (firstTokenOffset:96) (offset:101)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+                  previousFragment: #F8
               previousFragment: #F7
           setters
-            #F13 augment foo1 (nameOffset:121) (firstTokenOffset:109) (offset:121)
+            #F14 augment foo1 (nameOffset:121) (firstTokenOffset:109) (offset:121)
               element: <testLibrary>::@extensionType::A::@setter::foo1
               formalParameters
                 #F17 _ (nameOffset:130) (firstTokenOffset:126) (offset:130)
                   element: <testLibrary>::@extensionType::A::@setter::foo1::@formalParameter::_
-              previousFragment: #F11
+              previousFragment: #F12
   extensionTypes
     extension type A
       reference: <testLibrary>::@extensionType::A
@@ -6209,25 +6285,25 @@ library
       getters
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
-          firstFragment: #F10
+          firstFragment: #F11
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
       setters
         isExtensionTypeMember foo1
           reference: <testLibrary>::@extensionType::A::@setter::foo1
-          firstFragment: #F11
+          firstFragment: #F12
           formalParameters
             #E1 requiredPositional _
-              firstFragment: #F12
+              firstFragment: #F13
               type: int
           returnType: void
           variable: <testLibrary>::@extensionType::A::@field::foo1
         isExtensionTypeMember foo2
           reference: <testLibrary>::@extensionType::A::@setter::foo2
-          firstFragment: #F14
+          firstFragment: #F15
           formalParameters
             #E2 requiredPositional _
-              firstFragment: #F15
+              firstFragment: #F16
               type: int
           returnType: void
           variable: <testLibrary>::@extensionType::A::@field::foo2
