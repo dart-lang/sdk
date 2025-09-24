@@ -4684,6 +4684,30 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(OffsetInBytes() != 0 || slot().has_untagged_instance());
   auto const rep = slot().representation();
 
+  if (!compiler->is_optimizing() && FLAG_target_thread_sanitizer &&
+      !slot().is_no_sanitize_thread() &&
+      memory_order() == compiler::Assembler::kRelaxedNonAtomic) {
+    EmitTsanCallUnopt(compiler, this, [&]() -> const RuntimeEntry& {
+      intptr_t tag = slot().has_untagged_instance() ? 0 : kHeapObjectTag;
+      __ AddImmediate(CallingConventions::ArgumentRegisters[0], instance_reg,
+                      slot().offset_in_bytes() - tag);
+      switch (RepresentationUtils::ValueSize(rep)) {
+        case 1:
+          return kTsanRead1RuntimeEntry;
+        case 2:
+          return kTsanRead2RuntimeEntry;
+        case 4:
+          return kTsanRead4RuntimeEntry;
+        case 8:
+          return kTsanRead8RuntimeEntry;
+        case 16:
+          return kTsanRead16RuntimeEntry;
+        default:
+          UNREACHABLE();
+      }
+    });
+  }
+
   if (calls_initializer()) {
     __ LoadFromSlot(locs()->out(0).reg(), instance_reg, slot(), memory_order_);
     EmitNativeCodeForInitializerCall(compiler);
@@ -7297,11 +7321,11 @@ static LocationSummary* MakeTsanLocationSummary(Zone* zone,
   return result;
 }
 
-static void EmitTsanNativeCode(
-    FlowGraphCompiler* compiler,
-    LocationSummary* locs,
-    std::function<const RuntimeEntry&()> move_parameters) {
-  const Register saved_sp = locs->temp(0).reg();
+static void EmitTsanCall(FlowGraphCompiler* compiler,
+                         Instruction* instr,
+                         RegisterSet spill_set,
+                         Register saved_sp,
+                         std::function<const RuntimeEntry&()> move_parameters) {
   ASSERT(IsCalleeSavedRegister(saved_sp));
   ASSERT(IsCalleeSavedRegister(THR));
   ASSERT(IsCalleeSavedRegister(PP));
@@ -7316,6 +7340,7 @@ static void EmitTsanNativeCode(
   ASSERT(IsCalleeSavedRegister(DISPATCH_TABLE_REG));
 #endif
 
+  __ PushRegisters(spill_set);
   __ MoveRegister(saved_sp, SPREG);
 #if defined(TARGET_ARCH_ARM64)
   __ AndImmediate(CSP, SP, ~(OS::ActivationFrameAlignment() - 1));
@@ -7327,6 +7352,8 @@ static void EmitTsanNativeCode(
   __ Store(TMP,
            compiler::Address(THR, compiler::target::Thread::vm_tag_offset()));
   __ CallCFunction(TMP);
+  compiler->AddCurrentDescriptor(UntaggedPcDescriptors::kOther, DeoptId::kNone,
+                                 instr->source());
   __ LoadImmediate(TMP, VMTag::kDartTagId);
   __ Store(TMP,
            compiler::Address(THR, compiler::target::Thread::vm_tag_offset()));
@@ -7334,6 +7361,31 @@ static void EmitTsanNativeCode(
 #if defined(TARGET_ARCH_ARM64)
   __ SetupCSPFromThread(THR);
 #endif
+  __ PopRegisters(spill_set);
+}
+
+static void EmitTsanCall(FlowGraphCompiler* compiler,
+                         Instruction* instr,
+                         std::function<const RuntimeEntry&()> move_parameters) {
+  EmitTsanCall(compiler, instr, RegisterSet(), instr->locs()->temp(0).reg(),
+               move_parameters);
+}
+
+void EmitTsanCallUnopt(FlowGraphCompiler* compiler,
+                       Instruction* instr,
+                       std::function<const RuntimeEntry&()> move_parameters) {
+  intptr_t cpu_reg_mask = 0;
+  intptr_t fpu_reg_mask = 0;
+  LocationSummary* locs = instr->locs();
+  for (intptr_t i = 0, n = locs->input_count(); i < n; i++) {
+    if (locs->in(i).IsRegister()) {
+      cpu_reg_mask |= 1 << locs->in(i).reg();
+    } else if (locs->in(i).IsFpuRegister()) {
+      fpu_reg_mask |= 1 << locs->in(i).fpu_reg();
+    }
+  }
+  EmitTsanCall(compiler, instr, RegisterSet(cpu_reg_mask, fpu_reg_mask),
+               CALLEE_SAVED_TEMP, move_parameters);
 }
 
 LocationSummary* TsanFuncEntryExitInstr::MakeLocationSummary(Zone* zone,
@@ -7344,7 +7396,7 @@ LocationSummary* TsanFuncEntryExitInstr::MakeLocationSummary(Zone* zone,
 void TsanFuncEntryExitInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!compiler->flow_graph().graph_entry()->NeedsFrame()) return;
 
-  EmitTsanNativeCode(compiler, locs(), [&]() -> const RuntimeEntry& {
+  EmitTsanCall(compiler, this, [&]() -> const RuntimeEntry& {
     if (kind_ == kEntry) {
       __ Load(
           CallingConventions::ArgumentRegisters[0],
@@ -7364,7 +7416,7 @@ LocationSummary* TsanReadWriteInstr::MakeLocationSummary(Zone* zone,
 }
 
 void TsanReadWriteInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  EmitTsanNativeCode(compiler, locs(), [&]() -> const RuntimeEntry& {
+  EmitTsanCall(compiler, this, [&]() -> const RuntimeEntry& {
     const Register instance_reg = locs()->in(0).reg();
     intptr_t tag = slot().has_untagged_instance() ? 0 : kHeapObjectTag;
     __ AddImmediate(CallingConventions::ArgumentRegisters[0], instance_reg,
@@ -7413,7 +7465,7 @@ LocationSummary* TsanReadWriteIndexedInstr::MakeLocationSummary(
 }
 
 void TsanReadWriteIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  EmitTsanNativeCode(compiler, locs(), [&]() -> const RuntimeEntry& {
+  EmitTsanCall(compiler, this, [&]() -> const RuntimeEntry& {
     const Register array_reg = locs()->in(kArrayPos).reg();
     Register index_reg = locs()->in(kIndexPos).reg();
 
@@ -8021,6 +8073,30 @@ void StoreFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // For fields on Dart objects, the offset must point after the header.
   ASSERT(OffsetInBytes() != 0 || slot().has_untagged_instance());
   const Representation rep = slot().representation();
+
+  if (!compiler->is_optimizing() && FLAG_target_thread_sanitizer &&
+      !slot().is_no_sanitize_thread() &&
+      memory_order() == compiler::Assembler::kRelaxedNonAtomic) {
+    EmitTsanCallUnopt(compiler, this, [&]() -> const RuntimeEntry& {
+      intptr_t tag = slot().has_untagged_instance() ? 0 : kHeapObjectTag;
+      __ AddImmediate(CallingConventions::ArgumentRegisters[0], instance_reg,
+                      slot().offset_in_bytes() - tag);
+      switch (RepresentationUtils::ValueSize(rep)) {
+        case 1:
+          return kTsanWrite1RuntimeEntry;
+        case 2:
+          return kTsanWrite2RuntimeEntry;
+        case 4:
+          return kTsanWrite4RuntimeEntry;
+        case 8:
+          return kTsanWrite8RuntimeEntry;
+        case 16:
+          return kTsanWrite16RuntimeEntry;
+        default:
+          UNREACHABLE();
+      }
+    });
+  }
 
 #if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV32) ||              \
     defined(TARGET_ARCH_RISCV64)

@@ -6,7 +6,6 @@
 
 #include <memory>
 
-#include "compiler/method_recognizer.h"
 #include "include/dart_api.h"
 #include "lib/integers.h"
 #include "lib/stacktrace.h"
@@ -27,6 +26,7 @@
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/compiler/assembler/disassembler_kbc.h"
 #include "vm/compiler/jit/compiler.h"
+#include "vm/compiler/method_recognizer.h"
 #include "vm/compiler/runtime_api.h"
 #include "vm/cpu.h"
 #include "vm/dart.h"
@@ -71,6 +71,7 @@
 #include "vm/tags.h"
 #include "vm/thread_registry.h"
 #include "vm/timeline.h"
+#include "vm/tsan_symbolize.h"
 #include "vm/type_testing_stubs.h"
 #include "vm/zone_text_buffer.h"
 
@@ -18925,6 +18926,7 @@ void Code::NotifyCodeObservers(const Function& function,
     NotifyCodeObservers(name, code, optimized);
   }
 #endif
+  RegisterTsanSymbolize(code);
 }
 
 void Code::NotifyCodeObservers(const char* name,
