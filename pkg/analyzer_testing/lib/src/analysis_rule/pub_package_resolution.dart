@@ -195,6 +195,9 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   /// descriptions and locations.
   ///
   /// The order in which the diagnostics were gathered is ignored.
+  ///
+  /// Note: Be sure to `await` any use of this API, to avoid stale analysis
+  /// results (See [DisposedAnalysisContextResult]).
   Future<void> assertDiagnostics(
     String content,
     List<ExpectedDiagnostic> expectedDiagnostics,
@@ -205,6 +208,9 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   }
 
   /// Asserts that the diagnostics in [diagnostics] match [expectedDiagnostics].
+  ///
+  /// Note: Be sure to `await` any use of this API, to avoid stale analysis
+  /// results (See [DisposedAnalysisContextResult]).
   void assertDiagnosticsIn(
     List<Diagnostic> diagnostics,
     List<ExpectedDiagnostic> expectedDiagnostics,
@@ -269,6 +275,9 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   /// expected error descriptions and locations.
   ///
   /// The order in which the diagnostics were gathered is ignored.
+  ///
+  /// Note: Be sure to `await` any use of this API, to avoid stale analysis
+  /// results (See [DisposedAnalysisContextResult]).
   Future<void> assertDiagnosticsInFile(
     String path,
     List<ExpectedDiagnostic> expectedDiagnostics,
@@ -282,6 +291,9 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   ///
   /// The unit at each path needs to have already been written to the file
   /// system before calling this method.
+  ///
+  /// Note: Be sure to `await` any use of this API, to avoid stale analysis
+  /// results (See [DisposedAnalysisContextResult]).
   Future<void> assertDiagnosticsInUnits(
     List<(String path, List<ExpectedDiagnostic> expectedDiagnostics)>
     unitsAndDiagnostics,
@@ -293,10 +305,16 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   }
 
   /// Asserts that there are no diagnostics in the given [content].
+  ///
+  /// Note: Be sure to `await` any use of this API, to avoid stale analysis
+  /// results (See [DisposedAnalysisContextResult]).
   Future<void> assertNoDiagnostics(String content) async =>
       assertDiagnostics(content, const []);
 
   /// Asserts that there are no diagnostics in the file at the given [path].
+  ///
+  /// Note: Be sure to `await` any use of this API, to avoid stale analysis
+  /// results (See [DisposedAnalysisContextResult]).
   Future<void> assertNoDiagnosticsInFile(String path) async =>
       assertDiagnosticsInFile(path, const []);
 
