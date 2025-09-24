@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
+import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:analyzer/src/binary/string_table.dart';
 
 /// Reader for binary formats.
@@ -23,10 +24,6 @@ class BinaryReader {
 
   BinaryReader(this.bytes);
 
-  void createStringTable(int offset) {
-    _stringTable = StringTable(bytes: bytes, startOffset: offset);
-  }
-
   /// Create a new instance with the given [offset].
   /// It shares the same bytes and string reader.
   BinaryReader fork(int offset) {
@@ -34,6 +31,29 @@ class BinaryReader {
     result.offset = offset;
     result._stringTable = _stringTable;
     return result;
+  }
+
+  void initializeStringTableAtOffset(int offset) {
+    _stringTable = StringTable(bytes: bytes, startOffset: offset);
+  }
+
+  /// Initializes the string table by reading its offset from the end of the
+  /// buffer.
+  ///
+  /// This is the counterpart to [BinaryWriter.writeStringTableAtEnd]. That
+  /// method writes the string table data, and then appends a `uint32` offset
+  /// pointing to the beginning of that data. This method reads that final
+  /// offset to initialize the reader's string table, preserving the reader's
+  /// current position.
+  void initializeStringTableFromEnd() {
+    var savedOffset = offset;
+    try {
+      offset = bytes.length - 4 * 1;
+      var stringTableOffset = readUint32();
+      initializeStringTableAtOffset(stringTableOffset);
+    } finally {
+      offset = savedOffset;
+    }
   }
 
   @pragma("vm:prefer-inline")

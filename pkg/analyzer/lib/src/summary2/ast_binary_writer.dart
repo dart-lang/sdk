@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/binary/string_table.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/summary2/ast_binary_flags.dart';
 import 'package:analyzer/src/summary2/ast_binary_tag.dart';
@@ -15,13 +14,8 @@ import 'package:analyzer/src/summary2/tokens_writer.dart';
 /// Serializer of fully resolved ASTs.
 class AstBinaryWriter extends ThrowingAstVisitor<void> {
   final ResolutionSink _sink;
-  final StringIndexer _stringIndexer;
 
-  AstBinaryWriter({
-    required ResolutionSink sink,
-    required StringIndexer stringIndexer,
-  }) : _sink = sink,
-       _stringIndexer = stringIndexer;
+  AstBinaryWriter({required ResolutionSink sink}) : _sink = sink;
 
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
@@ -990,8 +984,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   void _writeStringReference(String string) {
-    var index = _stringIndexer[string];
-    _writeUint30(index);
+    _sink.writeStringReference(string);
   }
 
   @pragma("vm:prefer-inline")

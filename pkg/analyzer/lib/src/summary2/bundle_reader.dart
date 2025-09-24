@@ -54,7 +54,7 @@ class BundleReader {
     var librariesOffset = _reader.readUint32();
     var referencesOffset = _reader.readUint32();
     var stringsOffset = _reader.readUint32();
-    _reader.createStringTable(stringsOffset);
+    _reader.initializeStringTableAtOffset(stringsOffset);
 
     var referenceReader = _ReferenceReader(
       elementFactory,

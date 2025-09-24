@@ -434,7 +434,6 @@ const _Protected protected = _Protected();
 ///   member of an extension type (a method, operator, getter, or setter) or
 /// * is applied to a member that does not redeclare a member from either the
 ///   extended type or a superinterface.
-@experimental
 const _Redeclare redeclare = _Redeclare();
 
 /// Annotation for intentionally loosening restrictions on subtyping that would
