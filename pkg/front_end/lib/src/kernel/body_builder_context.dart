@@ -375,7 +375,6 @@ abstract class BodyBuilderContext {
   InitializerInferenceResult inferInitializer({
     required TypeInferrer typeInferrer,
     required Uri fileUri,
-    required ConstantContext constantContext,
     required Initializer initializer,
   }) {
     throw new UnsupportedError('${runtimeType}.inferInitializer');

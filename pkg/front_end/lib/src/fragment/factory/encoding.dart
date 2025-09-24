@@ -7,7 +7,6 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
-import '../../base/constant_context.dart';
 import '../../base/identifiers.dart';
 import '../../base/lookup_result.dart';
 import '../../base/messages.dart';
@@ -282,7 +281,6 @@ class FactoryEncoding implements InferredTypeListener {
         targetType: target.function!.computeFunctionType(
           Nullability.nonNullable,
         ),
-        constantContext: ConstantContext.none,
       );
       if (typeArguments == null) {
         assert(

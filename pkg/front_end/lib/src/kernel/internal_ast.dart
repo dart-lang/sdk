@@ -453,12 +453,14 @@ class FactoryConstructorInvocation extends InternalExpression {
   bool hasBeenInferred = false;
   final Procedure target;
   ArgumentsImpl arguments;
+
+  /// If `true`, this invocation is constant, either explicit or inferred.
   final bool isConst;
 
   FactoryConstructorInvocation(
     this.target,
     this.arguments, {
-    this.isConst = false,
+    required this.isConst,
   }) {
     arguments.parent = this;
   }
@@ -548,13 +550,15 @@ class TypeAliasedFactoryInvocation extends InternalExpression {
   final TypeAliasBuilder typeAliasBuilder;
   final Procedure target;
   ArgumentsImpl arguments;
+
+  /// If `true`, this invocation is constant, either explicit or inferred.
   final bool isConst;
 
   TypeAliasedFactoryInvocation(
     this.typeAliasBuilder,
     this.target,
     this.arguments, {
-    this.isConst = false,
+    required this.isConst,
   }) {
     arguments.parent = this;
   }
@@ -4456,6 +4460,8 @@ class DotShorthandInvocation extends InternalExpression {
   final Name name;
   final int nameOffset;
   final ArgumentsImpl arguments;
+
+  /// If `true`, this invocation is constant, either explicit or inferred.
   final bool isConst;
 
   DotShorthandInvocation(

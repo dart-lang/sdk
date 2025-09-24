@@ -26,21 +26,6 @@ library;
 //   const B9.bar({super.y}) : super(new Test.bar()); // Error.
 //                                   ^^^
 //
-// pkg/front_end/testcases/super_parameters/issue48642.dart:70:42: Error: Cannot invoke a non-'const' factory where a const expression is expected.
-// Try using a constructor or factory that is 'const'.
-//   const B7.bar({super.x}) : super(y: new Test.bar()); // Error.
-//                                          ^
-//
-// pkg/front_end/testcases/super_parameters/issue48642.dart:79:40: Error: Cannot invoke a non-'const' factory where a const expression is expected.
-// Try using a constructor or factory that is 'const'.
-//   const B8.bar(super.x) : super(y: new Test.bar()); // Error.
-//                                        ^
-//
-// pkg/front_end/testcases/super_parameters/issue48642.dart:88:39: Error: Cannot invoke a non-'const' factory where a const expression is expected.
-// Try using a constructor or factory that is 'const'.
-//   const B9.bar({super.y}) : super(new Test.bar()); // Error.
-//                                       ^
-//
 import self as self;
 import "dart:core" as core;
 
@@ -120,13 +105,14 @@ class A7 extends core::Object /*hasConstConstructor*/  {
 }
 class B7 extends self::A7 /*hasConstConstructor*/  {
   const constructor foo({dynamic x = null}) → self::B7
-    : super self::A7::•(y: new self::Test::foo(), x: x)
+    : super self::A7::•(y: invalid-expression "pkg/front_end/testcases/super_parameters/issue48642.dart:69:38: Error: New expression is not a constant expression.
+  const B7.foo({super.x}) : super(y: new Test.foo()); // Error.
+                                     ^^^", x: x)
     ;
   const constructor bar({dynamic x = null}) → self::B7
-    : super self::A7::•(y: invalid-expression "pkg/front_end/testcases/super_parameters/issue48642.dart:70:42: Error: Cannot invoke a non-'const' factory where a const expression is expected.
-Try using a constructor or factory that is 'const'.
+    : super self::A7::•(y: invalid-expression "pkg/front_end/testcases/super_parameters/issue48642.dart:70:38: Error: New expression is not a constant expression.
   const B7.bar({super.x}) : super(y: new Test.bar()); // Error.
-                                         ^", x: x)
+                                     ^^^", x: x)
     ;
 }
 class A8 extends core::Object /*hasConstConstructor*/  {
@@ -136,13 +122,14 @@ class A8 extends core::Object /*hasConstConstructor*/  {
 }
 class B8 extends self::A8 /*hasConstConstructor*/  {
   const constructor foo(dynamic x) → self::B8
-    : super self::A8::•(x, y: new self::Test::foo())
+    : super self::A8::•(x, y: invalid-expression "pkg/front_end/testcases/super_parameters/issue48642.dart:78:36: Error: New expression is not a constant expression.
+  const B8.foo(super.x) : super(y: new Test.foo()); // Error.
+                                   ^^^")
     ;
   const constructor bar(dynamic x) → self::B8
-    : super self::A8::•(x, y: invalid-expression "pkg/front_end/testcases/super_parameters/issue48642.dart:79:40: Error: Cannot invoke a non-'const' factory where a const expression is expected.
-Try using a constructor or factory that is 'const'.
+    : super self::A8::•(x, y: invalid-expression "pkg/front_end/testcases/super_parameters/issue48642.dart:79:36: Error: New expression is not a constant expression.
   const B8.bar(super.x) : super(y: new Test.bar()); // Error.
-                                       ^")
+                                   ^^^")
     ;
 }
 class A9 extends core::Object /*hasConstConstructor*/  {
@@ -152,13 +139,14 @@ class A9 extends core::Object /*hasConstConstructor*/  {
 }
 class B9 extends self::A9 /*hasConstConstructor*/  {
   const constructor foo({dynamic y = null}) → self::B9
-    : super self::A9::•(new self::Test::foo(), y: y)
+    : super self::A9::•(invalid-expression "pkg/front_end/testcases/super_parameters/issue48642.dart:87:35: Error: New expression is not a constant expression.
+  const B9.foo({super.y}) : super(new Test.foo()); // Error.
+                                  ^^^", y: y)
     ;
   const constructor bar({dynamic y = null}) → self::B9
-    : super self::A9::•(invalid-expression "pkg/front_end/testcases/super_parameters/issue48642.dart:88:39: Error: Cannot invoke a non-'const' factory where a const expression is expected.
-Try using a constructor or factory that is 'const'.
+    : super self::A9::•(invalid-expression "pkg/front_end/testcases/super_parameters/issue48642.dart:88:35: Error: New expression is not a constant expression.
   const B9.bar({super.y}) : super(new Test.bar()); // Error.
-                                      ^", y: y)
+                                  ^^^", y: y)
     ;
 }
 static method main() → dynamic

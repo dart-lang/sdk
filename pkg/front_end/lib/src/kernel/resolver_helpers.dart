@@ -120,7 +120,6 @@ class _ResolverContext {
   /// If [indices] is provided, only the annotations at the given indices are
   /// inferred. Otherwise all annotations are inferred.
   void _inferAnnotations({
-    required ConstantContext constantContext,
     required Annotatable annotatable,
     List<int>? indices,
   }) {
@@ -128,35 +127,25 @@ class _ResolverContext {
       fileUri: fileUri,
       annotatable: annotatable,
       indices: indices,
-      // TODO(johnniwinther): Should this always be implicit?
-      constantContext: constantContext,
     );
   }
 
   void inferSingleTargetAnnotation({
-    required ConstantContext constantContext,
     required SingleTargetAnnotations singleTarget,
   }) {
     _inferAnnotations(
-      constantContext: constantContext,
       annotatable: singleTarget.target,
       indices: singleTarget.indicesOfAnnotationsToBeInferred,
     );
   }
 
-  void _inferPendingAnnotations({
-    required ConstantContext constantContext,
-    required PendingAnnotations annotations,
-  }) {
+  void _inferPendingAnnotations({required PendingAnnotations annotations}) {
     List<SingleTargetAnnotations>? singleTargetAnnotations =
         annotations.singleTargetAnnotations;
     if (singleTargetAnnotations != null) {
       for (int i = 0; i < singleTargetAnnotations.length; i++) {
         SingleTargetAnnotations singleTarget = singleTargetAnnotations[i];
-        inferSingleTargetAnnotation(
-          constantContext: constantContext,
-          singleTarget: singleTarget,
-        );
+        inferSingleTargetAnnotation(singleTarget: singleTarget);
       }
     }
 
@@ -168,10 +157,7 @@ class _ResolverContext {
         List<Annotatable> targets = multiTarget.targets;
         Annotatable firstTarget = targets.first;
         List<Expression> annotations = firstTarget.annotations;
-        _inferAnnotations(
-          constantContext: constantContext,
-          annotatable: firstTarget,
-        );
+        _inferAnnotations(annotatable: firstTarget);
         for (int i = 1; i < targets.length; i++) {
           Annotatable target = targets[i];
           for (int i = 0; i < annotations.length; i++) {
@@ -182,15 +168,9 @@ class _ResolverContext {
     }
   }
 
-  void performBacklog(
-    PendingAnnotations? annotations,
-    ConstantContext constantContext,
-  ) {
+  void performBacklog(PendingAnnotations? annotations) {
     if (annotations != null) {
-      _inferPendingAnnotations(
-        constantContext: constantContext,
-        annotations: annotations,
-      );
+      _inferPendingAnnotations(annotations: annotations);
     }
     libraryBuilder.checkPendingBoundsChecks(typeEnvironment);
   }

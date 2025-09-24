@@ -365,7 +365,7 @@ class BodyBuilderImpl extends StackListenerImpl
     required this.uri,
     required this.assignedVariables,
     required this.typeEnvironment,
-    required this.constantContext,
+    required ConstantContext constantContext,
   }) : _context = context,
        forest = const Forest(),
        enableNative = libraryBuilder.loader.target.backendTarget.enableNative(
@@ -377,6 +377,7 @@ class BodyBuilderImpl extends StackListenerImpl
        benchmarker = libraryBuilder.loader.target.benchmarker,
        _localScopes = new LocalStack([enclosingScope]),
        _labelScopes = new LocalStack([new LabelScopeImpl()]) {
+    this.constantContext = constantContext;
     if (formalParameterScope != null) {
       for (VariableBuilder builder in formalParameterScope!.localVariables) {
         assignedVariables.declare(builder.variable!);
@@ -6368,13 +6369,6 @@ class BodyBuilderImpl extends StackListenerImpl
   void beginNewExpression(Token token) {
     debugEvent("beginNewExpression");
     super.push(constantContext);
-    if (constantContext != ConstantContext.none) {
-      addProblem(
-        cfe.codeNotConstantExpression.withArgumentsOld('New expression'),
-        token.charOffset,
-        token.length,
-      );
-    }
     constantContext = ConstantContext.none;
   }
 
@@ -6416,6 +6410,19 @@ class BodyBuilderImpl extends StackListenerImpl
       inMetadata: false,
       inImplicitCreationContext: false,
     );
+    if (constantContext != ConstantContext.none) {
+      pop(); // Pop the created new expression.
+      push(
+        buildProblem(
+          message: cfe.codeNotConstantExpression.withArgumentsOld(
+            'New expression',
+          ),
+          fileUri: uri,
+          fileOffset: token.charOffset,
+          length: token.length,
+        ),
+      );
+    }
   }
 
   void _buildConstructorReferenceInvocation(
