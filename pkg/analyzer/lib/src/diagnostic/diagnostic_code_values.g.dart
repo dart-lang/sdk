@@ -1014,6 +1014,7 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   WarningCode.duplicateShownName,
   WarningCode.equalElementsInSet,
   WarningCode.equalKeysInMap,
+  WarningCode.experimentalMemberUse,
   WarningCode.inferenceFailureOnCollectionLiteral,
   WarningCode.inferenceFailureOnFunctionInvocation,
   WarningCode.inferenceFailureOnFunctionReturnType,

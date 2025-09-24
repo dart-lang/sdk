@@ -3560,6 +3560,8 @@ WarningCode.EQUAL_KEYS_IN_MAP:
   status: noFix
   notes: |-
     Fix depends on user's intent, which can't be known.
+WarningCode.EXPERIMENTAL_MEMBER_USE:
+  status: needsEvaluation
 WarningCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL:
   status: noFix
 WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION:
