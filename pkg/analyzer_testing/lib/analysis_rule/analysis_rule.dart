@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analyzer/dart/analysis/results.dart';
+library;
+
 import 'dart:convert' show json;
 
 import 'package:analyzer/analysis_rule/analysis_rule.dart';
@@ -32,6 +35,9 @@ abstract class AnalysisRuleTest extends PubPackageResolutionTest {
   String get analysisRule;
 
   /// Asserts that no diagnostics are reported when resolving [content].
+  ///
+  /// Note: Be sure to `await` any use of this API, to avoid stale analysis
+  /// results (See [DisposedAnalysisContextResult]).
   Future<void> assertNoPubspecDiagnostics(String content) async {
     newFile(testPackagePubspecPath, content);
     var errors = await _analyzePubspecFile(content);
@@ -39,6 +45,9 @@ abstract class AnalysisRuleTest extends PubPackageResolutionTest {
   }
 
   /// Asserts that [expectedDiagnostics] are reported when resolving [content].
+  ///
+  /// Note: Be sure to `await` any use of this API, to avoid stale analysis
+  /// results (See [DisposedAnalysisContextResult]).
   Future<void> assertPubspecDiagnostics(
     String content,
     List<ExpectedDiagnostic> expectedDiagnostics,
