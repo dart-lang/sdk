@@ -149,6 +149,8 @@ instead.
   original typed array when unwrapped instead of instantiating a new typed array
   with the same buffer. This applies to both the `.toJS` conversions and
   `jsify`. See [#61543][] for more details.
+- `Uint16ListToJSInt16Array` is renamed to `Uint16ListToJSUint16Array`.
+- `JSUint16ArrayToInt16List` is renamed to `JSUint16ArrayToUint16List`.
 
 [#59830]: https://github.com/dart-lang/sdk/issues/59830
 [#55138]: https://github.com/dart-lang/sdk/issues/55138

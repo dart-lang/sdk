@@ -381,13 +381,13 @@ extension Int16ListToJSInt16Array on Int16List {
 // -----------------------------------------------------------------------------
 // JSUint16Array <-> Uint16List
 @patch
-extension JSUint16ArrayToInt16List on JSUint16Array {
+extension JSUint16ArrayToUint16List on JSUint16Array {
   @patch
   Uint16List get toDart => js_types.JSUint16ArrayImpl.fromArrayRef(toExternRef);
 }
 
 @patch
-extension Uint16ListToJSInt16Array on Uint16List {
+extension Uint16ListToJSUint16Array on Uint16List {
   @patch
   JSUint16Array get toJS {
     final t = this;

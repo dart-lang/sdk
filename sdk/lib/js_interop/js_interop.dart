@@ -148,8 +148,9 @@ extension type JSExportedDartFunction._(
 ///
 /// [T] may introduce additional checking elsewhere, however. When accessing
 /// elements of [JSArray] with type [T], there is a check to ensure the element
-/// is a [T] to ensure soundness. Similarly, when converting to a [List<T>],
-/// casts may be introduced to ensure that it is indeed a [List<T>].
+/// is a [T] to ensure soundness. Similarly, when converting to a
+/// <code>[List]<T></code>, casts may be introduced to ensure that it is indeed
+/// a <code>[List]<T></code>.
 @JS('Array')
 extension type JSArray<T extends JSAny?>._(JSArrayRepType _jsArray)
     implements JSObject {
@@ -200,8 +201,8 @@ extension type JSArray<T extends JSAny?>._(JSArrayRepType _jsArray)
 /// the [JSPromise] may not actually resolve to a [T].
 ///
 /// Also like with [JSArray], [T] may introduce additional checking elsewhere.
-/// When converted to a [Future<T>], there is a cast to ensure that the [Future]
-/// actually resolves to a [T] to ensure soundness.
+/// When converted to a <code>[Future]<T></code>, there is a cast to ensure that
+/// the [Future] actually resolves to a [T] to ensure soundness.
 @JS('Promise')
 extension type JSPromise<T extends JSAny?>._(JSPromiseRepType _jsPromise)
     implements JSObject {
@@ -462,7 +463,7 @@ extension type ExternalDartReference<T extends Object?>._(
 // using `void`, and we'll likely provide a different way to box `undefined`.
 typedef JSVoid = JSVoidRepType;
 
-/// Helper methods to determine if a value is JavaScript `undefined` or `null`.
+/// Helper members to determine if a value is JavaScript `undefined` or `null`.
 ///
 /// > [!NOTE]
 /// > The members within these extensions may throw depending on the platform.
@@ -603,7 +604,7 @@ extension JSAnyUtilityExtension on JSAny? {
   /// If the value contains a cycle, the behavior is undefined.
   ///
   /// > [!NOTE]
-  /// > Prefer using the specific conversion method like `toDart` if you know
+  /// > Prefer using the specific conversion member like `toDart` if you know
   /// > the JavaScript type as this method may perform many type-checks. You
   /// > should generally call this method with values that only contain
   /// > JSON-like values as the conversion may be platform- and
@@ -638,7 +639,7 @@ extension NullableObjectUtilExtension on Object? {
   /// If the object contains a cycle, the behavior is undefined.
   ///
   /// > [!NOTE]
-  /// > Prefer using the specific conversion method like `toJS` if you know the
+  /// > Prefer using the specific conversion member like `toJS` if you know the
   /// > Dart type as this method may perform many type-checks. You should
   /// > generally call this method with objects that only contain JSON-like
   /// > values as the conversion may be platform- and compiler-specific
@@ -868,10 +869,18 @@ extension JSArrayBufferToByteBuffer on JSArrayBuffer {
   /// Converts this [JSArrayBuffer] to a [ByteBuffer] by either casting or
   /// wrapping it.
   ///
+  /// > [!NOTE]
+  /// > Depending on whether code is compiled to JavaScript or Wasm, this
+  /// > conversion will have different semantics.
+  ///
   /// When compiling to JavaScript, [ByteBuffer]s are [JSArrayBuffer]s and this
-  /// operation will be a cast. When compiling to Wasm, a wrapper is introduced.
-  /// Modifications to this [JSArrayBuffer] will affect the [ByteBuffer] and
-  /// vice versa.
+  /// operation will be a cast.
+  ///
+  /// When compiling to Wasm, the [JSArrayBuffer] is wrapped with a [ByteBuffer]
+  /// implementation and the wrapper is returned.
+  ///
+  /// Modifications to this [JSArrayBuffer] will affect the returned
+  /// [ByteBuffer] and vice versa.
   external ByteBuffer get toDart;
 }
 
@@ -880,21 +889,26 @@ extension ByteBufferToJSArrayBuffer on ByteBuffer {
   /// Converts this [ByteBuffer] to a [JSArrayBuffer] by either casting,
   /// unwrapping, or cloning the [ByteBuffer].
   ///
-  /// Throws if the [ByteBuffer] wraps a JS `SharedArrayBuffer`.
+  /// Throws if the [ByteBuffer] is backed by a JS `SharedArrayBuffer`.
   ///
   /// > [!NOTE]
   /// > Depending on whether code is compiled to JavaScript or Wasm, this
   /// > conversion will have different semantics.
-  /// > When compiling to JavaScript, [ByteBuffer]s are either `ArrayBuffer`s or
-  /// > `SharedArrayBuffer`s so this will just check the type and cast.
-  /// > When compiling to Wasm, this [ByteBuffer] may or may not be a wrapper
-  /// > depending on if it was converted from JavaScript or instantiated in
-  /// > Dart. If it's a wrapper, this method unwraps it and either returns the
-  /// > `ArrayBuffer` or throws if the unwrapped buffer was a
-  /// > `SharedArrayBuffer`. If it's instantiated in Dart, this method clones
-  /// > this [ByteBuffer]'s values into a new [JSArrayBuffer].
-  /// > Avoid assuming that modifications to this [ByteBuffer] will affect the
-  /// > [JSArrayBuffer] and vice versa unless it was instantiated in JavaScript.
+  ///
+  /// When compiling to JavaScript, [ByteBuffer]s are either `ArrayBuffer`s or
+  /// `SharedArrayBuffer`s so this will just check the type and cast, throwing
+  /// if it's a `SharedArrayBuffer`.
+  ///
+  /// When compiling to Wasm, this [ByteBuffer] is a wrapper around an
+  /// `ArrayBuffer` if it was converted via [JSArrayBufferToByteBuffer.toDart].
+  /// If it is a wrapper, this getter unwraps it and either returns the
+  /// `ArrayBuffer` or throws if the unwrapped buffer was a `SharedArrayBuffer`.
+  /// If it's instantiated in Dart, this getter clones this [ByteBuffer]'s
+  /// values into a new [JSArrayBuffer].
+  ///
+  /// Avoid assuming that modifications to this [ByteBuffer] will affect the
+  /// returned [JSArrayBuffer] and vice versa on all compilers unless it was
+  /// first converted via [JSArrayBufferToByteBuffer.toDart].
   external JSArrayBuffer get toJS;
 }
 
@@ -903,10 +917,18 @@ extension JSDataViewToByteData on JSDataView {
   /// Converts this [JSDataView] to a [ByteData] by either casting or wrapping
   /// it.
   ///
+  /// > [!NOTE]
+  /// > Depending on whether code is compiled to JavaScript or Wasm, this
+  /// > conversion will have different semantics.
+  ///
   /// When compiling to JavaScript, [ByteData]s are [JSDataView]s and this
-  /// operation will be a cast. When compiling to Wasm, a wrapper is introduced.
-  /// Modifications to this [JSDataView] will affect the [ByteData] and vice
-  /// versa.
+  /// operation will be a cast.
+  ///
+  /// When compiling to Wasm, the [JSDataView] is wrapped with a [ByteData]
+  /// implementation and the wrapper is returned.
+  ///
+  /// Modifications to this [JSDataView] will affect the returned [ByteData] and
+  /// vice versa.
   external ByteData get toDart;
 }
 
@@ -918,15 +940,18 @@ extension ByteDataToJSDataView on ByteData {
   /// > [!NOTE]
   /// > Depending on whether code is compiled to JavaScript or Wasm, this
   /// > conversion will have different semantics.
-  /// > When compiling to JavaScript, all typed lists are the equivalent
-  /// > JavaScript typed arrays, and therefore this method simply casts.
-  /// > When compiling to Wasm, this [ByteData] may or may not be a wrapper
-  /// > depending on if it was converted from JavaScript or instantiated in
-  /// > Dart. If it's a wrapper, this method unwraps it. If it's instantiated in
-  /// > Dart, this method clones this [ByteData]'s values into a new
-  /// > [JSDataView].
-  /// > Avoid assuming that modifications to this [ByteData] will affect the
-  /// > [JSDataView] and vice versa unless it was instantiated in JavaScript.
+  ///
+  /// When compiling to JavaScript, all typed lists are the equivalent
+  /// JavaScript typed arrays, and therefore this getter simply casts.
+  ///
+  /// When compiling to Wasm, this [ByteData] is a wrapper around a `DataView`
+  /// if it was converted via [JSDataViewToByteData.toDart]. If it is a wrapper,
+  /// this getter unwraps it and returns the `DataView`. If it's instantiated in
+  /// Dart, this getter clones this [ByteData]'s values into a new [JSDataView].
+  ///
+  /// Avoid assuming that modifications to this [ByteData] will affect the
+  /// returned [JSDataView] and vice versa on all compilers unless it was first
+  /// converted via [JSDataViewToByteData.toDart].
   external JSDataView get toJS;
 }
 
@@ -935,10 +960,18 @@ extension JSInt8ArrayToInt8List on JSInt8Array {
   /// Converts this [JSInt8Array] to a [Int8List] by either casting or wrapping
   /// it.
   ///
+  /// > [!NOTE]
+  /// > Depending on whether code is compiled to JavaScript or Wasm, this
+  /// > conversion will have different semantics.
+  ///
   /// When compiling to JavaScript, [Int8List]s are [JSInt8Array]s and this
-  /// operation will be a cast. When compiling to Wasm, a wrapper is introduced.
-  /// Modifications to this [JSInt8Array] will affect the [Int8List] and vice
-  /// versa.
+  /// operation will be a cast.
+  ///
+  /// When compiling to Wasm, the [JSInt8Array] is wrapped with a [Int8List]
+  /// implementation and the wrapper is returned.
+  ///
+  /// Modifications to this [JSInt8Array] will affect the returned [Int8List]
+  /// and vice versa.
   external Int8List get toDart;
 }
 
@@ -950,15 +983,19 @@ extension Int8ListToJSInt8Array on Int8List {
   /// > [!NOTE]
   /// > Depending on whether code is compiled to JavaScript or Wasm, this
   /// > conversion will have different semantics.
-  /// > When compiling to JavaScript, all typed lists are the equivalent
-  /// > JavaScript typed arrays, and therefore this method simply casts.
-  /// > When compiling to Wasm, this [Int8List] may or may not be a wrapper
-  /// > depending on if it was converted from JavaScript or instantiated in
-  /// > Dart. If it's a wrapper, this method unwraps it. If it's instantiated in
-  /// > Dart, this method clones this [Int8List]'s values into a new
-  /// > [JSInt8Array].
-  /// > Avoid assuming that modifications to this [Int8List] will affect the
-  /// > [JSInt8Array] and vice versa unless it was instantiated in JavaScript.
+  ///
+  /// When compiling to JavaScript, all typed lists are the equivalent
+  /// JavaScript typed arrays, and therefore this getter simply casts.
+  ///
+  /// When compiling to Wasm, this [Int8List] is a wrapper around a `Int8Array`
+  /// if it was converted via [JSInt8ArrayToInt8List.toDart]. If it is a
+  /// wrapper, this getter unwraps it and returns the `Int8Array`. If it's
+  /// instantiated in Dart, this getter clones this [Int8List]'s values into a
+  /// new [JSInt8Array].
+  ///
+  /// Avoid assuming that modifications to this [Int8List] will affect the
+  /// returned [JSInt8Array] and vice versa on all compilers unless it was
+  /// first converted via [JSInt8ArrayToInt8List.toDart].
   external JSInt8Array get toJS;
 }
 
@@ -967,10 +1004,18 @@ extension JSUint8ArrayToUint8List on JSUint8Array {
   /// Converts this [JSUint8Array] to a [Uint8List] by either casting or
   /// wrapping it.
   ///
+  /// > [!NOTE]
+  /// > Depending on whether code is compiled to JavaScript or Wasm, this
+  /// > conversion will have different semantics.
+  ///
   /// When compiling to JavaScript, [Uint8List]s are [JSUint8Array]s and this
-  /// operation will be a cast. When compiling to Wasm, a wrapper is introduced.
-  /// Modifications to this [JSUint8Array] will affect the [Uint8List] and vice
-  /// versa.
+  /// operation will be a cast.
+  ///
+  /// When compiling to Wasm, the [JSUint8Array] is wrapped with a [Uint8List]
+  /// implementation and the wrapper is returned.
+  ///
+  /// Modifications to this [JSUint8Array] will affect the returned [Uint8List]
+  /// and vice versa.
   external Uint8List get toDart;
 }
 
@@ -982,15 +1027,19 @@ extension Uint8ListToJSUint8Array on Uint8List {
   /// > [!NOTE]
   /// > Depending on whether code is compiled to JavaScript or Wasm, this
   /// > conversion will have different semantics.
-  /// > When compiling to JavaScript, all typed lists are the equivalent
-  /// > JavaScript typed arrays, and therefore this method simply casts.
-  /// > When compiling to Wasm, this [Uint8List] may or may not be a wrapper
-  /// > depending on if it was converted from JavaScript or instantiated in
-  /// > Dart. If it's a wrapper, this method unwraps it. If it's instantiated in
-  /// > Dart, this method clones this [Uint8List]'s values into a new
-  /// > [JSUint8Array].
-  /// > Avoid assuming that modifications to this [Uint8List] will affect the
-  /// > [JSUint8Array] and vice versa unless it was instantiated in JavaScript.
+  ///
+  /// When compiling to JavaScript, all typed lists are the equivalent
+  /// JavaScript typed arrays, and therefore this getter simply casts.
+  ///
+  /// When compiling to Wasm, this [Uint8List] is a wrapper around a
+  /// `Uint8Array` if it was converted via [JSUint8ArrayToUint8List.toDart]. If
+  /// it is a wrapper, this getter unwraps it and returns the `Uint8Array`. If
+  /// it's instantiated in Dart, this getter clones this [Uint8List]'s values
+  /// into a new [JSUint8Array].
+  ///
+  /// Avoid assuming that modifications to this [Uint8List] will affect the
+  /// returned [JSUint8Array] and vice versa on all compilers unless it was
+  /// converted first via [JSUint8ArrayToUint8List.toDart].
   external JSUint8Array get toJS;
 }
 
@@ -999,10 +1048,18 @@ extension JSUint8ClampedArrayToUint8ClampedList on JSUint8ClampedArray {
   /// Converts this [JSUint8ClampedArray] to a [Uint8ClampedList] by either
   /// casting or wrapping it.
   ///
+  /// > [!NOTE]
+  /// > Depending on whether code is compiled to JavaScript or Wasm, this
+  /// > conversion will have different semantics.
+  ///
   /// When compiling to JavaScript, [Uint8ClampedList]s are
-  /// [JSUint8ClampedArray]s and this operation will be a cast. When compiling
-  /// to Wasm, a wrapper is introduced. Modifications to this
-  /// [JSUint8ClampedArray] will affect the [Uint8ClampedList] and vice versa.
+  /// [JSUint8ClampedArray]s and this getter will be a cast.
+  ///
+  /// When compiling to Wasm, the [JSUint8ClampedArray] is wrapped with a
+  /// [Uint8ClampedList] implementation and the wrapper is returned.
+  ///
+  /// Modifications to this [JSUint8ClampedArray] will affect the returned
+  /// [Uint8ClampedList] and vice versa.
   external Uint8ClampedList get toDart;
 }
 
@@ -1014,16 +1071,20 @@ extension Uint8ClampedListToJSUint8ClampedArray on Uint8ClampedList {
   /// > [!NOTE]
   /// > Depending on whether code is compiled to JavaScript or Wasm, this
   /// > conversion will have different semantics.
-  /// > When compiling to JavaScript, all typed lists are the equivalent
-  /// > JavaScript typed arrays, and therefore this method simply casts.
-  /// > When compiling to Wasm, this [Uint8ClampedList] may or may not be a
-  /// > wrapper depending on if it was converted from JavaScript or instantiated
-  /// > in Dart. If it's a wrapper, this method unwraps it. If it's instantiated
-  /// > in Dart, this method clones this [Uint8ClampedList]'s values into a new
-  /// > [JSUint8ClampedArray].
-  /// > Avoid assuming that modifications to this [Uint8ClampedList] will affect
-  /// > the [JSUint8ClampedArray] and vice versa unless it was instantiated in
-  /// > JavaScript.
+  ///
+  /// When compiling to JavaScript, all typed lists are the equivalent
+  /// JavaScript typed arrays, and therefore this getter simply casts.
+  ///
+  /// When compiling to Wasm, this [Uint8ClampedList] is a wrapper around a
+  /// `Uint8ClampedArray` if it was converted via
+  /// [JSUint8ClampedArrayToUint8ClampedList.toDart]. If it is a wrapper, this
+  /// getter unwraps it and returns the `Uint8ClampedArray`. If it's
+  /// instantiated in Dart, this getter clones this [Uint8ClampedList]'s values
+  /// into a new [JSUint8ClampedArray].
+  ///
+  /// Avoid assuming that modifications to this [Uint8ClampedList] will affect
+  /// the returned [JSUint8ClampedArray] and vice versa on all compilers unless
+  /// it was converted first via [JSUint8ClampedArrayToUint8ClampedList.toDart].
   external JSUint8ClampedArray get toJS;
 }
 
@@ -1032,10 +1093,18 @@ extension JSInt16ArrayToInt16List on JSInt16Array {
   /// Converts this [JSInt16Array] to a [Int16List] by either casting or
   /// wrapping it.
   ///
+  /// > [!NOTE]
+  /// > Depending on whether code is compiled to JavaScript or Wasm, this
+  /// > conversion will have different semantics.
+  ///
   /// When compiling to JavaScript, [Int16List]s are [JSInt16Array]s and this
-  /// operation will be a cast. When compiling to Wasm, a wrapper is introduced.
-  /// Modifications to this [JSInt16Array] will affect the [Int16List] and vice
-  /// versa.
+  /// operation will be a cast.
+  ///
+  /// When compiling to Wasm, the [JSInt16Array] is wrapped with a [Int16List]
+  /// implementation and the wrapper is returned.
+  ///
+  /// Modifications to this [JSInt16Array] will affect the returned [Int16List]
+  /// and vice versa.
   external Int16List get toDart;
 }
 
@@ -1047,47 +1116,63 @@ extension Int16ListToJSInt16Array on Int16List {
   /// > [!NOTE]
   /// > Depending on whether code is compiled to JavaScript or Wasm, this
   /// > conversion will have different semantics.
-  /// > When compiling to JavaScript, all typed lists are the equivalent
-  /// > JavaScript typed arrays, and therefore this method simply casts.
-  /// > When compiling to Wasm, this [Int16List] may or may not be a wrapper
-  /// > depending on if it was converted from JavaScript or instantiated in
-  /// > Dart. If it's a wrapper, this method unwraps it. If it's instantiated in
-  /// > Dart, this method clones this [Int16List]'s values into a new
-  /// > [JSInt16Array].
-  /// > Avoid assuming that modifications to this [Int16List] will affect the
-  /// > [JSInt16Array] and vice versa unless it was instantiated in JavaScript.
+  ///
+  /// When compiling to JavaScript, all typed lists are the equivalent
+  /// JavaScript typed arrays, and therefore this getter simply casts.
+  ///
+  /// When compiling to Wasm, this [Int16List] is a wrapper around a
+  /// `Int16Array` if it was converted via [JSInt16ArrayToInt16List.toDart]. If
+  /// it is a wrapper, this getter unwraps it and returns the `Int16Array`. If
+  /// it's instantiated in Dart, this getter clones this [Int16List]'s values
+  /// into a new [JSInt16Array].
+  ///
+  /// Avoid assuming that modifications to this [Int16List] will affect the
+  /// returned [JSInt16Array] and vice versa on all compilers unless it was
+  /// converted first via [JSInt16ArrayToInt16List.toDart].
   external JSInt16Array get toJS;
 }
 
 /// Conversions from [JSUint16Array] to [Uint16List].
-extension JSUint16ArrayToInt16List on JSUint16Array {
+extension JSUint16ArrayToUint16List on JSUint16Array {
   /// Converts this [JSUint16Array] to a [Uint16List] by either casting or
   /// wrapping it.
   ///
+  /// > [!NOTE]
+  /// > Depending on whether code is compiled to JavaScript or Wasm, this
+  /// > conversion will have different semantics.
+  ///
   /// When compiling to JavaScript, [Uint16List]s are [JSUint16Array]s and this
-  /// operation will be a cast. When compiling to Wasm, a wrapper is introduced.
-  /// Modifications to this [JSUint16Array] will affect the [Uint16List] and
-  /// vice versa.
+  /// operation will be a cast.
+  ///
+  /// When compiling to Wasm, the [JSUint16Array] is wrapped with a [Uint16List]
+  /// implementation and the wrapper is returned.
+  ///
+  /// Modifications to this [JSUint16Array] will affect the returned
+  /// [Uint16List] and vice versa.
   external Uint16List get toDart;
 }
 
 /// Conversions from [Uint16List] to [JSUint16Array].
-extension Uint16ListToJSInt16Array on Uint16List {
+extension Uint16ListToJSUint16Array on Uint16List {
   /// Converts this [Uint16List] to a [JSUint16Array] by either casting,
   /// unwrapping, or cloning the [Uint16List].
   ///
   /// > [!NOTE]
   /// > Depending on whether code is compiled to JavaScript or Wasm, this
   /// > conversion will have different semantics.
-  /// > When compiling to JavaScript, all typed lists are the equivalent
-  /// > JavaScript typed arrays, and therefore this method simply casts.
-  /// > When compiling to Wasm, this [Uint16List] may or may not be a wrapper
-  /// > depending on if it was converted from JavaScript or instantiated in
-  /// > Dart. If it's a wrapper, this method unwraps it. If it's instantiated in
-  /// > Dart, this method clones this [Uint16List]'s values into a new
-  /// > [JSUint16Array].
-  /// > Avoid assuming that modifications to this [Uint16List] will affect the
-  /// > [JSUint16Array] and vice versa unless it was instantiated in JavaScript.
+  ///
+  /// When compiling to JavaScript, all typed lists are the equivalent
+  /// JavaScript typed arrays, and therefore this getter simply casts.
+  ///
+  /// When compiling to Wasm, this [Uint16List] is a wrapper around a
+  /// `Uint16Array` if it was converted via [JSUint16ArrayToUint16List.toDart].
+  /// If it is a wrapper, this getter unwraps it and returns the `Uint16Array`.
+  /// If it's instantiated in Dart, this getter clones this [Uint16List]'s
+  /// values into a new [JSUint16Array].
+  ///
+  /// Avoid assuming that modifications to this [Uint16List] will affect the
+  /// returned [JSUint16Array] and vice versa on all compilers unless it was
+  /// converted first via [JSUint16ArrayToUint16List.toDart].
   external JSUint16Array get toJS;
 }
 
@@ -1096,10 +1181,18 @@ extension JSInt32ArrayToInt32List on JSInt32Array {
   /// Converts this [JSInt32Array] to a [Int32List] by either casting or
   /// wrapping it.
   ///
+  /// > [!NOTE]
+  /// > Depending on whether code is compiled to JavaScript or Wasm, this
+  /// > conversion will have different semantics.
+  ///
   /// When compiling to JavaScript, [Int32List]s are [JSInt32Array]s and this
-  /// operation will be a cast. When compiling to Wasm, a wrapper is introduced.
-  /// Modifications to this [JSInt32Array] will affect the [Int32List] and vice
-  /// versa.
+  /// operation will be a cast.
+  ///
+  /// When compiling to Wasm, the [JSInt32Array] is wrapped with a [Int32List]
+  /// implementation and the wrapper is returned.
+  ///
+  /// Modifications to this [JSInt32Array] will affect the returned [Int32List]
+  /// and vice versa.
   external Int32List get toDart;
 }
 
@@ -1111,15 +1204,19 @@ extension Int32ListToJSInt32Array on Int32List {
   /// > [!NOTE]
   /// > Depending on whether code is compiled to JavaScript or Wasm, this
   /// > conversion will have different semantics.
-  /// > When compiling to JavaScript, all typed lists are the equivalent
-  /// > JavaScript typed arrays, and therefore this method simply casts.
-  /// > When compiling to Wasm, this [Int32List] may or may not be a wrapper
-  /// > depending on if it was converted from JavaScript or instantiated in
-  /// > Dart. If it's a wrapper, this method unwraps it. If it's instantiated in
-  /// > Dart, this method clones this [Int32List]'s values into a new
-  /// > [JSInt32Array].
-  /// > Avoid assuming that modifications to this [Int32List] will affect the
-  /// > [JSInt32Array] and vice versa unless it was instantiated in JavaScript.
+  ///
+  /// When compiling to JavaScript, all typed lists are the equivalent
+  /// JavaScript typed arrays, and therefore this getter simply casts.
+  ///
+  /// When compiling to Wasm, this [Int32List] is a wrapper around a
+  /// `Int32Array` if it was converted via [JSInt32ArrayToInt32List.toDart]. If
+  /// it is a wrapper, this getter unwraps it and returns the `Int32Array`. If
+  /// it's instantiated in Dart, this getter clones this [Int32List]'s values
+  /// into a new [JSInt32Array].
+  ///
+  /// Avoid assuming that modifications to this [Int32List] will affect the
+  /// returned [JSInt32Array] and vice versa on all compilers unless it was
+  /// converted first via [JSInt32ArrayToInt32List.toDart].
   external JSInt32Array get toJS;
 }
 
@@ -1128,10 +1225,18 @@ extension JSUint32ArrayToUint32List on JSUint32Array {
   /// Converts this [JSUint32Array] to a [Uint32List] by either casting or
   /// wrapping it.
   ///
+  /// > [!NOTE]
+  /// > Depending on whether code is compiled to JavaScript or Wasm, this
+  /// > conversion will have different semantics.
+  ///
   /// When compiling to JavaScript, [Uint32List]s are [JSUint32Array]s and this
-  /// operation will be a cast. When compiling to Wasm, a wrapper is introduced.
-  /// Modifications to this [JSUint32Array] will affect the [Uint32List] and
-  /// vice versa.
+  /// operation will be a cast.
+  ///
+  /// When compiling to Wasm, the [JSUint32Array] is wrapped with a [Uint32List]
+  /// implementation and the wrapper is returned.
+  ///
+  /// Modifications to this [JSUint32Array] will affect the returned
+  /// [Uint32List] and vice versa.
   external Uint32List get toDart;
 }
 
@@ -1143,15 +1248,19 @@ extension Uint32ListToJSUint32Array on Uint32List {
   /// > [!NOTE]
   /// > Depending on whether code is compiled to JavaScript or Wasm, this
   /// > conversion will have different semantics.
-  /// > When compiling to JavaScript, all typed lists are the equivalent
-  /// > JavaScript typed arrays, and therefore this method simply casts.
-  /// > When compiling to Wasm, this [Uint32List] may or may not be a wrapper
-  /// > depending on if it was converted from JavaScript or instantiated in
-  /// > Dart. If it's a wrapper, this method unwraps it. If it's instantiated in
-  /// > Dart, this method clones this [Uint32List]'s values into a new
-  /// > [JSUint32Array].
-  /// > Avoid assuming that modifications to this [Uint32List] will affect the
-  /// > [JSUint32Array] and vice versa unless it was instantiated in JavaScript.
+  ///
+  /// When compiling to JavaScript, all typed lists are the equivalent
+  /// JavaScript typed arrays, and therefore this getter simply casts.
+  ///
+  /// When compiling to Wasm, this [Uint32List] is a wrapper around a
+  /// `Uint32Array` if it was converted via [JSUint32ArrayToUint32List.toDart].
+  /// If it is a wrapper, this getter unwraps it and returns the `Uint32Array`.
+  /// If it's instantiated in Dart, this getter clones this [Uint32List]'s
+  /// values into a new [JSUint32Array].
+  ///
+  /// Avoid assuming that modifications to this [Uint32List] will affect the
+  /// returned [JSUint32Array] and vice versa on all compilers unless it was
+  /// converted first via [JSUint32ArrayToUint32List.toDart].
   external JSUint32Array get toJS;
 }
 
@@ -1160,9 +1269,17 @@ extension JSFloat32ArrayToFloat32List on JSFloat32Array {
   /// Converts this [JSFloat32Array] to a [Float32List] by either casting or
   /// wrapping it.
   ///
+  /// > [!NOTE]
+  /// > Depending on whether code is compiled to JavaScript or Wasm, this
+  /// > conversion will have different semantics.
+  ///
   /// When compiling to JavaScript, [Float32List]s are [JSFloat32Array]s and
-  /// this operation will be a cast. When compiling to Wasm, a wrapper is
-  /// introduced. Modifications to this [JSFloat32Array] will affect the
+  /// this getter will be a cast.
+  ///
+  /// When compiling to Wasm, the [JSFloat32Array] is wrapped with a
+  /// [Float32List] implementation and the wrapper is returned.
+  ///
+  /// Modifications to this [JSFloat32Array] will affect the returned
   /// [Float32List] and vice versa.
   external Float32List get toDart;
 }
@@ -1175,16 +1292,20 @@ extension Float32ListToJSFloat32Array on Float32List {
   /// > [!NOTE]
   /// > Depending on whether code is compiled to JavaScript or Wasm, this
   /// > conversion will have different semantics.
-  /// > When compiling to JavaScript, all typed lists are the equivalent
-  /// > JavaScript typed arrays, and therefore this method simply casts.
-  /// > When compiling to Wasm, this [Float32List] may or may not be a wrapper
-  /// > depending on if it was converted from JavaScript or instantiated in
-  /// > Dart. If it's a wrapper, this method unwraps it. If it's instantiated in
-  /// > Dart, this method clones this [Float32List]'s values into a new
-  /// > [JSFloat32Array].
-  /// > Avoid assuming that modifications to this [Float32List] will affect the
-  /// > [JSFloat32Array] and vice versa unless it was instantiated in
-  /// > JavaScript.
+  ///
+  /// When compiling to JavaScript, all typed lists are the equivalent
+  /// JavaScript typed arrays, and therefore this getter simply casts.
+  ///
+  /// When compiling to Wasm, this [Float32List] is a wrapper around a
+  /// `Float32Array` if it was converted via
+  /// [JSFloat32ArrayToFloat32List.toDart]. If it is a wrapper, this getter
+  /// unwraps it and returns the `Float32Array`. If it's instantiated in Dart,
+  /// this getter clones this [Float32List]'s values into a new
+  /// [JSFloat32Array].
+  ///
+  /// Avoid assuming that modifications to this [Float32List] will affect the
+  /// returned [JSFloat32Array] and vice versa on all compilers unless it was
+  /// converted first via [JSFloat32ArrayToFloat32List.toDart].
   external JSFloat32Array get toJS;
 }
 
@@ -1193,9 +1314,17 @@ extension JSFloat64ArrayToFloat64List on JSFloat64Array {
   /// Converts this [JSFloat64Array] to a [Float64List] by either casting or
   /// wrapping it.
   ///
+  /// > [!NOTE]
+  /// > Depending on whether code is compiled to JavaScript or Wasm, this
+  /// > conversion will have different semantics.
+  ///
   /// When compiling to JavaScript, [Float64List]s are [JSFloat64Array]s and
-  /// this operation will be a cast. When compiling to Wasm, a wrapper is
-  /// introduced. Modifications to this [JSFloat64Array] will affect the
+  /// this getter will be a cast.
+  ///
+  /// When compiling to Wasm, the [JSFloat64Array] is wrapped with a
+  /// [Float64List] implementation and the wrapper is returned.
+  ///
+  /// Modifications to this [JSFloat64Array] will affect the returned
   /// [Float64List] and vice versa.
   external Float64List get toDart;
 }
@@ -1208,16 +1337,20 @@ extension Float64ListToJSFloat64Array on Float64List {
   /// > [!NOTE]
   /// > Depending on whether code is compiled to JavaScript or Wasm, this
   /// > conversion will have different semantics.
-  /// > When compiling to JavaScript, all typed lists are the equivalent
-  /// > JavaScript typed arrays, and therefore this method simply casts.
-  /// > When compiling to Wasm, this [Float64List] may or may not be a wrapper
-  /// > depending on if it was converted from JavaScript or instantiated in
-  /// > Dart. If it's a wrapper, this method unwraps it. If it's instantiated in
-  /// > Dart, this method clones this [Float64List]'s values into a new
-  /// > [JSFloat64Array].
-  /// > Avoid assuming that modifications to this [Float64List] will affect the
-  /// > [JSFloat64Array] and vice versa unless it was instantiated in
-  /// > JavaScript.
+  ///
+  /// When compiling to JavaScript, all typed lists are the equivalent
+  /// JavaScript typed arrays, and therefore this getter simply casts.
+  ///
+  /// When compiling to Wasm, this [Float64List] is a wrapper around a
+  /// `Float64Array` if it was converted via
+  /// [JSFloat64ArrayToFloat64List.toDart]. If it is a wrapper, this getter
+  /// unwraps it and returns the `Float64Array`. If it's instantiated in Dart,
+  /// this getter clones this [Float64List]'s values into a new
+  /// [JSFloat64Array].
+  ///
+  /// Avoid assuming that modifications to this [Float64List] will affect the
+  /// returned [JSFloat64Array] and vice versa on all compilers unless it was
+  /// converted first via [JSFloat64ArrayToFloat64List.toDart].
   external JSFloat64Array get toJS;
 }
 
@@ -1225,11 +1358,21 @@ extension Float64ListToJSFloat64Array on Float64List {
 extension JSArrayToList<T extends JSAny?> on JSArray<T> {
   /// Converts this [JSArray] to a [List] by either casting or wrapping it.
   ///
-  /// When compiling to JavaScript, [List]s are [JSArray]s and this will be a
-  /// cast. When compiling to Wasm, a wrapper is introduced. Modifications to
-  /// this [JSArray] will affect the [List] and vice versa. In order to ensure
-  /// type soundness, this method may introduce casts when accessing elements in
-  /// order to ensure they are of type [T].
+  /// > [!NOTE]
+  /// > Depending on whether code is compiled to JavaScript or Wasm, this
+  /// > conversion will have different semantics.
+  ///
+  /// When compiling to JavaScript, core [List]s are `Array`s and therefore, if
+  /// the [JSArray] was already a <code>[List]<T></code> converted via
+  /// [ListToJSArray.toJS], this getter simply casts the `Array`. Otherwise, it
+  /// wraps the `Array` with a [List] that casts the elements to [T] to ensure
+  /// soundness.
+  ///
+  /// When compiling to Wasm, the [JSArray] is wrapped with a [List]
+  /// implementation and the wrapper is returned.
+  ///
+  /// Modifications to this [JSArray] will affect the returned [List] and vice
+  /// versa.
   external List<T> get toDart;
 }
 
@@ -1241,15 +1384,19 @@ extension ListToJSArray<T extends JSAny?> on List<T> {
   /// > [!NOTE]
   /// > Depending on whether code is compiled to JavaScript or Wasm, this
   /// > conversion will have different semantics.
-  /// > When compiling to JavaScript, the core [List] is a JavaScript `Array`,
-  /// > and therefore this method simply casts. User-defined [List]s are
-  /// > currently unsupported when compiling to JavaScript.
-  /// > When compiling to Wasm, this [List] may or may not be a wrapper
-  /// > depending on if it was converted from JavaScript or instantiated in
-  /// > Dart. If it's a wrapper, this method unwraps it. If it's instantiated in
-  /// > Dart, this method clones this [List]'s values into a new [JSArray].
-  /// > Avoid assuming that modifications to this [List] will affect the
-  /// > [JSArray] and vice versa unless it was instantiated in JavaScript.
+  ///
+  /// When compiling to JavaScript, the core [List] is a JavaScript `Array`, and
+  /// therefore this getter simply casts. If the [List] is not a core [List]
+  /// e.g. a user-defined list, this getter throws with a cast error.
+  ///
+  /// When compiling to Wasm, this [List] is a wrapper around an `Array` if it
+  /// was converted via [JSArrayToList.toDart]. If it's a wrapper, this getter
+  /// unwraps it and returns the `Array`. If it's instantiated in Dart, this
+  /// getter clones this [List]'s values into a new [JSArray].
+  ///
+  /// Avoid assuming that modifications to this [List] will affect the returned
+  /// [JSArray] and vice versa in all compilers unless it was first converted
+  /// via [JSArrayToList.toDart].
   external JSArray<T> get toJS;
 
   /// Converts this [List] to a [JSArray] by either casting, unwrapping, or
@@ -1258,16 +1405,19 @@ extension ListToJSArray<T extends JSAny?> on List<T> {
   /// > [!NOTE]
   /// > Depending on whether code is compiled to JavaScript or Wasm, this
   /// > conversion will have different semantics.
-  /// > When compiling to JavaScript, the core [List] is a JavaScript `Array`,
-  /// > and therefore this method simply casts. User-defined [List]s are
-  /// > currently unsupported when compiling to JavaScript.
-  /// > When compiling to Wasm, this [List] may or may not be a wrapper
-  /// > depending on if it was converted from JavaScript or instantiated in
-  /// > Dart. If it's a wrapper, this method unwraps it. If it's instantiated in
-  /// > Dart, this method proxies the [List] using a heavyweight `Array`
-  /// > wrapper. Access to the original [List]'s elements may be very
-  /// > unperformant.
-  /// > Modifications to this [List] will affect the [JSArray] and vice versa.
+  ///
+  /// When compiling to JavaScript, the core [List] is a JavaScript `Array`, and
+  /// therefore this getter simply casts. If the [List] is not a core [List]
+  /// e.g. a user-defined list, this getter throws with a cast error.
+  ///
+  /// When compiling to Wasm, this [List] is a wrapper around an `Array` if it
+  /// was converted via [JSArrayToList.toDart]. If it's a wrapper, this getter
+  /// unwraps it and returns the `Array`. If it's instantiated in Dart, this
+  /// getter proxies the [List] using a heavyweight `Array` wrapper. Access to
+  /// the original [List]'s elements may be very unperformant.
+  ///
+  /// Modifications to this [List] will affect the returned [JSArray] and vice
+  /// versa.
   external JSArray<T> get toJSProxyOrRef;
 }
 
