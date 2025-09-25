@@ -252,9 +252,8 @@ abstract class SubstitutedElementImpl implements Element {
   }
 
   @override
-  bool isDeprecatedWithKind(String kind) => metadata.annotations
-      .where((e) => e.isDeprecated)
-      .any((e) => e.deprecationKind == kind);
+  bool isDeprecatedWithKind(String kind) =>
+      baseElement.isDeprecatedWithKind(kind);
 
   @override
   Element? thisOrAncestorMatching(bool Function(Element e) predicate) {
