@@ -5,7 +5,7 @@
 // TODO(srujzs): Break this test up into multiple tests, delete redundant tests,
 // and move them to a shared library.
 
-import 'dart:js_util';
+import 'dart:js_interop' show JSAny, JSAnyUtilityExtension;
 import 'package:expect/expect.dart';
 import 'package:js/js.dart';
 import 'static_interop_library.dart';
@@ -368,7 +368,7 @@ void staticInteropBypassConversionTest() {
   ''');
 
   JSArray a = arrayObject;
-  Expect.isTrue(instanceOfString(a, "Array"));
+  Expect.isTrue((a as JSAny).instanceOfString("Array"));
   Expect.equals(2, a.length);
   Expect.equals('foo', a.deoptKey);
 }
