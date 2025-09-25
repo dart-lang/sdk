@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 abstract class C {}
@@ -12,9 +11,9 @@ abstract class D<T> {
 }
 
 void test() {
-  var /*@type=invalid-type*/ x = new C();
-  var /*@type=invalid-type*/ y = new D(1);
-  D<List<int>> z = new D(/*@typeArgs=dynamic*/ []);
+  var x = new C();
+  var y = new D(1);
+  D<List<int>> z = new D([]);
 }
 
 main() {}

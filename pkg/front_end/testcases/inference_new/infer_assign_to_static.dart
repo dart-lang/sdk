@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class A {}
@@ -25,64 +24,63 @@ B topLevelVariable = throw '';
 B? topLevelVariable2;
 
 void test_topLevelVariable() {
-  topLevelVariable = /*@typeArgs=B*/ f();
+  topLevelVariable = f();
 
-  topLevelVariable2 ??= /*@typeArgs=B?*/ f();
+  topLevelVariable2 ??= f();
 
-  topLevelVariable /*@target=B.+*/ += /*@typeArgs=C*/ f();
+  topLevelVariable += f();
 
-  topLevelVariable /*@target=B.**/ *= /*@typeArgs=B*/ f();
+  topLevelVariable *= f();
 
-  topLevelVariable /*@target=B.&*/ &= /*@typeArgs=A*/ f();
+  topLevelVariable &= f();
 
-  /*@target=B.-*/ --topLevelVariable;
+  --topLevelVariable;
 
-  topLevelVariable /*@target=B.-*/ --;
+  topLevelVariable--;
 
-  var /*@type=B*/ v1 = topLevelVariable = /*@typeArgs=B*/ f();
+  var v1 = topLevelVariable = f();
 
-  var /*@type=B?*/ v2 = topLevelVariable2 ??= /*@typeArgs=B?*/ f();
+  var v2 = topLevelVariable2 ??= f();
 
-  var /*@type=B*/ v3 = topLevelVariable /*@target=B.+*/ += /*@typeArgs=C*/ f();
+  var v3 = topLevelVariable += f();
 
-  var /*@type=B*/ v4 = topLevelVariable /*@target=B.**/ *= /*@typeArgs=B*/ f();
+  var v4 = topLevelVariable *= f();
 
-  var /*@type=C*/ v5 = topLevelVariable /*@target=B.&*/ &= /*@typeArgs=A*/ f();
+  var v5 = topLevelVariable &= f();
 
-  var /*@type=B*/ v6 = /*@target=B.-*/ --topLevelVariable;
+  var v6 = --topLevelVariable;
 
-  var /*@type=B*/ v7 =  topLevelVariable  /*@target=B.-*/ --;
+  var v7 = topLevelVariable--;
 }
 
 void test_staticVariable() {
-  B.staticVariable = /*@typeArgs=B*/ f();
+  B.staticVariable = f();
 
-  B.staticVariable2 ??= /*@typeArgs=B?*/ f();
+  B.staticVariable2 ??= f();
 
-  B.staticVariable /*@target=B.+*/ += /*@typeArgs=C*/ f();
+  B.staticVariable += f();
 
-  B.staticVariable /*@target=B.**/ *= /*@typeArgs=B*/ f();
+  B.staticVariable *= f();
 
-  B.staticVariable /*@target=B.&*/ &= /*@typeArgs=A*/ f();
+  B.staticVariable &= f();
 
-  /*@target=B.-*/ --B.staticVariable;
+  --B.staticVariable;
 
-  B.staticVariable /*@target=B.-*/ --;
+  B.staticVariable--;
 
-  var /*@type=B*/ v1 = B.staticVariable = /*@typeArgs=B*/ f();
+  var v1 = B.staticVariable = f();
 
-  var /*@type=B?*/ v2 = B.staticVariable2 ??= /*@typeArgs=B?*/ f();
+  var v2 = B.staticVariable2 ??= f();
 
-  var /*@type=B*/ v3 = B.staticVariable /*@target=B.+*/ += /*@typeArgs=C*/ f();
+  var v3 = B.staticVariable += f();
 
-  var /*@type=B*/ v4 = B.staticVariable /*@target=B.**/ *= /*@typeArgs=B*/ f();
+  var v4 = B.staticVariable *= f();
 
-  var /*@type=C*/ v5 = B.staticVariable /*@target=B.&*/ &= /*@typeArgs=A*/ f();
+  var v5 = B.staticVariable &= f();
 
-  var /*@type=B*/ v6 = /*@target=B.-*/ --B.staticVariable;
+  var v6 = --B.staticVariable;
 
-  var /*@type=B*/ v7 =
-      B.  staticVariable  /*@target=B.-*/ --;
+  var v7 = B.staticVariable--;
 }
 
 main() {}

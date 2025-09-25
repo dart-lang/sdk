@@ -2,20 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 import 'dart:async';
 
 test(Future<int> base) {
-  var /*@type=Future<bool>*/ f =
-      base. /*@typeArgs=bool*/ /*@target=Future.then*/ then(
-          /*@returnType=bool*/ (/*@type=int*/ x) {
-    return x /*@target=num.==*/ == 0;
+  var f = base.then((x) {
+    return x == 0;
   });
-  var /*@type=Future<bool>*/ g =
-      base. /*@typeArgs=bool*/ /*@target=Future.then*/ then(
-          /*@returnType=bool*/ (/*@type=int*/ x) => x /*@target=num.==*/ == 0);
+  var g = base.then((x) => x == 0);
   Future<bool> b = f;
   b = g;
 }

@@ -2,13 +2,13 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:21:10: Error: A value of type 'B' can't be assigned to a variable of type 'int'.
+// pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:20:10: Error: A value of type 'B' can't be assigned to a variable of type 'int'.
 //  - 'B' is from 'pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart'.
 // Try changing the type of the variable.
 //   for (i in iterable) {}
 //          ^
 //
-// pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:22:16: Error: A value of type 'B' can't be assigned to a variable of type 'int'.
+// pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:21:16: Error: A value of type 'B' can't be assigned to a variable of type 'int'.
 //  - 'B' is from 'pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart'.
 // Try changing the type of the variable.
 //   await for (i in stream) {}
@@ -84,7 +84,7 @@ static method test(core::Iterable<self::B> iterable, asy::Stream<self::B> stream
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final self::B #t7 = :sync-for-iterator.{core::Iterator::current}{self::B};
       {
-        i = invalid-expression "pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:21:10: Error: A value of type 'B' can't be assigned to a variable of type 'int'.
+        i = invalid-expression "pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:20:10: Error: A value of type 'B' can't be assigned to a variable of type 'int'.
  - 'B' is from 'pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart'.
 Try changing the type of the variable.
   for (i in iterable) {}
@@ -99,7 +99,7 @@ Try changing the type of the variable.
       while (let dynamic #t8 = asy::_asyncStarMoveNextHelper(:stream) in await :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
         final self::B #t9 = :for-iterator.{asy::_StreamIterator::current}{self::B};
         {
-          i = invalid-expression "pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:22:16: Error: A value of type 'B' can't be assigned to a variable of type 'int'.
+          i = invalid-expression "pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:21:16: Error: A value of type 'B' can't be assigned to a variable of type 'int'.
  - 'B' is from 'pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart'.
 Try changing the type of the variable.
   await for (i in stream) {}

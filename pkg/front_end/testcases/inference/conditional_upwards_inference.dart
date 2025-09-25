@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class C<T> {
@@ -11,9 +10,9 @@ class C<T> {
 
 main() {
   bool b = false;
-  List<int> l1 = /*@typeArgs=int*/ [1];
-  List<int> l2 = /*@typeArgs=int*/ [2];
-  var /*@type=C<int>*/ x = new /*@typeArgs=int*/ C(l1);
-  var /*@type=C<int>*/ y = new /*@typeArgs=int*/ C(l2);
-  var /*@type=C<int>*/ z = new /*@typeArgs=int*/ C(b ? l1 : l2);
+  List<int> l1 = [1];
+  List<int> l2 = [2];
+  var x = new C(l1);
+  var y = new C(l2);
+  var z = new C(b ? l1 : l2);
 }

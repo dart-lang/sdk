@@ -36,7 +36,6 @@ import '../api_prototype/file_system.dart';
 import '../base/common.dart';
 import '../base/export.dart' show Export;
 import '../base/import_chains.dart';
-import '../base/instrumentation.dart' show Instrumentation;
 import '../base/loader.dart' show Loader, untranslatableUriScheme;
 import '../base/lookup_result.dart';
 import '../base/messages.dart';
@@ -136,8 +135,6 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
   DartType get streamOfBottom => _streamOfBottom!;
 
   TypeInferenceEngineImpl? _typeInferenceEngine;
-
-  Instrumentation? instrumentation;
 
   final SourceLoaderDataForTesting? dataForTesting;
 
@@ -2876,8 +2873,7 @@ severity: $severity
 
   void createTypeInferenceEngine() {
     _typeInferenceEngine = new TypeInferenceEngineImpl(
-      instrumentation,
-      target.benchmarker,
+      benchmarker: target.benchmarker,
     );
   }
 
@@ -3115,7 +3111,6 @@ severity: $severity
     sourceBytes.clear();
     target.releaseAncillaryResources();
     _coreTypes = null;
-    instrumentation = null;
   }
 
   @override

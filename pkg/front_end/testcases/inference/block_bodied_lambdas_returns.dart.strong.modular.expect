@@ -2,11 +2,11 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/block_bodied_lambdas_returns.dart:35:7: Error: A value must be explicitly returned from a non-void function.
+// pkg/front_end/testcases/inference/block_bodied_lambdas_returns.dart:34:7: Error: A value must be explicitly returned from a non-void function.
 //       return;
 //       ^
 //
-// pkg/front_end/testcases/inference/block_bodied_lambdas_returns.dart:65:7: Error: A value must be explicitly returned from a non-void function.
+// pkg/front_end/testcases/inference/block_bodied_lambdas_returns.dart:64:7: Error: A value must be explicitly returned from a non-void function.
 //       return;
 //       ^
 //
@@ -42,7 +42,7 @@ static method main() → dynamic {
   };
   (core::bool) → core::int? g = (core::bool b) → core::int? {
     if(b) {
-      return invalid-expression "pkg/front_end/testcases/inference/block_bodied_lambdas_returns.dart:35:7: Error: A value must be explicitly returned from a non-void function.
+      return invalid-expression "pkg/front_end/testcases/inference/block_bodied_lambdas_returns.dart:34:7: Error: A value must be explicitly returned from a non-void function.
       return;
       ^" in null;
     }
@@ -79,7 +79,7 @@ static method main() → dynamic {
       return 0;
     }
     else {
-      return invalid-expression "pkg/front_end/testcases/inference/block_bodied_lambdas_returns.dart:65:7: Error: A value must be explicitly returned from a non-void function.
+      return invalid-expression "pkg/front_end/testcases/inference/block_bodied_lambdas_returns.dart:64:7: Error: A value must be explicitly returned from a non-void function.
       return;
       ^" in null;
     }

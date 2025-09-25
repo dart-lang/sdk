@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class Foo<T extends Pattern> {
@@ -10,7 +9,7 @@ class Foo<T extends Pattern> {
 }
 
 test() {
-/*!!!
+  /*!!!
   String s;
   var a = new Foo().method<String>("str");
   s = a;
@@ -22,5 +21,5 @@ test() {
   s = c;
   */
 
-  new Foo<String>(). /*@typeArgs=String*/ /*@target=Foo.method*/ method(42);
+  new Foo<String>().method(42);
 }

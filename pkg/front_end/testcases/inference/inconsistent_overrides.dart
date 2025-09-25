@@ -4,8 +4,6 @@
 
 library test;
 
-/*@testedFeatures=inference*/
-
 class A {
   A f(A x, {A? y}) => throw '';
   A g(A x, {A? y}) => throw '';

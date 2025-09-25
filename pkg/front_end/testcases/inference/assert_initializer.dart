@@ -2,20 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 T f<T>() => throw '';
 
 class C {
-  C.expressionOnly() : assert(/*@typeArgs=bool*/ f());
-  C.expressionAndMessage()
-      : assert(/*@typeArgs=bool*/ f(), /*@ typeArgs=dynamic */ f());
+  C.expressionOnly() : assert(f());
+  C.expressionAndMessage() : assert(f(), f());
 }
 
 main() {
   // Test type inference of assert statements just to verify that the behavior
   // is the same.
-  assert(/*@typeArgs=bool*/ f());
-  assert(/*@typeArgs=bool*/ f(), /*@ typeArgs=dynamic */ f());
+  assert(f());
+  assert(f(), f());
 }

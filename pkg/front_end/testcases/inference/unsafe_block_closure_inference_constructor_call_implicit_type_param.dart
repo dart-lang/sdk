@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class C<T> {
@@ -10,8 +9,7 @@ class C<T> {
 }
 
 main() {
-  var /*@type=C<int>*/ v = new /*@typeArgs=int*/ C(
-      /*@returnType=int*/ () {
+  var v = new C(() {
     return 1;
   });
 }

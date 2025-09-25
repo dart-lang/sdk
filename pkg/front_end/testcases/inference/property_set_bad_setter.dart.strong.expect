@@ -2,7 +2,7 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/property_set_bad_setter.dart:9:13: Error: A setter should have exactly one formal parameter.
+// pkg/front_end/testcases/inference/property_set_bad_setter.dart:8:13: Error: A setter should have exactly one formal parameter.
 //   void set x() {}
 //             ^
 //
@@ -14,7 +14,7 @@ class A extends core::Object {
     : super core::Object::•()
     ;
   set x(dynamic #synthetic) → void {
-    invalid-expression "pkg/front_end/testcases/inference/property_set_bad_setter.dart:9:13: Error: A setter should have exactly one formal parameter.
+    invalid-expression "pkg/front_end/testcases/inference/property_set_bad_setter.dart:8:13: Error: A setter should have exactly one formal parameter.
   void set x() {}
             ^";
     {}

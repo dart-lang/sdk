@@ -31,16 +31,16 @@ static method main() → dynamic {
 
 
 Extra constant evaluation status:
-Evaluated: EqualsCall @ org-dartlang-testcase:///infer_binary_int_double.dart:8:36 -> BoolConstant(false)
-Evaluated: Not @ org-dartlang-testcase:///infer_binary_int_double.dart:9:39 -> BoolConstant(true)
-Evaluated: InstanceInvocation @ org-dartlang-testcase:///infer_binary_int_double.dart:10:33 -> DoubleConstant(3.0)
-Evaluated: InstanceInvocation @ org-dartlang-testcase:///infer_binary_int_double.dart:11:38 -> DoubleConstant(-1.0)
-Evaluated: InstanceInvocation @ org-dartlang-testcase:///infer_binary_int_double.dart:12:38 -> DoubleConstant(2.0)
-Evaluated: InstanceInvocation @ org-dartlang-testcase:///infer_binary_int_double.dart:13:37 -> DoubleConstant(0.5)
-Evaluated: InstanceInvocation @ org-dartlang-testcase:///infer_binary_int_double.dart:14:43 -> IntConstant(0)
-Evaluated: InstanceInvocation @ org-dartlang-testcase:///infer_binary_int_double.dart:15:37 -> BoolConstant(false)
-Evaluated: InstanceInvocation @ org-dartlang-testcase:///infer_binary_int_double.dart:16:34 -> BoolConstant(true)
-Evaluated: InstanceInvocation @ org-dartlang-testcase:///infer_binary_int_double.dart:17:43 -> BoolConstant(false)
-Evaluated: InstanceInvocation @ org-dartlang-testcase:///infer_binary_int_double.dart:18:40 -> BoolConstant(true)
-Evaluated: InstanceInvocation @ org-dartlang-testcase:///infer_binary_int_double.dart:19:36 -> DoubleConstant(1.0)
+Evaluated: EqualsCall @ org-dartlang-testcase:///infer_binary_int_double.dart:7:17 -> BoolConstant(false)
+Evaluated: Not @ org-dartlang-testcase:///infer_binary_int_double.dart:8:20 -> BoolConstant(true)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///infer_binary_int_double.dart:9:15 -> DoubleConstant(3.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///infer_binary_int_double.dart:10:20 -> DoubleConstant(-1.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///infer_binary_int_double.dart:11:20 -> DoubleConstant(2.0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///infer_binary_int_double.dart:12:18 -> DoubleConstant(0.5)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///infer_binary_int_double.dart:13:23 -> IntConstant(0)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///infer_binary_int_double.dart:14:19 -> BoolConstant(false)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///infer_binary_int_double.dart:15:16 -> BoolConstant(true)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///infer_binary_int_double.dart:16:24 -> BoolConstant(false)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///infer_binary_int_double.dart:17:21 -> BoolConstant(true)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///infer_binary_int_double.dart:18:18 -> DoubleConstant(1.0)
 Extra constant evaluation: evaluated: 24, effectively constant: 12

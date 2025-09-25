@@ -14,5 +14,5 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: StaticTearOff @ org-dartlang-testcase:///static_method_tear_off.dart:8:13 -> StaticTearOffConstant(C.f)
+Evaluated: StaticTearOff @ org-dartlang-testcase:///static_method_tear_off.dart:7:13 -> StaticTearOffConstant(C.f)
 Extra constant evaluation: evaluated: 1, effectively constant: 1

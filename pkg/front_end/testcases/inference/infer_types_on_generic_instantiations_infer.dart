@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class A<T> {
@@ -10,12 +9,13 @@ class A<T> {
 }
 
 class B implements A<int> {
-  /*error:INVALID_METHOD_OVERRIDE*/ dynamic get x => 3;
+  /*error:INVALID_METHOD_OVERRIDE*/
+  dynamic get x => 3;
 }
 
 foo() {
-  String y = /*info:DYNAMIC_CAST*/ new B(). /*@target=B.x*/ x; // TypeError.
-  int z = /*info:DYNAMIC_CAST*/ new B(). /*@target=B.x*/ x;
+  String y = /*info:DYNAMIC_CAST*/ new B().x; // TypeError.
+  int z = /*info:DYNAMIC_CAST*/ new B().x;
 }
 
 main() {

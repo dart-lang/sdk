@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 f(List<int> o) {
-  o. /*@target=Iterable.where*/ where(/*@returnType=bool*/ (/*@type=int*/ i) {
-    return i /*@target=num.==*/ == 0;
+  o.where((i) {
+    return i == 0;
   });
 }
 

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 import 'dart:math' as math;
@@ -25,13 +24,15 @@ test() {
 
   takeOOI(/*error:COULD_NOT_INFER,error:INVALID_CAST_FUNCTION*/ math.max);
   takeIDI(
-      /*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ math.max);
+    /*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ math.max,
+  );
   takeDID(
-      /*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ math.max);
+    /*error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ math.max,
+  );
   takeOON(/*error:COULD_NOT_INFER,error:INVALID_CAST_FUNCTION*/ math.max);
   takeOOO(/*error:COULD_NOT_INFER,error:INVALID_CAST_FUNCTION*/ math.max);
 
-// Also test SimpleIdentifier
+  // Also test SimpleIdentifier
   takeIII(min);
   takeDDD(min);
   takeNNN(min);
@@ -48,43 +49,43 @@ test() {
   takeOON(/*error:COULD_NOT_INFER,error:INVALID_CAST_FUNCTION*/ min);
   takeOOO(/*error:COULD_NOT_INFER,error:INVALID_CAST_FUNCTION*/ min);
 
-// Also PropertyAccess
-  takeIII(new C(). /*@target=C.m*/ m);
-  takeDDD(new C(). /*@target=C.m*/ m);
-  takeNNN(new C(). /*@target=C.m*/ m);
-  takeIDN(new C(). /*@target=C.m*/ m);
-  takeDIN(new C(). /*@target=C.m*/ m);
-  takeIIN(new C(). /*@target=C.m*/ m);
-  takeDDN(new C(). /*@target=C.m*/ m);
-  takeIIO(new C(). /*@target=C.m*/ m);
-  takeDDO(new C(). /*@target=C.m*/ m);
+  // Also PropertyAccess
+  takeIII(new C().m);
+  takeDDD(new C().m);
+  takeNNN(new C().m);
+  takeIDN(new C().m);
+  takeDIN(new C().m);
+  takeIIN(new C().m);
+  takeDDN(new C().m);
+  takeIIO(new C().m);
+  takeDDO(new C().m);
 
-// Note: this is a warning because a downcast of a method tear-off could work
-// (derived method can be a subtype):
-//
-//     class D extends C {
-//       S m<S extends num>(Object x, Object y);
-//     }
-//
-// That's legal because we're loosening parameter types.
-//
-// We do issue the inference error though, similar to generic function calls.
+  // Note: this is a warning because a downcast of a method tear-off could work
+  // (derived method can be a subtype):
+  //
+  //     class D extends C {
+  //       S m<S extends num>(Object x, Object y);
+  //     }
+  //
+  // That's legal because we're loosening parameter types.
+  //
+  // We do issue the inference error though, similar to generic function calls.
   // Error:COULD_NOT_INFER,info:DOWN_CAST_COMPOSITE
-  takeOON(new C() . /*@target=C.m*/ m);
+  takeOON(new C().m);
   // Error:COULD_NOT_INFER,info:DOWN_CAST_COMPOSITE
-  takeOOO(new C() . /*@target=C.m*/ m);
+  takeOOO(new C().m);
 
-// Note: this is a warning because a downcast of a method tear-off could work
-// in "normal" Dart, due to bivariance.
-//
-// We do issue the inference error though, similar to generic function calls.
+  // Note: this is a warning because a downcast of a method tear-off could work
+  // in "normal" Dart, due to bivariance.
+  //
+  // We do issue the inference error though, similar to generic function calls.
   // Error:COULD_NOT_INFER,info:DOWN_CAST_COMPOSITE
-  takeOOI(new C() . /*@target=C.m*/ m);
+  takeOOI(new C().m);
 
   // Error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE
-  takeIDI(new C() . /*@target=C.m*/ m);
+  takeIDI(new C().m);
   // Error:COULD_NOT_INFER,error:ARGUMENT_TYPE_NOT_ASSIGNABLE
-  takeDID(new C() . /*@target=C.m*/ m);
+  takeDID(new C().m);
 }
 
 void takeIII(int fn(int a, int b)) {}

@@ -2,7 +2,7 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/block_bodied_lambdas_async_star.dart:14:12: Error: Non-nullable variable 's' must be assigned before it can be used.
+// pkg/front_end/testcases/inference/block_bodied_lambdas_async_star.dart:13:12: Error: Non-nullable variable 's' must be assigned before it can be used.
 //     yield* s;
 //            ^
 //
@@ -16,7 +16,7 @@ static method test() → dynamic {
   () → asy::Stream<core::num> f = () → asy::Stream<core::num> async* /* emittedValueType= core::num */ {
     yield 1;
     asy::Stream<core::double> s;
-    yield* invalid-expression "pkg/front_end/testcases/inference/block_bodied_lambdas_async_star.dart:14:12: Error: Non-nullable variable 's' must be assigned before it can be used.
+    yield* invalid-expression "pkg/front_end/testcases/inference/block_bodied_lambdas_async_star.dart:13:12: Error: Non-nullable variable 's' must be assigned before it can be used.
     yield* s;
            ^" in s;
   };

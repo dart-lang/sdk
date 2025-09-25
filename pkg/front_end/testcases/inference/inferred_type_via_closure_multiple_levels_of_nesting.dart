@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class C {
-  static final f = /*@returnType=(int) -> Map<int, bool>*/ (bool
-      b) => /*@returnType=Map<int, bool>*/ (int i) => /*@typeArgs=int, bool*/ {i: b};
+  static final f = (bool b) =>
+      (int i) => {i: b};
 }
 
 main() {}

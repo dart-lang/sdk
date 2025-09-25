@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 abstract class I1 {
@@ -26,11 +25,11 @@ class F extends E {
 }
 
 void g1(C c) {
-  c. /*@target=C.f*/ f('hi');
+  c.f('hi');
 }
 
 void g2(E e) {
-  e. /*@target=I2.f*/ f('hi');
+  e.f('hi');
 }
 
 main() {

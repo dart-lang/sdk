@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
-final f = /*@returnType=int*/ (bool b) => 1;
+final f = (bool b) => 1;
 
 main() {
   f;

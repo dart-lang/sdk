@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class A {
@@ -21,15 +20,11 @@ class D {
 }
 
 test() {
-  var /*@type=int*/ callA = new A() /*@target=A.call*/ ();
-  var /*@type=int*/ callFieldA =
-      new D(). /*@target=D.fieldA*/ fieldA /*@target=A.call*/ ();
-  var /*@type=int*/ callGetA =
-      new D(). /*@target=D.getA*/ getA /*@target=A.call*/ ();
-  var /*@type=int*/ callFieldB = new D()
-      . /*@target=D.fieldB*/ fieldB /*@target=B.call*/ /*@target=A.call*/ ();
-  var /*@type=int*/ callGetB =
-      new D(). /*@target=D.getB*/ getB /*@target=B.call*/ /*@target=A.call*/ ();
+  var callA = new A()();
+  var callFieldA = new D().fieldA();
+  var callGetA = new D().getA();
+  var callFieldB = new D().fieldB();
+  var callGetB = new D().getB();
 }
 
 main() {}

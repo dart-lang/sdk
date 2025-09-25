@@ -2,24 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 f() {
-  var /*@type=int*/ a = 0;
-  var /*@ type=dynamic */ b = null;
-  var /*@type=Never*/ c = throw 'foo';
-  var /*@type=() -> int*/ d = /*@returnType=int*/ () => 0;
-  var /*@type=() -> Null*/ e = /*@ returnType=Null */ () => null;
-  var /*@type=() -> Never*/ f = /*@returnType=Never*/ () =>
-      throw 'foo';
-  var /*@type=() -> int*/ g = /*@returnType=int*/ () {
+  var a = 0;
+  var b = null;
+  var c = throw 'foo';
+  var d = () => 0;
+  var e = () => null;
+  var f = () => throw 'foo';
+  var g = () {
     return 0;
   };
-  var /*@type=() -> Null*/ h = /*@ returnType=Null */ () {
+  var h = () {
     return null;
   };
-  var /*@type=() -> Never*/ i = /*@returnType=Never*/ () {
+  var i = () {
     return (throw 'foo');
   };
 }

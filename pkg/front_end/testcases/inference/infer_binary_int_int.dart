@@ -2,26 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
-var a_equal = 1 /*@target=num.==*/ == 2;
-var a_notEqual = 1 /*@target=num.==*/ != 2;
-var a_bitXor = 1 /*@target=int.^*/ ^ 2;
-var a_bitAnd = 1 /*@target=int.&*/ & 2;
-var a_bitOr = 1 /*@target=int.|*/ | 2;
-var a_bitShiftRight = 1 /*@target=int.>>*/ >> 2;
-var a_bitShiftLeft = 1 /*@target=int.<<*/ << 2;
-var a_add = 1 /*@target=num.+*/ + 2;
-var a_subtract = 1 /*@target=num.-*/ - 2;
-var a_multiply = 1 /*@target=num.**/ * 2;
-var a_divide = 1 /*@target=num./ */ / 2;
-var a_floorDivide = 1 /*@target=num.~/ */ ~/ 2;
-var a_greater = 1 /*@target=num.>*/ > 2;
-var a_less = 1 /*@target=num.<*/ < 2;
-var a_greaterEqual = 1 /*@target=num.>=*/ >= 2;
-var a_lessEqual = 1 /*@target=num.<=*/ <= 2;
-var a_modulo = 1 /*@target=num.%*/ % 2;
+var a_equal = 1 == 2;
+var a_notEqual = 1 != 2;
+var a_bitXor = 1 ^ 2;
+var a_bitAnd = 1 & 2;
+var a_bitOr = 1 | 2;
+var a_bitShiftRight = 1 >> 2;
+var a_bitShiftLeft = 1 << 2;
+var a_add = 1 + 2;
+var a_subtract = 1 - 2;
+var a_multiply = 1 * 2;
+var a_divide = 1 / 2;
+var a_floorDivide = 1 ~/ 2;
+var a_greater = 1 > 2;
+var a_less = 1 < 2;
+var a_greaterEqual = 1 >= 2;
+var a_lessEqual = 1 <= 2;
+var a_modulo = 1 % 2;
 
 main() {
   a_equal;

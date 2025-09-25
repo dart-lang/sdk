@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class C {
@@ -10,7 +9,7 @@ class C {
 }
 
 C c = new C();
-var x = /*@target=C.unary-*/ -c;
+var x = -c;
 
 main() {
   c;

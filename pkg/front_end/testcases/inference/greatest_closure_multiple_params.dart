@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 abstract class C<E> {
   void sort([int Function(E a, E b)? compare]) {
-    /*@typeArgs=C::E%*/ sort2(this, compare ?? _compareAny);
+    sort2(this, compare ?? _compareAny);
   }
 
   static int _compareAny(a, b) {

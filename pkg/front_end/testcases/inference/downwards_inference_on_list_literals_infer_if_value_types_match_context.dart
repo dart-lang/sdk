@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class DartType {}
@@ -23,13 +22,11 @@ abstract class C {
   AsserterBuilder<List<Asserter<DartType>>, DartType> get assertDOf => throw '';
 
   method(AsserterBuilder<List<Asserter<DartType>>, DartType> assertEOf) {
-    /*@target=C.assertAOf*/ assertAOf(
-        /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
-    assertBOf(/*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
-    assertCOf(/*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
-    /*@target=C.assertDOf*/ assertDOf(
-        /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
-    assertEOf(/*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
+    assertAOf([_isInt, _isString]);
+    assertBOf([_isInt, _isString]);
+    assertCOf([_isInt, _isString]);
+    assertDOf([_isInt, _isString]);
+    assertEOf([_isInt, _isString]);
   }
 }
 
@@ -38,13 +35,10 @@ abstract class G<T> {
   AsserterBuilder<List<Asserter<DartType>>, DartType> get assertDOf => throw '';
 
   method(AsserterBuilder<List<Asserter<DartType>>, DartType> assertEOf) {
-    /*@target=G.assertAOf*/ assertAOf(
-        /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
-    this. /*@target=G.assertAOf*/ assertAOf(
-        /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
-    this. /*@target=G.assertDOf*/ assertDOf(
-        /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
-    assertEOf(/*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
+    assertAOf([_isInt, _isString]);
+    this.assertAOf([_isInt, _isString]);
+    this.assertDOf([_isInt, _isString]);
+    assertEOf([_isInt, _isString]);
   }
 }
 
@@ -53,23 +47,19 @@ AsserterBuilder<List<Asserter<DartType>>, DartType> get assertCOf => throw '';
 
 test() {
   AsserterBuilder<List<Asserter<DartType>>, DartType> assertAOf = throw '';
-  assertAOf(/*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
-  assertBOf(/*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
-  assertCOf(/*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
-  C.assertBOf(/*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
-  C.assertCOf(/*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
+  assertAOf([_isInt, _isString]);
+  assertBOf([_isInt, _isString]);
+  assertCOf([_isInt, _isString]);
+  C.assertBOf([_isInt, _isString]);
+  C.assertCOf([_isInt, _isString]);
 
   C c = throw '';
-  c. /*@target=C.assertAOf*/ assertAOf(
-      /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
-  c. /*@target=C.assertDOf*/ assertDOf(
-      /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
+  c.assertAOf([_isInt, _isString]);
+  c.assertDOf([_isInt, _isString]);
 
   G<int> g = throw '';
-  g. /*@target=G.assertAOf*/ assertAOf(
-      /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
-  g. /*@target=G.assertDOf*/ assertDOf(
-      /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
+  g.assertAOf([_isInt, _isString]);
+  g.assertDOf([_isInt, _isString]);
 }
 
 main() {}

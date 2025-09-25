@@ -5,7 +5,6 @@
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:kernel/ast.dart';
 
-import '../base/instrumentation.dart' show InstrumentationValueForMember;
 import '../codes/cfe_codes.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/internal_ast.dart';
@@ -137,18 +136,6 @@ class PropertyForInVariable implements ForInVariable {
     if (error != null) {
       _rhs = error;
     } else {
-      if (writeTarget.isInstanceMember || writeTarget.isObjectMember) {
-        if (visitor.instrumentation != null &&
-            receiverType == const DynamicType()) {
-          // Coverage-ignore-block(suite): Not run.
-          visitor.instrumentation!.record(
-            visitor.uriForInstrumentation,
-            propertySet.fileOffset,
-            'target',
-            new InstrumentationValueForMember(writeTarget.member!),
-          );
-        }
-      }
       _rhs = propertySet.value;
     }
     return elementType;

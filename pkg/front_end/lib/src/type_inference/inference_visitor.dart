@@ -23,11 +23,6 @@ import 'package:kernel/type_algebra.dart';
 
 import '../api_prototype/experimental_flags.dart';
 import '../base/compiler_context.dart';
-import '../base/instrumentation.dart'
-    show
-        InstrumentationValueForMember,
-        InstrumentationValueForType,
-        InstrumentationValueForTypeArgs;
 import '../base/messages.dart';
 import '../base/problems.dart'
     as problems
@@ -2143,13 +2138,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     receiver = ensureAssignable(extensionOnType, receiverType, receiver);
     receiverType = extensionOnType;
 
-    instrumentation?.record(
-      uriForInstrumentation,
-      node.receiver.fileOffset,
-      'type',
-      new InstrumentationValueForType(receiverType),
-    );
-
     Expression readReceiver;
     Expression writeReceiver;
     if (receiverVariable != null) {
@@ -3042,12 +3030,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
     DartType inferredType = iterableResult.inferredType;
     if (isVariableTypeNeeded) {
-      instrumentation?.record(
-        uriForInstrumentation,
-        variable.fileOffset,
-        'type',
-        new InstrumentationValueForType(inferredType),
-      );
       variable.type = inferredType;
     }
 
@@ -4708,12 +4690,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             inferredTypes;
       }
       inferredTypeArgument = inferredTypes[0];
-      instrumentation?.record(
-        uriForInstrumentation,
-        node.fileOffset,
-        'typeArgs',
-        new InstrumentationValueForTypeArgs([inferredTypeArgument]),
-      );
       node.typeArgument = inferredTypeArgument;
     }
     for (int i = 0; i < node.expressions.length; i++) {
@@ -8029,12 +8005,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           typeOperations: operations,
         );
         DartType inferredTypeArgument = inferredTypesForSet[0];
-        instrumentation?.record(
-          uriForInstrumentation,
-          node.fileOffset,
-          'typeArgs',
-          new InstrumentationValueForTypeArgs([inferredTypeArgument]),
-        );
 
         SetLiteral setLiteral = new SetLiteral(
           setElements,
@@ -8109,15 +8079,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
       inferredKeyType = inferredTypes[0];
       inferredValueType = inferredTypes[1];
-      instrumentation?.record(
-        uriForInstrumentation,
-        node.fileOffset,
-        'typeArgs',
-        new InstrumentationValueForTypeArgs([
-          inferredKeyType,
-          inferredValueType,
-        ]),
-      );
       node.keyType = inferredKeyType;
       node.valueType = inferredValueType;
     }
@@ -8669,12 +8630,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       writeReceiver = clonePureExpression(receiver);
     } else {
       receiverVariable = createVariable(receiver, receiverType);
-      instrumentation?.record(
-        uriForInstrumentation,
-        receiverVariable.fileOffset,
-        'type',
-        new InstrumentationValueForType(receiverType),
-      );
       readReceiver = createVariableGet(
         receiverVariable,
         promotedType: receiverType,
@@ -8809,12 +8764,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       writeReceiver = clonePureExpression(receiver);
     } else {
       receiverVariable = createVariable(receiver, receiverType);
-      instrumentation?.record(
-        uriForInstrumentation,
-        receiverVariable.fileOffset,
-        'type',
-        new InstrumentationValueForType(receiverType),
-      );
       readReceiver = createVariableGet(
         receiverVariable,
         promotedType: receiverType,
@@ -8909,13 +8858,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else {
       receiverVariable = createVariable(receiver, receiverType);
     }
-
-    instrumentation?.record(
-      uriForInstrumentation,
-      receiverVariable.fileOffset,
-      'type',
-      new InstrumentationValueForType(receiverType),
-    );
 
     Expression readReceiver = createVariableGet(
       receiverVariable,
@@ -9383,12 +9325,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(
       indexSetTarget.isInstanceMember || indexSetTarget.isSuperMember,
       'Unexpected index set target $indexSetTarget.',
-    );
-    instrumentation?.record(
-      uriForInstrumentation,
-      node.fileOffset,
-      'target',
-      new InstrumentationValueForMember(node.setter),
     );
     Expression assignment = new SuperMethodInvocation(
       indexSetName,
@@ -9913,12 +9849,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
 
     assert(readTarget.isInstanceMember || readTarget.isSuperMember);
-    instrumentation?.record(
-      uriForInstrumentation,
-      node.readOffset,
-      'target',
-      new InstrumentationValueForMember(node.getter!),
-    );
     Expression read = new SuperMethodInvocation(
       indexGetName,
       new Arguments(<Expression>[readIndex])..fileOffset = node.readOffset,
@@ -9958,12 +9888,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     assert(writeTarget.isInstanceMember || writeTarget.isSuperMember);
-    instrumentation?.record(
-      uriForInstrumentation,
-      node.writeOffset,
-      'target',
-      new InstrumentationValueForMember(node.setter!),
-    );
     Expression write = new SuperMethodInvocation(
       indexSetName,
       new Arguments(<Expression>[writeIndex, value])
@@ -10348,14 +10272,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       "Unexpected equals target $equalsTarget for "
       "$left ($leftType) == $right.",
     );
-    if (instrumentation != null && leftType == const DynamicType()) {
-      instrumentation!.record(
-        uriForInstrumentation,
-        fileOffset,
-        'target',
-        new InstrumentationValueForMember(equalsTarget.member!),
-      );
-    }
     DartType rightType = operations.makeNullableInternal(
       equalsTarget.getBinaryOperandType(this),
     );
@@ -10540,18 +10456,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case ObjectAccessTargetKind.nullableInstanceMember:
       // Coverage-ignore(suite): Not run.
       case ObjectAccessTargetKind.superMember:
-        if ((binaryTarget.isInstanceMember || binaryTarget.isObjectMember) &&
-            instrumentation != null &&
-            leftType == const DynamicType()) {
-          // Coverage-ignore-block(suite): Not run.
-          instrumentation!.record(
-            uriForInstrumentation,
-            fileOffset,
-            'target',
-            new InstrumentationValueForMember(binaryTarget.member!),
-          );
-        }
-
         binary = new InstanceInvocation(
           InstanceAccessKind.Instance,
           left,
@@ -10567,14 +10471,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
         if (binaryCheckKind ==
             MethodContravarianceCheckKind.checkMethodReturn) {
-          if (instrumentation != null) {
-            instrumentation!.record(
-              uriForInstrumentation,
-              fileOffset,
-              'checkReturn',
-              new InstrumentationValueForType(binaryType),
-            );
-          }
           binary = new AsExpression(binary, binaryType)
             ..isTypeError = true
             ..isCovarianceCheck = true
@@ -10721,18 +10617,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case ObjectAccessTargetKind.nullableInstanceMember:
       // Coverage-ignore(suite): Not run.
       case ObjectAccessTargetKind.superMember:
-        if ((unaryTarget.isInstanceMember || unaryTarget.isObjectMember) &&
-            instrumentation != null &&
-            expressionType == const DynamicType()) {
-          // Coverage-ignore-block(suite): Not run.
-          instrumentation!.record(
-            uriForInstrumentation,
-            fileOffset,
-            'target',
-            new InstrumentationValueForMember(unaryTarget.member!),
-          );
-        }
-
         unary = new InstanceInvocation(
           InstanceAccessKind.Instance,
           expression,
@@ -10748,14 +10632,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
         if (unaryCheckKind == MethodContravarianceCheckKind.checkMethodReturn) {
           // Coverage-ignore-block(suite): Not run.
-          if (instrumentation != null) {
-            instrumentation!.record(
-              uriForInstrumentation,
-              fileOffset,
-              'checkReturn',
-              new InstrumentationValueForType(expressionType),
-            );
-          }
           unary = new AsExpression(unary, unaryType)
             ..isTypeError = true
             ..isCovarianceCheck = true
@@ -10922,14 +10798,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           interfaceTarget: readTarget.classMember as Procedure,
         )..fileOffset = fileOffset;
         if (readCheckKind == MethodContravarianceCheckKind.checkMethodReturn) {
-          if (instrumentation != null) {
-            instrumentation!.record(
-              uriForInstrumentation,
-              fileOffset,
-              'checkReturn',
-              new InstrumentationValueForType(readType),
-            );
-          }
           read = new AsExpression(read, readType)
             ..isTypeError = true
             ..isCovarianceCheck = true
@@ -11612,12 +11480,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
 
     assert(readTarget.isInstanceMember || readTarget.isSuperMember);
-    instrumentation?.record(
-      uriForInstrumentation,
-      node.readOffset,
-      'target',
-      new InstrumentationValueForMember(node.getter),
-    );
     Expression read = new SuperMethodInvocation(
       indexGetName,
       new Arguments(<Expression>[readIndex])..fileOffset = node.readOffset,
@@ -11680,12 +11542,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     assert(writeTarget.isInstanceMember || writeTarget.isSuperMember);
-    instrumentation?.record(
-      uriForInstrumentation,
-      node.writeOffset,
-      'target',
-      new InstrumentationValueForMember(node.setter),
-    );
     Expression write = new SuperMethodInvocation(
       indexSetName,
       new Arguments(<Expression>[writeIndex, valueExpression])
@@ -12055,17 +11911,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       instrumented: true,
       includeExtensionMethods: true,
     );
-    if (target.isInstanceMember || target.isObjectMember) {
-      if (instrumentation != null && receiverType == const DynamicType()) {
-        // Coverage-ignore-block(suite): Not run.
-        instrumentation!.record(
-          uriForInstrumentation,
-          node.fileOffset,
-          'target',
-          new InstrumentationValueForMember(target.member!),
-        );
-      }
-    }
     DartType writeContext = target.getSetterType(this);
     ExpressionInferenceResult rhsResult = inferExpression(
       node.value,
@@ -12112,16 +11957,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         member,
         hasNonObjectMemberAccess: true,
       );
-      if (target.isInstanceMember || target.isObjectMember) {
-        if (instrumentation != null && receiverType == const DynamicType()) {
-          instrumentation!.record(
-            uriForInstrumentation,
-            node.fileOffset,
-            'target',
-            new InstrumentationValueForMember(target.member!),
-          );
-        }
-      }
       DartType writeContext = target.getSetterType(this);
       ExpressionInferenceResult rhsResult = inferExpression(
         node.value,
@@ -12574,12 +12409,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             inferredTypes;
       }
       inferredTypeArgument = inferredTypes[0];
-      instrumentation?.record(
-        uriForInstrumentation,
-        node.fileOffset,
-        'typeArgs',
-        new InstrumentationValueForTypeArgs([inferredTypeArgument]),
-      );
       node.typeArgument = inferredTypeArgument;
     }
     for (int i = 0; i < node.expressions.length; i++) {
@@ -12840,12 +12669,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InternalSuperMethodInvocation node,
     DartType typeContext,
   ) {
-    instrumentation?.record(
-      uriForInstrumentation,
-      node.fileOffset,
-      'target',
-      new InstrumentationValueForMember(node.target),
-    );
     return inferSuperMethodInvocation(
       this,
       name: node.name,
@@ -12862,12 +12685,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     AbstractSuperPropertyGet node,
     DartType typeContext,
   ) {
-    instrumentation?.record(
-      uriForInstrumentation,
-      node.fileOffset,
-      'target',
-      new InstrumentationValueForMember(node.interfaceTarget),
-    );
     return inferSuperPropertyGet(
       name: node.name,
       typeContext: typeContext,
@@ -12882,12 +12699,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     SuperPropertyGet node,
     DartType typeContext,
   ) {
-    instrumentation?.record(
-      uriForInstrumentation,
-      node.fileOffset,
-      'target',
-      new InstrumentationValueForMember(node.interfaceTarget),
-    );
     return inferSuperPropertyGet(
       name: node.name,
       typeContext: typeContext,
@@ -13454,12 +13265,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       inferredType = const DynamicType();
     }
     if (node.isImplicitlyTyped) {
-      instrumentation?.record(
-        uriForInstrumentation,
-        node.fileOffset,
-        'type',
-        new InstrumentationValueForType(inferredType),
-      );
       if (dataForTesting != null) {
         // Coverage-ignore-block(suite): Not run.
         dataForTesting!.typeInferenceResult.inferredVariableTypes[node] =
@@ -14857,12 +14662,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     DartType inferredType = analysisResult.staticType.unwrapTypeView();
-    instrumentation?.record(
-      uriForInstrumentation,
-      node.variable.fileOffset,
-      'type',
-      new InstrumentationValueForType(inferredType),
-    );
     if (node.type == null) {
       node.variable.type = inferredType;
     }

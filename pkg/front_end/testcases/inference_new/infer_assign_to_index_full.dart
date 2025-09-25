@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class Index {}
@@ -25,47 +24,35 @@ class Test {
   void operator []=(Index i, B v) {}
 
   void test() {
-    Test t = /*@typeArgs=Test*/ f();
+    Test t = f();
 
-    t /*@target=Test.[]=*/ [/*@typeArgs=Index*/ f()] = /*@typeArgs=B*/ f();
+    t[f()] = f();
 
-    t /*@target=Test.[]*/ /*@target=Test.[]=*/ [
-        /*@typeArgs=Index*/ f()] /*@target=B.+*/ += /*@typeArgs=C*/ f();
+    t[f()] += f();
 
-    t /*@target=Test.[]*/ /*@target=Test.[]=*/ [
-        /*@typeArgs=Index*/ f()] /*@target=B.**/ *= /*@typeArgs=B*/ f();
+    t[f()] *= f();
 
-    t /*@target=Test.[]*/ /*@target=Test.[]=*/ [
-        /*@typeArgs=Index*/ f()] /*@target=B.&*/ &= /*@typeArgs=A*/ f();
+    t[f()] &= f();
 
-    t /*@target=Test.[]*/ [/*@typeArgs=Index*/ f()];
+    t[f()];
 
-    /*@target=B.-*/ --t /*@target=Test.[]*/ /*@target=Test.[]=*/ [
-        /*@typeArgs=Index*/ f()];
+    --t[f()];
 
-    t /*@target=Test.[]*/ /*@target=Test.[]=*/ [
-        /*@typeArgs=Index*/ f()] /*@target=B.-*/ --;
+    t[f()]--;
 
-    var /*@type=B*/ v1 =
-        t /*@target=Test.[]=*/ [/*@typeArgs=Index*/ f()] = /*@typeArgs=B*/ f();
+    var v1 = t[f()] = f();
 
-    var /*@type=B*/ v3 = t /*@target=Test.[]*/ /*@target=Test.[]=*/ [
-        /*@typeArgs=Index*/ f()] /*@target=B.+*/ += /*@typeArgs=C*/ f();
+    var v3 = t[f()] += f();
 
-    var /*@type=B*/ v4 = t /*@target=Test.[]*/ /*@target=Test.[]=*/ [
-        /*@typeArgs=Index*/ f()] /*@target=B.**/ *= /*@typeArgs=B*/ f();
+    var v4 = t[f()] *= f();
 
-    var /*@type=C*/ v5 = t /*@target=Test.[]*/ /*@target=Test.[]=*/ [
-        /*@typeArgs=Index*/ f()] /*@target=B.&*/ &= /*@typeArgs=A*/ f();
+    var v5 = t[f()] &= f();
 
-    var /*@type=B*/ v6 = t /*@target=Test.[]*/ [/*@typeArgs=Index*/ f()];
+    var v6 = t[f()];
 
-    var /*@type=B*/ v7 =
-        /*@target=B.-*/ --t /*@target=Test.[]*/ /*@target=Test.[]=*/ [
-            /*@typeArgs=Index*/ f()];
+    var v7 = --t[f()];
 
-    var /*@type=B*/ v8 = t /*@target=Test.[]*/ /*@target=Test.[]=*/ [
-        /*@typeArgs=Index*/ f()] /*@target=B.-*/ --;
+    var v8 = t[f()]--;
   }
 }
 
@@ -74,15 +61,13 @@ class Test2 {
   void operator []=(Index i, B? v) {}
 
   void test() {
-    Test2 t = /*@typeArgs=Test2*/ f();
+    Test2 t = f();
 
-    t /*@target=Test2.[]=*/ [/*@typeArgs=Index*/ f()] = /*@typeArgs=B?*/ f();
+    t[f()] = f();
 
-    t /*@target=Test2.[]*/ /*@target=Test2.[]=*/ [
-        /*@typeArgs=Index*/ f()] ??= /*@typeArgs=B?*/ f();
+    t[f()] ??= f();
 
-    var /*@type=B?*/ v2 = t /*@target=Test2.[]*/ /*@target=Test2.[]=*/ [
-        /*@typeArgs=Index*/ f()] ??= /*@typeArgs=B?*/ f();
+    var v2 = t[f()] ??= f();
   }
 }
 

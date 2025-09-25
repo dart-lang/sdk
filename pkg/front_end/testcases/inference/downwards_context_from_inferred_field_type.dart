@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 abstract class A {
@@ -10,7 +9,7 @@ abstract class A {
 }
 
 class B implements A {
-  final foo = /*@typeArgs=String*/ const [];
+  final foo = const [];
 }
 
 void main() {}

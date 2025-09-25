@@ -14,5 +14,5 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///downwards_inference_annotations_typedef.dart:12:2 -> InstanceConstant(const Foo{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///downwards_inference_annotations_typedef.dart:11:2 -> InstanceConstant(const Foo{})
 Extra constant evaluation: evaluated: 1, effectively constant: 1

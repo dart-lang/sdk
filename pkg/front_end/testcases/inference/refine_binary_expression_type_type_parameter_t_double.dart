@@ -2,17 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class C<T extends num> {
   T a = throw '';
 
   void op(double b) {
-    double r1 = /*@target=C.a*/ a /*@target=num.+*/ + b;
-    double r2 = /*@target=C.a*/ a /*@target=num.-*/ - b;
-    double r3 = /*@target=C.a*/ a /*@target=num.**/ * b;
-    double r4 = /*@target=C.a*/ a /*@target=num./ */ / b;
+    double r1 = a + b;
+    double r2 = a - b;
+    double r3 = a * b;
+    double r4 = a / b;
   }
 }
 
