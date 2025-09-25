@@ -11694,57 +11694,6 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         expectedTypes: [],
       );
 
-  /// This warning is generated anywhere where `@required` annotates a named
-  /// parameter with a default value.
-  ///
-  /// Parameters:
-  /// String p0: the name of the member
-  static const WarningTemplate<
-    LocatableDiagnostic Function({required String p0})
-  >
-  invalidRequiredNamedParam = WarningTemplate(
-    'INVALID_REQUIRED_NAMED_PARAM',
-    "The type parameter '{0}' is annotated with @required but only named "
-        "parameters without a default value can be annotated with it.",
-    correctionMessage: "Remove @required.",
-    withArguments: _withArgumentsInvalidRequiredNamedParam,
-    expectedTypes: [ExpectedType.string],
-  );
-
-  /// This warning is generated anywhere where `@required` annotates an optional
-  /// positional parameter.
-  ///
-  /// Parameters:
-  /// String p0: the name of the member
-  static const WarningTemplate<
-    LocatableDiagnostic Function({required String p0})
-  >
-  invalidRequiredOptionalPositionalParam = WarningTemplate(
-    'INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM',
-    "Incorrect use of the annotation @required on the optional positional "
-        "parameter '{0}'. Optional positional parameters cannot be required.",
-    correctionMessage: "Remove @required.",
-    withArguments: _withArgumentsInvalidRequiredOptionalPositionalParam,
-    expectedTypes: [ExpectedType.string],
-  );
-
-  /// This warning is generated anywhere where `@required` annotates a
-  /// non-optional positional parameter.
-  ///
-  /// Parameters:
-  /// String p0: the name of the member
-  static const WarningTemplate<
-    LocatableDiagnostic Function({required String p0})
-  >
-  invalidRequiredPositionalParam = WarningTemplate(
-    'INVALID_REQUIRED_POSITIONAL_PARAM',
-    "Redundant use of the annotation @required on the required positional "
-        "parameter '{0}'.",
-    correctionMessage: "Remove @required.",
-    withArguments: _withArgumentsInvalidRequiredPositionalParam,
-    expectedTypes: [ExpectedType.string],
-  );
-
   /// Parameters:
   /// String p0: the name of the member
   static const WarningTemplate<
@@ -13221,25 +13170,6 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     required String p1,
   }) {
     return LocatableDiagnosticImpl(invalidOverrideOfNonVirtualMember, [p0, p1]);
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidRequiredNamedParam({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(invalidRequiredNamedParam, [p0]);
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsInvalidRequiredOptionalPositionalParam({required String p0}) {
-    return LocatableDiagnosticImpl(invalidRequiredOptionalPositionalParam, [
-      p0,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidRequiredPositionalParam({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(invalidRequiredPositionalParam, [p0]);
   }
 
   static LocatableDiagnostic _withArgumentsInvalidUseOfDoNotSubmitMember({

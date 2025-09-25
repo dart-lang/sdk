@@ -290,45 +290,6 @@ base class B extends A {}
 ''');
   }
 
-  Future<void> test_required_namedWithDefault() async {
-    await resolveTestCode('''
-import 'package:meta/meta.dart';
-
-f({@required int x = 0}) {}
-''');
-    await assertHasFix('''
-import 'package:meta/meta.dart';
-
-f({int x = 0}) {}
-''');
-  }
-
-  Future<void> test_required_positional() async {
-    await resolveTestCode('''
-import 'package:meta/meta.dart';
-
-f([@required int? x]) {}
-''');
-    await assertHasFix('''
-import 'package:meta/meta.dart';
-
-f([int? x]) {}
-''');
-  }
-
-  Future<void> test_required_required() async {
-    await resolveTestCode('''
-import 'package:meta/meta.dart';
-
-f(@required int x) {}
-''');
-    await assertHasFix('''
-import 'package:meta/meta.dart';
-
-f(int x) {}
-''');
-  }
-
   Future<void> test_sealed() async {
     await resolveTestCode('''
 import 'package:meta/meta.dart';

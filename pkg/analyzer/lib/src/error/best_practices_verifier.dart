@@ -508,12 +508,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitFormalParameterList(FormalParameterList node) {
-    _checkRequiredParameter(node);
-    super.visitFormalParameterList(node);
-  }
-
-  @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     bool wasInDoNotStoreMember = _inDoNotStoreMember;
     var element = node.declaredFragment!.element;
@@ -1494,39 +1488,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  void _checkRequiredParameter(FormalParameterList node) {
-    var requiredParameters = node.parameters.where(
-      (p) => p.declaredFragment?.element.metadata.hasRequired == true,
-    );
-    var nonNamedParamsWithRequired = requiredParameters.where(
-      (p) => p.isPositional,
-    );
-    var namedParamsWithRequiredAndDefault = requiredParameters
-        .where((p) => p.isNamed)
-        .where((p) => p is DefaultFormalParameter && p.defaultValue != null);
-    for (var param in nonNamedParamsWithRequired.where((p) => p.isOptional)) {
-      _diagnosticReporter.atNode(
-        param,
-        WarningCode.invalidRequiredOptionalPositionalParam,
-        arguments: [_formalParameterNameOrEmpty(param)],
-      );
-    }
-    for (var param in nonNamedParamsWithRequired.where((p) => p.isRequired)) {
-      _diagnosticReporter.atNode(
-        param,
-        WarningCode.invalidRequiredPositionalParam,
-        arguments: [_formalParameterNameOrEmpty(param)],
-      );
-    }
-    for (var param in namedParamsWithRequiredAndDefault) {
-      _diagnosticReporter.atNode(
-        param,
-        WarningCode.invalidRequiredNamedParam,
-        arguments: [_formalParameterNameOrEmpty(param)],
-      );
-    }
-  }
-
   /// In "strict-inference" mode, check that each of the [parameterList]' type
   /// is specified.
   ///
@@ -1685,10 +1646,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return false;
     }
     return _workspacePackage.contains(library.firstFragment.source);
-  }
-
-  static String _formalParameterNameOrEmpty(FormalParameter node) {
-    return node.name?.lexeme ?? '';
   }
 
   static bool _hasNonVirtualAnnotation(ExecutableElement element) {

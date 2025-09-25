@@ -25821,33 +25821,6 @@ WarningCode:
         void m() {}
       }
       ```
-  INVALID_REQUIRED_NAMED_PARAM:
-    parameters:
-      String p0: the name of the member
-    problemMessage: "The type parameter '#p0' is annotated with @required but only named parameters without a default value can be annotated with it."
-    correctionMessage: Remove @required.
-    hasPublishedDocs: false
-    comment: |-
-      This warning is generated anywhere where `@required` annotates a named
-      parameter with a default value.
-  INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM:
-    parameters:
-      String p0: the name of the member
-    problemMessage: "Incorrect use of the annotation @required on the optional positional parameter '#p0'. Optional positional parameters cannot be required."
-    correctionMessage: Remove @required.
-    hasPublishedDocs: false
-    comment: |-
-      This warning is generated anywhere where `@required` annotates an optional
-      positional parameter.
-  INVALID_REQUIRED_POSITIONAL_PARAM:
-    parameters:
-      String p0: the name of the member
-    problemMessage: "Redundant use of the annotation @required on the required positional parameter '#p0'."
-    correctionMessage: Remove @required.
-    hasPublishedDocs: false
-    comment: |-
-      This warning is generated anywhere where `@required` annotates a
-      non-optional positional parameter.
   INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER:
     parameters:
       String p0: the name of the member

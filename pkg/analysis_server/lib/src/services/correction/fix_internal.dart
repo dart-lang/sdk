@@ -1156,9 +1156,6 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   WarningCode.invalidLiteralAnnotation: [RemoveAnnotation.new],
   WarningCode.invalidNonVirtualAnnotation: [RemoveAnnotation.new],
   WarningCode.invalidReopenAnnotation: [RemoveAnnotation.new],
-  WarningCode.invalidRequiredNamedParam: [RemoveAnnotation.new],
-  WarningCode.invalidRequiredOptionalPositionalParam: [RemoveAnnotation.new],
-  WarningCode.invalidRequiredPositionalParam: [RemoveAnnotation.new],
   WarningCode.invalidVisibilityAnnotation: [RemoveAnnotation.new],
   WarningCode.invalidVisibleForOverridingAnnotation: [RemoveAnnotation.new],
   WarningCode.missingOverrideOfMustBeOverriddenOne: [

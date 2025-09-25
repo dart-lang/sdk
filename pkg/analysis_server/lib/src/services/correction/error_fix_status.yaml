@@ -2496,7 +2496,7 @@ LintCode.unnecessary_to_list_in_spreads:
 LintCode.unnecessary_unawaited:
   status: hasFix
 LintCode.unnecessary_underscores:
-  status: hasFix  
+  status: hasFix
 LintCode.unreachable_from_main:
   status: hasFix
 LintCode.unrelated_type_equality_checks_in_expression:
@@ -3672,12 +3672,6 @@ WarningCode.INVALID_NON_VIRTUAL_ANNOTATION:
 WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER:
   status: noFix
 WarningCode.INVALID_REOPEN_ANNOTATION:
-  status: hasFix
-WarningCode.INVALID_REQUIRED_NAMED_PARAM:
-  status: hasFix
-WarningCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM:
-  status: hasFix
-WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM:
   status: hasFix
 WarningCode.INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER:
   status: needsEvaluation
