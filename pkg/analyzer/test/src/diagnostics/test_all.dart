@@ -487,11 +487,6 @@ import 'invalid_reference_to_generative_enum_constructor_test.dart'
     as invalid_reference_to_generative_enum_constructor;
 import 'invalid_reference_to_this_test.dart' as invalid_reference_to_this;
 import 'invalid_reopen_annotation_test.dart' as invalid_reopen_annotation;
-import 'invalid_required_named_param_test.dart' as invalid_required_named_param;
-import 'invalid_required_optional_positional_param_test.dart'
-    as invalid_required_optional_positional_param;
-import 'invalid_required_positional_param_test.dart'
-    as invalid_required_positional_param;
 import 'invalid_super_formal_parameter_location_test.dart'
     as invalid_super_formal_parameter_location;
 import 'invalid_super_in_initializer_test.dart' as invalid_super_in_initializer;
@@ -1271,9 +1266,6 @@ main() {
     invalid_reference_to_generative_enum_constructor.main();
     invalid_reference_to_this.main();
     invalid_reopen_annotation.main();
-    invalid_required_named_param.main();
-    invalid_required_optional_positional_param.main();
-    invalid_required_positional_param.main();
     invalid_super_formal_parameter_location.main();
     invalid_super_in_initializer.main();
     invalid_type_argument_in_const_list.main();
