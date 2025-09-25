@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:js_interop';
-import 'dart:js_util';
+import 'dart:js_interop_unsafe';
 
 import 'package:expect/expect.dart';
 
@@ -80,41 +80,35 @@ void main() {
   testObjectLiteralUnset();
   testObjectLiteralStaticInteropUnset();
   testObjectLiteralConflict();
-  // testObjectLiteralStaticInteropConflict();
+  testConflictStaticInterop();
 }
 
 testObjectLiteralUnset() {
   var obj = ObjectLiteral.named(a: 1);
   // Set properties have the expected value.
-  Expect.equals(1, getProperty(obj, 'a'));
+  Expect.equals(1.toJS, obj['a']);
   // Unset properties have the value found up the prototype chain.
-  Expect.equals(objectConstructor, getProperty(obj, 'constructor'));
-  Expect.equals(objectHasOwnProperty, getProperty(obj, 'hasOwnProperty'));
-  Expect.equals(objectIsPrototypeOf, getProperty(obj, 'isPrototypeOf'));
-  Expect.equals(
-    objectPropertyIsEnumerable,
-    getProperty(obj, 'propertyIsEnumerable'),
-  );
-  Expect.equals(objectToLocaleString, getProperty(obj, 'toLocaleString'));
-  Expect.equals(objectToString, getProperty(obj, 'toString'));
-  Expect.equals(objectValueOf, getProperty(obj, 'valueOf'));
+  Expect.equals(objectConstructor, obj['constructor']);
+  Expect.equals(objectHasOwnProperty, obj['hasOwnProperty']);
+  Expect.equals(objectIsPrototypeOf, obj['isPrototypeOf']);
+  Expect.equals(objectPropertyIsEnumerable, obj['propertyIsEnumerable']);
+  Expect.equals(objectToLocaleString, obj['toLocaleString']);
+  Expect.equals(objectToString, obj['toString']);
+  Expect.equals(objectValueOf, obj['valueOf']);
 }
 
 testObjectLiteralStaticInteropUnset() {
-  var obj = ObjectLiteralStaticInterop.named(a: 1);
+  var obj = ObjectLiteralStaticInterop.named(a: 1) as JSObject;
   // Set properties have the expected value.
-  Expect.equals(1, getProperty(obj, 'a'));
+  Expect.equals(1.toJS, obj['a']);
   // Unset properties have the value found up the prototype chain.
-  Expect.equals(objectConstructor, getProperty(obj, 'constructor'));
-  Expect.equals(objectHasOwnProperty, getProperty(obj, 'hasOwnProperty'));
-  Expect.equals(objectIsPrototypeOf, getProperty(obj, 'isPrototypeOf'));
-  Expect.equals(
-    objectPropertyIsEnumerable,
-    getProperty(obj, 'propertyIsEnumerable'),
-  );
-  Expect.equals(objectToLocaleString, getProperty(obj, 'toLocaleString'));
-  Expect.equals(objectToString, getProperty(obj, 'toString'));
-  Expect.equals(objectValueOf, getProperty(obj, 'valueOf'));
+  Expect.equals(objectConstructor, obj['constructor']);
+  Expect.equals(objectHasOwnProperty, obj['hasOwnProperty']);
+  Expect.equals(objectIsPrototypeOf, obj['isPrototypeOf']);
+  Expect.equals(objectPropertyIsEnumerable, obj['propertyIsEnumerable']);
+  Expect.equals(objectToLocaleString, obj['toLocaleString']);
+  Expect.equals(objectToString, obj['toString']);
+  Expect.equals(objectValueOf, obj['valueOf']);
 }
 
 testObjectLiteralConflict() {
@@ -128,15 +122,15 @@ testObjectLiteralConflict() {
     valueOf: 'Cello',
   );
   // Unset properties are null.
-  Expect.isNull(getProperty(obj, 'a'));
+  Expect.isNull(obj['a']);
   // Set properties have the expected value.
-  Expect.equals('Cello', getProperty(obj, 'constructor'));
-  Expect.equals(true, getProperty(obj, 'hasOwnProperty'));
-  Expect.equals(5, getProperty(obj, 'isPrototypeOf'));
-  Expect.equals('Fosse', getProperty(obj, 'propertyIsEnumerable'));
-  Expect.equals(false, getProperty(obj, 'toLocaleString'));
-  Expect.equals(16, getProperty(obj, 'toString'));
-  Expect.equals('Cello', getProperty(obj, 'valueOf'));
+  Expect.equals('Cello'.toJS, obj['constructor']);
+  Expect.equals(true.toJS, obj['hasOwnProperty']);
+  Expect.equals(5.toJS, obj['isPrototypeOf']);
+  Expect.equals('Fosse'.toJS, obj['propertyIsEnumerable']);
+  Expect.equals(false.toJS, obj['toLocaleString']);
+  Expect.equals(16.toJS, obj['toString']);
+  Expect.equals('Cello'.toJS, obj['valueOf']);
 }
 
 testConflictStaticInterop() {
@@ -152,13 +146,13 @@ testConflictStaticInterop() {
           )
           as JSObject;
   // Unset properties are null.
-  Expect.isNull(getProperty(obj, 'a'));
+  Expect.isNull(obj['a']);
   // Set properties have the expected value.
-  Expect.equals('Cello', getProperty(obj, 'constructor'));
-  Expect.equals(true, getProperty(obj, 'hasOwnProperty'));
-  Expect.equals(5, getProperty(obj, 'isPrototypeOf'));
-  Expect.equals('Fosse', getProperty(obj, 'propertyIsEnumerable'));
-  Expect.equals(false, getProperty(obj, 'toLocaleString'));
-  Expect.equals(16, getProperty(obj, 'toString'));
-  Expect.equals('Cello', getProperty(obj, 'valueOf'));
+  Expect.equals('Cello'.toJS, obj['constructor']);
+  Expect.equals(true.toJS, obj['hasOwnProperty']);
+  Expect.equals(5.toJS, obj['isPrototypeOf']);
+  Expect.equals('Fosse'.toJS, obj['propertyIsEnumerable']);
+  Expect.equals(false.toJS, obj['toLocaleString']);
+  Expect.equals(16.toJS, obj['toString']);
+  Expect.equals('Cello'.toJS, obj['valueOf']);
 }

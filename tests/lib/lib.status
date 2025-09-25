@@ -11,6 +11,8 @@ fix_data_tests/*: SkipByDesign
 html/*: SkipByDesign # dart:html not supported on dart2wasm
 isolate/*: SkipByDesign
 js/(?!export|static_interop_test)*: SkipByDesign
+js/export/create_dart_export_test: SkipByDesign # dart:js_util not supported on dart2wasm
+js/export/static_interop_mock/*: SkipByDesign # dart:js_util not supported on dart2wasm
 js/static_interop_test/allowed_external_member_native_type_test: SkipByDesign # dart:html and dart:svg not supported on dart2wasm.
 js/static_interop_test/extension_type/non_interop_extension_type_static_test: SkipByDesign # Some external checks are not run on dart2wasm.
 js/static_interop_test/external_static_member_lowerings_trusttypes_test: SkipByDesign # Tests @trustTypes, which is unsupported on dart2wasm.

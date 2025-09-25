@@ -7,8 +7,9 @@
 /// The interceptor for JavaScriptObjects was not emitted if the only
 /// uses were implicit through a cast and no direct instantiation.
 
+import 'dart:js_interop' hide JS;
+
 import 'package:js/js.dart';
-import 'package:js/js_util.dart' as js_util;
 
 @JS()
 @staticInterop
@@ -18,4 +19,4 @@ extension E on A {
   external int get value;
 }
 
-void main() => js_util.jsify(<String, Object>{'value': 1}) as A;
+void main() => <String, Object>{'value': 1}.jsify() as A;
