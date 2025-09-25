@@ -798,7 +798,7 @@ class LibraryManifestBuilder {
     Uint8List manifestAsBytes(LibraryManifest manifest) {
       var writer = BinaryWriter();
       manifest.write(writer);
-      writer.writeStringTableAtEnd();
+      writer.writeTableTrailer();
       return writer.takeBytes();
     }
 
@@ -806,7 +806,7 @@ class LibraryManifestBuilder {
       var bytes = manifestAsBytes(manifest);
 
       var reader = BinaryReader(bytes);
-      reader.initializeStringTableFromEnd();
+      reader.initFromTableTrailer();
 
       var readManifest = LibraryManifest.read(reader);
       var readBytes = manifestAsBytes(readManifest);

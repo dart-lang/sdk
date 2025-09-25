@@ -37,14 +37,14 @@ class BundleWriter {
   /// require any other declaration read it later. For example type inference
   /// errors, or whether a parameter inherits `covariant`, or a class is
   /// simply bounded.
-  late BinaryWriter _sink = BinaryWriter.withStringIndexer(
-    stringIndexer: _stringIndexer,
+  late BinaryWriter _sink = BinaryWriter(
+    stringTableBuilder: _stringTableBuilder,
   );
 
   /// The resolution sink - any data that references elements, so can only
   /// be read after elements are created and available via its [Reference]s.
   late final ResolutionSink _resolutionSink = ResolutionSink(
-    stringIndexer: _stringIndexer,
+    stringTableBuilder: _stringTableBuilder,
     references: _references,
   );
 
@@ -60,7 +60,7 @@ class BundleWriter {
   /// pair of getter / setter fragments IDs, from this map.
   final Map<FragmentImpl, int> _fragmentIds = Map.identity();
 
-  final StringIndexer _stringIndexer = StringIndexer();
+  final StringTableBuilder _stringTableBuilder = StringTableBuilder();
 
   final List<_Library> _libraries = [];
 
@@ -83,7 +83,7 @@ class BundleWriter {
     _sink.writeStringList(_references._referenceNames);
     _references._clearIndexes();
 
-    var stringTableOffset = _stringIndexer.write(_sink);
+    var stringTableOffset = _stringTableBuilder.write(_sink);
 
     // Write as Uint32 so that we know where it is.
     _sink.writeUint32(baseResolutionOffset);
@@ -873,10 +873,9 @@ class ResolutionSink extends BinaryWriter {
   final _LocalElementIndexer localElements = _LocalElementIndexer();
 
   ResolutionSink({
-    required super.stringIndexer,
+    required super.stringTableBuilder,
     required _BundleWriterReferences references,
-  }) : _references = references,
-       super.withStringIndexer();
+  }) : _references = references;
 
   void withTypeParameters(
     List<TypeParameterElementImpl> typeParameters,

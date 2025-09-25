@@ -33,7 +33,7 @@ class LibraryDiagnosticsBundle {
 
   factory LibraryDiagnosticsBundle.fromBytes(Uint8List bytes) {
     var reader = BinaryReader(bytes);
-    reader.initializeStringTableFromEnd();
+    reader.initFromTableTrailer();
     return LibraryDiagnosticsBundle(
       requirements: RequirementsManifest.read(reader),
       serializedFileResults: reader.readMap(
@@ -59,7 +59,7 @@ class LibraryDiagnosticsBundle {
       writeKey: (uri) => writer.writeUri(uri),
       writeValue: (bytes) => writer.writeUint8List(bytes),
     );
-    writer.writeStringTableAtEnd();
+    writer.writeTableTrailer();
     return writer.takeBytes();
   }
 }
