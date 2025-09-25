@@ -140,7 +140,7 @@ vars = {
   "i18n_rev": "09627d28f97e05858e1ba5c6e45ff45d56b1e786",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
-  "native_rev": "445cb0af620328ff04aeed028a60065ec6e5c7ce", # rolled manually while native assets are experimental
+  "native_rev": "400c7001de7a3cddca341e728163bd64029ab288", # rolled manually while native assets are experimental
   "protobuf_rev": "456e2ee704af27225e25ba092164f66dcbf63000",
   "pub_rev": "469eb6193c0a49495ea2ce7432cf749f077ad596", # rolled manually
   "shelf_rev": "de91a5b8c1de05f622c0c6f1eab38d5f31e0113f",
