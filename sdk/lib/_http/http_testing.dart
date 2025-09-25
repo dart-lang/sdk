@@ -5,7 +5,7 @@
 part of "dart:_http";
 
 /// Stubs and class aliases which make private names available for use in
-/// tests.  These should never be exported publically.
+/// tests.  These should never be exported publicly.
 ///
 /// To export a class to be used as a type, for its constructors, or for public
 /// static members, define a typedef alias for it using the naming scheme
@@ -45,7 +45,7 @@ typedef TestingClass$_WebSocketImpl = _WebSocketImpl;
 
 extension Testing$HttpDate on HttpDate {
   static DateTime test$_parseCookieDate(String date) =>
-      HttpDate._parseCookieDate(date);
+      HttpDate._parseCookieDate(date, 0, date.length);
 }
 
 extension Testing$_HttpHeaders on _HttpHeaders {
