@@ -263,12 +263,18 @@ abstract class JSArrayBase implements TypedData {
 
 /// Base class for all JS typed integer-based array classes.
 abstract class JSIntegerArrayBase extends JSArrayBase {
-  JSIntegerArrayBase(super._ref, super.elementSizeShift);
+  /// The original typed array this wrapped, if any.
+  final WasmExternRef? _arrayRef;
+
+  JSIntegerArrayBase(super._ref, super.elementSizeShift, this._arrayRef);
 }
 
 /// Base class for all JS typed float-based array classes.
 abstract class JSFloatArrayBase extends JSArrayBase {
-  JSFloatArrayBase(super._ref, super.elementSizeShift);
+  /// The original typed array this wrapped, if any.
+  final WasmExternRef? _arrayRef;
+
+  JSFloatArrayBase(super._ref, super.elementSizeShift, this._arrayRef);
 }
 
 /// A JS `DataView`.
@@ -813,24 +819,25 @@ mixin _UnmodifiableIntListMixin {
 final class JSUint8ArrayImpl extends JSIntegerArrayBase
     with _IntListMixin
     implements Uint8List {
-  JSUint8ArrayImpl._(WasmExternRef? _ref) : super(_ref, 0);
+  JSUint8ArrayImpl._(WasmExternRef? _dataViewRef, [WasmExternRef? _arrayRef])
+    : super(_dataViewRef, 0, _arrayRef);
 
   factory JSUint8ArrayImpl(int length) =>
       JSUint8ArrayImpl._(_newDataView(length));
 
-  static bool _checkRefType(WasmExternRef? ref) =>
+  static bool _checkArrayRefType(WasmExternRef? ref) =>
       js.JS<bool>('o => o instanceof Uint8Array', ref);
 
-  factory JSUint8ArrayImpl.fromRefUnchecked(WasmExternRef? ref) {
-    _checkRefType(ref);
-    return JSUint8ArrayImpl._(_dataViewFromJSArray(ref));
+  factory JSUint8ArrayImpl.fromArrayRefUnchecked(WasmExternRef? ref) {
+    _checkArrayRefType(ref);
+    return JSUint8ArrayImpl._(_dataViewFromJSArray(ref), ref);
   }
 
-  factory JSUint8ArrayImpl.fromRef(WasmExternRef? ref) {
-    if (!_checkRefType(ref)) {
+  factory JSUint8ArrayImpl.fromArrayRef(WasmExternRef? ref) {
+    if (!_checkArrayRefType(ref)) {
       return _throwConversionFailureError("Uint8List");
     }
-    return JSUint8ArrayImpl.fromRefUnchecked(ref);
+    return JSUint8ArrayImpl.fromArrayRefUnchecked(ref);
   }
 
   factory JSUint8ArrayImpl.view(
@@ -844,15 +851,18 @@ final class JSUint8ArrayImpl extends JSIntegerArrayBase
   int get elementSizeInBytes => 1;
 
   @override
-  WasmExternRef? toJSArrayExternRef([
-    int start = 0,
-    int? length,
-  ]) => js.JS<WasmExternRef?>(
-    '(o, start, length) => new Uint8Array(o.buffer, o.byteOffset + start, length)',
-    toExternRef,
-    WasmI32.fromInt(start),
-    WasmI32.fromInt(length ?? (this.length - start)),
-  );
+  WasmExternRef? toJSArrayExternRef([int start = 0, int? length]) {
+    length = length ?? (this.length - start);
+    if (!_arrayRef.isNull && start == 0 && length == this.length) {
+      return _arrayRef;
+    }
+    return js.JS<WasmExternRef?>(
+      '(o, start, length) => new Uint8Array(o.buffer, o.byteOffset + start, length)',
+      toExternRef,
+      WasmI32.fromInt(start),
+      WasmI32.fromInt(length),
+    );
+  }
 
   @pragma("wasm:prefer-inline")
   int _getUnchecked(int index) => _getUint8(toExternRef, index);
@@ -917,24 +927,25 @@ final class UnmodifiableJSUint8Array extends JSUint8ArrayImpl
 final class JSInt8ArrayImpl extends JSIntegerArrayBase
     with _IntListMixin
     implements Int8List {
-  JSInt8ArrayImpl._(WasmExternRef? _ref) : super(_ref, 0);
+  JSInt8ArrayImpl._(WasmExternRef? _dataViewRef, [WasmExternRef? _arrayRef])
+    : super(_dataViewRef, 0, _arrayRef);
 
   factory JSInt8ArrayImpl(int length) =>
       JSInt8ArrayImpl._(_newDataView(length));
 
-  static bool _checkRefType(WasmExternRef? ref) =>
+  static bool _checkArrayRefType(WasmExternRef? ref) =>
       js.JS<bool>('o => o instanceof Int8Array', ref);
 
-  factory JSInt8ArrayImpl.fromRefUnchecked(WasmExternRef? ref) {
-    assert(_checkRefType(ref));
-    return JSInt8ArrayImpl._(_dataViewFromJSArray(ref));
+  factory JSInt8ArrayImpl.fromArrayRefUnchecked(WasmExternRef? ref) {
+    assert(_checkArrayRefType(ref));
+    return JSInt8ArrayImpl._(_dataViewFromJSArray(ref), ref);
   }
 
-  factory JSInt8ArrayImpl.fromRef(WasmExternRef? ref) {
-    if (!_checkRefType(ref)) {
+  factory JSInt8ArrayImpl.fromArrayRef(WasmExternRef? ref) {
+    if (!_checkArrayRefType(ref)) {
       return _throwConversionFailureError("Int8List");
     }
-    return JSInt8ArrayImpl.fromRefUnchecked(ref);
+    return JSInt8ArrayImpl.fromArrayRefUnchecked(ref);
   }
 
   factory JSInt8ArrayImpl.view(
@@ -948,15 +959,18 @@ final class JSInt8ArrayImpl extends JSIntegerArrayBase
   int get elementSizeInBytes => 1;
 
   @override
-  WasmExternRef? toJSArrayExternRef([
-    int start = 0,
-    int? length,
-  ]) => js.JS<WasmExternRef?>(
-    '(o, start, length) => new Int8Array(o.buffer, o.byteOffset + start, length)',
-    toExternRef,
-    WasmI32.fromInt(start),
-    WasmI32.fromInt(length ?? (this.length - start)),
-  );
+  WasmExternRef? toJSArrayExternRef([int start = 0, int? length]) {
+    length = length ?? (this.length - start);
+    if (!_arrayRef.isNull && start == 0 && length == this.length) {
+      return _arrayRef;
+    }
+    return js.JS<WasmExternRef?>(
+      '(o, start, length) => new Int8Array(o.buffer, o.byteOffset + start, length)',
+      toExternRef,
+      WasmI32.fromInt(start),
+      WasmI32.fromInt(length),
+    );
+  }
 
   @pragma("wasm:prefer-inline")
   int _getUnchecked(int index) => _getInt8(toExternRef, index);
@@ -1021,24 +1035,27 @@ final class UnmodifiableJSInt8Array extends JSInt8ArrayImpl
 final class JSUint8ClampedArrayImpl extends JSIntegerArrayBase
     with _IntListMixin
     implements Uint8ClampedList {
-  JSUint8ClampedArrayImpl._(WasmExternRef? _ref) : super(_ref, 0);
+  JSUint8ClampedArrayImpl._(
+    WasmExternRef? _dataViewRef, [
+    WasmExternRef? _arrayRef,
+  ]) : super(_dataViewRef, 0, _arrayRef);
 
   factory JSUint8ClampedArrayImpl(int length) =>
       JSUint8ClampedArrayImpl._(_newDataView(length));
 
-  static bool _checkRefType(WasmExternRef? ref) =>
+  static bool _checkArrayRefType(WasmExternRef? ref) =>
       js.JS<bool>('o => o instanceof Uint8ClampedArray', ref);
 
-  factory JSUint8ClampedArrayImpl.fromRefUnchecked(WasmExternRef? ref) {
-    assert(_checkRefType(ref));
-    return JSUint8ClampedArrayImpl._(_dataViewFromJSArray(ref));
+  factory JSUint8ClampedArrayImpl.fromArrayRefUnchecked(WasmExternRef? ref) {
+    assert(_checkArrayRefType(ref));
+    return JSUint8ClampedArrayImpl._(_dataViewFromJSArray(ref), ref);
   }
 
-  factory JSUint8ClampedArrayImpl.fromRef(WasmExternRef? ref) {
-    if (!_checkRefType(ref)) {
+  factory JSUint8ClampedArrayImpl.fromArrayRef(WasmExternRef? ref) {
+    if (!_checkArrayRefType(ref)) {
       return _throwConversionFailureError("Uint8ClampedList");
     }
-    return JSUint8ClampedArrayImpl.fromRefUnchecked(ref);
+    return JSUint8ClampedArrayImpl.fromArrayRefUnchecked(ref);
   }
 
   factory JSUint8ClampedArrayImpl.view(
@@ -1052,15 +1069,18 @@ final class JSUint8ClampedArrayImpl extends JSIntegerArrayBase
   int get elementSizeInBytes => 1;
 
   @override
-  WasmExternRef? toJSArrayExternRef([
-    int start = 0,
-    int? length,
-  ]) => js.JS<WasmExternRef?>(
-    '(o, start, length) => new Uint8ClampedArray(o.buffer, o.byteOffset + start, length)',
-    toExternRef,
-    WasmI32.fromInt(start),
-    WasmI32.fromInt(length ?? (this.length - start)),
-  );
+  WasmExternRef? toJSArrayExternRef([int start = 0, int? length]) {
+    length = length ?? (this.length - start);
+    if (!_arrayRef.isNull && start == 0 && length == this.length) {
+      return _arrayRef;
+    }
+    return js.JS<WasmExternRef?>(
+      '(o, start, length) => new Uint8ClampedArray(o.buffer, o.byteOffset + start, length)',
+      toExternRef,
+      WasmI32.fromInt(start),
+      WasmI32.fromInt(length),
+    );
+  }
 
   @pragma("wasm:prefer-inline")
   int _getUnchecked(int index) => _getUint8(toExternRef, index);
@@ -1113,24 +1133,25 @@ final class UnmodifiableJSUint8ClampedArray extends JSUint8ClampedArrayImpl
 final class JSUint16ArrayImpl extends JSIntegerArrayBase
     with _IntListMixin
     implements Uint16List {
-  JSUint16ArrayImpl._(WasmExternRef? _ref) : super(_ref, 1);
+  JSUint16ArrayImpl._(WasmExternRef? _dataViewRef, [WasmExternRef? _arrayRef])
+    : super(_dataViewRef, 1, _arrayRef);
 
   factory JSUint16ArrayImpl(int length) =>
       JSUint16ArrayImpl._(_newDataView(length * 2));
 
-  static bool _checkRefType(WasmExternRef? ref) =>
+  static bool _checkArrayRefType(WasmExternRef? ref) =>
       js.JS<bool>('o => o instanceof Uint16Array', ref);
 
-  factory JSUint16ArrayImpl.fromRefUnchecked(WasmExternRef? ref) {
-    assert(_checkRefType(ref));
-    return JSUint16ArrayImpl._(_dataViewFromJSArray(ref));
+  factory JSUint16ArrayImpl.fromArrayRefUnchecked(WasmExternRef? ref) {
+    assert(_checkArrayRefType(ref));
+    return JSUint16ArrayImpl._(_dataViewFromJSArray(ref), ref);
   }
 
-  factory JSUint16ArrayImpl.fromRef(WasmExternRef? ref) {
-    if (!_checkRefType(ref)) {
+  factory JSUint16ArrayImpl.fromArrayRef(WasmExternRef? ref) {
+    if (!_checkArrayRefType(ref)) {
       return _throwConversionFailureError("Uint16List");
     }
-    return JSUint16ArrayImpl.fromRefUnchecked(ref);
+    return JSUint16ArrayImpl.fromArrayRefUnchecked(ref);
   }
 
   factory JSUint16ArrayImpl.view(
@@ -1150,15 +1171,18 @@ final class JSUint16ArrayImpl extends JSIntegerArrayBase
   int get elementSizeInBytes => 2;
 
   @override
-  WasmExternRef? toJSArrayExternRef([
-    int start = 0,
-    int? length,
-  ]) => js.JS<WasmExternRef?>(
-    '(o, start, length) => new Uint16Array(o.buffer, o.byteOffset + start, length)',
-    toExternRef,
-    WasmI32.fromInt(start * 2),
-    WasmI32.fromInt(length ?? (this.length - start)),
-  );
+  WasmExternRef? toJSArrayExternRef([int start = 0, int? length]) {
+    length = length ?? (this.length - start);
+    if (!_arrayRef.isNull && start == 0 && length == this.length) {
+      return _arrayRef;
+    }
+    return js.JS<WasmExternRef?>(
+      '(o, start, length) => new Uint16Array(o.buffer, o.byteOffset + start, length)',
+      toExternRef,
+      WasmI32.fromInt(start * 2),
+      WasmI32.fromInt(length),
+    );
+  }
 
   @pragma("wasm:prefer-inline")
   int _getUnchecked(int index) => _getUint16(toExternRef, index * 2, true);
@@ -1225,24 +1249,25 @@ final class UnmodifiableJSUint16Array extends JSUint16ArrayImpl
 final class JSInt16ArrayImpl extends JSIntegerArrayBase
     with _IntListMixin
     implements Int16List {
-  JSInt16ArrayImpl._(WasmExternRef? _ref) : super(_ref, 1);
+  JSInt16ArrayImpl._(WasmExternRef? _dataViewRef, [WasmExternRef? _arrayRef])
+    : super(_dataViewRef, 1, _arrayRef);
 
   factory JSInt16ArrayImpl(int length) =>
       JSInt16ArrayImpl._(_newDataView(length * 2));
 
-  static bool _checkRefType(WasmExternRef? ref) =>
+  static bool _checkArrayRefType(WasmExternRef? ref) =>
       js.JS<bool>('o => o instanceof Int16Array', ref);
 
-  factory JSInt16ArrayImpl.fromRefUnchecked(WasmExternRef? ref) {
-    assert(_checkRefType(ref));
-    return JSInt16ArrayImpl._(_dataViewFromJSArray(ref));
+  factory JSInt16ArrayImpl.fromArrayRefUnchecked(WasmExternRef? ref) {
+    assert(_checkArrayRefType(ref));
+    return JSInt16ArrayImpl._(_dataViewFromJSArray(ref), ref);
   }
 
-  factory JSInt16ArrayImpl.fromRef(WasmExternRef? ref) {
-    if (!_checkRefType(ref)) {
+  factory JSInt16ArrayImpl.fromArrayRef(WasmExternRef? ref) {
+    if (!_checkArrayRefType(ref)) {
       return _throwConversionFailureError("Int16List");
     }
-    return JSInt16ArrayImpl.fromRefUnchecked(ref);
+    return JSInt16ArrayImpl.fromArrayRefUnchecked(ref);
   }
 
   factory JSInt16ArrayImpl.view(
@@ -1262,15 +1287,18 @@ final class JSInt16ArrayImpl extends JSIntegerArrayBase
   int get elementSizeInBytes => 2;
 
   @override
-  WasmExternRef? toJSArrayExternRef([
-    int start = 0,
-    int? length,
-  ]) => js.JS<WasmExternRef?>(
-    '(o, start, length) => new Int16Array(o.buffer, o.byteOffset + start, length)',
-    toExternRef,
-    WasmI32.fromInt(start * 2),
-    WasmI32.fromInt(length ?? (this.length - start)),
-  );
+  WasmExternRef? toJSArrayExternRef([int start = 0, int? length]) {
+    length = length ?? (this.length - start);
+    if (!_arrayRef.isNull && start == 0 && length == this.length) {
+      return _arrayRef;
+    }
+    return js.JS<WasmExternRef?>(
+      '(o, start, length) => new Int16Array(o.buffer, o.byteOffset + start, length)',
+      toExternRef,
+      WasmI32.fromInt(start * 2),
+      WasmI32.fromInt(length),
+    );
+  }
 
   @pragma("wasm:prefer-inline")
   int _getUnchecked(int index) => _getInt16(toExternRef, index * 2, true);
@@ -1337,24 +1365,25 @@ final class UnmodifiableJSInt16Array extends JSInt16ArrayImpl
 final class JSUint32ArrayImpl extends JSIntegerArrayBase
     with _IntListMixin
     implements Uint32List {
-  JSUint32ArrayImpl._(WasmExternRef? _ref) : super(_ref, 2);
+  JSUint32ArrayImpl._(WasmExternRef? _dataViewRef, [WasmExternRef? _arrayRef])
+    : super(_dataViewRef, 2, _arrayRef);
 
   factory JSUint32ArrayImpl(int length) =>
       JSUint32ArrayImpl._(_newDataView(length * 4));
 
-  static bool _checkRefType(WasmExternRef? ref) =>
+  static bool _checkArrayRefType(WasmExternRef? ref) =>
       js.JS<bool>('o => o instanceof Uint32Array', ref);
 
-  factory JSUint32ArrayImpl.fromRefUnchecked(WasmExternRef? ref) {
-    assert(_checkRefType(ref));
-    return JSUint32ArrayImpl._(_dataViewFromJSArray(ref));
+  factory JSUint32ArrayImpl.fromArrayRefUnchecked(WasmExternRef? ref) {
+    assert(_checkArrayRefType(ref));
+    return JSUint32ArrayImpl._(_dataViewFromJSArray(ref), ref);
   }
 
-  factory JSUint32ArrayImpl.fromRef(WasmExternRef? ref) {
-    if (!_checkRefType(ref)) {
+  factory JSUint32ArrayImpl.fromArrayRef(WasmExternRef? ref) {
+    if (!_checkArrayRefType(ref)) {
       return _throwConversionFailureError("Uint32List");
     }
-    return JSUint32ArrayImpl.fromRefUnchecked(ref);
+    return JSUint32ArrayImpl.fromArrayRefUnchecked(ref);
   }
 
   factory JSUint32ArrayImpl.view(
@@ -1374,15 +1403,18 @@ final class JSUint32ArrayImpl extends JSIntegerArrayBase
   int get elementSizeInBytes => 4;
 
   @override
-  WasmExternRef? toJSArrayExternRef([
-    int start = 0,
-    int? length,
-  ]) => js.JS<WasmExternRef?>(
-    '(o, start, length) => new Uint32Array(o.buffer, o.byteOffset + start, length)',
-    toExternRef,
-    WasmI32.fromInt(start * 4),
-    WasmI32.fromInt(length ?? (this.length - start)),
-  );
+  WasmExternRef? toJSArrayExternRef([int start = 0, int? length]) {
+    length = length ?? (this.length - start);
+    if (!_arrayRef.isNull && start == 0 && length == this.length) {
+      return _arrayRef;
+    }
+    return js.JS<WasmExternRef?>(
+      '(o, start, length) => new Uint32Array(o.buffer, o.byteOffset + start, length)',
+      toExternRef,
+      WasmI32.fromInt(start * 4),
+      WasmI32.fromInt(length),
+    );
+  }
 
   @pragma("wasm:prefer-inline")
   int _getUnchecked(int index) => _getUint32(toExternRef, index * 4, true);
@@ -1449,24 +1481,25 @@ final class UnmodifiableJSUint32Array extends JSUint32ArrayImpl
 final class JSInt32ArrayImpl extends JSIntegerArrayBase
     with _IntListMixin
     implements Int32List {
-  JSInt32ArrayImpl._(WasmExternRef? _ref) : super(_ref, 2);
+  JSInt32ArrayImpl._(WasmExternRef? _dataViewRef, [WasmExternRef? _arrayRef])
+    : super(_dataViewRef, 2, _arrayRef);
 
   factory JSInt32ArrayImpl(int length) =>
       JSInt32ArrayImpl._(_newDataView(length * 4));
 
-  static bool _checkRefType(WasmExternRef? ref) =>
+  static bool _checkArrayRefType(WasmExternRef? ref) =>
       js.JS<bool>('o => o instanceof Int32Array', ref);
 
-  factory JSInt32ArrayImpl.fromRefUnchecked(WasmExternRef? ref) {
-    assert(_checkRefType(ref));
-    return JSInt32ArrayImpl._(_dataViewFromJSArray(ref));
+  factory JSInt32ArrayImpl.fromArrayRefUnchecked(WasmExternRef? ref) {
+    assert(_checkArrayRefType(ref));
+    return JSInt32ArrayImpl._(_dataViewFromJSArray(ref), ref);
   }
 
-  factory JSInt32ArrayImpl.fromRef(WasmExternRef? ref) {
-    if (!_checkRefType(ref)) {
+  factory JSInt32ArrayImpl.fromArrayRef(WasmExternRef? ref) {
+    if (!_checkArrayRefType(ref)) {
       return _throwConversionFailureError("Int32List");
     }
-    return JSInt32ArrayImpl.fromRefUnchecked(ref);
+    return JSInt32ArrayImpl.fromArrayRefUnchecked(ref);
   }
 
   factory JSInt32ArrayImpl.view(
@@ -1486,15 +1519,18 @@ final class JSInt32ArrayImpl extends JSIntegerArrayBase
   int get elementSizeInBytes => 4;
 
   @override
-  WasmExternRef? toJSArrayExternRef([
-    int start = 0,
-    int? length,
-  ]) => js.JS<WasmExternRef?>(
-    '(o, start, length) => new Int32Array(o.buffer, o.byteOffset + start, length)',
-    toExternRef,
-    WasmI32.fromInt(start * 4),
-    WasmI32.fromInt(length ?? (this.length - start)),
-  );
+  WasmExternRef? toJSArrayExternRef([int start = 0, int? length]) {
+    length = length ?? (this.length - start);
+    if (!_arrayRef.isNull && start == 0 && length == this.length) {
+      return _arrayRef;
+    }
+    return js.JS<WasmExternRef?>(
+      '(o, start, length) => new Int32Array(o.buffer, o.byteOffset + start, length)',
+      toExternRef,
+      WasmI32.fromInt(start * 4),
+      WasmI32.fromInt(length),
+    );
+  }
 
   @pragma("wasm:prefer-inline")
   int _getUnchecked(int index) => _getInt32(toExternRef, index * 4, true);
@@ -1652,13 +1688,16 @@ final class JSInt32x4ArrayImpl
 final class JSBigUint64ArrayImpl extends JSIntegerArrayBase
     with _IntListMixin
     implements Uint64List {
-  JSBigUint64ArrayImpl._(WasmExternRef? _ref) : super(_ref, 3);
+  JSBigUint64ArrayImpl._(
+    WasmExternRef? _dataViewRef, [
+    WasmExternRef? _arrayRef,
+  ]) : super(_dataViewRef, 3, _arrayRef);
 
   factory JSBigUint64ArrayImpl(int length) =>
       JSBigUint64ArrayImpl._(_newDataView(length * 8));
 
   factory JSBigUint64ArrayImpl.fromJSArray(WasmExternRef? jsArrayRef) =>
-      JSBigUint64ArrayImpl._(_dataViewFromJSArray(jsArrayRef));
+      JSBigUint64ArrayImpl._(_dataViewFromJSArray(jsArrayRef), jsArrayRef);
 
   factory JSBigUint64ArrayImpl.view(
     JSArrayBufferImpl buffer,
@@ -1677,15 +1716,18 @@ final class JSBigUint64ArrayImpl extends JSIntegerArrayBase
   int get elementSizeInBytes => 8;
 
   @override
-  WasmExternRef? toJSArrayExternRef([
-    int start = 0,
-    int? length,
-  ]) => js.JS<WasmExternRef?>(
-    '(o, start, length) => new BigUint64Array(o.buffer, o.byteOffset + start, length)',
-    toExternRef,
-    WasmI32.fromInt(start * 8),
-    WasmI32.fromInt(length ?? (this.length - start)),
-  );
+  WasmExternRef? toJSArrayExternRef([int start = 0, int? length]) {
+    length = length ?? (this.length - start);
+    if (!_arrayRef.isNull && start == 0 && length == this.length) {
+      return _arrayRef;
+    }
+    return js.JS<WasmExternRef?>(
+      '(o, start, length) => new BigUint64Array(o.buffer, o.byteOffset + start, length)',
+      toExternRef,
+      WasmI32.fromInt(start * 8),
+      WasmI32.fromInt(length),
+    );
+  }
 
   @pragma("wasm:prefer-inline")
   int _getUnchecked(int index) => _getBigUint64(toExternRef, index * 8, true);
@@ -1752,13 +1794,14 @@ final class UnmodifiableJSBigUint64Array extends JSBigUint64ArrayImpl
 final class JSBigInt64ArrayImpl extends JSIntegerArrayBase
     with _IntListMixin
     implements Int64List {
-  JSBigInt64ArrayImpl._(WasmExternRef? _ref) : super(_ref, 3);
+  JSBigInt64ArrayImpl._(WasmExternRef? _dataViewRef, [WasmExternRef? _arrayRef])
+    : super(_dataViewRef, 3, _arrayRef);
 
   factory JSBigInt64ArrayImpl(int length) =>
       JSBigInt64ArrayImpl._(_newDataView(length * 8));
 
   factory JSBigInt64ArrayImpl.fromJSArray(WasmExternRef? jsArrayRef) =>
-      JSBigInt64ArrayImpl._(_dataViewFromJSArray(jsArrayRef));
+      JSBigInt64ArrayImpl._(_dataViewFromJSArray(jsArrayRef), jsArrayRef);
 
   factory JSBigInt64ArrayImpl.view(
     JSArrayBufferImpl buffer,
@@ -1777,15 +1820,18 @@ final class JSBigInt64ArrayImpl extends JSIntegerArrayBase
   int get elementSizeInBytes => 8;
 
   @override
-  WasmExternRef? toJSArrayExternRef([
-    int start = 0,
-    int? length,
-  ]) => js.JS<WasmExternRef?>(
-    '(o, start, length) => new BigInt64Array(o.buffer, o.byteOffset + start, length)',
-    toExternRef,
-    WasmI32.fromInt(start * 8),
-    WasmI32.fromInt(length ?? (this.length - start)),
-  );
+  WasmExternRef? toJSArrayExternRef([int start = 0, int? length]) {
+    length = length ?? (this.length - start);
+    if (!_arrayRef.isNull && start == 0 && length == this.length) {
+      return _arrayRef;
+    }
+    return js.JS<WasmExternRef?>(
+      '(o, start, length) => new BigInt64Array(o.buffer, o.byteOffset + start, length)',
+      toExternRef,
+      WasmI32.fromInt(start * 8),
+      WasmI32.fromInt(length),
+    );
+  }
 
   @pragma("wasm:prefer-inline")
   int _getUnchecked(int index) => _getBigInt64(toExternRef, index * 8, true);
@@ -2196,24 +2242,25 @@ mixin _UnmodifiableDoubleListMixin {
 final class JSFloat32ArrayImpl extends JSFloatArrayBase
     with _DoubleListMixin
     implements Float32List {
-  JSFloat32ArrayImpl._(WasmExternRef? _ref) : super(_ref, 2);
+  JSFloat32ArrayImpl._(WasmExternRef? _dataViewRef, [WasmExternRef? _arrayRef])
+    : super(_dataViewRef, 2, _arrayRef);
 
   factory JSFloat32ArrayImpl(int length) =>
       JSFloat32ArrayImpl._(_newDataView(length * 4));
 
-  static bool _checkRefType(WasmExternRef? ref) =>
+  static bool _checkArrayRefType(WasmExternRef? ref) =>
       js.JS<bool>('o => o instanceof Float32Array', ref);
 
-  factory JSFloat32ArrayImpl.fromRefUnchecked(WasmExternRef? ref) {
-    assert(_checkRefType(ref));
-    return JSFloat32ArrayImpl._(_dataViewFromJSArray(ref));
+  factory JSFloat32ArrayImpl.fromArrayRefUnchecked(WasmExternRef? ref) {
+    assert(_checkArrayRefType(ref));
+    return JSFloat32ArrayImpl._(_dataViewFromJSArray(ref), ref);
   }
 
-  factory JSFloat32ArrayImpl.fromRef(WasmExternRef? ref) {
-    if (!_checkRefType(ref)) {
+  factory JSFloat32ArrayImpl.fromArrayRef(WasmExternRef? ref) {
+    if (!_checkArrayRefType(ref)) {
       return _throwConversionFailureError("Float32List");
     }
-    return JSFloat32ArrayImpl.fromRefUnchecked(ref);
+    return JSFloat32ArrayImpl.fromArrayRefUnchecked(ref);
   }
 
   factory JSFloat32ArrayImpl.view(
@@ -2233,15 +2280,19 @@ final class JSFloat32ArrayImpl extends JSFloatArrayBase
   int get elementSizeInBytes => 4;
 
   @override
-  WasmExternRef? toJSArrayExternRef([
-    int start = 0,
-    int? length,
-  ]) => js.JS<WasmExternRef?>(
-    '(o, start, length) => new Float32Array(o.buffer, o.byteOffset + start, length)',
-    toExternRef,
-    WasmI32.fromInt(start * 4),
-    WasmI32.fromInt(length ?? (this.length - start)),
-  );
+  WasmExternRef? toJSArrayExternRef([int start = 0, int? length]) {
+    if (!_arrayRef.isNull &&
+        start == 0 &&
+        (length == null || length == this.length)) {
+      return _arrayRef;
+    }
+    return js.JS<WasmExternRef?>(
+      '(o, start, length) => new Float32Array(o.buffer, o.byteOffset + start, length)',
+      toExternRef,
+      WasmI32.fromInt(start * 4),
+      WasmI32.fromInt(length ?? (this.length - start)),
+    );
+  }
 
   @pragma("wasm:prefer-inline")
   double _getUnchecked(int index) => _getFloat32(toExternRef, index * 4, true);
@@ -2308,24 +2359,25 @@ final class UnmodifiableJSFloat32Array extends JSFloat32ArrayImpl
 final class JSFloat64ArrayImpl extends JSFloatArrayBase
     with _DoubleListMixin
     implements Float64List {
-  JSFloat64ArrayImpl._(WasmExternRef? _ref) : super(_ref, 3);
+  JSFloat64ArrayImpl._(WasmExternRef? _dataViewRef, [WasmExternRef? _arrayRef])
+    : super(_dataViewRef, 3, _arrayRef);
 
   factory JSFloat64ArrayImpl(int length) =>
       JSFloat64ArrayImpl._(_newDataView(length * 8));
 
-  static bool _checkRefType(WasmExternRef? ref) =>
+  static bool _checkArrayRefType(WasmExternRef? ref) =>
       js.JS<bool>('o => o instanceof Float64Array', ref);
 
-  factory JSFloat64ArrayImpl.fromRefUnchecked(WasmExternRef? ref) {
-    assert(_checkRefType(ref));
-    return JSFloat64ArrayImpl._(_dataViewFromJSArray(ref));
+  factory JSFloat64ArrayImpl.fromArrayRefUnchecked(WasmExternRef? ref) {
+    assert(_checkArrayRefType(ref));
+    return JSFloat64ArrayImpl._(_dataViewFromJSArray(ref), ref);
   }
 
-  factory JSFloat64ArrayImpl.fromRef(WasmExternRef? ref) {
-    if (!_checkRefType(ref)) {
+  factory JSFloat64ArrayImpl.fromArrayRef(WasmExternRef? ref) {
+    if (!_checkArrayRefType(ref)) {
       return _throwConversionFailureError("Float64List");
     }
-    return JSFloat64ArrayImpl.fromRefUnchecked(ref);
+    return JSFloat64ArrayImpl.fromArrayRefUnchecked(ref);
   }
 
   factory JSFloat64ArrayImpl.view(
@@ -2345,15 +2397,19 @@ final class JSFloat64ArrayImpl extends JSFloatArrayBase
   int get elementSizeInBytes => 8;
 
   @override
-  WasmExternRef? toJSArrayExternRef([
-    int start = 0,
-    int? length,
-  ]) => js.JS<WasmExternRef?>(
-    '(o, start, length) => new Float64Array(o.buffer, o.byteOffset + start, length)',
-    toExternRef,
-    WasmI32.fromInt(start * 8),
-    WasmI32.fromInt(length ?? (this.length - start)),
-  );
+  WasmExternRef? toJSArrayExternRef([int start = 0, int? length]) {
+    if (!_arrayRef.isNull &&
+        start == 0 &&
+        (length == null || length == this.length)) {
+      return _arrayRef;
+    }
+    return js.JS<WasmExternRef?>(
+      '(o, start, length) => new Float64Array(o.buffer, o.byteOffset + start, length)',
+      toExternRef,
+      WasmI32.fromInt(start * 8),
+      WasmI32.fromInt(length ?? (this.length - start)),
+    );
+  }
 
   @pragma("wasm:prefer-inline")
   double _getUnchecked(int index) => _getFloat64(toExternRef, index * 8, true);

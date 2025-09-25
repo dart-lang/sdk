@@ -145,9 +145,14 @@ instead.
   well. Specifically, the function should be a statically known type, cannot
   contain invalid types in its signature, cannot have any type parameters, and
   cannot have any named parameters.
+- On dart2wasm, typed lists that are wrappers around typed arrays now return the
+  original typed array when unwrapped instead of instantiating a new typed array
+  with the same buffer. This applies to both the `.toJS` conversions and
+  `jsify`. See [#61543][] for more details.
 
 [#59830]: https://github.com/dart-lang/sdk/issues/59830
 [#55138]: https://github.com/dart-lang/sdk/issues/55138
+[#61543]: https://github.com/dart-lang/sdk/issues/61543
 
 ## 3.9.0
 

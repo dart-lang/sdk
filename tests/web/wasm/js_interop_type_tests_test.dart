@@ -15,45 +15,47 @@ import 'package:expect/expect.dart';
 
 void main() {
   Expect.throws<ArgumentError>(
-    () =>
-        JSInt8ArrayImpl.fromRef(JS<WasmExternRef?>('() => new Uint8Array(10)')),
-  );
-  Expect.throws<ArgumentError>(
-    () =>
-        JSUint8ArrayImpl.fromRef(JS<WasmExternRef?>('() => new Int8Array(10)')),
-  );
-  Expect.throws<ArgumentError>(
-    () => JSUint8ClampedArrayImpl.fromRef(
+    () => JSInt8ArrayImpl.fromArrayRef(
       JS<WasmExternRef?>('() => new Uint8Array(10)'),
     ),
   );
   Expect.throws<ArgumentError>(
-    () => JSInt16ArrayImpl.fromRef(
+    () => JSUint8ArrayImpl.fromArrayRef(
+      JS<WasmExternRef?>('() => new Int8Array(10)'),
+    ),
+  );
+  Expect.throws<ArgumentError>(
+    () => JSUint8ClampedArrayImpl.fromArrayRef(
+      JS<WasmExternRef?>('() => new Uint8Array(10)'),
+    ),
+  );
+  Expect.throws<ArgumentError>(
+    () => JSInt16ArrayImpl.fromArrayRef(
       JS<WasmExternRef?>('() => new Uint16Array(10)'),
     ),
   );
   Expect.throws<ArgumentError>(
-    () => JSUint16ArrayImpl.fromRef(
+    () => JSUint16ArrayImpl.fromArrayRef(
       JS<WasmExternRef?>('() => new Int16Array(10)'),
     ),
   );
   Expect.throws<ArgumentError>(
-    () => JSInt32ArrayImpl.fromRef(
+    () => JSInt32ArrayImpl.fromArrayRef(
       JS<WasmExternRef?>('() => new Uint32Array(10)'),
     ),
   );
   Expect.throws<ArgumentError>(
-    () => JSUint32ArrayImpl.fromRef(
+    () => JSUint32ArrayImpl.fromArrayRef(
       JS<WasmExternRef?>('() => new Int32Array(10)'),
     ),
   );
   Expect.throws<ArgumentError>(
-    () => JSFloat32ArrayImpl.fromRef(
+    () => JSFloat32ArrayImpl.fromArrayRef(
       JS<WasmExternRef?>('() => new Float64Array(10)'),
     ),
   );
   Expect.throws<ArgumentError>(
-    () => JSFloat64ArrayImpl.fromRef(
+    () => JSFloat64ArrayImpl.fromArrayRef(
       JS<WasmExternRef?>('() => new Float32Array(10)'),
     ),
   );
