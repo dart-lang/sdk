@@ -718,6 +718,7 @@ abstract interface class Future<T> {
   /// // Outputs: 'Finished with 3'
   /// ```
   static Future<void> doWhile(FutureOr<bool> action()) {
+    @pragma('vm:awaiter-link')
     _Future<void> doneSignal = _Future<void>();
     late void Function(bool) nextIteration;
     // Bind this callback explicitly so that each iteration isn't bound in the
