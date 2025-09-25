@@ -1535,18 +1535,19 @@ const double e = 2.718281828459045;
 const double pi = 3.1415926535897932;
 const double ln10 = 2.302585092994046;
 
-T min<T extends num>(T a, T b) => throw 0;
-T max<T extends num>(T a, T b) => throw 0;
+external T min<T extends num>(T a, T b);
+external T max<T extends num>(T a, T b);
 
 external double cos(num radians);
 external double sin(num radians);
-external double sqrt(num radians);
+external double sqrt(num x);
 external double tan(num radians);
 
-class Random {
-  bool nextBool() => true;
-  double nextDouble() => 2.0;
-  int nextInt() => 1;
+abstract interface class Random {
+  external factory Random([int? seed]);
+  bool nextBool();
+  double nextDouble();
+  int nextInt(int max);
 }
 
 class Point<T extends num> {}
