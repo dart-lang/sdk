@@ -131,25 +131,25 @@ vars = {
   ### /third_party/pkg dependencies
   # 'tools/rev_sdk_deps.dart' will rev pkg dependencies to their latest; put an
   # EOL comment after a dependency to instead pin at the current revision.
-  "ai_rev": "078abd245d8e438ff053f0d123889d56586e25da",
+  "ai_rev": "901e2cea44bde868061cae58269cf8cc583a8a78",
   "core_rev": "5c3e2c38df268be2347f3aad30ced0147dd012bb", # b/444274553
-  "dartdoc_rev": "4df6dbe5e651e3c8a4f199e4752b12366d7eeef4",
+  "dartdoc_rev": "669b15f7da5da04a38e95e8ac0ff6471697a549f",
   "ecosystem_rev": "36e514d52c5d056227e4cea98b784ade50b5b4f1",
   "flute_rev": "d5adc4d6439572db5da71a9261b9bf0c7c96daa4",
-  "http_rev": "d6dd5ec9a24e66b386cc38d52c6d4e8decb26902",
+  "http_rev": "e0dadd16e01bb4611036f4946ed480dac2d59dca",
   "i18n_rev": "09627d28f97e05858e1ba5c6e45ff45d56b1e786",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "native_rev": "400c7001de7a3cddca341e728163bd64029ab288", # rolled manually while native assets are experimental
-  "protobuf_rev": "456e2ee704af27225e25ba092164f66dcbf63000",
+  "protobuf_rev": "07eed6e8cc0535189112ae8373aa8f16f4a5c3ca",
   "pub_rev": "469eb6193c0a49495ea2ce7432cf749f077ad596", # rolled manually
   "shelf_rev": "de91a5b8c1de05f622c0c6f1eab38d5f31e0113f",
   "sync_http_rev": "6666fff944221891182e1f80bf56569338164d72",
   "tar_rev": "13479f7c2a18f499e840ad470cfcca8c579f6909",
   "test_rev": "b99d556ec6096965eb177111299c0783678200f6",
-  "tools_rev": "6c1eb214e09f3703255b563f9effbbb2e6989f6b",
+  "tools_rev": "ecd7dd523c8a5761f337eedce8878b092996a75c",
   "vector_math_rev": "3939545edc38ed657381381d33acde02c49ff827",
-  "web_rev": "25a0b5b0a4a126788c06738331c5c4af8225f6f8",
+  "web_rev": "0baaea4de4dfd60db85dd112d8cc7480d0dd8bd8",
   "webdev_rev": "23aefebea46c1f94c27703743b2c8db1f651bf29",
   "webdriver_rev": "09104f459ed834d48b132f6b7734923b1fbcf2e9",
   "webkit_inspection_protocol_rev": "effa75205516757795683d527c3dea9546eb0c32",
