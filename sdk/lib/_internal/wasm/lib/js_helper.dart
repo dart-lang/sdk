@@ -11,8 +11,10 @@ import 'dart:_js_annotations' as js;
 import 'dart:_js_types' as js_types;
 import 'dart:_string';
 import 'dart:_wasm';
+import 'dart:async';
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
+import 'dart:js_util' as js_util;
 import 'dart:typed_data';
 
 part 'regexp_helper.dart';
@@ -283,6 +285,33 @@ void promiseThenWithIsUndefined(
   failureFunc,
 );
 
+Future<T> externPromiseToFuture<T>(WasmExternRef? jsPromise) {
+  final completer = Completer<T>();
+  final success = (JSAny? r) {
+    // Note that we explicitly type the parameter as `JSAny?` instead of `T`.
+    // This is because if there's a `TypeError` with the cast, we want to
+    // bubble that up through the completer, so we end up doing a try-catch
+    // here to do so.
+    try {
+      final value = r as T;
+      completer.complete(value);
+    } catch (e) {
+      completer.completeError(e);
+    }
+  }.toJS;
+  final error = (JSAny? e, bool isUndefined) {
+    // `e` is null when the original error is either JS `null` or JS
+    // `undefined`.
+    if (e == null) {
+      completer.completeError(js_util.NullRejectionException(isUndefined));
+      return;
+    }
+    completer.completeError(e);
+  }.toJS;
+  promiseThenWithIsUndefined(jsPromise, success.toExternRef, error.toExternRef);
+  return completer.future;
+}
+
 // Currently, `allowInterop` returns a Function type. This is unfortunate for
 // Dart2wasm because it means arbitrary Dart functions can flow to JS util
 // calls. Our only solutions is to cache every function called with
@@ -456,7 +485,8 @@ abstract final class ExternRefType {
   static const int dataView = 15;
   static const int arrayBuffer = 16;
   static const int sharedArrayBuffer = 17;
-  static const int unknown = 18;
+  static const int promise = 18;
+  static const int unknown = 19;
 }
 
 /// Returns an integer representing the type of [ref] that corresponds to one of
@@ -492,7 +522,8 @@ int externRefType(WasmExternRef? ref) {
         o instanceof SharedArrayBuffer) {
         return 17;
     }
-    return 18;
+    if (o instanceof Promise) return 18;
+    return 19;
   }
   ''', ref).toIntUnsigned();
   return val;
@@ -537,6 +568,7 @@ Object? dartifyRaw(WasmExternRef? ref, [int? refType]) {
     ExternRefType.arrayBuffer || ExternRefType.sharedArrayBuffer =>
       js_types.JSArrayBufferImpl.fromRefUnchecked(ref),
     ExternRefType.dataView => js_types.JSDataViewImpl.fromRefUnchecked(ref),
+    ExternRefType.promise => externPromiseToFuture<JSValue?>(ref),
     ExternRefType.unknown =>
       isJSWrappedDartFunction(ref)
           ? unwrapJSWrappedDartFunction(ref)

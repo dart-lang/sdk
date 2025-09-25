@@ -151,10 +151,14 @@ instead.
   `jsify`. See [#61543][] for more details.
 - `Uint16ListToJSInt16Array` is renamed to `Uint16ListToJSUint16Array`.
 - `JSUint16ArrayToInt16List` is renamed to `JSUint16ArrayToUint16List`.
+- The dart2wasm implementation of `dartify` now converts JavaScript `Promise`s
+  to Dart `Future`s rather than `JSValue`s, consistent with dart2js and DDC. See
+  [#54573][] for more details.
 
 [#59830]: https://github.com/dart-lang/sdk/issues/59830
 [#55138]: https://github.com/dart-lang/sdk/issues/55138
 [#61543]: https://github.com/dart-lang/sdk/issues/61543
+[#54573]: https://github.com/dart-lang/sdk/issues/54573
 
 ## 3.9.0
 

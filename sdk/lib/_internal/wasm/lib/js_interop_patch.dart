@@ -199,36 +199,7 @@ extension ObjectToExternalDartReference<T extends Object?> on T {
 @patch
 extension JSPromiseToFuture<T extends JSAny?> on JSPromise<T> {
   @patch
-  Future<T> get toDart {
-    final completer = Completer<T>();
-    final success = (JSAny? r) {
-      // Note that we explicitly type the parameter as `JSAny?` instead of `T`.
-      // This is because if there's a `TypeError` with the cast, we want to
-      // bubble that up through the completer, so we end up doing a try-catch
-      // here to do so.
-      try {
-        final value = r as T;
-        completer.complete(value);
-      } catch (e) {
-        completer.completeError(e);
-      }
-    }.toJS;
-    final error = (JSAny? e, bool isUndefined) {
-      // `e` is null when the original error is either JS `null` or JS
-      // `undefined`.
-      if (e == null) {
-        completer.completeError(js_util.NullRejectionException(isUndefined));
-        return;
-      }
-      completer.completeError(e);
-    }.toJS;
-    js_helper.promiseThenWithIsUndefined(
-      toExternRef,
-      success.toExternRef,
-      error.toExternRef,
-    );
-    return completer.future;
-  }
+  Future<T> get toDart => js_helper.externPromiseToFuture(toExternRef);
 }
 
 // -----------------------------------------------------------------------------

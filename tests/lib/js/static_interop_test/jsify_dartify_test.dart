@@ -52,6 +52,9 @@ extension on JSUint8Array {
   external JSObject get buffer;
 }
 
+@JS('Promise.resolve')
+external JSAny resolve(String s);
+
 @JS()
 external void eval(String code);
 
@@ -311,6 +314,15 @@ void main() {
   map[key2] = 'bar';
   Expect.equals(1, map.length);
   Expect.equals('bar', map[key1]);
+
+  // Test that promises are converted to Futures, but not vice versa.
+  final promise = resolve('foo');
+  Expect.isTrue(promise.instanceOfString('Promise'));
+  final dartifiedPromise = promise.dartify();
+  Expect.type<Future<JSAny?>>(dartifiedPromise);
+  Expect.notType<Future<JSString>>(dartifiedPromise);
+
+  Expect.isFalse(Future.value(42).jsify().instanceOfString('Promise'));
 
   // Test that unrelated values are left alone/simply boxed.
   Expect.isTrue((gc['symbol'].dartify() as JSAny).isA<JSSymbol>());
