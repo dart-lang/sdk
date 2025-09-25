@@ -164,6 +164,15 @@ instead.
 [#54573]: https://github.com/dart-lang/sdk/issues/54573
 [#61567]: https://github.com/dart-lang/sdk/issues/61567
 
+#### `dart:js_util`
+
+- dart2wasm no longer supports `dart:js_util` and will throw an
+  `UnsupportedError` if any API from this library is invoked. This also applies
+  to `package:js/js_util.dart`. `package:js/js.dart` continues to be supported. 
+  See [#61550][] for more details.
+
+[#61550]: https://github.com/dart-lang/sdk/issues/61550
+
 ## 3.9.0
 
 **Released on:** 2025-08-13
