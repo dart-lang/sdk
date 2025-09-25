@@ -30,8 +30,9 @@ const kUpdateExpectations = 'updateExpectations';
 
 final String dartSdkPkgDir = Platform.script.resolve('../..').toFilePath();
 
-runTestCase(Uri source) async {
-  final target = VmTarget(TargetFlags());
+runTestCase(Uri source, {bool isClosureContextLoweringEnabled = false}) async {
+  final target = VmTarget(TargetFlags(
+      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled));
   Component component =
       await compileTestCaseToKernelProgram(source, target: target);
 
@@ -155,6 +156,21 @@ main() {
         in testCasesDir.listSync(recursive: true, followLinks: false)) {
       if (entry.path.endsWith(".dart")) {
         test(entry.path, () => runTestCase(entry.uri));
+      }
+    }
+  });
+
+  group('gen-bytecode-with-closure-context-lowering', () {
+    final testCasesDir =
+        new Directory(dartSdkPkgDir + 'dart2bytecode/testcases');
+
+    for (var entry
+        in testCasesDir.listSync(recursive: true, followLinks: false)) {
+      if (entry.path.endsWith(".dart")) {
+        test(
+            entry.path,
+            () =>
+                runTestCase(entry.uri, isClosureContextLoweringEnabled: true));
       }
     }
   });

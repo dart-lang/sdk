@@ -226,8 +226,15 @@ Future<int> runCompilerWithOptions({
     ..invocationModes = InvocationMode.parseArguments(cfeInvocationModes)
     ..verbosity = verbosity;
 
+  final BytecodeOptions bytecodeOptions =
+      BytecodeOptions(enableAsserts: enableAsserts)
+        ..parseCommandLineFlags(bytecodeGeneratorOptions);
+
   compilerOptions.target = createFrontEndTarget(targetName,
-      trackWidgetCreation: trackWidgetCreation, supportMirrors: false);
+      trackWidgetCreation: trackWidgetCreation,
+      supportMirrors: false,
+      isClosureContextLoweringEnabled:
+          bytecodeOptions.isClosureContextLoweringEnabled);
   if (compilerOptions.target == null) {
     printMessage('Failed to create front-end target $targetName.');
     return badUsageExitCode;
@@ -247,10 +254,6 @@ Future<int> runCompilerWithOptions({
   if (errorDetector.hasCompilationErrors || component == null) {
     return compileTimeErrorExitCode;
   }
-
-  final BytecodeOptions bytecodeOptions =
-      BytecodeOptions(enableAsserts: enableAsserts)
-        ..parseCommandLineFlags(bytecodeGeneratorOptions);
 
   if (bytecodeOptions.showBytecodeSizeStatistics) {
     BytecodeSizeStatistics.reset();
