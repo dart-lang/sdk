@@ -35,16 +35,27 @@ class _Const {
 
 // Frequently used character codes.
 class _CharCode {
-  static const int HT = 9;
-  static const int LF = 10;
-  static const int CR = 13;
-  static const int SP = 32;
-  static const int COMMA = 44;
-  static const int SLASH = 47;
-  static const int ZERO = 48;
-  static const int ONE = 49;
-  static const int COLON = 58;
-  static const int SEMI_COLON = 59;
+  static const int NONE = -1;
+  static const int HT = 0x09;
+  static const int LF = 0x0A;
+  static const int CR = 0x0D;
+  static const int SP = 0x20;
+  static const int QUOTE = 0x22;
+  static const int COMMA = 0x2C;
+  static const int MINUS = 0x2D;
+  static const int SLASH = 0x2F;
+  static const int ZERO = 0x30;
+  static const int ONE = 0x31;
+  static const int NINE = 0x39;
+  static const int COLON = 0x3A;
+  static const int SEMI_COLON = 0x3B;
+  static const int EQUALS = 0x3D;
+  static const int LETTER_A = 0x41;
+  static const int LETTER_Z = 0x5A;
+  static const int BACKSLASH = 0x5C;
+  static const int LETTER_a = 0x61;
+  static const int LETTER_z = 0x7A;
+  static const int DEL = 0x7F;
 }
 
 // States of the HTTP parser state machine.

@@ -8,6 +8,7 @@
 // VMOptions=--short_socket_read --short_socket_write
 
 import "package:expect/expect.dart";
+import "package:expect/async_helper.dart";
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
@@ -460,12 +461,11 @@ Future testCookies() {
   return completer.future;
 }
 
-void main() {
-  testHost().then((_) {
-    return testExpires().then((_) {
-      return testContentType().then((_) {
-        return testCookies();
-      });
-    });
-  });
+void main() async {
+  asyncStart();
+  await asyncTest(testHost);
+  await asyncTest(testExpires);
+  await asyncTest(testContentType);
+  await asyncTest(testCookies);
+  asyncEnd();
 }

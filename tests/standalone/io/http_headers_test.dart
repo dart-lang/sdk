@@ -550,9 +550,9 @@ void testCookie() {
       Expect.equals(a.toString(), b.toString());
     }
 
-    void checkCookie(cookie, s) {
-      Expect.equals(s, cookie.toString());
-      var c = new _Cookie.fromSetCookieValue(s);
+    void checkCookie(Cookie cookie, String stringRepresentation) {
+      Expect.equals(stringRepresentation, cookie.toString());
+      var c = new _Cookie.fromSetCookieValue(stringRepresentation);
       checkCookiesEquals(cookie, c);
     }
 

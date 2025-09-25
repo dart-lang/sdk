@@ -15,6 +15,14 @@ class TargetFlags {
   final bool trackWidgetCreation;
   final bool supportMirrors;
 
+  /// Whether the backend expects closure contexts to be present in the AST.
+  ///
+  /// This flag is currently experimental. Generally, the backends rely on their
+  /// own analysis of captured variables to create closure contexts.
+  // TODO(cstefantsova): Update the comment when the feature is no longer
+  // experimental.
+  final bool isClosureContextLoweringEnabled;
+
   /// Indicator for the const backend setting "keep locals".
   /// Targets can overwrite based on other things.
   final bool? constKeepLocalsIndicator;
@@ -22,6 +30,7 @@ class TargetFlags {
   const TargetFlags(
       {this.trackWidgetCreation = false,
       this.supportMirrors = true,
+      this.isClosureContextLoweringEnabled = false,
       this.constKeepLocalsIndicator});
 
   @override
