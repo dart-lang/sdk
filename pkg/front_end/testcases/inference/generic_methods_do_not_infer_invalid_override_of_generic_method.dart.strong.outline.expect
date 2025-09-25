@@ -2,18 +2,18 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:13:3: Error: Can't infer types for 'm' as the overridden members don't have a combined signature.
+// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:12:3: Error: Can't infer types for 'm' as the overridden members don't have a combined signature.
 // Try adding explicit types.
 //   m(x) => x;
 //   ^
-// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:9:5: Context: This is one of the overridden members.
+// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:8:5: Context: This is one of the overridden members.
 //   T m<T>(T x) => x;
 //     ^
 //
-// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:13:3: Error: Declared type variables of 'D.m' doesn't match those on overridden method 'C.m'.
+// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:12:3: Error: Declared type variables of 'D.m' doesn't match those on overridden method 'C.m'.
 //   m(x) => x;
 //   ^
-// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:9:5: Context: This is the overridden method ('m').
+// pkg/front_end/testcases/inference/generic_methods_do_not_infer_invalid_override_of_generic_method.dart:8:5: Context: This is the overridden method ('m').
 //   T m<T>(T x) => x;
 //     ^
 //

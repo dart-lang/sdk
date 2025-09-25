@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=checks*/
-
 class A<T extends num> {
   void Function<S extends T>(S x) foo() {
     print('foo: T = $T');
@@ -23,13 +21,13 @@ B<num> b = new B<int>();
 
 main() {
   try {
-    a.foo /*@checkReturn=<S extends num = dynamic>(S) -> void*/ ();
+    a.foo();
     throw 'Expected TypeError';
   } on TypeError catch (e) {
     print(e);
   }
   try {
-    b.foo /*@checkReturn=(num) -> void*/ ();
+    b.foo();
     throw 'Expected TypeError';
   } on TypeError catch (e) {
     print(e);

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class A {
@@ -12,8 +11,8 @@ class A {
 }
 
 var a = new A();
-var v_complement = /*@target=A.~*/ ~a;
-var v_negate = /*@target=A.unary-*/ -a;
+var v_complement = ~a;
+var v_negate = -a;
 
 main() {
   a;

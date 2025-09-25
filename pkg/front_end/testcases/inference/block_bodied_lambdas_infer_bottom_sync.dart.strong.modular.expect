@@ -2,9 +2,9 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/block_bodied_lambdas_infer_bottom_sync.dart:18:54: Error: A value of type 'String' can't be returned from a function with return type 'Null'.
-//   f = /*@ returnType=Null */ (/*@type=Object*/ x) => 'hello';
-//                                                      ^
+// pkg/front_end/testcases/inference/block_bodied_lambdas_infer_bottom_sync.dart:17:14: Error: A value of type 'String' can't be returned from a function with return type 'Null'.
+//   f = (x) => 'hello';
+//              ^
 //
 import self as self;
 import "dart:core" as core;
@@ -16,9 +16,9 @@ static method test() → dynamic {
     return null;
   };
   core::String? y = f(42){(core::Object) → Null};
-  f = (core::Object x) → Null => invalid-expression "pkg/front_end/testcases/inference/block_bodied_lambdas_infer_bottom_sync.dart:18:54: Error: A value of type 'String' can't be returned from a function with return type 'Null'.
-  f = /*@ returnType=Null */ (/*@type=Object*/ x) => 'hello';
-                                                     ^" in "hello" as{TypeError} Null;
+  f = (core::Object x) → Null => invalid-expression "pkg/front_end/testcases/inference/block_bodied_lambdas_infer_bottom_sync.dart:17:14: Error: A value of type 'String' can't be returned from a function with return type 'Null'.
+  f = (x) => 'hello';
+             ^" in "hello" as{TypeError} Null;
   self::foo((core::Object x) → Null {
     return null;
   });

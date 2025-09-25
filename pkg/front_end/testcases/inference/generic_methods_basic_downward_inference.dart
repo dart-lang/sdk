@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 T f<S, T>(S s) => throw '';
 
 test() {
-  String x = /*@typeArgs=int, String*/ f(42);
-  String y = (f) /*@typeArgs=int, String*/ (42);
+  String x = f(42);
+  String y = (f)(42);
 }

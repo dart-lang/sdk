@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 var a = 1.2;
 
 main() {
-  var /*@type=double*/ b = 3.4;
+  var b = 3.4;
 }

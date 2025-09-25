@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 T f<T>() => throw '';
@@ -32,28 +31,18 @@ class G {
 }
 
 void test1(G g) {
-  /*@type=G*/ g. /*@target=G.target*/ /*@target=G.target*/ target
-      /*@target=A.**/ *=
-      /*@typeArgs=D*/ f();
-  var /*@type=C*/ x =
-      /*@type=G*/ g. /*@target=G.target*/ /*@target=G.target*/ target
-          /*@target=A.**/ *=
-          /*@typeArgs=D*/ f();
+  g.target *= f();
+  var x = g.target *= f();
 }
 
 void test2(G g) {
-  /*@target=A.+*/ ++ /*@type=G*/ g
-      . /*@target=G.target*/ /*@target=G.target*/ target;
-  var /*@type=C*/ x = /*@target=A.+*/ ++ /*@type=G*/ g
-      . /*@target=G.target*/ /*@target=G.target*/ target;
+  ++g.target;
+  var x = ++g.target;
 }
 
 void test3(G g) {
-  /*@type=G*/ g
-      .   /*@target=G.target*//*@target=G.target*/target /*@target=A.+*/ ++;
-  var /*@type=A*/ x = /*@type=G*/ g.  
-            /*@target=G.target*//*@target=G.target*/target
-      /*@target=A.+*/ ++;
+  g.target++;
+  var x = g.target++;
 }
 
 main() {}

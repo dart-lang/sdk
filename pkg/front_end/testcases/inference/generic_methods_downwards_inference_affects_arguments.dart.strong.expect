@@ -2,9 +2,9 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/generic_methods_downwards_inference_affects_arguments.dart:14:76: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
-//           /*@typeArgs=String*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ 42]);
-//                                                                            ^
+// pkg/front_end/testcases/inference/generic_methods_downwards_inference_affects_arguments.dart:11:60: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+//   String y = f([/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ 42]);
+//                                                            ^
 //
 import self as self;
 import "dart:core" as core;
@@ -13,7 +13,7 @@ static method f<T extends core::Object? = dynamic>(core::List<self::f::T%> s) â†
   return throw "";
 static method test() â†’ dynamic {
   core::String x = self::f<core::String>(<core::String>["hi"]);
-  core::String y = self::f<core::String>(<core::String>[invalid-expression "pkg/front_end/testcases/inference/generic_methods_downwards_inference_affects_arguments.dart:14:76: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
-          /*@typeArgs=String*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ 42]);
-                                                                           ^" in 42 as{TypeError} core::String]);
+  core::String y = self::f<core::String>(<core::String>[invalid-expression "pkg/front_end/testcases/inference/generic_methods_downwards_inference_affects_arguments.dart:11:60: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+  String y = f([/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ 42]);
+                                                           ^" in 42 as{TypeError} core::String]);
 }

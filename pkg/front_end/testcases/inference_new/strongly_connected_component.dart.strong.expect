@@ -2,12 +2,12 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference_new/strongly_connected_component.dart:17:5: Error: Can't infer the type of 'x': circularity found during type inference.
+// pkg/front_end/testcases/inference_new/strongly_connected_component.dart:16:5: Error: Can't infer the type of 'x': circularity found during type inference.
 // Specify the type explicitly.
-// var x = /*@returnType=() -> invalid-type*/ () => f() ? y : z;
+// var x = () => f() ? y : z;
 //     ^
 //
-// pkg/front_end/testcases/inference_new/strongly_connected_component.dart:8:13: Error: A value of type 'Null' can't be returned from a function with return type 'bool'.
+// pkg/front_end/testcases/inference_new/strongly_connected_component.dart:7:13: Error: A value of type 'Null' can't be returned from a function with return type 'bool'.
 // bool f() => null;
 //             ^
 //
@@ -18,7 +18,7 @@ static field invalid-type x = () → () → invalid-type => self::f() ?{() → i
 static field () → invalid-type y = () → invalid-type => self::x;
 static field () → invalid-type z = () → invalid-type => self::x;
 static method f() → core::bool
-  return invalid-expression "pkg/front_end/testcases/inference_new/strongly_connected_component.dart:8:13: Error: A value of type 'Null' can't be returned from a function with return type 'bool'.
+  return invalid-expression "pkg/front_end/testcases/inference_new/strongly_connected_component.dart:7:13: Error: A value of type 'Null' can't be returned from a function with return type 'bool'.
 bool f() => null;
             ^" in null as{TypeError} core::bool;
 static method main() → dynamic {}

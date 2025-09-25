@@ -18,6 +18,6 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: ListLiteral @ org-dartlang-testcase:///downwards_inference_initializing_formal_default_formal.dart:12:35 -> ListConstant(const <int>[1])
-Evaluated: ListLiteral @ org-dartlang-testcase:///downwards_inference_initializing_formal_default_formal.dart:13:46 -> ListConstant(const <int>[1])
+Evaluated: ListLiteral @ org-dartlang-testcase:///downwards_inference_initializing_formal_default_formal.dart:11:17 -> ListConstant(const <int>[1])
+Evaluated: ListLiteral @ org-dartlang-testcase:///downwards_inference_initializing_formal_default_formal.dart:12:28 -> ListConstant(const <int>[1])
 Extra constant evaluation: evaluated: 2, effectively constant: 2

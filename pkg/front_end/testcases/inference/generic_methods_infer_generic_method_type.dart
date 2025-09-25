@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class C {
@@ -14,6 +13,6 @@ class D extends C {
 }
 
 main() {
-  int y = new D(). /*@target=D.m*/ m<int>(42);
+  int y = new D().m<int>(42);
   print(y);
 }

@@ -10,7 +10,6 @@ import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_environment.dart';
 
-import '../base/instrumentation.dart' show Instrumentation;
 import '../base/scope.dart';
 import '../kernel/benchmarker.dart' show BenchmarkSubdivides, Benchmarker;
 import '../kernel/internal_ast.dart';
@@ -135,17 +134,6 @@ class TypeInferrerImpl implements TypeInferrer {
 
   final InferenceDataForTesting? dataForTesting;
 
-  /// The URI of the code for which type inference is currently being
-  /// performed--this is used for testing.
-  final Uri uriForInstrumentation;
-
-  /// Indicates whether the construct we are currently performing inference for
-  /// is outside of a method body, and hence top level type inference rules
-  /// should apply.
-  final bool isTopLevel;
-
-  final Instrumentation? instrumentation;
-
   @override
   final TypeSchemaEnvironment typeSchemaEnvironment;
 
@@ -164,15 +152,12 @@ class TypeInferrerImpl implements TypeInferrer {
 
   TypeInferrerImpl(
     this.engine,
-    this.uriForInstrumentation,
-    this.isTopLevel,
     this.thisType,
     this.libraryBuilder,
     this.extensionScope,
     this.assignedVariables,
     this.dataForTesting,
-  ) : instrumentation = isTopLevel ? null : engine.instrumentation,
-      typeSchemaEnvironment = engine.typeSchemaEnvironment,
+  ) : typeSchemaEnvironment = engine.typeSchemaEnvironment,
       operations = new OperationsCfe(
         engine.typeSchemaEnvironment,
         fieldNonPromotabilityInfo: libraryBuilder.fieldNonPromotabilityInfo,
@@ -233,7 +218,6 @@ class TypeInferrerImpl implements TypeInferrer {
     required DartType declaredType,
     required Expression initializer,
   }) {
-    assert(!isTopLevel);
     InferenceVisitorBase visitor = _createInferenceVisitor(fileUri: fileUri);
     ExpressionInferenceResult initializerResult = visitor.inferExpression(
       initializer,
@@ -412,8 +396,6 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
 
   TypeInferrerImplBenchmarked(
     TypeInferenceEngine engine,
-    Uri uriForInstrumentation,
-    bool topLevel,
     InterfaceType? thisType,
     SourceLibraryBuilder libraryBuilder,
     LookupScope extensionScope,
@@ -422,8 +404,6 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     this.benchmarker,
   ) : impl = new TypeInferrerImpl(
         engine,
-        uriForInstrumentation,
-        topLevel,
         thisType,
         libraryBuilder,
         extensionScope,

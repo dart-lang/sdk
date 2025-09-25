@@ -23,12 +23,6 @@ import 'package:kernel/type_environment.dart';
 import '../api_prototype/experimental_flags.dart';
 import '../api_prototype/lowering_predicates.dart';
 import '../base/compiler_context.dart';
-import '../base/instrumentation.dart'
-    show
-        Instrumentation,
-        InstrumentationValueForMember,
-        InstrumentationValueForType,
-        InstrumentationValueForTypeArgs;
 import '../base/lookup_result.dart';
 import '../base/messages.dart';
 import '../base/problems.dart' show internalProblem, unhandled;
@@ -157,10 +151,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       _inferrer.assignedVariables;
 
   InterfaceType? get thisType => _inferrer.thisType;
-
-  Uri get uriForInstrumentation => _inferrer.uriForInstrumentation;
-
-  Instrumentation? get instrumentation => _inferrer.instrumentation;
 
   ClassHierarchyBase get hierarchyBuilder => _inferrer.engine.hierarchyBuilder;
 
@@ -1458,18 +1448,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     ObjectAccessTarget target = objectAccessDescriptor.findNonExtensionTarget(
       this,
     );
-    if (instrumentation != null &&
-        instrumented &&
-        receiverBound != const DynamicType() &&
-        (target.isInstanceMember || target.isObjectMember)) {
-      instrumentation?.record(
-        uriForInstrumentation,
-        fileOffset,
-        'target',
-        new InstrumentationValueForMember(target.member!),
-      );
-    }
-
     if (target.isMissing && includeExtensionMethods) {
       if (!hasNonObjectMemberAccess) {
         // When the receiver type is potentially nullable we would have found
@@ -2298,12 +2276,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         calleeTypeParameters,
         inferredTypes,
       );
-      instrumentation?.record(
-        uriForInstrumentation,
-        offset,
-        'typeArgs',
-        new InstrumentationValueForTypeArgs(inferredTypes),
-      );
       arguments.types.clear();
       arguments.types.addAll(inferredTypes);
       if (dataForTesting != null) {
@@ -2478,12 +2450,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         } else {
           inferredType = const DynamicType();
         }
-        instrumentation?.record(
-          uriForInstrumentation,
-          formal.fileOffset,
-          'type',
-          new InstrumentationValueForType(inferredType),
-        );
         formal.type = demoteTypeInLibrary(inferredType);
         if (dataForTesting != null) {
           // Coverage-ignore-block(suite): Not run.
@@ -2601,12 +2567,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       // Then the result of inference is `<T0, ..., Tn>(R0 x0, ..., Rn xn) B`
       // with type `<T0, ..., Tn>(R0, ..., Rn) -> M’` (with some of the `Ri` and
       // `xi` denoted as optional or named parameters, if appropriate).
-      instrumentation?.record(
-        uriForInstrumentation,
-        fileOffset,
-        'returnType',
-        new InstrumentationValueForType(inferredReturnType),
-      );
       function.returnType = inferredReturnType;
     }
     bodyResult = closureContext.handleImplicitReturn(
@@ -3119,14 +3079,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           method = null;
         }
       }
-      if (instrumentation != null && method != null) {
-        instrumentation!.record(
-          uriForInstrumentation,
-          fileOffset,
-          'target',
-          new InstrumentationValueForMember(method),
-        );
-      }
     }
 
     DartType calleeType = target.getGetterType(this);
@@ -3220,17 +3172,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         ..isTypeError = true
         ..isCovarianceCheck = true
         ..fileOffset = fileOffset;
-      if (instrumentation != null) {
-        int offset = arguments.fileOffset == -1
-            ? fileOffset
-            : arguments.fileOffset;
-        instrumentation!.record(
-          uriForInstrumentation,
-          offset,
-          'checkReturn',
-          new InstrumentationValueForType(result.inferredType),
-        );
-      }
     } else {
       replacement = expression;
     }
@@ -3330,14 +3271,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           getter = null;
         }
       }
-      if (instrumentation != null && getter != null) {
-        instrumentation!.record(
-          uriForInstrumentation,
-          fileOffset,
-          'target',
-          new InstrumentationValueForMember(getter),
-        );
-      }
     }
 
     DartType calleeType = target.getGetterType(this);
@@ -3387,17 +3320,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         ..isTypeError = true
         ..isCovarianceCheck = true
         ..fileOffset = fileOffset;
-      if (instrumentation != null) {
-        int offset = arguments.fileOffset == -1
-            ? fileOffset
-            : arguments.fileOffset;
-        instrumentation!.record(
-          uriForInstrumentation,
-          offset,
-          'checkGetterReturn',
-          new InstrumentationValueForType(calleeType),
-        );
-      }
     }
 
     if (isExpressionInvocation) {
@@ -3621,17 +3543,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         ..isTypeError = true
         ..isCovarianceCheck = true
         ..fileOffset = fileOffset;
-      if (instrumentation != null) {
-        int offset = arguments.fileOffset == -1
-            ? fileOffset
-            : arguments.fileOffset;
-        instrumentation!.record(
-          uriForInstrumentation,
-          offset,
-          'checkGetterReturn',
-          new InstrumentationValueForType(calleeType),
-        );
-      }
     }
 
     if (promotedCalleeType != null) {
@@ -4410,14 +4321,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       promotedType = flowAnalysis
           .variableRead(node, variable)
           ?.unwrapTypeView();
-    }
-    if (promotedType != null) {
-      instrumentation?.record(
-        uriForInstrumentation,
-        node.fileOffset,
-        'promotedType',
-        new InstrumentationValueForType(promotedType),
-      );
     }
     node.promotedType = promotedType;
     DartType resultType = promotedType ?? declaredOrInferredType;
@@ -5300,17 +5203,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       case ObjectAccessTargetKind.nullableInstanceMember:
       case ObjectAccessTargetKind.superMember:
         Member member = readTarget.classMember!;
-        if ((readTarget.isInstanceMember || readTarget.isObjectMember) &&
-            instrumentation != null &&
-            receiverType == const DynamicType()) {
-          instrumentation!.record(
-            uriForInstrumentation,
-            fileOffset,
-            'target',
-            new InstrumentationValueForMember(member),
-          );
-        }
-
         InstanceAccessKind kind;
         switch (readTarget.kind) {
           case ObjectAccessTargetKind.instanceMember:
@@ -5371,14 +5263,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           }
         }
         if (checkReturn) {
-          if (instrumentation != null) {
-            instrumentation!.record(
-              uriForInstrumentation,
-              fileOffset,
-              'checkReturn',
-              new InstrumentationValueForType(readType),
-            );
-          }
           read = new AsExpression(read, readType)
             ..isTypeError = true
             ..isCovarianceCheck = true

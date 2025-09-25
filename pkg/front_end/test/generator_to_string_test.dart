@@ -177,15 +177,13 @@ Future<void> main() async {
       isSynthesized: true,
     );
 
-    TypeInferenceEngineImpl engine = new TypeInferenceEngineImpl(null, null);
+    TypeInferenceEngineImpl engine = new TypeInferenceEngineImpl();
     engine.prepareTopLevel(coreTypes, hierarchy);
 
-    TypeInferrer typeInferrer = engine.createTopLevelTypeInferrer(
-      uri,
-      null,
-      libraryBuilder,
-      compilationUnit.compilationUnitScope,
-      null,
+    TypeInferrer typeInferrer = engine.createTypeInferrer(
+      thisType: null,
+      libraryBuilder: libraryBuilder,
+      extensionScope: compilationUnit.compilationUnitScope,
     );
 
     ExpressionGeneratorHelper helper = new BodyBuilderImpl(

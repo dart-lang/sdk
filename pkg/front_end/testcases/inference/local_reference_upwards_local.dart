@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 import 'dart:async';
 
 test(Future<int> futureInt) {
-  var /*@type=Future<int>*/ x = futureInt;
+  var x = futureInt;
 }

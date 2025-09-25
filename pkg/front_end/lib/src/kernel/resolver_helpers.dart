@@ -82,28 +82,15 @@ class _ResolverContext {
     required SourceLibraryBuilder libraryBuilder,
     required BodyBuilderContext bodyBuilderContext,
     required LookupScope scope,
-    required bool isTopLevel,
     required Uri fileUri,
     InferenceDataForTesting? inferenceDataForTesting,
   }) {
-    TypeInferrer typeInferrer;
-    if (isTopLevel) {
-      typeInferrer = typeInferenceEngine.createTopLevelTypeInferrer(
-        fileUri,
-        bodyBuilderContext.thisType,
-        libraryBuilder,
-        scope,
-        inferenceDataForTesting,
-      );
-    } else {
-      typeInferrer = typeInferenceEngine.createLocalTypeInferrer(
-        fileUri,
-        bodyBuilderContext.thisType,
-        libraryBuilder,
-        scope,
-        inferenceDataForTesting,
-      );
-    }
+    TypeInferrer typeInferrer = typeInferenceEngine.createTypeInferrer(
+      thisType: bodyBuilderContext.thisType,
+      libraryBuilder: libraryBuilder,
+      extensionScope: scope,
+      dataForTesting: inferenceDataForTesting,
+    );
     TypeEnvironment typeEnvironment = typeInferrer.typeSchemaEnvironment;
     AssignedVariables assignedVariables = typeInferrer.assignedVariables;
     return new _ResolverContext._(

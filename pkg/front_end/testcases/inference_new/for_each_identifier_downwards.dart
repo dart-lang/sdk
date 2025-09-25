@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 T f<T>() => throw '';
@@ -17,17 +16,15 @@ class C {
   void set aSetter(A value) {}
   void test() {
     A aLocal;
-    for (aLocal in /*@typeArgs=Iterable<A>*/ f()) {}
+    for (aLocal in f()) {}
 
-    for (/*@target=C.aField*/ /*@target=C.aField*/ aField
-        in /*@typeArgs=Iterable<A>*/ f()) {}
+    for (aField in f()) {}
 
-    for (/*@target=C.aSetter*/ /*@target=C.aSetter*/ aSetter
-        in /*@typeArgs=Iterable<A>*/ f()) {}
+    for (aSetter in f()) {}
 
-    for (aTopLevel in /*@typeArgs=Iterable<A>*/ f()) {}
+    for (aTopLevel in f()) {}
 
-    for (aTopLevelSetter in /*@typeArgs=Iterable<A>*/ f()) {}
+    for (aTopLevelSetter in f()) {}
   }
 }
 

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class Folder {}
@@ -17,16 +16,15 @@ class Foo<T> {
 
 test() {
   // List inside map
-  var /*@type=Map<String, List<Folder>>*/ map = <String, List<Folder>>{
-    'pkgA': /*@typeArgs=Folder*/ [getResource('/pkgA/lib/')],
-    'pkgB': /*@typeArgs=Folder*/ [getResource('/pkgB/lib/')]
+  var map = <String, List<Folder>>{
+    'pkgA': [getResource('/pkgA/lib/')],
+    'pkgB': [getResource('/pkgB/lib/')],
   };
   // Also try map inside list
-  var /*@type=List<Map<String, Folder>>*/ list = <Map<String, Folder>>[
-    /*@typeArgs=String, Folder*/ {'pkgA': getResource('/pkgA/lib/')},
-    /*@typeArgs=String, Folder*/ {'pkgB': getResource('/pkgB/lib/')},
+  var list = <Map<String, Folder>>[
+    {'pkgA': getResource('/pkgA/lib/')},
+    {'pkgB': getResource('/pkgB/lib/')},
   ];
   // Instance creation too
-  var /*@type=Foo<List<Folder>>*/ foo =
-      new Foo<List<Folder>>(/*@typeArgs=Folder*/ [getResource('/pkgA/lib/')]);
+  var foo = new Foo<List<Folder>>([getResource('/pkgA/lib/')]);
 }

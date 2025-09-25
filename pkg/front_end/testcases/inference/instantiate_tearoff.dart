@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 T f<T>(T x) => x;
@@ -15,7 +14,7 @@ class C {
 class D extends C {
   void test() {
     int Function(int) func;
-    func = super. /*@target=C.f*/ f;
+    func = super.f;
   }
 }
 
@@ -23,7 +22,7 @@ void test() {
   T h<T>(T x) => x;
   int Function(int) func;
   func = f;
-  func = new C(). /*@target=C.f*/ f;
+  func = new C().f;
   func = C.g;
   func = h;
 }

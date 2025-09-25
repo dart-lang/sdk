@@ -19,7 +19,6 @@ import 'api_prototype/front_end.dart' show CompilerResult;
 import 'api_prototype/kernel_generator.dart';
 import 'base/compiler_context.dart' show CompilerContext;
 import 'base/crash.dart' show withCrashReporting;
-import 'base/instrumentation.dart';
 import 'base/processed_options.dart' show ProcessedOptions;
 import 'base/uri_offset.dart';
 import 'base/uri_translator.dart' show UriTranslator;
@@ -69,7 +68,6 @@ Future<InternalCompilerResult> generateKernelInternal(
   bool includeHierarchyAndCoreTypes = false,
   bool retainDataForTesting = false,
   Benchmarker? benchmarker,
-  Instrumentation? instrumentation,
   List<Component>? additionalDillsForTesting,
   bool allowVerificationErrorForTesting = false,
 }) async {
@@ -127,7 +125,6 @@ Future<InternalCompilerResult> generateKernelInternal(
         uriTranslator,
       );
       sourceLoader = kernelTarget.loader;
-      sourceLoader!.instrumentation = instrumentation;
       kernelTarget.setEntryPoints(options.inputs);
       await kernelTarget.computeNeededPrecompilations();
       kernelTarget.benchmarker

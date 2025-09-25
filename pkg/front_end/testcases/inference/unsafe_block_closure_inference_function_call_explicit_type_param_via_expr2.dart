@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 List<T> f<T>(T g()) => <T>[g()];
-var v = (f)<int>(/*info:INFERRED_TYPE_CLOSURE*/ /*@returnType=int*/ () {
+var v = (f)<int>(/*info:INFERRED_TYPE_CLOSURE*/ () {
   return 1;
 });
 

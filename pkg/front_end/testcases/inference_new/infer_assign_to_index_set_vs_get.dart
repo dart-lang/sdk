@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class Index {}
@@ -32,31 +31,23 @@ class Test {
   void operator []=(Index i, A v) {}
 
   void test() {
-    Test t = /*@typeArgs=Test*/ f();
+    Test t = f();
 
-    t /*@target=Test.[]=*/ [/*@typeArgs=Index*/ f()] = /*@typeArgs=A*/ f();
+    t[f()] = f();
 
-    t /*@target=Test.[]*/ /*@target=Test.[]=*/ [
-        /*@typeArgs=Index*/ f()] /*@target=B.+*/ += /*@typeArgs=E*/ f();
+    t[f()] += f();
 
-    /*@target=B.-*/ --t /*@target=Test.[]*/ /*@target=Test.[]=*/ [
-        /*@typeArgs=Index*/ f()];
+    --t[f()];
 
-    t /*@target=Test.[]*/ /*@target=Test.[]=*/ [
-        /*@typeArgs=Index*/ f()] /*@target=B.-*/ --;
+    t[f()]--;
 
-    var /*@type=A*/ v1 =
-        t /*@target=Test.[]=*/ [/*@typeArgs=Index*/ f()] = /*@typeArgs=A*/ f();
+    var v1 = t[f()] = f();
 
-    var /*@type=D*/ v3 = t /*@target=Test.[]*/ /*@target=Test.[]=*/ [
-        /*@typeArgs=Index*/ f()] /*@target=B.+*/ += /*@typeArgs=E*/ f();
+    var v3 = t[f()] += f();
 
-    var /*@type=D*/ v4 =
-        /*@target=B.-*/ --t /*@target=Test.[]*/ /*@target=Test.[]=*/ [
-            /*@typeArgs=Index*/ f()];
+    var v4 = --t[f()];
 
-    var /*@type=B*/ v5 = t /*@target=Test.[]*/ /*@target=Test.[]=*/ [
-        /*@typeArgs=Index*/ f()] /*@target=B.-*/ --;
+    var v5 = t[f()]--;
   }
 }
 
@@ -65,13 +56,11 @@ class Test2 {
   void operator []=(Index i, A? v) {}
 
   void test() {
-    Test2 t = /*@typeArgs=Test2*/ f();
+    Test2 t = f();
 
-    t /*@target=Test2.[]*/ /*@target=Test2.[]=*/ [
-        /*@typeArgs=Index*/ f()] ??= /*@typeArgs=A?*/ f();
+    t[f()] ??= f();
 
-    var /*@type=A?*/ v2 = t /*@target=Test2.[]*/ /*@target=Test2.[]=*/ [
-        /*@typeArgs=Index*/ f()] ??= /*@typeArgs=A?*/ f();
+    var v2 = t[f()] ??= f();
   }
 }
 

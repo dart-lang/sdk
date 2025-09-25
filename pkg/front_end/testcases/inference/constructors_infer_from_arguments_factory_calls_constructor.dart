@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class A<T> {
-  A<T> f = new /*@typeArgs=A::T%*/ A();
+  A<T> f = new A();
   A();
-  factory A.factory() => new /*@typeArgs=A::factory::T%*/ A();
-  A<T> m() => new /*@typeArgs=A::T%*/ A();
+  factory A.factory() => new A();
+  A<T> m() => new A();
 }
 
 main() {}

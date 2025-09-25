@@ -238,12 +238,10 @@ class FactoryEncoding implements InferredTypeListener {
     Member? target = redirectingFactoryTarget.target;
     if (typeArguments != null && typeArguments.any((t) => t is UnknownType)) {
       TypeInferrer inferrer = libraryBuilder.loader.typeInferenceEngine
-          .createLocalTypeInferrer(
-            _fragment.fileUri,
-            declarationBuilder.thisType,
-            libraryBuilder,
-            _fragment.typeParameterScope,
-            null,
+          .createTypeInferrer(
+            thisType: declarationBuilder.thisType,
+            libraryBuilder: libraryBuilder,
+            extensionScope: _fragment.typeParameterScope,
           );
       MemberLookupResult? result = _redirectionTarget.target;
       MemberBuilder? targetBuilder;

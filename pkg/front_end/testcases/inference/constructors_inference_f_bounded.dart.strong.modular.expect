@@ -2,23 +2,23 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart:21:112: Error: Inferred type argument 'Cloneable<Object?>' doesn't conform to the bound 'Cloneable<T>' of the type variable 'T' on 'Pair'.
+// pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart:18:65: Error: Inferred type argument 'Cloneable<Object?>' doesn't conform to the bound 'Cloneable<T>' of the type variable 'T' on 'Pair'.
 //  - 'Cloneable' is from 'pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart'.
 //  - 'Object' is from 'dart:core'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
-//       new /*error:COULD_NOT_INFER,error:COULD_NOT_INFER*/ /*@typeArgs=Cloneable<Object?>, Cloneable<Object?>*/ Pair
-//                                                                                                                ^
-// pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart:10:12: Context: This is the type variable whose bound isn't conformed to.
+//   final x = new /*error:COULD_NOT_INFER,error:COULD_NOT_INFER*/ Pair._();
+//                                                                 ^
+// pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart:9:12: Context: This is the type variable whose bound isn't conformed to.
 // class Pair<T extends Cloneable<T>, U extends Cloneable<U>> {
 //            ^
 //
-// pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart:21:112: Error: Inferred type argument 'Cloneable<Object?>' doesn't conform to the bound 'Cloneable<U>' of the type variable 'U' on 'Pair'.
+// pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart:18:65: Error: Inferred type argument 'Cloneable<Object?>' doesn't conform to the bound 'Cloneable<U>' of the type variable 'U' on 'Pair'.
 //  - 'Cloneable' is from 'pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart'.
 //  - 'Object' is from 'dart:core'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
-//       new /*error:COULD_NOT_INFER,error:COULD_NOT_INFER*/ /*@typeArgs=Cloneable<Object?>, Cloneable<Object?>*/ Pair
-//                                                                                                                ^
-// pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart:10:36: Context: This is the type variable whose bound isn't conformed to.
+//   final x = new /*error:COULD_NOT_INFER,error:COULD_NOT_INFER*/ Pair._();
+//                                                                 ^
+// pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart:9:36: Context: This is the type variable whose bound isn't conformed to.
 // class Pair<T extends Cloneable<T>, U extends Cloneable<U>> {
 //                                    ^
 //

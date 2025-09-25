@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 T f<T>() => throw '';
@@ -13,11 +12,11 @@ class C<T> {
 
 void test(C<int> x) {
   switch (x) {
-    case const /*@typeArgs=int*/ /*@target=Object.==*/ C():
-      var /*@type=int*/ y = 0;
+    case const C():
+      var y = 0;
       break;
     default:
-      var /*@type=int*/ y = 0;
+      var y = 0;
       break;
   }
 }

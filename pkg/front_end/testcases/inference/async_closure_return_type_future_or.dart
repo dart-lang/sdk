@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 import 'dart:async';
 
 FutureOr<int> futureOrInt = new Future<int>.value(0);
-var f = /*@returnType=FutureOr<int>*/ () => futureOrInt;
-var g = /*@returnType=Future<int>*/ () async => futureOrInt;
+var f = () => futureOrInt;
+var g = () async => futureOrInt;
 
 main() {
   f;

@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 void test() {
-  for (num x = 0;; x /*@target=num.+*/ ++) {
-    if (x /*@target=num.>=*/ >= 10) break;
+  for (num x = 0; ; x++) {
+    if (x >= 10) break;
     if (x is int) {
-      var /*@type=int*/ y = /*@promotedType=int*/ x;
+      var y = x;
     }
   }
 }

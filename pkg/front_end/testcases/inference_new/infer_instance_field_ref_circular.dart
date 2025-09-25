@@ -2,18 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 // In the code below, there is a circularity between A.b and x.
 
 class A {
-  var b = /*@returnType=() -> invalid-type*/ () => x;
-  var c = /*@returnType=() -> invalid-type*/ () => x;
+  var b = () => x;
+  var c = () => x;
 }
 
 var a = new A();
-var x = /*@ returnType=invalid-type */ () => a. /*@target=A.b*/ b;
-var y = /*@returnType=() -> () -> invalid-type*/ () => a. /*@target=A.c*/ c;
+var x = () => a.b;
+var y = () => a.c;
 
 main() {}

@@ -2,22 +2,22 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:9:17: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
+// pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:8:17: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
 //  - 'Iterable' is from 'dart:core'.
 //   for (int x in s) {}
 //                 ^
 //
-// pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:10:23: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
+// pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:9:23: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
 //  - 'Stream' is from 'dart:async'.
 //   await for (int x in s) {}
 //                       ^
 //
-// pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:11:13: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
+// pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:10:13: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
 //  - 'Iterable' is from 'dart:core'.
 //   for (y in s) {}
 //             ^
 //
-// pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:12:19: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
+// pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:11:19: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
 //  - 'Stream' is from 'dart:async'.
 //   await for (y in s) {}
 //                   ^
@@ -28,7 +28,7 @@ import "dart:async" as asy;
 
 static method test(core::String s, core::int y) → dynamic async /* emittedValueType= dynamic */ {
   {
-    synthesized core::Iterator<Never> :sync-for-iterator = invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:9:17: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
+    synthesized core::Iterator<Never> :sync-for-iterator = invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:8:17: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
  - 'Iterable' is from 'dart:core'.
   for (int x in s) {}
                 ^" in s as{TypeError} core::Iterable<dynamic>.{core::Iterable::iterator}{core::Iterator<Never>};
@@ -40,7 +40,7 @@ static method test(core::String s, core::int y) → dynamic async /* emittedValu
     }
   }
   {
-    synthesized Never :stream = invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:10:23: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
+    synthesized Never :stream = invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:9:23: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
  - 'Stream' is from 'dart:async'.
   await for (int x in s) {}
                       ^" in s as{TypeError} asy::Stream<dynamic>;
@@ -57,7 +57,7 @@ static method test(core::String s, core::int y) → dynamic async /* emittedValu
         await :for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>};
   }
   {
-    synthesized core::Iterator<Never> :sync-for-iterator = invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:11:13: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
+    synthesized core::Iterator<Never> :sync-for-iterator = invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:10:13: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
  - 'Iterable' is from 'dart:core'.
   for (y in s) {}
             ^" in s as{TypeError} core::Iterable<dynamic>.{core::Iterable::iterator}{core::Iterator<Never>};
@@ -69,7 +69,7 @@ static method test(core::String s, core::int y) → dynamic async /* emittedValu
     }
   }
   {
-    synthesized Never :stream = invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:12:19: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
+    synthesized Never :stream = invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:11:19: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
  - 'Stream' is from 'dart:async'.
   await for (y in s) {}
                   ^" in s as{TypeError} asy::Stream<dynamic>;

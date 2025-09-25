@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 T f<T>() => throw '';
@@ -12,7 +11,7 @@ class B<T> {
 }
 
 class C<U> extends B<List<U>> {
-  C() : super(/*@typeArgs=List<C::U%>*/ f());
+  C() : super(f());
 }
 
 main() {}

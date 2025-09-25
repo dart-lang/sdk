@@ -2,21 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class Foo {
   const Foo(List<String> l);
 }
 
-class C<@Foo(/*@typeArgs=String*/ const []) T> {}
+class C<@Foo(const []) T> {}
 
-typedef void F<@Foo(/*@typeArgs=String*/ const []) T>();
+typedef void F<@Foo(const []) T>();
 
-void f<@Foo(/*@typeArgs=String*/ const []) T>() {}
+void f<@Foo(const []) T>() {}
 
 class D {
-  void m<@Foo(/*@typeArgs=String*/ const []) T>() {}
+  void m<@Foo(const []) T>() {}
 }
 
 main() {}

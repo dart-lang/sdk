@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 typedef Iterable<num> F(int x);
@@ -11,7 +10,5 @@ typedef List<int> G(double x);
 T generic<T>(a(T _), b(T _)) => throw '';
 
 test() {
-  var /*@type=(num) -> List<int>*/ v = /*@typeArgs=(num) -> List<int>*/ generic(
-      /*@ returnType=Null */ (F f) => null,
-      /*@ returnType=Null */ (G g) => null);
+  var v = generic((F f) => null, (G g) => null);
 }

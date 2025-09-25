@@ -2,13 +2,13 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/future_then_explicit_future.dart:14:94: Error: A value of type 'List<dynamic>' can't be returned from a function with return type 'FutureOr<Future<List<int>>>'.
+// pkg/front_end/testcases/inference/future_then_explicit_future.dart:12:12: Error: A value of type 'List<dynamic>' can't be returned from a function with return type 'FutureOr<Future<List<int>>>'.
 //  - 'List' is from 'dart:core'.
 //  - 'Future' is from 'dart:async'.
-//       /*@returnType=FutureOr<Future<List<int>>>*/ (/*@type=int*/ x) => /*@typeArgs=dynamic*/ []);
-//                                                                                              ^
+//     (x) => [],
+//            ^
 //
-// pkg/front_end/testcases/inference/future_then_explicit_future.dart:15:25: Error: A value of type 'Future<Future<List<int>>>' can't be assigned to a variable of type 'Future<List<int>>'.
+// pkg/front_end/testcases/inference/future_then_explicit_future.dart:14:25: Error: A value of type 'Future<Future<List<int>>>' can't be assigned to a variable of type 'Future<List<int>>'.
 //  - 'Future' is from 'dart:async'.
 //  - 'List' is from 'dart:core'.
 //   Future<List<int>> y = x;
@@ -21,12 +21,12 @@ import "dart:core" as core;
 import "dart:async";
 
 static method m1(asy::Future<core::int> f) → dynamic {
-  asy::Future<asy::Future<core::List<core::int>>> x = f.{asy::Future::then}<asy::Future<core::List<core::int>>>((core::int x) → FutureOr<asy::Future<core::List<core::int>>> => invalid-expression "pkg/front_end/testcases/inference/future_then_explicit_future.dart:14:94: Error: A value of type 'List<dynamic>' can't be returned from a function with return type 'FutureOr<Future<List<int>>>'.
+  asy::Future<asy::Future<core::List<core::int>>> x = f.{asy::Future::then}<asy::Future<core::List<core::int>>>((core::int x) → FutureOr<asy::Future<core::List<core::int>>> => invalid-expression "pkg/front_end/testcases/inference/future_then_explicit_future.dart:12:12: Error: A value of type 'List<dynamic>' can't be returned from a function with return type 'FutureOr<Future<List<int>>>'.
  - 'List' is from 'dart:core'.
  - 'Future' is from 'dart:async'.
-      /*@returnType=FutureOr<Future<List<int>>>*/ (/*@type=int*/ x) => /*@typeArgs=dynamic*/ []);
-                                                                                             ^" in <dynamic>[] as{TypeError} FutureOr<asy::Future<core::List<core::int>>>){((core::int) → FutureOr<asy::Future<core::List<core::int>>>, {onError: core::Function?}) → asy::Future<asy::Future<core::List<core::int>>>};
-  asy::Future<core::List<core::int>> y = invalid-expression "pkg/front_end/testcases/inference/future_then_explicit_future.dart:15:25: Error: A value of type 'Future<Future<List<int>>>' can't be assigned to a variable of type 'Future<List<int>>'.
+    (x) => [],
+           ^" in <dynamic>[] as{TypeError} FutureOr<asy::Future<core::List<core::int>>>){((core::int) → FutureOr<asy::Future<core::List<core::int>>>, {onError: core::Function?}) → asy::Future<asy::Future<core::List<core::int>>>};
+  asy::Future<core::List<core::int>> y = invalid-expression "pkg/front_end/testcases/inference/future_then_explicit_future.dart:14:25: Error: A value of type 'Future<Future<List<int>>>' can't be assigned to a variable of type 'Future<List<int>>'.
  - 'Future' is from 'dart:async'.
  - 'List' is from 'dart:core'.
   Future<List<int>> y = x;

@@ -2,9 +2,9 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/generic_methods_correctly_recognize_generic_upper_bound.dart:25:73: Error: The argument type 'int' can't be assigned to the parameter type 'String'.
-//   new Foo<String>(). /*@typeArgs=String*/ /*@target=Foo.method*/ method(42);
-//                                                                         ^
+// pkg/front_end/testcases/inference/generic_methods_correctly_recognize_generic_upper_bound.dart:24:28: Error: The argument type 'int' can't be assigned to the parameter type 'String'.
+//   new Foo<String>().method(42);
+//                            ^
 //
 import self as self;
 import "dart:core" as core;
@@ -17,7 +17,7 @@ class Foo<T extends core::Pattern> extends core::Object {
     return u;
 }
 static method test() → dynamic {
-  new self::Foo::•<core::String>().{self::Foo::method}<core::String>(invalid-expression "pkg/front_end/testcases/inference/generic_methods_correctly_recognize_generic_upper_bound.dart:25:73: Error: The argument type 'int' can't be assigned to the parameter type 'String'.
-  new Foo<String>(). /*@typeArgs=String*/ /*@target=Foo.method*/ method(42);
-                                                                        ^" in 42 as{TypeError} core::String){(core::String) → core::String};
+  new self::Foo::•<core::String>().{self::Foo::method}<core::String>(invalid-expression "pkg/front_end/testcases/inference/generic_methods_correctly_recognize_generic_upper_bound.dart:24:28: Error: The argument type 'int' can't be assigned to the parameter type 'String'.
+  new Foo<String>().method(42);
+                           ^" in 42 as{TypeError} core::String){(core::String) → core::String};
 }

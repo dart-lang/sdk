@@ -16,7 +16,6 @@ import 'package:kernel/src/norm.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
-import '../base/instrumentation.dart' show Instrumentation;
 import '../base/scope.dart';
 import '../kernel/benchmarker.dart' show Benchmarker;
 import '../kernel/exhaustiveness.dart';
@@ -176,8 +175,6 @@ abstract class TypeInferenceEngine {
   // ensure that these are called for all member accesses.
   final Map<Member, TypeDependency> typeDependencies = {};
 
-  final Instrumentation? instrumentation;
-
   final Map<DartType, DartType> typeCacheNonNullable =
       new Map<DartType, DartType>.identity();
   final Map<DartType, DartType> typeCacheNullable =
@@ -185,17 +182,14 @@ abstract class TypeInferenceEngine {
   final Map<DartType, DartType> typeCacheLegacy =
       new Map<DartType, DartType>.identity();
 
-  TypeInferenceEngine(this.instrumentation);
-
   /// Creates a type inferrer for use inside of a method body declared in a file
   /// with the given [uri].
-  TypeInferrer createLocalTypeInferrer(
-    Uri uri,
-    InterfaceType? thisType,
-    SourceLibraryBuilder libraryBuilder,
-    LookupScope extensionScope,
+  TypeInferrer createTypeInferrer({
+    required InterfaceType? thisType,
+    required SourceLibraryBuilder libraryBuilder,
+    required LookupScope extensionScope,
     InferenceDataForTesting? dataForTesting,
-  );
+  });
 
   /// Performs the third phase of top level inference, which is to visit all
   /// constructors still needing inference and infer the types of their
@@ -366,17 +360,15 @@ abstract class TypeInferenceEngine {
 class TypeInferenceEngineImpl extends TypeInferenceEngine {
   final Benchmarker? benchmarker;
 
-  TypeInferenceEngineImpl(Instrumentation? instrumentation, this.benchmarker)
-    : super(instrumentation);
+  TypeInferenceEngineImpl({this.benchmarker});
 
   @override
-  TypeInferrer createLocalTypeInferrer(
-    Uri fileUri,
-    InterfaceType? thisType,
-    SourceLibraryBuilder libraryBuilder,
-    LookupScope extensionScope,
+  TypeInferrer createTypeInferrer({
+    required InterfaceType? thisType,
+    required SourceLibraryBuilder libraryBuilder,
+    required LookupScope extensionScope,
     InferenceDataForTesting? dataForTesting,
-  ) {
+  }) {
     AssignedVariables<TreeNode, VariableDeclaration> assignedVariables;
     if (dataForTesting != null) {
       // Coverage-ignore-block(suite): Not run.
@@ -389,8 +381,6 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
     if (benchmarker == null) {
       return new TypeInferrerImpl(
         this,
-        fileUri,
-        false,
         thisType,
         libraryBuilder,
         extensionScope,
@@ -401,52 +391,6 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
     // Coverage-ignore(suite): Not run.
     return new TypeInferrerImplBenchmarked(
       this,
-      fileUri,
-      false,
-      thisType,
-      libraryBuilder,
-      extensionScope,
-      assignedVariables,
-      dataForTesting,
-      benchmarker!,
-    );
-  }
-
-  /// Creates a [TypeInferrer] object which is ready to perform type inference
-  /// on the given [field].
-  TypeInferrer createTopLevelTypeInferrer(
-    Uri uri,
-    InterfaceType? thisType,
-    SourceLibraryBuilder libraryBuilder,
-    LookupScope extensionScope,
-    InferenceDataForTesting? dataForTesting,
-  ) {
-    AssignedVariables<TreeNode, VariableDeclaration> assignedVariables;
-    if (dataForTesting != null) {
-      // Coverage-ignore-block(suite): Not run.
-      assignedVariables = dataForTesting.flowAnalysisResult.assignedVariables =
-          new AssignedVariablesForTesting<TreeNode, VariableDeclaration>();
-    } else {
-      assignedVariables =
-          new AssignedVariables<TreeNode, VariableDeclaration>();
-    }
-    if (benchmarker == null) {
-      return new TypeInferrerImpl(
-        this,
-        uri,
-        true,
-        thisType,
-        libraryBuilder,
-        extensionScope,
-        assignedVariables,
-        dataForTesting,
-      );
-    }
-    // Coverage-ignore(suite): Not run.
-    return new TypeInferrerImplBenchmarked(
-      this,
-      uri,
-      true,
       thisType,
       libraryBuilder,
       extensionScope,

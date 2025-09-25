@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 import 'dart:math' as math;
 
 class Trace {
-  List<Frame> frames = /*@typeArgs=Frame*/ [];
+  List<Frame> frames = [];
 }
 
 class Frame {
@@ -16,15 +15,12 @@ class Frame {
 }
 
 main() {
-  List<Trace> traces = /*@typeArgs=Trace*/ [];
-  var /*@type=int*/ longest =
-      traces. /*@typeArgs=int*/ /*@target=Iterable.map*/ map(
-          /*@returnType=int*/ (/*@type=Trace*/ trace) {
-    return trace. /*@target=Trace.frames*/ frames
-        . /*@typeArgs=int*/ /*@target=Iterable.map*/ map(
-            /*@returnType=int*/ (/*@type=Frame*/ frame) => frame
-                . /*@target=Frame.location*/ location
-                . /*@target=String.length*/ length)
-        . /*@typeArgs=int*/ /*@target=Iterable.fold*/ fold(0, math.max);
-  }). /*@typeArgs=int*/ /*@target=Iterable.fold*/ fold(0, math.max);
+  List<Trace> traces = [];
+  var longest = traces
+      .map((trace) {
+        return trace.frames
+            .map((frame) => frame.location.length)
+            .fold(0, math.max);
+      })
+      .fold(0, math.max);
 }

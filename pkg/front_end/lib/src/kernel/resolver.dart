@@ -86,7 +86,6 @@ class Resolver {
       libraryBuilder: libraryBuilder,
       bodyBuilderContext: bodyBuilderContext,
       scope: scope,
-      isTopLevel: false,
       fileUri: annotationsFileUri,
     );
     // TODO(johnniwinther): Should this be `ConstantContext.required`?
@@ -154,7 +153,6 @@ class Resolver {
       libraryBuilder: libraryBuilder,
       bodyBuilderContext: bodyBuilderContext,
       scope: scope,
-      isTopLevel: false,
       fileUri: fileUri,
     );
     CompilerContext compilerContext = libraryBuilder.loader.target.context;
@@ -246,7 +244,6 @@ class Resolver {
       libraryBuilder: libraryBuilder,
       bodyBuilderContext: bodyBuilderContext,
       scope: scope,
-      isTopLevel: true,
       fileUri: fileUri,
     );
     ConstantContext constantContext = isConst
@@ -285,7 +282,6 @@ class Resolver {
       libraryBuilder: libraryBuilder,
       bodyBuilderContext: bodyBuilderContext,
       scope: scope,
-      isTopLevel: false,
       fileUri: fileUri,
     );
     ConstantContext constantContext = isConst
@@ -329,7 +325,6 @@ class Resolver {
       libraryBuilder: libraryBuilder,
       bodyBuilderContext: bodyBuilderContext,
       scope: scope,
-      isTopLevel: false,
       fileUri: fileUri,
       inferenceDataForTesting: inferenceDataForTesting,
     );
@@ -386,7 +381,6 @@ class Resolver {
       libraryBuilder: libraryBuilder,
       bodyBuilderContext: bodyBuilderContext,
       scope: formalParameterScope,
-      isTopLevel: false,
       fileUri: fileUri,
       inferenceDataForTesting:
           functionBodyBuildingContext.inferenceDataForTesting,
@@ -452,7 +446,6 @@ class Resolver {
       libraryBuilder: libraryBuilder,
       bodyBuilderContext: bodyBuilderContext,
       scope: typeParameterScope,
-      isTopLevel: false,
       fileUri: fileUri,
     );
 
@@ -520,7 +513,6 @@ class Resolver {
       libraryBuilder: libraryBuilder,
       bodyBuilderContext: bodyBuilderContext,
       scope: typeParameterScope,
-      isTopLevel: false,
       fileUri: fileUri,
     );
     ConstantContext constantContext = isConst
@@ -550,7 +542,6 @@ class Resolver {
       libraryBuilder: libraryBuilder,
       bodyBuilderContext: bodyBuilderContext,
       scope: scope,
-      isTopLevel: false,
       fileUri: fileUri,
     );
     ConstantContext constantContext = bodyBuilderContext.constantContext;
@@ -596,7 +587,6 @@ class Resolver {
       libraryBuilder: libraryBuilder,
       bodyBuilderContext: bodyBuilderContext,
       scope: scope,
-      isTopLevel: false,
       fileUri: fileUri,
     );
     ConstantContext constantContext = ConstantContext.required;
@@ -642,7 +632,6 @@ class Resolver {
       libraryBuilder: libraryBuilder,
       bodyBuilderContext: bodyBuilderContext,
       scope: typeParameterScope,
-      isTopLevel: false,
       fileUri: fileUri,
       inferenceDataForTesting:
           functionBodyBuildingContext.inferenceDataForTesting,
@@ -714,7 +703,6 @@ class Resolver {
       libraryBuilder: libraryBuilder,
       bodyBuilderContext: bodyBuilderContext,
       scope: typeParameterScope,
-      isTopLevel: false,
       fileUri: fileUri,
       inferenceDataForTesting:
           functionBodyBuildingContext.inferenceDataForTesting,
@@ -754,7 +742,6 @@ class Resolver {
       libraryBuilder: libraryBuilder,
       bodyBuilderContext: bodyBuilderContext,
       scope: scope,
-      isTopLevel: false,
       fileUri: fileUri,
     );
 

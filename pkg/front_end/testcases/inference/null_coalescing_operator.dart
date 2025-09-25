@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 test(List<int>? x) {
-  var /*@type=List<int>*/ y = x ?? /*@typeArgs=int*/ [];
+  var y = x ?? [];
   List<int> z = y;
 }

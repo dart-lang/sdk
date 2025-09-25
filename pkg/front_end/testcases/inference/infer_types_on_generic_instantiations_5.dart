@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 abstract class I<E> {
@@ -27,9 +26,8 @@ class B<E> extends A<E> implements M {
 
 foo() {
   // Error:INVALID_ASSIGNMENT
-  int y = new /*@typeArgs=dynamic*/ B(). /*@target=B.m*/ m(throw '', throw '');
-  String z =
-      new /*@typeArgs=dynamic*/ B(). /*@target=B.m*/ m(throw '', throw '');
+  int y = new B().m(throw '', throw '');
+  String z = new B().m(throw '', throw '');
 }
 
 main() {}

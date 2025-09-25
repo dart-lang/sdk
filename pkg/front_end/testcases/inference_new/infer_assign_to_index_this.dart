@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class Index {}
@@ -25,41 +24,29 @@ class Test {
   void operator []=(Index i, B v) {}
 
   void test() {
-    this /*@target=Test.[]=*/ [/*@typeArgs=Index*/ f()] = /*@typeArgs=B*/ f();
+    this[f()] = f();
 
-    this /*@target=Test.[]*/ /*@target=Test.[]=*/ [
-        /*@typeArgs=Index*/ f()] /*@target=B.+*/ += /*@typeArgs=C*/ f();
+    this[f()] += f();
 
-    this /*@target=Test.[]*/ /*@target=Test.[]=*/ [
-        /*@typeArgs=Index*/ f()] /*@target=B.**/ *= /*@typeArgs=B*/ f();
+    this[f()] *= f();
 
-    this /*@target=Test.[]*/ /*@target=Test.[]=*/ [
-        /*@typeArgs=Index*/ f()] /*@target=B.&*/ &= /*@typeArgs=A*/ f();
+    this[f()] &= f();
 
-    /*@target=B.-*/ --this /*@target=Test.[]*/ /*@target=Test.[]=*/
-        [/*@typeArgs=Index*/ f()];
+    --this[f()];
 
-    this /*@target=Test.[]*/ /*@target=Test.[]=*/
-        [/*@typeArgs=Index*/ f()] /*@target=B.-*/ --;
+    this[f()]--;
 
-    var /*@type=B*/ v1 = this /*@target=Test.[]=*/ [
-        /*@typeArgs=Index*/ f()] = /*@typeArgs=B*/ f();
+    var v1 = this[f()] = f();
 
-    var /*@type=B*/ v3 = this /*@target=Test.[]*/ /*@target=Test.[]=*/ [
-        /*@typeArgs=Index*/ f()] /*@target=B.+*/ += /*@typeArgs=C*/ f();
+    var v3 = this[f()] += f();
 
-    var /*@type=B*/ v4 = this /*@target=Test.[]*/ /*@target=Test.[]=*/ [
-        /*@typeArgs=Index*/ f()] /*@target=B.**/ *= /*@typeArgs=B*/ f();
+    var v4 = this[f()] *= f();
 
-    var /*@type=C*/ v5 = this /*@target=Test.[]*/ /*@target=Test.[]=*/ [
-        /*@typeArgs=Index*/ f()] /*@target=B.&*/ &= /*@typeArgs=A*/ f();
+    var v5 = this[f()] &= f();
 
-    var /*@type=B*/ v6 =
-        /*@target=B.-*/ --this /*@target=Test.[]*/ /*@target=Test.[]=*/
-            [/*@typeArgs=Index*/ f()];
+    var v6 = --this[f()];
 
-    var /*@type=B*/ v7 = this /*@target=Test.[]*/ /*@target=Test.[]=*/
-        [/*@typeArgs=Index*/ f()] /*@target=B.-*/ --;
+    var v7 = this[f()]--;
   }
 }
 
@@ -68,11 +55,9 @@ class Test2 {
   void operator []=(Index i, B? v) {}
 
   void test() {
-    this /*@target=Test2.[]*/ /*@target=Test2.[]=*/ [
-        /*@typeArgs=Index*/ f()] ??= /*@typeArgs=B?*/ f();
+    this[f()] ??= f();
 
-    var /*@type=B?*/ v2 = this /*@target=Test2.[]*/ /*@target=Test2.[]=*/ [
-        /*@typeArgs=Index*/ f()] ??= /*@typeArgs=B?*/ f();
+    var v2 = this[f()] ??= f();
   }
 }
 

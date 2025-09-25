@@ -17,9 +17,9 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_in_library_cycle.dart:28:29: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-//       . /*@target=A.value*/ value;
-//                             ^
+// pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_in_library_cycle.dart:27:8: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+//       .value;
+//        ^
 //
 import self as test;
 import "dart:core" as core;
@@ -49,9 +49,9 @@ class B<E extends core::Object? = dynamic> extends test::A<test::B::E%> implemen
     return throw "";
 }
 static method foo() → dynamic {
-  core::int y = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_in_library_cycle.dart:28:29: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-      . /*@target=A.value*/ value;
-                            ^" in new test::B::•<core::String>().{test::B::m}(throw "", throw ""){(dynamic, (dynamic, core::int) → dynamic) → test::A<core::String>}.{test::A::value}{core::String} as{TypeError} core::int;
+  core::int y = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_generic_instantiations_in_library_cycle.dart:27:8: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+      .value;
+       ^" in new test::B::•<core::String>().{test::B::m}(throw "", throw ""){(dynamic, (dynamic, core::int) → dynamic) → test::A<core::String>}.{test::A::value}{core::String} as{TypeError} core::int;
   core::String z = new test::B::•<core::String>().{test::B::m}(throw "", throw ""){(dynamic, (dynamic, core::int) → dynamic) → test::A<core::String>}.{test::A::value}{core::String};
 }
 static method main() → dynamic {}

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class A {}
@@ -37,6 +36,6 @@ G bar() => new H();
 // bar().foo resolves to G::foo, which is inherited from E::foo, so its return
 // type is B.  Note that the target is annotated as G::foo, since that is the
 // forwarding stub.
-var x = bar(). /*@target=G.foo*/ foo();
+var x = bar().foo();
 
 main() {}
