@@ -138,18 +138,25 @@ class SharedInteropTransformer extends Transformer {
     _invocation = node;
     TreeNode replacement = invocation;
     final target = invocation.target;
-    if (target == _createDartExport || target == _createJSInteropWrapper) {
+    if (target == _createDartExport) {
       final typeArguments = invocation.arguments.types;
       assert(typeArguments.length == 1);
       if (_verifyExportable(typeArguments[0])) {
         final interface = typeArguments[0] as InterfaceType;
-        if (target == _createJSInteropWrapper) {
-          replacement = _createExport(
-            interface,
-            ExtensionType(_jsObject, Nullability.nonNullable),
-          );
-        }
         replacement = _createExport(interface);
+      }
+    } else if (target == _createJSInteropWrapper) {
+      final typeArguments = invocation.arguments.types;
+      assert(typeArguments.length == 1);
+      if (_verifyExportable(typeArguments[0])) {
+        final interface = typeArguments[0] as InterfaceType;
+        final arguments = invocation.arguments.positional;
+        assert(arguments.length == 1 || arguments.length == 2);
+        replacement = _createExport(
+          interface,
+          ExtensionType(_jsObject, Nullability.nonNullable),
+          arguments.length == 2 ? arguments[1] : null,
+        );
       }
     } else if (target == _createStaticInteropMock) {
       final typeArguments = invocation.arguments.types;

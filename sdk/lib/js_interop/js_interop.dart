@@ -1572,9 +1572,15 @@ external JSObject get globalContext;
 /// instance member names or their renames, to callbacks that call the
 /// corresponding Dart instance members.
 ///
+/// If [proto] is provided, it will be used as the prototype for the created
+/// object.
+///
 /// See https://dart.dev/interop/js-interop/mock for more details on how to
 /// declare classes that can be used in this method.
-external JSObject createJSInteropWrapper<T extends Object>(T dartObject);
+external JSObject createJSInteropWrapper<T extends Object>(
+  T dartObject, [
+  JSObject? proto = null,
+]);
 
 // TODO(srujzs): Expose this method when we handle conformance checking for
 // interop extension types. We don't expose this method today due to the bound

@@ -154,11 +154,15 @@ instead.
 - The dart2wasm implementation of `dartify` now converts JavaScript `Promise`s
   to Dart `Future`s rather than `JSValue`s, consistent with dart2js and DDC. See
   [#54573][] for more details.
+- `createJSInteropWrapper` now additionally takes an optional parameter which
+  specifies the JavaScript prototype of the created object, similar to
+  `createStaticInteropMock` in `dart:js_util`. See [#61567][] for more details.
 
 [#59830]: https://github.com/dart-lang/sdk/issues/59830
 [#55138]: https://github.com/dart-lang/sdk/issues/55138
 [#61543]: https://github.com/dart-lang/sdk/issues/61543
 [#54573]: https://github.com/dart-lang/sdk/issues/54573
+[#61567]: https://github.com/dart-lang/sdk/issues/61567
 
 ## 3.9.0
 
