@@ -319,6 +319,31 @@ void f() {
 ''');
   }
 
+  Future<void> test_flutter_closure_children() async {
+    await resolveTestCode('''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends Widget {
+  MyWidget({required List<Widget> children, required void Function()? fn});
+}
+
+build() {
+  return new MyWidget();
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/widgets.dart';
+
+class MyWidget extends Widget {
+  MyWidget({required List<Widget> children, required void Function()? fn});
+}
+
+build() {
+  return new MyWidget(fn: () {  }, children: [],);
+}
+''', errorFilter: (diagnostic) => diagnostic.message.contains("'children'"));
+  }
+
   Future<void> test_functionType_noParameterName() async {
     await resolveTestCode('''
 void foo({required void Function(int) f}) {}
