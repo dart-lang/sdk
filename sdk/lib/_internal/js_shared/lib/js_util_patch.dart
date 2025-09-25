@@ -13,6 +13,7 @@ import 'dart:_js_helper'
         createObjectLiteral;
 import 'dart:collection' show HashMap;
 import 'dart:async' show Completer;
+import 'dart:js_interop' show NullRejectionException;
 import 'dart:typed_data';
 
 bool _noJsifyRequired(Object? o) =>

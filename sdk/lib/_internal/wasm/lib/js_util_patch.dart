@@ -12,7 +12,8 @@ import "dart:js_interop"
         JSAnyUtilityExtension,
         FunctionToJSExportedDartFunction,
         dartify,
-        JSAny;
+        JSAny,
+        NullRejectionException;
 import "dart:_wasm";
 import "dart:async" show Completer, FutureOr;
 import "dart:collection";

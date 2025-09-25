@@ -14,7 +14,6 @@ import 'dart:_wasm';
 import 'dart:async';
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
-import 'dart:js_util' as js_util;
 import 'dart:typed_data';
 
 part 'regexp_helper.dart';
@@ -33,7 +32,6 @@ class JSValue {
 
   JSValue(this._ref);
 
-  // This is currently only used in js_util.
   // TODO(joshualitt): Remove [box] and [unbox] once `JSNull` is boxed and users
   // have been migrated over to the helpers in `dart:js_interop`.
   static JSValue? box(WasmExternRef? ref) =>
@@ -303,7 +301,7 @@ Future<T> externPromiseToFuture<T>(WasmExternRef? jsPromise) {
     // `e` is null when the original error is either JS `null` or JS
     // `undefined`.
     if (e == null) {
-      completer.completeError(js_util.NullRejectionException(isUndefined));
+      completer.completeError(NullRejectionException(isUndefined));
       return;
     }
     completer.completeError(e);

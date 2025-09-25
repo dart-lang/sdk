@@ -43,7 +43,6 @@ import 'dart:typed_data';
 // To support an easier transition, we allow users to use `@staticInterop`
 // classes - with or without the `@anonymous` annotation.
 export 'dart:_js_annotations' show staticInterop, anonymous, JSExport;
-export 'dart:js_util' show NullRejectionException;
 
 /// An annotation on a JavaScript interop declaration.
 ///
@@ -207,6 +206,24 @@ extension type JSArray<T extends JSAny?>._(JSArrayRepType _jsArray)
 extension type JSPromise<T extends JSAny?>._(JSPromiseRepType _jsPromise)
     implements JSObject {
   external JSPromise(JSFunction executor);
+}
+
+/// Exception for when a [JSPromise] that is converted via
+/// [JSPromiseToFuture.toDart] is rejected with a `null` or `undefined` value.
+///
+/// This is public to allow users to catch when the promise is rejected with
+/// `null` or `undefined` versus some other value.
+class NullRejectionException implements Exception {
+  // Indicates whether the value is `undefined` or `null`.
+  final bool isUndefined;
+
+  NullRejectionException(this.isUndefined);
+
+  @override
+  String toString() {
+    var value = this.isUndefined ? 'undefined' : 'null';
+    return 'Promise was rejected with a value of `$value`.';
+  }
 }
 
 /// A Dart object that is wrapped with a JavaScript object so that it can be
@@ -788,6 +805,9 @@ extension ObjectToExternalDartReference<T extends Object?> on T {
 extension JSPromiseToFuture<T extends JSAny?> on JSPromise<T> {
   /// A [Future] that either completes with the result of the resolved
   /// [JSPromise] or propagates the error that the [JSPromise] rejected with.
+  ///
+  /// If the [JSPromise] is rejected with a `null` or `undefined` value, a
+  /// [NullRejectionException] will be thrown.
   external Future<T> get toDart;
 }
 
