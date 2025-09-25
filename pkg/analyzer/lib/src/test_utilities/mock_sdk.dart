@@ -51,7 +51,7 @@ abstract class Future<T> {
 
 abstract class FutureOr<T> {}
 
-abstract class Completer<T> {
+abstract interface class Completer<T> {
   factory Completer() {
     throw 0;
   }
@@ -67,7 +67,7 @@ abstract class Completer<T> {
   void completeError(Object error, [StackTrace? stackTrace]);
 }
 
-abstract class Timer {
+abstract interface class Timer {
   factory Timer(Duration duration, void Function() callback) {
     throw 0;
   }
@@ -98,9 +98,9 @@ abstract mixin class Stream<T> {
   Stream<T> handleError(Function onError, {bool test(error)?});
 }
 
-abstract class StreamIterator<T> {}
+abstract interface class StreamIterator<T> {}
 
-abstract class StreamSubscription<T> {
+abstract interface class StreamSubscription<T> {
   bool get isPaused;
 
   Future<E> asFuture<E>([E? futureValue]);
@@ -112,7 +112,9 @@ abstract class StreamSubscription<T> {
   void resume();
 }
 
-abstract class StreamTransformer<S, T> {}
+abstract interface class StreamTransformer<S, T> {}
+
+abstract class StreamTransformerBase<S, T> implements StreamTransformer<S, T> {}
 '''),
 ]);
 
@@ -128,7 +130,7 @@ final MockSdkLibrary _LIB_COLLECTION = MockSdkLibrary('collection', [
   MockSdkLibraryUnit('collection/collection.dart', '''
 library dart.collection;
 
-abstract class HashMap<K, V> implements Map<K, V> {
+abstract final class HashMap<K, V> implements Map<K, V> {
   external factory HashMap(
       {bool Function(K, K)? equals,
       int Function(K)? hashCode,
@@ -161,7 +163,7 @@ abstract class HashMap<K, V> implements Map<K, V> {
 
 abstract mixin class IterableMixin<E> implements Iterable<E> { }
 
-abstract class LinkedHashMap<K, V> implements Map<K, V> {
+abstract final class LinkedHashMap<K, V> implements Map<K, V> {
   external factory LinkedHashMap(
       {bool Function(K, K)? equals,
       int Function(K)? hashCode,
@@ -192,7 +194,7 @@ abstract class LinkedHashMap<K, V> implements Map<K, V> {
   }
 }
 
-abstract class LinkedHashSet<E> implements Set<E> {
+abstract final class LinkedHashSet<E> implements Set<E> {
   external factory LinkedHashSet(
       {bool Function(E, E)? equals,
       int Function(E)? hashCode,
@@ -217,7 +219,7 @@ abstract mixin class MapMixin<K, V> implements Map<K, V> { }
 
 abstract mixin class SetMixin<E> implements Set<E> { }
 
-abstract class Queue<E> implements Iterable<E> {
+abstract interface class Queue<E> implements Iterable<E> {
   bool remove(Object? value);
 }
 '''),
@@ -229,15 +231,15 @@ library dart.convert;
 
 import 'dart:async';
 
-abstract class Converter<S, T> implements StreamTransformer {}
+abstract mixin class Converter<S, T> implements StreamTransformerBase<S, T> {}
 
 abstract class Encoding {}
 
-class JsonDecoder extends Converter<String, Object> {}
+final class JsonDecoder extends Converter<String, Object?> {}
 
 const JsonCodec json = JsonCodec();
 
-class JsonCodec {
+final class JsonCodec {
   const JsonCodec();
   String encode(Object? value, {Object? toEncodable(dynamic object)?}) => '';
 }
@@ -293,7 +295,7 @@ final class bool {
   bool operator ^(bool other) => throw 0;
 }
 
-abstract class Comparable<T> {
+abstract interface class Comparable<T> {
   int compareTo(T other);
   static int compare(Comparable a, Comparable b) => a.compareTo(b);
 }
@@ -378,7 +380,7 @@ class Duration implements Comparable<Duration> {
 }
 
 @Since("2.14")
-abstract class Enum {
+abstract interface class Enum {
   // These two getters are a departure here, from the real SDK. Here we have
   // concrete getters; the SDK has abstract gettesr. The real implementations
   // of enums require a significant amount of desugaring.
@@ -476,12 +478,12 @@ abstract mixin class Iterable<E> {
   Iterable<T> whereType<T>();
 }
 
-abstract class Iterator<E> {
+abstract interface class Iterator<E> {
   E get current;
   bool moveNext();
 }
 
-abstract class List<E> implements Iterable<E> {
+abstract interface class List<E> implements Iterable<E> {
   external factory List.filled(int length, E fill, {bool growable = false});
   external factory List.empty({bool growable = false});
   external factory List.from(Iterable elements, {bool growable = true});
@@ -506,7 +508,7 @@ abstract class List<E> implements Iterable<E> {
   E removeLast();
 }
 
-abstract class Map<K, V> {
+abstract interface class Map<K, V> {
   external factory Map();
   external factory Map.from(Map other);
   external Map.of(Map<K, V> other);
@@ -575,7 +577,7 @@ sealed class num implements Comparable<num> {
   int toInt();
 }
 
-abstract class Match {
+abstract interface class Match {
   int get start;
 }
 
@@ -600,17 +602,17 @@ class Object {
   static int hashAllUnordered(Iterable<Object?> objects) => 0;
 }
 
-abstract class Pattern {
+abstract interface class Pattern {
   Iterable<Match> allMatches(String string, [int start = 0]);
 }
 
 abstract final class Record {}
 
-abstract class RegExp implements Pattern {
+abstract interface class RegExp implements Pattern {
   external factory RegExp(String source, {bool unicode = false});
 }
 
-abstract class Set<E> implements Iterable<E> {
+abstract interface class Set<E> implements Iterable<E> {
   external factory Set();
   external factory Set.identity();
   external factory Set.from(Iterable elements);
@@ -676,7 +678,7 @@ class StringBuffer implements StringSink {
 
 abstract interface class StringSink {}
 
-class Symbol {
+abstract class Symbol {
   const factory Symbol(String name) = internal.Symbol;
 }
 

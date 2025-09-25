@@ -35,6 +35,16 @@ extern "C" void __tsan_write2(void* addr);
 extern "C" void __tsan_write4(void* addr);
 extern "C" void __tsan_write8(void* addr);
 extern "C" void __tsan_write16(void* addr);
+extern "C" void __tsan_read1_pc(void* addr, void* pc);
+extern "C" void __tsan_read2_pc(void* addr, void* pc);
+extern "C" void __tsan_read4_pc(void* addr, void* pc);
+extern "C" void __tsan_read8_pc(void* addr, void* pc);
+extern "C" void __tsan_read16_pc(void* addr, void* pc);
+extern "C" void __tsan_write1_pc(void* addr, void* pc);
+extern "C" void __tsan_write2_pc(void* addr, void* pc);
+extern "C" void __tsan_write4_pc(void* addr, void* pc);
+extern "C" void __tsan_write8_pc(void* addr, void* pc);
+extern "C" void __tsan_write16_pc(void* addr, void* pc);
 extern "C" void __tsan_func_entry(void* pc);
 extern "C" void __tsan_func_exit();
 #else

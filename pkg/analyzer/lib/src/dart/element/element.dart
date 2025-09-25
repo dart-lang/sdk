@@ -1460,6 +1460,17 @@ class ElementAnnotationImpl
   }
 
   @override
+  String? get deprecationKind {
+    if (!isDeprecated) return null;
+    return computeConstantValue()
+            ?.getField('_kind')
+            ?.getField('_name')
+            ?.toStringValue() ??
+        // For SDKs where the `Deprecated` class does not have a deprecation kind.
+        'use';
+  }
+
+  @override
   Element? get element => annotationAst.element;
 
   @override
@@ -1934,6 +1945,12 @@ abstract class ElementImpl implements Element {
   bool isAccessibleIn2(LibraryElement library) {
     return isAccessibleIn(library);
   }
+
+  @override
+  @trackedIncludedInId
+  bool isDeprecatedWithKind(String kind) => metadata.annotations
+      .where((e) => e.isDeprecated)
+      .any((e) => e.deprecationKind == kind);
 
   @trackedInternal
   void readModifiers(BinaryReader reader) {

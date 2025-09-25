@@ -24790,6 +24790,11 @@ WarningCode:
       Note that literal maps preserve the order of their entries, so the choice
       of which entry to remove might affect the order in which the keys and
       values are returned by an iterator.
+  EXPERIMENTAL_MEMBER_USE:
+    parameters:
+      String member: the name of the member
+    problemMessage: "'#member' is experimental and could be removed or changed at any time."
+    hasPublishedDocs: false
   INFERENCE_FAILURE_ON_COLLECTION_LITERAL:
     parameters:
       String p0: the name of the collection

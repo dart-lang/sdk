@@ -118,7 +118,7 @@ class ManifestNode {
   factory ManifestNode.read(BinaryReader reader) {
     return ManifestNode._(
       isValid: reader.readBool(),
-      tokenBuffer: reader.readStringUtf8(),
+      tokenBuffer: reader.readStringReference(),
       tokenLengthList: reader.readUint30List(),
       elements: ManifestElement.readList(reader),
       elementIndexList: reader.readUint30List(),
@@ -195,7 +195,7 @@ class ManifestNode {
 
   void write(BinaryWriter writer) {
     writer.writeBool(isValid);
-    writer.writeStringUtf8(tokenBuffer);
+    writer.writeStringReference(tokenBuffer);
     writer.writeUint30List(tokenLengthList);
     writer.writeList(elements, (e) => e.write(writer));
     writer.writeUint30List(elementIndexList);

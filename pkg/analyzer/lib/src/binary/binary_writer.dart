@@ -297,7 +297,7 @@ class BinaryWriter {
 
   void writeUri(Uri uri) {
     var uriStr = uri.toString();
-    writeStringUtf8(uriStr);
+    writeStringReference(uriStr);
   }
 
   void writeUriList(List<Uri> uriList) {

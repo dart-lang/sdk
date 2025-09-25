@@ -8,6 +8,7 @@ import 'dart:typed_data';
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:analyzer/src/binary/string_table.dart';
+import 'package:analyzer/src/utilities/uri_cache.dart';
 
 /// Reader for binary formats.
 class BinaryReader {
@@ -261,8 +262,8 @@ class BinaryReader {
   }
 
   Uri readUri() {
-    var uriStr = readStringUtf8();
-    return Uri.parse(uriStr);
+    var uriStr = readStringReference();
+    return uriCache.parse(uriStr);
   }
 
   List<Uri> readUriList() {

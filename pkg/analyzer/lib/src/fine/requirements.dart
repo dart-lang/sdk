@@ -849,12 +849,16 @@ class RequirementsManifest {
     Uint8List manifestAsBytes(RequirementsManifest manifest) {
       var writer = BinaryWriter();
       manifest.write(writer);
+      writer.writeStringTableAtEnd();
       return writer.takeBytes();
     }
 
     var bytes = manifestAsBytes(this);
 
-    var readManifest = RequirementsManifest.read(BinaryReader(bytes));
+    var reader = BinaryReader(bytes);
+    reader.initializeStringTableFromEnd();
+
+    var readManifest = RequirementsManifest.read(reader);
     var bytes2 = manifestAsBytes(readManifest);
 
     if (!const ListEquality<int>().equals(bytes, bytes2)) {

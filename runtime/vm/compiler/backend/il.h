@@ -11799,6 +11799,10 @@ inline bool Value::CanBe(const Object& value) {
 #undef DECLARE_CUSTOM_SERIALIZATION
 #undef DECLARE_EMPTY_SERIALIZATION
 
+void EmitTsanCallUnopt(FlowGraphCompiler* compiler,
+                       Instruction* instr,
+                       std::function<const RuntimeEntry&()> move_parameters);
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_COMPILER_BACKEND_IL_H_

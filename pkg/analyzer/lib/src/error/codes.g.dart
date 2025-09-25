@@ -11220,6 +11220,18 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     expectedTypes: [],
   );
 
+  /// Parameters:
+  /// String member: the name of the member
+  static const WarningTemplate<
+    LocatableDiagnostic Function({required String member})
+  >
+  experimentalMemberUse = WarningTemplate(
+    'EXPERIMENTAL_MEMBER_USE',
+    "'{0}' is experimental and could be removed or changed at any time.",
+    withArguments: _withArgumentsExperimentalMemberUse,
+    expectedTypes: [ExpectedType.string],
+  );
+
   /// When "strict-inference" is enabled, collection literal types must be
   /// inferred via the context type, or have type arguments.
   ///
@@ -13108,6 +13120,12 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     required String p0,
   }) {
     return LocatableDiagnosticImpl(duplicateIgnore, [p0]);
+  }
+
+  static LocatableDiagnostic _withArgumentsExperimentalMemberUse({
+    required String member,
+  }) {
+    return LocatableDiagnosticImpl(experimentalMemberUse, [member]);
   }
 
   static LocatableDiagnostic _withArgumentsInferenceFailureOnCollectionLiteral({

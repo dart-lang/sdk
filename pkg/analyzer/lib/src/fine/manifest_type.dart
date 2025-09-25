@@ -102,7 +102,7 @@ class ManifestFunctionNamedFormalParameter
       isSuperFormal: reader.readBool(),
       type: ManifestType.read(reader),
       defaultValue: ManifestNode.readOptional(reader),
-      name: reader.readStringUtf8(),
+      name: reader.readStringReference(),
     );
   }
 
@@ -127,7 +127,7 @@ class ManifestFunctionNamedFormalParameter
   @override
   void write(BinaryWriter writer) {
     super.write(writer);
-    writer.writeStringUtf8(name);
+    writer.writeStringReference(name);
   }
 }
 
@@ -513,7 +513,7 @@ class ManifestRecordTypeNamedField {
 
   factory ManifestRecordTypeNamedField.read(BinaryReader reader) {
     return ManifestRecordTypeNamedField._(
-      name: reader.readStringUtf8(),
+      name: reader.readStringReference(),
       type: ManifestType.read(reader),
     );
   }
@@ -525,7 +525,7 @@ class ManifestRecordTypeNamedField {
   }
 
   void write(BinaryWriter writer) {
-    writer.writeStringUtf8(name);
+    writer.writeStringReference(name);
     type.write(writer);
   }
 }

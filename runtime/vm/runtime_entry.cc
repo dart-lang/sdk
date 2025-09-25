@@ -5298,17 +5298,49 @@ extern "C" void __tsan_func_entry(void* pc) {
 extern "C" void __tsan_func_exit() {
   UNREACHABLE();
 }
+#else
+#define CASE(x)                                                                \
+  extern "C" __attribute__((disable_sanitizer_instrumentation)) void           \
+  jit_tsan_##x(void* addr) {                                                   \
+    __tsan_##x##_pc(                                                           \
+        addr, reinterpret_cast<void*>(                                         \
+                  reinterpret_cast<uintptr_t>(__builtin_return_address(0)) |   \
+                  (1ULL << 60)));                                              \
+  }
+
+CASE(read1)
+CASE(read2)
+CASE(read4)
+CASE(read8)
+CASE(read16)
+CASE(write1)
+CASE(write2)
+CASE(write4)
+CASE(write8)
+CASE(write16)
+#undef CASE
 #endif
 
 // These runtime entries are defined even when not using MSAN / TSAN to keep
 // offsets on Thread consistent.
-
 DEFINE_LEAF_RUNTIME_ENTRY(MsanUnpoison, 2, __msan_unpoison);
 DEFINE_LEAF_RUNTIME_ENTRY(MsanUnpoisonParam, 1, __msan_unpoison_param);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanAtomic32Load, 2, __tsan_atomic32_load);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanAtomic32Store, 3, __tsan_atomic32_store);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanAtomic64Load, 2, __tsan_atomic64_load);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanAtomic64Store, 3, __tsan_atomic64_store);
+#if defined(USING_THREAD_SANITIZER) && !defined(DART_PRECOMPILED_RUNTIME)
+DEFINE_LEAF_RUNTIME_ENTRY(TsanRead1, 1, jit_tsan_read1);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanRead2, 1, jit_tsan_read2);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanRead4, 1, jit_tsan_read4);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanRead8, 1, jit_tsan_read8);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanRead16, 1, jit_tsan_read16);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite1, 1, jit_tsan_write1);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite2, 1, jit_tsan_write2);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite4, 1, jit_tsan_write4);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite8, 1, jit_tsan_write8);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite16, 1, jit_tsan_write16);
+#else
 DEFINE_LEAF_RUNTIME_ENTRY(TsanRead1, 1, __tsan_read1);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanRead2, 1, __tsan_read2);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanRead4, 1, __tsan_read4);
@@ -5319,6 +5351,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite2, 1, __tsan_write2);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite4, 1, __tsan_write4);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite8, 1, __tsan_write8);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite16, 1, __tsan_write16);
+#endif
 DEFINE_LEAF_RUNTIME_ENTRY(TsanFuncEntry, 1, __tsan_func_entry);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanFuncExit, 0, __tsan_func_exit);
 

@@ -1928,6 +1928,14 @@ void Assembler::PopRegister(Register r) {
   popl(r);
 }
 
+void Assembler::PushRegisters(const RegisterSet& registers) {
+  UNIMPLEMENTED();
+}
+
+void Assembler::PopRegisters(const RegisterSet& registers) {
+  UNIMPLEMENTED();
+}
+
 void Assembler::PushRegistersInOrder(std::initializer_list<Register> regs) {
   for (Register reg : regs) {
     PushRegister(reg);

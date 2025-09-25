@@ -3413,6 +3413,7 @@ package:analyzer/dart/element/element.dart:
     getExtendedDisplayName2 (method: String Function({String? shortName}), deprecated)
     isAccessibleIn (method: bool Function(LibraryElement))
     isAccessibleIn2 (method: bool Function(LibraryElement), deprecated)
+    isDeprecatedWithKind (method: bool Function(String))
     thisOrAncestorMatching (method: Element? Function(bool Function(Element)))
     thisOrAncestorMatching2 (method: Element? Function(bool Function(Element)), deprecated)
     thisOrAncestorOfType (method: E? Function<E extends Element>())
@@ -3422,6 +3423,7 @@ package:analyzer/dart/element/element.dart:
   ElementAnnotation (class extends Object):
     new (constructor: ElementAnnotation Function())
     constantEvaluationErrors (getter: List<Diagnostic>?)
+    deprecationKind (getter: String?)
     element (getter: Element?)
     element2 (getter: Element?, deprecated)
     isAlwaysThrows (getter: bool)

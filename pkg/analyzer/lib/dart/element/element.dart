@@ -836,6 +836,10 @@ abstract class Element {
   @Deprecated('Use isAccessibleIn instead')
   bool isAccessibleIn2(LibraryElement library);
 
+  /// Whether this Element is annotated with a `Deprecated` annotation with a
+  /// `_DeprecationKind` of [kind].
+  bool isDeprecatedWithKind(String kind);
+
   /// Returns either this element or the most immediate ancestor of this element
   /// for which the [predicate] returns `true`.
   ///
@@ -882,6 +886,11 @@ abstract class ElementAnnotation {
   /// If a value has been produced but no errors were generated, then the
   /// list will be empty.
   List<Diagnostic>? get constantEvaluationErrors;
+
+  /// The kind of deprecation, if this annotation is a `Deprecated` annotation.
+  ///
+  /// `null` is returned if this is not a `Deprecated` annotation.
+  String? get deprecationKind;
 
   /// Returns the element referenced by this annotation.
   ///
