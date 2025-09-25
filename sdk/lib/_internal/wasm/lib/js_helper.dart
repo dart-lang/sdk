@@ -512,24 +512,28 @@ Object? dartifyRaw(WasmExternRef? ref, [int? refType]) {
     ExternRefType.number => toDartNumber(ref),
     ExternRefType.string => JSStringImpl.fromRefUnchecked(ref),
     ExternRefType.array => toDartList(ref),
-    ExternRefType.int8Array => js_types.JSInt8ArrayImpl.fromRefUnchecked(ref),
-    ExternRefType.uint8Array => js_types.JSUint8ArrayImpl.fromRefUnchecked(ref),
+    ExternRefType.int8Array => js_types.JSInt8ArrayImpl.fromArrayRefUnchecked(
+      ref,
+    ),
+    ExternRefType.uint8Array => js_types.JSUint8ArrayImpl.fromArrayRefUnchecked(
+      ref,
+    ),
     ExternRefType.uint8ClampedArray =>
-      js_types.JSUint8ClampedArrayImpl.fromRefUnchecked(ref),
-    ExternRefType.int16Array => js_types.JSInt16ArrayImpl.fromRefUnchecked(ref),
-    ExternRefType.uint16Array => js_types.JSUint16ArrayImpl.fromRefUnchecked(
+      js_types.JSUint8ClampedArrayImpl.fromArrayRefUnchecked(ref),
+    ExternRefType.int16Array => js_types.JSInt16ArrayImpl.fromArrayRefUnchecked(
       ref,
     ),
-    ExternRefType.int32Array => js_types.JSInt32ArrayImpl.fromRefUnchecked(ref),
-    ExternRefType.uint32Array => js_types.JSUint32ArrayImpl.fromRefUnchecked(
+    ExternRefType.uint16Array =>
+      js_types.JSUint16ArrayImpl.fromArrayRefUnchecked(ref),
+    ExternRefType.int32Array => js_types.JSInt32ArrayImpl.fromArrayRefUnchecked(
       ref,
     ),
-    ExternRefType.float32Array => js_types.JSFloat32ArrayImpl.fromRefUnchecked(
-      ref,
-    ),
-    ExternRefType.float64Array => js_types.JSFloat64ArrayImpl.fromRefUnchecked(
-      ref,
-    ),
+    ExternRefType.uint32Array =>
+      js_types.JSUint32ArrayImpl.fromArrayRefUnchecked(ref),
+    ExternRefType.float32Array =>
+      js_types.JSFloat32ArrayImpl.fromArrayRefUnchecked(ref),
+    ExternRefType.float64Array =>
+      js_types.JSFloat64ArrayImpl.fromArrayRefUnchecked(ref),
     ExternRefType.arrayBuffer || ExternRefType.sharedArrayBuffer =>
       js_types.JSArrayBufferImpl.fromRefUnchecked(ref),
     ExternRefType.dataView => js_types.JSDataViewImpl.fromRefUnchecked(ref),

@@ -8,6 +8,7 @@ import 'dart:typed_data';
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:analyzer/src/binary/string_table.dart';
+import 'package:analyzer/src/fine/manifest_id.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
 
 /// Reader for binary formats.
@@ -15,13 +16,14 @@ class BinaryReader {
   final Uint8List bytes;
   int offset = 0;
 
-  late final StringTable _stringTable;
-
   final Int64List _int64Buffer = Int64List(1);
   late final Uint8List _int64BufferUint8 = _int64Buffer.buffer.asUint8List();
 
   final Float64List _doubleBuffer = Float64List(1);
   late final Uint8List _doubleBufferUint8 = _doubleBuffer.buffer.asUint8List();
+
+  List<ManifestItemId>? _manifestIdTable;
+  StringTable? _stringTable;
 
   BinaryReader(this.bytes);
 
@@ -30,31 +32,36 @@ class BinaryReader {
   BinaryReader fork(int offset) {
     var result = BinaryReader(bytes);
     result.offset = offset;
+    result._manifestIdTable = _manifestIdTable;
     result._stringTable = _stringTable;
     return result;
   }
 
-  void initializeStringTableAtOffset(int offset) {
-    _stringTable = StringTable(bytes: bytes, startOffset: offset);
+  /// Initializes the manifest-ID and string tables by reading their start
+  /// offsets from two `uint32` values trailer at the end of the buffer.
+  /// The reader's current offset is preserved.
+  ///
+  /// Layout (BOF -> EOF):
+  /// ```text
+  /// <payload>
+  /// <manifest_id_table>
+  /// <string_table>
+  /// <manifestIdTableOffset:u32>
+  /// <stringTableOffset:u32>
+  /// ```
+  ///
+  /// This is the counterpart to [BinaryWriter.writeTableTrailer].
+  void initFromTableTrailer() {
+    runAtOffset(bytes.length - 4 * 2, () {
+      var manifestIdTableOffset = readUint32();
+      var stringTableOffset = readUint32();
+      _initManifestIdTableAt(manifestIdTableOffset);
+      initStringTableAt(stringTableOffset);
+    });
   }
 
-  /// Initializes the string table by reading its offset from the end of the
-  /// buffer.
-  ///
-  /// This is the counterpart to [BinaryWriter.writeStringTableAtEnd]. That
-  /// method writes the string table data, and then appends a `uint32` offset
-  /// pointing to the beginning of that data. This method reads that final
-  /// offset to initialize the reader's string table, preserving the reader's
-  /// current position.
-  void initializeStringTableFromEnd() {
-    var savedOffset = offset;
-    try {
-      offset = bytes.length - 4 * 1;
-      var stringTableOffset = readUint32();
-      initializeStringTableAtOffset(stringTableOffset);
-    } finally {
-      offset = savedOffset;
-    }
+  void initStringTableAt(int offset) {
+    _stringTable = StringTable(bytes: bytes, startOffset: offset);
   }
 
   @pragma("vm:prefer-inline")
@@ -94,6 +101,15 @@ class BinaryReader {
     _int64BufferUint8[6] = readByte();
     _int64BufferUint8[7] = readByte();
     return _int64Buffer[0];
+  }
+
+  ManifestItemId readManifestItemId() {
+    var table = _manifestIdTable;
+    if (table == null) {
+      throw StateError('Manifest ID table not initialized.');
+    }
+    var index = readUint30();
+    return table[index];
   }
 
   Map<K, V> readMap<K, V>({
@@ -274,11 +290,24 @@ class BinaryReader {
   void runAtOffset(int offset, void Function() operation) {
     var oldOffset = this.offset;
     this.offset = offset;
-    operation();
-    this.offset = oldOffset;
+    try {
+      operation();
+    } finally {
+      this.offset = oldOffset;
+    }
   }
 
   String stringOfIndex(int index) {
-    return _stringTable[index];
+    var table = _stringTable;
+    if (table == null) {
+      throw StateError('String table not initialized.');
+    }
+    return table[index];
+  }
+
+  void _initManifestIdTableAt(int offset) {
+    runAtOffset(offset, () {
+      _manifestIdTable = ManifestIdTableBuilder.readTable(this);
+    });
   }
 }

@@ -143,24 +143,24 @@ class CoreTypesUtil {
     coreTypes.listClass:
         coreTypes.index.getTopLevelProcedure('dart:_js_helper', 'toDartList'),
     coreTypes.index.getClass('dart:typed_data', 'Int8List'): coreTypes.index
-        .getProcedure('dart:_js_types', 'JSInt8ArrayImpl', 'fromRef'),
+        .getProcedure('dart:_js_types', 'JSInt8ArrayImpl', 'fromArrayRef'),
     coreTypes.index.getClass('dart:typed_data', 'Uint8List'): coreTypes.index
-        .getProcedure('dart:_js_types', 'JSUint8ArrayImpl', 'fromRef'),
-    coreTypes.index.getClass('dart:typed_data', 'Uint8ClampedList'): coreTypes
-        .index
-        .getProcedure('dart:_js_types', 'JSUint8ClampedArrayImpl', 'fromRef'),
+        .getProcedure('dart:_js_types', 'JSUint8ArrayImpl', 'fromArrayRef'),
+    coreTypes.index.getClass('dart:typed_data', 'Uint8ClampedList'):
+        coreTypes.index.getProcedure(
+            'dart:_js_types', 'JSUint8ClampedArrayImpl', 'fromArrayRef'),
     coreTypes.index.getClass('dart:typed_data', 'Int16List'): coreTypes.index
-        .getProcedure('dart:_js_types', 'JSInt16ArrayImpl', 'fromRef'),
+        .getProcedure('dart:_js_types', 'JSInt16ArrayImpl', 'fromArrayRef'),
     coreTypes.index.getClass('dart:typed_data', 'Uint16List'): coreTypes.index
-        .getProcedure('dart:_js_types', 'JSUint16ArrayImpl', 'fromRef'),
+        .getProcedure('dart:_js_types', 'JSUint16ArrayImpl', 'fromArrayRef'),
     coreTypes.index.getClass('dart:typed_data', 'Int32List'): coreTypes.index
-        .getProcedure('dart:_js_types', 'JSInt32ArrayImpl', 'fromRef'),
+        .getProcedure('dart:_js_types', 'JSInt32ArrayImpl', 'fromArrayRef'),
     coreTypes.index.getClass('dart:typed_data', 'Uint32List'): coreTypes.index
-        .getProcedure('dart:_js_types', 'JSUint32ArrayImpl', 'fromRef'),
+        .getProcedure('dart:_js_types', 'JSUint32ArrayImpl', 'fromArrayRef'),
     coreTypes.index.getClass('dart:typed_data', 'Float32List'): coreTypes.index
-        .getProcedure('dart:_js_types', 'JSFloat32ArrayImpl', 'fromRef'),
+        .getProcedure('dart:_js_types', 'JSFloat32ArrayImpl', 'fromArrayRef'),
     coreTypes.index.getClass('dart:typed_data', 'Float64List'): coreTypes.index
-        .getProcedure('dart:_js_types', 'JSFloat64ArrayImpl', 'fromRef'),
+        .getProcedure('dart:_js_types', 'JSFloat64ArrayImpl', 'fromArrayRef'),
     coreTypes.index.getClass('dart:typed_data', 'ByteBuffer'): coreTypes.index
         .getProcedure('dart:_js_types', 'JSArrayBufferImpl', 'fromRef'),
     coreTypes.index.getClass('dart:typed_data', 'ByteData'): coreTypes.index

@@ -1947,7 +1947,7 @@ abstract class ElementImpl implements Element {
   }
 
   @override
-  @trackedIncludedInId
+  @trackedIndirectly
   bool isDeprecatedWithKind(String kind) => metadata.annotations
       .where((e) => e.isDeprecated)
       .any((e) => e.deprecationKind == kind);

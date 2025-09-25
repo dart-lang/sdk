@@ -209,50 +209,72 @@ void main() {
   }, gc['h'].dartify() as Map<Object?, Object?>);
   _expectRecEquals({'a': {}}, gc['rec'].dartify() as Map<Object?, Object?>);
 
+  final int8Array = gc['int8Array'];
   _expectIterableEquals(
     Int8List.fromList(<int>[-128, 0, 127]),
-    gc['int8Array'].dartify() as Int8List,
+    int8Array.dartify() as Int8List,
   );
+  Expect.equals(int8Array, int8Array.dartify().jsify());
+  final uint8Array = gc['uint8Array'];
   _expectIterableEquals(
     Uint8List.fromList([-1, 0, 255, 256]),
-    gc['uint8Array'].dartify() as Uint8List,
+    uint8Array.dartify() as Uint8List,
   );
+  Expect.equals(uint8Array, uint8Array.dartify().jsify());
+  final uint8ClampedArray = gc['uint8ClampedArray'];
   _expectIterableEquals(
     Uint8ClampedList.fromList([-1, 0, 255, 256]),
     gc['uint8ClampedArray'].dartify() as Uint8ClampedList,
   );
+  Expect.equals(uint8ClampedArray, uint8ClampedArray.dartify().jsify());
+  final int16Array = gc['int16Array'];
   _expectIterableEquals(
     Int16List.fromList([-32769, -32768, 0, 32767, 32768]),
     gc['int16Array'].dartify() as Int16List,
   );
+  Expect.equals(int16Array, int16Array.dartify().jsify());
+  final uint16Array = gc['uint16Array'];
   _expectIterableEquals(
     Uint16List.fromList([-1, 0, 65535, 65536]),
     gc['uint16Array'].dartify() as Uint16List,
   );
+  Expect.equals(uint16Array, uint16Array.dartify().jsify());
+  final int32Array = gc['int32Array'];
   _expectIterableEquals(
     Int32List.fromList([-2147483648, 0, 2147483647]),
     gc['int32Array'].dartify() as Int32List,
   );
+  Expect.equals(int32Array, int32Array.dartify().jsify());
+  final uint32Array = gc['uint32Array'];
   _expectIterableEquals(
     Uint32List.fromList([-1, 0, 4294967295, 4294967296]),
     gc['uint32Array'].dartify() as Uint32List,
   );
+  Expect.equals(uint32Array, uint32Array.dartify().jsify());
+  final float32Array = gc['float32Array'];
   _expectIterableEquals(
     Float32List.fromList([-1000.488, -0.00001, 0.0001, 10004.888]),
     gc['float32Array'].dartify() as Float32List,
   );
+  Expect.equals(float32Array, float32Array.dartify().jsify());
+  final float64Array = gc['float64Array'];
   _expectIterableEquals(
     Float64List.fromList([-1000.488, -0.00001, 0.0001, 10004.888]),
     gc['float64Array'].dartify() as Float64List,
   );
+  Expect.equals(float64Array, float64Array.dartify().jsify());
+  final arrayBuffer = gc['arrayBuffer'];
   _expectIterableEquals(
     Uint8List.fromList([-1, 0, 255, 256]),
     (gc['arrayBuffer'].dartify() as ByteBuffer).asUint8List(),
   );
+  Expect.equals(arrayBuffer, arrayBuffer.dartify().jsify());
+  final dataView = gc['dataView'];
   _expectIterableEquals(
     Uint8List.fromList([-1, 0, 255, 256]),
     (gc['dataView'].dartify() as ByteData).buffer.asUint8List(),
   );
+  Expect.equals(dataView, dataView.dartify().jsify());
 
   // Confirm a function that takes a roundtrip remains a function.
   // TODO(srujzs): Delete this test after we remove this conversion.

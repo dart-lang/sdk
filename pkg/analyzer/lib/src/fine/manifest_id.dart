@@ -8,6 +8,34 @@ import 'package:analyzer/src/binary/binary_reader.dart';
 import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:collection/collection.dart';
 
+class ManifestIdTableBuilder {
+  final Map<ManifestItemId, int> _map = {};
+
+  int operator [](ManifestItemId id) {
+    return _map[id] ??= _map.length;
+  }
+
+  int write(BinaryWriter writer) {
+    var offset = writer.offset;
+    writer.writeUint30(_map.length);
+    for (var entry in _map.entries) {
+      var id = entry.key;
+      writer.writeUint32(id.hi32);
+      writer.writeUint32(id.lo32);
+    }
+    return offset;
+  }
+
+  static List<ManifestItemId> readTable(BinaryReader reader) {
+    var length = reader.readUint30();
+    return List.generate(length, (_) {
+      var hi = reader.readUint32();
+      var lo = reader.readUint32();
+      return ManifestItemId._(hi, lo);
+    }, growable: false);
+  }
+}
+
 /// The globally unique identifier.
 ///
 /// We give a new identifier each time when just anything changes about
@@ -35,15 +63,18 @@ class ManifestItemId implements Comparable<ManifestItemId> {
   }
 
   factory ManifestItemId.read(BinaryReader reader) {
-    return ManifestItemId._(reader.readUint32(), reader.readUint32());
+    return reader.readManifestItemId();
   }
 
   ManifestItemId._(this.hi32, this.lo32)
     : assert(hi32 >= 0 && hi32 <= _mask32),
       assert(lo32 >= 0 && lo32 <= _mask32);
 
+  @pragma("vm:prefer-inline")
   @override
-  int get hashCode => Object.hash(hi32, lo32);
+  int get hashCode {
+    return lo32;
+  }
 
   @override
   bool operator ==(Object other) {
@@ -60,9 +91,9 @@ class ManifestItemId implements Comparable<ManifestItemId> {
   @override
   String toString() => '($hi32, $lo32)';
 
+  @pragma("vm:prefer-inline")
   void write(BinaryWriter writer) {
-    writer.writeUint32(hi32);
-    writer.writeUint32(lo32);
+    writer.writeManifestItemId(this);
   }
 
   static List<ManifestItemId> readList(BinaryReader reader) {

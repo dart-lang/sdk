@@ -849,14 +849,14 @@ class RequirementsManifest {
     Uint8List manifestAsBytes(RequirementsManifest manifest) {
       var writer = BinaryWriter();
       manifest.write(writer);
-      writer.writeStringTableAtEnd();
+      writer.writeTableTrailer();
       return writer.takeBytes();
     }
 
     var bytes = manifestAsBytes(this);
 
     var reader = BinaryReader(bytes);
-    reader.initializeStringTableFromEnd();
+    reader.initFromTableTrailer();
 
     var readManifest = RequirementsManifest.read(reader);
     var bytes2 = manifestAsBytes(readManifest);

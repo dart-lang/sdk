@@ -7,6 +7,7 @@ import 'dart:typed_data';
 
 import 'package:analyzer/src/binary/binary_reader.dart';
 import 'package:analyzer/src/binary/string_table.dart';
+import 'package:analyzer/src/fine/manifest_id.dart';
 
 /// Buffered writer for binary formats.
 class BinaryWriter {
@@ -24,17 +25,23 @@ class BinaryWriter {
   final Float64List _doubleBuffer = Float64List(1);
   late final Uint8List _doubleBufferUint8 = _doubleBuffer.buffer.asUint8List();
 
-  final StringIndexer _stringIndexer;
+  final ManifestIdTableBuilder _manifestIdTableBuilder;
+  final StringTableBuilder _stringTableBuilder;
 
-  BinaryWriter() : this.withStringIndexer(stringIndexer: StringIndexer());
-
-  BinaryWriter.withStringIndexer({required StringIndexer stringIndexer})
-    : _stringIndexer = stringIndexer;
+  BinaryWriter({
+    StringTableBuilder? stringTableBuilder,
+    ManifestIdTableBuilder? manifestIdTableBuilder,
+  }) : _stringTableBuilder = stringTableBuilder ?? StringTableBuilder(),
+       _manifestIdTableBuilder =
+           manifestIdTableBuilder ?? ManifestIdTableBuilder();
 
   int get offset => _builder.length + _length;
 
   BinaryWriter clone() {
-    return BinaryWriter.withStringIndexer(stringIndexer: _stringIndexer);
+    return BinaryWriter(
+      stringTableBuilder: _stringTableBuilder,
+      manifestIdTableBuilder: _manifestIdTableBuilder,
+    );
   }
 
   Uint8List takeBytes() {
@@ -144,6 +151,11 @@ class BinaryWriter {
     }
   }
 
+  void writeManifestItemId(ManifestItemId id) {
+    var index = _manifestIdTableBuilder[id];
+    writeUint30(index);
+  }
+
   void writeMap<K, V>(
     Map<K, V> map, {
     required void Function(K key) writeKey,
@@ -224,23 +236,8 @@ class BinaryWriter {
   }
 
   void writeStringReference(String value) {
-    var index = _stringIndexer[value];
+    var index = _stringTableBuilder[value];
     writeUint30(index);
-  }
-
-  /// Writes the string table and its starting offset.
-  ///
-  /// This method writes the collected string data first, then writes the
-  /// `uint32` offset where that data begins.
-  ///
-  /// It must be called after all other data has been written and immediately
-  /// before [takeBytes]. This ensures the last 4 bytes reliably point to
-  /// the string table, which a reader will use to decode string references.
-  ///
-  /// This is the counterpart to [BinaryReader.initializeStringTableFromEnd].
-  void writeStringTableAtEnd() {
-    var offset = _stringIndexer.write(this);
-    writeUint32(offset);
   }
 
   /// Write the [value] as UTF8 encoded byte array.
@@ -254,6 +251,29 @@ class BinaryWriter {
     for (var item in items) {
       writeStringUtf8(item);
     }
+  }
+
+  /// Writes the table trailer, recording the start offsets of the manifest-ID
+  /// table and the string table as two `uint32` values.
+  ///
+  /// Layout (BOF -> EOF):
+  ///
+  /// ```text
+  /// <payload>
+  /// <manifest_id_table>
+  /// <string_table>
+  /// <manifestIdTableOffset:u32>
+  /// <stringTableOffset:u32>
+  /// ```
+  ///
+  /// Call this after writing all other data, immediately before [takeBytes].
+  ///
+  /// This is the counterpart to [BinaryReader.initFromTableTrailer].
+  void writeTableTrailer() {
+    var manifestIdTableOffset = _manifestIdTableBuilder.write(this);
+    var stringTableOffset = _stringTableBuilder.write(this);
+    writeUint32(manifestIdTableOffset);
+    writeUint32(stringTableOffset);
   }
 
   @pragma("vm:prefer-inline")
