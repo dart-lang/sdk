@@ -45,8 +45,8 @@ class Globals {
   /// to. If they are not the same then accesses the global indirectly, either
   /// through an import or a getter call.
   w.ValueType readGlobal(w.InstructionsBuilder b, w.Global global) {
-    final owningModule = global.enclosingModule;
-    final callingModule = b.module;
+    final owningModule = translator.moduleToBuilder[global.enclosingModule]!;
+    final callingModule = b.moduleBuilder;
     if (owningModule == callingModule) {
       b.global_get(global);
     } else if (translator.isMainModule(owningModule)) {
@@ -108,7 +108,7 @@ class Globals {
         dummyCollector.instantiateDummyValue(global.initializer, fieldType);
         global.initializer.end();
 
-        if (module == translator.initFunction.enclosingModule) {
+        if (module.module == translator.initFunction.enclosingModule) {
           // We have to initialize the global field in the same module as where
           // the field value is defined in.
           // TODO: Once dynamic modules only compile code for the submodule and

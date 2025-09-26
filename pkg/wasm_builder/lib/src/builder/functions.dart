@@ -8,14 +8,14 @@ import 'util.dart';
 
 /// The interface for the functions in a module.
 class FunctionsBuilder with Builder<ir.Functions> {
-  final ModuleBuilder _module;
+  final ModuleBuilder _moduleBuilder;
   final _functionBuilders = <FunctionBuilder>[];
   final _importedFunctions = <ir.ImportedFunction>[];
   final _declaredFunctions = <ir.BaseFunction>{};
   int _nameCount = 0;
   ir.BaseFunction? _start;
 
-  FunctionsBuilder(this._module);
+  FunctionsBuilder(this._moduleBuilder);
 
   set start(ir.BaseFunction init) {
     assert(_start == null);
@@ -44,7 +44,7 @@ class FunctionsBuilder with Builder<ir.Functions> {
   /// `end`) before the module can be serialized.
   FunctionBuilder define(ir.FunctionType type, [String? name]) {
     final function =
-        FunctionBuilder(_module, ir.FinalizableIndex(), type, name);
+        FunctionBuilder(_moduleBuilder, ir.FinalizableIndex(), type, name);
     _functionBuilders.add(function);
     _addName(name, function);
     return function;
@@ -53,8 +53,8 @@ class FunctionsBuilder with Builder<ir.Functions> {
   /// Import a function into the module.
   ir.ImportedFunction import(String module, String name, ir.FunctionType type,
       [String? functionName]) {
-    final function = ir.ImportedFunction(
-        _module, module, name, ir.FinalizableIndex(), type, functionName);
+    final function = ir.ImportedFunction(_moduleBuilder.module, module, name,
+        ir.FinalizableIndex(), type, functionName);
     _importedFunctions.add(function);
     _addName(functionName, function);
     return function;
@@ -63,7 +63,7 @@ class FunctionsBuilder with Builder<ir.Functions> {
   /// Declare [function] as a module element so it can be used in a constant
   /// context.
   void declare(ir.BaseFunction function) {
-    assert(function.enclosingModule == _module);
+    assert(function.enclosingModule == _moduleBuilder.module);
     _declaredFunctions.add(function);
   }
 

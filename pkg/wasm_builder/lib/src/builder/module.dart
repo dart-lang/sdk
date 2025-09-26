@@ -5,17 +5,30 @@
 import '../ir/ir.dart' as ir;
 import 'builder.dart';
 
-// TODO(joshualitt): Get rid of cycles in the builder graph.
 /// A Wasm module builder.
+///
+/// NOTE: The [ModuleBuilder] contains builders for various constituents and
+/// those in return will refer back to the [ModuleBuilder], making the builders
+/// be cyclic data structures.
+///
+/// The main reason for this is that e.g. an [InstructionsBuilder] may insert
+/// new instructions. Doing so may require e.g. defining new function types. So
+/// it does so by calling `moduleBuilder.functions.defineFunction()`.
+///
+/// We could avoid some of the cyclic dependencies by passing the individual
+/// builders down to other builders that need it, instead of passing an
+/// [ModuleBuilder] down that contains all builders.
 class ModuleBuilder with Builder<ir.Module> {
+  final ir.Module module = ir.Module.uninitialized();
+
   final String moduleName;
   final Uri? sourceMapUrl;
   final List<int> watchPoints;
   late final TypesBuilder types;
   late final functions = FunctionsBuilder(this);
-  late final tables = TablesBuilder(this);
-  late final memories = MemoriesBuilder(this);
-  late final tags = TagsBuilder(this);
+  late final tables = TablesBuilder(module);
+  late final memories = MemoriesBuilder(module);
+  late final tags = TagsBuilder(module);
   final dataSegments = DataSegmentsBuilder();
   late final globals = GlobalsBuilder(this);
   final exports = ExportsBuilder();
@@ -38,24 +51,25 @@ class ModuleBuilder with Builder<ir.Module> {
     final finalMemories = memories.build();
     final finalGlobals = globals.build();
     final finalTags = tags.build();
-    return ir.Module(
-        moduleName,
-        sourceMapUrl,
-        finalFunctions,
-        finalTables,
-        finalTags,
-        finalMemories,
-        exports.build(),
-        finalGlobals,
-        types.build(),
-        dataSegments.build(),
-        <ir.Import>[
-          ...finalFunctions.imported,
-          ...finalTables.imported,
-          ...finalMemories.imported,
-          ...finalGlobals.imported,
-          ...finalTags.imported,
-        ],
-        watchPoints);
+    return module
+      ..initialize(
+          moduleName,
+          finalFunctions,
+          finalTables,
+          finalTags,
+          finalMemories,
+          exports.build(),
+          finalGlobals,
+          types.build(),
+          dataSegments.build(),
+          <ir.Import>[
+            ...finalFunctions.imported,
+            ...finalTables.imported,
+            ...finalMemories.imported,
+            ...finalGlobals.imported,
+            ...finalTags.imported,
+          ],
+          watchPoints,
+          sourceMapUrl);
   }
 }

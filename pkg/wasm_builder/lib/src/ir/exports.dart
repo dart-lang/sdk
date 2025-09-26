@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../builder/module.dart';
+import '../ir/module.dart';
 import '../serialize/serialize.dart';
 
 /// Any class which can be exported from a module.
 mixin Exportable {
   late final String exportedName;
-  ModuleBuilder get enclosingModule;
+  Module get enclosingModule;
 
   Export buildExport(String name);
 

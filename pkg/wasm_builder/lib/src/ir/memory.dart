@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../builder/module.dart';
 import '../serialize/serialize.dart';
 import 'ir.dart';
 
@@ -14,7 +13,7 @@ class Memory with Indexable, Exportable {
   final int minSize;
   final int? maxSize;
   @override
-  final ModuleBuilder enclosingModule;
+  final Module enclosingModule;
 
   Memory(this.enclosingModule, this.finalizableIndex, this.shared, this.minSize,
       [this.maxSize]) {
