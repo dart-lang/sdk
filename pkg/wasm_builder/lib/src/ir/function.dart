@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../builder/module.dart';
 import '../serialize/serialize.dart';
 import 'ir.dart';
 
@@ -24,7 +23,7 @@ abstract class BaseFunction with Indexable, Exportable {
   final FunctionType type;
   final String? functionName;
   @override
-  final ModuleBuilder enclosingModule;
+  final Module enclosingModule;
 
   BaseFunction(this.enclosingModule, this.finalizableIndex, this.type,
       this.functionName);

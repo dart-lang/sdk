@@ -178,7 +178,7 @@ class SyncStarStateMachineCodeGenerator extends StateMachineCodeGenerator {
                   .withNullability(false),
               name: "this");
           translator
-              .getDummyValuesCollectorForModule(b.module)
+              .getDummyValuesCollectorForModule(b.moduleBuilder)
               .instantiateDummyValue(b, thisLocal!.type);
           b.local_set(thisLocal!);
 
@@ -297,7 +297,7 @@ class SyncStarStateMachineCodeGenerator extends StateMachineCodeGenerator {
       b.local_get(_pendingStackTraceLocal);
       b.ref_as_non_null();
 
-      b.throw_(translator.getExceptionTag(b.module));
+      b.throw_(translator.getExceptionTag(b.moduleBuilder));
       b.end(); // exceptionCheck
     }
   }

@@ -375,7 +375,7 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType>
   @override
   w.ValueType defaultConstant(Constant constant) {
     ConstantInfo info =
-        ConstantCreator(constants, b.module).ensureConstant(constant)!;
+        ConstantCreator(constants, b.moduleBuilder).ensureConstant(constant)!;
     return info.readConstant(translator, b);
   }
 
@@ -387,7 +387,7 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType>
       assert(sentinelType is w.RefType,
           "Default value sentinel for unboxed parameter");
       translator
-          .getDummyValuesCollectorForModule(b.module)
+          .getDummyValuesCollectorForModule(b.moduleBuilder)
           .instantiateDummyValue(b, sentinelType);
       return sentinelType;
     }
@@ -676,7 +676,9 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     return createConstant(constant, info.nonNullableType, (b) {
       b.pushObjectHeaderFields(translator, info);
       translator.globals.readGlobal(
-          b, translator.getInternalizedStringGlobal(b.module, constant.value));
+          b,
+          translator.getInternalizedStringGlobal(
+              b.moduleBuilder, constant.value));
       b.struct_new(info.struct);
     });
   }
@@ -1065,7 +1067,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
         // global. In order for a function to use a ref.func, the function must
         // be declared in a global (or via the element section).
         if (lazy) {
-          final global = b.module.globals
+          final global = b.moduleBuilder.globals
               .define(w.GlobalType(w.RefType(function.type, nullable: false)));
           global.initializer
             ..ref_func(function)
@@ -1080,7 +1082,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
           w.FunctionType signature, w.BaseFunction tearOffFunction) {
         assert(tearOffFunction.type.inputs.length ==
             signature.inputs.length + types.length);
-        final function = b.module.functions
+        final function = b.moduleBuilder.functions
             .define(signature, "instantiation constant trampoline");
         final b2 = function.body;
         b2.local_get(function.locals[0]);
@@ -1109,7 +1111,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
           //   - non-generic callers
           // => We make a dummy entry which is unreachable.
           function = translator
-              .getDummyValuesCollectorForModule(b.module)
+              .getDummyValuesCollectorForModule(b.moduleBuilder)
               .getDummyFunction(signature);
         } else {
           final int tearOffFieldIndex = tearOffRepresentation
@@ -1117,13 +1119,13 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
           w.BaseFunction tearOffFunction = tearOffClosure.functions[
               tearOffFieldIndex - tearOffRepresentation.vtableBaseIndex];
           if (translator
-              .getDummyValuesCollectorForModule(b.module)
+              .getDummyValuesCollectorForModule(b.moduleBuilder)
               .isDummyFunction(tearOffFunction)) {
             // This name combination may not exist for the target, but got
             // clustered together with other name combinations that do exist.
             // => We make a dummy entry which is unreachable.
             function = translator
-                .getDummyValuesCollectorForModule(b.module)
+                .getDummyValuesCollectorForModule(b.moduleBuilder)
                 .getDummyFunction(signature);
           } else {
             function = makeTrampoline(signature, tearOffFunction);

@@ -8,7 +8,7 @@ import 'util.dart';
 
 /// The interface for the tags in a module.
 class TagsBuilder with Builder<ir.Tags> {
-  final ModuleBuilder _module;
+  final ir.Module _module;
   final List<ir.DefinedTag> _defined = [];
   final List<ir.ImportedTag> _imported = [];
 

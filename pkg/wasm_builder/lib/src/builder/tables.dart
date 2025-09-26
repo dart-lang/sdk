@@ -8,7 +8,7 @@ import 'util.dart';
 
 /// The interface for the tables in a module.
 class TablesBuilder with Builder<ir.Tables> {
-  final ModuleBuilder _module;
+  final ir.Module _module;
   final _tableBuilders = <TableBuilder>[];
   final _importedTables = <ir.ImportedTable>[];
 

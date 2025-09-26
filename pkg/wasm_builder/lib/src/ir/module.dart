@@ -9,32 +9,76 @@ import 'ir.dart';
 
 /// A logically const wasm module ready to encode. Created with `ModuleBuilder`.
 class Module implements Serializable {
-  final String moduleName;
-  final Functions functions;
-  final Tables tables;
-  final Tags tags;
-  final Memories memories;
-  final Exports exports;
-  final Globals globals;
-  final Types types;
-  final DataSegments dataSegments;
-  final List<Import> imports;
-  final List<int> watchPoints;
-  final Uri? sourceMapUrl;
+  // The [Module] object represents a collection of many wasm objects. Some of
+  // those will have back pointers to this [Module]. That means the data
+  // structures are cyclic.
+  //
+  // (This is similar to how Kernel AST nodes have children and those children
+  // have back pointers to the parent).
+  //
+  // To break the cycle when constructing the objects, we create the [Module] in
+  // uninitialized form, then create the constitutents and finally initialize the
+  // module with the constitutents.
+  bool _initialized = false;
 
-  Module(
-      this.moduleName,
-      this.sourceMapUrl,
-      this.functions,
-      this.tables,
-      this.tags,
-      this.memories,
-      this.exports,
-      this.globals,
-      this.types,
-      this.dataSegments,
-      this.imports,
-      this.watchPoints);
+  late final String _moduleName;
+  late final Functions _functions;
+  late final Tables _tables;
+  late final Tags _tags;
+  late final Memories _memories;
+  late final Exports _exports;
+  late final Globals _globals;
+  late final Types _types;
+  late final DataSegments _dataSegments;
+  late final List<Import> _imports;
+  late final List<int> _watchPoints;
+  late final Uri? _sourceMapUrl;
+
+  Module.uninitialized() : _initialized = false;
+
+  void initialize(
+    String moduleName,
+    Functions functions,
+    Tables tables,
+    Tags tags,
+    Memories memories,
+    Exports exports,
+    Globals globals,
+    Types types,
+    DataSegments dataSegments,
+    List<Import> imports,
+    List<int> watchPoints,
+    Uri? sourceMapUrl,
+  ) {
+    if (_initialized) throw 'Already initialized';
+
+    _initialized = true;
+    _moduleName = moduleName;
+    _functions = functions;
+    _tables = tables;
+    _tags = tags;
+    _memories = memories;
+    _exports = exports;
+    _globals = globals;
+    _types = types;
+    _dataSegments = dataSegments;
+    _imports = imports;
+    _watchPoints = watchPoints;
+    _sourceMapUrl = sourceMapUrl;
+  }
+
+  String get moduleName => _moduleName;
+  Functions get functions => _functions;
+  Tables get tables => _tables;
+  Tags get tags => _tags;
+  Memories get memories => _memories;
+  Exports get exports => _exports;
+  Globals get globals => _globals;
+  Types get types => _types;
+  DataSegments get dataSegments => _dataSegments;
+  List<Import> get imports => _imports;
+  List<int> get watchPoints => _watchPoints;
+  Uri? get sourceMapUrl => _sourceMapUrl;
 
   /// Serialize a module to its binary representation.
   @override
