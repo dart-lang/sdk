@@ -131,6 +131,10 @@ class ElementUsageDetector<TagInfo extends Object> {
     _invocationArguments(node.constructorName.element, node.argumentList);
   }
 
+  void dotShorthandInvocation(DotShorthandInvocation node) {
+    _invocationArguments(node.memberName.element, node.argumentList);
+  }
+
   void exportDirective(ExportDirective node) {
     checkUsage(node.libraryExport?.exportedLibrary, node);
   }
