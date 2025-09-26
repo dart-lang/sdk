@@ -5773,6 +5773,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -5782,6 +5783,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M3
   requirements
 [operation] analyzeFile
@@ -5813,6 +5815,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredFields
@@ -5883,6 +5886,7 @@ class B extends A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -5892,6 +5896,7 @@ class B extends A {}
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       B: #M3
         interface: #M4
@@ -5950,6 +5955,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredFields
@@ -5978,6 +5984,7 @@ class A {
     actualId: #M11
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     declaredClasses
       B: #M3
         interface: #M12
@@ -6072,6 +6079,7 @@ class B extends A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -6081,6 +6089,7 @@ class B extends A {}
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       B: #M3
         interface: #M4
@@ -6139,6 +6148,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredFields
@@ -6161,6 +6171,7 @@ class A {
     actual: true
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     declaredClasses
       B: #M3
         interface: #M4
@@ -6242,6 +6253,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -6259,6 +6271,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
   requirements
 [operation] analyzeFile
@@ -6305,6 +6318,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredFields
@@ -6390,6 +6404,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -6411,6 +6426,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M7
   requirements
 [operation] analyzeFile
@@ -6458,6 +6474,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredFields
@@ -6512,6 +6529,7 @@ class B extends A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -6529,6 +6547,7 @@ class B extends A {}
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       B: #M5
         interface: #M6
@@ -6578,6 +6597,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredFields
@@ -6606,6 +6626,7 @@ class A {
     actualId: #M11
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     declaredClasses
       B: #M5
         interface: #M12
@@ -6673,6 +6694,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -6690,6 +6712,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
   requirements
 [operation] analyzeFile
@@ -6736,6 +6759,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredFields
@@ -6822,6 +6846,7 @@ class B extends A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -6843,6 +6868,7 @@ class B extends A {}
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       B: #M6
         interface: #M7
@@ -6922,6 +6948,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredFields
@@ -6950,6 +6977,7 @@ class A {
     actualId: #M13
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     declaredClasses
       B: #M6
         interface: #M14
@@ -7051,6 +7079,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -7068,6 +7097,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
   requirements
 [operation] analyzeFile
@@ -7116,6 +7146,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredFields
@@ -7202,6 +7233,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -7219,6 +7251,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
   requirements
 [operation] analyzeFile
@@ -7265,6 +7298,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredFields
@@ -7350,6 +7384,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -7371,6 +7406,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M7
   requirements
 [operation] analyzeFile
@@ -7418,6 +7454,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredFields
@@ -7473,6 +7510,7 @@ void f(A a) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -7490,6 +7528,7 @@ void f(A a) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M5
     exportMapId: #M6
@@ -7548,6 +7587,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredFields
@@ -7635,6 +7675,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -7658,6 +7699,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M7
     exportMapId: #M8
@@ -7708,6 +7750,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredFields
@@ -7795,6 +7838,7 @@ void f(A a) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -7816,6 +7860,7 @@ void f(A a) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M7
     exportMapId: #M8
@@ -7874,6 +7919,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredFields
@@ -7926,6 +7972,7 @@ void f(B b) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -7955,6 +8002,7 @@ void f(B b) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M7
     exportMapId: #M8
@@ -8010,6 +8058,7 @@ class B extends A<double> {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredFields
@@ -8046,6 +8095,7 @@ class B extends A<double> {}
     actualId: #M10
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     declaredFunctions
       f: #M13
     exportMapId: #M14
@@ -8122,6 +8172,7 @@ void f(B b) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -8146,6 +8197,7 @@ void f(B b) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M7
     exportMapId: #M8
@@ -8201,6 +8253,7 @@ class B implements A<double> {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredFields
@@ -8232,6 +8285,7 @@ class B implements A<double> {}
     actualId: #M10
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     declaredFunctions
       f: #M13
     exportMapId: #M14
@@ -8308,6 +8362,7 @@ void f(B b) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -8337,6 +8392,7 @@ void f(B b) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M7
     exportMapId: #M8
@@ -8392,6 +8448,7 @@ class B with A<double> {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredFields
@@ -8428,6 +8485,7 @@ class B with A<double> {}
     actualId: #M10
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     declaredFunctions
       f: #M13
     exportMapId: #M14
@@ -8508,6 +8566,7 @@ void f (B b) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -8556,6 +8615,7 @@ void f (B b) {
 [status] working
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -8609,6 +8669,7 @@ class B extends A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -8624,6 +8685,7 @@ class B extends A {}
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       B: #M4
         interface: #M5
@@ -8673,6 +8735,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredMethods
@@ -8698,6 +8761,7 @@ class A {
     actualId: #M9
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     declaredClasses
       B: #M4
         interface: #M10
@@ -8765,6 +8829,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -8780,6 +8845,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M4
   requirements
 [operation] analyzeFile
@@ -8826,6 +8892,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredMethods
@@ -8915,6 +8982,7 @@ class B implements A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -8924,6 +8992,7 @@ class B implements A {}
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       B: #M3
         interface: #M4
@@ -8979,6 +9048,7 @@ abstract class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredFields
@@ -9001,6 +9071,7 @@ abstract class A {
     actualId: #M9
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     declaredClasses
       B: #M3
         interface: #M10
@@ -9084,6 +9155,7 @@ void f(A a) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -9093,6 +9165,7 @@ void f(A a) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M3
     exportMapId: #M4
@@ -9152,6 +9225,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredMethods
@@ -9224,6 +9298,7 @@ class B extends A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -9242,6 +9317,7 @@ class B extends A {}
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       B: #M5
         interface: #M6
@@ -9319,6 +9395,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredMethods
@@ -9344,6 +9421,7 @@ class A {
     actualId: #M11
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     declaredClasses
       B: #M5
         interface: #M12
@@ -9447,6 +9525,7 @@ class X extends C {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -9485,6 +9564,7 @@ class X extends C {}
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       X: #M10
         interface: #M11
@@ -9571,6 +9651,7 @@ class C extends A implements B {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredMethods
@@ -9616,6 +9697,7 @@ class C extends A implements B {}
     actualId: #M17
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     declaredClasses
       X: #M10
         interface: #M19
@@ -9725,6 +9807,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -9745,6 +9828,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M6
   requirements
 [operation] analyzeFile
@@ -9779,6 +9863,7 @@ abstract class B extends A {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredMethods
@@ -9852,6 +9937,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -9867,6 +9953,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M4
   requirements
 [operation] analyzeFile
@@ -9913,6 +10000,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredMethods
@@ -9996,6 +10084,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -10014,6 +10103,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
   requirements
 [operation] analyzeFile
@@ -10061,6 +10151,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredMethods
@@ -10123,6 +10214,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -10145,6 +10237,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M7
   requirements
 [operation] analyzeFile
@@ -10180,6 +10273,7 @@ abstract class B extends A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredMethods
@@ -10263,6 +10357,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -10292,6 +10387,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M9
   requirements
 [operation] analyzeFile
@@ -10329,6 +10425,7 @@ abstract class C extends B {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredMethods
@@ -10385,6 +10482,7 @@ void f(A a) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -10400,6 +10498,7 @@ void f(A a) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M4
     exportMapId: #M5
@@ -10454,6 +10553,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredMethods
@@ -10532,6 +10632,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -10549,6 +10650,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M5
     exportMapId: #M6
@@ -10593,6 +10695,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredMethods
@@ -10677,6 +10780,7 @@ void f(B b) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -10723,6 +10827,7 @@ void f(B b) {
 [status] working
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -10788,6 +10893,7 @@ void f(B b) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       B: #M0
         interface: #M1
@@ -10795,6 +10901,7 @@ void f(B b) {
     exportMap
       B: #M0
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M3
         declaredMethods
@@ -10847,6 +10954,7 @@ void f(B b) {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       B: #M0
         interface: #M1
@@ -10854,6 +10962,7 @@ void f(B b) {
     exportMap
       B: #M0
   package:test/test.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M3
         declaredMethods
@@ -10926,6 +11035,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -10939,6 +11049,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M4
   requirements
 [operation] analyzeFile
@@ -10971,6 +11082,7 @@ abstract class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredMethods
@@ -11041,6 +11153,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -11056,6 +11169,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M4
   requirements
 [operation] analyzeFile
@@ -11088,6 +11202,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredMethods
@@ -11160,6 +11275,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -11175,6 +11291,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M4
   requirements
 [operation] analyzeFile
@@ -11207,6 +11324,7 @@ abstract class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredMethods
@@ -11277,6 +11395,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -11290,6 +11409,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M4
   requirements
 [operation] analyzeFile
@@ -11322,6 +11442,7 @@ abstract class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredMethods
@@ -11394,6 +11515,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -11409,6 +11531,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M4
   requirements
 [operation] analyzeFile
@@ -11442,6 +11565,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredMethods
@@ -11499,6 +11623,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -11526,6 +11651,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M6
   requirements
 [operation] analyzeFile
@@ -11560,6 +11686,7 @@ class B extends A {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredMethods
@@ -11652,6 +11779,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -11679,6 +11807,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M6
   requirements
 [operation] analyzeFile
@@ -11714,6 +11843,7 @@ class B extends A {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredMethods
@@ -11781,6 +11911,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -11794,6 +11925,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M4
   requirements
 [operation] analyzeFile
@@ -11827,6 +11959,7 @@ abstract class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredMethods
@@ -11870,6 +12003,7 @@ void f(A a) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -11888,6 +12022,7 @@ void f(A a) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M5
     exportMapId: #M6
@@ -11943,6 +12078,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredMethods
@@ -11998,6 +12134,7 @@ void f(C c) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -12037,6 +12174,7 @@ void f(C c) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M8
     exportMapId: #M9
@@ -12090,6 +12228,7 @@ class C extends B {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredMethods
@@ -12136,6 +12275,7 @@ class C extends B {}
     actualId: #M13
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     declaredFunctions
       f: #M16
     exportMapId: #M17
@@ -12208,6 +12348,7 @@ void f(B b) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -12235,6 +12376,7 @@ void f(B b) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M6
     exportMapId: #M7
@@ -12286,6 +12428,7 @@ class B extends A<double> {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredMethods
@@ -12320,6 +12463,7 @@ class B extends A<double> {}
     actualId: #M9
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     declaredFunctions
       f: #M12
     exportMapId: #M13
@@ -12392,6 +12536,7 @@ void f(B b) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -12414,6 +12559,7 @@ void f(B b) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M6
     exportMapId: #M7
@@ -12465,6 +12611,7 @@ class B implements A<double> {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredMethods
@@ -12494,6 +12641,7 @@ class B implements A<double> {}
     actualId: #M9
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     declaredFunctions
       f: #M12
     exportMapId: #M13
@@ -12566,6 +12714,7 @@ void f(B b) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -12593,6 +12742,7 @@ void f(B b) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M6
     exportMapId: #M7
@@ -12644,6 +12794,7 @@ class B with A<double> {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredMethods
@@ -12678,6 +12829,7 @@ class B with A<double> {}
     actualId: #M9
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     declaredFunctions
       f: #M12
     exportMapId: #M13
@@ -12754,6 +12906,7 @@ void f (B b) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -12800,6 +12953,7 @@ void f (B b) {
 [status] working
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -12853,6 +13007,7 @@ void f(A a) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -12868,6 +13023,7 @@ void f(A a) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M4
     exportMapId: #M5
@@ -12915,6 +13071,7 @@ class A {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         interface: #M7
@@ -12988,6 +13145,7 @@ void f(A a) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -12997,6 +13155,7 @@ void f(A a) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M3
     exportMapId: #M4
@@ -13065,6 +13224,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredFields
@@ -13150,6 +13310,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -13171,6 +13332,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M6
   requirements
 [operation] analyzeFile
@@ -13220,6 +13382,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredFields
@@ -13310,6 +13473,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -13327,6 +13491,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
   requirements
 [operation] analyzeFile
@@ -13373,6 +13538,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredFields
@@ -13458,6 +13624,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -13479,6 +13646,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M7
   requirements
 [operation] analyzeFile
@@ -13526,6 +13694,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredFields
@@ -13581,6 +13750,7 @@ void f(A a) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -13598,6 +13768,7 @@ void f(A a) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M5
     exportMapId: #M6
@@ -13656,6 +13827,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredFields
@@ -13743,6 +13915,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -13766,6 +13939,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M7
     exportMapId: #M8
@@ -13816,6 +13990,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredFields
@@ -13903,6 +14078,7 @@ void f(A a) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -13924,6 +14100,7 @@ void f(A a) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M7
     exportMapId: #M8
@@ -13983,6 +14160,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredFields
@@ -14039,6 +14217,7 @@ void f(B b) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -14068,6 +14247,7 @@ void f(B b) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M7
     exportMapId: #M8
@@ -14123,6 +14303,7 @@ class B extends A<double> {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredFields
@@ -14159,6 +14340,7 @@ class B extends A<double> {}
     actualId: #M10
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     declaredFunctions
       f: #M13
     exportMapId: #M14
@@ -14235,6 +14417,7 @@ void f(B b) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -14259,6 +14442,7 @@ void f(B b) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M7
     exportMapId: #M8
@@ -14314,6 +14498,7 @@ class B implements A<double> {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredFields
@@ -14345,6 +14530,7 @@ class B implements A<double> {}
     actualId: #M10
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     declaredFunctions
       f: #M13
     exportMapId: #M14
@@ -14421,6 +14607,7 @@ void f(B b) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -14450,6 +14637,7 @@ void f(B b) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M7
     exportMapId: #M8
@@ -14505,6 +14693,7 @@ class B with A<double> {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredFields
@@ -14541,6 +14730,7 @@ class B with A<double> {}
     actualId: #M10
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     declaredFunctions
       f: #M13
     exportMapId: #M14
@@ -14621,6 +14811,7 @@ void f (B b) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -14669,6 +14860,7 @@ void f (B b) {
 [status] working
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -14723,6 +14915,7 @@ void f(A a) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -14740,6 +14933,7 @@ void f(A a) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M5
     exportMapId: #M6
@@ -14796,6 +14990,7 @@ class A {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         interface: #M8
@@ -14882,6 +15077,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -14899,6 +15095,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
   requirements
 [operation] analyzeFile
@@ -14945,6 +15142,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredFields
@@ -15024,10 +15222,12 @@ A foo() {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     exportMapId: #M0
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       foo: #M1
     exportMapId: #M2
@@ -15076,6 +15276,7 @@ class A {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M4
         interface: #M5
@@ -15092,6 +15293,7 @@ class A {}
     actualId: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     declaredFunctions
       foo: #M7
     exportMapId: #M8
@@ -15162,6 +15364,7 @@ A foo() {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -15171,6 +15374,7 @@ A foo() {}
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       foo: #M3
     exportMapId: #M4
@@ -15224,6 +15428,7 @@ class B {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         interface: #M1
@@ -15267,6 +15472,7 @@ A foo() {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -15279,6 +15485,7 @@ A foo() {}
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       foo: #M5
     exportMapId: #M6
@@ -15332,6 +15539,7 @@ class B {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M8
         interface: #M9
@@ -15351,6 +15559,7 @@ class B {}
     actualId: #M8
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     declaredFunctions
       foo: #M11
     exportMapId: #M12
@@ -15423,6 +15632,7 @@ A foo() {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -15438,6 +15648,7 @@ A foo() {}
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       foo: #M7
     exportMapId: #M8
@@ -15492,6 +15703,7 @@ class C {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         interface: #M1
@@ -15537,6 +15749,7 @@ A foo() => throw 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -15546,6 +15759,7 @@ A foo() => throw 0;
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       foo: #M3
     exportMapId: #M4
@@ -15592,6 +15806,7 @@ A foo() => throw 0;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     exportMapId: #M6
   requirements
 [operation] checkLinkedBundleRequirements
@@ -15603,6 +15818,7 @@ A foo() => throw 0;
     actualId: <null>
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     declaredFunctions
       foo: #M7
     exportMapId: #M8
@@ -15670,6 +15886,7 @@ A foo() => throw 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -15682,6 +15899,7 @@ A foo() => throw 0;
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       foo: #M5
     exportMapId: #M6
@@ -15730,6 +15948,7 @@ class A {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         interface: #M1
@@ -15772,6 +15991,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -15783,6 +16003,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M4
     exportMapId: #M5
@@ -15833,6 +16054,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredConstructors
@@ -15902,6 +16124,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -15911,6 +16134,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M3
   requirements
 [operation] analyzeFile
@@ -15949,6 +16173,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredConstructors
@@ -16022,6 +16247,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -16034,6 +16260,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
   requirements
 [operation] analyzeFile
@@ -16080,6 +16307,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredConstructors
@@ -16158,6 +16386,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -16169,6 +16398,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M4
   requirements
 [operation] analyzeFile
@@ -16215,6 +16445,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredConstructors
@@ -16294,6 +16525,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -16306,6 +16538,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
   requirements
 [operation] analyzeFile
@@ -16353,6 +16586,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredConstructors
@@ -16404,6 +16638,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -16416,6 +16651,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
   requirements
 [operation] analyzeFile
@@ -16463,6 +16699,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredConstructors
@@ -16510,6 +16747,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -16521,6 +16759,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M4
     exportMapId: #M5
@@ -16562,6 +16801,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredConstructors
@@ -16635,6 +16875,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -16658,6 +16899,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M7
     exportMapId: #M8
@@ -16708,6 +16950,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredFields
@@ -16796,6 +17039,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -16813,6 +17057,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M5
     exportMapId: #M6
@@ -16857,6 +17102,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredMethods
@@ -16933,6 +17179,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -16944,6 +17191,7 @@ class B extends A {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       B: #M4
         declaredConstructors
@@ -17013,6 +17261,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredConstructors
@@ -17032,6 +17281,7 @@ class A {
     actualId: #M9
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     declaredClasses
       B: #M4
         declaredConstructors
@@ -17124,6 +17374,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -17136,6 +17387,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M5
     exportMapId: #M6
@@ -17178,6 +17430,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredConstructors
@@ -17224,6 +17477,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -17236,6 +17490,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M5
     exportMapId: #M6
@@ -17277,6 +17532,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredConstructors
@@ -17354,6 +17610,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -17367,6 +17624,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
   requirements
 [operation] analyzeFile
@@ -17413,6 +17671,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredFields
@@ -17492,6 +17751,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -17505,6 +17765,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M5
     exportMapId: #M6
@@ -17557,6 +17818,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredFields
@@ -17638,6 +17900,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -17653,6 +17916,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M7
     exportMapId: #M8
@@ -17706,6 +17970,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredFields
@@ -17753,6 +18018,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -17764,6 +18030,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M4
     exportMapId: #M5
@@ -17816,6 +18083,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredMethods
@@ -17895,6 +18163,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -17907,6 +18176,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M5
     exportMapId: #M6
@@ -17960,6 +18230,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredMethods
@@ -18004,6 +18275,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -18017,6 +18289,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M5
     exportMapId: #M6
@@ -18065,6 +18338,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredFields
@@ -18142,6 +18416,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -18157,6 +18432,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M7
     exportMapId: #M8
@@ -18206,6 +18482,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredFields
@@ -18258,6 +18535,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -18270,6 +18548,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
   requirements
 [operation] analyzeFile
@@ -18316,6 +18595,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredConstructors
@@ -18396,6 +18676,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -18407,6 +18688,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M4
   requirements
 [operation] analyzeFile
@@ -18492,6 +18774,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -18503,6 +18786,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M4
     exportMapId: #M5
@@ -18544,6 +18828,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredConstructors
@@ -18615,6 +18900,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -18627,6 +18913,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M5
     exportMapId: #M6
@@ -18669,6 +18956,7 @@ class A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredConstructors
@@ -18716,6 +19004,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -18736,6 +19025,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M8
     exportMapId: #M9
@@ -18779,6 +19069,7 @@ class B = A with M;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredConstructors
@@ -18856,6 +19147,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredEnums
       A: #M0
         declaredFields
@@ -18880,6 +19172,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M8
     exportMapId: #M9
@@ -18933,6 +19226,7 @@ enum A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredEnums
       A: #M0
         declaredFields
@@ -19025,6 +19319,7 @@ void f(A a) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredEnums
       A: #M0
         declaredFields
@@ -19053,6 +19348,7 @@ void f(A a) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M10
     exportMapId: #M11
@@ -19112,6 +19408,7 @@ enum A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredEnums
       A: #M0
         declaredFields
@@ -19207,6 +19504,7 @@ void f(A a) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredEnums
       A: #M0
         declaredFields
@@ -19239,6 +19537,7 @@ void f(A a) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M12
     exportMapId: #M13
@@ -19299,6 +19598,7 @@ enum A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredEnums
       A: #M0
         declaredFields
@@ -19364,6 +19664,7 @@ void f(A a) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredEnums
       A: #M0
         declaredFields
@@ -19392,6 +19693,7 @@ void f(A a) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M9
     exportMapId: #M10
@@ -19447,6 +19749,7 @@ enum A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredEnums
       A: #M0
         declaredFields
@@ -19538,6 +19841,7 @@ void f(A a) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredEnums
       A: #M0
         declaredFields
@@ -19569,6 +19873,7 @@ void f(A a) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M10
     exportMapId: #M11
@@ -19625,6 +19930,7 @@ enum A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredEnums
       A: #M0
         declaredFields
@@ -19689,6 +19995,7 @@ void f(A a) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredEnums
       A: #M0
         declaredFields
@@ -19718,6 +20025,7 @@ void f(A a) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M10
     exportMapId: #M11
@@ -19777,6 +20085,7 @@ enum A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredEnums
       A: #M0
         declaredFields
@@ -19873,6 +20182,7 @@ void f(A a) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredEnums
       A: #M0
         declaredFields
@@ -19906,6 +20216,7 @@ void f(A a) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M12
     exportMapId: #M13
@@ -19966,6 +20277,7 @@ enum A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredEnums
       A: #M0
         declaredFields
@@ -20032,6 +20344,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredEnums
       A: #M0
         declaredFields
@@ -20058,6 +20371,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M10
     exportMapId: #M11
@@ -20111,6 +20425,7 @@ enum A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredEnums
       A: #M0
         declaredFields
@@ -20206,6 +20521,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredEnums
       A: #M0
         declaredFields
@@ -20234,6 +20550,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M12
     exportMapId: #M13
@@ -20288,6 +20605,7 @@ enum A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredEnums
       A: #M0
         declaredFields
@@ -20349,6 +20667,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredEnums
       A: #M0
         declaredFields
@@ -20375,6 +20694,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M9
     exportMapId: #M10
@@ -20428,6 +20748,7 @@ enum A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredEnums
       A: #M0
         declaredFields
@@ -20523,6 +20844,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredEnums
       A: #M0
         declaredFields
@@ -20550,6 +20872,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M10
     exportMapId: #M11
@@ -20604,6 +20927,7 @@ enum A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredEnums
       A: #M0
         declaredFields
@@ -20664,6 +20988,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredEnums
       A: #M0
         declaredFields
@@ -20691,6 +21016,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M10
     exportMapId: #M11
@@ -20740,6 +21066,7 @@ enum A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredEnums
       A: #M0
         declaredFields
@@ -20832,6 +21159,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredEnums
       A: #M0
         declaredFields
@@ -20861,6 +21189,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M12
     exportMapId: #M13
@@ -20911,6 +21240,7 @@ enum A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredEnums
       A: #M0
         declaredFields
@@ -20971,6 +21301,7 @@ export 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -20983,6 +21314,7 @@ export 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
     exportMap
       A: #M0
@@ -21014,6 +21346,7 @@ class _B2 {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         interface: #M1
@@ -21057,6 +21390,7 @@ class C {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -21069,6 +21403,7 @@ class C {}
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       B: #M5
         interface: #M6
@@ -21120,6 +21455,7 @@ class C {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         interface: #M1
@@ -21176,6 +21512,7 @@ class B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -21188,6 +21525,7 @@ class B {}
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       B: #M5
         interface: #M6
@@ -21231,6 +21569,7 @@ class C {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         interface: #M1
@@ -21254,6 +21593,7 @@ class C {}
     actualId: #M8
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     declaredClasses
       B: #M5
         interface: #M6
@@ -21317,6 +21657,7 @@ export 'b.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A1: #M0
         interface: #M1
@@ -21332,6 +21673,7 @@ export 'b.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/b.dart
+    hashForRequirements: #H1
     declaredClasses
       B: #M7
         interface: #M8
@@ -21357,6 +21699,7 @@ export 'b.dart';
             A3: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H2
     exportMapId: #M10
     exportMap
       A1: #M0
@@ -21403,6 +21746,7 @@ class A3 {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H3
     declaredClasses
       A2: #M11
         interface: #M12
@@ -21423,6 +21767,7 @@ class A3 {}
     actualId: #M11
 [operation] linkLibraryCycle
   package:test/b.dart
+    hashForRequirements: #H4
     declaredClasses
       B: #M7
         interface: #M8
@@ -21453,6 +21798,7 @@ class A3 {}
     actualId: #M11
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H5
     exportMapId: #M15
     exportMap
       A2: #M11
@@ -21510,6 +21856,7 @@ export 'b.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A1: #M0
         interface: #M1
@@ -21523,6 +21870,7 @@ export 'b.dart';
       A2: #M2
       A3: #M4
   package:test/b.dart
+    hashForRequirements: #H1
     declaredClasses
       B: #M7
         interface: #M8
@@ -21538,6 +21886,7 @@ export 'b.dart';
       A3: #M4
     exportedLibraryUris: package:test/a.dart
   package:test/test.dart
+    hashForRequirements: #H2
     exportMapId: #M10
     exportMap
       A1: #M0
@@ -21567,6 +21916,7 @@ class A3 {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H3
     declaredClasses
       A2: #M11
         interface: #M12
@@ -21577,6 +21927,7 @@ class A3 {}
       A2: #M11
       A3: #M4
   package:test/b.dart
+    hashForRequirements: #H4
     declaredClasses
       B: #M7
         interface: #M8
@@ -21590,6 +21941,7 @@ class A3 {}
       A3: #M4
     exportedLibraryUris: package:test/a.dart
   package:test/test.dart
+    hashForRequirements: #H5
     exportMapId: #M15
     exportMap
       A2: #M11
@@ -21630,6 +21982,7 @@ export 'b.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -21639,6 +21992,7 @@ export 'b.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/b.dart
+    hashForRequirements: #H1
     declaredClasses
       B: #M3
         interface: #M4
@@ -21660,6 +22014,7 @@ export 'b.dart';
             A: #M0
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H2
     exportMapId: #M6
     exportMap
       A: #M0
@@ -21696,6 +22051,7 @@ class A2 {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H3
     declaredClasses
       A: #M0
         interface: #M1
@@ -21741,6 +22097,7 @@ export 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredEnums
       E: #M0
         declaredFields
@@ -21783,6 +22140,7 @@ export 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M14
     exportMap
       E: #M0
@@ -21814,6 +22172,7 @@ enum _E2 {v}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredEnums
       E: #M0
         declaredFields
@@ -21885,6 +22244,7 @@ export 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       E: #M0
       _E: #M1
@@ -21896,6 +22256,7 @@ export 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M3
     exportMap
       E: #M0
@@ -21928,6 +22289,7 @@ extension _E2 on int {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       E: #M0
       _E2: #M4
@@ -21971,6 +22333,7 @@ export 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -21989,6 +22352,7 @@ export 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M4
     exportMap
       E: #M0
@@ -22023,6 +22387,7 @@ extension E on int {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -22080,6 +22445,7 @@ export 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -22104,6 +22470,7 @@ export 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M6
     exportMap
       E: #M0
@@ -22138,6 +22505,7 @@ extension E on int {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -22195,6 +22563,7 @@ export 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -22219,6 +22588,7 @@ export 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M6
     exportMap
       E: #M0
@@ -22252,6 +22622,7 @@ extension E on int {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -22300,6 +22671,7 @@ export 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       E1: #M0
         extendedType: int @ dart:core
@@ -22310,6 +22682,7 @@ export 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M2
     exportMap
       E1: #M0
@@ -22342,6 +22715,7 @@ extension E2 on int {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       E1: #M0
         extendedType: int @ dart:core
@@ -22363,6 +22737,7 @@ extension E2 on int {}
     actualId: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     exportMapId: #M5
     exportMap
       E1: #M0
@@ -22412,6 +22787,7 @@ export 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       E1: #M0
         extendedType: int @ dart:core
@@ -22425,6 +22801,7 @@ export 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M3
     exportMap
       E1: #M0
@@ -22461,6 +22838,7 @@ extension E1 on int {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       E1: #M0
         extendedType: int @ dart:core
@@ -22478,6 +22856,7 @@ extension E1 on int {}
     actual: 1
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     exportMapId: #M5
     exportMap
       E1: #M0
@@ -22523,6 +22902,7 @@ export 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -22538,6 +22918,7 @@ export 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M3
     exportMap
       E: #M0
@@ -22572,6 +22953,7 @@ extension E on int {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -22624,6 +23006,7 @@ export 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -22643,6 +23026,7 @@ export 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M4
     exportMap
       E: #M0
@@ -22677,6 +23061,7 @@ extension E on int {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -22731,6 +23116,7 @@ export 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -22750,6 +23136,7 @@ export 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M4
     exportMap
       E: #M0
@@ -22783,6 +23170,7 @@ extension E on int {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -22830,6 +23218,7 @@ export 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -22851,6 +23240,7 @@ export 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M4
     exportMap
       E: #M0
@@ -22885,6 +23275,7 @@ extension E on int {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -22948,6 +23339,7 @@ export 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -22978,6 +23370,7 @@ export 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M6
     exportMap
       E: #M0
@@ -23012,6 +23405,7 @@ extension E on int {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -23075,6 +23469,7 @@ export 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -23105,6 +23500,7 @@ export 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M6
     exportMap
       E: #M0
@@ -23138,6 +23534,7 @@ extension E on int {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -23188,6 +23585,7 @@ export 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       E: #M0
         declaredFields
@@ -23216,6 +23614,7 @@ export 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M9
     exportMap
       E: #M0
@@ -23247,6 +23646,7 @@ extension type _E2(int it) {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensionTypes
       E: #M0
         declaredFields
@@ -23304,6 +23704,7 @@ export 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredMixins
       M: #M0
         interface: #M1
@@ -23316,6 +23717,7 @@ export 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
     exportMap
       M: #M0
@@ -23347,6 +23749,7 @@ mixin _M2 {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredMixins
       M: #M0
         interface: #M1
@@ -23388,6 +23791,7 @@ export ':';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -23398,6 +23802,7 @@ export ':';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M3
     exportMap
       a: #M0
@@ -23428,6 +23833,7 @@ final a = 1;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -23466,6 +23872,7 @@ export 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -23476,6 +23883,7 @@ export 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M3
     exportMap
       a: #M0
@@ -23507,6 +23915,7 @@ final b = 0;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredGetters
       a: #M0
       b: #M4
@@ -23528,6 +23937,7 @@ final b = 0;
     actualId: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     exportMapId: #M7
     exportMap
       a: #M0
@@ -23573,6 +23983,7 @@ export 'a.dart' hide b;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -23583,6 +23994,7 @@ export 'a.dart' hide b;
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M3
     exportMap
       a: #M0
@@ -23616,6 +24028,7 @@ final b = 0;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredGetters
       a: #M0
       b: #M4
@@ -23657,6 +24070,7 @@ export 'a.dart' hide c;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -23667,6 +24081,7 @@ export 'a.dart' hide c;
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M3
     exportMap
       a: #M0
@@ -23700,6 +24115,7 @@ final b = 0;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredGetters
       a: #M0
       b: #M4
@@ -23721,6 +24137,7 @@ final b = 0;
     actualId: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     exportMapId: #M7
     exportMap
       a: #M0
@@ -23768,6 +24185,7 @@ export 'a.dart' show a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -23778,6 +24196,7 @@ export 'a.dart' show a;
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M3
     exportMap
       a: #M0
@@ -23811,6 +24230,7 @@ final b = 0;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredGetters
       a: #M0
       b: #M4
@@ -23852,6 +24272,7 @@ export 'a.dart' show a, b;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -23862,6 +24283,7 @@ export 'a.dart' show a, b;
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M3
     exportMap
       a: #M0
@@ -23895,6 +24317,7 @@ final b = 0;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredGetters
       a: #M0
       b: #M4
@@ -23916,6 +24339,7 @@ final b = 0;
     actualId: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     exportMapId: #M7
     exportMap
       a: #M0
@@ -23963,6 +24387,7 @@ export 'a.dart' show a, b hide c;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -23973,6 +24398,7 @@ export 'a.dart' show a, b hide c;
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M3
     exportMap
       a: #M0
@@ -24007,6 +24433,7 @@ final b = 0;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredGetters
       a: #M0
       b: #M4
@@ -24028,6 +24455,7 @@ final b = 0;
     actualId: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     exportMapId: #M7
     exportMap
       a: #M0
@@ -24076,6 +24504,7 @@ export 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -24086,6 +24515,7 @@ export 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M3
     exportMap
       a: #M0
@@ -24117,6 +24547,7 @@ final _b = 0;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredGetters
       _b: #M4
       a: #M0
@@ -24159,6 +24590,7 @@ export 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
       b: #M1
@@ -24172,6 +24604,7 @@ export 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
     exportMap
       a: #M0
@@ -24207,6 +24640,7 @@ final a = 0;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredGetters
       a: #M0
     declaredVariables
@@ -24224,6 +24658,7 @@ final a = 0;
     actual: 1
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     exportMapId: #M7
     exportMap
       a: #M0
@@ -24265,6 +24700,7 @@ export 'a.dart' show a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
       b: #M1
@@ -24278,6 +24714,7 @@ export 'a.dart' show a;
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
     exportMap
       a: #M0
@@ -24310,6 +24747,7 @@ final a = 0;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredGetters
       a: #M0
     declaredVariables
@@ -24349,6 +24787,7 @@ export 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
       b: #M1
@@ -24362,6 +24801,7 @@ export 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
     exportMap
       a: #M0
@@ -24398,6 +24838,7 @@ final c = 0;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredGetters
       a: #M0
       c: #M6
@@ -24419,6 +24860,7 @@ final c = 0;
     actualId: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     exportMapId: #M9
     exportMap
       a: #M0
@@ -24470,6 +24912,7 @@ final x = a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -24480,6 +24923,7 @@ final x = a;
   requirements
 [operation] linkLibraryCycle
   package:test/b.dart
+    hashForRequirements: #H1
     exportMapId: #M3
     exportMap
       a: #M0
@@ -24494,6 +24938,7 @@ final x = a;
             a: #M0
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H2
     declaredGetters
       x: #M4
     declaredVariables
@@ -24533,6 +24978,7 @@ final a = 1.2;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H3
     declaredGetters
       a: #M7
     declaredVariables
@@ -24551,6 +24997,7 @@ final a = 1.2;
     actualId: #M7
 [operation] linkLibraryCycle
   package:test/b.dart
+    hashForRequirements: #H4
     exportMapId: #M10
     exportMap
       a: #M7
@@ -24572,6 +25019,7 @@ final a = 1.2;
     actualId: #M7
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H5
     declaredGetters
       x: #M11
     declaredVariables
@@ -24620,6 +25068,7 @@ export 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredTypeAliases
       A: #M0
       _A: #M1
@@ -24630,6 +25079,7 @@ export 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M3
     exportMap
       A: #M0
@@ -24661,6 +25111,7 @@ typedef _A2 = int;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredTypeAliases
       A: #M0
       _A2: #M4
@@ -24700,6 +25151,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       E1: #M0
     exportMapId: #M1
@@ -24709,6 +25161,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M2
   requirements
 [operation] analyzeFile
@@ -24746,6 +25199,7 @@ extension E2 on Object {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       E1: #M0
       E2: #M4
@@ -24811,6 +25265,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       E: #M0
     exportMapId: #M1
@@ -24820,6 +25275,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M2
   requirements
 [operation] analyzeFile
@@ -24857,6 +25313,7 @@ extension _E on Object {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       E: #M0
       _E: #M4
@@ -24902,6 +25359,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       E1: #M0
       E2: #M1
@@ -24913,6 +25371,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M3
   requirements
 [operation] analyzeFile
@@ -24949,6 +25408,7 @@ extension E1 on Object {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       E1: #M0
     exportMapId: #M5
@@ -25015,6 +25475,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       E: #M0
         declaredFields
@@ -25032,6 +25493,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M7
     exportMapId: #M8
@@ -25082,6 +25544,7 @@ extension E on Object {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       E: #M0
         declaredFields
@@ -25132,6 +25595,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       E: #M0
         declaredFields
@@ -25147,6 +25611,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M5
     exportMapId: #M6
@@ -25196,6 +25661,7 @@ extension E on Object {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       E: #M0
         declaredFields
@@ -25279,6 +25745,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       A: #M0
         declaredFields
@@ -25292,6 +25759,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensions
       B: #M4
         declaredFields
@@ -25355,6 +25823,7 @@ extension A on Object {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       A: #M0
         declaredFields
@@ -25405,6 +25874,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       E1: #M0
         declaredMethods
@@ -25420,6 +25890,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M5
     exportMapId: #M6
@@ -25472,6 +25943,7 @@ extension E2 on Object {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       E1: #M0
         declaredMethods
@@ -25522,6 +25994,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       E1: #M0
         declaredMethods
@@ -25537,6 +26010,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M5
     exportMapId: #M6
@@ -25589,6 +26063,7 @@ extension E2 on Object {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       E1: #M0
         declaredMethods
@@ -25669,6 +26144,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       E: #M0
         declaredMethods
@@ -25680,6 +26156,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M3
     exportMapId: #M4
@@ -25724,6 +26201,7 @@ extension E on Object {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       E: #M0
         declaredMethods
@@ -25795,6 +26273,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       E: #M0
         declaredFields
@@ -25810,6 +26289,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M5
     exportMapId: #M6
@@ -25859,6 +26339,7 @@ extension E on Object {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       E: #M0
         declaredFields
@@ -25937,6 +26418,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       E1: #M0
         declaredMethods
@@ -25948,6 +26430,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M3
     exportMapId: #M4
@@ -25995,6 +26478,7 @@ extension E2 on int {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       E1: #M0
         declaredMethods
@@ -26072,6 +26556,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       E1: #M0
         declaredMethods
@@ -26083,6 +26568,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M3
     exportMapId: #M4
@@ -26128,6 +26614,7 @@ extension E1 on Object {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       E1: #M0
         declaredMethods
@@ -26172,6 +26659,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       E1: #M0
         declaredMethods
@@ -26183,6 +26671,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M3
     exportMapId: #M4
@@ -26230,6 +26719,7 @@ extension E2 on int {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       E1: #M0
         declaredMethods
@@ -26305,6 +26795,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       E: #M0
     exportMapId: #M1
@@ -26314,6 +26805,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M2
     exportMapId: #M3
@@ -26364,6 +26856,7 @@ extension E on Object {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       E: #M0
         declaredMethods
@@ -26437,6 +26930,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       E1: #M0
         declaredMethods
@@ -26452,6 +26946,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M5
     exportMapId: #M6
@@ -26501,6 +26996,7 @@ extension E1 on Object {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       E1: #M0
         declaredMethods
@@ -26571,6 +27067,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       E1: #M0
         declaredMethods
@@ -26586,6 +27083,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M5
     exportMapId: #M6
@@ -26635,6 +27133,7 @@ extension E1 on Object {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       E1: #M0
         declaredMethods
@@ -26705,6 +27204,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       E1: #M0
         declaredMethods
@@ -26720,6 +27220,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M5
     exportMapId: #M6
@@ -26769,6 +27270,7 @@ extension E1 on Object {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       E1: #M0
         declaredMethods
@@ -26837,6 +27339,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       E1: #M0
         declaredMethods
@@ -26849,6 +27352,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M4
     exportMapId: #M5
@@ -26893,6 +27397,7 @@ extension E1 on Object {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       E1: #M0
         declaredMethods
@@ -26964,6 +27469,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       E1: #M0
         declaredMethods
@@ -26976,6 +27482,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M4
     exportMapId: #M5
@@ -27020,6 +27527,7 @@ extension E1 on Object {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       E1: #M0
         declaredMethods
@@ -27091,6 +27599,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       E1: #M0
         declaredMethods
@@ -27103,6 +27612,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M4
     exportMapId: #M5
@@ -27147,6 +27657,7 @@ extension E1 on Object {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       E1: #M0
         declaredMethods
@@ -27218,6 +27729,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       E1: #M0
         declaredMethods
@@ -27230,6 +27742,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M4
     exportMapId: #M5
@@ -27274,6 +27787,7 @@ extension E1 on Object {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       E1: #M0
         declaredMethods
@@ -27344,6 +27858,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       A: #M0
         declaredFields
@@ -27357,6 +27872,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M4
     exportMapId: #M5
@@ -27405,6 +27921,7 @@ extension A on int {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       A: #M0
         declaredFields
@@ -27482,6 +27999,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       A: #M0
         declaredFields
@@ -27497,6 +28015,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M6
     exportMapId: #M7
@@ -27546,6 +28065,7 @@ extension A on int {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       A: #M0
         declaredFields
@@ -27593,6 +28113,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       A: #M0
         declaredMethods
@@ -27604,6 +28125,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M3
     exportMapId: #M4
@@ -27652,6 +28174,7 @@ extension A on int {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       A: #M0
         declaredMethods
@@ -27727,6 +28250,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       A: #M0
         declaredMethods
@@ -27739,6 +28263,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M4
     exportMapId: #M5
@@ -27788,6 +28313,7 @@ extension A on int {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       A: #M0
         declaredMethods
@@ -27832,6 +28358,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       A: #M0
         declaredFields
@@ -27845,6 +28372,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M4
     exportMapId: #M5
@@ -27893,6 +28421,7 @@ extension A on int {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       A: #M0
         declaredFields
@@ -27970,6 +28499,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       A: #M0
         declaredFields
@@ -27985,6 +28515,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M6
     exportMapId: #M7
@@ -28034,6 +28565,7 @@ extension A on int {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       A: #M0
         declaredFields
@@ -28081,6 +28613,7 @@ void f(A a) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -28102,6 +28635,7 @@ void f(A a) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M7
     exportMapId: #M8
@@ -28160,6 +28694,7 @@ extension type A(int it) {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -28247,6 +28782,7 @@ void f(A a) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -28272,6 +28808,7 @@ void f(A a) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M9
     exportMapId: #M10
@@ -28331,6 +28868,7 @@ extension type A(int it) {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -28388,6 +28926,7 @@ void f(A a) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -28409,6 +28948,7 @@ void f(A a) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M6
     exportMapId: #M7
@@ -28463,6 +29003,7 @@ extension type A(int it) {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -28546,6 +29087,7 @@ void f(A a) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -28570,6 +29112,7 @@ void f(A a) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M7
     exportMapId: #M8
@@ -28625,6 +29168,7 @@ extension type A(int it) {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -28681,6 +29225,7 @@ void f(A a) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -28703,6 +29248,7 @@ void f(A a) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M7
     exportMapId: #M8
@@ -28761,6 +29307,7 @@ extension type A(int it) {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -28849,6 +29396,7 @@ void f(A a) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -28875,6 +29423,7 @@ void f(A a) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M9
     exportMapId: #M10
@@ -28934,6 +29483,7 @@ extension type A(int it) {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -28996,6 +29546,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -29016,6 +29567,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M7
   requirements
 [operation] analyzeFile
@@ -29061,6 +29613,7 @@ extension type A(int it) {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -29146,6 +29699,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -29166,6 +29720,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M7
     exportMapId: #M8
@@ -29212,6 +29767,7 @@ extension type A(int it) {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -29294,6 +29850,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -29314,6 +29871,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M7
     exportMapId: #M8
@@ -29360,6 +29918,7 @@ extension type A(int it) {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -29412,6 +29971,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -29431,6 +29991,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M7
     exportMapId: #M8
@@ -29483,6 +30044,7 @@ extension type A(int it) {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -29570,6 +30132,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -29591,6 +30154,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M9
     exportMapId: #M10
@@ -29644,6 +30208,7 @@ extension type A(int it) {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -29697,6 +30262,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -29716,6 +30282,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M6
     exportMapId: #M7
@@ -29768,6 +30335,7 @@ extension type A(int it) {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -29855,6 +30423,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -29875,6 +30444,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M7
     exportMapId: #M8
@@ -29928,6 +30498,7 @@ extension type A(int it) {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -29980,6 +30551,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -30000,6 +30572,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M7
     exportMapId: #M8
@@ -30048,6 +30621,7 @@ extension type A(int it) {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -30132,6 +30706,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -30154,6 +30729,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M9
     exportMapId: #M10
@@ -30203,6 +30779,7 @@ extension type A(int it) {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -30261,6 +30838,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -30281,6 +30859,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M7
   requirements
 [operation] analyzeFile
@@ -30326,6 +30905,7 @@ extension type A(double it) {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensionTypes
       A: #M9
         declaredFields
@@ -30408,6 +30988,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -30427,6 +31008,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M6
     exportMapId: #M7
@@ -30471,6 +31053,7 @@ extension type A(double it) {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensionTypes
       A: #M9
         declaredFields
@@ -30551,6 +31134,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -30571,6 +31155,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M7
     exportMapId: #M8
@@ -30617,6 +31202,7 @@ extension type A(double it) {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensionTypes
       A: #M10
         declaredFields
@@ -30704,6 +31290,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/x.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -30714,6 +31301,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H1
     exportMapId: #M3
     exportMap
       A: #M0
@@ -30728,6 +31316,7 @@ void f() {
             A: #M0
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H2
     declaredFunctions
       f: #M4
         flags: hasEnclosingTypeParameterReference isSimplyBounded isStatic
@@ -30768,6 +31357,7 @@ export 'x.dart';
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H3
     exportMapId: #M3
     exportMap
       A: #M0
@@ -30844,6 +31434,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/x.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -30854,6 +31445,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H1
     exportMapId: #M3
     exportMap
       A: #M0
@@ -30869,6 +31461,7 @@ void f() {
             A: #M0
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H2
     declaredFunctions
       f: #M4
         flags: hasEnclosingTypeParameterReference isSimplyBounded isStatic
@@ -30912,6 +31505,7 @@ export 'x.dart';
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H3
     exportMapId: #M3
     exportMap
       A: #M0
@@ -30986,6 +31580,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/x.dart
+    hashForRequirements: #H0
     declaredSetters
       foo=: #M0
         flags: hasImplicitReturnType isSimplyBounded isStatic
@@ -31003,6 +31598,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H1
     exportMapId: #M3
     exportMap
       foo=: #M0
@@ -31017,6 +31613,7 @@ void f() {
             foo=: #M0
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H2
     declaredFunctions
       f: #M4
         flags: hasEnclosingTypeParameterReference isSimplyBounded isStatic
@@ -31060,6 +31657,7 @@ export 'x.dart';
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H3
     exportMapId: #M3
     exportMap
       foo=: #M0
@@ -31139,6 +31737,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/x.dart
+    hashForRequirements: #H0
     declaredSetters
       foo=: #M0
         flags: hasImplicitReturnType isSimplyBounded isStatic
@@ -31156,6 +31755,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H1
     exportMapId: #M3
     exportMap
       foo=: #M0
@@ -31171,6 +31771,7 @@ void f() {
             foo=: #M0
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H2
     declaredFunctions
       f: #M4
         flags: hasEnclosingTypeParameterReference isSimplyBounded isStatic
@@ -31217,6 +31818,7 @@ export 'x.dart';
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H3
     exportMapId: #M3
     exportMap
       foo=: #M0
@@ -31294,6 +31896,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/x.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -31304,6 +31907,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H1
     exportMapId: #M3
     exportMap
       A: #M0
@@ -31318,6 +31922,7 @@ void f() {
             A: #M0
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H2
     declaredFunctions
       f: #M4
         flags: hasEnclosingTypeParameterReference isSimplyBounded isStatic
@@ -31357,6 +31962,7 @@ library;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H3
     exportMapId: #M7
   requirements
 [operation] reuseLinkedBundle
@@ -31417,6 +32023,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -31429,6 +32036,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
   requirements
 [operation] analyzeFile
@@ -31452,6 +32060,7 @@ class C {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         interface: #M1
@@ -31511,6 +32120,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredEnums
       A: #M0
         declaredFields
@@ -31553,6 +32163,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M14
   requirements
 [operation] analyzeFile
@@ -31576,6 +32187,7 @@ enum C { c }
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredEnums
       A: #M0
         declaredFields
@@ -31665,6 +32277,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       A: #M0
       B: #M1
@@ -31676,6 +32289,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M3
   requirements
 [operation] analyzeFile
@@ -31699,6 +32313,7 @@ extension C on int {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       A: #M0
       C: #M5
@@ -31757,6 +32372,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -31785,6 +32401,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M9
   requirements
 [operation] analyzeFile
@@ -31808,6 +32425,7 @@ extension type C(int it) {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -31883,6 +32501,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredGetters
       bar: #M0
       foo: #M1
@@ -31896,6 +32515,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
   requirements
 [operation] analyzeFile
@@ -31919,6 +32539,7 @@ int get baz => 1;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredGetters
       baz: #M7
       foo: #M1
@@ -31979,6 +32600,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         interface: #M1
@@ -31991,6 +32613,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
   requirements
 [operation] analyzeFile
@@ -32014,6 +32637,7 @@ mixin C {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredMixins
       A: #M0
         interface: #M1
@@ -32073,6 +32697,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredSetters
       bar=: #M0
       foo=: #M1
@@ -32086,6 +32711,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
   requirements
 [operation] analyzeFile
@@ -32109,6 +32735,7 @@ set baz(int _) {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredSetters
       baz=: #M7
       foo=: #M1
@@ -32169,6 +32796,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredFunctions
       bar: #M0
       foo: #M1
@@ -32179,6 +32807,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M3
   requirements
 [operation] analyzeFile
@@ -32202,6 +32831,7 @@ void baz() {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredFunctions
       baz: #M5
       foo: #M1
@@ -32259,6 +32889,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredGetters
       bar: #M0
       foo: #M1
@@ -32277,6 +32908,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M7
   requirements
 [operation] analyzeFile
@@ -32300,6 +32932,7 @@ var baz = 1;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredGetters
       baz: #M9
       foo: #M1
@@ -32365,6 +32998,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredTypeAliases
       A: #M0
       B: #M1
@@ -32375,6 +33009,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M3
   requirements
 [operation] analyzeFile
@@ -32398,6 +33033,7 @@ typedef C = int;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredTypeAliases
       A: #M0
       C: #M5
@@ -32454,6 +33090,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredFunctions
       main: #M0
     exportMapId: #M1
@@ -32462,6 +33099,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M2
   requirements
 [operation] analyzeFile
@@ -32486,6 +33124,7 @@ void main() {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredFunctions
       main: #M4
     exportMapId: #M5
@@ -32541,6 +33180,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     exportMapId: #M0
     exportMap
       min: #M1
@@ -32557,6 +33197,7 @@ import 'a.dart';
             min: #M1
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M2
   requirements
 [operation] analyzeFile
@@ -32582,6 +33223,7 @@ export 'dart:math' show min;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     exportMapId: #M4
     exportMap
       exit: #M5
@@ -32647,6 +33289,7 @@ export 'b.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -32656,6 +33299,7 @@ export 'b.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/b.dart
+    hashForRequirements: #H1
     declaredClasses
       B: #M3
         interface: #M4
@@ -32665,6 +33309,7 @@ export 'b.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H2
     exportMapId: #M6
     exportMap
       A: #M0
@@ -32712,6 +33357,7 @@ class B {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H3
     declaredClasses
       B: #M9
         interface: #M10
@@ -32729,6 +33375,7 @@ class B {}
     actualId: #M9
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H4
     exportMapId: #M12
     exportMap
       B: #M9
@@ -32800,6 +33447,7 @@ export 'b.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       B: #M0
         interface: #M1
@@ -32809,6 +33457,7 @@ export 'b.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/b.dart
+    hashForRequirements: #H1
     declaredClasses
       B: #M3
         interface: #M4
@@ -32818,6 +33467,7 @@ export 'b.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H2
     exportMapId: #M6
     exportMap
       B: #M0
@@ -32865,6 +33515,7 @@ class A {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H3
     declaredClasses
       A: #M9
         interface: #M10
@@ -32882,6 +33533,7 @@ class A {}
     actualId: #M9
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H4
     exportMapId: #M12
     exportMap
       A: #M9
@@ -32956,6 +33608,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -32968,6 +33621,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
   requirements
 [operation] analyzeFile
@@ -32992,6 +33646,7 @@ class A {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         interface: #M1
@@ -33049,6 +33704,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -33061,6 +33717,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
   requirements
 [operation] analyzeFile
@@ -33087,6 +33744,7 @@ class A {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         interface: #M1
@@ -33128,6 +33786,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredSetters
       bar=: #M0
       foo=: #M1
@@ -33141,6 +33800,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
   requirements
 [operation] analyzeFile
@@ -33167,6 +33827,7 @@ void set foo(int _) {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredSetters
       foo=: #M1
     declaredVariables
@@ -33208,6 +33869,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -33217,6 +33879,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M3
   requirements
 [operation] analyzeFile
@@ -33240,6 +33903,7 @@ class A {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         interface: #M1
@@ -33292,6 +33956,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -33301,6 +33966,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M3
   requirements
 [operation] analyzeFile
@@ -33324,6 +33990,7 @@ class B {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       B: #M5
         interface: #M6
@@ -33381,6 +34048,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -33393,6 +34061,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
   requirements
 [operation] analyzeFile
@@ -33417,6 +34086,7 @@ class C {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         interface: #M1
@@ -33460,6 +34130,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredEnums
       A: #M0
         declaredFields
@@ -33484,6 +34155,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M8
   requirements
 [operation] analyzeFile
@@ -33507,6 +34179,7 @@ enum B { b }
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredEnums
       B: #M10
         declaredFields
@@ -33579,6 +34252,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredEnums
       A: #M0
         declaredFields
@@ -33621,6 +34295,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M14
   requirements
 [operation] analyzeFile
@@ -33645,6 +34320,7 @@ enum C { c }
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredEnums
       A: #M0
         declaredFields
@@ -33718,6 +34394,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       A: #M0
     exportMapId: #M1
@@ -33727,6 +34404,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M2
   requirements
 [operation] analyzeFile
@@ -33750,6 +34428,7 @@ extension B on int {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       B: #M4
     exportMapId: #M5
@@ -33807,6 +34486,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       A: #M0
       B: #M1
@@ -33818,6 +34498,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M3
   requirements
 [operation] analyzeFile
@@ -33842,6 +34523,7 @@ extension C on int {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       A: #M0
       C: #M5
@@ -33884,6 +34566,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -33901,6 +34584,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
   requirements
 [operation] analyzeFile
@@ -33924,6 +34608,7 @@ extension type B(int it) {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensionTypes
       B: #M7
         declaredFields
@@ -33989,6 +34674,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -34017,6 +34703,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M9
   requirements
 [operation] analyzeFile
@@ -34041,6 +34728,7 @@ extension type C(int it) {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -34100,6 +34788,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredGetters
       foo: #M0
     declaredVariables
@@ -34110,6 +34799,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M3
   requirements
 [operation] analyzeFile
@@ -34133,6 +34823,7 @@ int get bar => 0;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredGetters
       bar: #M5
     declaredVariables
@@ -34191,6 +34882,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredGetters
       bar: #M0
       foo: #M1
@@ -34204,6 +34896,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
   requirements
 [operation] analyzeFile
@@ -34228,6 +34921,7 @@ int get baz => 1;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredGetters
       baz: #M7
       foo: #M1
@@ -34272,6 +34966,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         interface: #M1
@@ -34281,6 +34976,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M3
   requirements
 [operation] analyzeFile
@@ -34304,6 +35000,7 @@ mixin B {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredMixins
       B: #M5
         interface: #M6
@@ -34361,6 +35058,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         interface: #M1
@@ -34373,6 +35071,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
   requirements
 [operation] analyzeFile
@@ -34397,6 +35096,7 @@ mixin C {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredMixins
       A: #M0
         interface: #M1
@@ -34441,6 +35141,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     name: foo
     declaredClasses
       A: #M0
@@ -34451,6 +35152,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M3
   requirements
 [operation] analyzeFile
@@ -34474,6 +35176,7 @@ class A {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     name: bar
     declaredClasses
       A: #M0
@@ -34530,6 +35233,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     name: foo
     declaredClasses
       A: #M0
@@ -34540,6 +35244,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M3
   requirements
 [operation] analyzeFile
@@ -34563,6 +35268,7 @@ class B {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     name: foo
     declaredClasses
       B: #M5
@@ -34604,6 +35310,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredSetters
       foo=: #M0
     declaredVariables
@@ -34614,6 +35321,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M3
   requirements
 [operation] analyzeFile
@@ -34637,6 +35345,7 @@ set bar(int _) {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredSetters
       bar=: #M5
     declaredVariables
@@ -34695,6 +35404,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredSetters
       bar=: #M0
       foo=: #M1
@@ -34708,6 +35418,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
   requirements
 [operation] analyzeFile
@@ -34732,6 +35443,7 @@ set baz(int _) {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredSetters
       baz=: #M7
       foo=: #M1
@@ -34776,6 +35488,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredFunctions
       foo: #M0
     exportMapId: #M1
@@ -34784,6 +35497,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M2
   requirements
 [operation] analyzeFile
@@ -34807,6 +35521,7 @@ void bar() {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredFunctions
       bar: #M4
     exportMapId: #M5
@@ -34863,6 +35578,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredFunctions
       bar: #M0
       foo: #M1
@@ -34873,6 +35589,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M3
   requirements
 [operation] analyzeFile
@@ -34897,6 +35614,7 @@ void baz() {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredFunctions
       baz: #M5
       foo: #M1
@@ -34938,6 +35656,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredGetters
       foo: #M0
     declaredSetters
@@ -34951,6 +35670,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M4
   requirements
 [operation] analyzeFile
@@ -34974,6 +35694,7 @@ var bar = 0;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredGetters
       bar: #M6
     declaredSetters
@@ -35035,6 +35756,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredGetters
       bar: #M0
       foo: #M1
@@ -35053,6 +35775,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M7
   requirements
 [operation] analyzeFile
@@ -35077,6 +35800,7 @@ var baz = 1;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredGetters
       baz: #M9
       foo: #M1
@@ -35126,6 +35850,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredTypeAliases
       A: #M0
     exportMapId: #M1
@@ -35134,6 +35859,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M2
   requirements
 [operation] analyzeFile
@@ -35157,6 +35883,7 @@ typedef B = int;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredTypeAliases
       B: #M4
     exportMapId: #M5
@@ -35213,6 +35940,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredTypeAliases
       A: #M0
       B: #M1
@@ -35223,6 +35951,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M3
   requirements
 [operation] analyzeFile
@@ -35247,6 +35976,7 @@ typedef C = int;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredTypeAliases
       A: #M0
       C: #M5
@@ -35286,11 +36016,13 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     flags: isSynthetic
     exportMapId: #M0
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M1
   requirements
 [operation] analyzeFile
@@ -35314,6 +36046,7 @@ import 'a.dart';
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     exportMapId: #M0
   requirements
 [operation] reuseLinkedBundle
@@ -35363,6 +36096,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -35372,6 +36106,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M3
   requirements
 [operation] analyzeFile
@@ -35395,6 +36130,7 @@ class A {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         interface: #M1
@@ -35448,11 +36184,13 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     libraryMetadata: #M0
     exportMapId: #M1
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M2
   requirements
 [operation] analyzeFile
@@ -35476,6 +36214,7 @@ library;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     libraryMetadata: #M3
     exportMapId: #M1
   requirements
@@ -35518,6 +36257,7 @@ library;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     flags: isSynthetic
     exportMapId: #M0
   requirements
@@ -35584,6 +36324,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         interface: #M1
@@ -35593,6 +36334,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M3
   requirements
 [operation] analyzeFile
@@ -35624,6 +36366,7 @@ mixin A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredMixins
       A: #M0
         declaredFields
@@ -35694,6 +36437,7 @@ void f(A a) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -35711,6 +36455,7 @@ void f(A a) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M5
     exportMapId: #M6
@@ -35769,6 +36514,7 @@ mixin A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredMixins
       A: #M0
         declaredFields
@@ -35852,6 +36598,7 @@ void f(A a) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -35873,6 +36620,7 @@ void f(A a) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M7
     exportMapId: #M8
@@ -35931,6 +36679,7 @@ mixin A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredMixins
       A: #M0
         declaredFields
@@ -35983,6 +36732,7 @@ void f(B b) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -36010,6 +36760,7 @@ void f(B b) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M7
     exportMapId: #M8
@@ -36065,6 +36816,7 @@ mixin B on A<double> {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredMixins
       A: #M0
         declaredFields
@@ -36099,6 +36851,7 @@ mixin B on A<double> {}
     actualId: #M10
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     declaredFunctions
       f: #M13
     exportMapId: #M14
@@ -36171,6 +36924,7 @@ void f(A a) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         interface: #M1
@@ -36180,6 +36934,7 @@ void f(A a) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M3
     exportMapId: #M4
@@ -36239,6 +36994,7 @@ mixin A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredMixins
       A: #M0
         declaredMethods
@@ -36310,6 +37066,7 @@ void f(A a) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredMethods
@@ -36325,6 +37082,7 @@ void f(A a) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M4
     exportMapId: #M5
@@ -36379,6 +37137,7 @@ mixin A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredMixins
       A: #M0
         declaredMethods
@@ -36456,6 +37215,7 @@ void f(A a) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredMethods
@@ -36474,6 +37234,7 @@ void f(A a) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M5
     exportMapId: #M6
@@ -36529,6 +37290,7 @@ mixin A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredMixins
       A: #M0
         declaredMethods
@@ -36582,6 +37344,7 @@ void f(B b) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredMethods
@@ -36604,6 +37367,7 @@ void f(B b) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M6
     exportMapId: #M7
@@ -36655,6 +37419,7 @@ mixin B implements A<double> {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredMixins
       A: #M0
         declaredMethods
@@ -36684,6 +37449,7 @@ mixin B implements A<double> {}
     actualId: #M9
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     declaredFunctions
       f: #M12
     exportMapId: #M13
@@ -36756,6 +37522,7 @@ void f(B b) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredMethods
@@ -36781,6 +37548,7 @@ void f(B b) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M6
     exportMapId: #M7
@@ -36832,6 +37600,7 @@ mixin B on A<double> {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredMixins
       A: #M0
         declaredMethods
@@ -36864,6 +37633,7 @@ mixin B on A<double> {}
     actualId: #M9
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     declaredFunctions
       f: #M12
     exportMapId: #M13
@@ -36934,6 +37704,7 @@ void f(A a) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredMethods
@@ -36949,6 +37720,7 @@ void f(A a) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M4
     exportMapId: #M5
@@ -36996,6 +37768,7 @@ mixin A {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredMixins
       A: #M0
         interface: #M7
@@ -37069,6 +37842,7 @@ void f(A a) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         interface: #M1
@@ -37078,6 +37852,7 @@ void f(A a) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M3
     exportMapId: #M4
@@ -37146,6 +37921,7 @@ mixin A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredMixins
       A: #M0
         declaredFields
@@ -37228,6 +38004,7 @@ void f(A a) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -37245,6 +38022,7 @@ void f(A a) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M5
     exportMapId: #M6
@@ -37303,6 +38081,7 @@ mixin A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredMixins
       A: #M0
         declaredFields
@@ -37386,6 +38165,7 @@ void f(A a) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -37407,6 +38187,7 @@ void f(A a) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M7
     exportMapId: #M8
@@ -37466,6 +38247,7 @@ mixin A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredMixins
       A: #M0
         declaredFields
@@ -37522,6 +38304,7 @@ void f(B b) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -37549,6 +38332,7 @@ void f(B b) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M7
     exportMapId: #M8
@@ -37604,6 +38388,7 @@ mixin B on A<double> {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredMixins
       A: #M0
         declaredFields
@@ -37638,6 +38423,7 @@ mixin B on A<double> {}
     actualId: #M10
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     declaredFunctions
       f: #M13
     exportMapId: #M14
@@ -37711,6 +38497,7 @@ void f(A a) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -37728,6 +38515,7 @@ void f(A a) {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M5
     exportMapId: #M6
@@ -37784,6 +38572,7 @@ mixin A {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredMixins
       A: #M0
         interface: #M8
@@ -37862,10 +38651,12 @@ A foo() {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     exportMapId: #M0
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       foo: #M1
     exportMapId: #M2
@@ -37914,6 +38705,7 @@ mixin A {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredMixins
       A: #M4
         interface: #M5
@@ -37930,6 +38722,7 @@ mixin A {}
     actualId: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     declaredFunctions
       foo: #M7
     exportMapId: #M8
@@ -38000,6 +38793,7 @@ A foo() {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         interface: #M1
@@ -38009,6 +38803,7 @@ A foo() {}
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       foo: #M3
     exportMapId: #M4
@@ -38062,6 +38857,7 @@ mixin B {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredMixins
       A: #M0
         interface: #M1
@@ -38105,6 +38901,7 @@ A foo() {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         interface: #M1
@@ -38117,6 +38914,7 @@ A foo() {}
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       foo: #M5
     exportMapId: #M6
@@ -38170,6 +38968,7 @@ mixin B {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredMixins
       A: #M8
         interface: #M9
@@ -38189,6 +38988,7 @@ mixin B {}
     actualId: #M8
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     declaredFunctions
       foo: #M11
     exportMapId: #M12
@@ -38261,6 +39061,7 @@ A foo() {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         interface: #M1
@@ -38276,6 +39077,7 @@ A foo() {}
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       foo: #M7
     exportMapId: #M8
@@ -38330,6 +39132,7 @@ mixin C {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredMixins
       A: #M0
         interface: #M1
@@ -38375,6 +39178,7 @@ A foo() => throw 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         interface: #M1
@@ -38384,6 +39188,7 @@ A foo() => throw 0;
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       foo: #M3
     exportMapId: #M4
@@ -38430,6 +39235,7 @@ A foo() => throw 0;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     exportMapId: #M6
   requirements
 [operation] checkLinkedBundleRequirements
@@ -38441,6 +39247,7 @@ A foo() => throw 0;
     actualId: <null>
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     declaredFunctions
       foo: #M7
     exportMapId: #M8
@@ -38508,6 +39315,7 @@ A foo() => throw 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         interface: #M1
@@ -38520,6 +39328,7 @@ A foo() => throw 0;
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       foo: #M5
     exportMapId: #M6
@@ -38568,6 +39377,7 @@ mixin A {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredMixins
       A: #M0
         interface: #M1
@@ -38609,6 +39419,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -38622,6 +39433,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M5
     exportMapId: #M6
@@ -38674,6 +39486,7 @@ mixin A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredMixins
       A: #M0
         declaredFields
@@ -38755,6 +39568,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -38770,6 +39584,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M7
     exportMapId: #M8
@@ -38823,6 +39638,7 @@ mixin A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredMixins
       A: #M0
         declaredFields
@@ -38870,6 +39686,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredMethods
@@ -38881,6 +39698,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M4
     exportMapId: #M5
@@ -38933,6 +39751,7 @@ mixin A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredMixins
       A: #M0
         declaredMethods
@@ -39012,6 +39831,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredMethods
@@ -39024,6 +39844,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M5
     exportMapId: #M6
@@ -39077,6 +39898,7 @@ mixin A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredMixins
       A: #M0
         declaredMethods
@@ -39121,6 +39943,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -39134,6 +39957,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M5
     exportMapId: #M6
@@ -39182,6 +40006,7 @@ mixin A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredMixins
       A: #M0
         declaredFields
@@ -39259,6 +40084,7 @@ void f() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -39274,6 +40100,7 @@ void f() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       f: #M7
     exportMapId: #M8
@@ -39323,6 +40150,7 @@ mixin A {
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredMixins
       A: #M0
         declaredFields
@@ -39367,6 +40195,7 @@ base class X implements A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -39376,6 +40205,7 @@ base class X implements A {}
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       X: #M3
         interface: #M4
@@ -39431,6 +40261,7 @@ class B {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         interface: #M1
@@ -39477,6 +40308,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -39486,6 +40318,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M3
   requirements
 [operation] analyzeFile
@@ -39531,6 +40364,7 @@ class B {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         interface: #M1
@@ -39602,6 +40436,7 @@ final x = foo();
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredFunctions
       foo: #M0
     exportMapId: #M1
@@ -39610,6 +40445,7 @@ final x = foo();
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       x: #M2
     declaredVariables
@@ -39640,6 +40476,7 @@ double foo() {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredFunctions
       foo: #M5
     exportMapId: #M6
@@ -39655,6 +40492,7 @@ double foo() {}
     actualId: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     declaredGetters
       x: #M7
     declaredVariables
@@ -39697,6 +40535,7 @@ final x = foo();
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredFunctions
       bar: #M0
       foo: #M1
@@ -39707,6 +40546,7 @@ final x = foo();
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       x: #M3
     declaredVariables
@@ -39738,6 +40578,7 @@ double bar() {}
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredFunctions
       bar: #M6
       foo: #M1
@@ -39773,6 +40614,7 @@ final x = a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -39783,6 +40625,7 @@ final x = a;
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       x: #M3
     declaredVariables
@@ -39813,6 +40656,7 @@ double get a => 1.2;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredGetters
       a: #M6
     declaredVariables
@@ -39830,6 +40674,7 @@ double get a => 1.2;
     actualId: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     declaredGetters
       x: #M9
     declaredVariables
@@ -39872,6 +40717,7 @@ final x = a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
       b: #M1
@@ -39885,6 +40731,7 @@ final x = a;
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       x: #M5
     declaredVariables
@@ -39916,6 +40763,7 @@ double get b => 1.2;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredGetters
       a: #M0
       b: #M8
@@ -39961,6 +40809,7 @@ final x = a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -39971,6 +40820,7 @@ final x = a;
   requirements
 [operation] linkLibraryCycle
   package:test/b.dart
+    hashForRequirements: #H1
     exportMapId: #M3
     exportMap
       a: #M0
@@ -39985,6 +40835,7 @@ final x = a;
             a: #M0
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H2
     declaredGetters
       x: #M4
     declaredVariables
@@ -40020,6 +40871,7 @@ final a = 1.2;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H3
     declaredGetters
       a: #M7
     declaredVariables
@@ -40038,6 +40890,7 @@ final a = 1.2;
     actualId: #M7
 [operation] linkLibraryCycle
   package:test/b.dart
+    hashForRequirements: #H4
     exportMapId: #M10
     exportMap
       a: #M7
@@ -40059,6 +40912,7 @@ final a = 1.2;
     actualId: #M7
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H5
     declaredGetters
       x: #M11
     declaredVariables
@@ -40100,6 +40954,7 @@ final x = a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -40110,6 +40965,7 @@ final x = a;
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       x: #M3
     declaredVariables
@@ -40142,6 +40998,7 @@ final a = 1.2;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredGetters
       a: #M6
     declaredVariables
@@ -40159,6 +41016,7 @@ final a = 1.2;
     actualId: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     declaredGetters
       x: #M9
     declaredVariables
@@ -40201,6 +41059,7 @@ void foo(A _) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredTypeAliases
       A: #M0
       B: #M1
@@ -40211,6 +41070,7 @@ void foo(A _) {}
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       foo: #M3
     exportMapId: #M4
@@ -40260,6 +41120,7 @@ typedef B = double;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredTypeAliases
       A: #M0
       B: #M6
@@ -40298,6 +41159,7 @@ void foo(A _) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredTypeAliases
       A: #M0
     exportMapId: #M1
@@ -40306,6 +41168,7 @@ void foo(A _) {}
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       foo: #M2
     exportMapId: #M3
@@ -40354,6 +41217,7 @@ typedef A = double;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredTypeAliases
       A: #M5
     exportMapId: #M6
@@ -40369,6 +41233,7 @@ typedef A = double;
     actualId: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     declaredFunctions
       foo: #M7
     exportMapId: #M8
@@ -40440,6 +41305,7 @@ void foo() {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -40454,6 +41320,7 @@ void foo() {
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       foo: #M5
     exportMapId: #M6
@@ -40501,6 +41368,7 @@ typedef B = A;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         declaredConstructors
@@ -40566,6 +41434,7 @@ final a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -40618,6 +41487,7 @@ final a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
       b: #M4
@@ -40680,6 +41550,7 @@ final a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -40721,6 +41592,7 @@ final b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
       b: #M3
@@ -40780,6 +41652,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -40790,6 +41663,7 @@ class B extends A {
       A: #M0
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       B: #M4
         declaredFields
@@ -40812,6 +41686,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H2
     declaredClasses
       B: #M4
         declaredFields
@@ -40857,6 +41732,7 @@ class C extends B {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       B: #M0
         declaredMethods
@@ -40866,6 +41742,7 @@ class C extends B {
     exportMap
       B: #M0
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M4
         declaredFields
@@ -40899,6 +41776,7 @@ class C extends B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       B: #M0
         declaredMethods
@@ -40908,6 +41786,7 @@ class C extends B {
     exportMap
       B: #M0
   package:test/test.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M4
         declaredFields
@@ -40946,6 +41825,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -40964,6 +41844,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -40994,6 +41875,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -41014,6 +41896,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -41045,6 +41928,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -41072,6 +41956,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -41109,6 +41994,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -41134,6 +42020,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -41168,6 +42055,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -41200,6 +42088,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -41242,6 +42131,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -41270,6 +42160,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -41310,6 +42201,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -41362,6 +42254,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -41424,6 +42317,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -41483,6 +42377,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -41550,6 +42445,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -41600,6 +42496,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -41659,6 +42556,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -41711,6 +42609,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -41768,6 +42667,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -41793,6 +42693,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -41831,6 +42732,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -41876,6 +42778,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -41931,6 +42834,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -41985,6 +42889,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -42047,6 +42952,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -42090,6 +42996,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -42142,6 +43049,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -42189,6 +43097,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -42244,6 +43153,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -42291,6 +43201,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -42348,6 +43259,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -42404,6 +43316,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -42468,6 +43381,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -42513,6 +43427,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -42567,6 +43482,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -42616,6 +43532,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -42670,6 +43587,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -42695,6 +43613,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -42729,6 +43648,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -42754,6 +43674,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -42789,6 +43710,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -42815,6 +43737,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -42850,6 +43773,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -42878,6 +43802,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -42914,6 +43839,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -42939,6 +43865,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -42973,6 +43900,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -43000,6 +43928,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -43037,6 +43966,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -43065,6 +43995,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -43104,6 +44035,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -43149,6 +44081,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -43203,6 +44136,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -43257,6 +44191,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -43318,6 +44253,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -43361,6 +44297,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -43412,6 +44349,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -43459,6 +44397,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -43510,6 +44449,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -43537,6 +44477,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -43574,6 +44515,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -43599,6 +44541,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -43636,6 +44579,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -43685,6 +44629,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -43744,6 +44689,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -43800,6 +44746,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -43864,6 +44811,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -43911,6 +44859,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -43967,6 +44916,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -44014,6 +44964,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -44066,6 +45017,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -44086,6 +45038,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -44118,6 +45071,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -44143,6 +45097,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -44181,6 +45136,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -44228,6 +45184,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -44285,6 +45242,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -44339,6 +45297,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -44401,6 +45360,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -44446,6 +45406,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -44500,6 +45461,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -44545,6 +45507,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -44595,6 +45558,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -44616,6 +45580,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -44652,6 +45617,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -44697,6 +45663,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -44752,6 +45719,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -44806,6 +45774,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -44868,6 +45837,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -44911,6 +45881,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -44963,6 +45934,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -45008,6 +45980,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -45061,6 +46034,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -45105,6 +46079,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -45159,6 +46134,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -45212,6 +46188,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -45273,6 +46250,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -45315,6 +46293,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -45366,6 +46345,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -45410,6 +46390,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -45459,6 +46440,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -45479,6 +46461,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -45514,6 +46497,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -45558,6 +46542,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -45612,6 +46597,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -45665,6 +46651,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -45726,6 +46713,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -45768,6 +46756,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -45819,6 +46808,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -45863,6 +46853,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -45912,6 +46903,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -45932,6 +46924,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -45967,6 +46960,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -46011,6 +47005,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -46065,6 +47060,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -46118,6 +47114,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -46179,6 +47176,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -46221,6 +47219,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -46272,6 +47271,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -46316,6 +47316,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -46368,6 +47369,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -46410,6 +47412,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -46462,6 +47465,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -46513,6 +47517,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -46572,6 +47577,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -46612,6 +47618,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -46661,6 +47668,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -46703,6 +47711,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -46750,6 +47759,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -46772,6 +47782,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -46803,6 +47814,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -46827,6 +47839,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -46860,6 +47873,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -46886,6 +47900,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -46921,6 +47936,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -46948,6 +47964,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -46987,6 +48004,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -47031,6 +48049,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -47083,6 +48102,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -47127,6 +48147,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -47178,6 +48199,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -47218,6 +48240,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -47266,6 +48289,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -47308,6 +48332,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -47354,6 +48379,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -47376,6 +48402,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -47410,6 +48437,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -47442,6 +48470,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         interface: #M1
@@ -47479,6 +48508,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -47503,6 +48533,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -47539,6 +48570,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -47581,6 +48613,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -47631,6 +48664,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -47671,6 +48705,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -47715,6 +48750,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -47739,6 +48775,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -47773,6 +48810,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -47797,6 +48835,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -47830,6 +48869,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -47859,6 +48899,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -47898,6 +48939,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -47925,6 +48967,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -47964,6 +49007,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -48013,6 +49057,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -48072,6 +49117,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -48128,6 +49174,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -48192,6 +49239,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -48239,6 +49287,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -48295,6 +49344,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -48344,6 +49394,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -48398,6 +49449,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -48422,6 +49474,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -48459,6 +49512,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -48503,6 +49557,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -48557,6 +49612,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -48610,6 +49666,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -48671,6 +49728,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -48713,6 +49771,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -48764,6 +49823,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -48810,6 +49870,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -48864,6 +49925,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -48908,6 +49970,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -48962,6 +50025,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -49015,6 +50079,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -49076,6 +50141,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -49118,6 +50184,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -49169,6 +50236,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -49215,6 +50283,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -49266,6 +50335,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -49288,6 +50358,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -49319,6 +50390,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -49343,6 +50415,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -49377,6 +50450,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -49402,6 +50476,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -49436,6 +50511,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -49463,6 +50539,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -49500,6 +50577,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -49528,6 +50606,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -49563,6 +50642,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -49587,6 +50667,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -49620,6 +50701,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -49646,6 +50728,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -49682,6 +50765,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -49709,6 +50793,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -49747,6 +50832,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -49789,6 +50875,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -49840,6 +50927,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -49891,6 +50979,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -49949,6 +51038,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -49989,6 +51079,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -50037,6 +51128,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -50081,6 +51173,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -50129,6 +51222,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -50153,6 +51247,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -50187,6 +51282,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -50211,6 +51307,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -50247,6 +51344,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -50293,6 +51391,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -50349,6 +51448,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -50402,6 +51502,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -50463,6 +51564,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -50507,6 +51609,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -50560,6 +51663,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -50604,6 +51708,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -50653,6 +51758,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -50673,6 +51779,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -50705,6 +51812,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -50729,6 +51837,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -50766,6 +51875,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -50812,6 +51922,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -50868,6 +51979,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -50921,6 +52033,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -50982,6 +52095,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -51026,6 +52140,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -51079,6 +52194,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -51123,6 +52239,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -51172,6 +52289,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -51195,6 +52313,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -51233,6 +52352,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -51280,6 +52400,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -51337,6 +52458,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -51393,6 +52515,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -51457,6 +52580,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -51502,6 +52626,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -51556,6 +52681,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -51603,6 +52729,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -51658,6 +52785,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -51702,6 +52830,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -51756,6 +52885,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -51809,6 +52939,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -51870,6 +53001,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -51912,6 +53044,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -51963,6 +53096,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -52007,6 +53141,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -52056,6 +53191,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -52074,6 +53210,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -52106,6 +53243,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -52148,6 +53286,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -52199,6 +53338,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -52250,6 +53390,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -52308,6 +53449,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -52348,6 +53490,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -52396,6 +53539,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -52438,6 +53582,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -52484,6 +53629,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -52504,6 +53650,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -52539,6 +53686,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -52583,6 +53731,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -52637,6 +53786,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -52690,6 +53840,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -52751,6 +53902,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -52793,6 +53945,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -52844,6 +53997,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -52888,6 +54042,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -52941,6 +54096,7 @@ class B = A with M;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -52972,6 +54128,7 @@ class Z {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConstructors
@@ -53012,6 +54169,7 @@ class B = A with M;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -53045,6 +54203,7 @@ class Z {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -53086,6 +54245,7 @@ class B = A with M;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -53137,6 +54297,7 @@ class Z {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -53197,6 +54358,7 @@ class B = A with M;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -53258,6 +54420,7 @@ class Z {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -53326,6 +54489,7 @@ class B = A with M;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -53375,6 +54539,7 @@ class Z {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -53432,6 +54597,7 @@ class B = A with M;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -53483,6 +54649,7 @@ class Z {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -53540,6 +54707,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -53577,6 +54745,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -53624,6 +54793,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -53669,6 +54839,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -53722,6 +54893,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -53759,6 +54931,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -53806,6 +54979,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -53851,6 +55025,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -53904,6 +55079,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -53943,6 +55119,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -53992,6 +55169,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -54040,6 +55218,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -54096,6 +55275,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -54133,6 +55313,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -54179,6 +55360,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -54218,6 +55400,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -54261,6 +55444,7 @@ class A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -54275,6 +55459,7 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         interface: #M1
@@ -54299,6 +55484,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -54317,6 +55503,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConstructors
@@ -54345,6 +55532,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -54377,6 +55565,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -54418,6 +55607,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -54448,6 +55638,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         interface: #M1
@@ -54477,6 +55668,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -54495,6 +55687,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConstructors
@@ -54519,6 +55712,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -54537,6 +55731,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConstructors
@@ -54561,6 +55756,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -54579,6 +55775,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConstructors
@@ -54603,6 +55800,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -54621,6 +55819,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConstructors
@@ -54646,6 +55845,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -54664,6 +55864,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConstructors
@@ -54689,6 +55890,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -54706,6 +55908,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConstructors
@@ -54731,6 +55934,7 @@ class C extends B {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -54756,6 +55960,7 @@ class C extends B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         interface: #M1
@@ -54785,6 +55990,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -54802,6 +56008,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConstructors
@@ -54826,6 +56033,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -54845,6 +56053,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConstructors
@@ -54870,6 +56079,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -54896,6 +56106,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -54928,6 +56139,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -54954,6 +56166,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -54985,6 +56198,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -55002,6 +56216,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConstructors
@@ -55027,6 +56242,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -55055,6 +56271,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -55090,6 +56307,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -55120,6 +56338,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -55153,6 +56372,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -55170,6 +56390,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConstructors
@@ -55197,6 +56418,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -55223,6 +56445,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConstructors
@@ -55257,6 +56480,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -55303,6 +56527,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -55354,6 +56579,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -55398,6 +56624,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -55443,6 +56670,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -55460,6 +56688,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -55484,6 +56713,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -55510,6 +56740,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -55543,6 +56774,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -55571,6 +56803,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -55607,6 +56840,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -55633,6 +56867,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -55663,6 +56898,7 @@ class B {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -55686,6 +56922,7 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConstructors
@@ -55717,6 +56954,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -55738,6 +56976,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConstructors
@@ -55766,6 +57005,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -55806,6 +57046,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -55853,6 +57094,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -55893,6 +57135,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -55940,6 +57183,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -55978,6 +57222,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -56019,6 +57264,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -56037,6 +57283,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConstructors
@@ -56061,6 +57308,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -56079,6 +57327,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConstructors
@@ -56106,6 +57355,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -56129,6 +57379,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConstructors
@@ -56161,6 +57412,7 @@ class B implements A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -56191,6 +57443,7 @@ class B implements A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConstructors
@@ -56227,6 +57480,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -56257,6 +57511,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConstructors
@@ -56286,6 +57541,7 @@ class B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -56303,6 +57559,7 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M5
         interface: #M6
@@ -56327,6 +57584,7 @@ class C {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -56348,6 +57606,7 @@ class C {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M7
         interface: #M8
@@ -56375,6 +57634,7 @@ class C {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -56396,6 +57656,7 @@ class C {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M7
         interface: #M8
@@ -56423,6 +57684,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -56447,6 +57709,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -56481,6 +57744,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -56503,6 +57767,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -56532,6 +57797,7 @@ class C extends B {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -56567,6 +57833,7 @@ class C extends B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         interface: #M1
@@ -56606,6 +57873,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -56629,6 +57897,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -56658,6 +57927,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -56681,6 +57951,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -56710,6 +57981,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -56729,6 +58001,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -56754,6 +58027,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -56773,6 +58047,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -56801,6 +58076,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -56838,6 +58114,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -56883,6 +58160,7 @@ class A<T> {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         typeParameters
@@ -56941,6 +58219,7 @@ class A<T> {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         typeParameters
@@ -57007,6 +58286,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -57062,6 +58342,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -57125,6 +58406,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -57180,6 +58462,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -57243,6 +58526,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         flags: hasNonFinalField
@@ -57328,6 +58612,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         flags: hasNonFinalField
@@ -57418,6 +58703,7 @@ class C {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       C: #M0
         declaredFields
@@ -57443,6 +58729,7 @@ class C {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       C: #M0
         declaredFields
@@ -57477,6 +58764,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         flags: hasNonFinalField
@@ -57566,6 +58854,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         flags: hasNonFinalField
@@ -57663,6 +58952,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -57718,6 +59008,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -57778,6 +59069,7 @@ class C {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       C: #M0
         declaredFields
@@ -57815,6 +59107,7 @@ class C {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       C: #M0
         declaredFields
@@ -57858,6 +59151,7 @@ class C {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       C: #M0
         declaredFields
@@ -57891,6 +59185,7 @@ class C {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       C: #M0
         declaredFields
@@ -57938,6 +59233,7 @@ class B {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -58006,6 +59302,7 @@ class B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -58077,6 +59374,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -58128,6 +59426,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -58187,6 +59486,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -58242,6 +59542,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -58300,6 +59601,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -58320,6 +59622,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -58351,6 +59654,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -58371,6 +59675,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -58398,6 +59703,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -58420,6 +59726,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -58456,6 +59763,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -58483,6 +59791,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -58518,6 +59827,7 @@ class B extends A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -58556,6 +59866,7 @@ class B extends A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -58607,6 +59918,7 @@ class B extends A<int> {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -58645,6 +59957,7 @@ class B extends A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -58696,6 +60009,7 @@ class B implements A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -58729,6 +60043,7 @@ class B implements A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -58773,6 +60088,7 @@ class B implements A<int> {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -58806,6 +60122,7 @@ class B implements A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -58850,6 +60167,7 @@ class B with A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -58888,6 +60206,7 @@ class B with A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -58939,6 +60258,7 @@ class B with A<int> {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -58977,6 +60297,7 @@ class B with A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -59032,6 +60353,7 @@ abstract class C implements A, B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -59079,6 +60401,7 @@ abstract class C implements A, B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -59135,6 +60458,7 @@ abstract class D implements C {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -59191,6 +60515,7 @@ abstract class D implements C {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -59252,6 +60577,7 @@ class C extends B {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -59283,6 +60609,7 @@ class C extends B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         interface: #M1
@@ -59319,6 +60646,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -59347,6 +60675,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -59383,6 +60712,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -59413,6 +60743,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -59450,6 +60781,7 @@ abstract class A<T> {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         flags: isAbstract
@@ -59504,6 +60836,7 @@ abstract class A<T> {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         flags: isAbstract
@@ -59564,6 +60897,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -59610,6 +60944,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -59670,6 +61005,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -59782,6 +61118,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -59895,6 +61232,7 @@ abstract class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         flags: isAbstract
@@ -59949,6 +61287,7 @@ abstract class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         flags: isAbstract
@@ -60010,6 +61349,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -60065,6 +61405,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -60127,6 +61468,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -60178,6 +61520,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -60232,6 +61575,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -60252,6 +61596,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -60283,6 +61628,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -60303,6 +61649,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -60335,6 +61682,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -60363,6 +61711,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -60397,6 +61746,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -60417,6 +61767,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -60444,6 +61795,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -60467,6 +61819,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -60492,6 +61845,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -60511,6 +61865,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -60536,6 +61891,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -60555,6 +61911,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -60584,6 +61941,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -60608,6 +61966,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -60636,6 +61995,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -60660,6 +62020,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -60688,6 +62049,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -60712,6 +62074,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -60740,6 +62103,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -60764,6 +62128,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -60792,6 +62157,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -60812,6 +62178,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -60836,6 +62203,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -60856,6 +62224,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -60885,6 +62254,7 @@ class B {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -60942,6 +62312,7 @@ class B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         flags: hasNonFinalField
@@ -61003,6 +62374,7 @@ abstract class B extends A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -61031,6 +62403,7 @@ abstract class B extends A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -61078,6 +62451,7 @@ class X extends S with M {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       S: #M0
         declaredMethods
@@ -61125,6 +62499,7 @@ class X extends S with M {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       S: #M0
         declaredMethods
@@ -61175,6 +62550,7 @@ class X extends S with M1, M2 {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       S: #M0
         declaredMethods
@@ -61232,6 +62608,7 @@ class X extends S with M1, M2 {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       S: #M0
         declaredMethods
@@ -61299,6 +62676,7 @@ class B extends A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -61334,6 +62712,7 @@ class B extends A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -61383,6 +62762,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -61422,6 +62802,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -61471,6 +62852,7 @@ class B extends A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -61493,6 +62875,7 @@ class B extends A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -61519,6 +62902,7 @@ class B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -61536,6 +62920,7 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M5
         interface: #M6
@@ -61559,6 +62944,7 @@ class B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -61576,6 +62962,7 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M5
         interface: #M6
@@ -61600,6 +62987,7 @@ class C {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -61621,6 +63009,7 @@ class C {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M7
         interface: #M8
@@ -61649,6 +63038,7 @@ class B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -61668,6 +63058,7 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         interface: #M1
@@ -61692,6 +63083,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -61714,6 +63106,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -61746,6 +63139,7 @@ class B extends A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -61782,6 +63176,7 @@ class B extends A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -61830,6 +63225,7 @@ class B extends A<int> {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -61866,6 +63262,7 @@ class B extends A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -61916,6 +63313,7 @@ class C extends B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -61966,6 +63364,7 @@ class C extends B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -62030,6 +63429,7 @@ class B implements A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -62061,6 +63461,7 @@ class B implements A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -62102,6 +63503,7 @@ class B implements A<int> {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -62133,6 +63535,7 @@ class B implements A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -62174,6 +63577,7 @@ class B with A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -62210,6 +63614,7 @@ class B with A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -62258,6 +63663,7 @@ class B with A<int> {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -62294,6 +63700,7 @@ class B with A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -62346,6 +63753,7 @@ abstract class C implements A, B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -62379,6 +63787,7 @@ abstract class C implements A, B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -62420,6 +63829,7 @@ abstract class C implements A, B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -62462,6 +63872,7 @@ abstract class C implements A, B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -62515,6 +63926,7 @@ abstract class D implements A, B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -62567,6 +63979,7 @@ abstract class D implements A, B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -62630,6 +64043,7 @@ abstract class D implements C {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -62682,6 +64096,7 @@ abstract class D implements C {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -62743,6 +64158,7 @@ abstract class C implements A, B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -62782,6 +64198,7 @@ abstract class C implements A, B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         interface: #M10
@@ -62823,6 +64240,7 @@ abstract class D implements B, C {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -62871,6 +64289,7 @@ abstract class D implements B, C {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -62928,6 +64347,7 @@ abstract class C implements A, B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -62969,6 +64389,7 @@ abstract class C implements A, B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -63010,6 +64431,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -63032,6 +64454,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -63062,6 +64485,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -63083,6 +64507,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -63110,6 +64535,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -63132,6 +64558,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -63162,6 +64589,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -63184,6 +64612,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -63214,6 +64643,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -63235,6 +64665,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -63262,6 +64693,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -63283,6 +64715,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -63311,6 +64744,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -63338,6 +64772,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -63371,6 +64806,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -63393,6 +64829,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -63426,6 +64863,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -63459,6 +64897,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -63498,6 +64937,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -63531,6 +64971,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -63567,6 +65008,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -63588,6 +65030,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -63615,6 +65058,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -63636,6 +65080,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -63664,6 +65109,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -63686,6 +65132,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -63714,6 +65161,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -63736,6 +65184,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -63764,6 +65213,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -63786,6 +65236,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -63810,6 +65261,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -63832,6 +65284,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -63860,6 +65313,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -63882,6 +65336,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -63910,6 +65365,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -63932,6 +65388,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -63956,6 +65413,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -63974,6 +65432,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -63998,6 +65457,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConflicts
@@ -64016,6 +65476,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -64041,6 +65502,7 @@ class C extends B {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -64070,6 +65532,7 @@ class C extends B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         interface: #M1
@@ -64106,6 +65569,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -64133,6 +65597,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -64167,6 +65632,7 @@ abstract class A<T> {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         flags: isAbstract
@@ -64212,6 +65678,7 @@ abstract class A<T> {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         flags: isAbstract
@@ -64263,6 +65730,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -64302,6 +65770,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -64359,6 +65828,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -64457,6 +65927,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -64552,6 +66023,7 @@ abstract class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         flags: isAbstract
@@ -64597,6 +66069,7 @@ abstract class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         flags: isAbstract
@@ -64649,6 +66122,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -64695,6 +66169,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -64751,6 +66226,7 @@ abstract class B {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         flags: isAbstract
@@ -64808,6 +66284,7 @@ abstract class B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         flags: isAbstract
@@ -64872,6 +66349,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -64914,6 +66392,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -64967,6 +66446,7 @@ class C implements A, B {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         flags: isAbstract
@@ -65032,6 +66512,7 @@ class C implements A, B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         flags: isAbstract
@@ -65097,6 +66578,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -65115,6 +66597,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -65143,6 +66626,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -65161,6 +66645,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -65190,6 +66675,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -65214,6 +66700,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -65242,6 +66729,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -65267,6 +66755,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -65298,6 +66787,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -65320,6 +66810,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -65348,6 +66839,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -65370,6 +66862,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -65398,6 +66891,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -65420,6 +66914,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -65448,6 +66943,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -65470,6 +66966,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -65498,6 +66995,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -65516,6 +67014,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -65544,6 +67043,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -65562,6 +67062,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -65590,6 +67091,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -65608,6 +67110,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -65632,6 +67135,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -65650,6 +67154,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -65675,6 +67180,7 @@ class A<T> {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         typeParameters
@@ -65709,6 +67215,7 @@ class A<T> {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         typeParameters
@@ -65754,6 +67261,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -65775,6 +67283,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -65802,6 +67311,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -65823,6 +67333,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -65851,6 +67362,7 @@ abstract class D {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -65876,6 +67388,7 @@ class D {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         interface: #M1
@@ -65907,6 +67420,7 @@ base class D {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -65932,6 +67446,7 @@ class D {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         interface: #M1
@@ -65963,6 +67478,7 @@ final class D {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -65988,6 +67504,7 @@ class D {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         interface: #M1
@@ -66019,6 +67536,7 @@ interface class D {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -66044,6 +67562,7 @@ class D {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         interface: #M1
@@ -66076,6 +67595,7 @@ mixin M {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -66106,6 +67626,7 @@ mixin M {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         interface: #M1
@@ -66141,6 +67662,7 @@ mixin class D {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -66166,6 +67688,7 @@ class D {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         interface: #M1
@@ -66197,6 +67720,7 @@ sealed class D {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -66222,6 +67746,7 @@ class D {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         interface: #M1
@@ -66251,6 +67776,7 @@ class B<T extends List<T>> {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -66268,6 +67794,7 @@ class B<T> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M5
         interface: #M6
@@ -66290,6 +67817,7 @@ class _A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       _A: #M0
         interface: #M1
@@ -66304,6 +67832,7 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       B: #M3
         interface: #M4
@@ -66326,6 +67855,7 @@ class A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -66337,6 +67867,7 @@ class A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M3
 ''',
     );
@@ -66355,6 +67886,7 @@ class B extends A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -66393,6 +67925,7 @@ class B extends A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -66444,6 +67977,7 @@ class B extends A<int> {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -66482,6 +68016,7 @@ class B extends A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -66533,6 +68068,7 @@ class B implements A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -66566,6 +68102,7 @@ class B implements A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -66610,6 +68147,7 @@ class B implements A<int> {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -66643,6 +68181,7 @@ class B implements A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -66687,6 +68226,7 @@ class B with A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -66725,6 +68265,7 @@ class B with A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -66776,6 +68317,7 @@ class B with A<int> {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -66814,6 +68356,7 @@ class B with A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -66869,6 +68412,7 @@ abstract class C implements A, B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -66916,6 +68460,7 @@ abstract class C implements A, B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -66972,6 +68517,7 @@ abstract class D implements C {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -67028,6 +68574,7 @@ abstract class D implements C {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -67090,6 +68637,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -67128,6 +68676,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -67172,6 +68721,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -67210,6 +68760,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -67253,6 +68804,7 @@ class C extends B {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -67284,6 +68836,7 @@ class C extends B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         interface: #M1
@@ -67319,6 +68872,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -67347,6 +68901,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -67383,6 +68938,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -67413,6 +68969,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -67450,6 +69007,7 @@ abstract class A<T> {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         flags: isAbstract
@@ -67516,6 +69074,7 @@ abstract class A<T> {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         flags: isAbstract
@@ -67595,6 +69154,7 @@ class B extends A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -67731,6 +69291,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -67868,6 +69429,7 @@ abstract class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         flags: isAbstract
@@ -67934,6 +69496,7 @@ abstract class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         flags: isAbstract
@@ -68007,6 +69570,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -68074,6 +69638,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -68148,6 +69713,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -68211,6 +69777,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -68277,6 +69844,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -68297,6 +69865,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -68328,6 +69897,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -68348,6 +69918,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -68379,6 +69950,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -68399,6 +69971,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -68426,6 +69999,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -68449,6 +70023,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -68474,6 +70049,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -68493,6 +70069,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -68522,6 +70099,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -68541,6 +70119,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -68566,6 +70145,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -68590,6 +70170,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -68618,6 +70199,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -68642,6 +70224,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -68670,6 +70253,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -68694,6 +70278,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -68722,6 +70307,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -68746,6 +70332,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -68774,6 +70361,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -68794,6 +70382,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -68818,6 +70407,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -68838,6 +70428,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConflicts
@@ -68869,6 +70460,7 @@ abstract class C implements A, B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         flags: isAbstract
@@ -68941,6 +70533,7 @@ abstract class C implements A, B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         flags: isAbstract
@@ -69014,6 +70607,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -69045,6 +70639,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -69082,6 +70677,7 @@ class A<T> {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -69104,6 +70700,7 @@ class A<T> {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -69132,6 +70729,7 @@ class A<T> {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -69145,6 +70743,7 @@ class A<T, U> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M3
         interface: #M4
@@ -69164,6 +70763,7 @@ class A<T extends num> {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -69177,6 +70777,7 @@ class A<T extends int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M3
         interface: #M4
@@ -69196,6 +70797,7 @@ class A<T, U> {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -69209,6 +70811,7 @@ class A<T> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M3
         interface: #M4
@@ -69231,6 +70834,7 @@ class D<out T> {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -69256,6 +70860,7 @@ class D<in T> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         interface: #M1
@@ -69285,6 +70890,7 @@ class B<out T> {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -69302,6 +70908,7 @@ class B<T> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -69328,6 +70935,7 @@ class X = A with M;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -69357,6 +70965,7 @@ class X = A with M;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConstructors
@@ -69394,6 +71003,7 @@ class X2 = A with M;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -69429,6 +71039,7 @@ class X2 = A with M;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConstructors
@@ -69472,6 +71083,7 @@ class X2 = X1 with M;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -69507,6 +71119,7 @@ class X2 = X1 with M;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConstructors
@@ -69550,6 +71163,7 @@ class X = A with M;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -69581,6 +71195,7 @@ class X = A with M;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConstructors
@@ -69618,6 +71233,7 @@ class X = A with M;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -69648,6 +71264,7 @@ class X = A with M;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConstructors
@@ -69682,6 +71299,7 @@ class Y = A with M;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -69712,6 +71330,7 @@ class Y = B with M;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         interface: #M1
@@ -69754,6 +71373,7 @@ class X = A with M;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -69832,6 +71452,7 @@ class X = A with M;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -69911,6 +71532,7 @@ class X4 = Object with M implements A;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -69945,6 +71567,7 @@ class X4 = Object with M;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         interface: #M1
@@ -69984,6 +71607,7 @@ class Y = Object with M;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       X: #M0
         interface: #M1
@@ -70008,6 +71632,7 @@ class Y = Object with M;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       X: #M0
         interface: #M1
@@ -70044,6 +71669,7 @@ class X = A with M;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -70116,6 +71742,7 @@ class X = A with M;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -70194,6 +71821,7 @@ class X = A with M;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -70272,6 +71900,7 @@ class X = A with M;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -70350,6 +71979,7 @@ const e = '$b' 'x';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
       b: #M1
@@ -70380,6 +72010,7 @@ const e = '$b' 'x';
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
       b: #M1
@@ -70415,6 +72046,7 @@ const d = b as int;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
       b: #M1
@@ -70441,6 +72073,7 @@ const d = b as int;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
       b: #M1
@@ -70470,6 +72103,7 @@ const a = 0 + 1;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -70485,6 +72119,7 @@ const b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
       b: #M3
@@ -70509,6 +72144,7 @@ const b = a + 2;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
       b: #M1
@@ -70527,6 +72163,7 @@ const b = a + 2;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
       b: #M1
@@ -70550,6 +72187,7 @@ const a = 0 + 1;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -70564,6 +72202,7 @@ const a = 2 + 1;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
     declaredVariables
@@ -70589,6 +72228,7 @@ const x = a + 1;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -70621,6 +72261,7 @@ const x = a + 1;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -70654,6 +72295,7 @@ const a = 0 + 1;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -70668,6 +72310,7 @@ const a = 0 - 1;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
     declaredVariables
@@ -70689,6 +72332,7 @@ const b = 2 + a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
       b: #M1
@@ -70707,6 +72351,7 @@ const b = 2 + a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
       b: #M1
@@ -70731,6 +72376,7 @@ const b = 0 + a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       b: #M0
         flags: isSimplyBounded isStatic isSynthetic
@@ -70758,6 +72404,7 @@ const b = 0 + a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M4
         flags: isSimplyBounded isStatic isSynthetic
@@ -70805,6 +72452,7 @@ const b = 1 + a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
         flags: isSimplyBounded isStatic isSynthetic
@@ -70844,6 +72492,7 @@ const b = 1 + a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       b: #M6
         flags: isSimplyBounded isStatic isSynthetic
@@ -70876,6 +72525,7 @@ const a = true;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -70891,6 +72541,7 @@ const b = false;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
       b: #M3
@@ -70915,6 +72566,7 @@ const a = 0..abs();
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
         flags: isSimplyBounded isStatic isSynthetic
@@ -70936,6 +72588,7 @@ const b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
         flags: isSimplyBounded isStatic isSynthetic
@@ -70975,6 +72628,7 @@ const d = b ? 0 : 1;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
       b: #M1
@@ -71001,6 +72655,7 @@ const d = b ? 0 : 1;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
       b: #M1
@@ -71033,6 +72688,7 @@ const a = A.named();
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -71056,6 +72712,7 @@ const a = A.named();
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConstructors
@@ -71086,6 +72743,7 @@ const a = A();
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -71109,6 +72767,7 @@ const a = A();
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredConstructors
@@ -71139,6 +72798,7 @@ const a = A();
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -71163,6 +72823,7 @@ const a = A();
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -71196,6 +72857,7 @@ const b = 0 as dynamic;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
       b: #M1
@@ -71214,6 +72876,7 @@ const b = 0 as int;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
       b: #M5
@@ -71239,6 +72902,7 @@ class A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         metadata
@@ -71261,6 +72925,7 @@ class A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M3
         metadata
@@ -71291,6 +72956,7 @@ class A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         metadata
@@ -71314,6 +72980,7 @@ class A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M3
         metadata
@@ -71343,6 +73010,7 @@ const a = 0 as core.int;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
         flags: isSimplyBounded isStatic isSynthetic
@@ -71371,6 +73039,7 @@ const b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
         flags: isSimplyBounded isStatic isSynthetic
@@ -71414,6 +73083,7 @@ const a = [0][0];
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
         flags: isSimplyBounded isStatic isSynthetic
@@ -71435,6 +73105,7 @@ const b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
         flags: isSimplyBounded isStatic isSynthetic
@@ -71477,6 +73148,7 @@ const d = A(b);
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -71510,6 +73182,7 @@ const d = A(b);
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         interface: #M1
@@ -71543,6 +73216,7 @@ const a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -71558,6 +73232,7 @@ const b = 1;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
       b: #M3
@@ -71581,6 +73256,7 @@ const a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -71595,6 +73271,7 @@ const a = 1;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
     declaredVariables
@@ -71618,6 +73295,7 @@ const d = [b];
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
       b: #M1
@@ -71644,6 +73322,7 @@ const d = [b];
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
       b: #M1
@@ -71676,6 +73355,7 @@ const d = {b: 0};
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
       b: #M1
@@ -71702,6 +73382,7 @@ const d = {b: 0};
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
       b: #M1
@@ -71734,6 +73415,7 @@ const d = {0: b};
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
       b: #M1
@@ -71760,6 +73442,7 @@ const d = {0: b};
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
       b: #M1
@@ -71790,6 +73473,7 @@ const a = 0.abs();
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
         flags: isSimplyBounded isStatic isSynthetic
@@ -71811,6 +73495,7 @@ const b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
         flags: isSimplyBounded isStatic isSynthetic
@@ -71848,6 +73533,7 @@ const a = identical(0, 1);
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
         flags: isSimplyBounded isStatic isSynthetic
@@ -71874,6 +73560,7 @@ const b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
         flags: isSimplyBounded isStatic isSynthetic
@@ -71926,6 +73613,7 @@ const x = foo;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredGetters
       foo: #M0
         flags: isSimplyBounded isStatic isSynthetic
@@ -71942,6 +73630,7 @@ const x = foo;
       foo: #M0
 [operation] linkLibraryCycle
   package:test/b.dart
+    hashForRequirements: #H1
     declaredGetters
       foo: #M3
         flags: isSimplyBounded isStatic isSynthetic
@@ -71958,6 +73647,7 @@ const x = foo;
       foo: #M3
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H2
     declaredGetters
       x: #M6
         flags: isSimplyBounded isStatic isSynthetic
@@ -71984,6 +73674,7 @@ class A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     declaredClasses
       A: #M9
         supertype: Object @ dart:core
@@ -72021,6 +73712,7 @@ const b = B;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -72048,6 +73740,7 @@ const b = B;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         interface: #M1
@@ -72078,6 +73771,7 @@ const a = <Never>[];
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -72093,6 +73787,7 @@ const b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
       b: #M3
@@ -72118,6 +73813,7 @@ const b = a++;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
         flags: isSimplyBounded isStatic isSynthetic
@@ -72150,6 +73846,7 @@ const c = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
         flags: isSimplyBounded isStatic isSynthetic
@@ -72197,6 +73894,7 @@ const a = 0!;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
         flags: isSimplyBounded isStatic isSynthetic
@@ -72218,6 +73916,7 @@ const b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
         flags: isSimplyBounded isStatic isSynthetic
@@ -72260,6 +73959,7 @@ const d = A.b;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -72293,6 +73993,7 @@ const d = A.b;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -72332,6 +74033,7 @@ const d = A.b;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensions
       A: #M0
         declaredFields
@@ -72365,6 +74067,7 @@ const d = A.b;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensions
       A: #M0
         declaredFields
@@ -72409,6 +74112,7 @@ const d = prefix.A.b;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -72438,6 +74142,7 @@ const d = prefix.A.b;
       A: #M0
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       c: #M7
         flags: isSimplyBounded isStatic isSynthetic
@@ -72491,6 +74196,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M0
         supertype: Object @ dart:core
@@ -72528,6 +74234,7 @@ class A {
     actualId: #M12
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     declaredGetters
       c: #M7
         flags: isSimplyBounded isStatic isSynthetic
@@ -72587,6 +74294,7 @@ const d = self.b;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
       b: #M1
@@ -72614,6 +74322,7 @@ const d = self.b;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
       b: #M1
@@ -72646,9 +74355,11 @@ const z = x.x + y.y;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     exportMapId: #M0
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       z: #M1
     declaredVariables
@@ -72664,6 +74375,7 @@ const z = x.x + y.y;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H2
     declaredGetters
       z: #M1
     declaredVariables
@@ -72693,6 +74405,7 @@ const z = p.x;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredGetters
       x: #M0
     declaredVariables
@@ -72702,6 +74415,7 @@ const z = p.x;
       x: #M0
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       z: #M3
     declaredVariables
@@ -72717,6 +74431,7 @@ const z = p.x;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/b.dart
+    hashForRequirements: #H2
     declaredGetters
       x: #M6
     declaredVariables
@@ -72726,6 +74441,7 @@ const z = p.x;
       x: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     declaredGetters
       z: #M3
     declaredVariables
@@ -72750,6 +74466,7 @@ const b = -a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -72781,6 +74498,7 @@ const b = -a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -72818,6 +74536,7 @@ const b = -a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -72850,6 +74569,7 @@ const b = -a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -72886,6 +74606,7 @@ const a = '0'.length;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -72900,6 +74621,7 @@ const a = '1'.length;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
     declaredVariables
@@ -72923,6 +74645,7 @@ const d = {b};
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
       b: #M1
@@ -72949,6 +74672,7 @@ const d = {b};
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
       b: #M1
@@ -72983,6 +74707,7 @@ class A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -73011,6 +74736,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -73043,6 +74769,7 @@ const d = b;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
       b: #M1
@@ -73069,6 +74796,7 @@ const d = b;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
       b: #M1
@@ -73098,6 +74826,7 @@ const a = #foo.bar;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -73113,6 +74842,7 @@ const b = 1;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
       b: #M3
@@ -73142,6 +74872,7 @@ const x = A;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredTypeAliases
       A: #M0
         flags: isProperRename isSimplyBounded
@@ -73151,6 +74882,7 @@ const x = A;
       A: #M0
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       x: #M2
         flags: isSimplyBounded isStatic isSynthetic
@@ -73178,6 +74910,7 @@ const y = double;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H2
     declaredGetters
       x: #M2
         flags: isSimplyBounded isStatic isSynthetic
@@ -73226,6 +74959,7 @@ const d = b;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
       b: #M1
@@ -73252,6 +74986,7 @@ const d = b;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
       b: #M1
@@ -73283,6 +75018,7 @@ enum A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredEnums
       A: #M0
         declaredFields
@@ -73315,6 +75051,7 @@ enum A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredEnums
       A: #M0
         declaredFields
@@ -73353,6 +75090,7 @@ enum A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredEnums
       A: #M0
         declaredFields
@@ -73385,6 +75123,7 @@ enum A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredEnums
       A: #M0
         declaredFields
@@ -73426,6 +75165,7 @@ enum A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredEnums
       A: #M0
         declaredFields
@@ -73463,6 +75203,7 @@ enum A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredEnums
       A: #M0
         declaredFields
@@ -73506,6 +75247,7 @@ enum A<T> {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredEnums
       A: #M0
         declaredFields
@@ -73543,6 +75285,7 @@ enum A<T> {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredEnums
       A: #M0
         declaredFields
@@ -73585,6 +75328,7 @@ enum A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredEnums
       A: #M0
         declaredFields
@@ -73625,6 +75369,7 @@ enum A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredEnums
       A: #M0
         declaredFields
@@ -73671,6 +75416,7 @@ enum A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredEnums
       A: #M0
         declaredFields
@@ -73711,6 +75457,7 @@ enum A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredEnums
       A: #M0
         declaredFields
@@ -73754,6 +75501,7 @@ class B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       B: #M0
         interface: #M1
@@ -73787,6 +75535,7 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       B: #M0
         interface: #M1
@@ -73826,6 +75575,7 @@ class B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       B: #M0
         interface: #M1
@@ -73859,6 +75609,7 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       B: #M0
         interface: #M1
@@ -73897,6 +75648,7 @@ enum A { v }
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredEnums
       A: #M0
         declaredFields
@@ -73926,6 +75678,7 @@ enum B { v }
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredEnums
       A: #M0
         declaredFields
@@ -73979,6 +75732,7 @@ enum B { v }
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredEnums
       A: #M0
         declaredFields
@@ -74025,6 +75779,7 @@ enum A { v }
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredEnums
       A: #M0
         declaredFields
@@ -74063,6 +75818,7 @@ enum A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredEnums
       A: #M0
         declaredFields
@@ -74102,6 +75858,7 @@ enum A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredEnums
       A: #M0
         declaredFields
@@ -74147,6 +75904,7 @@ enum A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredEnums
       A: #M0
         declaredFields
@@ -74188,6 +75946,7 @@ enum A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredEnums
       A: #M0
         declaredFields
@@ -74234,6 +75993,7 @@ enum A<T> {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredEnums
       A: #M0
         declaredFields
@@ -74270,6 +76030,7 @@ enum A<T> {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredEnums
       A: #M0
         declaredFields
@@ -74311,6 +76072,7 @@ enum A<T> { v }
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredEnums
       A: #M0
         declaredFields
@@ -74339,6 +76101,7 @@ enum A<T, U> { v }
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredEnums
       A: #M8
         declaredFields
@@ -74377,6 +76140,7 @@ mixin M {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredEnums
       A: #M0
         declaredFields
@@ -74419,6 +76183,7 @@ mixin M {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredEnums
       A: #M11
         declaredFields
@@ -74473,6 +76238,7 @@ mixin M {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredEnums
       A: #M0
         declaredFields
@@ -74521,6 +76287,7 @@ mixin M {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredEnums
       A: #M11
         declaredFields
@@ -74573,6 +76340,7 @@ extension B on int {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensions
       A: #M0
         declaredMethods
@@ -74602,6 +76370,7 @@ extension B on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensions
       A: #M0
         declaredMethods
@@ -74641,6 +76410,7 @@ extension B on int {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       A: #M0
         declaredMethods
@@ -74652,6 +76422,7 @@ extension B on int {
     exportedExtensions: #M0
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensions
       B: #M4
         declaredMethods
@@ -74676,6 +76447,7 @@ extension A on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       A: #M0
         declaredMethods
@@ -74709,6 +76481,7 @@ export 'a.dart' hide B;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       A: #M0
         declaredMethods
@@ -74723,6 +76496,7 @@ export 'a.dart' hide B;
     exportedExtensions: #M0 #M2
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
     exportMap
       A: #M0
@@ -74743,6 +76517,7 @@ extension B on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       A: #M0
         declaredMethods
@@ -74779,6 +76554,7 @@ export 'a.dart' show A;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       A: #M0
         declaredMethods
@@ -74793,6 +76569,7 @@ export 'a.dart' show A;
     exportedExtensions: #M0 #M2
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
     exportMap
       A: #M0
@@ -74813,6 +76590,7 @@ extension B on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       A: #M0
         declaredMethods
@@ -74856,6 +76634,7 @@ extension B on int {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       A: #M0
         declaredMethods
@@ -74867,6 +76646,7 @@ extension B on int {
     exportedExtensions: #M0
 [operation] linkLibraryCycle
   package:test/b.dart
+    hashForRequirements: #H1
     exportMapId: #M4
     exportMap
       A: #M0
@@ -74876,6 +76656,7 @@ extension B on int {
     exportedLibraryUris: package:test/a.dart
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H2
     declaredExtensions
       B: #M5
         declaredMethods
@@ -74900,6 +76681,7 @@ extension A on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H3
     declaredExtensions
       A: #M0
         declaredMethods
@@ -74938,6 +76720,7 @@ extension A on int {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredExtensions
       A: #M0
         declaredMethods
@@ -74952,6 +76735,7 @@ extension A on int {
     exportedExtensions: #M0 #M2
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensions
       A: #M5
         declaredMethods
@@ -74977,6 +76761,7 @@ extension B on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredExtensions
       A: #M0
         declaredMethods
@@ -75007,6 +76792,7 @@ extension A on int {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensions
       A: #M0
         declaredMethods
@@ -75026,6 +76812,7 @@ extension A on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensions
       A: #M0
         declaredMethods
@@ -75053,6 +76840,7 @@ extension B on int {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensions
       A: #M0
         declaredMethods
@@ -75077,6 +76865,7 @@ extension A on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensions
       A: #M0
         declaredMethods
@@ -75105,6 +76894,7 @@ extension A on int {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensions
       A: #M0
         declaredMethods
@@ -75124,6 +76914,7 @@ extension A on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensions
       A: #M0
         declaredMethods
@@ -75149,6 +76940,7 @@ extension A on int {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensions
       A: #M0
         extendedType: int @ dart:core
@@ -75170,6 +76962,7 @@ extension A on double {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensions
       A: #M3
         extendedType: double @ dart:core
@@ -75198,6 +76991,7 @@ extension A on int {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensions
       A: #M0
         declaredFields
@@ -75220,6 +77014,7 @@ extension A on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensions
       A: #M0
         declaredFields
@@ -75249,6 +77044,7 @@ extension E on B {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -75277,6 +77073,7 @@ extension E on B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         interface: #M1
@@ -75313,6 +77110,7 @@ extension E<T> on int {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensions
       E: #M0
         typeParameters
@@ -75361,6 +77159,7 @@ extension E<T> on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensions
       E: #M0
         typeParameters
@@ -75415,6 +77214,7 @@ extension E on int {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -75453,6 +77253,7 @@ extension E on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -75499,6 +77300,7 @@ extension E on int {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -75544,6 +77346,7 @@ extension E on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -75596,6 +77399,7 @@ extension E on int {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -75641,6 +77445,7 @@ extension E on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -75691,6 +77496,7 @@ extension B on int {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensions
       A: #M0
       B: #M1
@@ -75710,6 +77516,7 @@ extension B on int {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensions
       A: #M0
       B: #M3
@@ -75734,6 +77541,7 @@ extension A on int {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensions
       A: #M0
         declaredMethods
@@ -75753,6 +77561,7 @@ extension A on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensions
       A: #M0
         declaredMethods
@@ -75779,6 +77588,7 @@ extension E on B {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -75805,6 +77615,7 @@ extension E on B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         interface: #M1
@@ -75839,6 +77650,7 @@ extension E<T> on int {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensions
       E: #M0
         typeParameters
@@ -75878,6 +77690,7 @@ extension E<T> on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensions
       E: #M0
         typeParameters
@@ -75923,6 +77736,7 @@ extension E on int {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -75954,6 +77768,7 @@ extension E on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -75993,6 +77808,7 @@ extension E on int {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -76029,6 +77845,7 @@ extension E on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -76072,6 +77889,7 @@ extension E on int {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -76108,6 +77926,7 @@ extension E on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -76147,6 +77966,7 @@ extension on int {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     exportMapId: #M0
 ''',
       updatedCode: r'''
@@ -76158,6 +77978,7 @@ extension on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     exportMapId: #M0
 ''',
     );
@@ -76175,6 +77996,7 @@ extension A on int {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensions
       A: #M0
         declaredFields
@@ -76197,6 +78019,7 @@ extension A on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensions
       A: #M0
         declaredFields
@@ -76226,6 +78049,7 @@ extension E on B {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -76254,6 +78078,7 @@ extension E on B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         interface: #M1
@@ -76290,6 +78115,7 @@ extension E<T> on int {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensions
       E: #M0
         typeParameters
@@ -76350,6 +78176,7 @@ extension E<T> on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensions
       E: #M0
         typeParameters
@@ -76417,6 +78244,7 @@ extension E on int {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -76474,6 +78302,7 @@ extension E on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -76538,6 +78367,7 @@ extension E on int {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -76595,6 +78425,7 @@ extension E on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -76655,6 +78486,7 @@ extension A<T> on int {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensions
       A: #M0
         declaredMethods
@@ -76673,6 +78505,7 @@ extension A<T> on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensions
       A: #M0
         declaredMethods
@@ -76695,6 +78528,7 @@ extension A<T> on int {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensions
       A: #M0
     exportMapId: #M1
@@ -76708,6 +78542,7 @@ extension A<T, U> on int {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensions
       A: #M2
     exportMapId: #M3
@@ -76731,6 +78566,7 @@ extension type ET(B it) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -76765,6 +78601,7 @@ extension type ET(B it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         interface: #M1
@@ -76807,6 +78644,7 @@ extension type E(int it) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       E: #M0
         representationType: int @ dart:core
@@ -76864,6 +78702,7 @@ extension type E(int it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensionTypes
       E: #M0
         representationType: int @ dart:core
@@ -76928,6 +78767,7 @@ extension type E(int it) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       E: #M0
         representationType: int @ dart:core
@@ -76985,6 +78825,7 @@ extension type E(int it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensionTypes
       E: #M0
         representationType: int @ dart:core
@@ -77049,6 +78890,7 @@ extension type E(int it) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       E: #M0
         representationType: int @ dart:core
@@ -77106,6 +78948,7 @@ extension type E(int it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensionTypes
       E: #M0
         representationType: int @ dart:core
@@ -77167,6 +79010,7 @@ extension type A(int it) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -77199,6 +79043,7 @@ extension type A(int it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -77238,6 +79083,7 @@ extension type ET(B it) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -77274,6 +79120,7 @@ extension type ET(B it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         interface: #M1
@@ -77318,6 +79165,7 @@ extension type E<T>(T it) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       E: #M0
         typeParameters
@@ -77385,6 +79233,7 @@ extension type E<T>(T it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensionTypes
       E: #M0
         typeParameters
@@ -77458,6 +79307,7 @@ extension type E(int it) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       E: #M0
         representationType: int @ dart:core
@@ -77513,6 +79363,7 @@ extension type E(int it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensionTypes
       E: #M0
         representationType: int @ dart:core
@@ -77576,6 +79427,7 @@ extension type E(int it) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       E: #M0
         representationType: int @ dart:core
@@ -77640,6 +79492,7 @@ extension type E(int it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensionTypes
       E: #M0
         representationType: int @ dart:core
@@ -77711,6 +79564,7 @@ extension type E(int it) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       E: #M0
         representationType: int @ dart:core
@@ -77771,6 +79625,7 @@ extension type E(int it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensionTypes
       E: #M0
         representationType: int @ dart:core
@@ -77832,6 +79687,7 @@ extension type A(int it) implements Object {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -77853,6 +79709,7 @@ extension type A(int it) implements A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensionTypes
       A: #M5
         declaredFields
@@ -77880,6 +79737,7 @@ extension type A(NoSuchType it) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -77901,6 +79759,7 @@ extension type A(A it) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensionTypes
       A: #M5
         declaredFields
@@ -77928,6 +79787,7 @@ extension type A(int it) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -77949,6 +79809,7 @@ extension type A(int it) implements Object {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensionTypes
       A: #M5
         declaredFields
@@ -77976,6 +79837,7 @@ extension type A(int it) implements Object {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -77997,6 +79859,7 @@ extension type A(int it) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensionTypes
       A: #M5
         declaredFields
@@ -78028,6 +79891,7 @@ extension type B(int it) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -78064,6 +79928,7 @@ extension type B(int it) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -78106,6 +79971,7 @@ extension type A(int it) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       A: #M0
         representationType: int @ dart:core
@@ -78149,6 +80015,7 @@ extension type A(int it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensionTypes
       A: #M0
         representationType: int @ dart:core
@@ -78199,6 +80066,7 @@ extension type ET(B it) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -78235,6 +80103,7 @@ extension type ET(B it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         interface: #M1
@@ -78279,6 +80148,7 @@ extension type E<T>(T it) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       E: #M0
         typeParameters
@@ -78339,6 +80209,7 @@ extension type E<T>(T it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensionTypes
       E: #M0
         typeParameters
@@ -78405,6 +80276,7 @@ extension type E(int it) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       E: #M0
         representationType: int @ dart:core
@@ -78455,6 +80327,7 @@ extension type E(int it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensionTypes
       E: #M0
         representationType: int @ dart:core
@@ -78513,6 +80386,7 @@ extension type E(int it) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       E: #M0
         representationType: int @ dart:core
@@ -78570,6 +80444,7 @@ extension type E(int it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensionTypes
       E: #M0
         representationType: int @ dart:core
@@ -78634,6 +80509,7 @@ extension type E(int it) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       E: #M0
         representationType: int @ dart:core
@@ -78687,6 +80563,7 @@ extension type E(int it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensionTypes
       E: #M0
         representationType: int @ dart:core
@@ -78743,6 +80620,7 @@ extension type A.foo(int it) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -78772,6 +80650,7 @@ extension type A.bar(int it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -78807,6 +80686,7 @@ extension type A(int it) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -78834,6 +80714,7 @@ extension type A(int _it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -78865,6 +80746,7 @@ extension type A(int it) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -78892,6 +80774,7 @@ extension type A(double it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensionTypes
       A: #M6
         declaredFields
@@ -78926,6 +80809,7 @@ extension type A(int it) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -78959,6 +80843,7 @@ extension type A(int it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -78999,6 +80884,7 @@ extension type ET(B it) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -79036,6 +80922,7 @@ extension type ET(B it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         interface: #M1
@@ -79081,6 +80968,7 @@ extension type E<T>(T it) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       E: #M0
         typeParameters
@@ -79161,6 +81049,7 @@ extension type E<T>(T it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensionTypes
       E: #M0
         typeParameters
@@ -79248,6 +81137,7 @@ extension type E(int it) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       E: #M0
         representationType: int @ dart:core
@@ -79325,6 +81215,7 @@ extension type E(int it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensionTypes
       E: #M0
         representationType: int @ dart:core
@@ -79409,6 +81300,7 @@ extension type E(int it) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       E: #M0
         representationType: int @ dart:core
@@ -79482,6 +81374,7 @@ extension type E(int it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensionTypes
       E: #M0
         representationType: int @ dart:core
@@ -79556,6 +81449,7 @@ extension type A(num it) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -79577,6 +81471,7 @@ extension type A(int it) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensionTypes
       A: #M5
         declaredFields
@@ -79606,6 +81501,7 @@ extension type A<T>(int it) {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -79634,6 +81530,7 @@ extension type A<T>(int it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -79668,6 +81565,7 @@ extension type A<T>(int it) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -79689,6 +81587,7 @@ extension type A<T, U>(int it) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredExtensionTypes
       A: #M5
         declaredFields
@@ -79765,6 +81664,7 @@ class X extends B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:foo/foo.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -79773,6 +81673,7 @@ class X extends B {}
       A: #M0
 [operation] linkLibraryCycle
   package:bar/bar.dart
+    hashForRequirements: #H1
     declaredClasses
       B: #M3
         interface: #M4
@@ -79796,6 +81697,7 @@ class X extends B {}
 [operation] reuseLinkedBundle SDK
 [operation] linkLibraryCycle
   package:foo/foo.dart
+    hashForRequirements: #H2
     declaredClasses
       A: #M6
         interface: #M7
@@ -79807,6 +81709,7 @@ class X extends B {}
       A2: #M8
 [operation] linkLibraryCycle
   package:bar/bar.dart
+    hashForRequirements: #H3
     declaredClasses
       B: #M11
         interface: #M12
@@ -79906,6 +81809,7 @@ import 'package:bar/bar.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:foo/foo.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -79914,6 +81818,7 @@ import 'package:bar/bar.dart';
       A: #M0
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M3
 ''');
     }
@@ -79933,6 +81838,7 @@ import 'package:bar/bar.dart';
   package:foo/foo.dart
 [operation] linkLibraryCycle
   package:bar/bar.dart
+    hashForRequirements: #H2
     declaredClasses
       B: #M4
         interface: #M5
@@ -79941,6 +81847,7 @@ import 'package:bar/bar.dart';
       B: #M4
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     exportMapId: #M7
 ''');
     }
@@ -79955,6 +81862,7 @@ library;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     exportMapId: #M0
 ''',
       updatedCode: r'''
@@ -79964,6 +81872,7 @@ library;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     libraryMetadata: #M1
     exportMapId: #M0
 ''',
@@ -79980,6 +81889,7 @@ library;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     libraryMetadata: #M0
     exportMapId: #M1
 ''',
@@ -79990,6 +81900,7 @@ library;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     libraryMetadata: #M2
     exportMapId: #M1
 ''',
@@ -80006,6 +81917,7 @@ library;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     libraryMetadata: #M0
     exportMapId: #M1
 ''',
@@ -80017,6 +81929,7 @@ void foo() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     libraryMetadata: #M0
     declaredFunctions
       foo: #M2
@@ -80037,6 +81950,7 @@ library;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     libraryMetadata: #M0
     exportMapId: #M1
 ''',
@@ -80046,6 +81960,7 @@ library;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M1
 ''',
     );
@@ -80061,6 +81976,7 @@ int get a => 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -80077,6 +81993,7 @@ int get b => 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
       b: #M3
@@ -80100,6 +82017,7 @@ int get a => 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -80115,6 +82033,7 @@ int get a => 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -80136,6 +82055,7 @@ int get a => 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -80150,6 +82070,7 @@ int get a => 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -80172,6 +82093,7 @@ int get foo => 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
       foo: #M1
@@ -80191,6 +82113,7 @@ int get foo => 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
       foo: #M5
@@ -80215,6 +82138,7 @@ int get a => 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -80230,6 +82154,7 @@ int get a => 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -80250,6 +82175,7 @@ mixin A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         interface: #M1
@@ -80264,6 +82190,7 @@ mixin B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         interface: #M1
@@ -80288,6 +82215,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -80312,6 +82240,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredFields
@@ -80347,6 +82276,7 @@ mixin C on B {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         interface: #M1
@@ -80382,6 +82312,7 @@ mixin C on B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         interface: #M1
@@ -80421,6 +82352,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -80444,6 +82376,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredFields
@@ -80473,6 +82406,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -80496,6 +82430,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -80525,6 +82460,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -80544,6 +82480,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredFields
@@ -80569,6 +82506,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -80588,6 +82526,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -80616,6 +82555,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -80653,6 +82593,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredFields
@@ -80693,6 +82634,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -80713,6 +82655,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredFields
@@ -80744,6 +82687,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -80764,6 +82708,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredFields
@@ -80791,6 +82736,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -80813,6 +82759,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredFields
@@ -80849,6 +82796,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -80876,6 +82824,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredFields
@@ -80911,6 +82860,7 @@ mixin B implements A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -80944,6 +82894,7 @@ mixin B implements A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredFields
@@ -80988,6 +82939,7 @@ mixin B implements A<int> {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -81021,6 +82973,7 @@ mixin B implements A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredFields
@@ -81065,6 +83018,7 @@ mixin B on A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -81101,6 +83055,7 @@ mixin B on A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredFields
@@ -81149,6 +83104,7 @@ mixin B on A<int> {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -81185,6 +83141,7 @@ mixin B on A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredFields
@@ -81233,6 +83190,7 @@ mixin C on B {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         interface: #M1
@@ -81264,6 +83222,7 @@ mixin C on B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         interface: #M1
@@ -81302,6 +83261,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -81332,6 +83292,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredFields
@@ -81369,6 +83330,7 @@ mixin M<T> {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       M: #M0
         typeParameters
@@ -81423,6 +83385,7 @@ mixin M<T> {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       M: #M0
         typeParameters
@@ -81483,6 +83446,7 @@ mixin M {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       M: #M0
         superclassConstraints
@@ -81530,6 +83494,7 @@ mixin M {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       M: #M0
         superclassConstraints
@@ -81591,6 +83556,7 @@ mixin M on S {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       S: #M0
         supertype: Object @ dart:core
@@ -81705,6 +83671,7 @@ mixin M on S {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       S: #M0
         supertype: Object @ dart:core
@@ -81820,6 +83787,7 @@ mixin M {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       M: #M0
         superclassConstraints
@@ -81874,6 +83842,7 @@ mixin M {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       M: #M0
         superclassConstraints
@@ -81935,6 +83904,7 @@ mixin M {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       M: #M0
         superclassConstraints
@@ -81991,6 +83961,7 @@ mixin M {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       M: #M0
         superclassConstraints
@@ -82054,6 +84025,7 @@ mixin M {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       M: #M0
         superclassConstraints
@@ -82106,6 +84078,7 @@ mixin M {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       M: #M0
         superclassConstraints
@@ -82161,6 +84134,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -82181,6 +84155,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredFields
@@ -82212,6 +84187,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -82232,6 +84208,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredFields
@@ -82264,6 +84241,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         superclassConstraints
@@ -82293,6 +84271,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         superclassConstraints
@@ -82328,6 +84307,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -82348,6 +84328,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredFields
@@ -82375,6 +84356,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -82398,6 +84380,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredFields
@@ -82423,6 +84406,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -82442,6 +84426,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredFields
@@ -82467,6 +84452,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -82486,6 +84472,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredFields
@@ -82514,6 +84501,7 @@ mixin B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         interface: #M1
@@ -82531,6 +84519,7 @@ mixin B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M5
         interface: #M6
@@ -82554,6 +84543,7 @@ mixin B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         interface: #M1
@@ -82571,6 +84561,7 @@ mixin B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M5
         interface: #M6
@@ -82595,6 +84586,7 @@ mixin C {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         interface: #M1
@@ -82616,6 +84608,7 @@ mixin C {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M7
         interface: #M8
@@ -82644,6 +84637,7 @@ mixin B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         interface: #M1
@@ -82663,6 +84657,7 @@ mixin B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         interface: #M1
@@ -82687,6 +84682,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredMethods
@@ -82709,6 +84705,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredMethods
@@ -82741,6 +84738,7 @@ mixin B implements A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredMethods
@@ -82772,6 +84770,7 @@ mixin B implements A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredMethods
@@ -82813,6 +84812,7 @@ mixin B implements A<int> {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredMethods
@@ -82844,6 +84844,7 @@ mixin B implements A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredMethods
@@ -82885,6 +84886,7 @@ mixin B on A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredMethods
@@ -82919,6 +84921,7 @@ mixin B extends A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredMethods
@@ -82964,6 +84967,7 @@ mixin B extends A<int> {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredMethods
@@ -82998,6 +85002,7 @@ mixin B extends A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredMethods
@@ -83043,6 +85048,7 @@ mixin C on B {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         interface: #M1
@@ -83072,6 +85078,7 @@ mixin C on B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         interface: #M1
@@ -83108,6 +85115,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredMethods
@@ -83135,6 +85143,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredMethods
@@ -83169,6 +85178,7 @@ mixin M<T> {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       M: #M0
         typeParameters
@@ -83214,6 +85224,7 @@ mixin M<T> {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       M: #M0
         typeParameters
@@ -83265,6 +85276,7 @@ mixin M {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       M: #M0
         superclassConstraints
@@ -83305,6 +85317,7 @@ mixin M {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       M: #M0
         superclassConstraints
@@ -83359,6 +85372,7 @@ mixin M on S {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       S: #M0
         supertype: Object @ dart:core
@@ -83455,6 +85469,7 @@ mixin M on S {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       S: #M0
         supertype: Object @ dart:core
@@ -83552,6 +85567,7 @@ mixin M {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       M: #M0
         superclassConstraints
@@ -83597,6 +85613,7 @@ mixin M {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       M: #M0
         superclassConstraints
@@ -83649,6 +85666,7 @@ mixin M {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       M: #M0
         superclassConstraints
@@ -83696,6 +85714,7 @@ mixin M {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       M: #M0
         superclassConstraints
@@ -83750,6 +85769,7 @@ mixin M {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       M: #M0
         superclassConstraints
@@ -83793,6 +85813,7 @@ mixin M {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       M: #M0
         superclassConstraints
@@ -83839,6 +85860,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredMethods
@@ -83857,6 +85879,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredMethods
@@ -83885,6 +85908,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredMethods
@@ -83903,6 +85927,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredMethods
@@ -83932,6 +85957,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredMethods
@@ -83956,6 +85982,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredMethods
@@ -83984,6 +86011,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         superclassConstraints
@@ -84010,6 +86038,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         superclassConstraints
@@ -84042,6 +86071,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredMethods
@@ -84063,6 +86093,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredMethods
@@ -84086,6 +86117,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredMethods
@@ -84103,6 +86135,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredMethods
@@ -84126,6 +86159,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredMethods
@@ -84143,6 +86177,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredMethods
@@ -84171,6 +86206,7 @@ mixin A<T> {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         typeParameters
@@ -84206,6 +86242,7 @@ mixin A<T> {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         typeParameters
@@ -84252,6 +86289,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredMethods
@@ -84273,6 +86311,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredMethods
@@ -84300,6 +86339,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredMethods
@@ -84321,6 +86361,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredMethods
@@ -84351,6 +86392,7 @@ base mixin D {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         superclassConstraints
@@ -84386,6 +86428,7 @@ mixin D {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         superclassConstraints
@@ -84425,6 +86468,7 @@ mixin B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         interface: #M1
@@ -84442,6 +86486,7 @@ mixin B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M5
         interface: #M6
@@ -84466,6 +86511,7 @@ mixin C {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         interface: #M1
@@ -84487,6 +86533,7 @@ mixin C {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M7
         interface: #M8
@@ -84514,6 +86561,7 @@ mixin C {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         interface: #M1
@@ -84535,6 +86583,7 @@ mixin C {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M7
         interface: #M8
@@ -84560,6 +86609,7 @@ mixin _A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       _A: #M0
         interface: #M1
@@ -84574,6 +86624,7 @@ mixin B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       B: #M3
         interface: #M4
@@ -84597,6 +86648,7 @@ mixin B {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         interface: #M1
@@ -84613,6 +86665,7 @@ mixin B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       B: #M2
         interface: #M3
@@ -84636,6 +86689,7 @@ mixin B implements A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -84669,6 +86723,7 @@ mixin B implements A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredFields
@@ -84713,6 +86768,7 @@ mixin B implements A<int> {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -84746,6 +86802,7 @@ mixin B implements A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredFields
@@ -84790,6 +86847,7 @@ mixin B on A {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -84826,6 +86884,7 @@ mixin B on A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredFields
@@ -84874,6 +86933,7 @@ mixin B on A<int> {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -84910,6 +86970,7 @@ mixin B on A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredFields
@@ -84958,6 +87019,7 @@ mixin C on B {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         interface: #M1
@@ -84989,6 +87051,7 @@ mixin C on B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         interface: #M1
@@ -85027,6 +87090,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -85057,6 +87121,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredFields
@@ -85094,6 +87159,7 @@ mixin M<T> {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       M: #M0
         typeParameters
@@ -85160,6 +87226,7 @@ mixin M<T> {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       M: #M0
         typeParameters
@@ -85239,6 +87306,7 @@ mixin M on S {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       S: #M0
         supertype: Object @ dart:core
@@ -85377,6 +87445,7 @@ mixin M on S {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       S: #M0
         supertype: Object @ dart:core
@@ -85516,6 +87585,7 @@ mixin M {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       M: #M0
         superclassConstraints
@@ -85582,6 +87652,7 @@ mixin M {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       M: #M0
         superclassConstraints
@@ -85655,6 +87726,7 @@ mixin M {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       M: #M0
         superclassConstraints
@@ -85723,6 +87795,7 @@ mixin M {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       M: #M0
         superclassConstraints
@@ -85798,6 +87871,7 @@ mixin M {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       M: #M0
         superclassConstraints
@@ -85862,6 +87936,7 @@ mixin M {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       M: #M0
         superclassConstraints
@@ -85929,6 +88004,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -85949,6 +88025,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredFields
@@ -85980,6 +88057,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -86000,6 +88078,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredFields
@@ -86031,6 +88110,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -86051,6 +88131,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredFields
@@ -86078,6 +88159,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -86101,6 +88183,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredFields
@@ -86126,6 +88209,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -86145,6 +88229,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredFields
@@ -86174,6 +88259,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredFields
@@ -86193,6 +88279,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredFields
@@ -86219,6 +88306,7 @@ mixin A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         superclassConstraints
@@ -86251,6 +88339,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         superclassConstraints
@@ -86293,6 +88382,7 @@ mixin M {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       M: #M0
         declaredMethods
@@ -86319,6 +88409,7 @@ mixin M {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M4
         interface: #M5
@@ -86356,6 +88447,7 @@ mixin M on A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -86399,6 +88491,7 @@ mixin M on A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -86450,6 +88543,7 @@ mixin M on A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -86491,6 +88585,7 @@ mixin M on A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -86540,6 +88635,7 @@ mixin M on A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -86583,6 +88679,7 @@ mixin M on A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -86632,6 +88729,7 @@ mixin M on A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -86677,6 +88775,7 @@ mixin M on A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -86726,6 +88825,7 @@ mixin M on A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -86769,6 +88869,7 @@ mixin M on A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredMethods
@@ -86816,6 +88917,7 @@ mixin M on A {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -86861,6 +88963,7 @@ mixin M on A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredClasses
       A: #M0
         declaredFields
@@ -86906,6 +89009,7 @@ mixin A<T> {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         declaredMethods
@@ -86928,6 +89032,7 @@ mixin A<T> {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         declaredMethods
@@ -86956,6 +89061,7 @@ mixin A<T> {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         interface: #M1
@@ -86969,6 +89075,7 @@ mixin A<T, U> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M3
         interface: #M4
@@ -86991,6 +89098,7 @@ mixin D<out T> {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredMixins
       A: #M0
         interface: #M1
@@ -87016,6 +89124,7 @@ mixin D<in T> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredMixins
       A: #M0
         interface: #M1
@@ -87044,6 +89153,7 @@ void foo() {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredFunctions
       foo: #M0
     exportMapId: #M1
@@ -87057,6 +89167,7 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       bar: #M2
       foo: #M0
@@ -87077,6 +89188,7 @@ void foo({int a}) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredFunctions
       foo: #M0
     exportMapId: #M1
@@ -87090,6 +89202,7 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       bar: #M2
       foo: #M0
@@ -87110,6 +89223,7 @@ void foo({int a = 0}) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredFunctions
       foo: #M0
     exportMapId: #M1
@@ -87123,6 +89237,7 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       bar: #M2
       foo: #M0
@@ -87143,6 +89258,7 @@ void foo({int a = 0}) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredFunctions
       foo: #M0
     exportMapId: #M1
@@ -87156,6 +89272,7 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       bar: #M2
       foo: #M3
@@ -87176,6 +89293,7 @@ void foo({int a}) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredFunctions
       foo: #M0
     exportMapId: #M1
@@ -87189,6 +89307,7 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       bar: #M2
       foo: #M3
@@ -87209,6 +89328,7 @@ void foo({int a}) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredFunctions
       foo: #M0
     exportMapId: #M1
@@ -87222,6 +89342,7 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       bar: #M2
       foo: #M3
@@ -87242,6 +89363,7 @@ void foo([int a]) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredFunctions
       foo: #M0
     exportMapId: #M1
@@ -87255,6 +89377,7 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       bar: #M2
       foo: #M0
@@ -87275,6 +89398,7 @@ void foo([int a = 0]) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredFunctions
       foo: #M0
     exportMapId: #M1
@@ -87288,6 +89412,7 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       bar: #M2
       foo: #M0
@@ -87308,6 +89433,7 @@ void foo([int a = 0]) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredFunctions
       foo: #M0
     exportMapId: #M1
@@ -87321,6 +89447,7 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       bar: #M2
       foo: #M3
@@ -87341,6 +89468,7 @@ void foo([int a]) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredFunctions
       foo: #M0
     exportMapId: #M1
@@ -87354,6 +89482,7 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       bar: #M2
       foo: #M0
@@ -87374,6 +89503,7 @@ void foo([int a]) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredFunctions
       foo: #M0
     exportMapId: #M1
@@ -87387,6 +89517,7 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       bar: #M2
       foo: #M3
@@ -87407,6 +89538,7 @@ void foo({required int a}) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredFunctions
       foo: #M0
     exportMapId: #M1
@@ -87420,6 +89552,7 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       bar: #M2
       foo: #M0
@@ -87440,6 +89573,7 @@ void foo({required int a}) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredFunctions
       foo: #M0
     exportMapId: #M1
@@ -87453,6 +89587,7 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       bar: #M2
       foo: #M3
@@ -87473,6 +89608,7 @@ void foo({required int a}) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredFunctions
       foo: #M0
     exportMapId: #M1
@@ -87485,6 +89621,7 @@ void foo(int a) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       foo: #M2
     exportMapId: #M3
@@ -87503,6 +89640,7 @@ void foo({required int a}) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredFunctions
       foo: #M0
     exportMapId: #M1
@@ -87516,6 +89654,7 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       bar: #M2
       foo: #M3
@@ -87536,6 +89675,7 @@ void foo(int a) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredFunctions
       foo: #M0
     exportMapId: #M1
@@ -87549,6 +89689,7 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       bar: #M2
       foo: #M0
@@ -87569,6 +89710,7 @@ void foo(int a) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredFunctions
       foo: #M0
     exportMapId: #M1
@@ -87582,6 +89724,7 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       bar: #M2
       foo: #M0
@@ -87602,6 +89745,7 @@ void foo(int a) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredFunctions
       foo: #M0
     exportMapId: #M1
@@ -87614,6 +89758,7 @@ void foo({required int a}) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       foo: #M2
     exportMapId: #M3
@@ -87632,6 +89777,7 @@ void foo(int a) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredFunctions
       foo: #M0
     exportMapId: #M1
@@ -87645,6 +89791,7 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       bar: #M2
       foo: #M3
@@ -87668,6 +89815,7 @@ void b() {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredFunctions
       a: #M0
       b: #M1
@@ -87685,6 +89833,7 @@ void b() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       a: #M0
       b: #M3
@@ -87708,6 +89857,7 @@ foo3() {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredFunctions
       foo1: #M0
         flags: hasEnclosingTypeParameterReference hasImplicitReturnType isSimplyBounded isStatic
@@ -87735,6 +89885,7 @@ void foo3() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       foo1: #M0
         flags: hasEnclosingTypeParameterReference hasImplicitReturnType isSimplyBounded isStatic
@@ -87770,6 +89921,7 @@ external void foo4();
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredFunctions
       foo1: #M0
         flags: hasEnclosingTypeParameterReference isSimplyBounded isStatic
@@ -87803,6 +89955,7 @@ void foo4() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       foo1: #M0
         flags: hasEnclosingTypeParameterReference isSimplyBounded isStatic
@@ -87839,6 +89992,7 @@ void _foo() {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredFunctions
       _foo: #M0
     exportMapId: #M1
@@ -87852,6 +90006,7 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       _foo: #M0
       bar: #M2
@@ -87872,6 +90027,7 @@ int foo() {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredFunctions
       foo: #M0
     exportMapId: #M1
@@ -87884,6 +90040,7 @@ double foo() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       foo: #M2
     exportMapId: #M3
@@ -87902,6 +90059,7 @@ Map<T, U> foo<T extends num, U>() {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredFunctions
       foo: #M0
     exportMapId: #M1
@@ -87915,6 +90073,7 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       bar: #M2
       foo: #M3
@@ -87935,6 +90094,7 @@ void foo<T>() {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredFunctions
       foo: #M0
     exportMapId: #M1
@@ -87947,6 +90107,7 @@ void foo<T, U>() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       foo: #M2
     exportMapId: #M3
@@ -87965,6 +90126,7 @@ void foo<T extends num>() {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredFunctions
       foo: #M0
     exportMapId: #M1
@@ -87977,6 +90139,7 @@ void foo<T extends int>() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       foo: #M2
     exportMapId: #M3
@@ -87995,6 +90158,7 @@ void foo<T, U>() {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredFunctions
       foo: #M0
     exportMapId: #M1
@@ -88007,6 +90171,7 @@ void foo<T>() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       foo: #M2
     exportMapId: #M3
@@ -88025,6 +90190,7 @@ int get a => 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -88040,6 +90206,7 @@ int get b => 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
       b: #M3
@@ -88063,6 +90230,7 @@ int get a => 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -88090,6 +90258,7 @@ final int foo = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       foo: #M0
     declaredVariables
@@ -88104,6 +90273,7 @@ int get foo => 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       foo: #M3
     declaredVariables
@@ -88127,6 +90297,7 @@ int get b => 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
       b: #M1
@@ -88147,6 +90318,7 @@ int get b => 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
       b: #M5
@@ -88173,6 +90345,7 @@ get foo3 => 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       foo1: #M0
         flags: hasImplicitReturnType isSimplyBounded isStatic
@@ -88207,6 +90380,7 @@ int get foo3 => 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       foo1: #M0
         flags: hasImplicitReturnType isSimplyBounded isStatic
@@ -88249,6 +90423,7 @@ external int get foo4;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       foo1: #M0
         flags: isSimplyBounded isStatic
@@ -88291,6 +90466,7 @@ int get foo4 => 4;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       foo1: #M0
         flags: isSimplyBounded isStatic
@@ -88336,6 +90512,7 @@ int get _a => 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       _a: #M0
     declaredVariables
@@ -88351,6 +90528,7 @@ int get b => 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       _a: #M0
       b: #M3
@@ -88374,6 +90552,7 @@ int get a => 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -88388,6 +90567,7 @@ double get a => 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -88408,6 +90588,7 @@ set a(int _) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredSetters
       a=: #M0
     declaredVariables
@@ -88423,6 +90604,7 @@ set b(int _) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredSetters
       a=: #M0
       b=: #M3
@@ -88446,6 +90628,7 @@ set a(int _) { 0; }
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredSetters
       a=: #M0
     declaredVariables
@@ -88473,6 +90656,7 @@ int foo = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       foo: #M0
     declaredSetters
@@ -88491,6 +90675,7 @@ set foo(int _) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       foo: #M4
     declaredSetters
@@ -88517,6 +90702,7 @@ set b(int _) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredSetters
       a=: #M0
       b=: #M1
@@ -88537,6 +90723,7 @@ set b(int _) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredSetters
       a=: #M0
       b=: #M5
@@ -88563,6 +90750,7 @@ set foo3(int value) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredSetters
       foo1=: #M0
         flags: hasImplicitReturnType isSimplyBounded isStatic
@@ -88606,6 +90794,7 @@ void set foo3(int value) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredSetters
       foo1=: #M0
         flags: hasImplicitReturnType isSimplyBounded isStatic
@@ -88657,6 +90846,7 @@ external set foo4(int value);
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredSetters
       foo1=: #M0
         flags: hasImplicitReturnType isSimplyBounded isStatic
@@ -88711,6 +90901,7 @@ set foo4(int value) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredSetters
       foo1=: #M0
         flags: hasImplicitReturnType isSimplyBounded isStatic
@@ -88769,6 +90960,7 @@ set a(int _) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredSetters
       a=: #M0
         flags: hasImplicitReturnType isSimplyBounded isStatic
@@ -88790,6 +90982,7 @@ set a(double _) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredSetters
       a=: #M3
         flags: hasImplicitReturnType isSimplyBounded isStatic
@@ -88817,6 +91010,7 @@ final a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -88832,6 +91026,7 @@ final b = 1;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
       b: #M3
@@ -88855,6 +91050,7 @@ final a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -88869,6 +91065,7 @@ final a = 1.2;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -88889,6 +91086,7 @@ const a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -88903,6 +91101,7 @@ const a = 1;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
     declaredVariables
@@ -88923,6 +91122,7 @@ final a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -88937,6 +91137,7 @@ final a = 1;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -88960,6 +91161,7 @@ var b = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
       b: #M1
@@ -88985,6 +91187,7 @@ var b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
       b: #M7
@@ -89018,6 +91221,7 @@ final int foo4 = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       foo1: #M0
         flags: isSimplyBounded isStatic isSynthetic
@@ -89060,6 +91264,7 @@ final foo4 = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       foo1: #M0
         flags: isSimplyBounded isStatic isSynthetic
@@ -89110,6 +91315,7 @@ final int? foo4;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       foo1: #M0
         flags: isSimplyBounded isStatic isSynthetic
@@ -89152,6 +91358,7 @@ final int? foo4 = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       foo1: #M0
         flags: isSimplyBounded isStatic isSynthetic
@@ -89199,6 +91406,7 @@ final c = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
       b: #M1
@@ -89221,6 +91429,7 @@ const c = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
       b: #M1
@@ -89252,6 +91461,7 @@ final int? foo4;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       foo1: #M0
         flags: isSimplyBounded isStatic isSynthetic
@@ -89294,6 +91504,7 @@ external final int? foo4;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       foo1: #M0
         flags: isSimplyBounded isStatic isSynthetic
@@ -89341,6 +91552,7 @@ var c = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
       b: #M1
@@ -89366,6 +91578,7 @@ final c = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
       b: #M1
@@ -89397,6 +91610,7 @@ final c = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
       b: #M1
@@ -89419,6 +91633,7 @@ late final c = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
       b: #M1
@@ -89450,6 +91665,7 @@ final int? foo4;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       foo1: #M0
         flags: isSimplyBounded isStatic
@@ -89492,6 +91708,7 @@ int? get foo4 => 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       foo1: #M0
         flags: isSimplyBounded isStatic
@@ -89537,6 +91754,7 @@ const _a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       _a: #M0
     declaredVariables
@@ -89552,6 +91770,7 @@ const b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       _a: #M0
       b: #M3
@@ -89575,6 +91794,7 @@ final _a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       _a: #M0
     declaredVariables
@@ -89590,6 +91810,7 @@ final b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       _a: #M0
       b: #M3
@@ -89613,6 +91834,7 @@ var _a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       _a: #M0
     declaredSetters
@@ -89631,6 +91853,7 @@ var b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       _a: #M0
       b: #M4
@@ -89659,6 +91882,7 @@ int? a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredSetters
@@ -89676,6 +91900,7 @@ double? a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M4
     declaredSetters
@@ -89699,6 +91924,7 @@ final dynamic a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -89714,6 +91940,7 @@ final b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
       b: #M3
@@ -89737,6 +91964,7 @@ final dynamic a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -89751,6 +91979,7 @@ final int a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -89771,6 +92000,7 @@ final int Function() a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -89786,6 +92016,7 @@ final b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
       b: #M3
@@ -89809,6 +92040,7 @@ final void Function({int p1}) a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -89824,6 +92056,7 @@ final b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
       b: #M3
@@ -89847,6 +92080,7 @@ final void Function({int p1}) a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -89861,6 +92095,7 @@ final void Function({int p1, double p2}) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -89881,6 +92116,7 @@ void foo({int a}) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredFunctions
       foo: #M0
     exportMapId: #M1
@@ -89893,6 +92129,7 @@ void foo({@deprecated int a}) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       foo: #M2
     exportMapId: #M3
@@ -89911,6 +92148,7 @@ void foo({@deprecated int a}) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredFunctions
       foo: #M0
     exportMapId: #M1
@@ -89923,6 +92161,7 @@ void foo({int a}) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       foo: #M2
     exportMapId: #M3
@@ -89941,6 +92180,7 @@ final void Function({int p1, double p2}) a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -89955,6 +92195,7 @@ final void Function({int p1}) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -89975,6 +92216,7 @@ final void Function(int p1, {double p2}) a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -89989,6 +92231,7 @@ final void Function(int p1) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -90009,6 +92252,7 @@ final void Function({int p1}) a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -90023,6 +92267,7 @@ final void Function({int p2}) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -90043,6 +92288,7 @@ final void Function({int p1, int p2}) a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -90057,6 +92303,7 @@ final void Function({int p2, int p1}) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -90077,6 +92324,7 @@ final void Function({int p}) a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -90091,6 +92339,7 @@ final void Function(int p) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -90111,6 +92360,7 @@ final void Function({required int p1}) a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -90125,6 +92375,7 @@ final void Function({int p1}) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -90145,6 +92396,7 @@ final void Function({int p1}) a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -90159,6 +92411,7 @@ final void Function({required int p1}) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -90179,6 +92432,7 @@ final void Function({int p1}) a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -90193,6 +92447,7 @@ final void Function({double p1}) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -90213,6 +92468,7 @@ final int Function() a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -90227,6 +92483,7 @@ final int Function()? a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -90247,6 +92504,7 @@ final void Function(int p1) a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -90262,6 +92520,7 @@ final b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
       b: #M3
@@ -90285,6 +92544,7 @@ final void Function(int p1) a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -90299,6 +92559,7 @@ final void Function(int p1, double p2) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -90319,6 +92580,7 @@ void foo([int a]) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredFunctions
       foo: #M0
     exportMapId: #M1
@@ -90331,6 +92593,7 @@ void foo([@deprecated int a]) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       foo: #M2
     exportMapId: #M3
@@ -90349,6 +92612,7 @@ void foo([@deprecated int a]) {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredFunctions
       foo: #M0
     exportMapId: #M1
@@ -90361,6 +92625,7 @@ void foo([int a]) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredFunctions
       foo: #M2
     exportMapId: #M3
@@ -90379,6 +92644,7 @@ final void Function(int) a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -90393,6 +92659,7 @@ final void Function(int p1) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -90413,6 +92680,7 @@ final void Function(int p1) a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -90427,6 +92695,7 @@ final void Function(int) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -90447,6 +92716,7 @@ final void Function(int p1, double p2) a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -90461,6 +92731,7 @@ final void Function(int p1) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -90481,6 +92752,7 @@ final void Function(int p1, {double p2}) a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -90495,6 +92767,7 @@ final void Function({double p2}) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -90515,6 +92788,7 @@ final void Function([int p1]) a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -90529,6 +92803,7 @@ final void Function([int p2]) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -90549,6 +92824,7 @@ final void Function(int p1) a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -90563,6 +92839,7 @@ final void Function(int p2) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -90583,6 +92860,7 @@ final void Function([int p1, double p2]) a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -90597,6 +92875,7 @@ final void Function([double p2, int p1]) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -90617,6 +92896,7 @@ final void Function(int p1, double p2) a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -90631,6 +92911,7 @@ final void Function(double p2, int p1) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -90651,6 +92932,7 @@ final void Function(int p) a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -90665,6 +92947,7 @@ final void Function({int p}) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -90685,6 +92968,7 @@ final void Function(int p1) a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -90699,6 +92983,7 @@ final void Function([int p1]) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -90719,6 +93004,7 @@ final void Function([int p1]) a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -90733,6 +93019,7 @@ final void Function(int p1) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -90753,6 +93040,7 @@ final void Function(int p1) a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -90767,6 +93055,7 @@ final void Function(double p1) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -90787,6 +93076,7 @@ final int Function() a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -90801,6 +93091,7 @@ final double Function() a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -90821,6 +93112,7 @@ final T Function<T>() a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -90836,6 +93128,7 @@ final b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
       b: #M3
@@ -90859,6 +93152,7 @@ final void Function<E1>() a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -90873,6 +93167,7 @@ final void Function<E1, E2>() a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -90893,6 +93188,7 @@ final T Function<T extends int>() a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -90907,6 +93203,7 @@ final T Function<T extends double>() a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -90927,6 +93224,7 @@ final void Function<E1, E2>() a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -90941,6 +93239,7 @@ final void Function<E1>() a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -90961,6 +93260,7 @@ final T Function<T>() a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -90975,6 +93275,7 @@ final T2 Function<T2>() a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -90995,6 +93296,7 @@ typedef F = void Function<T, U>(T, U);
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredTypeAliases
       F: #M0
     exportMapId: #M1
@@ -91007,6 +93309,7 @@ typedef F = void Function<U, T>(U, T);
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredTypeAliases
       F: #M0
     exportMapId: #M1
@@ -91025,6 +93328,7 @@ typedef F = void Function<T, U>(T, U);
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredTypeAliases
       F: #M0
     exportMapId: #M1
@@ -91037,6 +93341,7 @@ typedef F = void Function<U, T>(T, U);
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredTypeAliases
       F: #M2
     exportMapId: #M3
@@ -91055,6 +93360,7 @@ typedef F = void Function<T extends num, U extends int>(T, U);
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredTypeAliases
       F: #M0
     exportMapId: #M1
@@ -91067,6 +93373,7 @@ typedef F = void Function<U extends int, T extends num>(U, T);
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredTypeAliases
       F: #M2
     exportMapId: #M3
@@ -91085,6 +93392,7 @@ final int a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -91099,6 +93407,7 @@ final double a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -91119,6 +93428,7 @@ final int a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -91133,6 +93443,7 @@ final int? a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -91153,6 +93464,7 @@ final List<int> a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -91167,6 +93479,7 @@ final List<double> a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -91187,6 +93500,7 @@ final NotType a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -91202,6 +93516,7 @@ final b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
       b: #M3
@@ -91225,6 +93540,7 @@ final Never a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -91240,6 +93556,7 @@ final b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
       b: #M3
@@ -91263,6 +93580,7 @@ final Never a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -91277,6 +93595,7 @@ final Never? a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -91297,6 +93616,7 @@ final ({int f1}) a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -91312,6 +93632,7 @@ final b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
       b: #M3
@@ -91335,6 +93656,7 @@ final ({int f1}) a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -91349,6 +93671,7 @@ final ({int f1, double f2}) a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -91369,6 +93692,7 @@ final ({int f1}) a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -91383,6 +93707,7 @@ final ({int f2}) a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -91403,6 +93728,7 @@ final ({int f1, double f2}) a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -91417,6 +93743,7 @@ final ({int f1}) a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -91437,6 +93764,7 @@ final ({int f1, double f2}) a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -91451,6 +93779,7 @@ final ({double f2, int f1}) a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -91471,6 +93800,7 @@ final ({int f1}) a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -91485,6 +93815,7 @@ final ({double f1}) a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -91505,6 +93836,7 @@ final (int,) a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -91519,6 +93851,7 @@ final (int,)? a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -91539,6 +93872,7 @@ final (int,) a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -91554,6 +93888,7 @@ final b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
       b: #M3
@@ -91577,6 +93912,7 @@ final (int,) a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -91591,6 +93927,7 @@ final (int, double) a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -91611,6 +93948,7 @@ final (int x,) a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -91625,6 +93963,7 @@ final (int y,) a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -91645,6 +93984,7 @@ final (int, double) a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -91659,6 +93999,7 @@ final (int,) a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -91679,6 +94020,7 @@ final (int,) a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -91693,6 +94035,7 @@ final (double,) a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M3
     declaredVariables
@@ -91713,6 +94056,7 @@ final void a = 0;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -91728,6 +94072,7 @@ final b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       a: #M0
       b: #M3
@@ -91752,6 +94097,7 @@ typedef B = int Function();
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredTypeAliases
       A: #M0
       B: #M1
@@ -91767,6 +94113,7 @@ typedef B = double Function();
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredTypeAliases
       A: #M0
       B: #M3
@@ -91787,6 +94134,7 @@ typedef A = int;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredTypeAliases
       A: #M0
     exportMapId: #M1
@@ -91799,6 +94147,7 @@ typedef A = double;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredTypeAliases
       A: #M2
     exportMapId: #M3
@@ -91821,6 +94170,7 @@ typedef B = int;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredTypeAliases
       A: #M0
       B: #M1
@@ -91839,6 +94189,7 @@ typedef B = int;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredTypeAliases
       A: #M0
       B: #M3
@@ -91863,6 +94214,7 @@ typedef D<T extends num> = List<T>;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredTypeAliases
       A: #M0
         flags: isProperRename isSimplyBounded
@@ -91908,6 +94260,7 @@ typedef D<T> = List<T>;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredTypeAliases
       A: #M0
         flags: isProperRename isSimplyBounded
@@ -91960,6 +94313,7 @@ typedef D<T extends List<T>> = int;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredTypeAliases
       A: #M0
         flags: isSimplyBounded
@@ -92001,6 +94355,7 @@ typedef D<T> = int;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredTypeAliases
       A: #M0
         flags: isSimplyBounded
@@ -92046,6 +94401,7 @@ typedef F<X extends num> = List<X>;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredTypeAliases
       F: #M0
         flags: isSimplyBounded
@@ -92064,6 +94420,7 @@ typedef F<X extends int> = List<X>;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredTypeAliases
       F: #M2
         flags: isSimplyBounded
@@ -92088,6 +94445,7 @@ typedef F<X> = List<X>;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredTypeAliases
       F: #M0
     exportMapId: #M1
@@ -92100,6 +94458,7 @@ typedef F<Y> = List<Y>;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     declaredTypeAliases
       F: #M0
     exportMapId: #M1
@@ -92568,6 +94927,7 @@ final x = a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -92578,6 +94938,7 @@ final x = a;
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       x: #M3
     declaredVariables
@@ -92629,6 +94990,7 @@ int get b => 0;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredGetters
       a: #M0
       b: #M7
@@ -92864,6 +95226,7 @@ final x = a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -92874,6 +95237,7 @@ final x = a;
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       x: #M3
     declaredVariables
@@ -92925,6 +95289,7 @@ int get b => 0;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredGetters
       a: #M0
       b: #M7
@@ -92968,6 +95333,7 @@ final x = a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -92978,6 +95344,7 @@ final x = a;
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       x: #M3
     declaredVariables
@@ -93008,6 +95375,7 @@ double get a => 1.2;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredGetters
       a: #M6
     declaredVariables
@@ -93025,6 +95393,7 @@ double get a => 1.2;
     actualId: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H3
     declaredGetters
       x: #M9
     declaredVariables
@@ -93122,6 +95491,7 @@ final x = a;
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredGetters
       a: #M0
     declaredVariables
@@ -93132,6 +95502,7 @@ final x = a;
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     declaredGetters
       x: #M3
     declaredVariables
@@ -93163,6 +95534,7 @@ int get b => 0;
 [status] working
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H2
     declaredGetters
       a: #M0
       b: #M6
@@ -93222,6 +95594,7 @@ class B {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -93231,6 +95604,7 @@ class B {
   requirements
 [operation] linkLibraryCycle
   package:test/b.dart
+    hashForRequirements: #H1
     declaredClasses
       B: #M3
         interface: #M4
@@ -93283,6 +95657,7 @@ final v = B();
   package:test/b.dart
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H2
     declaredGetters
       v: #M7
     declaredVariables
@@ -93322,6 +95697,7 @@ class {}
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     exportMapId: #M0
   requirements
 [operation] analyzedLibrary
@@ -93350,6 +95726,7 @@ extension on int {
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H0
     exportMapId: #M0
   requirements
 [operation] analyzedLibrary
@@ -93382,6 +95759,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -93403,6 +95781,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M6
   requirements
 [operation] analyzedLibrary
@@ -93450,6 +95829,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -93471,6 +95851,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M6
   requirements
 [operation] analyzedLibrary
@@ -93518,6 +95899,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -93531,6 +95913,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
   requirements
 [operation] analyzedLibrary
@@ -93575,6 +95958,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -93592,6 +95976,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
   requirements
 [operation] analyzedLibrary
@@ -93637,6 +96022,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -93650,6 +96036,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
   requirements
 [operation] analyzedLibrary
@@ -93695,6 +96082,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -93706,6 +96094,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M4
   requirements
 [operation] analyzedLibrary
@@ -93749,6 +96138,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         interface: #M1
@@ -93758,6 +96148,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M3
   requirements
 [operation] analyzedLibrary
@@ -93803,6 +96194,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -93816,6 +96208,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
   requirements
 [operation] analyzedLibrary
@@ -93861,6 +96254,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -93882,6 +96276,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M6
   requirements
 [operation] analyzedLibrary
@@ -93931,6 +96326,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -93952,6 +96348,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M6
   requirements
 [operation] analyzedLibrary
@@ -93999,6 +96396,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -94020,6 +96418,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M6
   requirements
 [operation] analyzedLibrary
@@ -94067,6 +96466,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -94084,6 +96484,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
   requirements
 [operation] analyzedLibrary
@@ -94131,6 +96532,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -94148,6 +96550,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
   requirements
 [operation] analyzedLibrary
@@ -94192,6 +96595,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredMethods
@@ -94203,6 +96607,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M4
   requirements
 [operation] analyzedLibrary
@@ -94247,6 +96652,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -94268,6 +96674,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M6
   requirements
 [operation] analyzedLibrary
@@ -94317,6 +96724,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -94338,6 +96746,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M6
   requirements
 [operation] analyzedLibrary
@@ -94385,6 +96794,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -94406,6 +96816,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M6
   requirements
 [operation] analyzedLibrary
@@ -94453,6 +96864,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -94470,6 +96882,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
   requirements
 [operation] analyzedLibrary
@@ -94517,6 +96930,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredFields
@@ -94534,6 +96948,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M5
   requirements
 [operation] analyzedLibrary
@@ -94578,6 +96993,7 @@ import 'a.dart';
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
+    hashForRequirements: #H0
     declaredClasses
       A: #M0
         declaredConstructors
@@ -94589,6 +97005,7 @@ import 'a.dart';
   requirements
 [operation] linkLibraryCycle
   package:test/test.dart
+    hashForRequirements: #H1
     exportMapId: #M4
   requirements
 [operation] analyzedLibrary
