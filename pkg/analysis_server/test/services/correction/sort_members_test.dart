@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/services/correction/sort_members.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -1058,9 +1057,7 @@ extension type A(int it) {
   }
 
   Future<void> test_lint_constructorsFirst() async {
-    writeAnalysisOptionsFile(
-      analysisOptionsContent(rules: [LintNames.sort_constructors_first]),
-    );
+    createAnalysisOptionsFile(lints: [LintNames.sort_constructors_first]);
     await parseTestCode(r'''
 class Z {
   var a = '';

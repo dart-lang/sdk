@@ -9,6 +9,7 @@ String analysisOptionsContent({
   List<String> experiments = const [],
   List<String> legacyPlugins = const [],
   List<String> rules = const [],
+  Map<String, Object?> errors = const {},
   bool strictCasts = false,
   bool strictInference = false,
   bool strictRawTypes = false,
@@ -23,7 +24,15 @@ String analysisOptionsContent({
     }
   }
 
-  buffer.writeln('analyzer:');
+  final language = strictCasts || strictInference || strictRawTypes;
+
+  if (language ||
+      errors.isNotEmpty ||
+      unignorableNames.isNotEmpty ||
+      legacyPlugins.isNotEmpty ||
+      experiments.isNotEmpty) {
+    buffer.writeln('analyzer:');
+  }
   if (experiments.isNotEmpty) {
     buffer.writeln('  enable-experiment:');
     for (var experiment in experiments) {
@@ -31,10 +40,26 @@ String analysisOptionsContent({
     }
   }
 
-  buffer.writeln('  language:');
-  buffer.writeln('    strict-casts: $strictCasts');
-  buffer.writeln('    strict-inference: $strictInference');
-  buffer.writeln('    strict-raw-types: $strictRawTypes');
+  if (errors.isNotEmpty) {
+    buffer.writeln('  errors:');
+    for (var error in errors.entries) {
+      buffer.writeln('    ${error.key}: ${error.value}');
+    }
+  }
+
+  if (language) {
+    buffer.writeln('  language:');
+    if (strictCasts) {
+      buffer.writeln('    strict-casts: $strictCasts');
+    }
+    if (strictInference) {
+      buffer.writeln('    strict-inference: $strictInference');
+    }
+    if (strictRawTypes) {
+      buffer.writeln('    strict-raw-types: $strictRawTypes');
+    }
+  }
+
   if (unignorableNames.isNotEmpty) {
     buffer.writeln('  cannot-ignore:');
     for (var name in unignorableNames) {
@@ -49,10 +74,12 @@ String analysisOptionsContent({
     }
   }
 
-  buffer.writeln('linter:');
-  buffer.writeln('  rules:');
-  for (var rule in rules) {
-    buffer.writeln('    - $rule');
+  if (rules.isNotEmpty) {
+    buffer.writeln('linter:');
+    buffer.writeln('  rules:');
+    for (var rule in rules) {
+      buffer.writeln('    - $rule');
+    }
   }
 
   return buffer.toString();

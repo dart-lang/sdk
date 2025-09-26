@@ -66,12 +66,13 @@ package:analyzer_testing/utilities/extensions/resource_provider.dart:
   ResourceProviderExtension (extension on ResourceProvider):
     convertPath (method: String Function(String))
 package:analyzer_testing/utilities/utilities.dart:
-  analysisOptionsContent (function: String Function({List<String> experiments, List<String> includes, List<String> legacyPlugins, List<String> rules, bool strictCasts, bool strictInference, bool strictRawTypes, List<String> unignorableNames}))
+  analysisOptionsContent (function: String Function({Map<String, Object?> errors, List<String> experiments, List<String> includes, List<String> legacyPlugins, List<String> rules, bool strictCasts, bool strictInference, bool strictRawTypes, List<String> unignorableNames}))
   pubspecYamlContent (function: String Function({List<String> dependencies, String? name, String? sdkVersion}))
 dart:async:
   Future (referenced)
 dart:core:
   List (referenced)
+  Map (referenced)
   Object (referenced)
   Pattern (referenced)
   String (referenced)
