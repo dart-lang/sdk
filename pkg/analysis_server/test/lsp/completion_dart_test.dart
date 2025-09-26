@@ -3254,7 +3254,7 @@ class B extends A {
     var labels = completions.map((c) => c.label).toList();
     expect(labels, contains('override ==(Object other) { … }'));
     expect(labels, contains('override -(int other) { … }'));
-    expect(labels, contains('override unary-() { … }'));
+    expect(labels, contains('override -() { … }'));
   }
 
   Future<void> test_override() async {
