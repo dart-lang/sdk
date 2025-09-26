@@ -16,6 +16,7 @@ import 'package:analyzer/src/fine/manifest_id.dart';
 import 'package:analyzer/src/fine/manifest_item.dart';
 import 'package:analyzer/src/fine/requirement_failure.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
@@ -490,6 +491,15 @@ class LibraryExportRequirements {
 }
 
 class LibraryRequirements {
+  /// Snapshot of [LibraryManifest.hashForRequirements] at recording.
+  ///
+  /// This serves as a fast-path check in [RequirementsManifest.isSatisfied].
+  /// If this hash matches the current hash on the corresponding
+  /// [LibraryManifest], it implies that the relevant portions of the library
+  /// have not changed, allowing the detailed, field-by-field requirement
+  /// validation for this library to be skipped.
+  String hashForRequirements;
+
   String? name;
   bool? isSynthetic;
   Uint8List? featureSet;
@@ -547,6 +557,7 @@ class LibraryRequirements {
   ManifestItemIdList? allDeclaredSetters;
 
   LibraryRequirements({
+    required this.hashForRequirements,
     required this.name,
     required this.isSynthetic,
     required this.featureSet,
@@ -581,8 +592,9 @@ class LibraryRequirements {
     required this.allDeclaredSetters,
   });
 
-  factory LibraryRequirements.empty() {
+  factory LibraryRequirements.fromManifest(LibraryManifest manifest) {
     return LibraryRequirements(
+      hashForRequirements: manifest.hashForRequirements,
       name: null,
       isSynthetic: null,
       featureSet: null,
@@ -590,7 +602,7 @@ class LibraryRequirements {
       libraryMetadataId: null,
       exportedLibraryUris: null,
       exportMap: {},
-      exportMapId: ManifestItemId.generate(),
+      exportMapId: manifest.exportMapId,
       instances: {},
       interfaces: {},
       exportedExtensions: null,
@@ -620,6 +632,7 @@ class LibraryRequirements {
 
   factory LibraryRequirements.read(BinaryReader reader) {
     return LibraryRequirements(
+      hashForRequirements: reader.readStringUtf8(),
       name: reader.readOptionalStringUtf8(),
       isSynthetic: reader.readOptionalBool(),
       featureSet: reader.readOptionalUint8List(),
@@ -665,6 +678,7 @@ class LibraryRequirements {
   }
 
   void write(BinaryWriter writer) {
+    writer.writeStringUtf8(hashForRequirements);
     writer.writeOptionalStringUtf8(name);
     writer.writeOptionalBool(isSynthetic);
     writer.writeOptionalUint8List(featureSet);
@@ -867,11 +881,13 @@ class RequirementsManifest {
   /// are satisfied.
   RequirementFailure? isSatisfied({
     required LinkedElementFactory elementFactory,
+    required OperationPerformanceImpl performance,
   }) {
     if (opaqueApiUses.isNotEmpty) {
       return OpaqueApiUseFailure(uses: opaqueApiUses);
     }
 
+    var onlyHashForLibraries = true;
     for (var libraryEntry in libraries.entries) {
       var libraryUri = libraryEntry.key;
       var libraryRequirements = libraryEntry.value;
@@ -879,6 +895,15 @@ class RequirementsManifest {
       var libraryManifest = elementFactory.libraryManifestOfUri(libraryUri);
       if (libraryManifest == null) {
         return LibraryMissing(uri: libraryUri);
+      }
+
+      if (libraryRequirements.hashForRequirements ==
+          libraryManifest.hashForRequirements) {
+        performance.getDataInt('libHash').increment();
+        continue;
+      } else {
+        performance.getDataInt('libDetails').increment();
+        onlyHashForLibraries = false;
       }
 
       if (libraryRequirements.name case var expected?) {
@@ -1523,6 +1548,12 @@ class RequirementsManifest {
           );
         }
       }
+    }
+
+    if (onlyHashForLibraries) {
+      performance.getDataInt('libsHash').increment();
+    } else {
+      performance.getDataInt('libsDetails').increment();
     }
 
     for (var exportRequirement in exportRequirements) {
@@ -2524,11 +2555,10 @@ class RequirementsManifest {
       return result;
     }
 
-    result = LibraryRequirements.empty();
-    result.exportMapId = element.manifest!.exportMapId;
-
+    result = LibraryRequirements.fromManifest(element.manifest!);
+    state._result = result;
     libraries[element.uri] = result;
-    return state._result = result;
+    return result;
   }
 
   String _qualifiedMethodName(

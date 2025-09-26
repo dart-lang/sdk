@@ -240,7 +240,10 @@ class LibraryContext {
       }
 
       var failure = performance.run('checkRequirements', (performance) {
-        return entry.requirements.isSatisfied(elementFactory: elementFactory);
+        return entry.requirements.isSatisfied(
+          elementFactory: elementFactory,
+          performance: performance,
+        );
       });
 
       eventsController?.add(
