@@ -55,14 +55,8 @@ class DateTime {
     int second,
     int millisecond,
     int microsecond,
-    bool isUtc,
-  )
-    // checkBool is manually inlined here because dart2js doesn't inline it
-    // and [isUtc] is usually a constant.
-    : this.isUtc = isUtc is bool
-          ? isUtc
-          : throw ArgumentError.value(isUtc, 'isUtc'),
-      _value =
+    this.isUtc,
+  ) : _value =
           Primitives.valueFromDecomposedDate(
             year,
             month,
@@ -74,21 +68,11 @@ class DateTime {
             microsecond,
             isUtc,
           ) ??
-          _sentinel,
-      _microsecond = microsecond % 1000 {
-    if (_value == _sentinel) {
-      throw ArgumentError(
-        '($year, $month, $day,'
-        ' $hour, $minute, $second, $millisecond, $microsecond)',
-      );
-    }
-  }
-
-  static const _sentinel = _maxMillisecondsSinceEpoch * 10;
-  static const _sentinelConstraint =
-      _sentinel < -_maxMillisecondsSinceEpoch ||
-      _sentinel > _maxMillisecondsSinceEpoch;
-  static const _sentinelAssertion = 1 ~/ (_sentinelConstraint ? 1 : 0);
+          (() => throw ArgumentError(
+            '($year, $month, $day,'
+            ' $hour, $minute, $second, $millisecond, $microsecond)',
+          ))(),
+      _microsecond = microsecond % 1000;
 
   @patch
   DateTime._now()
