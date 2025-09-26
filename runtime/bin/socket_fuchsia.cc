@@ -55,8 +55,9 @@ void Socket::SetClosedFd() {
 }
 
 void Socket::CloseFd() {
-  ASSERT(fd_ != kClosedFd);
-  IOHandle* handle = reinterpret_cast<IOHandle*>(fd_);
+  intptr_t fd_handle = fd();
+  ASSERT(fd_handle != kClosedFd);
+  IOHandle* handle = reinterpret_cast<IOHandle*>(fd_handle);
   ASSERT(handle != nullptr);
   handle->Release();
   SetClosedFd();
