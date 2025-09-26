@@ -12,12 +12,27 @@ import 'package:analyzer/analysis_rule/pubspec.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/lint/pub.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/lint/registry.dart'; // ignore: implementation_imports
 import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:meta/meta.dart';
+
+ExpectedContextMessage contextMessage(
+  File file,
+  int offset,
+  int length, {
+  String? text,
+  List<Pattern> textContains = const [],
+}) => ExpectedContextMessage(
+  file,
+  offset,
+  length,
+  text: text,
+  textContains: textContains,
+);
 
 /// Returns an [ExpectedDiagnostic] with the given arguments.
 ///
@@ -27,7 +42,16 @@ ExpectedDiagnostic error(
   int offset,
   int length, {
   Pattern? messageContains,
-}) => ExpectedError(code, offset, length, messageContains: messageContains);
+  Pattern? correctionContains,
+  List<ExpectedContextMessage>? contextMessages,
+}) => ExpectedError(
+  code,
+  offset,
+  length,
+  messageContains: messageContains,
+  correctionContains: correctionContains,
+  contextMessages: contextMessages,
+);
 
 /// A base class for analysis rule tests that use test_reflective_loader.
 abstract class AnalysisRuleTest extends PubPackageResolutionTest {
@@ -91,12 +115,14 @@ abstract class AnalysisRuleTest extends PubPackageResolutionTest {
     Pattern? messageContains,
     Pattern? correctionContains,
     String? name,
+    List<ExpectedContextMessage>? contextMessages,
   }) => ExpectedLint(
     name ?? analysisRule,
     offset,
     length,
     messageContains: messageContains,
     correctionContains: correctionContains,
+    contextMessages: contextMessages,
   );
 
   @mustCallSuper
