@@ -210,6 +210,10 @@ Future<int> runCompilerWithOptions({
     mainUri = await convertToPackageUri(fileSystem, mainUri, packagesUri);
   }
 
+  final BytecodeOptions bytecodeOptions =
+      BytecodeOptions(enableAsserts: enableAsserts)
+        ..parseCommandLineFlags(bytecodeGeneratorOptions);
+
   final CompilerOptions compilerOptions = CompilerOptions()
     ..sdkSummary = platformKernelUri
     ..fileSystem = fileSystem
@@ -222,19 +226,15 @@ Future<int> runCompilerWithOptions({
     ..onDiagnostic = (CfeDiagnosticMessage m) {
       errorDetector(m);
     }
-    ..embedSourceText = false
+    ..embedSourceText = bytecodeOptions.embedSourceText
     ..invocationModes = InvocationMode.parseArguments(cfeInvocationModes)
-    ..verbosity = verbosity;
+    ..verbosity = verbosity
+    ..target = createFrontEndTarget(targetName,
+        trackWidgetCreation: trackWidgetCreation,
+        supportMirrors: false,
+        isClosureContextLoweringEnabled:
+            bytecodeOptions.isClosureContextLoweringEnabled);
 
-  final BytecodeOptions bytecodeOptions =
-      BytecodeOptions(enableAsserts: enableAsserts)
-        ..parseCommandLineFlags(bytecodeGeneratorOptions);
-
-  compilerOptions.target = createFrontEndTarget(targetName,
-      trackWidgetCreation: trackWidgetCreation,
-      supportMirrors: false,
-      isClosureContextLoweringEnabled:
-          bytecodeOptions.isClosureContextLoweringEnabled);
   if (compilerOptions.target == null) {
     printMessage('Failed to create front-end target $targetName.');
     return badUsageExitCode;

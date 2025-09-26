@@ -15,6 +15,7 @@ class BytecodeOptions {
         'Do not remove unreachable code (useful if collecting code coverage)',
     'closure-context-lowering':
         'Use the closure context lowering in Kernel AST instead of computing it',
+    'embed-source-text': 'Embed the source text of scripts',
   };
 
   bool enableAsserts;
@@ -27,6 +28,7 @@ class BytecodeOptions {
   bool keepUnreachableCode;
   bool showBytecodeSizeStatistics;
   bool isClosureContextLoweringEnabled;
+  bool embedSourceText;
 
   BytecodeOptions({
     this.enableAsserts = false,
@@ -39,6 +41,7 @@ class BytecodeOptions {
     this.keepUnreachableCode = false,
     this.showBytecodeSizeStatistics = false,
     this.isClosureContextLoweringEnabled = false,
+    this.embedSourceText = false,
   }) {}
 
   void parseCommandLineFlags(List<String>? flags) {
@@ -70,6 +73,9 @@ class BytecodeOptions {
           break;
         case 'closure-context-lowering':
           isClosureContextLoweringEnabled = true;
+          break;
+        case 'embed-source-text':
+          embedSourceText = true;
           break;
         default:
           throw 'Unexpected bytecode flag $flag';
