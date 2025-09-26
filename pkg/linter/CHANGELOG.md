@@ -1,5 +1,7 @@
 # 3.10.0-wip
 
+- new lint: `remove_deprecations_in_breaking_versions`
+
 # 3.9.0
 
 - new lint: `switch_on_type`

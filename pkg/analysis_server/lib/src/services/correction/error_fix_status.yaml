@@ -2371,6 +2371,10 @@ LintCode.recursive_getters:
   status: noFix
 LintCode.removed_lint:
   status: noFix
+LintCode.remove_deprecations_in_breaking_versions:
+  status: needsFix
+  notes: |-
+    We can implement the fixes indicated in the messages.yaml.
 LintCode.require_trailing_commas:
   status: hasFix
 LintCode.secure_pubspec_urls:
