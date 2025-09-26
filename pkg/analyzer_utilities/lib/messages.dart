@@ -197,14 +197,6 @@ abstract class CfeStyleErrorCodeInfo extends ErrorCodeInfo {
     }
   }
 
-  @override
-  Map<Object?, Object?> toYaml() => {
-    if (analyzerCodes.isNotEmpty)
-      'analyzerCode': _encodeAnalyzerCode(analyzerCodes),
-    if (index != null) 'index': index,
-    ...super.toYaml(),
-  };
-
   static List<String> _decodeAnalyzerCode(Object? value) {
     if (value == null) {
       return const [];
@@ -238,14 +230,6 @@ abstract class CfeStyleErrorCodeInfo extends ErrorCodeInfo {
             (throw "Unknown severity '$yamlEntry'");
       default:
         throw 'Bad severity type: ${yamlEntry.runtimeType}';
-    }
-  }
-
-  static Object _encodeAnalyzerCode(List<String> analyzerCode) {
-    if (analyzerCode.length == 1) {
-      return analyzerCode.single;
-    } else {
-      return analyzerCode;
     }
   }
 }
@@ -602,18 +586,6 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
     }
     return out.toString();
   }
-
-  /// Encodes this object into a YAML representation.
-  Map<Object?, Object?> toYaml() => {
-    if (removedIn != null) 'removedIn': removedIn,
-    if (sharedName != null) 'sharedName': sharedName,
-    'problemMessage': problemMessage,
-    if (correctionMessage != null) 'correctionMessage': correctionMessage,
-    if (isUnresolvedIdentifier) 'isUnresolvedIdentifier': true,
-    if (hasPublishedDocs ?? false) 'hasPublishedDocs': true,
-    if (comment != null) 'comment': comment,
-    if (documentation != null) 'documentation': documentation,
-  };
 
   String _computeExpectedTypes() {
     var expectedTypes = [
