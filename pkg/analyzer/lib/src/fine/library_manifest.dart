@@ -91,6 +91,12 @@ class LibraryManifest {
     required this.exportedExtensions,
   });
 
+  factory LibraryManifest.fromBytes(Uint8List bytes) {
+    var reader = BinaryReader(bytes);
+    reader.initFromTableTrailer();
+    return LibraryManifest.read(reader);
+  }
+
   factory LibraryManifest.read(BinaryReader reader) {
     return LibraryManifest(
       name: reader.readOptionalStringUtf8(),
@@ -175,6 +181,13 @@ class LibraryManifest {
   /// or `null` if there is no such element.
   ManifestItemId? getExportedId(LookupName name) {
     return exportMap[name];
+  }
+
+  Uint8List toBytes() {
+    var writer = BinaryWriter();
+    write(writer);
+    writer.writeTableTrailer();
+    return writer.takeBytes();
   }
 
   void write(BinaryWriter writer) {
@@ -795,21 +808,10 @@ class LibraryManifestBuilder {
   /// Assert that every manifest can be serialized, and when deserialized
   /// results in the same manifest.
   bool _assertSerialization() {
-    Uint8List manifestAsBytes(LibraryManifest manifest) {
-      var writer = BinaryWriter();
-      manifest.write(writer);
-      writer.writeTableTrailer();
-      return writer.takeBytes();
-    }
-
     newManifests.forEach((uri, manifest) {
-      var bytes = manifestAsBytes(manifest);
-
-      var reader = BinaryReader(bytes);
-      reader.initFromTableTrailer();
-
-      var readManifest = LibraryManifest.read(reader);
-      var readBytes = manifestAsBytes(readManifest);
+      var bytes = manifest.toBytes();
+      var readManifest = LibraryManifest.fromBytes(bytes);
+      var readBytes = readManifest.toBytes();
 
       if (!const ListEquality<int>().equals(bytes, readBytes)) {
         throw StateError('Library manifest bytes are different: $uri');

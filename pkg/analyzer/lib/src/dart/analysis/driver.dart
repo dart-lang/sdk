@@ -1925,7 +1925,6 @@ class AnalysisDriver {
       var elementFactory = libraryContext.elementFactory;
       var failure = bundle.requirements.isSatisfied(
         elementFactory: elementFactory,
-        libraryManifests: elementFactory.libraryManifests,
       );
       scheduler.eventsController.add(
         events.CheckLibraryDiagnosticsRequirements(
