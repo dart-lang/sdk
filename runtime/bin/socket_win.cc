@@ -26,13 +26,15 @@ Socket::Socket(intptr_t fd)
       port_(ILLEGAL_PORT),
       udp_receive_buffer_(nullptr) {
   ASSERT(fd_ != kClosedFd);
-  Handle* handle = reinterpret_cast<Handle*>(fd_);
+  intptr_t fd_handle = fd_;
+  Handle* handle = reinterpret_cast<Handle*>(fd_handle);
   ASSERT(handle != nullptr);
 }
 
 void Socket::CloseFd() {
-  ASSERT(fd_ != kClosedFd);
-  Handle* handle = reinterpret_cast<Handle*>(fd_);
+  intptr_t fd_handle = fd();
+  ASSERT(fd_handle != kClosedFd);
+  Handle* handle = reinterpret_cast<Handle*>(fd_handle);
   ASSERT(handle != nullptr);
   handle->Release();
   SetClosedFd();

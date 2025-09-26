@@ -953,11 +953,6 @@ void FUNCTION_NAME(Socket_GetFD)(Dart_NativeArguments args) {
 void FUNCTION_NAME(Socket_GetType)(Dart_NativeArguments args) {
   Socket* socket =
       Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 0));
-  if (socket->fd() < 0) {
-    OSError os_error(-1, "Socket is closed.", OSError::kUnknown);
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
-    return;
-  }
   OSError os_error;
   intptr_t type = SocketBase::GetType(socket->fd());
   if (type >= 0) {

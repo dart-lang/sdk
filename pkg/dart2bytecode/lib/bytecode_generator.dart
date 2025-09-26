@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:math' as math;
 
@@ -236,6 +237,9 @@ class BytecodeGenerator extends RecursiveVisitor {
           LineStarts lineStarts = new LineStarts(astSource.lineStarts!);
           bytecodeComponent.lineStarts.add(lineStarts);
           source.lineStarts = lineStarts;
+        }
+        if (options.embedSourceText) {
+          source.source = utf8.decode(astSource.source);
         }
       }
     }

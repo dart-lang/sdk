@@ -2367,6 +2367,15 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
     expectedTypes: [ExpectedType.object],
   );
 
+  /// No parameters.
+  static const LinterLintWithoutArguments removeDeprecationsInBreakingVersions =
+      LinterLintWithoutArguments(
+        LintNames.remove_deprecations_in_breaking_versions,
+        "Remove deprecated elements in breaking versions.",
+        correctionMessage: "Try removing the deprecated element.",
+        expectedTypes: [],
+      );
+
   /// A lint code that removed lints can specify as their `lintCode`.
   ///
   /// Avoid other usages as it should be made unnecessary and removed.

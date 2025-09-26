@@ -457,6 +457,9 @@ abstract final class LintNames {
 
   static const String recursive_getters = 'recursive_getters';
 
+  static const String remove_deprecations_in_breaking_versions =
+      'remove_deprecations_in_breaking_versions';
+
   static const String require_trailing_commas = 'require_trailing_commas';
 
   static const String secure_pubspec_urls = 'secure_pubspec_urls';
