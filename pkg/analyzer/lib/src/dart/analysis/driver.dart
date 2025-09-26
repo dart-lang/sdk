@@ -106,7 +106,7 @@ testFineAfterLibraryAnalyzerHook;
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 562;
+  static const int DATA_VERSION = 563;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -1925,7 +1925,6 @@ class AnalysisDriver {
       var elementFactory = libraryContext.elementFactory;
       var failure = bundle.requirements.isSatisfied(
         elementFactory: elementFactory,
-        libraryManifests: elementFactory.libraryManifests,
       );
       scheduler.eventsController.add(
         events.CheckLibraryDiagnosticsRequirements(

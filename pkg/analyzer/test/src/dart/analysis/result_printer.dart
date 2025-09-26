@@ -1091,6 +1091,7 @@ final class GetUnitElementEvent extends GetDriverEvent {
 class IdProvider {
   final Map<Object, String> _map = Map.identity();
   final Map<ManifestItemId, String> _manifestIdMap = {};
+  final Map<String, String> _hashIdMap = {};
 
   String operator [](Object object) {
     return _map[object] ??= '#${_map.length}';
@@ -1098,6 +1099,10 @@ class IdProvider {
 
   String? existing(Object object) {
     return _map[object];
+  }
+
+  String hashId(String hash) {
+    return _hashIdMap[hash] ??= '#H${_hashIdMap.length}';
   }
 
   String manifestId(ManifestItemId? id) {
@@ -1114,6 +1119,8 @@ class LibraryManifestPrinter extends ManifestPrinter {
   });
 
   void write(LibraryManifest manifest) {
+    _writelnHashField('hashForRequirements', manifest.hashForRequirements);
+
     if (manifest.name case var name?) {
       sink.writelnWithIndent('name: $name');
     }
@@ -1811,6 +1818,11 @@ class ManifestPrinter {
     required this.sink,
     required this.idProvider,
   });
+
+  void _writelnHashField(String name, String hash) {
+    var hashId = idProvider.hashId(hash);
+    sink.writelnWithIndent('$name: $hashId');
+  }
 
   void _writelnIdField(String name, ManifestItemId? id) {
     var idStr = id != null ? idProvider.manifestId(id) : '<null>';

@@ -848,8 +848,7 @@ class A<T> {
   }
 
   Future<void> test_privateType_list() async {
-    // This is now failing because we're suggesting "List" rather than nothing.
-    // Is it really better to produce nothing?
+    // This would work for impl types in a package, not just private types.
     newFile('$testPackageLibPath/my_lib.dart', '''
 library my_lib;
 class A {}

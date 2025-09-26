@@ -594,7 +594,12 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     var isSetter = elementKind == ElementKind.SETTER;
     var isMethod = elementKind == ElementKind.METHOD;
     var isOperator = isMethod && (element as MethodElement).isOperator;
-    var memberName = element.displayName;
+    var memberName = element.name;
+
+    if (memberName == null || memberName.isEmpty) {
+      // If the name is empty, we cannot write it.
+      return;
+    }
 
     // `@override` annotation.
     writeln('@override');

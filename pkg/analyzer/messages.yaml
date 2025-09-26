@@ -23954,9 +23954,9 @@ WarningCode:
       `@Deprecated.extend` is used in the `extends` clause of a class
       declaration.
 
-      This annotation indicates that the ability for classes to extend the
-      annotated class is deprecated, and will soon be removed, perhaps by
-      marking the annotated class with `interface`, `final`, or `sealed`.
+      This annotation indicates that the ability to extend the annotated class
+      is deprecated and will soon be removed. This change will likely be
+      enforced by marking the class with `interface`, `final`, or `sealed`.
 
       #### Example
 
@@ -23968,7 +23968,7 @@ WarningCode:
       class C {}
       ```
 
-      Then, the following code, when in a library other than `p`, produces this
+      Then, in any library other than `p`, the following code produces this
       diagnostic:
 
       ```dart
@@ -23979,8 +23979,8 @@ WarningCode:
 
       #### Common fixes
 
-      Follow any directions found in the `Deprecation.extend` annotation, or
-      just remove the `extends` clause.
+      Follow any directions found in the `Deprecation.extend` annotation.
+      Otherwise, remove the `extends` clause.
 
       ```dart
       class D {}
@@ -24027,9 +24027,9 @@ WarningCode:
 
       The analyzer produces this diagnostic when a class annotated with
       `@Deprecated.implement` is used in the `implements` clause of a class or
-      enum declaration. This annotation indicates that the ability for classes
-      to implement the annotated class is deprecated, and will soon be removed,
-      perhaps by marking the annotated class with `interface`, `final`, or
+      enum declaration. This annotation indicates that the ability to implement
+      the annotated class is deprecated and will soon be removed. This change
+      will likely be enforced by marking the class with `interface`, `final`, or
       `sealed`.
 
       #### Example
@@ -24042,7 +24042,7 @@ WarningCode:
       class C {}
       ```
 
-      Then, the following code, when in a library other than `p`, produces this
+      Then, in any library other than `p`, the following code produces this
       diagnostic:
 
       ```dart
@@ -24053,8 +24053,8 @@ WarningCode:
 
       #### Common fixes
 
-      Follow any directions found in the `Deprecation.implement` annotation, or
-      just remove the class name from the `implements` clause.
+      Follow any directions found in the `Deprecation.implement` annotation.
+      Otherwise, remove the `implements` clause.
 
       ```dart
       class D {}
@@ -24076,8 +24076,9 @@ WarningCode:
 
       The analyzer produces this diagnostic when a class annotated with
       `@Deprecated.instantiate` is instantiated. This annotation indicates that
-      the ability to instantiate the class is deprecated, and will soon be removed,
-      perhaps by marking the annotated class with `abstract`, or `sealed`.
+      instantiating the class is deprecated and will soon be removed. This
+      change will likely be enforced by marking the class as `abstract` or
+      `sealed`.
 
       #### Example
 
@@ -24090,7 +24091,7 @@ WarningCode:
       class C {}
       ```
 
-      Then, the following code, when in a library other than `p`, produces this
+      Then, in any library other than `p`, the following code produces this
       diagnostic:
 
       ```dart
@@ -24113,9 +24114,9 @@ WarningCode:
 
       The analyzer produces this diagnostic when a mixin class annotated with
       `@Deprecated.mixin` is used in the `with` clause of a class or enum
-      declaration. This annotation indicates that the ability for classes
-      to mixin the annotated mixin class is deprecated, and will soon be
-      removed, perhaps by removing the `mixin` class modifier.
+      declaration. This annotation indicates that using the annotated mixin is
+      deprecated and will soon be removed. This change will likely be enforced
+      by removing the `mixin` class modifier.
 
       #### Example
 
@@ -24127,7 +24128,7 @@ WarningCode:
       mixin class C {}
       ```
 
-      Then, the following code, when in a library other than `p`, produces this
+      Then, in any library other than `p`, the following code produces this
       diagnostic:
 
       ```dart
@@ -24138,8 +24139,8 @@ WarningCode:
 
       #### Common fixes
 
-      Follow any directions found in the `Deprecation.mixin` annotation, or
-      just remove the mixin class name from the `with` clause.
+      Follow any directions found in the `Deprecation.mixin` annotation.
+      Otherwise, remove the mixin class name from the `with` clause.
 
       ```dart
       class D {}
@@ -24270,9 +24271,9 @@ WarningCode:
       `@Deprecated.subclass` is used in the `extends` clause of a class
       declaration, or the `implements` clause of a class or enum declaration.
 
-      This annotation indicates that the ability for classes or enums to extend
-      or implement the annotated class is deprecated, and will soon be removed,
-      perhaps by marking the annotated class with `final` or `sealed`.
+      This annotation indicates that extending or implementing the annotated
+      class is deprecated and will soon be removed. This change will likely be
+      enforced by marking the class with `final` or `sealed`.
 
       #### Example
 
@@ -24284,7 +24285,7 @@ WarningCode:
       class C {}
       ```
 
-      Then, the following code, when in a library other than `p`, produces this
+      Then, in any library other than `p`, the following code produces this
       diagnostic:
 
       ```dart
@@ -24295,12 +24296,9 @@ WarningCode:
 
       #### Common fixes
 
-      If the annotation contains a description of how to deal with not being
-      able to subclass the class, then try following those directions.
-
-      If the annotation doesn't contain a description, or if the described
-      approach isn't appropriate for your case, then remove the relevant
-      `extends` clause or remove the class name from the `implements` clause:
+      Follow any specific instructions provided in the `@Deprecated.subclass`
+      annotation. Otherwise, remove the relevant `extends` clause or remove the
+      class name from the `implements` clause:
 
       ```dart
       class D {}
@@ -25121,11 +25119,11 @@ WarningCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when anything other than an
-      extendable class is annotated with
-      @Deprecated.extend. An extendable class is a class that isn't declared
-      with the `interface`, `final`, or `sealed` keywords and also has at least
-      one public generative constructor.
+      The analyzer produces this diagnostic when the `@Deprecated.extend`
+      annotation is applied to a declaration that isn't an extendable class. An
+      extendable class is one that isn't declared with the `interface`,
+      `final`, or `sealed` keywords and has at least one public, generative
+      constructor.
 
       #### Example
 
@@ -25154,10 +25152,10 @@ WarningCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when anything other than an
-      implementable class or mixin is annotated with
-      @Deprecated.implement. An implementable class or mixin is one not declared
-      with the `base`, `final`, or `sealed` keywords.
+      The analyzer produces this diagnostic when the `@Deprecated.implement`
+      annotation is applied to a declaration that isn't an implementable class
+      or mixin. An implementable class or mixin is one that isn't declared with
+      the base, final, or sealed keywords.
 
       #### Example
 
@@ -25184,10 +25182,10 @@ WarningCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when anything other than an
-      instantiable class is annotated with @Deprecated.instantiate. An
-      instantiable class is one not declared with the `abstract` or `sealed`
-      keywords, and with at least one public, generative constructor.
+      The analyzer produces this diagnostic when the `@Deprecated.instantiate`
+      annotation is applied to a declaration that isn't an instantiable class.
+      An instantiable class is one that isn't declared with the `abstract` or
+      `sealed` keywords and has at least one public, generative constructor.
 
       #### Example
 
@@ -25287,7 +25285,7 @@ WarningCode:
 
       The analyzer produces this diagnostic when anything other than a
       subclassable class or mixin is annotated with
-      @Deprecated.subclass. A subclassable
+      `@Deprecated.subclass`. A subclassable
       class is a class not declared with the `final` or `sealed` keywords. A
       subclassable mixin is a mixin not declared with the `base` keyword.
 

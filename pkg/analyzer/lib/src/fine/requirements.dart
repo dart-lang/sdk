@@ -798,6 +798,12 @@ class RequirementsManifest {
 
   RequirementsManifest();
 
+  factory RequirementsManifest.fromBytes(Uint8List bytes) {
+    var reader = BinaryReader(bytes);
+    reader.initFromTableTrailer();
+    return RequirementsManifest.read(reader);
+  }
+
   factory RequirementsManifest.read(BinaryReader reader) {
     var result = RequirementsManifest();
 
@@ -846,22 +852,11 @@ class RequirementsManifest {
   ///
   /// Returns `true` if everything matches. Throws [StateError] if not.
   bool assertSerialization() {
-    Uint8List manifestAsBytes(RequirementsManifest manifest) {
-      var writer = BinaryWriter();
-      manifest.write(writer);
-      writer.writeTableTrailer();
-      return writer.takeBytes();
-    }
+    var bytes = toBytes();
+    var readManifest = RequirementsManifest.fromBytes(bytes);
+    var readBytes = readManifest.toBytes();
 
-    var bytes = manifestAsBytes(this);
-
-    var reader = BinaryReader(bytes);
-    reader.initFromTableTrailer();
-
-    var readManifest = RequirementsManifest.read(reader);
-    var bytes2 = manifestAsBytes(readManifest);
-
-    if (!const ListEquality<int>().equals(bytes, bytes2)) {
+    if (!const ListEquality<int>().equals(bytes, readBytes)) {
       throw StateError('Requirement manifest bytes are different.');
     }
 
@@ -872,7 +867,6 @@ class RequirementsManifest {
   /// are satisfied.
   RequirementFailure? isSatisfied({
     required LinkedElementFactory elementFactory,
-    required Map<Uri, LibraryManifest> libraryManifests,
   }) {
     if (opaqueApiUses.isNotEmpty) {
       return OpaqueApiUseFailure(uses: opaqueApiUses);
@@ -2415,6 +2409,13 @@ class RequirementsManifest {
       state._dispose();
     }
     _prefixScopeStates.clear();
+  }
+
+  Uint8List toBytes() {
+    var writer = BinaryWriter();
+    write(writer);
+    writer.writeTableTrailer();
+    return writer.takeBytes();
   }
 
   void write(BinaryWriter writer) {

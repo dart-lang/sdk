@@ -112,8 +112,6 @@ class AlwaysSpecifyTypesLintTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.always_specify_types;
 
-  // More coverage in the `add_type_annotation_test.dart` assist test.
-
   Future<void> test_field() async {
     await resolveTestCode('''
 class A {
@@ -222,6 +220,30 @@ f() {
     case A(a: >0 && final int b): print(b);
   }
  }
+''');
+  }
+
+  // More coverage in the `add_type_annotation_test.dart` assist test.
+
+  Future<void> test_privateType_list() async {
+    // This would work for impl types in a package, not just private types.
+    newFile('$testPackageLibPath/my_lib.dart', '''
+library my_lib;
+class A {}
+class _B extends A {}
+List<_B> getValues() => [];
+''');
+    await resolveTestCode('''
+import 'my_lib.dart';
+void f() {
+  var _ = getValues();
+}
+''');
+    await assertHasFix('''
+import 'my_lib.dart';
+void f() {
+  List<A> _ = getValues();
+}
 ''');
   }
 

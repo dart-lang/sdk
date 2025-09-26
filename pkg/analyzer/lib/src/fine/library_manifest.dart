@@ -14,12 +14,15 @@ import 'package:analyzer/src/fine/lookup_name.dart';
 import 'package:analyzer/src/fine/manifest_context.dart';
 import 'package:analyzer/src/fine/manifest_id.dart';
 import 'package:analyzer/src/fine/manifest_item.dart';
+import 'package:analyzer/src/fine/requirements.dart';
+import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /// The manifest of a single library.
 class LibraryManifest {
@@ -67,6 +70,15 @@ class LibraryManifest {
   /// All exported (declared or re-exported) extensions.
   ManifestItemIdList exportedExtensions;
 
+  /// Stable, order-independent hash for the requirements.
+  ///
+  /// Derived from exactly the parts of the library manifest that
+  /// [RequirementsManifest.isSatisfied] reads. Used as a fast path: if
+  /// the current manifest hash matches a previously observed one, the
+  /// outcome of the requirements check is unchanged and the detailed check
+  /// can be skipped; if it differs, the check must be re-run.
+  String hashForRequirements;
+
   LibraryManifest({
     required this.name,
     required this.isSynthetic,
@@ -89,7 +101,14 @@ class LibraryManifest {
     required this.exportMap,
     required this.exportMapId,
     required this.exportedExtensions,
+    required this.hashForRequirements,
   });
+
+  factory LibraryManifest.fromBytes(Uint8List bytes) {
+    var reader = BinaryReader(bytes);
+    reader.initFromTableTrailer();
+    return LibraryManifest.read(reader);
+  }
 
   factory LibraryManifest.read(BinaryReader reader) {
     return LibraryManifest(
@@ -134,6 +153,7 @@ class LibraryManifest {
       exportMap: reader.readLookupNameToIdMap(),
       exportMapId: ManifestItemId.read(reader),
       exportedExtensions: ManifestItemIdList.read(reader),
+      hashForRequirements: reader.readStringUtf8(),
     );
   }
 
@@ -177,6 +197,13 @@ class LibraryManifest {
     return exportMap[name];
   }
 
+  Uint8List toBytes() {
+    var writer = BinaryWriter();
+    write(writer);
+    writer.writeTableTrailer();
+    return writer.takeBytes();
+  }
+
   void write(BinaryWriter writer) {
     writer.writeOptionalStringUtf8(name);
     writer.writeBool(isSynthetic);
@@ -199,6 +226,7 @@ class LibraryManifest {
     exportMap.write(writer);
     exportMapId.write(writer);
     exportedExtensions.write(writer);
+    writer.writeStringUtf8(hashForRequirements);
   }
 
   void _fillExportMap() {
@@ -275,6 +303,11 @@ class LibraryManifestBuilder {
     _addExportedExtensions();
     _addReExports();
     _fillExportMaps();
+
+    performance.run('computeHashForRequirements', (_) {
+      _computeHashForRequirements();
+    });
+
     assert(_assertSerialization());
 
     return newManifests;
@@ -795,21 +828,10 @@ class LibraryManifestBuilder {
   /// Assert that every manifest can be serialized, and when deserialized
   /// results in the same manifest.
   bool _assertSerialization() {
-    Uint8List manifestAsBytes(LibraryManifest manifest) {
-      var writer = BinaryWriter();
-      manifest.write(writer);
-      writer.writeTableTrailer();
-      return writer.takeBytes();
-    }
-
     newManifests.forEach((uri, manifest) {
-      var bytes = manifestAsBytes(manifest);
-
-      var reader = BinaryReader(bytes);
-      reader.initFromTableTrailer();
-
-      var readManifest = LibraryManifest.read(reader);
-      var readBytes = manifestAsBytes(readManifest);
+      var bytes = manifest.toBytes();
+      var readManifest = LibraryManifest.fromBytes(bytes);
+      var readBytes = readManifest.toBytes();
 
       if (!const ListEquality<int>().equals(bytes, readBytes)) {
         throw StateError('Library manifest bytes are different: $uri');
@@ -951,6 +973,7 @@ class LibraryManifestBuilder {
         exportMap: {},
         exportMapId: ManifestItemId.generate(),
         exportedExtensions: ManifestItemIdList([]),
+        hashForRequirements: '',
       );
       libraryElement.manifest = newManifest;
       newManifests[libraryUri] = newManifest;
@@ -960,6 +983,113 @@ class LibraryManifestBuilder {
     _addClassTypeAliasConstructors();
 
     return newManifests;
+  }
+
+  void _computeHashForRequirements() {
+    for (var libraryElement in libraryElements) {
+      var manifest = libraryElement.manifest!;
+      var builder = ApiSignature();
+
+      List<MapEntry<LookupName, T>> sortedMapEntries<T>(
+        Map<LookupName, T> map,
+      ) {
+        return map.entries.toList()
+          ..sort((a, b) => LookupName.compare(a.key, b.key));
+      }
+
+      void addLookupName(LookupName name) {
+        builder.addString(name.asString);
+      }
+
+      void addId(ManifestItemId id) {
+        builder.addInt(id.hi32);
+        builder.addInt(id.lo32);
+      }
+
+      void addVersion(Version? version) {
+        if (version != null) {
+          builder.addBool(true);
+          builder.addInt(version.major);
+          builder.addInt(version.minor);
+        } else {
+          builder.addBool(false);
+        }
+      }
+
+      void addMapOfItems<T extends ManifestItem>(Map<LookupName, T> map) {
+        var entries = sortedMapEntries(map);
+        builder.addMapEntryList(entries, (lookupName, item) {
+          addLookupName(lookupName);
+          addId(item.id);
+        });
+      }
+
+      void addMapOfIds(Map<LookupName, ManifestItemId> map) {
+        var entries = sortedMapEntries(map);
+        builder.addMapEntryList(entries, (lookupName, id) {
+          addLookupName(lookupName);
+          addId(id);
+        });
+      }
+
+      void addInstanceChildren(InstanceItem instanceItem) {
+        addMapOfIds(instanceItem.declaredConflicts);
+        addMapOfItems(instanceItem.declaredFields);
+        addMapOfItems(instanceItem.declaredGetters);
+        addMapOfItems(instanceItem.declaredSetters);
+        addMapOfItems(instanceItem.declaredMethods);
+        addMapOfItems(instanceItem.declaredConstructors);
+        addMapOfIds(instanceItem.inheritedConstructors);
+      }
+
+      builder.addString(manifest.name ?? '');
+      builder.addBool(manifest.isSynthetic);
+      builder.addBytes(manifest.featureSet);
+      addVersion(manifest.languageVersion.packageVersion);
+      addVersion(manifest.languageVersion.overrideVersion);
+      addId(manifest.libraryMetadata.id);
+
+      builder.addStringList(
+        manifest.exportedLibraryUris.map((uri) => '$uri').sorted(),
+      );
+
+      builder.addList(
+        manifest.reExportDeprecatedOnly.sorted(LookupName.compare),
+        addLookupName,
+      );
+
+      void addDeclared(Map<LookupName, ManifestItem> map) {
+        var entries = sortedMapEntries(map);
+        builder.addMapEntryList(entries, (lookupName, item) {
+          addLookupName(lookupName);
+          addId(item.id);
+          if (item is InstanceItem) {
+            addInstanceChildren(item);
+            if (item is InterfaceItem) {
+              builder.addBool(item.hasNonFinalField);
+              addId(item.interface.id);
+            }
+          }
+        });
+      }
+
+      addDeclared(manifest.declaredClasses);
+      addDeclared(manifest.declaredEnums);
+      addDeclared(manifest.declaredExtensions);
+      addDeclared(manifest.declaredExtensionTypes);
+      addDeclared(manifest.declaredMixins);
+      addDeclared(manifest.declaredTypeAliases);
+      addDeclared(manifest.declaredGetters);
+      addDeclared(manifest.declaredSetters);
+      addDeclared(manifest.declaredFunctions);
+      addDeclared(manifest.declaredVariables);
+
+      addId(manifest.exportMapId);
+      addMapOfIds(manifest.exportMap);
+      builder.addList(manifest.exportedExtensions.ids, addId);
+
+      manifest.hashForRequirements = builder.toHex();
+    }
   }
 
   void _fillExportMaps() {
@@ -1191,6 +1321,7 @@ class LibraryManifestBuilder {
           exportMap: {},
           exportMapId: ManifestItemId.generate(),
           exportedExtensions: ManifestItemIdList([]),
+          hashForRequirements: '',
         );
   }
 

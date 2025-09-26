@@ -94,6 +94,23 @@ class ApiSignature {
     addInt(version.minor);
   }
 
+  void addList<T>(List<T> elements, void Function(T) addElement) {
+    addInt(elements.length);
+    for (var element in elements) {
+      addElement(element);
+    }
+  }
+
+  void addMapEntryList<K, V>(
+    List<MapEntry<K, V>> entries,
+    void Function(K, V) addEntry,
+  ) {
+    addInt(entries.length);
+    for (var entry in entries) {
+      addEntry(entry.key, entry.value);
+    }
+  }
+
   /// Collect a string.
   void addString(String s) {
     bool isAscii = true;
