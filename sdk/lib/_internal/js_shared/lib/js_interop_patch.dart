@@ -265,14 +265,14 @@ extension Int16ListToJSInt16Array on Int16List {
 // -----------------------------------------------------------------------------
 // JSUint16Array <-> Uint16List
 @patch
-extension JSUint16ArrayToInt16List on JSUint16Array {
+extension JSUint16ArrayToUint16List on JSUint16Array {
   @patch
   @pragma('dart2js:prefer-inline')
   Uint16List get toDart => this._jsUint16Array;
 }
 
 @patch
-extension Uint16ListToJSInt16Array on Uint16List {
+extension Uint16ListToJSUint16Array on Uint16List {
   @patch
   @pragma('dart2js:prefer-inline')
   JSUint16Array get toJS => this as JSUint16Array;

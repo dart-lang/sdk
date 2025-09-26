@@ -5,255 +5,99 @@
 library dart.js_util;
 
 import "dart:_internal";
-import "dart:_js_helper";
-import "dart:_js_types";
-import "dart:js_interop"
-    show
-        JSAnyUtilityExtension,
-        FunctionToJSExportedDartFunction,
-        dartify,
-        JSAny;
-import "dart:_wasm";
-import "dart:async" show Completer, FutureOr;
-import "dart:collection";
-import "dart:typed_data";
+
+Never _unsupported() =>
+    throw UnsupportedError('js_util is not supported by dart2wasm');
 
 @patch
-dynamic jsify(Object? object) {
-  final convertedObjects = HashMap<Object?, Object?>.identity();
-  Object? convert(Object? o) {
-    if (convertedObjects.containsKey(o)) {
-      return convertedObjects[o];
-    }
-
-    // TODO(srujzs): We do these checks again in `jsifyRaw`. We should refactor
-    // this code so we don't have to, but we have to be careful about the
-    // `Iterable` check below.
-    if (o == null ||
-        o is num ||
-        o is bool ||
-        o is JSValue ||
-        o is String ||
-        (o is TypedData &&
-            (o is Int8List ||
-                o is Uint8List ||
-                o is Uint8ClampedList ||
-                o is Int16List ||
-                o is Uint16List ||
-                o is Int32List ||
-                o is Uint32List ||
-                o is Float32List ||
-                o is Float64List ||
-                o is ByteData)) ||
-        o is ByteBuffer) {
-      return JSValue(jsifyRaw(o));
-    }
-
-    if (o is Map<Object?, Object?>) {
-      final convertedMap = newObject<JSValue>();
-      convertedObjects[o] = convertedMap;
-      for (final key in o.keys) {
-        final convertedKey = convert(key) as JSValue?;
-        setPropertyRaw(
-          convertedMap.toExternRef,
-          convertedKey.toExternRef,
-          (convert(o[key]) as JSValue?).toExternRef,
-        );
-      }
-      return convertedMap;
-    } else if (o is Iterable<Object?>) {
-      final convertedIterable = _newArray();
-      convertedObjects[o] = convertedIterable;
-      for (final item in o) {
-        callMethod(convertedIterable, 'push', [convert(item)]);
-      }
-      return convertedIterable;
-    } else {
-      // None of the objects left will require recursive conversions.
-      return JSValue(jsifyRaw(o));
-    }
-  }
-
-  return convert(object);
-}
+dynamic jsify(Object? object) => _unsupported();
 
 @patch
-Object get globalThis => JSValue(globalThisRaw());
+Object get globalThis => _unsupported();
 
 @patch
-T newObject<T>() => JSValue(newObjectRaw()) as T;
-
-JSValue _newArray() => JSValue(newArrayRaw());
+T newObject<T>() => _unsupported();
 
 @patch
-bool hasProperty(Object o, Object name) =>
-    hasPropertyRaw(jsifyRaw(o), jsifyRaw(name));
+bool hasProperty(Object o, Object name) => _unsupported();
 
 @patch
-T getProperty<T>(Object o, Object name) =>
-    dartifyRaw(getPropertyRaw(jsifyRaw(o), jsifyRaw(name))) as T;
+T getProperty<T>(Object o, Object name) => _unsupported();
 
 @patch
-T setProperty<T>(Object o, Object name, T? value) =>
-    dartifyRaw(setPropertyRaw(jsifyRaw(o), jsifyRaw(name), jsifyRaw(value)))
-        as T;
+T setProperty<T>(Object o, Object name, T? value) => _unsupported();
 
 @patch
-T callMethod<T>(Object o, Object method, List<Object?> args) =>
-    dartifyRaw(
-          callMethodVarArgsRaw(jsifyRaw(o), jsifyRaw(method), jsifyRaw(args)),
-        )
-        as T;
+T callMethod<T>(Object o, Object method, List<Object?> args) => _unsupported();
 
 @patch
-bool instanceof(Object? o, Object type) =>
-    JS<bool>("(o, t) => o instanceof t", jsifyRaw(o), jsifyRaw(type));
+bool instanceof(Object? o, Object type) => _unsupported();
 
 @patch
-T callConstructor<T>(Object o, List<Object?>? args) =>
-    dartifyRaw(callConstructorVarArgsRaw(jsifyRaw(o), jsifyRaw(args))) as T;
+T callConstructor<T>(Object o, List<Object?>? args) => _unsupported();
 
 @patch
-T add<T>(Object? first, Object? second) => throw 'unimplemented';
+T add<T>(Object? first, Object? second) => _unsupported();
 
 @patch
-T subtract<T>(Object? first, Object? second) => throw 'unimplemented';
+T subtract<T>(Object? first, Object? second) => _unsupported();
 
 @patch
-T multiply<T>(Object? first, Object? second) => throw 'unimplemented';
+T multiply<T>(Object? first, Object? second) => _unsupported();
 
 @patch
-T divide<T>(Object? first, Object? second) => throw 'unimplemented';
+T divide<T>(Object? first, Object? second) => _unsupported();
 
 @patch
-T exponentiate<T>(Object? first, Object? second) => throw 'unimplemented';
+T exponentiate<T>(Object? first, Object? second) => _unsupported();
 
 @patch
-T modulo<T>(Object? first, Object? second) => throw 'unimplemented';
+T modulo<T>(Object? first, Object? second) => _unsupported();
 
 @patch
-bool equal<T>(Object? first, Object? second) => throw 'unimplemented';
+bool equal<T>(Object? first, Object? second) => _unsupported();
 
 @patch
-bool strictEqual<T>(Object? first, Object? second) => throw 'unimplemented';
+bool strictEqual<T>(Object? first, Object? second) => _unsupported();
 
 @patch
-bool notEqual<T>(Object? first, Object? second) => throw 'unimplemented';
+bool notEqual<T>(Object? first, Object? second) => _unsupported();
 
 @patch
-bool strictNotEqual<T>(Object? first, Object? second) => throw 'unimplemented';
+bool strictNotEqual<T>(Object? first, Object? second) => _unsupported();
 
 @patch
-bool greaterThan<T>(Object? first, Object? second) => throw 'unimplemented';
+bool greaterThan<T>(Object? first, Object? second) => _unsupported();
 
 @patch
-bool greaterThanOrEqual<T>(Object? first, Object? second) =>
-    throw 'unimplemented';
+bool greaterThanOrEqual<T>(Object? first, Object? second) => _unsupported();
 
 @patch
-bool lessThan<T>(Object? first, Object? second) => throw 'unimplemented';
+bool lessThan<T>(Object? first, Object? second) => _unsupported();
 
 @patch
-bool lessThanOrEqual<T>(Object? first, Object? second) => throw 'unimplemented';
+bool lessThanOrEqual<T>(Object? first, Object? second) => _unsupported();
 
 @patch
-bool typeofEquals<T>(Object? o, String type) =>
-    JS<bool>('(o, t) => typeof o === t', jsifyRaw(o), jsifyRaw(type));
-
-typedef _PromiseSuccessFunc = void Function(Object? value);
-typedef _PromiseFailureFunc = void Function(Object? error);
+bool typeofEquals<T>(Object? o, String type) => _unsupported();
 
 @patch
-Future<T> promiseToFuture<T>(Object jsPromise) {
-  Completer<T> completer = Completer<T>();
-
-  final success = ((JSAny? jsValue) {
-    final r = dartifyRaw(jsValue.toExternRef);
-    return completer.complete(r as FutureOr<T>?);
-  }).toJS;
-  final error = (JSAny? jsError, bool isUndefined) {
-    // `jsError` is null when the original error is either JS `null` or JS
-    // `undefined`.
-    final e = dartifyRaw(jsError.toExternRef);
-    if (e == null) {
-      completer.completeError(NullRejectionException(isUndefined));
-      return;
-    }
-    completer.completeError(e);
-  }.toJS;
-  promiseThenWithIsUndefined(
-    jsifyRaw(jsPromise),
-    success.toExternRef,
-    error.toExternRef,
-  );
-  return completer.future;
-}
+Future<T> promiseToFuture<T>(Object jsPromise) => _unsupported();
 
 @patch
-Object? objectGetPrototypeOf(Object? object) => throw 'unimplemented';
+Object? objectGetPrototypeOf(Object? object) => _unsupported();
 
 @patch
-Object? get objectPrototype => throw 'unimplemented';
+Object? get objectPrototype => _unsupported();
 
 @patch
-List<Object?> objectKeys(Object? o) =>
-    toDartList(JS<WasmExternRef?>('o => Object.keys(o)', jsifyRaw(o)));
+List<Object?> objectKeys(Object? o) => _unsupported();
 
 @patch
-Object? dartify(Object? object) {
-  final convertedObjects = HashMap<Object?, Object?>.identity();
-  Object? convert(Object? o) {
-    if (convertedObjects.containsKey(o)) {
-      return convertedObjects[o];
-    }
-    // Because [List] needs to be shallowly converted across the interop
-    // boundary, we have to double check for the case where a shallowly
-    // converted [List] is passed back into [dartify].
-    if (o is List<Object?>) {
-      final converted = <Object?>[];
-      for (final item in o) {
-        converted.add(convert(item));
-      }
-      return converted;
-    }
-    if (o is! JSValue) return o;
-    WasmExternRef? ref = o.toExternRef;
-    final refType = externRefType(ref);
-    // TODO(srujzs): Either handle Date and Promise, or remove them completely
-    // from the conversion (preferred) across all backends.
-    if (refType == ExternRefType.unknown && isJSSimpleObject(ref)) {
-      final dartMap = <Object?, Object?>{};
-      convertedObjects[o] = dartMap;
-      // Keys will be a list of Dart [String]s.
-      final keys = objectKeys(o);
-      for (int i = 0; i < keys.length; i++) {
-        final key = keys[i];
-        if (key != null) {
-          dartMap[key] = convert(
-            JSValue.box(getPropertyRaw(ref, jsifyRaw(key))),
-          );
-        }
-      }
-      return dartMap;
-    }
-    if (refType == ExternRefType.array) {
-      final dartList = <Object?>[];
-      convertedObjects[o] = dartList;
-      final length = getProperty<double>(o, 'length').toInt();
-      for (int i = 0; i < length; i++) {
-        dartList.add(convert(JSValue.box(objectReadIndex(ref, i))));
-      }
-      return dartList;
-    }
-    return dartifyRaw(ref, refType);
-  }
-
-  return convert(object);
-}
-
-/// This will be lowered to a a call to `_wrapDartCallback`.
-@patch
-F allowInterop<F extends Function>(F f) => throw UnimplementedError();
+Object? dartify(Object? object) => _unsupported();
 
 @patch
-Function allowInteropCaptureThis(Function f) => throw UnimplementedError();
+F allowInterop<F extends Function>(F f) => _unsupported();
+
+@patch
+Function allowInteropCaptureThis(Function f) => _unsupported();

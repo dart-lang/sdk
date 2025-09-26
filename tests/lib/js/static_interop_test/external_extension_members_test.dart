@@ -2,15 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Tests behavior of external extension members, which are routed to js_util
-// calls by a CFE transformation.
+// Tests behavior of external extension members.
 
 import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 
 import 'package:expect/expect.dart';
 // To test non-JS types for @staticInterop.
 import 'package:js/js.dart' as pkgJs;
-import 'package:js/js_util.dart' as js_util;
 
 @JS()
 external void eval(String code);
@@ -165,7 +164,7 @@ void main() {
     Expect.equals('squid', foo.field);
     foo.annotatedField = 'octopus';
     Expect.equals('octopus', foo.annotatedField);
-    js_util.setProperty(foo, 'fieldAnnotation', 'clownfish');
+    (foo as JSObject)['fieldAnnotation'] = 'clownfish'.toJS;
     Expect.equals('clownfish', foo.annotatedField);
     foo.nestedField = 'shark';
     Expect.equals('shark', foo.nestedField);
@@ -179,7 +178,7 @@ void main() {
     Expect.equals(42, foo.annotatedGetter);
     Expect.equals(42, foo.nestedGetSet);
 
-    js_util.setProperty(foo, 'getterAnnotation', 'eel');
+    (foo as JSObject)['getterAnnotation'] = 'eel'.toJS;
     Expect.equals('eel', foo.annotatedGetter);
   }
 
@@ -188,10 +187,10 @@ void main() {
 
     var foo = Foo(42);
     foo.setter = 'starfish';
-    Expect.equals('starfish', js_util.getProperty(foo, 'setter'));
+    Expect.equals('starfish'.toJS, (foo as JSObject)['setter']);
 
     foo.annotatedSetter = 'whale';
-    Expect.equals('whale', js_util.getProperty(foo, 'setterAnnotation'));
+    Expect.equals('whale'.toJS, (foo as JSObject)['setterAnnotation']);
 
     foo.nestedGetSet = 'dolphin';
     Expect.equals('dolphin', foo.nestedGetSet);
@@ -214,13 +213,13 @@ void main() {
     // module class.
 
     var bar = Bar(5);
-    Expect.equals(5, js_util.getProperty(bar, 'fieldAnnotation'));
+    Expect.equals(5.toJS, (bar as JSObject)['fieldAnnotation']);
     Expect.equals(5, bar.barField);
-    Expect.equals(5, js_util.getProperty(bar, 'field'));
+    Expect.equals(5.toJS, (bar as JSObject)['field']);
 
     bar.barField = 10;
-    Expect.equals(5, js_util.getProperty(bar, 'fieldAnnotation'));
-    Expect.equals(10, js_util.getProperty(bar, 'field'));
+    Expect.equals(5.toJS, (bar as JSObject)['fieldAnnotation']);
+    Expect.equals(10.toJS, (bar as JSObject)['field']);
   }
 
   {

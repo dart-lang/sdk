@@ -149,10 +149,29 @@ instead.
   original typed array when unwrapped instead of instantiating a new typed array
   with the same buffer. This applies to both the `.toJS` conversions and
   `jsify`. See [#61543][] for more details.
+- `Uint16ListToJSInt16Array` is renamed to `Uint16ListToJSUint16Array`.
+- `JSUint16ArrayToInt16List` is renamed to `JSUint16ArrayToUint16List`.
+- The dart2wasm implementation of `dartify` now converts JavaScript `Promise`s
+  to Dart `Future`s rather than `JSValue`s, consistent with dart2js and DDC. See
+  [#54573][] for more details.
+- `createJSInteropWrapper` now additionally takes an optional parameter which
+  specifies the JavaScript prototype of the created object, similar to
+  `createStaticInteropMock` in `dart:js_util`. See [#61567][] for more details.
 
 [#59830]: https://github.com/dart-lang/sdk/issues/59830
 [#55138]: https://github.com/dart-lang/sdk/issues/55138
 [#61543]: https://github.com/dart-lang/sdk/issues/61543
+[#54573]: https://github.com/dart-lang/sdk/issues/54573
+[#61567]: https://github.com/dart-lang/sdk/issues/61567
+
+#### `dart:js_util`
+
+- dart2wasm no longer supports `dart:js_util` and will throw an
+  `UnsupportedError` if any API from this library is invoked. This also applies
+  to `package:js/js_util.dart`. `package:js/js.dart` continues to be supported. 
+  See [#61550][] for more details.
+
+[#61550]: https://github.com/dart-lang/sdk/issues/61550
 
 ## 3.9.0
 
