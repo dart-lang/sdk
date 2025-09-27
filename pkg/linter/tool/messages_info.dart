@@ -47,7 +47,7 @@ final Map<String, RuleInfo> messagesRuleInfo = () {
   var lintCodes = messagesYaml['LintCode'] as YamlMap?;
   if (lintCodes == null) {
     throw StateError(
-      "The '_messagesFileName' file does not have a 'LintCode' section.",
+      "The '$_messagesFileName' file does not have a 'LintCode' section.",
     );
   }
 
@@ -57,7 +57,7 @@ final Map<String, RuleInfo> messagesRuleInfo = () {
     for (var i = 0; i < lintCodeKeys.length; i++) {
       if (lintCodeKeys[i] != lintCodeKeysSorted[i]) {
         throw StateError(
-          "The LintCode entries in '_messagesFileName' "
+          "The LintCode entries in '$_messagesFileName' "
           "are not sorted alphabetically, starting at '${lintCodeKeys[i]}'.",
         );
       }
@@ -77,7 +77,13 @@ final Map<String, RuleInfo> messagesRuleInfo = () {
     rule.addEntry(uniqueName, data);
   }
 
-  return builders.map((key, value) => MapEntry(key, value.build()));
+  return builders.map((key, value) {
+    try {
+      return MapEntry(key, value.build());
+    } catch (e, st) {
+      Error.throwWithStackTrace('Problem with lint code $key: $e', st);
+    }
+  });
 }();
 
 final String _messagesYamlPath = pathRelativeToPackageRoot(['messages.yaml']);

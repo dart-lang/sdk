@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/error/element_usage_detector.dart';
 
@@ -29,59 +28,6 @@ String? normalizeDeprecationMessage(String message) {
   }
 }
 
-/// Legacy class used in a custom google3 lint for detecting certain deprecated
-/// elements.
-///
-// TODO(paulberry): rewrite the google3 lint using `ElementUsageDetector` and
-// then remove this class.
-@Deprecated('Use ElementUsageDetector instead')
-abstract class BaseDeprecatedMemberUseVerifier {
-  late final ElementUsageDetector<String> _elementUsageDetector =
-      ElementUsageDetector(
-        workspacePackage: null,
-        elementUsageSet: const DeprecatedElementUsageSet(),
-        elementUsageReporter:
-            _TransitionalElementUseReporter._TransitionalElementUsageReporter(
-              this,
-            ),
-      );
-
-  void constructorName(ConstructorName node) {
-    _elementUsageDetector.constructorName(node);
-  }
-
-  void functionExpressionInvocation(FunctionExpressionInvocation node) {
-    _elementUsageDetector.functionExpressionInvocation(node);
-  }
-
-  void instanceCreationExpression(InstanceCreationExpression node) {
-    _elementUsageDetector.instanceCreationExpression(node);
-  }
-
-  void methodInvocation(MethodInvocation node) {
-    _elementUsageDetector.methodInvocation(node);
-  }
-
-  void namedType(NamedType node) {
-    _elementUsageDetector.namedType(node);
-  }
-
-  void redirectingConstructorInvocation(RedirectingConstructorInvocation node) {
-    _elementUsageDetector.redirectingConstructorInvocation(node);
-  }
-
-  void reportError(
-    SyntacticEntity errorEntity,
-    Element element,
-    String displayName,
-    String? message,
-  );
-
-  void simpleIdentifier(SimpleIdentifier node) {
-    _elementUsageDetector.simpleIdentifier(node);
-  }
-}
-
 /// Instance of [ElementUsageReporter] for reporting uses of deprecated
 /// elements.
 class DeprecatedElementUsageReporter implements ElementUsageReporter<String> {
@@ -97,7 +43,6 @@ class DeprecatedElementUsageReporter implements ElementUsageReporter<String> {
     String displayName,
     String tagInfo, {
     required bool isInSamePackage,
-    required Element element,
   }) {
     if (normalizeDeprecationMessage(tagInfo) case var message?) {
       _diagnosticReporter.atEntity(
@@ -149,29 +94,5 @@ class DeprecatedElementUsageSet implements ElementUsageSet<String> {
           '';
     }
     return null;
-  }
-}
-
-/// Auxiliary class used by [BaseDeprecatedMemberUseVerifier].
-///
-// TODO(paulberry): remove this class when removing
-// `BaseDeprecatedMemberUseVerifier`.
-@Deprecated('Will be removed along with BaseDeprecatedMemberUseVerifier')
-class _TransitionalElementUseReporter implements ElementUsageReporter<String> {
-  final BaseDeprecatedMemberUseVerifier _verifier;
-
-  _TransitionalElementUseReporter._TransitionalElementUsageReporter(
-    this._verifier,
-  );
-
-  @override
-  void report(
-    SyntacticEntity usageSite,
-    String displayName,
-    String? tagInfo, {
-    required bool isInSamePackage,
-    required Element element,
-  }) {
-    _verifier.reportError(usageSite, element, displayName, tagInfo);
   }
 }

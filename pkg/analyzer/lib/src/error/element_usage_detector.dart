@@ -118,7 +118,6 @@ class ElementUsageDetector<TagInfo extends Object> {
       displayName,
       tagInfo,
       isInSamePackage: _isLibraryInWorkspacePackage(element.library),
-      element: element,
     );
   }
 
@@ -130,6 +129,10 @@ class ElementUsageDetector<TagInfo extends Object> {
     DotShorthandConstructorInvocation node,
   ) {
     _invocationArguments(node.constructorName.element, node.argumentList);
+  }
+
+  void dotShorthandInvocation(DotShorthandInvocation node) {
+    _invocationArguments(node.memberName.element, node.argumentList);
   }
 
   void exportDirective(ExportDirective node) {
@@ -322,15 +325,12 @@ abstract class ElementUsageReporter<TagInfo extends Object> {
   /// [displayName] is the name of the element that was used. [tagInfo] is the
   /// tag information returned by [ElementUsageSet.getTagInfo].
   /// [isInSamePackage] indicates whether the element and its usage are in
-  /// the same package. [element] is the element whose usage was detected.
+  /// the same package.
   void report(
     SyntacticEntity usageSite,
     String displayName,
     TagInfo tagInfo, {
     required bool isInSamePackage,
-    // Note: `element` exists as a temporary measure for g3 migration.
-    // TODO(paulberry): remove this parameter when it's no longer needed.
-    required Element element,
   });
 }
 

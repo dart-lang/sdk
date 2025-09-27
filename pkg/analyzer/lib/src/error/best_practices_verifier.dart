@@ -374,8 +374,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitDotShorthandInvocation(DotShorthandInvocation node) {
     _deprecatedFunctionalityVerifier.dotShorthandInvocation(node);
-    // TODO(srawlins): I imagine we need to check with
-    // `_deprecatedMemberUseVerifier` here...
+    for (var v in _elementUsageFrontierDetectors) {
+      v.dotShorthandInvocation(node);
+    }
     super.visitDotShorthandInvocation(node);
   }
 

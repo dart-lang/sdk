@@ -1,12 +1,13 @@
 package:analyzer_testing/analysis_rule/analysis_rule.dart:
-  error (function: ExpectedDiagnostic Function(DiagnosticCode, int, int, {Pattern? messageContains}))
+  contextMessage (function: ExpectedContextMessage Function(File, int, int, {String? text, List<Pattern> textContains}))
+  error (function: ExpectedDiagnostic Function(DiagnosticCode, int, int, {List<ExpectedContextMessage>? contextMessages, Pattern? correctionContains, Pattern? messageContains}))
   AnalysisRuleTest (class extends PubPackageResolutionTest):
     new (constructor: AnalysisRuleTest Function())
     analysisRule (getter: String)
     assertNoPubspecDiagnostics (method: Future<void> Function(String))
     assertPubspecDiagnostics (method: Future<void> Function(String, List<ExpectedDiagnostic>))
     correctionMessage (method: String Function(List<Diagnostic>))
-    lint (method: ExpectedDiagnostic Function(int, int, {Pattern? correctionContains, Pattern? messageContains, String? name}))
+    lint (method: ExpectedDiagnostic Function(int, int, {List<ExpectedContextMessage>? contextMessages, Pattern? correctionContains, Pattern? messageContains, String? name}))
     setUp (method: void Function())
     unexpectedMessage (method: String Function(List<Diagnostic>))
 package:analyzer_testing/experiments/experiments.dart:
@@ -60,18 +61,20 @@ package:analyzer_testing/resource_provider_mixin.dart:
     toUri (method: Uri Function(String))
     toUriStr (method: String Function(String))
 package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart:
+  ExpectedContextMessage (non-public)
   ExpectedDiagnostic (non-public)
   PubPackageResolutionTest (non-public)
 package:analyzer_testing/utilities/extensions/resource_provider.dart:
   ResourceProviderExtension (extension on ResourceProvider):
     convertPath (method: String Function(String))
 package:analyzer_testing/utilities/utilities.dart:
-  analysisOptionsContent (function: String Function({List<String> experiments, List<String> includes, List<String> legacyPlugins, List<String> rules, bool strictCasts, bool strictInference, bool strictRawTypes, List<String> unignorableNames}))
+  analysisOptionsContent (function: String Function({Map<String, Object?> errors, List<String> experiments, List<String> includes, List<String> legacyPlugins, List<String> rules, bool strictCasts, bool strictInference, bool strictRawTypes, List<String> unignorableNames}))
   pubspecYamlContent (function: String Function({List<String> dependencies, String? name, String? sdkVersion}))
 dart:async:
   Future (referenced)
 dart:core:
   List (referenced)
+  Map (referenced)
   Object (referenced)
   Pattern (referenced)
   String (referenced)

@@ -21,6 +21,7 @@ import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:analyzer_testing/mock_packages/mock_packages.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
+import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
@@ -118,49 +119,29 @@ class AbstractContextTest
 
   /// Create an analysis options file based on the given arguments.
   void createAnalysisOptionsFile({
+    List<String> includes = const [],
     List<String> experiments = const [],
+    List<String> legacyPlugins = const [],
     List<String> cannotIgnore = const [],
     List<String> lints = const [],
     Map<String, Object?> errors = const {},
+    bool strictCasts = false,
+    bool strictInference = false,
+    bool strictRawTypes = false,
   }) {
-    var buffer = StringBuffer();
-
-    if (experiments.isNotEmpty ||
-        cannotIgnore.isNotEmpty ||
-        errors.isNotEmpty) {
-      buffer.writeln('analyzer:');
-    }
-
-    if (errors.isNotEmpty) {
-      buffer.writeln('  errors:');
-      for (var error in errors.entries) {
-        buffer.writeln('    ${error.key}: ${error.value}');
-      }
-    }
-
-    if (experiments.isNotEmpty) {
-      buffer.writeln('  enable-experiment:');
-      for (var experiment in experiments) {
-        buffer.writeln('    - $experiment');
-      }
-    }
-
-    if (cannotIgnore.isNotEmpty) {
-      buffer.writeln('  cannot-ignore:');
-      for (var unignorable in cannotIgnore) {
-        buffer.writeln('    - $unignorable');
-      }
-    }
-
-    if (lints.isNotEmpty) {
-      buffer.writeln('linter:');
-      buffer.writeln('  rules:');
-      for (var lint in lints) {
-        buffer.writeln('    - $lint');
-      }
-    }
-
-    writeAnalysisOptionsFile(buffer.toString());
+    writeAnalysisOptionsFile(
+      analysisOptionsContent(
+        includes: includes,
+        experiments: experiments,
+        legacyPlugins: legacyPlugins,
+        rules: lints,
+        errors: errors,
+        unignorableNames: cannotIgnore,
+        strictCasts: strictCasts,
+        strictInference: strictInference,
+        strictRawTypes: strictRawTypes,
+      ),
+    );
   }
 
   /// Returns the existing analysis driver that should be used to analyze the

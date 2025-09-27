@@ -30,6 +30,36 @@ var x = Foo();
     );
   }
 
+  test_annotatedClass_dotShorthand() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+@Deprecated.instantiate()
+class Foo {}
+''');
+    await assertErrorsInCode(
+      r'''
+import 'foo.dart';
+Foo x = .new();
+''',
+      [error(WarningCode.deprecatedInstantiate, 28, 3)],
+    );
+  }
+
+  test_annotatedClass_dotShorthand_named() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+@Deprecated.instantiate()
+class Foo {
+  Foo.named();
+}
+''');
+    await assertErrorsInCode(
+      r'''
+import 'foo.dart';
+Foo x = .named();
+''',
+      [error(WarningCode.deprecatedInstantiate, 28, 5)],
+    );
+  }
+
   test_annotatedClass_redirectedFactory_named() async {
     newFile('$testPackageLibPath/foo.dart', r'''
 import 'test.dart';
@@ -93,7 +123,6 @@ class Bar extends Foo {
 @Deprecated.instantiate()
 class Foo {}
 ''');
-
     await assertNoErrorsInCode(r'''
 import 'foo.dart';
 class Bar extends Foo {
@@ -128,6 +157,22 @@ typedef Foo2 = Foo;
 import 'foo.dart';
 var x = Foo2();
 ''');
+  }
+
+  test_annotatedClass_typedef_dotShorthand() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+@Deprecated.instantiate()
+class Foo {}
+typedef Foo2 = Foo;
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'foo.dart';
+Foo2 x = .new();
+''',
+      [error(WarningCode.deprecatedInstantiate, 29, 3)],
+    );
   }
 
   test_annotatedClass_typedef_tearoff() async {

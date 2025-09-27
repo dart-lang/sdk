@@ -31,25 +31,23 @@ class DeprecatedFunctionalityVerifier {
   }
 
   void constructorName(ConstructorName node) {
-    var classElement = node.type.element;
-    if (classElement == null) return;
-    if (classElement.isDeprecatedWithKind('instantiate')) {
-      _diagnosticReporter.atNode(
-        node,
-        WarningCode.deprecatedInstantiate,
-        arguments: [classElement.name!],
-      );
-    }
+    var interfaceElement = node.type.element;
+    if (interfaceElement is! InterfaceElement) return;
+    _checkForDeprecatedInstantiate(element: interfaceElement, errorNode: node);
   }
 
   void dotShorthandConstructorInvocation(
     DotShorthandConstructorInvocation node,
   ) {
-    var element = node.constructorName.element;
-    if (element is! ExecutableElement) return;
+    var element = node.element;
+    if (element is! ConstructorElement) return;
     _checkForDeprecatedOptional(
       element: element,
       argumentList: node.argumentList,
+      errorNode: node.constructorName,
+    );
+    _checkForDeprecatedInstantiate(
+      element: element.enclosingElement,
       errorNode: node.constructorName,
     );
   }
@@ -75,6 +73,12 @@ class DeprecatedFunctionalityVerifier {
     _checkForDeprecatedOptional(
       element: constructor,
       argumentList: node.argumentList,
+      errorNode: node.constructorName,
+    );
+    var interfaceElement = node.constructorName.type.element;
+    if (interfaceElement is! InterfaceElement) return;
+    _checkForDeprecatedInstantiate(
+      element: interfaceElement,
       errorNode: node.constructorName,
     );
   }
@@ -140,6 +144,19 @@ class DeprecatedFunctionalityVerifier {
           );
         }
       }
+    }
+  }
+
+  void _checkForDeprecatedInstantiate({
+    required InterfaceElement element,
+    required AstNode errorNode,
+  }) {
+    if (element.isDeprecatedWithKind('instantiate')) {
+      _diagnosticReporter.atNode(
+        errorNode,
+        WarningCode.deprecatedInstantiate,
+        arguments: [element.name!],
+      );
     }
   }
 

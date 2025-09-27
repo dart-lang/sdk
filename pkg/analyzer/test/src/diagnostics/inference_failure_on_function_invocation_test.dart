@@ -132,6 +132,33 @@ void f(C c) {
 ''');
   }
 
+  test_genericMethodDotShorthand_downwardsInference() async {
+    await assertErrorsInCode(
+      '''
+class C {
+  static C m<T>() => C();
+}
+
+C f() {
+  return .m();
+}
+''',
+      [error(WarningCode.inferenceFailureOnFunctionInvocation, 57, 1)],
+    );
+  }
+
+  test_genericMethodDotShorthand_explicitTypeArgs() async {
+    await assertNoErrorsInCode('''
+class C {
+  static C m<T>() => C();
+}
+
+C f() {
+  return .m<int>();
+}
+''');
+  }
+
   test_genericStaticMethod_noInference() async {
     await assertErrorsInCode(
       '''
