@@ -31,12 +31,22 @@ RequirementsManifest? globalResultRequirements;
 class ExportRequirement {
   final Uri fragmentUri;
   final Uri exportedUri;
+
+  /// Snapshot of [LibraryManifest.hashForRequirements] for [exportedUri].
+  ///
+  /// This hash is used as a fast-path check in [isSatisfied]. If the hash of
+  /// the exported library's manifest has not changed, it implies that the
+  /// library's exports have not changed, and a more detailed validation can be
+  /// skipped.
+  final Hash hashForRequirements;
+
   final List<ExportRequirementCombinator> combinators;
   final Map<LookupName, ManifestItemId> exportedIds;
 
   ExportRequirement({
     required this.fragmentUri,
     required this.exportedUri,
+    required this.hashForRequirements,
     required this.combinators,
     required this.exportedIds,
   });
@@ -45,6 +55,7 @@ class ExportRequirement {
     return ExportRequirement(
       fragmentUri: reader.readUri(),
       exportedUri: reader.readUri(),
+      hashForRequirements: Hash.read(reader),
       combinators: reader.readTypedList(
         () => ExportRequirementCombinator.read(reader),
       ),
@@ -66,6 +77,10 @@ class ExportRequirement {
 
     // SAFETY: every library has the manifest.
     var libraryManifest = libraryElement.manifest!;
+
+    if (libraryManifest.hashForRequirements == hashForRequirements) {
+      return null;
+    }
 
     // Every now exported ID must be previously exported.
     var actualCount = 0;
@@ -111,6 +126,7 @@ class ExportRequirement {
   void write(BinaryWriter writer) {
     writer.writeUri(fragmentUri);
     writer.writeUri(exportedUri);
+    hashForRequirements.write(writer);
     writer.writeList(combinators, (combinator) => combinator.write(writer));
     writer.writeMap(
       exportedIds,
@@ -472,6 +488,7 @@ class LibraryExportRequirements {
           ExportRequirement(
             fragmentUri: fragment.source.uri,
             exportedUri: exportedLibrary.uri,
+            hashForRequirements: manifest.hashForRequirements,
             combinators: combinators,
             exportedIds: exportedIds,
           ),
