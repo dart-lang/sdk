@@ -32,6 +32,7 @@ class AnalyzerPublicApi extends MultiAnalysisRule {
   List<DiagnosticCode> get diagnosticCodes => [
     LinterLintCode.analyzerPublicApiBadPartDirective,
     LinterLintCode.analyzerPublicApiBadType,
+    LinterLintCode.analyzerPublicApiExperimentalInconsistency,
     LinterLintCode.analyzerPublicApiExportsNonPublicName,
     LinterLintCode.analyzerPublicApiImplInPublicApi,
   ];
@@ -46,6 +47,16 @@ class AnalyzerPublicApi extends MultiAnalysisRule {
     registry.addExportDirective(this, visitor);
     registry.addPartDirective(this, visitor);
   }
+}
+
+/// Types of problematic uses of types that can be detected by this lint.
+enum _ProblematicTypeUseKind {
+  /// Use of a non-public type by a part of the analyzer public API.
+  useOfNonPublicType,
+
+  /// Use of an experimental type by a non-experimental part of the analyzer
+  /// public API.
+  useOfExperimentalType,
 }
 
 /// Lightweight object representing a public import.
@@ -130,7 +141,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  void _checkMember(Fragment fragment) {
+  void _checkMember(Fragment fragment, {required bool isParentExperimental}) {
     if (fragment is ConstructorFragment &&
         fragment.element.enclosingElement is EnumElement) {
       // Enum constructors aren't callable from outside of the enum, so they
@@ -143,7 +154,12 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
     if (fragment is ExecutableFragment) {
-      _checkType(fragment.element.type, fragment: fragment);
+      _checkType(
+        fragment.element.type,
+        fragment: fragment,
+        isUsageSiteExperimental:
+            isParentExperimental || fragment.element.metadata.hasExperimental,
+      );
     }
   }
 
@@ -158,38 +174,73 @@ class _Visitor extends SimpleAstVisitor<void> {
         diagnosticCode: LinterLintCode.analyzerPublicApiImplInPublicApi,
       );
     }
+    var isUsageSiteExperimental = fragment.element.metadata.hasExperimental;
     switch (fragment) {
       case ExtensionFragment(name: null):
         // Unnamed extensions are not public, so ignore.
         break;
       case InstanceFragment(:var typeParameters, :var children):
         for (var typeParameter in typeParameters) {
-          _checkTypeParameter(typeParameter, fragment: fragment);
+          _checkTypeParameter(
+            typeParameter,
+            fragment: fragment,
+            isUsageSiteExperimental: isUsageSiteExperimental,
+          );
         }
         if (fragment is InterfaceFragment) {
           var element = fragment.element;
-          _checkType(element.supertype, fragment: fragment);
+          _checkType(
+            element.supertype,
+            fragment: fragment,
+            isUsageSiteExperimental: isUsageSiteExperimental,
+          );
           for (var t in element.interfaces) {
-            _checkType(t, fragment: fragment);
+            _checkType(
+              t,
+              fragment: fragment,
+              isUsageSiteExperimental: isUsageSiteExperimental,
+            );
           }
           for (var t in element.mixins) {
-            _checkType(t, fragment: fragment);
+            _checkType(
+              t,
+              fragment: fragment,
+              isUsageSiteExperimental: isUsageSiteExperimental,
+            );
           }
         }
         if (fragment case ExtensionFragment(:var element)) {
-          _checkType(element.extendedType, fragment: fragment);
+          _checkType(
+            element.extendedType,
+            fragment: fragment,
+            isUsageSiteExperimental: isUsageSiteExperimental,
+          );
         }
         if (fragment case MixinFragment(:var superclassConstraints)) {
           for (var t in superclassConstraints) {
-            _checkType(t, fragment: fragment);
+            _checkType(
+              t,
+              fragment: fragment,
+              isUsageSiteExperimental: isUsageSiteExperimental,
+            );
           }
         }
-        children.forEach(_checkMember);
+        for (var child in children) {
+          _checkMember(child, isParentExperimental: isUsageSiteExperimental);
+        }
       case ExecutableFragment():
-        _checkType(fragment.element.type, fragment: fragment);
+        _checkType(
+          fragment.element.type,
+          fragment: fragment,
+          isUsageSiteExperimental: isUsageSiteExperimental,
+        );
       case TypeAliasFragment(:var element, :var typeParameters):
         var aliasedType = element.aliasedType;
-        _checkType(aliasedType, fragment: fragment);
+        _checkType(
+          aliasedType,
+          fragment: fragment,
+          isUsageSiteExperimental: isUsageSiteExperimental,
+        );
         if (typeParameters.isNotEmpty &&
             aliasedType is FunctionType &&
             aliasedType.typeParameters.isEmpty) {
@@ -197,56 +248,62 @@ class _Visitor extends SimpleAstVisitor<void> {
           // why.
           // TODO(paulberry): consider fixing this in the analyzer.
           for (var typeParameter in typeParameters) {
-            _checkTypeParameter(typeParameter, fragment: fragment);
+            _checkTypeParameter(
+              typeParameter,
+              fragment: fragment,
+              isUsageSiteExperimental: isUsageSiteExperimental,
+            );
           }
         }
     }
   }
 
-  void _checkType(DartType? type, {required Fragment fragment}) {
+  void _checkType(
+    DartType? type, {
+    required Fragment fragment,
+    required bool isUsageSiteExperimental,
+  }) {
     if (type == null) return;
-    var problems = _problemsForAnalyzerPublicApi(type);
-    if (problems.isEmpty) return;
-    int offset;
-    int length;
-    while (true) {
-      if (fragment.nameOffset != null) {
-        offset = fragment.nameOffset!;
-        length = fragment.name!.length;
-        break;
-      } else if (fragment case PropertyAccessorFragment()
-          when fragment.element.variable.firstFragment.nameOffset != null) {
-        offset = fragment.element.variable.firstFragment.nameOffset!;
-        length = fragment.element.variable.name!.length;
-        break;
-      } else if (fragment is ConstructorFragment &&
-          fragment.typeNameOffset != null) {
-        offset = fragment.typeNameOffset!;
-        length = fragment.enclosingFragment!.name!.length;
-        break;
-      } else if (fragment.enclosingFragment case var enclosingFragment?) {
-        fragment = enclosingFragment;
-      } else {
-        // This should never happen. But if it does, make sure we generate a
-        // lint anyway.
-        offset = 0;
-        length = 1;
-        break;
-      }
-    }
-    rule.reportAtOffset(
-      offset,
-      length,
-      diagnosticCode: LinterLintCode.analyzerPublicApiBadType,
-      arguments: [problems.join(', ')],
+    var nonPublicProblems = _problemsForAnalyzerPublicApi(
+      type,
+      kind: _ProblematicTypeUseKind.useOfNonPublicType,
     );
+    var experimentalProblems = isUsageSiteExperimental
+        ? const <String>{}
+        : _problemsForAnalyzerPublicApi(
+            type,
+            kind: _ProblematicTypeUseKind.useOfExperimentalType,
+          );
+    late var offsetAndLength = _offsetAndLengthForFragment(fragment);
+    if (nonPublicProblems.isNotEmpty) {
+      rule.reportAtOffset(
+        offsetAndLength.offset,
+        offsetAndLength.length,
+        diagnosticCode: LinterLintCode.analyzerPublicApiBadType,
+        arguments: [nonPublicProblems.join(', ')],
+      );
+    }
+    if (experimentalProblems.isNotEmpty) {
+      rule.reportAtOffset(
+        offsetAndLength.offset,
+        offsetAndLength.length,
+        diagnosticCode:
+            LinterLintCode.analyzerPublicApiExperimentalInconsistency,
+        arguments: [nonPublicProblems.join(', ')],
+      );
+    }
   }
 
   void _checkTypeParameter(
     TypeParameterFragment typeParameter, {
     required Fragment fragment,
+    required bool isUsageSiteExperimental,
   }) {
-    _checkType(typeParameter.element.bound, fragment: fragment);
+    _checkType(
+      typeParameter.element.bound,
+      fragment: fragment,
+      isUsageSiteExperimental: isUsageSiteExperimental,
+    );
   }
 
   /// Whether [element] is visible through at least one public import.
@@ -270,20 +327,56 @@ class _Visitor extends SimpleAstVisitor<void> {
     return false;
   }
 
-  Set<String> _problemsForAnalyzerPublicApi(DartType type) {
+  ({int length, int offset}) _offsetAndLengthForFragment(Fragment fragment) {
+    while (true) {
+      if (fragment.nameOffset != null) {
+        return (offset: fragment.nameOffset!, length: fragment.name!.length);
+      } else if (fragment case PropertyAccessorFragment()
+          when fragment.element.variable.firstFragment.nameOffset != null) {
+        return (
+          offset: fragment.element.variable.firstFragment.nameOffset!,
+          length: fragment.element.variable.name!.length,
+        );
+      } else if (fragment is ConstructorFragment &&
+          fragment.typeNameOffset != null) {
+        return (
+          offset: fragment.typeNameOffset!,
+          length: fragment.enclosingFragment!.name!.length,
+        );
+      } else if (fragment.enclosingFragment case var enclosingFragment?) {
+        // ignore: parameter_assignments
+        fragment = enclosingFragment;
+      } else {
+        // This should never happen. But if it does, make sure we generate a
+        // lint anyway.
+        return (offset: 0, length: 1);
+      }
+    }
+  }
+
+  Set<String> _problemsForAnalyzerPublicApi(
+    DartType type, {
+    required _ProblematicTypeUseKind kind,
+  }) {
     switch (type) {
       case RecordType(:var positionalFields, :var namedFields):
         return {
           for (var f in positionalFields)
-            ..._problemsForAnalyzerPublicApi(f.type),
-          for (var f in namedFields) ..._problemsForAnalyzerPublicApi(f.type),
+            ..._problemsForAnalyzerPublicApi(f.type, kind: kind),
+          for (var f in namedFields)
+            ..._problemsForAnalyzerPublicApi(f.type, kind: kind),
         };
       case InterfaceType(:var element, :var typeArguments):
+        var isProblematicElement = switch (kind) {
+          _ProblematicTypeUseKind.useOfNonPublicType =>
+            !_isPubliclyImported(element) && !element.isOkForAnalyzerPublicApi,
+          _ProblematicTypeUseKind.useOfExperimentalType =>
+            element.metadata.hasExperimental,
+        };
         return {
-          if (!_isPubliclyImported(element) &&
-              !element.isOkForAnalyzerPublicApi)
-            element.name!,
-          for (var t in typeArguments) ..._problemsForAnalyzerPublicApi(t),
+          if (isProblematicElement) element.name!,
+          for (var t in typeArguments)
+            ..._problemsForAnalyzerPublicApi(t, kind: kind),
         };
       case NeverType():
       case DynamicType():
@@ -297,11 +390,12 @@ class _Visitor extends SimpleAstVisitor<void> {
         :var formalParameters,
       ):
         return {
-          ..._problemsForAnalyzerPublicApi(returnType),
+          ..._problemsForAnalyzerPublicApi(returnType, kind: kind),
           for (var p in typeParameters)
-            if (p.bound != null) ..._problemsForAnalyzerPublicApi(p.bound!),
+            if (p.bound != null)
+              ..._problemsForAnalyzerPublicApi(p.bound!, kind: kind),
           for (var p in formalParameters)
-            ..._problemsForAnalyzerPublicApi(p.type),
+            ..._problemsForAnalyzerPublicApi(p.type, kind: kind),
         };
       default:
         throw StateError('Unexpected type $runtimeType');

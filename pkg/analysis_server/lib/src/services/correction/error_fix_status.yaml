@@ -1883,6 +1883,8 @@ LintCode.analyzer_public_api_bad_part_directive:
   status: noFix
 LintCode.analyzer_public_api_bad_type:
   status: noFix
+LintCode.analyzer_public_api_experimental_inconsistency:
+  status: noFix
 LintCode.analyzer_public_api_exports_non_public_name:
   status: noFix
 LintCode.analyzer_public_api_impl_in_public_api:

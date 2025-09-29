@@ -470,6 +470,35 @@ LintCode:
       the referenced type with `@AnalyzerPublicApi(...)`. The advantage of
       marking the referenced type with `@AnalyzerPublicApi(...)` is that it
       causes the members of referenced type to be checked by this lint.
+  analyzer_public_api_experimental_inconsistency:
+    parameters:
+      String types: "list of types, separated by `, `"
+    problemMessage: "Element makes use of experimental type(s), but is not itself marked with `@experimental`: #types."
+    hasPublishedDocs: false
+    state:
+      internal: "3.10"
+    categories: [publicInterface]
+    deprecatedDetails: "For internal use only."
+    comment: |-
+      Lint issued if an element in the analyzer public API makes use
+      of a type that's annotated `@experimental`, but the element
+      itself is not annotated `@experimental`.
+
+      The reason this is a problem is that it makes it possible for
+      analyzer clients to implicitly reference analyzer experimental
+      types. This can happen in many ways; here are some examples:
+
+      - If `C` is a non-experimental public API class that implements
+        `B`, and `B` is an experimental public API class with a getter
+        called `x`, then a client can access `B.x` via `C`.
+
+      - If `f` has return type `T`, and `T` is an experimental public
+        API class with a getter called `x`, then a client can access
+        `T.x` via `f().x`.
+
+      - If `f` has type `void Function(T)`, and `T` is an experimental
+        public API class with a getter called `x`, then a client can
+        access `T.x` via `var g = f; g = (t) { print(t.x); }`.
   analyzer_public_api_exports_non_public_name:
     parameters:
       String elements: "List of elements, separated by `, `"
