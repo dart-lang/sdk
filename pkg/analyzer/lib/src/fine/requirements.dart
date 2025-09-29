@@ -2476,6 +2476,22 @@ class RequirementsManifest {
     return writer.takeBytes();
   }
 
+  RequirementsManifestDigest toDigest() {
+    var libraryHashes = <Uri, Hash>{};
+
+    libraries.forEach((uri, library) {
+      libraryHashes[uri] = library.hashForRequirements;
+    });
+
+    for (var library in exportRequirements) {
+      for (var export in library.exports) {
+        libraryHashes[export.exportedUri] = export.hashForRequirements;
+      }
+    }
+
+    return RequirementsManifestDigest(libraryHashes: libraryHashes);
+  }
+
   void write(BinaryWriter writer) {
     id.write(writer);
     writer.writeMap(
@@ -2596,6 +2612,55 @@ class RequirementsManifest {
     return '${element.library.uri} '
         '${element.displayName}.'
         '${methodName.asString}';
+  }
+}
+
+/// Compact digest of [RequirementsManifest] for fast validation.
+///
+/// The digest records, for each relevant library, the value of
+/// [LibraryManifest.hashForRequirements] observed when the digest was built.
+/// It includes:
+///  * every library listed in [RequirementsManifest.libraries], and
+///  * libraries referenced by export requirements (re-exports).
+///
+/// This is used as a fast path during validation: if every recorded entry
+/// matches the current manifests in a [LinkedElementFactory], then running the
+/// full [RequirementsManifest.isSatisfied] check would produce the same result
+/// and can be skipped. If any library is missing or any recorded hash differs,
+/// the digest is not satisfied and a detailed check must be performed.
+class RequirementsManifestDigest {
+  final Map<Uri, Hash> libraryHashes;
+
+  RequirementsManifestDigest({required this.libraryHashes});
+
+  factory RequirementsManifestDigest.read(BinaryReader reader) {
+    return RequirementsManifestDigest(
+      libraryHashes: reader.readMap(
+        readKey: () => reader.readUri(),
+        readValue: () => Hash.read(reader),
+      ),
+    );
+  }
+
+  bool isSatisfied(LinkedElementFactory elementFactory) {
+    for (var entry in libraryHashes.entries) {
+      var manifest = elementFactory.libraryManifests[entry.key];
+      if (manifest == null) {
+        return false;
+      }
+      if (manifest.hashForRequirements != entry.value) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  void write(BinaryWriter writer) {
+    writer.writeMap(
+      libraryHashes,
+      writeKey: (uri) => writer.writeUri(uri),
+      writeValue: (hash) => hash.write(writer),
+    );
   }
 }
 
