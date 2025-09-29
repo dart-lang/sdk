@@ -97,6 +97,8 @@ cc/TryCatchOptimizer_DeadParameterElimination_*: SkipByDesign # Building flow gr
 cc/TwoWayInduction: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/TypePropagator_*: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/WrapAroundAndDerived: SkipByDesign # Building flow graph is not supported from bytecode.
+dart/await_type_check_with_dynamic_loading_test: SkipByDesign # dart:mirrors is not supported.
+dart/redirection_type_shuffling_test: SkipByDesign # dart:mirrors is not supported.
 dart/regress_52703_test: Pass, Slow
 
 [ $compiler == dartk ]

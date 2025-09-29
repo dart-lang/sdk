@@ -46,6 +46,9 @@ io/socket_sigpipe_test: SkipByDesign # Spawns server process using Platform.exec
 [ $compiler == dart2analyzer ]
 deferred_transitive_import_error_test: Skip
 
+[ $compiler == dart2bytecode ]
+io/http_redirect_test: SkipByDesign # dart:mirrors is not supported.
+
 [ $compiler == dartkp ]
 lazy_async_stack_test: Skip # Flaky.
 
