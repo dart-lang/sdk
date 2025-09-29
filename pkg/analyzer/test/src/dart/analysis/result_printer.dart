@@ -602,7 +602,7 @@ class DriverEventsPrinter {
               configuration: configuration,
               sink: sink,
               idProvider: idProvider,
-            ).write(manifest);
+            ).write(manifest.instance);
           });
         }
       }

@@ -365,7 +365,7 @@ extension LinkedElementFactoryExtension on LinkedElementFactory {
     var libraryUri = topLevelElement.library!.uri;
 
     // Prepare the external library manifest.
-    var manifest = libraryManifests[libraryUri];
+    var manifest = libraryManifests[libraryUri]?.instance;
     if (manifest == null) {
       return null;
     }

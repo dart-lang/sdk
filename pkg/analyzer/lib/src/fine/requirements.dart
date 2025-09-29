@@ -76,7 +76,7 @@ class ExportRequirement {
     }
 
     // SAFETY: every library has the manifest.
-    var libraryManifest = libraryElement.manifest!;
+    var libraryManifest = libraryElement.manifest!.instance;
 
     if (libraryManifest.hashForRequirements == hashForRequirements) {
       return null;
@@ -460,7 +460,7 @@ class LibraryExportRequirements {
         }).toList();
 
         // SAFETY: every library has the manifest.
-        var manifest = exportedLibrary.manifest!;
+        var manifest = exportedLibrary.manifest!.instance;
 
         var exportMap = globalResultRequirements.untracked(
           reason: 'Recoding requirements',
@@ -918,13 +918,15 @@ class RequirementsManifest {
       var libraryUri = libraryEntry.key;
       var libraryRequirements = libraryEntry.value;
 
-      var libraryManifest = elementFactory.libraryManifestOfUri(libraryUri);
-      if (libraryManifest == null) {
+      var libraryManifestHandle = elementFactory.libraryManifestOfUri(
+        libraryUri,
+      );
+      if (libraryManifestHandle == null) {
         return LibraryMissing(uri: libraryUri);
       }
 
       if (libraryRequirements.hashForRequirements ==
-          libraryManifest.hashForRequirements) {
+          libraryManifestHandle.hashForRequirements) {
         performance.getDataInt('libHash').increment();
         continue;
       } else {
@@ -933,6 +935,7 @@ class RequirementsManifest {
         onlyHashForLibraries = false;
       }
 
+      var libraryManifest = libraryManifestHandle.instance;
       if (libraryRequirements.name case var expected?) {
         var actual = libraryManifest.name;
         if (expected != actual) {
@@ -1645,7 +1648,7 @@ class RequirementsManifest {
     var setterLookupName = '$id='.asLookupName;
 
     for (var importedLibrary in importedLibraries) {
-      if (importedLibrary.manifest case var manifest?) {
+      if (importedLibrary.manifest?.instance case var manifest?) {
         var libraryRequirements = _getLibraryRequirements(importedLibrary);
 
         var getterId = manifest.getExportedId(getterLookupName);
@@ -1926,7 +1929,7 @@ class RequirementsManifest {
       return;
     }
 
-    var manifest = element.manifest;
+    var manifest = element.manifest?.instance;
     if (manifest == null) {
       return;
     }
@@ -1942,7 +1945,7 @@ class RequirementsManifest {
       return;
     }
 
-    var manifest = element.manifest;
+    var manifest = element.manifest?.instance;
     if (manifest == null) {
       return;
     }
@@ -1960,7 +1963,7 @@ class RequirementsManifest {
       return;
     }
 
-    var manifest = element.manifest;
+    var manifest = element.manifest?.instance;
     if (manifest == null) {
       return;
     }
@@ -1974,7 +1977,7 @@ class RequirementsManifest {
       return;
     }
 
-    var manifest = element.manifest;
+    var manifest = element.manifest?.instance;
     if (manifest == null) {
       return;
     }
@@ -1990,7 +1993,7 @@ class RequirementsManifest {
       return;
     }
 
-    var manifest = element.manifest;
+    var manifest = element.manifest?.instance;
     if (manifest == null) {
       return;
     }
@@ -2006,7 +2009,7 @@ class RequirementsManifest {
       return;
     }
 
-    var manifest = element.manifest;
+    var manifest = element.manifest?.instance;
     if (manifest == null) {
       return;
     }
@@ -2022,7 +2025,7 @@ class RequirementsManifest {
       return;
     }
 
-    var manifest = element.manifest;
+    var manifest = element.manifest?.instance;
     if (manifest == null) {
       return;
     }
@@ -2038,7 +2041,7 @@ class RequirementsManifest {
       return;
     }
 
-    var manifest = element.manifest;
+    var manifest = element.manifest?.instance;
     if (manifest == null) {
       return;
     }
@@ -2056,7 +2059,7 @@ class RequirementsManifest {
       return;
     }
 
-    var manifest = element.manifest;
+    var manifest = element.manifest?.instance;
     if (manifest == null) {
       return;
     }
@@ -2074,7 +2077,7 @@ class RequirementsManifest {
       return;
     }
 
-    var manifest = element.manifest;
+    var manifest = element.manifest?.instance;
     if (manifest == null) {
       return;
     }
@@ -2090,7 +2093,7 @@ class RequirementsManifest {
       return;
     }
 
-    var manifest = element.manifest;
+    var manifest = element.manifest?.instance;
     if (manifest == null) {
       return;
     }
@@ -2106,7 +2109,7 @@ class RequirementsManifest {
       return;
     }
 
-    var manifest = element.manifest;
+    var manifest = element.manifest?.instance;
     if (manifest == null) {
       return;
     }
@@ -2122,7 +2125,7 @@ class RequirementsManifest {
       return;
     }
 
-    var manifest = element.manifest;
+    var manifest = element.manifest?.instance;
     if (manifest == null) {
       return;
     }
@@ -2147,7 +2150,7 @@ class RequirementsManifest {
       return;
     }
 
-    var manifest = element.manifest;
+    var manifest = element.manifest?.instance;
     if (manifest == null) {
       return;
     }
@@ -2160,7 +2163,7 @@ class RequirementsManifest {
     required LibraryElementImpl element,
     required String name,
   }) {
-    var manifest = element.manifest;
+    var manifest = element.manifest?.instance;
     if (manifest == null) {
       return;
     }
@@ -2175,7 +2178,7 @@ class RequirementsManifest {
     required LibraryElementImpl element,
     required String name,
   }) {
-    var manifest = element.manifest;
+    var manifest = element.manifest?.instance;
     if (manifest == null) {
       return;
     }
@@ -2190,7 +2193,7 @@ class RequirementsManifest {
     required LibraryElementImpl element,
     required String name,
   }) {
-    var manifest = element.manifest;
+    var manifest = element.manifest?.instance;
     if (manifest == null) {
       return;
     }
@@ -2205,7 +2208,7 @@ class RequirementsManifest {
     required LibraryElementImpl element,
     required String name,
   }) {
-    var manifest = element.manifest;
+    var manifest = element.manifest?.instance;
     if (manifest == null) {
       return;
     }
@@ -2220,7 +2223,7 @@ class RequirementsManifest {
     required LibraryElementImpl element,
     required String name,
   }) {
-    var manifest = element.manifest;
+    var manifest = element.manifest?.instance;
     if (manifest == null) {
       return;
     }
@@ -2235,7 +2238,7 @@ class RequirementsManifest {
     required LibraryElementImpl element,
     required String name,
   }) {
-    var manifest = element.manifest;
+    var manifest = element.manifest?.instance;
     if (manifest == null) {
       return;
     }
@@ -2251,7 +2254,7 @@ class RequirementsManifest {
       return;
     }
 
-    var manifest = element.manifest;
+    var manifest = element.manifest?.instance;
     if (manifest == null) {
       return;
     }
@@ -2266,7 +2269,7 @@ class RequirementsManifest {
   }) {
     assert(!name.endsWith('='));
 
-    var manifest = element.manifest;
+    var manifest = element.manifest?.instance;
     if (manifest == null) {
       return;
     }
@@ -2281,7 +2284,7 @@ class RequirementsManifest {
     required LibraryElementImpl element,
     required String name,
   }) {
-    var manifest = element.manifest;
+    var manifest = element.manifest?.instance;
     if (manifest == null) {
       return;
     }
@@ -2296,7 +2299,7 @@ class RequirementsManifest {
     required LibraryElementImpl element,
     required String name,
   }) {
-    var manifest = element.manifest;
+    var manifest = element.manifest?.instance;
     if (manifest == null) {
       return;
     }
@@ -2311,7 +2314,7 @@ class RequirementsManifest {
     required LibraryElementImpl element,
     required String name,
   }) {
-    var manifest = element.manifest;
+    var manifest = element.manifest?.instance;
     if (manifest == null) {
       return;
     }
@@ -2327,7 +2330,7 @@ class RequirementsManifest {
       return;
     }
 
-    var manifest = element.manifest;
+    var manifest = element.manifest?.instance;
     if (manifest == null) {
       return;
     }
@@ -2341,7 +2344,7 @@ class RequirementsManifest {
       return;
     }
 
-    var manifest = element.manifest;
+    var manifest = element.manifest?.instance;
     if (manifest == null) {
       return;
     }
@@ -2355,7 +2358,7 @@ class RequirementsManifest {
       return;
     }
 
-    var manifest = element.manifest;
+    var manifest = element.manifest?.instance;
     if (manifest == null) {
       return;
     }
@@ -2375,7 +2378,7 @@ class RequirementsManifest {
     }
 
     for (var importedLibrary in importedLibraries) {
-      if (importedLibrary.manifest case var manifest?) {
+      if (importedLibrary.manifest?.instance case var manifest?) {
         var libraryRequirements = _getLibraryRequirements(importedLibrary);
         libraryRequirements.exportedExtensions ??= manifest.exportedExtensions;
       }
@@ -2512,7 +2515,7 @@ class RequirementsManifest {
     }
 
     var libraryElement = element.library;
-    var manifest = libraryElement.manifest;
+    var manifest = libraryElement.manifest?.instance;
 
     // If we are linking the library, its manifest is not set yet.
     // But then we also don't care about this dependency.
@@ -2555,7 +2558,7 @@ class RequirementsManifest {
     }
 
     var libraryElement = element.library;
-    var manifest = libraryElement.manifest;
+    var manifest = libraryElement.manifest?.instance;
 
     // If we are linking the library, its manifest is not set yet.
     // But then we also don't care about this dependency.
@@ -2599,7 +2602,7 @@ class RequirementsManifest {
       return result;
     }
 
-    result = LibraryRequirements.fromManifest(element.manifest!);
+    result = LibraryRequirements.fromManifest(element.manifest!.instance);
     state._result = result;
     libraries[element.uri] = result;
     return result;

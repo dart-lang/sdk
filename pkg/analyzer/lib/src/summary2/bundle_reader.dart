@@ -44,7 +44,7 @@ class BundleReader {
     required LinkedElementFactory elementFactory,
     required Uint8List resolutionBytes,
     Map<Uri, Uint8List> unitsInformativeBytes = const {},
-    required Map<Uri, LibraryManifest> libraryManifests,
+    required Map<Uri, LibraryManifestHandle> libraryManifests,
   }) : _reader = BinaryReader(resolutionBytes),
        _unitsInformativeBytes = unitsInformativeBytes {
     const bytesOfU32 = 4;
@@ -97,7 +97,7 @@ class LibraryReader {
   final _ReferenceReader _referenceReader;
   final Reference _reference;
   final int _offset;
-  final LibraryManifest? manifest;
+  final LibraryManifestHandle? manifest;
 
   late final LibraryElementImpl _libraryElement;
 
