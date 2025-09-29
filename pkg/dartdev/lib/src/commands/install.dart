@@ -291,6 +291,10 @@ You can specify three different values for the <package> argument:
       }
     } on PathAccessException {
       _installException('Deletion failed. The application might be in use.');
+    } on PathNotFoundException {
+      print('Bundle not found when uninstalling. '
+          'Earlier installation may have failed.');
+      // Continue installing
     }
   }
 
@@ -349,10 +353,40 @@ You can specify three different values for the <package> argument:
     appBundleDirectory.directory.createSync(recursive: true);
     final bundleDirectory =
         Directory.fromUri(buildDirectory.uri.resolve('bundle/'));
-    await bundleDirectory.rename(
-        appBundleDirectory.directory.uri.resolve('bundle/').toFilePath());
+    await _renameSafe(
+        bundleDirectory, appBundleDirectory.directory.uri.resolve('bundle/'));
     await helperPackageLockFile.copy(appBundleDirectory.pubspecLock.path);
     await sourcePackagePubspecFile.copy(appBundleDirectory.pubspec.path);
+  }
+
+  /// This allows us to rename files across different filesystems.
+  ///
+  /// Tries to use the basic [Directory.rename] method but if that fails then
+  /// fall back to copying each entity and then deleting it.
+  Future<void> _renameSafe(Directory from, Uri to) async {
+    try {
+      await from.rename(to.toFilePath());
+    } on FileSystemException {
+      // The rename failed, possibly because `from` and `to` are on different
+      // filesystems. Fall back to copy and delete.
+      await _renameSafeCopyAndDelete(from, to);
+    }
+  }
+
+  Future<void> _renameSafeCopyAndDelete(Directory from, Uri to) async {
+    await Directory.fromUri(to).create(recursive: true);
+    await for (final child in from.list()) {
+      final newChildPath = to.resolve(p.relative(child.path, from: from.path));
+      if (child is File) {
+        await child.copy(newChildPath.toFilePath());
+      } else if (child is Directory) {
+        await _renameSafeCopyAndDelete(child, Uri.parse('$newChildPath/'));
+      } else {
+        await Link.fromUri(newChildPath)
+            .create(await (child as Link).resolveSymbolicLinks());
+      }
+      await child.delete(recursive: false);
+    }
   }
 
   void _installExecutablesOnPath(
