@@ -33,6 +33,7 @@ import '../../source/source_library_builder.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_property_builder.dart';
 import '../../source/type_parameter_factory.dart';
+import '../../type_inference/inference_results.dart';
 import '../../type_inference/type_inference_engine.dart';
 import '../../type_inference/type_inferrer.dart';
 import '../fragment.dart';
@@ -154,7 +155,7 @@ abstract class FieldDeclaration {
 }
 
 class RegularFieldDeclaration
-    with FieldDeclarationMixin
+    with FieldDeclarationMixin, FieldFragmentDeclarationMixin
     implements
         FieldDeclaration,
         FieldFragmentDeclaration,
@@ -168,10 +169,7 @@ class RegularFieldDeclaration
 
   shared.Expression? _initializerExpression;
 
-  /// Whether the body of this field has been built.
-  ///
-  /// Constant fields have their initializer built in the outline so we avoid
-  /// building them twice as part of the non-outline build.
+  @override
   bool hasBodyBeenBuilt = false;
 
   RegularFieldDeclaration(this._fragment) {
@@ -274,8 +272,7 @@ class RegularFieldDeclaration
     _encoding.type = value;
   }
 
-  /// Builds the body of this field using [initializer] as the initializer
-  /// expression.
+  @override
   void buildBody(CoreTypes coreTypes, Expression? initializer) {
     assert(!hasBodyBeenBuilt, "Body has already been built for $this.");
     hasBodyBeenBuilt = true;
@@ -379,36 +376,65 @@ class RegularFieldDeclaration
     // fields and all non-static final fields in classes with const constructors
     // into the outline.
     Token? token = _fragment.constInitializerToken;
-    if ((_fragment.modifiers.isConst ||
-            (isFinal &&
-                isClassInstanceMember &&
-                (declarationBuilder as SourceClassBuilder)
-                    .declaresConstConstructor)) &&
-        token != null) {
-      LookupScope scope = _fragment.enclosingScope;
-      Expression initializer = libraryBuilder.loader
-          .createResolver()
-          .buildFieldInitializer2(
+    if (!hasBodyBeenBuilt && token != null) {
+      if ((_fragment.modifiers.isConst ||
+          (isFinal &&
+              isClassInstanceMember &&
+              (declarationBuilder as SourceClassBuilder)
+                  .declaresConstConstructor))) {
+        if (hasInitializerBeenComputed) {
+          buildBody(classHierarchy.coreTypes, cachedFieldInitializer);
+        } else {
+          var (_, initializer) = _buildFieldInitializerFromToken(
+            classHierarchy: classHierarchy,
             libraryBuilder: libraryBuilder,
             bodyBuilderContext: bodyBuilderContext,
-            fileUri: fileUri,
-            scope: scope,
-            isConst: isConst,
-            fieldType: fieldType,
-            startToken: token,
+            declaredFieldType: fieldType,
+            token: token,
           );
-      buildBody(classHierarchy.coreTypes, initializer);
-      if (computeSharedExpressionForTesting) {
-        // Coverage-ignore-block(suite): Not run.
-        _initializerExpression = parseFieldInitializer(
-          libraryBuilder.loader,
-          token,
-          libraryBuilder.importUri,
-          fileUri,
-          scope,
-        );
+          buildBody(classHierarchy.coreTypes, initializer);
+        }
       }
     }
+  }
+
+  (DartType, Expression) _buildFieldInitializerFromToken({
+    required ClassHierarchyBase classHierarchy,
+    required SourceLibraryBuilder libraryBuilder,
+    required BodyBuilderContext bodyBuilderContext,
+    DartType? declaredFieldType,
+    required Token token,
+  }) {
+    LookupScope scope = _fragment.enclosingScope;
+    ExpressionInferenceResult expressionInferenceResult = libraryBuilder.loader
+        .createResolver()
+        .buildFieldInitializer(
+          libraryBuilder: libraryBuilder,
+          bodyBuilderContext: bodyBuilderContext,
+          fileUri: fileUri,
+          scope: scope,
+          isLate: isLate,
+          declaredFieldType: declaredFieldType,
+          startToken: token,
+          inferenceDataForTesting: builder
+              .dataForTesting
+              // Coverage-ignore(suite): Not run.
+              ?.inferenceData,
+        );
+    if (computeSharedExpressionForTesting) {
+      // Coverage-ignore-block(suite): Not run.
+      _initializerExpression = parseFieldInitializer(
+        libraryBuilder.loader,
+        token,
+        libraryBuilder.importUri,
+        fileUri,
+        scope,
+      );
+    }
+    return (
+      expressionInferenceResult.inferredType,
+      expressionInferenceResult.expression,
+    );
   }
 
   @override
@@ -643,43 +669,21 @@ class RegularFieldDeclaration
     _encoding.registerSuperCall();
   }
 
-  DartType _computeInferredType(
+  (DartType, Expression?) _computeInferredType(
     ClassHierarchyBase classHierarchy,
     Token? token,
   ) {
-    DartType? inferredType;
     SourceLibraryBuilder libraryBuilder = builder.libraryBuilder;
-    DeclarationBuilder? declarationBuilder = builder.declarationBuilder;
     if (token != null) {
-      InterfaceType? enclosingClassThisType =
-          declarationBuilder is SourceClassBuilder
-          ? libraryBuilder.loader.typeInferenceEngine.coreTypes
-                .thisInterfaceType(
-                  declarationBuilder.cls,
-                  libraryBuilder.library.nonNullable,
-                )
-          : null;
-      LookupScope scope = _fragment.enclosingScope;
-      inferredType = libraryBuilder.loader
-          .createResolver()
-          .buildFieldInitializer1(
-            libraryBuilder: libraryBuilder,
-            fileUri: fileUri,
-            scope: scope,
-            enclosingClassThisType: enclosingClassThisType,
-            inferenceDataForTesting: builder
-                .dataForTesting
-                // Coverage-ignore(suite): Not run.
-                ?.inferenceData,
-            bodyBuilderContext: createBodyBuilderContext(),
-            startToken: token,
-            isConst: _fragment.modifiers.isConst,
-            isLate: _fragment.modifiers.isLate,
-          );
+      return _buildFieldInitializerFromToken(
+        classHierarchy: classHierarchy,
+        libraryBuilder: libraryBuilder,
+        bodyBuilderContext: createBodyBuilderContext(),
+        token: token,
+      );
     } else {
-      inferredType = const DynamicType();
+      return (const DynamicType(), null);
     }
-    return inferredType;
   }
 
   @override
@@ -850,7 +854,8 @@ mixin FieldDeclarationMixin
       nameOffset,
       () {
         InferredType implicitFieldType = fieldType as InferredType;
-        DartType inferredType = implicitFieldType.computeType(hierarchy);
+        var (DartType inferredType, Expression? initializer) = implicitFieldType
+            .computeType(hierarchy);
         if (fieldType is InferredType) {
           // `fieldType` may have changed if a circularity was detected when
           // [inferredType] was computed.
@@ -876,11 +881,23 @@ mixin FieldDeclarationMixin
               setCovariantByClassInternal();
             }
           }
+          cacheFieldInitializer(initializer);
         }
         return fieldType;
       },
     );
   }
+
+  /// Builds the body of this field using [initializer] as the initializer
+  /// expression.
+  void buildBody(CoreTypes coreTypes, Expression? initializer);
+
+  /// Caches the [initializer], computed for top level inference.
+  ///
+  /// The field initializer is included in the outline if the field is constant,
+  /// or an instance field in a class with a const constructor. Otherwise, the
+  /// field added to the body during full compilation.
+  void cacheFieldInitializer(Expression? initializer);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -925,4 +942,69 @@ abstract class FieldFragmentDeclaration {
   /// Registers that a `super` call has occurred in the initializer of this
   /// field.
   void registerSuperCall();
+}
+
+mixin FieldFragmentDeclarationMixin implements FieldFragmentDeclaration {
+  DartType get fieldType;
+
+  /// Whether the body of this field has been built.
+  ///
+  /// Constant fields have their initializer built in the outline so we avoid
+  /// building them twice as part of the non-outline build.
+  bool get hasInitializerBeenComputed => _hasInitializerBeenComputed;
+
+  /// Whether the body of this field has been built.
+  ///
+  /// Constant fields have their initializer built in the outline so we avoid
+  /// building them twice as part of the non-outline build.
+  bool get hasBodyBeenBuilt;
+
+  bool _hasInitializerBeenComputed = false;
+  Expression? _fieldInitializerCache;
+
+  /// Builds the body of this field using [initializer] as the initializer
+  /// expression.
+  void buildBody(CoreTypes coreType, Expression? initializer);
+
+  /// Caches the [initializer], computed for top level inference.
+  ///
+  /// The field initializer is included in the outline if the field is constant,
+  /// or an instance field in a class with a const constructor. Otherwise, the
+  /// field added to the body during full compilation.
+  void cacheFieldInitializer(Expression? initializer) {
+    _fieldInitializerCache = initializer;
+    _hasInitializerBeenComputed = true;
+  }
+
+  Expression? get cachedFieldInitializer => _fieldInitializerCache;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void buildFieldInitializer({
+    required TypeInferrer typeInferrer,
+    required CoreTypes coreTypes,
+    required Uri fileUri,
+    Expression? initializer,
+  }) {
+    if (_fieldInitializerCache != null) {
+      if (!hasBodyBeenBuilt) {
+        buildBody(coreTypes, _fieldInitializerCache);
+      }
+    } else if (initializer != null) {
+      if (!hasBodyBeenBuilt) {
+        initializer = typeInferrer
+            .inferFieldInitializer(
+              fileUri: fileUri,
+              declaredType: fieldType,
+              initializer: initializer,
+            )
+            .expression;
+        _hasInitializerBeenComputed = true;
+        buildBody(coreTypes, initializer);
+      }
+    } else if (!hasBodyBeenBuilt) {
+      _hasInitializerBeenComputed = true;
+      buildBody(coreTypes, null);
+    }
+  }
 }

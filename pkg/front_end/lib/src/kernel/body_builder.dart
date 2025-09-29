@@ -150,13 +150,9 @@ abstract class BodyBuilder {
     required bool isTopLevel,
   });
 
-  BuildFieldInitializerResult buildFieldInitializer1({
+  BuildFieldInitializerResult buildFieldInitializer({
     required Token startToken,
     required bool isLate,
-  });
-
-  BuildFieldInitializerResult buildFieldInitializer2({
-    required Token startToken,
   });
 
   BuildEnumConstantResult buildEnumConstant({required Token token});
@@ -1121,7 +1117,7 @@ class BodyBuilderImpl extends StackListenerImpl
                 ),
               ];
             } else {
-              initializers = buildFieldInitializer(
+              initializers = createFieldInitializer(
                 formal.name,
                 formal.fileOffset,
                 formal.fileOffset,
@@ -9787,7 +9783,7 @@ class BodyBuilderImpl extends StackListenerImpl
   /// immediately enclosing class.  It is a static warning if the static type of
   /// _id_ is not a subtype of _Tid_."
   @override
-  List<Initializer> buildFieldInitializer(
+  List<Initializer> createFieldInitializer(
     String name,
     int fieldNameOffset,
     int assignmentOffset,
@@ -11251,23 +11247,12 @@ class BodyBuilderImpl extends StackListenerImpl
   }
 
   @override
-  BuildFieldInitializerResult buildFieldInitializer1({
+  BuildFieldInitializerResult buildFieldInitializer({
     required Token startToken,
     required bool isLate,
   }) {
     inFieldInitializer = true;
     inLateFieldInitializer = isLate;
-    Expression initializer = parseFieldInitializer(startToken);
-    return new BuildFieldInitializerResult(
-      initializer,
-      _takePendingAnnotations(),
-    );
-  }
-
-  @override
-  BuildFieldInitializerResult buildFieldInitializer2({
-    required Token startToken,
-  }) {
     Expression initializer = parseFieldInitializer(startToken);
     return new BuildFieldInitializerResult(
       initializer,

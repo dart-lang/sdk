@@ -412,7 +412,7 @@ class _SyncClosureContext implements ClosureContext {
         ),
       )..fileOffset = fileOffset;
       if (resultStatement is Block) {
-        resultStatement.statements.add(returnStatement);
+        resultStatement.addStatement(returnStatement);
       } else {
         // Coverage-ignore-block(suite): Not run.
         resultStatement = new Block(<Statement>[
@@ -717,7 +717,7 @@ class _AsyncClosureContext implements ClosureContext {
         ),
       )..fileOffset = fileOffset;
       if (resultStatement is Block) {
-        resultStatement.statements.add(returnStatement);
+        resultStatement.addStatement(returnStatement);
       } else {
         // Coverage-ignore-block(suite): Not run.
         resultStatement = new Block(<Statement>[

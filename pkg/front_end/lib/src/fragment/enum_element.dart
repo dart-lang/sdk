@@ -425,7 +425,10 @@ class EnumElementDeclaration
     fieldType = inferredFieldType;
   }
 
-  DartType _computeType(ClassHierarchyBase hierarchy, Token? token) {
+  (DartType, Expression?) _computeType(
+    ClassHierarchyBase hierarchy,
+    Token? token,
+  ) {
     SourceLibraryBuilder libraryBuilder = builder.libraryBuilder;
     SourceEnumBuilder sourceEnumBuilder =
         builder.declarationBuilder as SourceEnumBuilder;
@@ -435,7 +438,19 @@ class EnumElementDeclaration
       libraryBuilder.loader.coreTypes,
       token,
     );
-    return fieldType;
+    return (fieldType, _field!.initializer);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void buildBody(CoreTypes coreTypes, Expression? initializer) {
+    // Initializer has already been created through [_buildElement].
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void cacheFieldInitializer(Expression? initializer) {
+    // Initializer is created through [_buildElement].
   }
 }
 

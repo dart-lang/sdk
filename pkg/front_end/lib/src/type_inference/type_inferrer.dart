@@ -45,17 +45,10 @@ abstract class TypeInferrer {
 
   AssignedVariables<TreeNode, VariableDeclaration> get assignedVariables;
 
-  /// Performs top level type inference on the given field initializer and
-  /// returns the computed field type.
-  DartType inferImplicitFieldType({
-    required Uri fileUri,
-    required Expression initializer,
-  });
-
   /// Performs full type inference on the given field initializer.
   ExpressionInferenceResult inferFieldInitializer({
     required Uri fileUri,
-    required DartType declaredType,
+    DartType? declaredType,
     required Expression initializer,
   });
 
@@ -197,38 +190,32 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   @override
-  DartType inferImplicitFieldType({
-    required Uri fileUri,
-    required Expression initializer,
-  }) {
-    InferenceVisitorBase visitor = _createInferenceVisitor(fileUri: fileUri);
-    ExpressionInferenceResult result = visitor.inferExpression(
-      initializer,
-      const UnknownType(),
-      isVoidAllowed: true,
-    );
-    DartType type = visitor.inferDeclarationType(result.inferredType);
-    visitor.checkCleanState();
-    return type;
-  }
-
-  @override
   ExpressionInferenceResult inferFieldInitializer({
     required Uri fileUri,
-    required DartType declaredType,
+    DartType? declaredType,
     required Expression initializer,
   }) {
     InferenceVisitorBase visitor = _createInferenceVisitor(fileUri: fileUri);
     ExpressionInferenceResult initializerResult = visitor.inferExpression(
       initializer,
-      declaredType,
+      declaredType ?? const UnknownType(),
       isVoidAllowed: true,
     );
-    initializerResult = visitor.ensureAssignableResult(
-      declaredType,
-      initializerResult,
-      isVoidAllowed: declaredType is VoidType,
-    );
+    if (declaredType != null) {
+      // If the field has a declared type, check for assignability.
+      initializerResult = visitor.ensureAssignableResult(
+        declaredType,
+        initializerResult,
+        isVoidAllowed: declaredType is VoidType,
+      );
+    } else {
+      // If the field has no declared type, compute the field type from the
+      // inferred type.
+      initializerResult = new ExpressionInferenceResult(
+        visitor.inferDeclarationType(initializerResult.inferredType),
+        initializerResult.expression,
+      );
+    }
     visitor.checkCleanState();
     return initializerResult;
   }
@@ -429,23 +416,9 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
   TypeSchemaEnvironment get typeSchemaEnvironment => impl.typeSchemaEnvironment;
 
   @override
-  DartType inferImplicitFieldType({
-    required Uri fileUri,
-    required Expression initializer,
-  }) {
-    benchmarker.beginSubdivide(BenchmarkSubdivides.inferImplicitFieldType);
-    DartType result = impl.inferImplicitFieldType(
-      fileUri: fileUri,
-      initializer: initializer,
-    );
-    benchmarker.endSubdivide();
-    return result;
-  }
-
-  @override
   ExpressionInferenceResult inferFieldInitializer({
     required Uri fileUri,
-    required DartType declaredType,
+    DartType? declaredType,
     required Expression initializer,
   }) {
     benchmarker.beginSubdivide(BenchmarkSubdivides.inferFieldInitializer);

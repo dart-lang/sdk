@@ -14,7 +14,7 @@ void main() async {
   ];
   const testNamePartsWeb = ['web', 'extension_type_assert_error_test'];
   const expectedLineCfe = 'Running CFE on 1 file...';
-  final expectedUpdateTextCfe = '${testNamePartsCfe.last}.dart (3 errors)';
+  final expectedUpdateTextCfe = '${testNamePartsCfe.last}.dart (2 errors)';
   final expectedLineCfeWeb =
       'Running dart2js on ${toFileNameParts(testNamePartsCfe).join('/')}...';
 

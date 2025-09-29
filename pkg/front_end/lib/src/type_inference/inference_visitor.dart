@@ -12892,7 +12892,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         SwitchCase lastCase = node.cases.last;
         Statement body = lastCase.body;
         if (body is Block) {
-          body.statements.add(
+          body.addStatement(
             new BreakStatementImpl(isContinue: false)
               ..target = breakTarget
               ..targetStatement = node
@@ -14285,8 +14285,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       BreakStatement syntheticBreak = new BreakStatement(switchLabel)
         ..fileOffset = TreeNode.noOffset;
       if (body is Block) {
-        body.statements.add(syntheticBreak);
-        syntheticBreak.parent = body;
+        body.addStatement(syntheticBreak);
       } else {
         // Coverage-ignore-block(suite): Not run.
         body = new Block([body, syntheticBreak])..fileOffset = body.fileOffset;
