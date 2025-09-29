@@ -132,6 +132,9 @@ class CallRecorder {
       return evaluateLiteral(expression);
     } else if (expression is ast.ConstantExpression) {
       return evaluateConstant(expression.constant);
+    } else if (expression is ast.VariableGet &&
+        expression.variable.initializer != null) {
+      return _evaluateLiteral(expression.variable.initializer!);
     } else {
       return null;
     }

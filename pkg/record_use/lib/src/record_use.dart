@@ -50,19 +50,18 @@ extension type RecordedUsages._(Recordings _recordings) {
   ///       ]
   /// ```
   Iterable<({Map<String, Object?> named, List<Object?> positional})>
-  constArgumentsFor(Identifier identifier, String signature) {
-    return _recordings.calls[identifier]?.whereType<CallWithArguments>().map((
-          call,
-        ) {
-          final (:named, :positional) = Signature.parseMethodSignature(
-            signature,
-          ).parseArguments(call);
-          named.removeWhere((key, value) => value == null);
-          return (
-            named: named.map((key, value) => MapEntry(key, value?.toValue())),
-            positional: positional.nonNulls.map((e) => e.toValue()).toList(),
-          );
-        }) ??
+  constArgumentsFor(Identifier identifier) {
+    return _recordings.calls[identifier]?.whereType<CallWithArguments>().map(
+          (call) => (
+            named: call.namedArguments.map(
+              (name, argument) => MapEntry(name, argument?.toValue()),
+            ),
+            positional:
+                call.positionalArguments
+                    .map((argument) => argument?.toValue())
+                    .toList(),
+          ),
+        ) ??
         [];
   }
 

@@ -21,4 +21,3 @@ export 'src/record_use.dart' show RecordedUsages;
 export 'src/recordings.dart' show Recordings;
 export 'src/reference.dart'
     show CallReference, CallTearOff, CallWithArguments, InstanceReference;
-export 'src/signature.dart' show Signature;
