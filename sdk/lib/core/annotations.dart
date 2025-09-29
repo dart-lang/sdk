@@ -74,10 +74,9 @@ class Deprecated {
   /// expiration of the annotated feature.
   ///
   /// The [message] is displayed as part of the warning. The message should be
-  /// aimed at the programmer who owns the extending class, and should
-  /// recommend an alternative (if available), and say when this functionality
-  /// is expected to be removed if that is sooner or later than the next major
-  /// version.
+  /// aimed at the programmer using the annotated feature, and should recommend
+  /// an alternative (if available), and say when this feature is expected to
+  /// be removed if that is sooner or later than the next major version.
   const Deprecated(this.message) : _kind = _DeprecationKind.use;
 
   /// Creates an annotation which deprecates implementing a class or mixin.
@@ -187,6 +186,25 @@ class Deprecated {
   /// or later than the next major version.
   const Deprecated.mixin([this.message]) : _kind = _DeprecationKind.mixin;
 
+  /// Creates an annotation which deprecates omitting an argument for the
+  /// annotated parameter.
+  ///
+  /// The annotation can be used on optional parameters of methods,
+  /// constructors, or top-level functions, indicating the parameter will be
+  /// required in a later release.
+  ///
+  /// Any call to a function which does not pass a value for the annotated
+  /// parameter will cause a warning that such omission is deprecated.
+  ///
+  /// The annotation is not inherited in method overrides.
+  ///
+  /// The [message], if given, is displayed as part of the warning. The message
+  /// should be aimed at the programmer who is calling the function with the
+  /// annotated parameter, and should recommend an alternative (if available),
+  /// and say when this functionality is expected to be removed if that is
+  /// sooner or later than the next major version.
+  const Deprecated.optional([this.message]) : _kind = _DeprecationKind.optional;
+
   String toString() => "Deprecated feature: $message";
 }
 
@@ -201,7 +219,15 @@ const Deprecated deprecated = Deprecated("next release");
 ///
 /// This enum can be private because the information is only intended for
 /// static tooling, such as the analyzer. Values may be added.
-enum _DeprecationKind { use, implement, extend, subclass, instantiate, mixin }
+enum _DeprecationKind {
+  use,
+  implement,
+  extend,
+  subclass,
+  instantiate,
+  mixin,
+  optional,
+}
 
 class _Override {
   const _Override();
