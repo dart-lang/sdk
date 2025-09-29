@@ -27,9 +27,14 @@ class PrefixBuilder extends NamedBuilderImpl
   final ComputedMutableNameSpace _prefixNameSpace =
       new ComputedMutableNameSpace();
 
+  /// The [PrefixBuilder] of the same name declared in an ancestor compilation
+  /// unit, if any.
+  final PrefixBuilder? parentPrefixBuilder;
+
   late final LookupScope _prefixScope = new NameSpaceLookupScope(
     _prefixNameSpace,
     ScopeKind.library,
+    parent: parentPrefixBuilder?.prefixScope,
   );
 
   @override
@@ -55,6 +60,7 @@ class PrefixBuilder extends NamedBuilderImpl
     required this.fileUri,
     required int prefixOffset,
     required int importOffset,
+    required this.parentPrefixBuilder,
   }) : fileOffset = prefixOffset,
        isWildcard = name == '_' {
     assert(
@@ -156,7 +162,7 @@ class PrefixFragment {
     required this.prefixOffset,
   });
 
-  PrefixBuilder createPrefixBuilder() {
+  PrefixBuilder createPrefixBuilder(PrefixBuilder? parentPrefixBuilder) {
     LoadLibraryBuilder? loadLibraryBuilder;
     if (deferred) {
       loadLibraryBuilder = new LoadLibraryBuilder(
@@ -177,6 +183,7 @@ class PrefixFragment {
       fileUri: fileUri,
       prefixOffset: prefixOffset,
       importOffset: importOffset,
+      parentPrefixBuilder: parentPrefixBuilder,
     );
   }
 
