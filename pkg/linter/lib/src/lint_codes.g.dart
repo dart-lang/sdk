@@ -213,6 +213,39 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
     expectedTypes: [ExpectedType.string],
   );
 
+  /// Lint issued if an element in the analyzer public API makes use
+  /// of a type that's annotated `@experimental`, but the element
+  /// itself is not annotated `@experimental`.
+  ///
+  /// The reason this is a problem is that it makes it possible for
+  /// analyzer clients to implicitly reference analyzer experimental
+  /// types. This can happen in many ways; here are some examples:
+  ///
+  /// - If `C` is a non-experimental public API class that implements
+  ///   `B`, and `B` is an experimental public API class with a getter
+  ///   called `x`, then a client can access `B.x` via `C`.
+  ///
+  /// - If `f` has return type `T`, and `T` is an experimental public
+  ///   API class with a getter called `x`, then a client can access
+  ///   `T.x` via `f().x`.
+  ///
+  /// - If `f` has type `void Function(T)`, and `T` is an experimental
+  ///   public API class with a getter called `x`, then a client can
+  ///   access `T.x` via `var g = f; g = (t) { print(t.x); }`.
+  ///
+  /// Parameters:
+  /// String types: list of types, separated by `, `
+  static const LinterLintTemplate<
+    LocatableDiagnostic Function({required String types})
+  >
+  analyzerPublicApiExperimentalInconsistency = LinterLintTemplate(
+    LintNames.analyzer_public_api_experimental_inconsistency,
+    "Element makes use of experimental type(s), but is not itself marked with "
+    "`@experimental`: {0}.",
+    withArguments: _withArgumentsAnalyzerPublicApiExperimentalInconsistency,
+    expectedTypes: [ExpectedType.string],
+  );
+
   /// Lint issued if a file in the analyzer public API contains an `export`
   /// directive that exports a name that's not part of the analyzer public API.
   ///
@@ -3405,6 +3438,15 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
     required String types,
   }) {
     return LocatableDiagnosticImpl(analyzerPublicApiBadType, [types]);
+  }
+
+  static LocatableDiagnostic
+  _withArgumentsAnalyzerPublicApiExperimentalInconsistency({
+    required String types,
+  }) {
+    return LocatableDiagnosticImpl(analyzerPublicApiExperimentalInconsistency, [
+      types,
+    ]);
   }
 
   static LocatableDiagnostic

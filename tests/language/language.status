@@ -24,7 +24,7 @@ unsorted/invocation_mirror_test: SkipByDesign # Relies on symbol names
 vm/type_cast_vm_test: SkipByDesign # Relies on symbol names
 
 [ $compiler == dart2bytecode ]
-vm/reflect_core_vm_test: Crash
+vm/reflect_core_vm_test: SkipByDesign # dart:mirrors is not supported.
 
 [ $compiler != fasta ]
 value_class/*: Skip # Internship, jlcontreras

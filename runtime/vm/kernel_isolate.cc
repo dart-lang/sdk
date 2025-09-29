@@ -917,7 +917,7 @@ class KernelCompilationRequest : public ValueObject {
 
     Dart_CObject enable_mirrors;
     enable_mirrors.type = Dart_CObject_kBool;
-    enable_mirrors.value.as_bool = FLAG_enable_mirrors;
+    enable_mirrors.value.as_bool = FLAG_enable_mirrors && !FLAG_interpreter;
 
     Dart_CObject generate_bytecode;
     generate_bytecode.type = Dart_CObject_kBool;

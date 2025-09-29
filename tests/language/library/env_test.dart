@@ -53,7 +53,7 @@ main() {
 
   // `dart:mirrors` is only supported in JIT mode.
   Expect.equals(
-    isVmJitConfiguration,
+    isVmJitConfiguration && !configAsString.contains('-dyn-'),
     const bool.fromEnvironment("dart.library.mirrors"),
   );
 

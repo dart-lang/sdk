@@ -15,6 +15,7 @@ import 'package:analyzer/src/fine/lookup_name.dart';
 import 'package:analyzer/src/fine/manifest_id.dart';
 import 'package:analyzer/src/fine/manifest_item.dart';
 import 'package:analyzer/src/fine/requirement_failure.dart';
+import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
@@ -30,12 +31,22 @@ RequirementsManifest? globalResultRequirements;
 class ExportRequirement {
   final Uri fragmentUri;
   final Uri exportedUri;
+
+  /// Snapshot of [LibraryManifest.hashForRequirements] for [exportedUri].
+  ///
+  /// This hash is used as a fast-path check in [isSatisfied]. If the hash of
+  /// the exported library's manifest has not changed, it implies that the
+  /// library's exports have not changed, and a more detailed validation can be
+  /// skipped.
+  final Hash hashForRequirements;
+
   final List<ExportRequirementCombinator> combinators;
   final Map<LookupName, ManifestItemId> exportedIds;
 
   ExportRequirement({
     required this.fragmentUri,
     required this.exportedUri,
+    required this.hashForRequirements,
     required this.combinators,
     required this.exportedIds,
   });
@@ -44,6 +55,7 @@ class ExportRequirement {
     return ExportRequirement(
       fragmentUri: reader.readUri(),
       exportedUri: reader.readUri(),
+      hashForRequirements: Hash.read(reader),
       combinators: reader.readTypedList(
         () => ExportRequirementCombinator.read(reader),
       ),
@@ -65,6 +77,10 @@ class ExportRequirement {
 
     // SAFETY: every library has the manifest.
     var libraryManifest = libraryElement.manifest!;
+
+    if (libraryManifest.hashForRequirements == hashForRequirements) {
+      return null;
+    }
 
     // Every now exported ID must be previously exported.
     var actualCount = 0;
@@ -110,6 +126,7 @@ class ExportRequirement {
   void write(BinaryWriter writer) {
     writer.writeUri(fragmentUri);
     writer.writeUri(exportedUri);
+    hashForRequirements.write(writer);
     writer.writeList(combinators, (combinator) => combinator.write(writer));
     writer.writeMap(
       exportedIds,
@@ -471,6 +488,7 @@ class LibraryExportRequirements {
           ExportRequirement(
             fragmentUri: fragment.source.uri,
             exportedUri: exportedLibrary.uri,
+            hashForRequirements: manifest.hashForRequirements,
             combinators: combinators,
             exportedIds: exportedIds,
           ),
@@ -498,7 +516,7 @@ class LibraryRequirements {
   /// [LibraryManifest], it implies that the relevant portions of the library
   /// have not changed, allowing the detailed, field-by-field requirement
   /// validation for this library to be skipped.
-  String hashForRequirements;
+  Hash hashForRequirements;
 
   String? name;
   bool? isSynthetic;
@@ -632,7 +650,7 @@ class LibraryRequirements {
 
   factory LibraryRequirements.read(BinaryReader reader) {
     return LibraryRequirements(
-      hashForRequirements: reader.readStringUtf8(),
+      hashForRequirements: Hash.read(reader),
       name: reader.readOptionalStringUtf8(),
       isSynthetic: reader.readOptionalBool(),
       featureSet: reader.readOptionalUint8List(),
@@ -678,7 +696,7 @@ class LibraryRequirements {
   }
 
   void write(BinaryWriter writer) {
-    writer.writeStringUtf8(hashForRequirements);
+    hashForRequirements.write(writer);
     writer.writeOptionalStringUtf8(name);
     writer.writeOptionalBool(isSynthetic);
     writer.writeOptionalUint8List(featureSet);
@@ -794,13 +812,15 @@ class PrefixScopeRequirementState {
 }
 
 class RequirementsManifest {
-  /// LibraryUri => LibraryRequirements
-  final Map<Uri, LibraryRequirements> libraries = {};
+  final ManifestItemId id;
 
-  final List<LibraryExportRequirements> exportRequirements = [];
+  /// LibraryUri => LibraryRequirements
+  final Map<Uri, LibraryRequirements> libraries;
+
+  final List<LibraryExportRequirements> exportRequirements;
 
   /// If this list is not empty, [isSatisfied] returns `false`.
-  final List<OpaqueApiUse> opaqueApiUses = [];
+  final List<OpaqueApiUse> opaqueApiUses;
 
   final Set<Uri> _excludedLibraries = {};
 
@@ -810,7 +830,13 @@ class RequirementsManifest {
   final List<LibraryElementRequirementState> _libraryElementStates = [];
   final List<PrefixScopeRequirementState> _prefixScopeStates = [];
 
-  RequirementsManifest();
+  RequirementsManifest()
+    : this._(
+        id: ManifestItemId.generate(),
+        libraries: {},
+        exportRequirements: [],
+        opaqueApiUses: [],
+      );
 
   factory RequirementsManifest.fromBytes(Uint8List bytes) {
     var reader = BinaryReader(bytes);
@@ -819,25 +845,25 @@ class RequirementsManifest {
   }
 
   factory RequirementsManifest.read(BinaryReader reader) {
-    var result = RequirementsManifest();
-
-    result.libraries.addAll(
-      reader.readMap(
+    return RequirementsManifest._(
+      id: ManifestItemId.read(reader),
+      libraries: reader.readMap(
         readKey: () => reader.readUri(),
         readValue: () => LibraryRequirements.read(reader),
       ),
+      exportRequirements: reader.readTypedList(
+        () => LibraryExportRequirements.read(reader),
+      ),
+      opaqueApiUses: reader.readTypedList(() => OpaqueApiUse.read(reader)),
     );
-
-    result.exportRequirements.addAll(
-      reader.readTypedList(() => LibraryExportRequirements.read(reader)),
-    );
-
-    result.opaqueApiUses.addAll(
-      reader.readTypedList(() => OpaqueApiUse.read(reader)),
-    );
-
-    return result;
   }
+
+  RequirementsManifest._({
+    required this.id,
+    required this.libraries,
+    required this.exportRequirements,
+    required this.opaqueApiUses,
+  });
 
   void addExcludedLibraries(Iterable<Uri> libraries) {
     _excludedLibraries.addAll(libraries);
@@ -903,6 +929,7 @@ class RequirementsManifest {
         continue;
       } else {
         performance.getDataInt('libDetails').increment();
+        performance.getDataSet<Uri>('libDetailsUris').add(libraryUri);
         onlyHashForLibraries = false;
       }
 
@@ -2449,7 +2476,24 @@ class RequirementsManifest {
     return writer.takeBytes();
   }
 
+  RequirementsManifestDigest toDigest() {
+    var libraryHashes = <Uri, Hash>{};
+
+    libraries.forEach((uri, library) {
+      libraryHashes[uri] = library.hashForRequirements;
+    });
+
+    for (var library in exportRequirements) {
+      for (var export in library.exports) {
+        libraryHashes[export.exportedUri] = export.hashForRequirements;
+      }
+    }
+
+    return RequirementsManifestDigest(libraryHashes: libraryHashes);
+  }
+
   void write(BinaryWriter writer) {
+    id.write(writer);
     writer.writeMap(
       libraries,
       writeKey: (uri) => writer.writeUri(uri),
@@ -2568,6 +2612,55 @@ class RequirementsManifest {
     return '${element.library.uri} '
         '${element.displayName}.'
         '${methodName.asString}';
+  }
+}
+
+/// Compact digest of [RequirementsManifest] for fast validation.
+///
+/// The digest records, for each relevant library, the value of
+/// [LibraryManifest.hashForRequirements] observed when the digest was built.
+/// It includes:
+///  * every library listed in [RequirementsManifest.libraries], and
+///  * libraries referenced by export requirements (re-exports).
+///
+/// This is used as a fast path during validation: if every recorded entry
+/// matches the current manifests in a [LinkedElementFactory], then running the
+/// full [RequirementsManifest.isSatisfied] check would produce the same result
+/// and can be skipped. If any library is missing or any recorded hash differs,
+/// the digest is not satisfied and a detailed check must be performed.
+class RequirementsManifestDigest {
+  final Map<Uri, Hash> libraryHashes;
+
+  RequirementsManifestDigest({required this.libraryHashes});
+
+  factory RequirementsManifestDigest.read(BinaryReader reader) {
+    return RequirementsManifestDigest(
+      libraryHashes: reader.readMap(
+        readKey: () => reader.readUri(),
+        readValue: () => Hash.read(reader),
+      ),
+    );
+  }
+
+  bool isSatisfied(LinkedElementFactory elementFactory) {
+    for (var entry in libraryHashes.entries) {
+      var manifest = elementFactory.libraryManifests[entry.key];
+      if (manifest == null) {
+        return false;
+      }
+      if (manifest.hashForRequirements != entry.value) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  void write(BinaryWriter writer) {
+    writer.writeMap(
+      libraryHashes,
+      writeKey: (uri) => writer.writeUri(uri),
+      writeValue: (hash) => hash.write(writer),
+    );
   }
 }
 

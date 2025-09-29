@@ -6,7 +6,10 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/src/binary/binary_reader.dart';
+import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -163,6 +166,12 @@ class ApiSignature {
     return bytes is Uint8List ? bytes : Uint8List.fromList(bytes);
   }
 
+  /// Returns the MD5 hash of the data collected so far.
+  Hash toHash() {
+    var bytes = toByteList();
+    return Hash._(bytes);
+  }
+
   /// Return a hex-encoded MD5 signature of the data collected so far.
   String toHex() {
     return hex.encode(toByteList());
@@ -170,8 +179,8 @@ class ApiSignature {
 
   /// Return the MD5 hash of the data collected so far as [Uint32List].
   Uint32List toUint32List() {
-    var bytes = toByteList();
-    return bytes.buffer.asUint32List();
+    var hash = toHash();
+    return hash._bytes.buffer.asUint32List();
   }
 
   /// Ensure that [spaceNeeded] bytes can be added to [_data] at [_offset]
@@ -186,5 +195,32 @@ class ApiSignature {
       ).setRange(0, oldLength, Uint8List.view(_data.buffer));
       _data = newData;
     }
+  }
+}
+
+/// Hash value computed by [ApiSignature].
+class Hash {
+  static final Hash empty = Hash._(Uint8List(0));
+
+  final Uint8List _bytes;
+  late final int _hashCode = const ListEquality<int>().hash(_bytes);
+
+  factory Hash.read(BinaryReader reader) {
+    return Hash._(reader.readUint8List());
+  }
+
+  Hash._(this._bytes);
+
+  @override
+  int get hashCode => _hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    return other is Hash &&
+        const ListEquality<int>().equals(_bytes, other._bytes);
+  }
+
+  void write(BinaryWriter writer) {
+    writer.writeUint8List(_bytes);
   }
 }

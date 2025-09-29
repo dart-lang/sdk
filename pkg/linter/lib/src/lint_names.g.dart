@@ -44,6 +44,9 @@ abstract final class LintNames {
   static const String analyzer_public_api_bad_type =
       'analyzer_public_api_bad_type';
 
+  static const String analyzer_public_api_experimental_inconsistency =
+      'analyzer_public_api_experimental_inconsistency';
+
   static const String analyzer_public_api_exports_non_public_name =
       'analyzer_public_api_exports_non_public_name';
 

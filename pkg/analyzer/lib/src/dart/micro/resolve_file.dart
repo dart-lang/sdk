@@ -763,10 +763,6 @@ class FileResolver {
         packagesFile: null,
         withFineDependencies: false,
         testData: testData?.libraryContext,
-        linkedBundleProvider: LinkedBundleProvider(
-          byteStore: byteStore,
-          withFineDependencies: false,
-        ),
       );
 
       contextObjects!.analysisSession.elementFactory =

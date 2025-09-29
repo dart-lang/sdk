@@ -6,6 +6,10 @@ html/cross_frame_test: Skip # Issue 32039, test reloads itself (not by design - 
 [ $arch == simarm ]
 convert/utf85_test: Skip # Pass, Slow Issue 12644.
 
+[ $compiler == dart2bytecode ]
+isolate/illegal_msg_mirror_test: SkipByDesign # dart:mirrors is not supported.
+mirrors/*: SkipByDesign # dart:mirrors is not supported.
+
 [ $compiler == dart2wasm ]
 fix_data_tests/*: SkipByDesign
 html/*: SkipByDesign # dart:html not supported on dart2wasm

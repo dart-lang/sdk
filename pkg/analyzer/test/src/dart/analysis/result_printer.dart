@@ -23,6 +23,7 @@ import 'package:analyzer/src/fine/manifest_item.dart';
 import 'package:analyzer/src/fine/manifest_type.dart';
 import 'package:analyzer/src/fine/requirement_failure.dart';
 import 'package:analyzer/src/fine/requirements.dart';
+import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
@@ -1091,7 +1092,7 @@ final class GetUnitElementEvent extends GetDriverEvent {
 class IdProvider {
   final Map<Object, String> _map = Map.identity();
   final Map<ManifestItemId, String> _manifestIdMap = {};
-  final Map<String, String> _hashIdMap = {};
+  final Map<Hash, String> _hashIdMap = {};
 
   String operator [](Object object) {
     return _map[object] ??= '#${_map.length}';
@@ -1101,7 +1102,7 @@ class IdProvider {
     return _map[object];
   }
 
-  String hashId(String hash) {
+  String hashId(Hash hash) {
     return _hashIdMap[hash] ??= '#H${_hashIdMap.length}';
   }
 
@@ -1819,7 +1820,7 @@ class ManifestPrinter {
     required this.idProvider,
   });
 
-  void _writelnHashField(String name, String hash) {
+  void _writelnHashField(String name, Hash hash) {
     var hashId = idProvider.hashId(hash);
     sink.writelnWithIndent('$name: $hashId');
   }

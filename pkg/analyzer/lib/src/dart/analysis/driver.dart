@@ -106,7 +106,7 @@ testFineAfterLibraryAnalyzerHook;
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 564;
+  static const int DATA_VERSION = 567;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -126,8 +126,6 @@ class AnalysisDriver {
   ///
   /// It can be shared with other [AnalysisDriver]s.
   final ByteStore _byteStore;
-
-  final LinkedBundleProvider linkedBundleProvider;
 
   /// The optional store with externally provided unlinked and corresponding
   /// linked summaries. These summaries are always added to the store for any
@@ -308,7 +306,6 @@ class AnalysisDriver {
     required SourceFactory sourceFactory,
     required Packages packages,
     required this.withFineDependencies,
-    LinkedBundleProvider? linkedBundleProvider,
     this.ownedFiles,
     this.analysisContext,
     @Deprecated("Use 'analysisOptionsMap' instead")
@@ -331,12 +328,6 @@ class AnalysisDriver {
        _unlinkedUnitStore = unlinkedUnitStore ?? UnlinkedUnitStoreImpl(),
        _logger = logger,
        _packages = packages,
-       linkedBundleProvider =
-           linkedBundleProvider ??
-           LinkedBundleProvider(
-             byteStore: byteStore,
-             withFineDependencies: withFineDependencies,
-           ),
        _sourceFactory = sourceFactory,
        _externalSummaries = externalSummaries,
        declaredVariables = declaredVariables ?? DeclaredVariables(),
@@ -424,7 +415,6 @@ class AnalysisDriver {
       packagesFile: analysisContext?.contextRoot.packagesFile,
       externalSummaries: _externalSummaries,
       fileSystemState: _fsState,
-      linkedBundleProvider: linkedBundleProvider,
       withFineDependencies: withFineDependencies,
     );
   }

@@ -381,16 +381,6 @@ class AnalyzerStatePrinter {
         });
       }
     });
-
-    if (testData.instance case var libraryContext?) {
-      var bundleProvider = libraryContext.linkedBundleProvider;
-      var bundleKeys = bundleProvider.map.entries
-          .map((entry) => idProvider.shortKey(entry.key))
-          .sorted();
-      if (bundleKeys.isNotEmpty) {
-        sink.writelnWithIndent('linkedBundleProvider: $bundleKeys');
-      }
-    }
   }
 
   void _writeLibraryCycle(LibraryFileKind library) {
