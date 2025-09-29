@@ -83,6 +83,24 @@ instead.
 
 - Lint rules which are incompatible with each other and which are specified in
   included analysis options files are now reported.
+- Offer to add required named field formal parameters in a constructor when a
+  field is not initialized.
+- Support the new `@Deprecated` annotations by reporting warnings when specific
+  functionality of an element is deprecated.
+- Offer to import a libary for an appropriate extension member when method or
+  property is accessed on a nullable value.
+- Offer to remove the `const` keyword for a constructor call which includes a
+  method invocation.
+- Remove support for the deprecated `@required` annotation.
+- Add two assists to bind constuctor parameters to an existing or a
+  non-existing field.
+- Add a warning which is reported when an `@experimental` member is used
+  outside of the package in which it is declared.
+- Add a new lint rule, `remove_deprecations_in_breaking_versions`, is added to
+  encourage developers to remove any deprecated members when the containing
+  package has a "breaking version" number, like `x.0.0` or `0.y.0`.
+- (Thanks [@FMorschel](https://github.com/FMorschel) for many of the above
+  enhancements!)
 
 [writing an analyzer plugin]: https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server_plugin/doc/writing_a_plugin.md
 [using analyzer plugins]: https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server_plugin/doc/using_plugins.md
