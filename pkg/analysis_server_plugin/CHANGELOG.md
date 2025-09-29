@@ -1,3 +1,8 @@
+## 0.3.2-dev
+
+- Fix support for automatic re-analysis of '*.dart' files _added_, both on-disk
+  and for files added in the IDE.
+
 ## 0.3.1
 
 - Write more of a README.
