@@ -912,6 +912,7 @@ class RequirementsManifest {
         continue;
       } else {
         performance.getDataInt('libDetails').increment();
+        performance.getDataSet<Uri>('libDetailsUris').add(libraryUri);
         onlyHashForLibraries = false;
       }
 

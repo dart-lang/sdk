@@ -69,6 +69,25 @@ class OperationPerformanceDataImpl_int
   }
 }
 
+// Pre-existing name.
+// ignore: camel_case_types
+class OperationPerformanceDataImpl_Set<T>
+    extends OperationPerformanceDataImpl<Set<T>> {
+  @override
+  final Set<T> value = {};
+
+  OperationPerformanceDataImpl_Set(super.name);
+
+  void add(T item) {
+    value.add(item);
+  }
+
+  @override
+  String toString() {
+    return '$name: ${value.length}';
+  }
+}
+
 class OperationPerformanceImpl implements OperationPerformance {
   @override
   final String name;
@@ -130,6 +149,17 @@ class OperationPerformanceImpl implements OperationPerformance {
       throw StateError('Not int: ${data.runtimeType}');
     } else {
       return _data[name] = OperationPerformanceDataImpl_int(name);
+    }
+  }
+
+  OperationPerformanceDataImpl_Set<T> getDataSet<T>(String name) {
+    var data = _data[name];
+    if (data is OperationPerformanceDataImpl_Set<T>) {
+      return data;
+    } else if (data != null) {
+      throw StateError('Not Set: ${data.runtimeType}');
+    } else {
+      return _data[name] = OperationPerformanceDataImpl_Set<T>(name);
     }
   }
 
