@@ -75,6 +75,10 @@ class FieldFragmentBodyBuilderContext extends BodyBuilderContext {
   ConstantContext get constantContext {
     return _isConst
         ? ConstantContext.inferred
+        // TODO(johnniwinther): We should report something better when a
+        // final field in a class with a const constructor isn't initialized
+        // to a constant. Currently we just report 'Not a constant expression'
+        // on the initializer, as if the field was declared const itself.
         : !_declaration.isStatic && declarationDeclaresConstConstructor
         ? ConstantContext.required
         : ConstantContext.none;

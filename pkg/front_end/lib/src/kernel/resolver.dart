@@ -227,17 +227,15 @@ class Resolver {
     return (initializer, fieldType);
   }
 
-  // TODO(johnniwinther): Merge this with [buildFieldInitializer2].
-  DartType buildFieldInitializer1({
+  ExpressionInferenceResult buildFieldInitializer({
     required SourceLibraryBuilder libraryBuilder,
+    required BodyBuilderContext bodyBuilderContext,
     required Uri fileUri,
     required LookupScope scope,
-    required InterfaceType? enclosingClassThisType,
-    required InferenceDataForTesting? inferenceDataForTesting,
-    required BodyBuilderContext bodyBuilderContext,
-    required Token startToken,
-    required bool isConst,
     required bool isLate,
+    DartType? declaredFieldType,
+    required Token startToken,
+    required InferenceDataForTesting? inferenceDataForTesting,
   }) {
     _ResolverContext context = new _ResolverContext(
       typeInferenceEngine: _typeInferenceEngine,
@@ -246,65 +244,25 @@ class Resolver {
       scope: scope,
       fileUri: fileUri,
     );
-    ConstantContext constantContext = isConst
-        ? ConstantContext.inferred
-        : ConstantContext.none;
+    ConstantContext constantContext = bodyBuilderContext.constantContext;
     BodyBuilder bodyBuilder = _createBodyBuilder(
       context: context,
       bodyBuilderContext: bodyBuilderContext,
       scope: scope,
       constantContext: constantContext,
     );
-    BuildFieldInitializerResult result = bodyBuilder.buildFieldInitializer1(
+    BuildFieldInitializerResult result = bodyBuilder.buildFieldInitializer(
       startToken: startToken,
       isLate: isLate,
     );
-    DartType inferredType = context.typeInferrer.inferImplicitFieldType(
-      fileUri: fileUri,
-      initializer: result.initializer,
-    );
-    // TODO(johnniwinther): We through away the initializer and don't process
-    //  the annotations here!
-    return inferredType;
-  }
-
-  Expression buildFieldInitializer2({
-    required SourceLibraryBuilder libraryBuilder,
-    required BodyBuilderContext bodyBuilderContext,
-    required Uri fileUri,
-    required LookupScope scope,
-    required bool isConst,
-    required DartType fieldType,
-    required Token startToken,
-  }) {
-    _ResolverContext context = new _ResolverContext(
-      typeInferenceEngine: _typeInferenceEngine,
-      libraryBuilder: libraryBuilder,
-      bodyBuilderContext: bodyBuilderContext,
-      scope: scope,
-      fileUri: fileUri,
-    );
-    ConstantContext constantContext = isConst
-        ? ConstantContext.inferred
-        : ConstantContext.required;
-    BodyBuilder bodyBuilder = _createBodyBuilder(
-      context: context,
-      bodyBuilderContext: bodyBuilderContext,
-      scope: scope,
-      constantContext: constantContext,
-    );
-    BuildFieldInitializerResult result = bodyBuilder.buildFieldInitializer2(
-      startToken: startToken,
-    );
-    Expression initializer = context.typeInferrer
+    ExpressionInferenceResult expressionInferenceResult = context.typeInferrer
         .inferFieldInitializer(
           fileUri: fileUri,
-          declaredType: fieldType,
+          declaredType: declaredFieldType,
           initializer: result.initializer,
-        )
-        .expression;
+        );
     context.performBacklog(result.annotations);
-    return initializer;
+    return expressionInferenceResult;
   }
 
   void buildFields({

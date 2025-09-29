@@ -108,7 +108,7 @@ abstract class ExpressionGeneratorHelper {
     int offset = TreeNode.noOffset,
   ]);
 
-  List<Initializer> buildFieldInitializer(
+  List<Initializer> createFieldInitializer(
     String name,
     int fieldNameOffset,
     int assignmentOffset,

@@ -90,16 +90,22 @@ abstract class InferredType extends AuxiliaryType {
 
   DartType inferType(ClassHierarchyBase hierarchy);
 
-  DartType computeType(ClassHierarchyBase hierarchy);
+  (DartType, Expression?) computeType(ClassHierarchyBase hierarchy);
 }
 
 /// Signature for function called to trigger the inference of the type of
 /// [_ImplicitType], if it hasn't already been computed.
 typedef InferTypeFunction = DartType Function(ClassHierarchyBase hierarchy);
 
-/// Signature for function called to compute the type for [_ImplicitType]
+/// Signature for function called to compute the type for [_ImplicitType].
+///
+/// The function returns the compute type along with the inferred initializer,
+/// if any.
 typedef ComputeTypeFunction =
-    DartType Function(ClassHierarchyBase hierarchy, Token? token);
+    (DartType, Expression?) Function(
+      ClassHierarchyBase hierarchy,
+      Token? token,
+    );
 
 /// [InferredType] implementation that infers the type of [_typeBuilder] using
 /// [_computeType] and [_token].
@@ -151,7 +157,7 @@ class _ImplicitType extends InferredType {
   }
 
   @override
-  DartType computeType(ClassHierarchyBase hierarchy) {
+  (DartType, Expression?) computeType(ClassHierarchyBase hierarchy) {
     if (isStarted) {
       _libraryBuilder.addProblem(
         codeCantInferTypeDueToCircularity.withArgumentsOld(_name),
@@ -161,7 +167,7 @@ class _ImplicitType extends InferredType {
       );
       DartType type = const InvalidType();
       _typeBuilder.registerInferredType(type);
-      return type;
+      return (type, null);
     }
     isStarted = true;
     Token? token = _token;
@@ -204,8 +210,8 @@ class _InferredTypeUse extends InferredType {
 
   @override
   // Coverage-ignore(suite): Not run.
-  DartType computeType(ClassHierarchyBase hierarchy) {
-    return inferType(hierarchy);
+  (DartType, Expression?) computeType(ClassHierarchyBase hierarchy) {
+    return (inferType(hierarchy), null);
   }
 
   @override

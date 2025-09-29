@@ -15,7 +15,6 @@ class C {
   //        ^
   // [analyzer] COMPILE_TIME_ERROR.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER
   // [cfe] Can't access 'this' in a field initializer to read 'x'.
-  // [cfe] Not a constant expression.
 }
 
 main() {
