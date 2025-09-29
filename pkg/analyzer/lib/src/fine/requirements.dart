@@ -794,13 +794,15 @@ class PrefixScopeRequirementState {
 }
 
 class RequirementsManifest {
-  /// LibraryUri => LibraryRequirements
-  final Map<Uri, LibraryRequirements> libraries = {};
+  final ManifestItemId id;
 
-  final List<LibraryExportRequirements> exportRequirements = [];
+  /// LibraryUri => LibraryRequirements
+  final Map<Uri, LibraryRequirements> libraries;
+
+  final List<LibraryExportRequirements> exportRequirements;
 
   /// If this list is not empty, [isSatisfied] returns `false`.
-  final List<OpaqueApiUse> opaqueApiUses = [];
+  final List<OpaqueApiUse> opaqueApiUses;
 
   final Set<Uri> _excludedLibraries = {};
 
@@ -810,7 +812,13 @@ class RequirementsManifest {
   final List<LibraryElementRequirementState> _libraryElementStates = [];
   final List<PrefixScopeRequirementState> _prefixScopeStates = [];
 
-  RequirementsManifest();
+  RequirementsManifest()
+    : this._(
+        id: ManifestItemId.generate(),
+        libraries: {},
+        exportRequirements: [],
+        opaqueApiUses: [],
+      );
 
   factory RequirementsManifest.fromBytes(Uint8List bytes) {
     var reader = BinaryReader(bytes);
@@ -819,25 +827,25 @@ class RequirementsManifest {
   }
 
   factory RequirementsManifest.read(BinaryReader reader) {
-    var result = RequirementsManifest();
-
-    result.libraries.addAll(
-      reader.readMap(
+    return RequirementsManifest._(
+      id: ManifestItemId.read(reader),
+      libraries: reader.readMap(
         readKey: () => reader.readUri(),
         readValue: () => LibraryRequirements.read(reader),
       ),
+      exportRequirements: reader.readTypedList(
+        () => LibraryExportRequirements.read(reader),
+      ),
+      opaqueApiUses: reader.readTypedList(() => OpaqueApiUse.read(reader)),
     );
-
-    result.exportRequirements.addAll(
-      reader.readTypedList(() => LibraryExportRequirements.read(reader)),
-    );
-
-    result.opaqueApiUses.addAll(
-      reader.readTypedList(() => OpaqueApiUse.read(reader)),
-    );
-
-    return result;
   }
+
+  RequirementsManifest._({
+    required this.id,
+    required this.libraries,
+    required this.exportRequirements,
+    required this.opaqueApiUses,
+  });
 
   void addExcludedLibraries(Iterable<Uri> libraries) {
     _excludedLibraries.addAll(libraries);
@@ -2450,6 +2458,7 @@ class RequirementsManifest {
   }
 
   void write(BinaryWriter writer) {
+    id.write(writer);
     writer.writeMap(
       libraries,
       writeKey: (uri) => writer.writeUri(uri),
