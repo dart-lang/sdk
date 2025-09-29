@@ -15,6 +15,7 @@ import 'package:analyzer/src/fine/lookup_name.dart';
 import 'package:analyzer/src/fine/manifest_id.dart';
 import 'package:analyzer/src/fine/manifest_item.dart';
 import 'package:analyzer/src/fine/requirement_failure.dart';
+import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
@@ -498,7 +499,7 @@ class LibraryRequirements {
   /// [LibraryManifest], it implies that the relevant portions of the library
   /// have not changed, allowing the detailed, field-by-field requirement
   /// validation for this library to be skipped.
-  String hashForRequirements;
+  Hash hashForRequirements;
 
   String? name;
   bool? isSynthetic;
@@ -632,7 +633,7 @@ class LibraryRequirements {
 
   factory LibraryRequirements.read(BinaryReader reader) {
     return LibraryRequirements(
-      hashForRequirements: reader.readStringUtf8(),
+      hashForRequirements: Hash.read(reader),
       name: reader.readOptionalStringUtf8(),
       isSynthetic: reader.readOptionalBool(),
       featureSet: reader.readOptionalUint8List(),
@@ -678,7 +679,7 @@ class LibraryRequirements {
   }
 
   void write(BinaryWriter writer) {
-    writer.writeStringUtf8(hashForRequirements);
+    hashForRequirements.write(writer);
     writer.writeOptionalStringUtf8(name);
     writer.writeOptionalBool(isSynthetic);
     writer.writeOptionalUint8List(featureSet);

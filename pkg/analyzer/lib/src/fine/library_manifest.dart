@@ -77,7 +77,7 @@ class LibraryManifest {
   /// the current manifest hash matches a previously observed one, the
   /// outcome of the requirements check is unchanged and the detailed check
   /// can be skipped; if it differs, the check must be re-run.
-  String hashForRequirements;
+  Hash hashForRequirements;
 
   LibraryManifest({
     required this.name,
@@ -153,7 +153,7 @@ class LibraryManifest {
       exportMap: reader.readLookupNameToIdMap(),
       exportMapId: ManifestItemId.read(reader),
       exportedExtensions: ManifestItemIdList.read(reader),
-      hashForRequirements: reader.readStringUtf8(),
+      hashForRequirements: Hash.read(reader),
     );
   }
 
@@ -226,7 +226,7 @@ class LibraryManifest {
     exportMap.write(writer);
     exportMapId.write(writer);
     exportedExtensions.write(writer);
-    writer.writeStringUtf8(hashForRequirements);
+    hashForRequirements.write(writer);
   }
 
   void _fillExportMap() {
@@ -973,7 +973,7 @@ class LibraryManifestBuilder {
         exportMap: {},
         exportMapId: ManifestItemId.generate(),
         exportedExtensions: ManifestItemIdList([]),
-        hashForRequirements: '',
+        hashForRequirements: Hash.empty,
       );
       libraryElement.manifest = newManifest;
       newManifests[libraryUri] = newManifest;
@@ -1088,7 +1088,7 @@ class LibraryManifestBuilder {
       addMapOfIds(manifest.exportMap);
       builder.addList(manifest.exportedExtensions.ids, addId);
 
-      manifest.hashForRequirements = builder.toHex();
+      manifest.hashForRequirements = builder.toHash();
     }
   }
 
@@ -1321,7 +1321,7 @@ class LibraryManifestBuilder {
           exportMap: {},
           exportMapId: ManifestItemId.generate(),
           exportedExtensions: ManifestItemIdList([]),
-          hashForRequirements: '',
+          hashForRequirements: Hash.empty,
         );
   }
 
