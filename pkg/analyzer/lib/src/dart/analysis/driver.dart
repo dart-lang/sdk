@@ -2644,6 +2644,11 @@ class AnalysisDriverScheduler {
           bestDriver = driver;
           bestPriority = priority;
         }
+        if (priority == AnalysisDriverPriority.nothing) {
+          if (driver.withFineDependencies) {
+            driver.currentSession.clearHierarchies();
+          }
+        }
       }
 
       // Transition to idle if no files to analyze.
