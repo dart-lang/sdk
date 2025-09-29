@@ -166,6 +166,7 @@ Future<void> main() async {
       fileUri: uri,
       prefixOffset: -1,
       importOffset: -1,
+      parentPrefixBuilder: null,
     );
     String assignmentOperator = "+=";
     TypeDeclarationBuilder declaration = new DillNominalParameterBuilder(

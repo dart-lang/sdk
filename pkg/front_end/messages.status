@@ -460,6 +460,7 @@ front_end/OverrideMismatchRequiredNamedParameter/analyzerCode: missingAnalyzerCo
 front_end/OverrideTypeParametersBoundMismatch/analyzerCode: missingAnalyzerCode
 front_end/PackageNotFound/analyzerCode: missingAnalyzerCode
 front_end/PackagesFileFormat/analyzerCode: missingAnalyzerCode # Analyzer crashes when .packages file has format error
+front_end/PartOfName/analyzerCode: missingAnalyzerCode
 front_end/PartOrphan/analyzerCode: missingAnalyzerCode # Analyzer can't handle this situation
 front_end/PatchClassTypeParametersMismatch/analyzerCode: missingAnalyzerCode
 front_end/PatchExtensionTypeParametersMismatch/analyzerCode: missingAnalyzerCode

@@ -37,7 +37,6 @@ void main(List<String> arguments) async {
           scope: 'MyMath',
           name: methodName,
         ),
-        'int add(int a, int b)',
       );
       for (var call in calls) {
         dataLines.add(

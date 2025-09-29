@@ -1,0 +1,41 @@
+{
+  "metadata": {
+    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation",
+    "version": "0.2.0"
+  },
+  "constants": [
+    {
+      "type": "String",
+      "value": "hello-world"
+    }
+  ],
+  "locations": [
+    {
+      "uri": "named_with_function_arg.dart"
+    }
+  ],
+  "recordings": [
+    {
+      "definition": {
+        "identifier": {
+          "uri": "named_with_function_arg.dart",
+          "name": "Ext|foo"
+        },
+        "loading_unit": "1"
+      },
+      "calls": [
+        {
+          "type": "with_arguments",
+          "positional": [
+            null
+          ],
+          "named": {
+            "s": 0
+          },
+          "loading_unit": "1",
+          "@": 0
+        }
+      ]
+    }
+  ]
+}

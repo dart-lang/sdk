@@ -65,14 +65,21 @@ sealed class CallReference extends Reference {
           positionalArguments:
               (json[_positionalKey] as List<dynamic>? ?? [])
                   .whereType<int?>()
-                  .map((index) {
-                    return index != null ? constants[index] : null;
-                  })
+                  .map(
+                    (constantsIndex) =>
+                        constantsIndex != null
+                            ? constants[constantsIndex]
+                            : null,
+                  )
                   .toList(),
-          namedArguments: (json[_namedKey] as Map<String, Object?>? ?? {}).map(
-            (key, value) =>
-                MapEntry(key, value != null ? constants[value as int] : null),
-          ),
+          namedArguments: (json[_namedKey] as Map<String, Object?>? ?? {})
+              .map((key, value) => MapEntry(key, value as int?))
+              .map(
+                (name, constantsIndex) => MapEntry(
+                  name,
+                  constantsIndex != null ? constants[constantsIndex] : null,
+                ),
+              ),
           loadingUnit: loadingUnit,
           location: location,
         );

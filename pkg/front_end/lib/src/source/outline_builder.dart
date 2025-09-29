@@ -4128,6 +4128,14 @@ class OutlineBuilder extends StackListenerImpl {
 
     if (hasName) {
       Identifier containingLibrary = pop() as Identifier;
+      if (libraryFeatures.enhancedParts.isEnabled) {
+        _compilationUnit.addProblem(
+          codePartOfName,
+          containingLibrary.firstOffset,
+          noLength,
+          uri,
+        );
+      }
       List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
       _builderFactory.addPartOf(
         metadata,

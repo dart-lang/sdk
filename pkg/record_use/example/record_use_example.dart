@@ -11,7 +11,7 @@ void doStuffInLinkHook(
   Identifier identifier3,
 ) {
   print(usage.metadata);
-  print(usage.constArgumentsFor(identifier1, 'void foo(int i)'));
+  print(usage.constArgumentsFor(identifier1));
   print(usage.constantsOf(identifier2));
   print(usage.hasNonConstArguments(identifier3));
 }

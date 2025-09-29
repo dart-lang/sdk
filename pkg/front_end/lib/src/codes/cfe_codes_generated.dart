@@ -14611,6 +14611,14 @@ Message _withArgumentsOldPartOfLibraryNameMismatch(
     _withArgumentsPartOfLibraryNameMismatch(uri: uri, name: name, name2: name2);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode codePartOfName = const MessageCode(
+  "PartOfName",
+  problemMessage:
+      r"""The 'part of' directive can't use a name with the enhanced-parts feature.""",
+  correctionMessage: r"""Try using 'part of' with a URI instead.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codePartOfSelf = const MessageCode(
   "PartOfSelf",
   problemMessage: r"""A file can't be a part of itself.""",

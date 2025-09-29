@@ -192,6 +192,8 @@ class DocumentationValidator {
     'WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL',
     // Produces two diagnostics out of necessity.
     'WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE',
+    // Produced two diagnostics because `mustBeConst` is experimental.
+    'WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER',
   ];
 
   /// The buffer to which validation errors are written.

@@ -7967,3 +7967,15 @@ ExpressionEvaluationKnownVariableUnavailable:
   parameters:
     Name name: undocumented
   problemMessage: "The variable '#name' is unavailable in this expression evaluation."
+
+PartOfName:
+  parameters: none
+  problemMessage: "The 'part of' directive can't use a name with the enhanced-parts feature."
+  correctionMessage: "Try using 'part of' with a URI instead."
+  experiments: enhanced-parts
+  script:
+    main.dart: |
+      library lib;
+      part 'lib.dart';
+    lib.dart: |
+      part of lib;

@@ -734,6 +734,14 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   NameSpace get prefixNameSpace => _prefixNameSpace;
 
   @override
+  PrefixBuilder? lookupPrefixBuilder(String name) {
+    PrefixBuilder? declaredPrefixBuilder =
+        prefixNameSpace.lookup(name)?.getable as PrefixBuilder?;
+    return declaredPrefixBuilder ??
+        parentCompilationUnit?.lookupPrefixBuilder(name);
+  }
+
+  @override
   void includeParts(
     List<SourceCompilationUnit> includedParts,
     Set<Uri> usedParts,
@@ -1461,7 +1469,9 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     }
     _prefixNameSpace.addLocalMember(
       name,
-      prefixFragment.createPrefixBuilder(),
+      prefixFragment.createPrefixBuilder(
+        parentCompilationUnit?.lookupPrefixBuilder(name),
+      ),
       setter: false,
     );
     return true;

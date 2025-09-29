@@ -183,7 +183,15 @@ abstract class SourceCompilationUnit
   /// This contains all imports with prefixes declared in this compilation unit.
   LookupScope get prefixScope;
 
+  /// The name space containing the prefixes declared in this compilation unit.
   NameSpace get prefixNameSpace;
+
+  /// Returns the [PrefixBuilder] of the given [name] available in this
+  /// compilation unit, if any.
+  ///
+  /// A prefix builder is available if it is declared in this compilation unit
+  /// or if it is available in the parent compilation unit.
+  PrefixBuilder? lookupPrefixBuilder(String name);
 
   bool get mayImplementRestrictedTypes;
 
