@@ -1097,69 +1097,69 @@ library dart.dom.html;
 
 import 'dart:async';
 
+class ClipboardEvent extends Event {}
+
 class Event {}
 
 class MouseEvent extends Event {}
 
 class FocusEvent extends Event {}
 
-class KeyEvent extends Event {}
+class KeyboardEvent extends Event {}
+
+class KeyEvent implements KeyboardEvent {}
 
 abstract class ElementStream<T extends Event> implements Stream<T> {}
 
-abstract class Element {
-  factory Element.html(String html,
-          {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) =>
-      new HtmlElement();
+class Element {
+  factory Element.html(
+    String? html, {
+    NodeValidator? validator,
+    NodeTreeSanitizer? treeSanitizer,
+  }) => new HtmlElement();
 
   /// Stream of `cut` events handled by this [Element].
-  ElementStream<Event> get onCut => throw 0;
+  ElementStream<ClipboardEvent> get onCut => throw 0;
 
   String get id => throw 0;
 
   set id(String value) => throw 0;
 
-  DocumentFragment createFragment(String html,
-          {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) => null;
+  DocumentFragment createFragment(
+    String? html, {
+    NodeValidator? validator,
+    NodeTreeSanitizer? treeSanitizer,
+  }) => throw 0;
 
-  void setInnerHtml(String html,
-          {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {}
-}
+  void setInnerHtml(
+    String? html, {
+    NodeValidator? validator,
+    NodeTreeSanitizer? treeSanitizer,
+  }) {}
 
-class HtmlElement extends Element {
-  int tabIndex;
+  int? get tabIndex => throw 0;
   ElementStream<Event> get onChange => throw 0;
   ElementStream<MouseEvent> get onClick => throw 0;
-  ElementStream<KeyEvent> get onKeyUp => throw 0;
-  ElementStream<KeyEvent> get onKeyDown => throw 0;
-
+  ElementStream<KeyboardEvent> get onKeyUp => throw 0;
+  ElementStream<KeyboardEvent> get onKeyDown => throw 0;
   bool get hidden => throw 0;
   set hidden(bool value) {}
+  set className(String value) {}
+  set tabIndex(int? value) {}
 
-  void set className(String s) {}
-  void set readOnly(bool b) {}
-  void set tabIndex(int i) {}
+  String? get _innerHtml => throw 0;
+  String? get innerHtml => throw 0;
 
-  String _innerHtml;
-  String get innerHtml {
-    throw 'not the real implementation';
-  }
-
-  set innerHtml(String value) {
-    // stuff
-  }
+  set innerHtml(String? html) {}
 }
 
-class AnchorElement extends HtmlElement {
-  factory AnchorElement({String href}) {
-    AnchorElement e = JS('returns:AnchorElement;creates:AnchorElement;new:true',
-        '#.createElement(#)', document, "a");
-    if (href != null) e.href = href;
-    return e;
-  }
+class HtmlElement extends Element {}
 
-  String href;
-  String _privateField;
+class AnchorElement extends HtmlElement {
+  factory AnchorElement({String? href}) => throw 0;
+
+  String? get href => throw 0;
+  set href(String? value) {}
 }
 
 class BodyElement extends HtmlElement {
@@ -1174,11 +1174,13 @@ class ButtonElement extends HtmlElement {
   }
   factory ButtonElement() => document.createElement("button");
 
-  bool autofocus;
+  bool get autofocus => throw 0;
+  set autofocus(bool value) {}
 }
 
-class EmbedElement extends HtmlEment {
-  String src;
+class EmbedElement extends HtmlElement {
+  String get src => throw 0;
+  set src(String value) {}
 }
 
 class HeadingElement extends HtmlElement {
@@ -1190,8 +1192,9 @@ class HeadingElement extends HtmlElement {
   factory HeadingElement.h3() => document.createElement("h3");
 }
 
-class ImageElement extends HtmlEment {
-  String src;
+class ImageElement extends HtmlElement {
+  String? get src => throw 0;
+  set src(String? value) {}
 }
 
 class InputElement extends HtmlElement {
@@ -1199,54 +1202,54 @@ class InputElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
   factory InputElement() => document.createElement("input");
-
-  String value;
-  String validationMessage;
+  String? get value => throw 0;
+  set value(String? value) {}
+  String get validationMessage => throw 0;
 }
 
 class IFrameElement extends HtmlElement {
   factory IFrameElement._() {
     throw new UnsupportedError("Not supported");
   }
-  factory IFrameElement() => JS(
-      'returns:IFrameElement;creates:IFrameElement;new:true',
-      '#.createElement(#)',
-      document,
-      "iframe");
-
-  String src;
-  set srcdoc(String? value) native;
+  factory IFrameElement() => throw 0;
+  String? get src => throw 0;
+  set src(Stirng? value) {}
+  set srcdoc(String? value) {}
 }
 
 class OptionElement extends HtmlElement {
-  factory OptionElement(
-      {String data: '', String value: '', bool selected: false}) {}
+  factory OptionElement({
+    String data = '',
+    String value = '',
+    bool selected = false,
+  }) => throw 0;
 
-  factory OptionElement._(
-      [String data, String value, bool defaultSelected, bool selected]) {}
+  factory OptionElement._([
+    String? data,
+    String? value,
+    bool? defaultSelected,
+    bool? selected,
+  ]) => throw 0;
 }
 
 class ScriptElement extends HtmlElement {
-  String src;
-  String type;
+  String get src => throw 0;
+  set src(String value) {}
+
+  String get type => throw 0;
+  set type(String value) {}
 }
 
 class TableSectionElement extends HtmlElement {
   List<TableRowElement> get rows => throw 0;
 
-  TableRowElement addRow() {}
+  TableRowElement addRow() => throw 0;
 
   TableRowElement insertRow(int index) => throw 0;
 
   factory TableSectionElement._() {
     throw new UnsupportedError("Not supported");
   }
-
-  @Deprecated("Internal Use Only")
-  external static Type get instanceRuntimeType;
-
-  @Deprecated("Internal Use Only")
-  TableSectionElement.internal_() : super.internal_();
 }
 
 class TemplateElement extends HtmlElement {
@@ -1257,35 +1260,32 @@ class TemplateElement extends HtmlElement {
 }
 
 class AudioElement extends MediaElement {
-  factory AudioElement._([String src]) {
-    if (src != null) {
-      return AudioElement._create_1(src);
-    }
-    return AudioElement._create_2();
-  }
+  factory AudioElement._([String? src]) => throw 0;
 
-  static AudioElement _create_1(src) => JS('AudioElement', 'new Audio(#)', src);
-  static AudioElement _create_2() => JS('AudioElement', 'new Audio()');
-  AudioElement.created() : super.created();
+  static AudioElement _create_1(src) => throw 0;
+  static AudioElement _create_2() => throw 0;
 
-  factory AudioElement([String src]) => new AudioElement._(src);
+  factory AudioElement([String? src]) => throw 0;
 }
 
-class MediaElement extends Element {}
+class MediaElement extends HtmlElement {}
 
-class WindowBase {}
+abstract class WindowBase {}
 
-class Window extends WindowBase {
-  WindowBase open(String url, String name, [String options]) => null;
+class Window implements WindowBase {
+  WindowBase open(String url, String name, [String? options]) => throw 0;
 }
 
-class NodeValidator {}
+abstract class NodeValidator {}
 
-class NodeTreeSanitizer {}
+abstract class NodeTreeSanitizer {}
 
 class DocumentFragment {
-  DocumentFragment.html(String html,
-          {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {}
+  factory DocumentFragment.html(
+    String? html, {
+    NodeValidator? validator,
+    NodeTreeSanitizer? treeSanitizer,
+  }) => throw 0;
 }
 
 dynamic JS(a, b, c, d) {}
