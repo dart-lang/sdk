@@ -1526,95 +1526,40 @@
     },
     {
       "builders": [
-        "vm-gcc-linux"
+        "vm-gcc-linux-x64",
+        "vm-gcc-linux-arm",
+        "vm-gcc-linux-arm64",
+        "vm-gcc-linux-riscv64"
       ],
       "meta": {
         "description": "This configuration builds the VM with GCC."
       },
       "steps": [
         {
-          "name": "build dart debug x64",
+          "name": "build dart debug",
           "script": "tools/build.py",
           "arguments": [
             "--mode=debug",
-            "--arch=x64",
             "--no-clang",
             "runtime",
             "runtime_precompiled"
           ]
         },
         {
-          "name": "build dart debug arm",
-          "script": "tools/build.py",
-          "arguments": [
-            "--mode=debug",
-            "--arch=arm",
-            "--no-clang",
-            "runtime",
-            "runtime_precompiled"
-          ]
-        },
-        {
-          "name": "build dart debug arm64",
-          "script": "tools/build.py",
-          "arguments": [
-            "--mode=debug",
-            "--arch=arm64",
-            "--no-clang",
-            "runtime",
-            "runtime_precompiled"
-          ]
-        },
-        {
-          "name": "build dart debug riscv64",
-          "script": "tools/build.py",
-          "arguments": [
-            "--mode=debug",
-            "--arch=riscv64",
-            "--no-clang",
-            "runtime",
-            "runtime_precompiled"
-          ]
-        },
-        {
-          "name": "build dart release x64",
+          "name": "build dart release",
           "script": "tools/build.py",
           "arguments": [
             "--mode=release",
-            "--arch=x64",
             "--no-clang",
             "runtime",
             "runtime_precompiled"
           ]
         },
         {
-          "name": "build dart release arm",
+          "name": "build dart product",
           "script": "tools/build.py",
           "arguments": [
-            "--mode=release",
-            "--arch=arm",
-            "--no-clang",
-            "runtime",
-            "runtime_precompiled"
-          ]
-        },
-        {
-          "name": "build dart release arm64",
-          "script": "tools/build.py",
-          "arguments": [
-            "--mode=release",
-            "--arch=arm64",
-            "--no-clang",
-            "runtime",
-            "runtime_precompiled"
-          ]
-        },
-        {
-          "name": "build dart release riscv64",
-          "script": "tools/build.py",
-          "arguments": [
-            "--mode=release",
-            "--arch=riscv64",
+            "--mode=product",
             "--no-clang",
             "runtime",
             "runtime_precompiled"
@@ -1624,73 +1569,38 @@
     },
     {
       "builders": [
-        "vm-msvc-windows"
+        "vm-msvc-win-x64",
+        "vm-msvc-win-arm64"
       ],
       "meta": {
         "description": "This configuration builds the VM with MSVC."
       },
       "steps": [
         {
-          "name": "build dart debug arm64",
+          "name": "build dart debug",
           "script": "tools/build.py",
           "arguments": [
             "--mode=debug",
-            "--arch=arm64",
             "--no-clang",
             "runtime",
             "runtime_precompiled"
           ]
         },
         {
-          "name": "build dart release arm64",
+          "name": "build dart release",
           "script": "tools/build.py",
           "arguments": [
             "--mode=release",
-            "--arch=arm64",
             "--no-clang",
             "runtime",
             "runtime_precompiled"
           ]
         },
         {
-          "name": "build dart product arm64",
+          "name": "build dart product",
           "script": "tools/build.py",
           "arguments": [
             "--mode=product",
-            "--arch=arm64",
-            "--no-clang",
-            "runtime",
-            "runtime_precompiled"
-          ]
-        },
-        {
-          "name": "build dart debug x64",
-          "script": "tools/build.py",
-          "arguments": [
-            "--mode=debug",
-            "--arch=x64",
-            "--no-clang",
-            "runtime",
-            "runtime_precompiled"
-          ]
-        },
-        {
-          "name": "build dart release x64",
-          "script": "tools/build.py",
-          "arguments": [
-            "--mode=release",
-            "--arch=x64",
-            "--no-clang",
-            "runtime",
-            "runtime_precompiled"
-          ]
-        },
-        {
-          "name": "build dart product x64",
-          "script": "tools/build.py",
-          "arguments": [
-            "--mode=product",
-            "--arch=x64",
             "--no-clang",
             "runtime",
             "runtime_precompiled"

@@ -584,7 +584,8 @@ abstract class AnalysisServer {
     const M = 1024 * 1024 /*1 MiB*/;
     const G = 1024 * 1024 * 1024 /*1 GiB*/;
 
-    const memoryCacheSize = 128 * M;
+    const fileCacheSize = 4 * G;
+    const memoryCacheSize = 256 * M;
 
     if (providedByteStore case var providedByteStore?) {
       return providedByteStore;
@@ -601,7 +602,7 @@ abstract class AnalysisServer {
       var stateLocation = resourceProvider.getStateLocation('.analysis-driver');
       if (stateLocation != null) {
         var timingByteStore = _timingByteStore = TimingByteStore(
-          EvictingFileByteStore(stateLocation.path, G),
+          EvictingFileByteStore(stateLocation.path, fileCacheSize),
         );
         return MemoryCachingByteStore(timingByteStore, memoryCacheSize);
       }

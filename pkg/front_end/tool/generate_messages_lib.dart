@@ -8,7 +8,6 @@ library;
 import 'dart:convert';
 import 'dart:io' show exitCode;
 
-import 'package:analyzer_utilities/extensions/string.dart';
 import 'package:analyzer_utilities/messages.dart';
 
 Uri computeSharedGeneratedFile(Uri repoDir) {
@@ -165,7 +164,7 @@ class _TemplateCompiler {
   final int? index;
   final String problemMessage;
   final String? correctionMessage;
-  final List<String> analyzerCodes;
+  final List<AnalyzerCode> analyzerCodes;
   final String? severity;
   final Map<String, ErrorCodeParameter> parameters;
 
@@ -328,7 +327,7 @@ Message _withArgumentsOld$name(${positionalParameters.join(', ')}) =>
   String _encodeAnalyzerCodes() {
     var encodedCodes = <String>[];
     for (var code in analyzerCodes) {
-      var camelCaseCode = code.toCamelCase();
+      var camelCaseCode = code.camelCaseErrorName;
       analyzerCodeValues!.add(camelCaseCode);
       encodedCodes.add('AnalyzerCode.$camelCaseCode');
     }
