@@ -159,7 +159,7 @@ class TypeHierarchyComputer {
 
 class TypeHierarchyComputerHelper {
   final Element pivotElement;
-  final LibraryElement pivotLibrary;
+  final LibraryElement? pivotLibrary;
   final ElementKind pivotKind;
   final String? pivotName;
   final bool pivotFieldFinal;
@@ -192,7 +192,7 @@ class TypeHierarchyComputerHelper {
 
     return TypeHierarchyComputerHelper(
       pivotElement,
-      pivotElement.library!,
+      pivotElement.library,
       pivotElement.kind,
       pivotElement.name,
       pivotFieldFinal,
@@ -211,6 +211,12 @@ class TypeHierarchyComputerHelper {
     if (pivotName == null) {
       return null;
     }
+
+    var pivotLibrary = this.pivotLibrary;
+    if (pivotLibrary == null) {
+      return null;
+    }
+
     ExecutableElement? result;
     // try to find in the class itself
     if (pivotKind == ElementKind.METHOD) {

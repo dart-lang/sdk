@@ -1657,6 +1657,14 @@ extension type E(A it) implements A {
     expect(itemE.memberElement, isNull);
   }
 
+  Future<void> test_never_issue61420() async {
+    addTestFile('''
+Never value = throw 'error';
+''');
+    var items = await _getTypeHierarchyOrNull('Never');
+    expect(items, isNull);
+  }
+
   void _assertMember(TypeHierarchyItem item, String search) {
     expect(item.memberElement!.location!.offset, findOffset(search));
   }
@@ -1683,6 +1691,7 @@ extension type E(A it) implements A {
     await waitForTasksFinished();
     var request = _createGetTypeHierarchyRequest(search, superOnly: superOnly);
     var response = await serverChannel.simulateRequestFromClient(request);
+    expect(response.error, isNull);
     return SearchGetTypeHierarchyResult.fromResponse(
       response,
       clientUriConverter: server.uriConverter,

@@ -277,9 +277,6 @@ class LibraryManifestBuilder {
   /// items for declared elements that don't have items in this map.
   final Map<Element, ManifestItem> declaredItems = Map.identity();
 
-  /// The new manifests for libraries.
-  final Map<Uri, LibraryManifest> newManifests = {};
-
   LibraryManifestBuilder({
     required this.elementFactory,
     required this.inputLibraries,
@@ -292,7 +289,7 @@ class LibraryManifestBuilder {
         .toList(growable: false);
   }
 
-  Map<Uri, LibraryManifest> computeManifests({
+  Map<Uri, LibraryManifestHandle> computeManifests({
     required OperationPerformanceImpl performance,
   }) {
     performance.getDataInt('libraryCount').add(inputLibraries.length);
@@ -310,7 +307,10 @@ class LibraryManifestBuilder {
 
     assert(_assertSerialization());
 
-    return newManifests;
+    return {
+      for (var libraryElement in libraryElements)
+        libraryElement.uri: libraryElement.manifest!,
+    };
   }
 
   void _addClass({
@@ -429,7 +429,7 @@ class LibraryManifestBuilder {
 
   void _addExportedExtensions() {
     for (var libraryElement in libraryElements) {
-      var manifest = libraryElement.manifest!;
+      var manifest = libraryElement.manifest!.instance;
 
       var extensionIds = <ManifestItemId>{};
 
@@ -440,7 +440,8 @@ class LibraryManifestBuilder {
           .whereType<ExtensionElementImpl>();
       for (var extensionElement in exportedExtensionElements) {
         var extensionName = extensionElement.lookupName?.asLookupName;
-        var extensionLibraryManifest = extensionElement.library.manifest!;
+        var extensionLibraryManifest =
+            extensionElement.library.manifest!.instance;
         var extensionItem =
             extensionLibraryManifest.declaredExtensions[extensionName]!;
         extensionIds.add(extensionItem.id);
@@ -707,8 +708,7 @@ class LibraryManifestBuilder {
 
   void _addReExports() {
     for (var libraryElement in libraryElements) {
-      var libraryUri = libraryElement.uri;
-      var manifest = newManifests[libraryUri]!;
+      var manifest = libraryElement.manifest!.instance;
 
       for (var exported in libraryElement.exportedReferences) {
         // We want only re-exports, skip declared.
@@ -731,7 +731,7 @@ class LibraryManifestBuilder {
 
         // Every library has a manifest at this point.
         // We already set manifests for the current cycle.
-        var elementLibraryManifest = elementLibrary.manifest!;
+        var elementLibraryManifest = elementLibrary.manifest!.instance;
 
         // We use the manifest of the library that declares this element.
         // So, the element must be declared in the manifest.
@@ -828,7 +828,10 @@ class LibraryManifestBuilder {
   /// Assert that every manifest can be serialized, and when deserialized
   /// results in the same manifest.
   bool _assertSerialization() {
-    newManifests.forEach((uri, manifest) {
+    for (var libraryElement in libraryElements) {
+      var uri = libraryElement.uri;
+      var manifest = libraryElement.manifest!.instance;
+
       var bytes = manifest.toBytes();
       var readManifest = LibraryManifest.fromBytes(bytes);
       var readBytes = readManifest.toBytes();
@@ -836,7 +839,7 @@ class LibraryManifestBuilder {
       if (!const ListEquality<int>().equals(bytes, readBytes)) {
         throw StateError('Library manifest bytes are different: $uri');
       }
-    });
+    }
 
     return true;
   }
@@ -844,11 +847,10 @@ class LibraryManifestBuilder {
   /// Fill `result` with new library manifests.
   /// We reuse existing items when they fully match.
   /// We build new items for mismatched elements.
-  Map<Uri, LibraryManifest> _buildManifests() {
+  void _buildManifests() {
     var encodingContext = EncodeContext(elementFactory: elementFactory);
 
     for (var libraryElement in libraryElements) {
-      var libraryUri = libraryElement.uri;
       var newClassItems = <LookupName, ClassItem>{};
       var newEnumItems = <LookupName, EnumItem>{};
       var newExtensionItems = <LookupName, ExtensionItem>{};
@@ -975,19 +977,16 @@ class LibraryManifestBuilder {
         exportedExtensions: ManifestItemIdList([]),
         hashForRequirements: Hash.empty,
       );
-      libraryElement.manifest = newManifest;
-      newManifests[libraryUri] = newManifest;
+      libraryElement.manifest = LibraryManifestHandle.fromInstance(newManifest);
     }
 
     _fillInterfaceElementsInterface();
     _addClassTypeAliasConstructors();
-
-    return newManifests;
   }
 
   void _computeHashForRequirements() {
     for (var libraryElement in libraryElements) {
-      var manifest = libraryElement.manifest!;
+      var manifest = libraryElement.manifest!.instance;
       var builder = ApiSignature();
 
       List<MapEntry<LookupName, T>> sortedMapEntries<T>(
@@ -1097,7 +1096,7 @@ class LibraryManifestBuilder {
 
     for (var libraryElement in libraryElements) {
       var libraryUri = libraryElement.uri;
-      var manifest = newManifests[libraryUri]!;
+      var manifest = libraryElement.manifest!.instance;
       manifest._fillExportMap();
 
       var inputManifest = _getInputManifest(libraryUri);
@@ -1388,6 +1387,81 @@ class LibraryManifestBuilder {
       declaredItems[element] = item;
     }
     return item;
+  }
+}
+
+/// Handle for [LibraryManifest.hashForRequirements] or [instance].
+///
+/// Most [RequirementsManifest] can be checked using just [hashForRequirements],
+/// so we don't even need to read the whole [instance] from bytes. But we can,
+/// if we have to check for details of the manifest.
+///
+/// This class has several states:
+/// 1. Has incomplete [_instance], during building.
+/// 2. Has complete [_instance], no bytes, after building.
+/// 3. Has [_instance], has bytes, after building and write.
+/// 4. No [_instance], has bytes, after [discardInstance] or `read`.
+/// 5. Has [instance], has bytes, after [instance] read it.
+class LibraryManifestHandle {
+  Hash? _hashForRequirements;
+  Uint8List? _bytes;
+  LibraryManifest? _instance;
+
+  LibraryManifestHandle({
+    required Hash? hashForRequirements,
+    required Uint8List? bytes,
+    required LibraryManifest? instance,
+  }) : _hashForRequirements = hashForRequirements,
+       _bytes = bytes,
+       _instance = instance;
+
+  factory LibraryManifestHandle.fromInstance(LibraryManifest instance) {
+    // Note, we don't convert instance to bytes here.
+    // The instance is not finished yet in the builder.
+    return LibraryManifestHandle(
+      bytes: null,
+      hashForRequirements: null,
+      instance: instance,
+    );
+  }
+
+  factory LibraryManifestHandle.read(BinaryReader reader) {
+    return LibraryManifestHandle(
+      hashForRequirements: Hash.read(reader),
+      bytes: reader.readUint8List(),
+      instance: null,
+    );
+  }
+
+  Hash get hashForRequirements {
+    return _hashForRequirements ?? _instance!.hashForRequirements;
+  }
+
+  LibraryManifest get instance {
+    return _instance ??= LibraryManifest.fromBytes(_bytes!);
+  }
+
+  void discardInstance() {
+    if (_instance case var instance?) {
+      _hashForRequirements ??= instance.hashForRequirements;
+      _bytes ??= instance.toBytes();
+    }
+    _instance = null;
+  }
+
+  void write(BinaryWriter writer) {
+    var hashForRequirements =
+        _hashForRequirements ?? _instance?.hashForRequirements;
+    if (hashForRequirements == null) {
+      throw StateError('Missing hashForRequirements');
+    }
+    hashForRequirements.write(writer);
+
+    var bytes = _bytes ?? _instance?.toBytes();
+    if (bytes == null) {
+      throw StateError('Missing bytes');
+    }
+    writer.writeUint8List(bytes);
   }
 }
 

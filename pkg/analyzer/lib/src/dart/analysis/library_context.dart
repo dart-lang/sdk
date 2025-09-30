@@ -33,6 +33,7 @@ import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:collection/collection.dart';
 
 /// Context information necessary to analyze one or more libraries within an
@@ -242,12 +243,15 @@ class LibraryContext {
           });
           newLinkedBytes = linkResult.resolutionBytes;
 
-          var newLibraryManifests = <Uri, LibraryManifest>{};
+          var newLibraryManifests = <Uri, LibraryManifestHandle>{};
           performance.run('computeManifests', (performance) {
+            var inputManifests = performance.run('inputManifests', (_) {
+              return probe.libraryManifests.mapValue((h) => h.instance);
+            });
             newLibraryManifests = LibraryManifestBuilder(
               elementFactory: elementFactory,
               inputLibraries: cycle.libraries,
-              inputManifests: probe.libraryManifests,
+              inputManifests: inputManifests,
             ).computeManifests(performance: performance);
             elementFactory.libraryManifests.addAll(newLibraryManifests);
           });
@@ -493,7 +497,7 @@ class _LinkedBundleCacheEntry {
   ///
   /// If we have to relink libraries, we will match new elements against
   /// these old manifests, and reuse IDs for not affected elements.
-  final Map<Uri, LibraryManifest> libraryManifests;
+  final Map<Uri, LibraryManifestHandle> libraryManifests;
 
   /// The serialized libraries, for [BundleReader].
   final Uint8List linkedBytes;
@@ -548,27 +552,15 @@ class _LinkedBundleCacheEntry {
     var reader = BinaryReader(bytes);
     reader.initFromTableTrailer();
 
-    var nonTransitiveApiSignature = reader.readStringUtf8();
-    var requirementsDigest = RequirementsManifestDigest.read(reader);
-    var requirementsBytes = reader.readUint8List();
-
-    var libraryManifests = performance.run('readLibraryManifests', (
-      performance,
-    ) {
-      return reader.readMap(
-        readKey: () => reader.readUri(),
-        readValue: () => LibraryManifest.read(reader),
-      );
-    });
-
-    var linkedBytes = reader.readUint8List();
-
     var result = _LinkedBundleCacheEntry(
-      nonTransitiveApiSignature: nonTransitiveApiSignature,
-      requirementsDigest: requirementsDigest,
-      requirementsBytes: requirementsBytes,
-      libraryManifests: libraryManifests,
-      linkedBytes: linkedBytes,
+      nonTransitiveApiSignature: reader.readStringUtf8(),
+      requirementsDigest: RequirementsManifestDigest.read(reader),
+      requirementsBytes: reader.readUint8List(),
+      libraryManifests: reader.readMap(
+        readKey: () => reader.readUri(),
+        readValue: () => LibraryManifestHandle.read(reader),
+      ),
+      linkedBytes: reader.readUint8List(),
     );
 
     // We have copies of all data.
@@ -579,7 +571,7 @@ class _LinkedBundleCacheEntry {
 }
 
 class _LinkedBundleProbeResult {
-  final Map<Uri, LibraryManifest> libraryManifests;
+  final Map<Uri, LibraryManifestHandle> libraryManifests;
   final Uint8List? linkedBytes;
 
   _LinkedBundleProbeResult({

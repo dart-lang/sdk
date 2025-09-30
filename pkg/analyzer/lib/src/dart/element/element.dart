@@ -6036,7 +6036,7 @@ class LibraryElementImpl extends ElementImpl
 
   /// With fine-grained dependencies, the manifest of the library.
   @trackedInternal
-  LibraryManifest? manifest;
+  LibraryManifestHandle? manifest;
 
   @trackedInternal
   LibraryElementRequirementState requirementState =
