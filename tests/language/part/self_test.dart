@@ -5,6 +5,7 @@
 part "self_test.dart";
 //   ^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.PART_OF_NON_PART
+// [cfe] A file can't be a part of itself.
 
 main() {
   print('should not be able to recursively include self as library part');
