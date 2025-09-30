@@ -794,15 +794,14 @@ void SampleBlockBuffer::FreeCompletedBlocks() {
 static void FlushSampleBlocks(Isolate* isolate) {
   ASSERT(isolate != nullptr);
 
-  SampleBlock* block = isolate->current_sample_block();
+  SampleBlock* block = isolate->exchange_current_sample_block(nullptr);
   if (block != nullptr) {
-    isolate->set_current_sample_block(nullptr);
     block->MarkCompleted();
   }
 
-  block = isolate->current_allocation_sample_block();
+  block = isolate->exchange_current_allocation_sample_block(nullptr);
   if (block != nullptr) {
-    isolate->set_current_allocation_sample_block(nullptr);
+    // Allocation samples are collected synchronously.
     block->MarkCompleted();
   }
 }
@@ -1416,6 +1415,25 @@ void Profiler::SampleThreadSingleFrame(Thread* thread,
   sample->SetAt(0, pc);
 }
 
+void ReleaseToCurrentBlock(Isolate* isolate) {
+#if defined(DART_HOST_OS_MACOS) || defined(DART_HOST_OS_WINDOWS) ||            \
+    defined(DART_HOST_OS_FUCHSIA)
+  // The sample is collected by a different thread. The sample appears all at
+  // once from the profiled thread's point of view. Establish the isolate
+  // flushing its own current block happens-after the most recent sample
+  // written in that block by dumping a dependency through the current block.
+  // TSAN doesn't otherwise know this is already true because it doesn't have
+  // special treatment for thread_suspend/resume.
+  SampleBlock* block = isolate->current_sample_block();
+  isolate->exchange_current_sample_block(block);
+#elif defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
+  // The sample is collected by a signal handler on the same thread being
+  // sampled.
+#else
+#error What kind of sampler?
+#endif
+}
+
 void Profiler::SampleThread(Thread* thread,
                             const InterruptedThreadState& state) {
   ASSERT(thread != nullptr);
@@ -1494,6 +1512,7 @@ void Profiler::SampleThread(Thread* thread,
     if (thread->IGNORE_RACE2(IsDeoptimizing)()) {
       counters_.single_frame_sample_deoptimizing.fetch_add(1);
       SampleThreadSingleFrame(thread, sample, pc);
+      ReleaseToCurrentBlock(isolate);
       return;
     }
   }
@@ -1505,6 +1524,7 @@ void Profiler::SampleThread(Thread* thread,
     counters_.single_frame_sample_get_and_validate_stack_bounds.fetch_add(1);
     // Could not get stack boundary.
     SampleThreadSingleFrame(thread, sample, pc);
+    ReleaseToCurrentBlock(isolate);
     return;
   }
 
@@ -1531,6 +1551,7 @@ void Profiler::SampleThread(Thread* thread,
   CollectSample(isolate, exited_dart_code, in_dart_code, sample,
                 &native_stack_walker, &dart_stack_walker, pc, fp, sp,
                 &counters_);
+  ReleaseToCurrentBlock(isolate);
 }
 
 CodeDescriptor::CodeDescriptor(const AbstractCode code) : code_(code) {}
