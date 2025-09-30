@@ -12,6 +12,9 @@ function_structs_by_value_generated_ret_leaf_test: Pass, Slow # https://dartbug.
 function_structs_by_value_generated_ret_test: Pass, Slow # https://dartbug.com/47303 https://dartbug.com/45007
 native_assets/asset_*: Pass, Slow # https://dartbug.com/56330
 
+[ $arch == simarm64_arm64 ]
+many_listener_callbacks_test/*: Pass, Slow
+
 [ $builder_tag == optimization_counter_threshold ]
 aliasing_test: SkipByDesign # Already has VMOptions=--optimization-counter-threshold
 function_callbacks_structs_by_value_generated_test: SkipByDesign # Already has VMOptions=--optimization-counter-threshold
@@ -115,4 +118,3 @@ data_not_asan_test: SkipByDesign # This test tries to allocate too much memory o
 
 [ $hot_reload || $hot_reload_rollback ]
 isolate_group_bound_callback_test: SkipSlow # shared_slow_path_triggers_gc in combination with reload makes this test very slow
-many_listener_callbacks_test/*: Skip # Starts many background threads that are leaked by hot reloading
