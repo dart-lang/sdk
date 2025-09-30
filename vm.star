@@ -426,23 +426,42 @@ _vm_builder(
     properties = [fuchsia_deps],
 )
 
-# Our sysroot does not support gcc, we can't use RBE for this builder
+# Our RBE setup doesn't work with GCC.
 _nightly_builder(
-    "vm-gcc-linux",
-    category = "vm|misc|g",
+    "vm-gcc-linux-x64",
+    category = "vm|misc|toolchain|g",
     dimensions = noble,
-    execution_timeout = 5 * time.hour,
     rbe = False,
-    properties = {
-        "$dart/build": {
-            "timeout": 75 * 60,  # 100 minutes,
-        },
-    },
+)
+_nightly_builder(
+    "vm-gcc-linux-arm",
+    category = "vm|misc|toolchain|g",
+    dimensions = noble,
+    rbe = False,
+)
+_nightly_builder(
+    "vm-gcc-linux-arm64",
+    category = "vm|misc|toolchain|g",
+    dimensions = noble,
+    rbe = False,
+)
+_nightly_builder(
+    "vm-gcc-linux-riscv64",
+    category = "vm|misc|toolchain|g",
+    dimensions = noble,
+    rbe = False,
 )
 
+# Our RBE setup doesn't work with MSVC.
 _nightly_builder(
-    "vm-msvc-windows",
-    category = "vm|misc|m",
+    "vm-msvc-win-x64",
+    category = "vm|misc|toolchain|m",
+    dimensions = windows,
+    rbe = False,
+)
+_nightly_builder(
+    "vm-msvc-win-arm64",
+    category = "vm|misc|toolchain|m",
     dimensions = windows,
     rbe = False,
 )
