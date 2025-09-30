@@ -324,7 +324,7 @@ class CallIndirect extends Instruction {
   @override
   void serialize(Serializer s) {
     s.writeByte(0x11);
-    s.write(type);
+    s.writeTypeIndex(type);
     s.writeUnsigned(table?.index ?? 0);
   }
 }
@@ -340,7 +340,7 @@ class CallRef extends Instruction {
   @override
   void serialize(Serializer s) {
     s.writeByte(0x14);
-    s.write(type);
+    s.writeTypeIndex(type);
   }
 }
 
@@ -702,7 +702,7 @@ class StructGet extends Instruction {
   void serialize(Serializer s) {
     s.writeByte(0xFB);
     s.writeByte(0x02);
-    s.write(structType);
+    s.writeTypeIndex(structType);
     s.writeUnsigned(fieldIndex);
   }
 }
@@ -720,7 +720,7 @@ class StructGetS extends Instruction {
   void serialize(Serializer s) {
     s.writeByte(0xFB);
     s.writeByte(0x03);
-    s.write(structType);
+    s.writeTypeIndex(structType);
     s.writeUnsigned(fieldIndex);
   }
 }
@@ -738,7 +738,7 @@ class StructGetU extends Instruction {
   void serialize(Serializer s) {
     s.writeByte(0xFB);
     s.writeByte(0x04);
-    s.write(structType);
+    s.writeTypeIndex(structType);
     s.writeUnsigned(fieldIndex);
   }
 }
@@ -756,7 +756,7 @@ class StructSet extends Instruction {
   void serialize(Serializer s) {
     s.writeByte(0xFB);
     s.writeByte(0x05);
-    s.write(structType);
+    s.writeTypeIndex(structType);
     s.writeUnsigned(fieldIndex);
   }
 }
@@ -776,7 +776,7 @@ class StructNew extends Instruction {
   void serialize(Serializer s) {
     s.writeByte(0xFB);
     s.writeByte(0x00);
-    s.write(structType);
+    s.writeTypeIndex(structType);
   }
 }
 
@@ -795,7 +795,7 @@ class StructNewDefault extends Instruction {
   void serialize(Serializer s) {
     s.writeByte(0xFB);
     s.writeByte(0x01);
-    s.write(structType);
+    s.writeTypeIndex(structType);
   }
 }
 
@@ -811,7 +811,7 @@ class ArrayGet extends Instruction {
   void serialize(Serializer s) {
     s.writeByte(0xFB);
     s.writeByte(0x0b);
-    s.write(arrayType);
+    s.writeTypeIndex(arrayType);
   }
 }
 
@@ -827,7 +827,7 @@ class ArrayGetS extends Instruction {
   void serialize(Serializer s) {
     s.writeByte(0xFB);
     s.writeByte(0x0c);
-    s.write(arrayType);
+    s.writeTypeIndex(arrayType);
   }
 }
 
@@ -843,7 +843,7 @@ class ArrayGetU extends Instruction {
   void serialize(Serializer s) {
     s.writeByte(0xFB);
     s.writeByte(0x0d);
-    s.write(arrayType);
+    s.writeTypeIndex(arrayType);
   }
 }
 
@@ -859,7 +859,7 @@ class ArraySet extends Instruction {
   void serialize(Serializer s) {
     s.writeByte(0xFB);
     s.writeByte(0x0E);
-    s.write(arrayType);
+    s.writeTypeIndex(arrayType);
   }
 }
 
@@ -889,7 +889,7 @@ class ArrayNewFixed extends Instruction {
   void serialize(Serializer s) {
     s.writeByte(0xFB);
     s.writeByte(0x08);
-    s.write(arrayType);
+    s.writeTypeIndex(arrayType);
     s.writeUnsigned(length);
   }
 }
@@ -909,7 +909,7 @@ class ArrayNew extends Instruction {
   void serialize(Serializer s) {
     s.writeByte(0xFB);
     s.writeByte(0x06);
-    s.write(arrayType);
+    s.writeTypeIndex(arrayType);
   }
 }
 
@@ -928,7 +928,7 @@ class ArrayNewDefault extends Instruction {
   void serialize(Serializer s) {
     s.writeByte(0xFB);
     s.writeByte(0x07);
-    s.write(arrayType);
+    s.writeTypeIndex(arrayType);
   }
 }
 
@@ -945,7 +945,7 @@ class ArrayNewData extends Instruction {
   void serialize(Serializer s) {
     s.writeByte(0xFB);
     s.writeByte(0x09);
-    s.write(arrayType);
+    s.writeTypeIndex(arrayType);
     s.writeUnsigned(data.index);
   }
 }
@@ -963,8 +963,8 @@ class ArrayCopy extends Instruction {
   void serialize(Serializer s) {
     s.writeByte(0xFB);
     s.writeByte(0x11);
-    s.write(destArrayType);
-    s.write(sourceArrayType);
+    s.writeTypeIndex(destArrayType);
+    s.writeTypeIndex(sourceArrayType);
   }
 }
 
@@ -980,7 +980,7 @@ class ArrayFill extends Instruction {
   void serialize(Serializer s) {
     s.writeByte(0xFB);
     s.writeByte(0x10);
-    s.write(arrayType);
+    s.writeTypeIndex(arrayType);
   }
 }
 
@@ -1875,4 +1875,8 @@ class CatchAllRef extends TryTableCatch {
     s.writeByte(0x03);
     s.writeUnsigned(labelIndex);
   }
+}
+
+extension on Serializer {
+  void writeTypeIndex(DefType type) => writeUnsigned(type.index);
 }
