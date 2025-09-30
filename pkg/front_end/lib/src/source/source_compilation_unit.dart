@@ -1422,7 +1422,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     int charOffset,
   ) {
     Builder? existing = prefixNameSpace.lookup(name)?.getable;
-    existing ??= libraryBuilder.libraryNameSpace.lookup(name)?.getable;
     if (existing is PrefixBuilder) {
       assert(existing.next is! PrefixBuilder);
       int? deferredFileOffset;
@@ -1449,7 +1448,11 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       }
       prefixFragment.builder = existing;
       return false;
-    } else if (existing != null) {
+    }
+
+    LookupResult? result = libraryBuilder.libraryNameSpace.lookup(name);
+    if (result != null) {
+      NamedBuilder existing = result.getable ?? result.setable!;
       String fullName = name;
       _problemReporting.addProblem(
         codeDuplicatedDeclaration.withArgumentsOld(fullName),
@@ -1467,6 +1470,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         ],
       );
     }
+
     _prefixNameSpace.addLocalMember(
       name,
       prefixFragment.createPrefixBuilder(

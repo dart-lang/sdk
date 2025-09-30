@@ -1,0 +1,3 @@
+import 'prefix_conflict_with_setter.dart' as setter;
+
+void set setter(_) {}

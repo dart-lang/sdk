@@ -1,0 +1,16 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/prefix_conflict_with_setter.dart:5:46: Error: 'setter' is already declared in this scope.
+// import 'prefix_conflict_with_setter.dart' as setter;
+//                                              ^^^^^^
+// pkg/front_end/testcases/general/prefix_conflict_with_setter.dart:7:10: Context: Previous declaration of 'setter'.
+// void set setter(_) {}
+//          ^^^^^^
+//
+import self as self;
+
+import "org-dartlang-testcase:///prefix_conflict_with_setter.dart" as setter;
+
+static set setter(wildcard dynamic _#wc0#formal) → void {}

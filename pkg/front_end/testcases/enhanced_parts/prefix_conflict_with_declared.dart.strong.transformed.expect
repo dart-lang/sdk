@@ -1,0 +1,278 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared.dart:5:52: Error: 'declaredInMain' is already declared in this scope.
+// import 'prefix_conflict_with_declared_lib.dart' as declaredInMain; // Error
+//                                                    ^^^^^^^^^^^^^^
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared.dart:17:6: Context: Previous declaration of 'declaredInMain'.
+// void declaredInMain() {}
+//      ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared.dart:6:52: Error: 'declaredInPart1' is already declared in this scope.
+// import 'prefix_conflict_with_declared_lib.dart' as declaredInPart1; // Error
+//                                                    ^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part1.dart:18:6: Context: Previous declaration of 'declaredInPart1'.
+// void declaredInPart1() {}
+//      ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared.dart:7:52: Error: 'declaredInPart2' is already declared in this scope.
+// import 'prefix_conflict_with_declared_lib.dart' as declaredInPart2; // Error
+//                                                    ^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part2.dart:18:6: Context: Previous declaration of 'declaredInPart2'.
+// void declaredInPart2() {}
+//      ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared.dart:8:52: Error: 'declaredInPart3' is already declared in this scope.
+// import 'prefix_conflict_with_declared_lib.dart' as declaredInPart3; // Error
+//                                                    ^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part3.dart:16:6: Context: Previous declaration of 'declaredInPart3'.
+// void declaredInPart3() {}
+//      ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared.dart:9:52: Error: 'setterInMain' is already declared in this scope.
+// import 'prefix_conflict_with_declared_lib.dart' as setterInMain; // Error
+//                                                    ^^^^^^^^^^^^
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared.dart:18:10: Context: Previous declaration of 'setterInMain'.
+// void set setterInMain(_) {}
+//          ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared.dart:10:52: Error: 'setterInPart1' is already declared in this scope.
+// import 'prefix_conflict_with_declared_lib.dart' as setterInPart1; // Error
+//                                                    ^^^^^^^^^^^^^
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part1.dart:19:10: Context: Previous declaration of 'setterInPart1'.
+// void set setterInPart1(_) {}
+//          ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared.dart:11:52: Error: 'setterInPart2' is already declared in this scope.
+// import 'prefix_conflict_with_declared_lib.dart' as setterInPart2; // Error
+//                                                    ^^^^^^^^^^^^^
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part2.dart:19:10: Context: Previous declaration of 'setterInPart2'.
+// void set setterInPart2(_) {}
+//          ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared.dart:12:52: Error: 'setterInPart3' is already declared in this scope.
+// import 'prefix_conflict_with_declared_lib.dart' as setterInPart3; // Error
+//                                                    ^^^^^^^^^^^^^
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part3.dart:17:10: Context: Previous declaration of 'setterInPart3'.
+// void set setterInPart3(_) {}
+//          ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part1.dart:7:52: Error: 'declaredInMain' is already declared in this scope.
+// import 'prefix_conflict_with_declared_lib.dart' as declaredInMain; // Error
+//                                                    ^^^^^^^^^^^^^^
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared.dart:17:6: Context: Previous declaration of 'declaredInMain'.
+// void declaredInMain() {}
+//      ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part1.dart:8:52: Error: 'declaredInPart1' is already declared in this scope.
+// import 'prefix_conflict_with_declared_lib.dart' as declaredInPart1; // Error
+//                                                    ^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part1.dart:18:6: Context: Previous declaration of 'declaredInPart1'.
+// void declaredInPart1() {}
+//      ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part1.dart:9:52: Error: 'declaredInPart2' is already declared in this scope.
+// import 'prefix_conflict_with_declared_lib.dart' as declaredInPart2; // Error
+//                                                    ^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part2.dart:18:6: Context: Previous declaration of 'declaredInPart2'.
+// void declaredInPart2() {}
+//      ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part1.dart:10:52: Error: 'declaredInPart3' is already declared in this scope.
+// import 'prefix_conflict_with_declared_lib.dart' as declaredInPart3; // Error
+//                                                    ^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part3.dart:16:6: Context: Previous declaration of 'declaredInPart3'.
+// void declaredInPart3() {}
+//      ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part1.dart:11:52: Error: 'setterInMain' is already declared in this scope.
+// import 'prefix_conflict_with_declared_lib.dart' as setterInMain; // Error
+//                                                    ^^^^^^^^^^^^
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared.dart:18:10: Context: Previous declaration of 'setterInMain'.
+// void set setterInMain(_) {}
+//          ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part1.dart:12:52: Error: 'setterInPart1' is already declared in this scope.
+// import 'prefix_conflict_with_declared_lib.dart' as setterInPart1; // Error
+//                                                    ^^^^^^^^^^^^^
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part1.dart:19:10: Context: Previous declaration of 'setterInPart1'.
+// void set setterInPart1(_) {}
+//          ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part1.dart:13:52: Error: 'setterInPart2' is already declared in this scope.
+// import 'prefix_conflict_with_declared_lib.dart' as setterInPart2; // Error
+//                                                    ^^^^^^^^^^^^^
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part2.dart:19:10: Context: Previous declaration of 'setterInPart2'.
+// void set setterInPart2(_) {}
+//          ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part1.dart:14:52: Error: 'setterInPart3' is already declared in this scope.
+// import 'prefix_conflict_with_declared_lib.dart' as setterInPart3; // Error
+//                                                    ^^^^^^^^^^^^^
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part3.dart:17:10: Context: Previous declaration of 'setterInPart3'.
+// void set setterInPart3(_) {}
+//          ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part2.dart:7:52: Error: 'declaredInMain' is already declared in this scope.
+// import 'prefix_conflict_with_declared_lib.dart' as declaredInMain; // Error
+//                                                    ^^^^^^^^^^^^^^
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared.dart:17:6: Context: Previous declaration of 'declaredInMain'.
+// void declaredInMain() {}
+//      ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part2.dart:8:52: Error: 'declaredInPart1' is already declared in this scope.
+// import 'prefix_conflict_with_declared_lib.dart' as declaredInPart1; // Error
+//                                                    ^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part1.dart:18:6: Context: Previous declaration of 'declaredInPart1'.
+// void declaredInPart1() {}
+//      ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part2.dart:9:52: Error: 'declaredInPart2' is already declared in this scope.
+// import 'prefix_conflict_with_declared_lib.dart' as declaredInPart2; // Error
+//                                                    ^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part2.dart:18:6: Context: Previous declaration of 'declaredInPart2'.
+// void declaredInPart2() {}
+//      ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part2.dart:10:52: Error: 'declaredInPart3' is already declared in this scope.
+// import 'prefix_conflict_with_declared_lib.dart' as declaredInPart3; // Error
+//                                                    ^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part3.dart:16:6: Context: Previous declaration of 'declaredInPart3'.
+// void declaredInPart3() {}
+//      ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part2.dart:11:52: Error: 'setterInMain' is already declared in this scope.
+// import 'prefix_conflict_with_declared_lib.dart' as setterInMain; // Error
+//                                                    ^^^^^^^^^^^^
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared.dart:18:10: Context: Previous declaration of 'setterInMain'.
+// void set setterInMain(_) {}
+//          ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part2.dart:12:52: Error: 'setterInPart1' is already declared in this scope.
+// import 'prefix_conflict_with_declared_lib.dart' as setterInPart1; // Error
+//                                                    ^^^^^^^^^^^^^
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part1.dart:19:10: Context: Previous declaration of 'setterInPart1'.
+// void set setterInPart1(_) {}
+//          ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part2.dart:13:52: Error: 'setterInPart2' is already declared in this scope.
+// import 'prefix_conflict_with_declared_lib.dart' as setterInPart2; // Error
+//                                                    ^^^^^^^^^^^^^
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part2.dart:19:10: Context: Previous declaration of 'setterInPart2'.
+// void set setterInPart2(_) {}
+//          ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part2.dart:14:52: Error: 'setterInPart3' is already declared in this scope.
+// import 'prefix_conflict_with_declared_lib.dart' as setterInPart3; // Error
+//                                                    ^^^^^^^^^^^^^
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part3.dart:17:10: Context: Previous declaration of 'setterInPart3'.
+// void set setterInPart3(_) {}
+//          ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part3.dart:7:52: Error: 'declaredInMain' is already declared in this scope.
+// import 'prefix_conflict_with_declared_lib.dart' as declaredInMain; // Error
+//                                                    ^^^^^^^^^^^^^^
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared.dart:17:6: Context: Previous declaration of 'declaredInMain'.
+// void declaredInMain() {}
+//      ^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part3.dart:8:52: Error: 'declaredInPart1' is already declared in this scope.
+// import 'prefix_conflict_with_declared_lib.dart' as declaredInPart1; // Error
+//                                                    ^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part1.dart:18:6: Context: Previous declaration of 'declaredInPart1'.
+// void declaredInPart1() {}
+//      ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part3.dart:9:52: Error: 'declaredInPart2' is already declared in this scope.
+// import 'prefix_conflict_with_declared_lib.dart' as declaredInPart2; // Error
+//                                                    ^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part2.dart:18:6: Context: Previous declaration of 'declaredInPart2'.
+// void declaredInPart2() {}
+//      ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part3.dart:10:52: Error: 'declaredInPart3' is already declared in this scope.
+// import 'prefix_conflict_with_declared_lib.dart' as declaredInPart3; // Error
+//                                                    ^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part3.dart:16:6: Context: Previous declaration of 'declaredInPart3'.
+// void declaredInPart3() {}
+//      ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part3.dart:11:52: Error: 'setterInMain' is already declared in this scope.
+// import 'prefix_conflict_with_declared_lib.dart' as setterInMain; // Error
+//                                                    ^^^^^^^^^^^^
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared.dart:18:10: Context: Previous declaration of 'setterInMain'.
+// void set setterInMain(_) {}
+//          ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part3.dart:12:52: Error: 'setterInPart1' is already declared in this scope.
+// import 'prefix_conflict_with_declared_lib.dart' as setterInPart1; // Error
+//                                                    ^^^^^^^^^^^^^
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part1.dart:19:10: Context: Previous declaration of 'setterInPart1'.
+// void set setterInPart1(_) {}
+//          ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part3.dart:13:52: Error: 'setterInPart2' is already declared in this scope.
+// import 'prefix_conflict_with_declared_lib.dart' as setterInPart2; // Error
+//                                                    ^^^^^^^^^^^^^
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part2.dart:19:10: Context: Previous declaration of 'setterInPart2'.
+// void set setterInPart2(_) {}
+//          ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part3.dart:14:52: Error: 'setterInPart3' is already declared in this scope.
+// import 'prefix_conflict_with_declared_lib.dart' as setterInPart3; // Error
+//                                                    ^^^^^^^^^^^^^
+// pkg/front_end/testcases/enhanced_parts/prefix_conflict_with_declared_part3.dart:17:10: Context: Previous declaration of 'setterInPart3'.
+// void set setterInPart3(_) {}
+//          ^^^^^^^^^^^^^
+//
+import self as self;
+
+import "org-dartlang-testcase:///prefix_conflict_with_declared_lib.dart" as declaredInMain;
+import "org-dartlang-testcase:///prefix_conflict_with_declared_lib.dart" as declaredInPart1;
+import "org-dartlang-testcase:///prefix_conflict_with_declared_lib.dart" as declaredInPart2;
+import "org-dartlang-testcase:///prefix_conflict_with_declared_lib.dart" as declaredInPart3;
+import "org-dartlang-testcase:///prefix_conflict_with_declared_lib.dart" as setterInMain;
+import "org-dartlang-testcase:///prefix_conflict_with_declared_lib.dart" as setterInPart1;
+import "org-dartlang-testcase:///prefix_conflict_with_declared_lib.dart" as setterInPart2;
+import "org-dartlang-testcase:///prefix_conflict_with_declared_lib.dart" as setterInPart3;
+import "org-dartlang-testcase:///prefix_conflict_with_declared_lib.dart" as declaredInMain;
+import "org-dartlang-testcase:///prefix_conflict_with_declared_lib.dart" as declaredInPart1;
+import "org-dartlang-testcase:///prefix_conflict_with_declared_lib.dart" as declaredInPart2;
+import "org-dartlang-testcase:///prefix_conflict_with_declared_lib.dart" as declaredInPart3;
+import "org-dartlang-testcase:///prefix_conflict_with_declared_lib.dart" as setterInMain;
+import "org-dartlang-testcase:///prefix_conflict_with_declared_lib.dart" as setterInPart1;
+import "org-dartlang-testcase:///prefix_conflict_with_declared_lib.dart" as setterInPart2;
+import "org-dartlang-testcase:///prefix_conflict_with_declared_lib.dart" as setterInPart3;
+import "org-dartlang-testcase:///prefix_conflict_with_declared_lib.dart" as declaredInMain;
+import "org-dartlang-testcase:///prefix_conflict_with_declared_lib.dart" as declaredInPart1;
+import "org-dartlang-testcase:///prefix_conflict_with_declared_lib.dart" as declaredInPart2;
+import "org-dartlang-testcase:///prefix_conflict_with_declared_lib.dart" as declaredInPart3;
+import "org-dartlang-testcase:///prefix_conflict_with_declared_lib.dart" as setterInMain;
+import "org-dartlang-testcase:///prefix_conflict_with_declared_lib.dart" as setterInPart1;
+import "org-dartlang-testcase:///prefix_conflict_with_declared_lib.dart" as setterInPart2;
+import "org-dartlang-testcase:///prefix_conflict_with_declared_lib.dart" as setterInPart3;
+import "org-dartlang-testcase:///prefix_conflict_with_declared_lib.dart" as declared;
+import "org-dartlang-testcase:///prefix_conflict_with_declared_lib.dart" as declaredInMain;
+import "org-dartlang-testcase:///prefix_conflict_with_declared_lib.dart" as declaredInPart1;
+import "org-dartlang-testcase:///prefix_conflict_with_declared_lib.dart" as declaredInPart2;
+import "org-dartlang-testcase:///prefix_conflict_with_declared_lib.dart" as declaredInPart3;
+import "org-dartlang-testcase:///prefix_conflict_with_declared_lib.dart" as setterInMain;
+import "org-dartlang-testcase:///prefix_conflict_with_declared_lib.dart" as setterInPart1;
+import "org-dartlang-testcase:///prefix_conflict_with_declared_lib.dart" as setterInPart2;
+import "org-dartlang-testcase:///prefix_conflict_with_declared_lib.dart" as setterInPart3;
+
+part prefix_conflict_with_declared_part1.dart;
+part prefix_conflict_with_declared_part3.dart;
+part prefix_conflict_with_declared_part2.dart;
+static method declaredInMain() → void {}
+static set setterInMain(wildcard dynamic _#wc0#formal) → void {}
+static method /* from org-dartlang-testcase:///prefix_conflict_with_declared_part1.dart */ declaredInPart1() → void {}
+static set /* from org-dartlang-testcase:///prefix_conflict_with_declared_part1.dart */ setterInPart1(wildcard dynamic _#wc0#formal) → void {}
+static method /* from org-dartlang-testcase:///prefix_conflict_with_declared_part2.dart */ declaredInPart2() → void {}
+static set /* from org-dartlang-testcase:///prefix_conflict_with_declared_part2.dart */ setterInPart2(wildcard dynamic _#wc0#formal) → void {}
+static method /* from org-dartlang-testcase:///prefix_conflict_with_declared_part3.dart */ declaredInPart3() → void {}
+static set /* from org-dartlang-testcase:///prefix_conflict_with_declared_part3.dart */ setterInPart3(wildcard dynamic _#wc0#formal) → void {}
+
+library;
+import self as self2;
