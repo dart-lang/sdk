@@ -214,14 +214,8 @@ class DocumentationValidator {
 
   /// Validate the documentation.
   Future<void> validate() async {
-    for (var classEntry in analyzerMessages.entries) {
-      var errorClass = classEntry.key;
-      await _validateMessages(errorClass, classEntry.value);
-    }
-    for (var classEntry in lintMessages.entries) {
-      var errorClass = classEntry.key;
-      await _validateMessages(errorClass, classEntry.value);
-    }
+    await _validateMessages(analyzerMessages);
+    await _validateMessages(lintMessages);
     ErrorClassInfo? errorClassIncludingCfeMessages;
     for (var errorClass in errorClasses) {
       if (errorClass.includeCfeMessages) {
@@ -233,7 +227,6 @@ class DocumentationValidator {
         }
         errorClassIncludingCfeMessages = errorClass;
         await _validateMessages(
-          errorClass.name,
           sharedToAnalyzerErrorCodeTables.analyzerCodeToInfo,
         );
       }
@@ -355,11 +348,9 @@ class DocumentationValidator {
     }
   }
 
-  /// Extract documentation from the given [messages], which are error messages
-  /// destined for the class [className].
+  /// Extract documentation from the given [messages].
   Future<void> _validateMessages(
-    String className,
-    Map<String, ErrorCodeInfo> messages,
+    Map<AnalyzerCode, ErrorCodeInfo> messages,
   ) async {
     for (var errorEntry in messages.entries) {
       var errorName = errorEntry.key;
@@ -371,12 +362,12 @@ class DocumentationValidator {
         continue;
       }
       var docs = parseErrorCodeDocumentation(
-        '$className.$errorName',
+        errorName.toString(),
         errorCodeInfo.documentation,
       );
       if (docs != null) {
-        codeName = errorCodeInfo.sharedName ?? errorName;
-        variableName = '$className.$errorName';
+        codeName = errorCodeInfo.sharedName ?? errorName.snakeCaseErrorName;
+        variableName = errorName.toString();
         if (unverifiedDocs.contains(variableName)) {
           continue;
         }
@@ -394,7 +385,7 @@ class DocumentationValidator {
         }
         for (int i = 0; i < exampleSnippets.length; i++) {
           _SnippetData snippet = exampleSnippets[i];
-          if (className == 'LintCode') {
+          if (errorName.className == 'LintCode') {
             snippet.lintCode = codeName;
           }
           await _validateSnippet('example', i, snippet);
@@ -409,7 +400,7 @@ class DocumentationValidator {
           if (firstExample != null) {
             snippet.auxiliaryFiles.addAll(firstExample.auxiliaryFiles);
           }
-          if (className == 'LintCode') {
+          if (errorName.className == 'LintCode') {
             snippet.lintCode = codeName;
           }
           await _validateSnippet('fixes', i, snippet);

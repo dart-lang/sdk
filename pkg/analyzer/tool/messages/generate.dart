@@ -19,10 +19,8 @@ library;
 import 'dart:convert';
 
 import 'package:analyzer_testing/package_root.dart' as pkg_root;
-import 'package:analyzer_utilities/extensions/string.dart';
 import 'package:analyzer_utilities/messages.dart';
 import 'package:analyzer_utilities/tools.dart';
-import 'package:collection/collection.dart';
 
 import 'error_code_info.dart';
 
@@ -40,7 +38,7 @@ List<GeneratedContent> _analyzerGeneratedFiles() {
   for (var errorClassInfo in errorClasses) {
     (classesByFile[errorClassInfo.file] ??= []).add(errorClassInfo);
   }
-  var generatedCodes = <(String, String)>[];
+  var generatedCodes = <AnalyzerCode>[];
   return [
     for (var entry in classesByFile.entries)
       GeneratedFile(entry.key.path, (pkgRoot) async {
@@ -68,7 +66,7 @@ class _AnalyzerErrorGenerator {
 
   final List<ErrorClassInfo> errorClasses;
 
-  final List<(String, String)> generatedCodes;
+  final List<AnalyzerCode> generatedCodes;
 
   final StringBuffer out = StringBuffer('''
 // Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
@@ -122,19 +120,25 @@ part of ${json.encode(file.parentLibrary)};
         'class ${errorClass.name} extends DiagnosticCodeWithExpectedTypes {',
       );
       var memberAccumulator = MemberAccumulator();
-      var entries = [
-        ...analyzerMessages[errorClass.name]!.entries,
-        if (errorClass.includeCfeMessages)
-          ...sharedToAnalyzerErrorCodeTables.analyzerCodeToInfo.entries,
-      ].where((error) => !error.value.isRemoved);
+      var entries =
+          [
+            ...analyzerMessages.entries,
+            if (errorClass.includeCfeMessages)
+              ...sharedToAnalyzerErrorCodeTables.analyzerCodeToInfo.entries,
+          ].where(
+            (error) =>
+                error.key.className == errorClass.name &&
+                !error.value.isRemoved,
+          );
       for (var entry in entries) {
-        var errorName = entry.key;
+        var errorCode = entry.key;
+        var errorName = errorCode.snakeCaseErrorName;
         var errorCodeInfo = entry.value;
 
         try {
           if (errorCodeInfo is! AliasErrorCodeInfo &&
               errorClass.includeInDiagnosticCodeValues) {
-            generatedCodes.add((errorClass.name, errorName));
+            generatedCodes.add(errorCode);
           }
           errorCodeInfo.toAnalyzerCode(
             errorClass,
@@ -195,9 +199,14 @@ DiagnosticType get type => ${errorClass.typeCode};
   void _generateFastaAnalyzerErrorCodeList() {
     out.writeln('final fastaAnalyzerErrorCodes = <DiagnosticCode?>[');
     for (var entry in sharedToAnalyzerErrorCodeTables.indexToInfo) {
-      var name = sharedToAnalyzerErrorCodeTables.infoToAnalyzerCode[entry]
-          ?.toCamelCase();
-      out.writeln('${name == null ? 'null' : 'ParserErrorCode.$name'},');
+      if (sharedToAnalyzerErrorCodeTables.infoToAnalyzerCode[entry]
+          case var analyzerCode?) {
+        out.writeln(
+          '${analyzerCode.className}.${analyzerCode.camelCaseErrorName},',
+        );
+      } else {
+        out.writeln('null,');
+      }
     }
     out.writeln('];');
   }
@@ -237,7 +246,7 @@ DiagnosticType get type => ${errorClass.typeCode};
 }
 
 class _DiagnosticCodeValuesGenerator {
-  final List<(String, String)> generatedCodes;
+  final List<AnalyzerCode> generatedCodes;
 
   final StringBuffer out = StringBuffer('''
 // Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
@@ -261,7 +270,7 @@ class _DiagnosticCodeValuesGenerator {
   _DiagnosticCodeValuesGenerator(this.generatedCodes);
 
   void generate() {
-    generatedCodes.sortBy((x) => '${x.$1}.${x.$2}');
+    generatedCodes.sort();
 
     out.writeln();
     out.writeln(r'''
@@ -278,9 +287,9 @@ import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
       "@AnalyzerPublicApi(message: 'exported by lib/error/error.dart')",
     );
     out.writeln('const List<DiagnosticCode> diagnosticCodeValues = [');
-    for (var (className, errorName) in generatedCodes) {
-      errorName = errorName.toCamelCase();
-      out.writeln('  $className.$errorName,');
+    for (var analyzerCode in generatedCodes) {
+      var errorName = analyzerCode.camelCaseErrorName;
+      out.writeln('  ${analyzerCode.className}.$errorName,');
     }
     out.writeln('];');
     out.writeln();

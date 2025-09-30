@@ -158,7 +158,7 @@ const transformSetErrorCodeFile = GeneratedErrorCodeFile(
 );
 
 /// Decoded messages from the analyzer's `messages.yaml` file.
-final Map<String, Map<String, AnalyzerErrorCodeInfo>> analyzerMessages =
+final Map<AnalyzerCode, AnalyzerErrorCodeInfo> analyzerMessages =
     _loadAnalyzerMessages();
 
 /// The path to the `analyzer` package.
@@ -170,13 +170,11 @@ final String analyzerPkgPath = normalize(
 final String linterPkgPath = normalize(join(pkg_root.packageRoot, 'linter'));
 
 /// Decoded messages from the linter's `messages.yaml` file.
-final Map<String, Map<String, AnalyzerErrorCodeInfo>> lintMessages =
+final Map<AnalyzerCode, AnalyzerErrorCodeInfo> lintMessages =
     _loadLintMessages();
 
-/// Decodes a YAML object (obtained from a `messages.yaml` file) into a
-/// two-level map of [ErrorCodeInfo], indexed first by class name and then by
-/// error name.
-Map<String, Map<String, AnalyzerErrorCodeInfo>> decodeAnalyzerMessagesYaml(
+/// Decodes a YAML object (obtained from a `messages.yaml` file) into a map.
+Map<AnalyzerCode, AnalyzerErrorCodeInfo> decodeAnalyzerMessagesYaml(
   String packagePath,
 ) {
   var yaml =
@@ -186,7 +184,7 @@ Map<String, Map<String, AnalyzerErrorCodeInfo>> decodeAnalyzerMessagesYaml(
     throw 'Problem in $packagePath/messages.yaml: $message';
   }
 
-  var result = <String, Map<String, AnalyzerErrorCodeInfo>>{};
+  var result = <AnalyzerCode, AnalyzerErrorCodeInfo>{};
   if (yaml is! Map<Object?, Object?>) {
     problem('root node is not a map');
   }
@@ -217,8 +215,13 @@ Map<String, Map<String, AnalyzerErrorCodeInfo>> decodeAnalyzerMessagesYaml(
 
       AnalyzerErrorCodeInfo errorCodeInfo;
       try {
-        errorCodeInfo = (result[className] ??= {})[errorName] =
-            AnalyzerErrorCodeInfo.fromYaml(errorValue);
+        errorCodeInfo =
+            result[AnalyzerCode(
+              className: className,
+              snakeCaseErrorName: errorName,
+            )] = AnalyzerErrorCodeInfo.fromYaml(
+              errorValue,
+            );
       } catch (e, st) {
         Error.throwWithStackTrace(
           'while processing $className.$errorName, $e',
@@ -252,11 +255,11 @@ Map<String, Map<String, AnalyzerErrorCodeInfo>> decodeAnalyzerMessagesYaml(
 }
 
 /// Loads analyzer messages from the analyzer's `messages.yaml` file.
-Map<String, Map<String, AnalyzerErrorCodeInfo>> _loadAnalyzerMessages() =>
+Map<AnalyzerCode, AnalyzerErrorCodeInfo> _loadAnalyzerMessages() =>
     decodeAnalyzerMessagesYaml(analyzerPkgPath);
 
 /// Loads linter messages from the linter's `messages.yaml` file.
-Map<String, Map<String, AnalyzerErrorCodeInfo>> _loadLintMessages() =>
+Map<AnalyzerCode, AnalyzerErrorCodeInfo> _loadLintMessages() =>
     decodeAnalyzerMessagesYaml(linterPkgPath);
 
 /// An [AnalyzerErrorCodeInfo] which is an alias for another, for incremental

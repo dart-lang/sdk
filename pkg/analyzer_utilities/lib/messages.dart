@@ -173,12 +173,69 @@ List<String> _splitText(
   return lines;
 }
 
+/// An analyzer error code, consisting of an optional class name and an error
+/// name.
+///
+/// This class implements [operator==] and [hashCode] so it can be used as a map
+/// key or in a set.
+///
+/// This class implements [Comparable], so lists of it can be safely
+/// [List.sort]ed.
+class AnalyzerCode implements Comparable<AnalyzerCode> {
+  /// The class name, or `null` if no class name was specified.
+  ///
+  // TODO(paulberry): change `messages.yaml` so that a class name is always
+  // specified.
+  final String? className;
+
+  /// The error name.
+  ///
+  /// The error name is in "snake case", meaning it consists of words separated
+  /// by underscores. Those words might be lower case or upper case.
+  ///
+  // TODO(paulberry): change `messages.yaml` to consistently use lower snake
+  // case.
+  final String snakeCaseErrorName;
+
+  AnalyzerCode({required this.className, required this.snakeCaseErrorName});
+
+  /// The error name, converted to camel case.
+  String get camelCaseErrorName => snakeCaseErrorName.toCamelCase();
+
+  @override
+  int get hashCode => Object.hash(className, snakeCaseErrorName);
+
+  @override
+  bool operator ==(Object other) =>
+      other is AnalyzerCode &&
+      className == other.className &&
+      snakeCaseErrorName == other.snakeCaseErrorName;
+
+  @override
+  int compareTo(AnalyzerCode other) {
+    var className = this.className;
+    var otherClassName = other.className;
+    if (className == null) {
+      if (otherClassName != null) return -1;
+    } else if (otherClassName == null) {
+      return 1;
+    } else if (className.compareTo(otherClassName) case var result
+        when result != 0) {
+      return result;
+    }
+    return snakeCaseErrorName.compareTo(other.snakeCaseErrorName);
+  }
+
+  @override
+  String toString() => [?className, snakeCaseErrorName].join('.');
+}
+
 /// In-memory representation of error code information obtained from a
 /// `messages.yaml` file in `pkg/front_end` or `pkg/_fe_analyzer_shared`.
 abstract class CfeStyleErrorCodeInfo extends ErrorCodeInfo {
   /// The set of analyzer error codes that corresponds to this error code, if
   /// any.
-  final List<String> analyzerCodes;
+  final List<AnalyzerCode> analyzerCodes;
 
   /// The index of the error in the analyzer's `fastaAnalyzerErrorCodes` table.
   final int? index;
@@ -188,7 +245,7 @@ abstract class CfeStyleErrorCodeInfo extends ErrorCodeInfo {
   final String? cfeSeverity;
 
   CfeStyleErrorCodeInfo.fromYaml(YamlMap yaml)
-    : analyzerCodes = _decodeAnalyzerCode(yaml['analyzerCode']),
+    : analyzerCodes = _decodeAnalyzerCodes(yaml['analyzerCode']),
       index = _decodeIndex(yaml['index']),
       cfeSeverity = _decodeSeverity(yaml['severity']),
       super.fromYaml(yaml) {
@@ -197,13 +254,31 @@ abstract class CfeStyleErrorCodeInfo extends ErrorCodeInfo {
     }
   }
 
-  static List<String> _decodeAnalyzerCode(Object? value) {
+  static AnalyzerCode _decodeAnalyzerCode(String s) {
+    switch (s.split('.')) {
+      case [var errorName] when errorName == errorName.toUpperCase():
+        return AnalyzerCode(className: null, snakeCaseErrorName: errorName);
+      case [var className, var errorName]
+          when errorName == errorName.toUpperCase():
+        return AnalyzerCode(
+          className: className,
+          snakeCaseErrorName: errorName,
+        );
+      default:
+        throw StateError(
+          'Analyzer codes must take the form DIAGNOSTIC_NAME or '
+          'ClassName.DIAGNOSTIC_NAME. Found ${json.encode(s)} instead.',
+        );
+    }
+  }
+
+  static List<AnalyzerCode> _decodeAnalyzerCodes(Object? value) {
     if (value == null) {
       return const [];
     } else if (value is String) {
-      return [value];
+      return [_decodeAnalyzerCode(value)];
     } else if (value is List) {
-      return [for (var s in value) s as String];
+      return [for (var s in value) _decodeAnalyzerCode(s as String)];
     } else {
       throw 'Unrecognized analyzer code: $value';
     }
@@ -974,7 +1049,7 @@ class SharedErrorCodeInfo extends CfeStyleErrorCodeInfo {
   ///
   /// Shared error codes are required to have exactly one analyzer error code
   /// associated with them.
-  String get analyzerCode => analyzerCodes.single;
+  AnalyzerCode get analyzerCode => analyzerCodes.single;
 
   /// The index of the error in the analyzer's `fastaAnalyzerErrorCodes` table.
   ///
@@ -992,9 +1067,8 @@ class SharedToAnalyzerErrorCodeTables {
 
   /// Map whose values are the shared errors for which analyzer errors should be
   /// automatically generated, and whose keys are the corresponding analyzer
-  /// error name.  (Names are simple identifiers; they are not prefixed by the
-  /// class name `ParserErrorCode`)
-  final Map<String, SharedErrorCodeInfo> analyzerCodeToInfo = {};
+  /// error code.
+  final Map<AnalyzerCode, SharedErrorCodeInfo> analyzerCodeToInfo = {};
 
   /// Map whose values are the shared errors for which analyzer errors should be
   /// automatically generated, and whose keys are the front end error name.
@@ -1002,9 +1076,8 @@ class SharedToAnalyzerErrorCodeTables {
 
   /// Map whose keys are the shared errors for which analyzer errors should be
   /// automatically generated, and whose values are the corresponding analyzer
-  /// error name.  (Names are simple identifiers; they are not prefixed by the
-  /// class name `ParserErrorCode`)
-  final Map<SharedErrorCodeInfo, String> infoToAnalyzerCode = {};
+  /// error name.
+  final Map<SharedErrorCodeInfo, AnalyzerCode> infoToAnalyzerCode = {};
 
   /// Map whose keys are the shared errors for which analyzer errors should be
   /// automatically generated, and whose values are the front end error name.
@@ -1033,14 +1106,15 @@ dart pkg/front_end/tool/generate_messages.dart
       indexToInfo[index] = errorCodeInfo;
       frontEndCodeToInfo[frontEndCode] = errorCodeInfo;
       infoToFrontEndCode[errorCodeInfo] = frontEndCode;
-      var analyzerCodeLong = errorCodeInfo.analyzerCode;
-      var expectedPrefix = 'ParserErrorCode.';
-      if (!analyzerCodeLong.startsWith(expectedPrefix)) {
+      var analyzerCode = errorCodeInfo.analyzerCode;
+      // TODO(paulberry): allow shared errors to be things other than parser
+      // errors. See `ErrorClassInfo.includeCfeMessages`.
+      var expectedClassName = 'ParserErrorCode';
+      if (analyzerCode.className != expectedClassName) {
         throw 'Expected all analyzer error codes to be prefixed with '
-            '${json.encode(expectedPrefix)}.  Found '
-            '${json.encode(analyzerCodeLong)}.';
+            '${json.encode('$expectedClassName.')}.  Found '
+            '${json.encode(analyzerCode.toString())}.';
       }
-      var analyzerCode = analyzerCodeLong.substring(expectedPrefix.length);
       infoToAnalyzerCode[errorCodeInfo] = analyzerCode;
       var previousEntryForAnalyzerCode = analyzerCodeToInfo[analyzerCode];
       if (previousEntryForAnalyzerCode != null) {

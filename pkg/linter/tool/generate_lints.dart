@@ -35,9 +35,10 @@ const linterLintCodeInfo = ErrorClassInfo(
   type: 'LINT',
 );
 
-GeneratedFile get generatedCodesFile =>
-    GeneratedFile(generatedCodesPath, (pkgRoot) async {
-      var out = StringBuffer('''
+GeneratedFile get generatedCodesFile => GeneratedFile(generatedCodesPath, (
+  pkgRoot,
+) async {
+  var out = StringBuffer('''
 // Copyright (c) 2024, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -60,22 +61,21 @@ part of 'lint_codes.dart';
 
 class LinterLintCode extends LintCodeWithExpectedTypes {
 ''');
-      var memberAccumulator = MemberAccumulator();
-      for (var MapEntry(key: errorName, value: codeInfo)
-          in lintMessages['LintCode']!.entries) {
-        var lintName = codeInfo.sharedName ?? errorName;
-        if (messagesRuleInfo[lintName]!.removed) continue;
-        codeInfo.toAnalyzerCode(
-          linterLintCodeInfo,
-          errorName,
-          sharedNameReference: 'LintNames.$lintName',
-          memberAccumulator: memberAccumulator,
-        );
-      }
+  var memberAccumulator = MemberAccumulator();
+  for (var MapEntry(key: errorName, value: codeInfo) in lintMessages.entries) {
+    var lintName = codeInfo.sharedName ?? errorName.snakeCaseErrorName;
+    if (messagesRuleInfo[lintName]!.removed) continue;
+    codeInfo.toAnalyzerCode(
+      linterLintCodeInfo,
+      errorName.snakeCaseErrorName,
+      sharedNameReference: 'LintNames.$lintName',
+      memberAccumulator: memberAccumulator,
+    );
+  }
 
-      var removedLintName = 'removedLint';
-      memberAccumulator.constants[removedLintName] =
-          '''
+  var removedLintName = 'removedLint';
+  memberAccumulator.constants[removedLintName] =
+      '''
   /// A lint code that removed lints can specify as their `lintCode`.
   ///
   /// Avoid other usages as it should be made unnecessary and removed.
@@ -86,7 +86,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 ''';
 
-      memberAccumulator.constructors[''] = '''
+  memberAccumulator.constructors[''] = '''
   const LinterLintCode(
     super.name,
     super.problemMessage, {
@@ -97,7 +97,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   }) : super(uniqueName: 'LintCode.\${uniqueName ?? name}');
 ''';
 
-      memberAccumulator.accessors['url'] = '''
+  memberAccumulator.accessors['url'] = '''
   @override
   String get url {
     if (hasPublishedDocs) {
@@ -106,10 +106,10 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
     return 'https://dart.dev/lints/\$name';
   }
 ''';
-      memberAccumulator.writeTo(out);
-      out.writeln('}');
+  memberAccumulator.writeTo(out);
+  out.writeln('}');
 
-      out.write('''
+  out.write('''
 
 final class LinterLintTemplate<T extends Function> extends LinterLintCode {
   final T withArguments;
@@ -139,8 +139,8 @@ final class LinterLintWithoutArguments extends LinterLintCode
   });
 }
 ''');
-      return out.toString();
-    });
+  return out.toString();
+});
 
 GeneratedFile get generatedNamesFile =>
     GeneratedFile(generatedNamesPath, (pkgRoot) async {
