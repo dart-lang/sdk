@@ -106,7 +106,7 @@ testFineAfterLibraryAnalyzerHook;
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 568;
+  static const int DATA_VERSION = 569;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -277,22 +277,6 @@ class AnalysisDriver {
 
   /// Whether timing data should be gathered during lint rule execution.
   final bool _enableLintRuleTiming;
-
-  /// The last known diagnostics bundle for a library.
-  ///
-  /// It might be still valid, but might be not.
-  /// We check its requirements to decide.
-  ///
-  /// We keep it in memory for performance. There are cases when we edit a
-  /// file with many transitive clients, and we don't want to deserialize
-  /// requirements every time. They are almost always satisfied, so we don't
-  /// analyze libraries, and so deserialization cost would dominate.
-  ///
-  /// There might be a way in the future to collapse these requirements to
-  /// reduce heap usage.
-  ///
-  /// Key: [_getLibraryDiagnosticsKey]
-  final Map<String, LibraryDiagnosticsBundle> _libraryDiagnosticsCache = {};
 
   /// Create a new instance of [AnalysisDriver].
   ///
@@ -1453,18 +1437,14 @@ class AnalysisDriver {
           requirements.removeReqForLibs({library.file.uri});
 
           performance.run('writeLibraryDiagnostics', (performance) {
-            var bundle = LibraryDiagnosticsBundle(
+            var key = _getLibraryDiagnosticsKey(library);
+            LibraryDiagnosticsBundle.write(
+              byteStore: _byteStore,
+              key: key,
               requirements: requirements!,
               serializedFileResults: serializedFileResults,
+              performance: performance,
             );
-            bundle.addValidated(library.libraryCycle.apiSignature);
-
-            var key = _getLibraryDiagnosticsKey(library);
-            _libraryDiagnosticsCache[key] = bundle;
-
-            var bytes = bundle.toBytes();
-            performance.getDataInt('bytes').add(bytes.length);
-            _byteStore.putGet(key, bytes);
           });
 
           _scheduler.eventsController.add(
@@ -1885,38 +1865,38 @@ class AnalysisDriver {
     required OperationPerformanceImpl performance,
   }) {
     return performance.run('getLibraryDiagnosticsBundle', (performance) {
-      var key = _getLibraryDiagnosticsKey(library);
-      var bundle = _libraryDiagnosticsCache[key];
-
-      var apiSignature = library.libraryCycle.apiSignature;
-      if (bundle != null && bundle.isValidated(apiSignature)) {
-        performance.getDataInt('apiSignature').increment();
-        return bundle;
-      }
+      var bundle = performance.run('readFromBytes', (performance) {
+        var key = _getLibraryDiagnosticsKey(library);
+        var bytes = _byteStore.get(key);
+        if (bytes != null) {
+          performance.getDataInt('hasBytes').increment();
+          performance.getDataInt('bytes').add(bytes.length);
+          return LibraryDiagnosticsBundle.fromBytes(bytes);
+        } else {
+          performance.getDataInt('noBytes').increment();
+        }
+        return null;
+      });
 
       if (bundle == null) {
-        bundle = performance.run('readFromBytes', (performance) {
-          var bytes = _byteStore.get(key);
-          if (bytes != null) {
-            performance.getDataInt('hasBytes').increment();
-            performance.getDataInt('bytes').add(bytes.length);
-            return LibraryDiagnosticsBundle.fromBytes(bytes);
-          } else {
-            performance.getDataInt('noBytes').increment();
-          }
-          return null;
-        });
-        if (bundle == null) {
-          return null;
-        }
-        _libraryDiagnosticsCache[key] = bundle;
+        return null;
       }
 
       var elementFactory = libraryContext.elementFactory;
-      var failure = bundle.requirements.isSatisfied(
-        elementFactory: elementFactory,
-        performance: performance,
-      );
+      var digestSatisfied = performance.run('checkDigest', (performance) {
+        return bundle.requirementsDigest.isSatisfied(elementFactory);
+      });
+      if (digestSatisfied) {
+        return bundle;
+      }
+
+      var failure = performance.run('checkRequirements', (performance) {
+        return bundle.requirements.isSatisfied(
+          elementFactory: elementFactory,
+          performance: performance,
+        );
+      });
+
       scheduler.eventsController.add(
         events.CheckLibraryDiagnosticsRequirements(
           library: library,
@@ -1924,7 +1904,6 @@ class AnalysisDriver {
         ),
       );
       if (failure == null) {
-        bundle.addValidated(apiSignature);
         return bundle;
       }
       return null;

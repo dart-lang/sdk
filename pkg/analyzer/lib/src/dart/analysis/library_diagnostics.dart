@@ -6,7 +6,9 @@ import 'dart:typed_data';
 
 import 'package:analyzer/src/binary/binary_reader.dart';
 import 'package:analyzer/src/binary/binary_writer.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/fine/requirements.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 /// The diagnostics for a library, and the requirements for using them.
 ///
@@ -16,26 +18,21 @@ import 'package:analyzer/src/fine/requirements.dart';
 /// requirements are satisfied. If they are, we can reuse the diagnostics.
 /// Otherwise, we need to re-analyze the library.
 class LibraryDiagnosticsBundle {
-  final RequirementsManifest requirements;
-
-  /// The last API signature that we have checked.
-  String? _validatedApiSignature;
+  final RequirementsManifestDigest requirementsDigest;
+  final Uint8List requirementsBytes;
+  RequirementsManifest? _requirements;
 
   /// A map from the URI of a file in the library to the serialized bytes of
   /// its analysis results. The bytes represent an `AnalysisDriverResolvedUnit`,
   /// which includes diagnostics and the index.
   final Map<Uri, Uint8List> serializedFileResults;
 
-  LibraryDiagnosticsBundle({
-    required this.requirements,
-    required this.serializedFileResults,
-  });
-
   factory LibraryDiagnosticsBundle.fromBytes(Uint8List bytes) {
     var reader = BinaryReader(bytes);
     reader.initFromTableTrailer();
-    return LibraryDiagnosticsBundle(
-      requirements: RequirementsManifest.read(reader),
+    return LibraryDiagnosticsBundle._(
+      requirementsDigest: RequirementsManifestDigest.read(reader),
+      requirementsBytes: reader.readUint8List(),
       serializedFileResults: reader.readMap(
         readKey: () => reader.readUri(),
         readValue: () => reader.readUint8List(),
@@ -43,23 +40,41 @@ class LibraryDiagnosticsBundle {
     );
   }
 
-  void addValidated(String apiSignature) {
-    _validatedApiSignature = apiSignature;
+  LibraryDiagnosticsBundle._({
+    required this.requirementsDigest,
+    required this.requirementsBytes,
+    required this.serializedFileResults,
+  });
+
+  RequirementsManifest get requirements {
+    return _requirements ??= RequirementsManifest.fromBytes(requirementsBytes);
   }
 
-  bool isValidated(String apiSignature) {
-    return _validatedApiSignature == apiSignature;
-  }
-
-  Uint8List toBytes() {
+  static void write({
+    required ByteStore byteStore,
+    required String key,
+    required RequirementsManifest requirements,
+    required Map<Uri, Uint8List> serializedFileResults,
+    required OperationPerformanceImpl performance,
+  }) {
     var writer = BinaryWriter();
-    requirements.write(writer);
+
+    var requirementsDigest = requirements.toDigest();
+    requirementsDigest.write(writer);
+
+    var requirementsBytes = requirements.toBytes();
+    writer.writeUint8List(requirementsBytes);
+
     writer.writeMap(
       serializedFileResults,
       writeKey: (uri) => writer.writeUri(uri),
       writeValue: (bytes) => writer.writeUint8List(bytes),
     );
+
     writer.writeTableTrailer();
-    return writer.takeBytes();
+    var bytes = writer.takeBytes();
+
+    performance.getDataInt('bytes').add(bytes.length);
+    byteStore.putGet(key, bytes);
   }
 }
