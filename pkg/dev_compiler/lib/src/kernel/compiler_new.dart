@@ -873,6 +873,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   final FutureOrNormalizer _futureOrNormalizer;
 
   bool _inFunctionExpression = false;
+  bool _inAsyncExpression = false;
 
   /// Returns whether or not [uri] can be hot reloaded.
   ///
@@ -5072,8 +5073,14 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   js_ast.Statement _emitFunctionScopedBody(FunctionNode f) {
+    var savedInAsyncExpression = _inAsyncExpression;
+    if (f.asyncMarker != AsyncMarker.Sync) {
+      _inAsyncExpression = true;
+    }
     var jsBody = _visitStatement(f.body!);
-    return _emitScopedBody(f, jsBody);
+    var body = _emitScopedBody(f, jsBody);
+    _inAsyncExpression = savedInAsyncExpression;
+    return body;
   }
 
   js_ast.Statement _emitScopedBody(FunctionNode f, js_ast.Statement body) {
@@ -7732,7 +7739,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// include checks to preserve soundness in the presence of hot reloads at
   /// runtime.
   bool _shouldRewriteInvocationWithHotReloadChecks(Member target) =>
-      _inFunctionExpression &&
+      (_inFunctionExpression || _inAsyncExpression) &&
       !_isBuildingSdk &&
       !usesJSInterop(target) &&
       target != _assertInteropMethod;
