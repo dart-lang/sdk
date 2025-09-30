@@ -584,7 +584,7 @@ abstract class AnalysisServer {
     const M = 1024 * 1024 /*1 MiB*/;
     const G = 1024 * 1024 * 1024 /*1 GiB*/;
 
-    const memoryCacheSize = 128 * M;
+    const memoryCacheSize = 256 * M;
 
     if (providedByteStore case var providedByteStore?) {
       return providedByteStore;
