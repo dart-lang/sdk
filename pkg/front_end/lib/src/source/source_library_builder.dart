@@ -1770,9 +1770,15 @@ class LibraryAccess {
   LibraryAccess(this.accessor, this.fileUri, this.charOffset, this.length);
 }
 
+/// Information about a part directive.
 class Part {
+  /// The file URI at which the part directive occurs.
   final Uri fileUri;
+
+  /// The file offset at which the part directive occurs.
   final int fileOffset;
+
+  /// The [CompilationUnit] referenced by the part directive.
   final CompilationUnit compilationUnit;
 
   Part({

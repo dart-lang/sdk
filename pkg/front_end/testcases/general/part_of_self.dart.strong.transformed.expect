@@ -2,7 +2,9 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/part_of_self.dart: Error: A file can't be a part of itself.
+// pkg/front_end/testcases/general/part_of_self.dart:5:6: Error: A file can't be a part of itself.
+// part 'part_of_self.dart';
+//      ^
 //
 import self as self;
 

@@ -764,14 +764,14 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     for (Part part in _compilationUnitData.parts) {
       // TODO(johnniwinther): Use [part.offset] in messages.
       if (part.compilationUnit == this) {
-        addProblem(codePartOfSelf, -1, noLength, fileUri);
+        addProblem(codePartOfSelf, part.fileOffset, noLength, part.fileUri);
       } else if (seenParts.add(part.compilationUnit.fileUri)) {
         if (part.compilationUnit.partOfLibrary != null) {
           addProblem(
             codePartOfTwoLibraries,
-            -1,
+            part.fileOffset,
             noLength,
-            part.compilationUnit.fileUri,
+            part.fileUri,
             context: [
               codePartOfTwoLibrariesContext.withLocation(
                 part.compilationUnit.partOfLibrary!.fileUri,
@@ -797,9 +797,9 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       } else {
         addProblem(
           codePartTwice.withArgumentsOld(part.compilationUnit.fileUri),
-          -1,
+          part.fileOffset,
           noLength,
-          fileUri,
+          part.fileUri,
         );
       }
     }

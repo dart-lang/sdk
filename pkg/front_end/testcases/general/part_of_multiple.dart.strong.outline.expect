@@ -14,8 +14,10 @@ library part_of_multiple;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/part_of_multiple_part.dart: Error: A file can't be part of more than one library.
+// pkg/front_end/testcases/general/part_of_multiple_lib2.dart:7:6: Error: A file can't be part of more than one library.
 // Try moving the shared declarations into the libraries, or into a new library.
+// part 'part_of_multiple_part.dart';
+//      ^
 // pkg/front_end/testcases/general/part_of_multiple_lib1.dart: Context: Used as a part in this library.
 // pkg/front_end/testcases/general/part_of_multiple_lib2.dart: Context: Used as a part in this library.
 //
