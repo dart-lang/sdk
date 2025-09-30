@@ -327,16 +327,6 @@ _nightly_builder(
     category = "vm|misc|sanitizer|a",
 )
 _nightly_builder(
-    "vm-asan-mac-release-x64",
-    category = "vm|misc|sanitizer|a",
-    dimensions = [mac],
-)
-_nightly_builder(
-    "vm-asan-win-release-x64",
-    category = "vm|misc|sanitizer|a",
-    dimensions = [windows],
-)
-_nightly_builder(
     "vm-msan-linux-release-x64",
     category = "vm|misc|sanitizer|m",
 )
@@ -364,15 +354,36 @@ _nightly_builder(
     dimensions = [arm64],
 )
 _nightly_builder(
+    "vm-ubsan-linux-release-arm64",
+    category = "vm|misc|sanitizer|u",
+    dimensions = [arm64],
+)
+_nightly_builder(
+    "vm-asan-mac-release-arm64",
+    category = "vm|misc|sanitizer|a",
+    dimensions = [mac, arm64],
+)
+_nightly_builder(
     "vm-tsan-mac-release-arm64",
     category = "vm|misc|sanitizer|t",
     dimensions = [mac, arm64],
 )
 _nightly_builder(
-    "vm-ubsan-linux-release-arm64",
+    "vm-ubsan-mac-release-arm64",
     category = "vm|misc|sanitizer|u",
-    dimensions = [arm64],
+    dimensions = [mac, arm64],
 )
+_nightly_builder(
+    "vm-asan-win-release-x64",
+    category = "vm|misc|sanitizer|a",
+    dimensions = [windows],
+)
+_nightly_builder(
+    "vm-ubsan-win-release-x64",
+    category = "vm|misc|sanitizer|u",
+    dimensions = [windows],
+)
+
 _nightly_builder(
     "vm-reload-linux-debug-x64",
     category = "vm|misc|reload|d",
