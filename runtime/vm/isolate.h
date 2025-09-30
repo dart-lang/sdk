@@ -1195,6 +1195,9 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   void set_current_sample_block(SampleBlock* block) {
     current_sample_block_ = block;
   }
+  SampleBlock* exchange_current_sample_block(SampleBlock* block) {
+    return current_sample_block_.exchange(block, std::memory_order_acq_rel);
+  }
   void ProcessFreeSampleBlocks(Thread* thread);
 
   // Returns the current SampleBlock used to track Dart allocation samples.
@@ -1203,6 +1206,10 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   }
   void set_current_allocation_sample_block(SampleBlock* block) {
     current_allocation_sample_block_ = block;
+  }
+  SampleBlock* exchange_current_allocation_sample_block(SampleBlock* block) {
+    return current_allocation_sample_block_.exchange(block,
+                                                     std::memory_order_acq_rel);
   }
 
   bool TakeHasCompletedBlocks() {
