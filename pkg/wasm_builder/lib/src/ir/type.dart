@@ -785,7 +785,7 @@ class FunctionType extends DefType {
 
 /// A named deftype, i.e. `struct` or `array`.
 abstract class DataType extends DefType {
-  final String name;
+  String? name;
 
   DataType(this.name, {super.superType});
 
@@ -796,7 +796,7 @@ abstract class DataType extends DefType {
   HeapType get bottomType => HeapType.none;
 
   @override
-  String toString() => name;
+  String toString() => name ?? '<unnamed>';
 }
 
 /// A custom `struct` type.

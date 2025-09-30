@@ -75,6 +75,17 @@ class Serializer {
     writeByte(value);
   }
 
+  static int writeUnsignedByteCount(int value) {
+    assert(value >= 0);
+    int count = 0;
+    while (value >= 0x80) {
+      count++;
+      value >>= 7;
+    }
+    count++;
+    return count;
+  }
+
   static final ByteData _f32ByteData = ByteData(4);
   static final Uint8List _f32Uint8List = _f32ByteData.buffer.asUint8List();
   void writeF32(double value) {

@@ -12,7 +12,6 @@ class FunctionsBuilder with Builder<ir.Functions> {
   final _functionBuilders = <FunctionBuilder>[];
   final _importedFunctions = <ir.ImportedFunction>[];
   final _declaredFunctions = <ir.BaseFunction>{};
-  int _nameCount = 0;
   ir.BaseFunction? _start;
 
   FunctionsBuilder(this._moduleBuilder);
@@ -20,12 +19,6 @@ class FunctionsBuilder with Builder<ir.Functions> {
   set start(ir.BaseFunction init) {
     assert(_start == null);
     _start = init;
-  }
-
-  void _addName(String? name, ir.BaseFunction function) {
-    if (name != null) {
-      _nameCount++;
-    }
   }
 
   void collectUsedTypes(Set<ir.DefType> usedTypes) {
@@ -46,7 +39,6 @@ class FunctionsBuilder with Builder<ir.Functions> {
     final function =
         FunctionBuilder(_moduleBuilder, ir.FinalizableIndex(), type, name);
     _functionBuilders.add(function);
-    _addName(name, function);
     return function;
   }
 
@@ -56,7 +48,6 @@ class FunctionsBuilder with Builder<ir.Functions> {
     final function = ir.ImportedFunction(_moduleBuilder.module, module, name,
         ir.FinalizableIndex(), type, functionName);
     _importedFunctions.add(function);
-    _addName(functionName, function);
     return function;
   }
 
@@ -72,6 +63,6 @@ class FunctionsBuilder with Builder<ir.Functions> {
     final built = finalizeImportsAndBuilders<ir.DefinedFunction>(
         _importedFunctions, _functionBuilders);
     return ir.Functions(
-        _start, _importedFunctions, built, [..._declaredFunctions], _nameCount);
+        _start, _importedFunctions, built, [..._declaredFunctions]);
   }
 }

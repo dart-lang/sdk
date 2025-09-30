@@ -8,11 +8,5 @@ class Types {
   /// Types defined in this module.
   final List<List<DefType>> recursionGroups;
 
-  /// Number of types with names.
-  final int namedCount;
-
-  /// Number of types with field names.
-  final int typesWithNamedFieldsCount;
-
-  Types(this.recursionGroups, this.namedCount, this.typesWithNamedFieldsCount);
+  Types(this.recursionGroups);
 }
