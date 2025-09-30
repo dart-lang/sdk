@@ -6,12 +6,12 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
+import 'package:analyzer_utilities/analyzer_messages.dart';
 import 'package:analyzer_utilities/messages.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../tool/messages/error_code_documentation_info.dart';
-import '../tool/messages/error_code_info.dart';
 import 'src/dart/resolution/context_collection_resolution.dart';
 
 main() {

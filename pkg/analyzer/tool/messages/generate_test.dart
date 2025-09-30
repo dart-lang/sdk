@@ -6,10 +6,10 @@
 // date.
 
 import 'package:analyzer_testing/package_root.dart' as pkg_root;
+import 'package:analyzer_utilities/analyzer_messages.dart';
 import 'package:analyzer_utilities/generated_content_check.dart';
 import 'package:path/path.dart';
 
-import 'error_code_info.dart';
 import 'generate.dart';
 
 Future<void> main() async {
