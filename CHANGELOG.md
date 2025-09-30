@@ -1,6 +1,6 @@
 ## 3.9.4
 
-**Released on:**
+**Released on:** 2025-09-30
 
 #### Pub
 - `dart pub get --example` will now resolve example/ folders in the entire
