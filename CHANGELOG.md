@@ -1,3 +1,13 @@
+## 3.9.4
+
+**Released on:**
+
+#### Pub
+- `dart pub get --example` will now resolve example/ folders in the entire
+  workspace, not only in the root. This fixes:
+  https://github.com/dart-lang/pub/issues/4674 that made `flutter pub get`
+  crash if the examples had not been resolved before resolving the workspace.
+
 ## 3.9.3
 
 **Released on:** 2025-09-09
