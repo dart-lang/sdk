@@ -316,6 +316,16 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     for (var v in _elementUsageFrontierDetectors) {
       v.pushElement(element);
     }
+    // TODO(srawlins): Use _deprecatedFunctionalityVerifier to detect omitted
+    // super-parameters corresponding to `@Deprecated.optional` parameters.
+    // TODO(srawlins): Use _deprecatedFunctionalityVerifier to detect omitted
+    // parameters in a redirecting factory constructor.
+    for (var redirectingConstructorInvocation
+        in node.initializers.whereType<RedirectingConstructorInvocation>()) {
+      _deprecatedFunctionalityVerifier.redirectingConstructorInvocation(
+        redirectingConstructorInvocation,
+      );
+    }
     try {
       super.visitConstructorDeclaration(node);
     } finally {
@@ -864,6 +874,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     for (var v in _elementUsageFrontierDetectors) {
       v.superConstructorInvocation(node);
     }
+    _deprecatedFunctionalityVerifier.superConstructorInvocation(node);
     _invalidAccessVerifier.verifySuperConstructorInvocation(node);
     super.visitSuperConstructorInvocation(node);
   }

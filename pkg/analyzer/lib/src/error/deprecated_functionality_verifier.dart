@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -44,7 +45,7 @@ class DeprecatedFunctionalityVerifier {
     _checkForDeprecatedOptional(
       element: element,
       argumentList: node.argumentList,
-      errorNode: node.constructorName,
+      errorEntity: node.constructorName,
     );
     _checkForDeprecatedInstantiate(
       element: element.enclosingElement,
@@ -58,7 +59,7 @@ class DeprecatedFunctionalityVerifier {
     _checkForDeprecatedOptional(
       element: element,
       argumentList: node.argumentList,
-      errorNode: node.memberName,
+      errorEntity: node.memberName,
     );
   }
 
@@ -73,7 +74,7 @@ class DeprecatedFunctionalityVerifier {
     _checkForDeprecatedOptional(
       element: constructor,
       argumentList: node.argumentList,
-      errorNode: node.constructorName,
+      errorEntity: node.constructorName,
     );
     var interfaceElement = node.constructorName.type.element;
     if (interfaceElement is! InterfaceElement) return;
@@ -90,7 +91,7 @@ class DeprecatedFunctionalityVerifier {
     _checkForDeprecatedOptional(
       element: method,
       argumentList: node.argumentList,
-      errorNode: node.methodName,
+      errorEntity: node.methodName,
     );
   }
 
@@ -99,6 +100,26 @@ class DeprecatedFunctionalityVerifier {
     // Not technically "implementing," but is similar enough for
     // `@Deprecated.implement` and `@Deprecated.subclass`.
     _checkForDeprecatedImplement(node.onClause?.superclassConstraints);
+  }
+
+  void redirectingConstructorInvocation(RedirectingConstructorInvocation node) {
+    var element = node.element;
+    if (element is! ConstructorElement) return;
+    _checkForDeprecatedOptional(
+      element: element,
+      argumentList: node.argumentList,
+      errorEntity: node.constructorName ?? node.thisKeyword,
+    );
+  }
+
+  void superConstructorInvocation(SuperConstructorInvocation node) {
+    var constructor = node.element;
+    if (constructor == null) return;
+    _checkForDeprecatedOptional(
+      element: constructor,
+      argumentList: node.argumentList,
+      errorEntity: node.constructorName ?? node.superKeyword,
+    );
   }
 
   void _checkForDeprecatedExtend(NamedType? node) {
@@ -179,7 +200,7 @@ class DeprecatedFunctionalityVerifier {
   void _checkForDeprecatedOptional({
     required ExecutableElement element,
     required ArgumentList argumentList,
-    required AstNode errorNode,
+    required SyntacticEntity errorEntity,
   }) {
     var omittedParameters = element.formalParameters.toList();
     for (var argument in argumentList.arguments) {
@@ -189,8 +210,8 @@ class DeprecatedFunctionalityVerifier {
     }
     for (var parameter in omittedParameters) {
       if (parameter.isDeprecatedWithKind('optional')) {
-        _diagnosticReporter.atNode(
-          errorNode,
+        _diagnosticReporter.atEntity(
+          errorEntity,
           WarningCode.deprecatedOptional,
           arguments: [parameter.name ?? '<unknown>'],
         );

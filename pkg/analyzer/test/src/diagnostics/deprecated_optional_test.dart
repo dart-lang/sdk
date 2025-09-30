@@ -138,6 +138,60 @@ void g(D d) {
 ''');
   }
 
+  test_argumentOmitted_redirectedConstructor() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  C([@Deprecated.optional() int? p]);
+  C.two() : this();
+}
+''',
+      [error(WarningCode.deprecatedOptional, 60, 4)],
+    );
+  }
+
+  test_argumentOmitted_redirectedConstructor_named() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  C.one([@Deprecated.optional() int? p]);
+  C.two() : this.one();
+}
+''',
+      [error(WarningCode.deprecatedOptional, 69, 3)],
+    );
+  }
+
+  test_argumentOmitted_superInvocation() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  C([@Deprecated.optional() int? p]);
+}
+
+class D extends C {
+  D() : super();
+}
+''',
+      [error(WarningCode.deprecatedOptional, 79, 5)],
+    );
+  }
+
+  test_argumentOmitted_superInvocation_named() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  C.named([@Deprecated.optional() int? p]);
+}
+
+class D extends C {
+  D() : super.named();
+}
+''',
+      [error(WarningCode.deprecatedOptional, 91, 5)],
+    );
+  }
+
   test_noAnnotation() async {
     await assertNoErrorsInCode(r'''
 void f([int? p]) {}
