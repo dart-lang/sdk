@@ -18,9 +18,5 @@ class Functions {
   /// Declared functions.
   final List<BaseFunction> declared;
 
-  /// Named functions.
-  final int namedCount;
-
-  Functions(
-      this.start, this.imported, this.defined, this.declared, this.namedCount);
+  Functions(this.start, this.imported, this.defined, this.declared);
 }

@@ -11,8 +11,5 @@ class Globals {
   /// Defined globals.
   final List<DefinedGlobal> defined;
 
-  /// Number of named globals.
-  final int namedCount;
-
-  Globals(this.imported, this.defined, this.namedCount);
+  Globals(this.imported, this.defined);
 }

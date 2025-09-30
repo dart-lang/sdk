@@ -259,7 +259,7 @@ abstract class AstCodeGenerator
       final localIndex = implicitParams + index;
       w.Local local = paramLocals[localIndex];
       final variableName = variable.name;
-      if (variableName != null) {
+      if (variableName != null && variableName.isNotEmpty) {
         b.localNames[local.index] = variableName;
       }
       if (defaultValue == ParameterInfo.defaultValueSentinel) {

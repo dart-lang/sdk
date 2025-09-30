@@ -11,9 +11,6 @@ class GlobalsBuilder with Builder<ir.Globals> {
   final _importedGlobals = <ir.ImportedGlobal>[];
   final _globalBuilders = <GlobalBuilder>[];
 
-  /// Number of named globals.
-  int _namedCount = 0;
-
   GlobalsBuilder(this._moduleBuilder);
 
   void collectUsedTypes(Set<ir.DefType> usedTypes) {
@@ -33,9 +30,6 @@ class GlobalsBuilder with Builder<ir.Globals> {
     final global =
         GlobalBuilder(_moduleBuilder, ir.FinalizableIndex(), type, name);
     _globalBuilders.add(global);
-    if (name != null) {
-      _namedCount += 1;
-    }
     return global;
   }
 
@@ -51,6 +45,6 @@ class GlobalsBuilder with Builder<ir.Globals> {
   ir.Globals forceBuild() {
     final built = finalizeImportsAndBuilders<ir.DefinedGlobal>(
         _importedGlobals, _globalBuilders);
-    return ir.Globals(_importedGlobals, built, _namedCount);
+    return ir.Globals(_importedGlobals, built);
   }
 }

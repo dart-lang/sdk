@@ -208,7 +208,7 @@ class ClassInfo {
       {int? expectedIndex, String? fieldName}) {
     assert(expectedIndex == null || expectedIndex == struct.fields.length);
     struct.fields.add(fieldType);
-    if (fieldName != null) {
+    if (fieldName != null && fieldName.isNotEmpty) {
       final fieldIndex = struct.fields.length - 1;
       struct.fieldNames[fieldIndex] = fieldName;
     }
