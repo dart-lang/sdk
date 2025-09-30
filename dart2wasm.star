@@ -13,13 +13,12 @@ load(
     "firefox",
     "flute",
     "js_engines",
-    "no_android",
 )
 load("//lib/helpers.star", "union")
 load("//lib/paths.star", "paths")
 
 def _dart2wasm_builder(name, category = None, properties = [], **kwargs):
-    default_properties = union({}, [emscripten, flute, no_android])
+    default_properties = union({}, [emscripten, flute])
     dart.ci_sandbox_builder(
         name,
         category = category,

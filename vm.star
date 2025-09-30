@@ -15,7 +15,6 @@ load(
     "fuchsia_deps",
     "jammy",
     "mac",
-    "no_android",
     "no_reclient",
     "noble",
     "slow_shards",
@@ -131,14 +130,13 @@ _vm_builder(
     "vm-mac-debug-arm64",
     category = "vm|jit|mda",
     dimensions = [mac, arm64],
-    properties = [no_android, slow_shards],
+    properties = [slow_shards],
     on_cq = True,
 )
 _vm_builder(
     "vm-mac-release-arm64",
     category = "vm|jit|mra",
     dimensions = [mac, arm64],
-    properties = no_android,
 )
 _vm_builder(
     "vm-win-debug-x64",
@@ -489,7 +487,7 @@ _nightly_builder(
     category = "vm|misc|dyn|ja",
     channels = ["try"],
     dimensions = [mac, arm64],
-    properties = [no_android, slow_shards],
+    properties = [slow_shards],
     location_filters = paths.to_location_filters(paths.dart2bytecode),
 )
 

@@ -10,7 +10,6 @@ load(
     "//lib/defaults.star",
     "arm64",
     "mac",
-    "no_android",
     "windows",
 )
 load("//lib/paths.star", "paths")
@@ -98,11 +97,11 @@ dart.try_builder(
 dart.try_builder(
     "dart-sdk-mac-arm64",
     dimensions = [mac, arm64],
-    properties = [no_android, {
+    properties = {
         "archs": ["arm64"],
         "clobber": True,  # To match the regular SDK builder
         "disable_bcid": True,
-    }],
+    },
     location_filters = paths.to_location_filters(paths.release),
     recipe = "release/sdk",
     rbe = False,  # To match the regular SDK builder

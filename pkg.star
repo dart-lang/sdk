@@ -12,7 +12,6 @@ load(
     "chrome",
     "flutter_pool",
     "mac",
-    "no_android",
     "no_reclient",
     "windows",
 )
@@ -39,7 +38,7 @@ dart.ci_sandbox_builder(
     "pkg-mac-release-arm64",
     category = "pkg|ma",
     dimensions = [mac, arm64],
-    properties = [chrome, no_android],
+    properties = [chrome],
 )
 dart.ci_sandbox_builder(
     "pkg-win-release",

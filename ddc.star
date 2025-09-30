@@ -13,7 +13,6 @@ load(
     "chrome",
     "firefox",
     "mac",
-    "no_android",
     "windows",
 )
 load("//lib/paths.star", "paths")
@@ -23,7 +22,7 @@ dart.poller("ddc-gitiles-trigger", branches = ["main"], paths = paths.ddc)
 dart.ci_sandbox_builder(
     "ddc-linux-chrome",
     category = "ddc|chrome|l",
-    properties = [chrome, no_android],
+    properties = [chrome],
     location_filters = paths.to_location_filters(paths.ddc),
 )
 
@@ -31,21 +30,21 @@ dart.ci_sandbox_builder(
     "ddc-mac-chrome",
     category = "ddc|chrome|m",
     dimensions = [arm64, mac],
-    properties = [chrome, no_android],
+    properties = [chrome],
 )
 
 dart.ci_sandbox_builder(
     "ddc-win-chrome",
     category = "ddc|chrome|w",
     dimensions = windows,
-    properties = [chrome, no_android],
+    properties = [chrome],
 )
 
 dart.ci_sandbox_builder(
     "ddc-linux-firefox",
     category = "ddc|f",
     channels = ["try"],
-    properties = [firefox, no_android],
+    properties = [firefox],
     triggered_by = ["ddc-gitiles-trigger-%s"],
 )
 
@@ -54,19 +53,18 @@ dart.ci_sandbox_builder(
     category = "ddc|s",
     channels = ["try"],
     dimensions = [arm64, mac],
-    properties = [chrome, no_android],
+    properties = [chrome],
 )
 
 cron.nightly_builder(
     "ddc-canary-linux-chrome",
     category = "ddc|c",
     channels = ["try"],
-    properties = [chrome, no_android],
+    properties = [chrome],
 )
 
 cron.nightly_builder(
     "ddc-hostasserts-linux-d8",
     category = "ddc|h",
     channels = ["try"],
-    properties = [no_android],
 )

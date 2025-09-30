@@ -12,7 +12,6 @@ load(
     "chrome",
     "firefox",
     "mac",
-    "no_android",
     "windows",
 )
 load("//lib/paths.star", "paths")
@@ -23,7 +22,7 @@ dart.ci_sandbox_builder(
     "dart2js-canary-linux",
     category = "dart2js|c",
     channels = ["try"],
-    properties = [chrome, no_android],
+    properties = [chrome],
     triggered_by = ["dart2js-gitiles-trigger-%s"],
 )
 dart.ci_sandbox_builder(
@@ -31,58 +30,54 @@ dart.ci_sandbox_builder(
     category = "dart2js|d8|ha",
     channels = ["try"],
     location_filters = paths.to_location_filters(paths.dart2js),
-    properties = no_android,
     triggered_by = ["dart2js-gitiles-trigger-%s"],
 )
 dart.ci_sandbox_builder(
     "dart2js-minified-linux-d8",
     category = "dart2js|d8|mi",
     location_filters = paths.to_location_filters(paths.dart2js),
-    properties = no_android,
 )
 dart.ci_sandbox_builder(
     "dart2js-unit-linux-x64-release",
     category = "dart2js|d8|u",
     location_filters = paths.to_location_filters(paths.dart2js),
-    properties = no_android,
 )
 dart.ci_sandbox_builder(
     "dart2js-linux-chrome",
     category = "dart2js|chrome|l",
     location_filters = paths.to_location_filters(paths.dart2js),
-    properties = [chrome, no_android],
+    properties = [chrome],
 )
 dart.ci_sandbox_builder(
     "dart2js-minified-csp-linux-chrome",
     category = "dart2js|chrome|csp",
-    properties = [chrome, no_android],
+    properties = [chrome],
 )
 dart.ci_sandbox_builder(
     "dart2js-mac-chrome",
     category = "dart2js|chrome|m",
     dimensions = [arm64, mac],
-    properties = [chrome, no_android],
+    properties = [chrome],
 )
 dart.ci_sandbox_builder(
     "dart2js-win-chrome",
     category = "dart2js|chrome|w",
     dimensions = windows,
-    properties = [chrome, no_android],
+    properties = [chrome],
 )
 dart.ci_sandbox_builder(
     "dart2js-linux-firefox",
     category = "dart2js|firefox|l",
-    properties = [firefox, no_android],
+    properties = [firefox],
 )
 dart.ci_sandbox_builder(
     "dart2js-win-firefox",
     dimensions = windows,
     enabled = False,
-    properties = [firefox, no_android],
+    properties = [firefox],
 )
 dart.ci_sandbox_builder(
     "dart2js-mac-safari",
     category = "dart2js|safari|m",
     dimensions = [arm64, mac],
-    properties = no_android,
 )
