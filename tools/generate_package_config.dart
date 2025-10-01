@@ -24,7 +24,7 @@ void main() {
     final pubspec =
         File.fromUri(repoRoot.resolve('pubspec.yaml')).readAsStringSync();
     final overrides = RegExp(
-      r'^dependency_overrides:\n([^]*?)^$',
+      r'^dependency_overrides:$([^]*?)(\r\n|\n)$',
       multiLine: true,
     ).firstMatch(pubspec)![1]!;
     overridesFile.writeAsStringSync('''
@@ -42,9 +42,8 @@ dependency_overrides:
   material_color_utilities:
     path: third_party/pkg/material_color_utilities/dart
   characters:
-    path: third_party/pkg/core/pkgs/characters/
-$overrides
-''');
+    path: third_party/pkg/core/pkgs/characters/'''
+  "$overrides");
   } else {
     // Delete the overrides file if it exists.
     if (overridesFile.existsSync()) {
