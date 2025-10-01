@@ -640,6 +640,8 @@ abstract interface class Sink<T> {
 
 abstract interface class StackTrace {}
 
+class Stopwatch {}
+
 abstract final class String implements Comparable<String>, Pattern {
   external factory String.fromCharCodes(Iterable<int> charCodes,
       [int start = 0, int? end]);
