@@ -11,7 +11,6 @@ import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/base/constant_context.dart';
 import 'package:front_end/src/base/local_scope.dart';
 import 'package:front_end/src/base/name_space.dart';
-import 'package:front_end/src/base/scope.dart';
 import 'package:front_end/src/base/uri_translator.dart';
 import 'package:front_end/src/builder/compilation_unit.dart';
 import 'package:front_end/src/builder/declaration_builders.dart';
@@ -188,7 +187,7 @@ Future<void> main() async {
     );
 
     LocalScope lookupScope = new FixedLocalScope(
-      kind: ScopeKind.library,
+      kind: LocalScopeKind.enclosing,
       debugName: "dummy",
     );
     ExpressionGeneratorHelper helper = new BodyBuilderImpl(

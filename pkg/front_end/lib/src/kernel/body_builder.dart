@@ -444,7 +444,7 @@ class BodyBuilderImpl extends StackListenerImpl
 
   void createAndEnterLocalScope({
     required String debugName,
-    required ScopeKind kind,
+    required LocalScopeKind kind,
   }) {
     _localScopes.push(
       _localScope.createNestedScope(debugName: debugName, kind: kind),
@@ -452,7 +452,7 @@ class BodyBuilderImpl extends StackListenerImpl
     _labelScopes.push(new LabelScopeImpl(_labelScope));
   }
 
-  void exitLocalScope({List<ScopeKind>? expectedScopeKinds}) {
+  void exitLocalScope({List<LocalScopeKind>? expectedScopeKinds}) {
     assert(
       expectedScopeKinds == null ||
           expectedScopeKinds.contains(_localScope.kind),
@@ -499,7 +499,7 @@ class BodyBuilderImpl extends StackListenerImpl
     debugEvent("beginBlockFunctionBody");
     createAndEnterLocalScope(
       debugName: "block function body",
-      kind: ScopeKind.functionBody,
+      kind: LocalScopeKind.functionBody,
     );
   }
 
@@ -509,7 +509,7 @@ class BodyBuilderImpl extends StackListenerImpl
     enterLoop(token.charOffset);
     createAndEnterLocalScope(
       debugName: "for statement",
-      kind: ScopeKind.forStatement,
+      kind: LocalScopeKind.forStatement,
     );
   }
 
@@ -518,7 +518,7 @@ class BodyBuilderImpl extends StackListenerImpl
     debugEvent("beginForControlFlow");
     createAndEnterLocalScope(
       debugName: "for in a collection",
-      kind: ScopeKind.forStatement,
+      kind: LocalScopeKind.forStatement,
     );
   }
 
@@ -527,7 +527,7 @@ class BodyBuilderImpl extends StackListenerImpl
     debugEvent("beginDoWhileStatementBody");
     createAndEnterLocalScope(
       debugName: "do-while statement body",
-      kind: ScopeKind.statementLocalScope,
+      kind: LocalScopeKind.statementLocalScope,
     );
   }
 
@@ -544,7 +544,7 @@ class BodyBuilderImpl extends StackListenerImpl
     debugEvent("beginWhileStatementBody");
     createAndEnterLocalScope(
       debugName: "while statement body",
-      kind: ScopeKind.statementLocalScope,
+      kind: LocalScopeKind.statementLocalScope,
     );
   }
 
@@ -561,7 +561,7 @@ class BodyBuilderImpl extends StackListenerImpl
     debugEvent("beginForStatementBody");
     createAndEnterLocalScope(
       debugName: "for statement body",
-      kind: ScopeKind.statementLocalScope,
+      kind: LocalScopeKind.statementLocalScope,
     );
   }
 
@@ -578,7 +578,7 @@ class BodyBuilderImpl extends StackListenerImpl
     debugEvent("beginForInBody");
     createAndEnterLocalScope(
       debugName: "for-in body",
-      kind: ScopeKind.statementLocalScope,
+      kind: LocalScopeKind.statementLocalScope,
     );
   }
 
@@ -595,7 +595,7 @@ class BodyBuilderImpl extends StackListenerImpl
     debugEvent("beginElseStatement");
     createAndEnterLocalScope(
       debugName: "else",
-      kind: ScopeKind.statementLocalScope,
+      kind: LocalScopeKind.statementLocalScope,
     );
   }
 
@@ -1155,7 +1155,7 @@ class BodyBuilderImpl extends StackListenerImpl
       _localScopes.push(
         formalParameterScope ??
             new FixedLocalScope(
-              kind: ScopeKind.initializers,
+              kind: LocalScopeKind.initializers,
               debugName: "initializers",
             ),
       );
@@ -1178,7 +1178,7 @@ class BodyBuilderImpl extends StackListenerImpl
       _localScopes.push(
         formalParameterScope ??
             new FixedLocalScope(
-              kind: ScopeKind.initializers,
+              kind: LocalScopeKind.initializers,
               debugName: "initializers",
             ),
       );
@@ -1776,9 +1776,12 @@ class BodyBuilderImpl extends StackListenerImpl
     debugEvent("beginCaseExpression");
 
     // Scope of the preceding case head or a sentinel if it's the first head.
-    exitLocalScope(expectedScopeKinds: const [ScopeKind.caseHead]);
+    exitLocalScope(expectedScopeKinds: const [LocalScopeKind.caseHead]);
 
-    createAndEnterLocalScope(debugName: "case-head", kind: ScopeKind.caseHead);
+    createAndEnterLocalScope(
+      debugName: "case-head",
+      kind: LocalScopeKind.caseHead,
+    );
     super.push(constantContext);
     if (!libraryFeatures.patterns.isEnabled) {
       constantContext = ConstantContext.inferred;
@@ -1809,8 +1812,8 @@ class BodyBuilderImpl extends StackListenerImpl
     Object? value = pop();
     constantContext = pop() as ConstantContext;
     assert(
-      _localScopes.previous.kind == ScopeKind.switchBlock,
-      "Expected to have scope kind ${ScopeKind.switchBlock}, "
+      _localScopes.previous.kind == LocalScopeKind.switchBlock,
+      "Expected to have scope kind ${LocalScopeKind.switchBlock}, "
       "but got ${_localScopes.previous.kind}.",
     );
     if (value is Pattern) {
@@ -1956,10 +1959,13 @@ class BodyBuilderImpl extends StackListenerImpl
     if (token.lexeme == "||") {
       createAndEnterLocalScope(
         debugName: "rhs of a binary-or pattern",
-        kind: ScopeKind.orPatternRight,
+        kind: LocalScopeKind.orPatternRight,
       );
     } else {
-      createAndEnterLocalScope(debugName: "pattern", kind: ScopeKind.pattern);
+      createAndEnterLocalScope(
+        debugName: "pattern",
+        kind: LocalScopeKind.pattern,
+      );
     }
   }
 
@@ -1976,10 +1982,13 @@ class BodyBuilderImpl extends StackListenerImpl
       ]),
     );
     Object pattern = pop()!;
-    ScopeKind scopeKind = _localScope.kind;
+    LocalScopeKind scopeKind = _localScope.kind;
 
     exitLocalScope(
-      expectedScopeKinds: const [ScopeKind.pattern, ScopeKind.orPatternRight],
+      expectedScopeKinds: const [
+        LocalScopeKind.pattern,
+        LocalScopeKind.orPatternRight,
+      ],
     );
 
     // Bring the variables into the enclosing pattern scope, unless that was
@@ -1993,9 +2002,10 @@ class BodyBuilderImpl extends StackListenerImpl
     // that is, if its kind is [ScopeKind.pattern] or
     // [ScopeKind.orPatternRight].
     bool enclosingScopeIsPatternScope =
-        _localScope.kind == ScopeKind.pattern ||
-        _localScope.kind == ScopeKind.orPatternRight;
-    if (scopeKind != ScopeKind.orPatternRight && enclosingScopeIsPatternScope) {
+        _localScope.kind == LocalScopeKind.pattern ||
+        _localScope.kind == LocalScopeKind.orPatternRight;
+    if (scopeKind != LocalScopeKind.orPatternRight &&
+        enclosingScopeIsPatternScope) {
       if (pattern is Pattern) {
         for (VariableDeclaration variable in pattern.declaredVariables) {
           declareVariable(variable, _localScope);
@@ -2030,11 +2040,11 @@ class BodyBuilderImpl extends StackListenerImpl
       Object lhsPattern = pop()!;
 
       // Exit the scope of the LHS.
-      exitLocalScope(expectedScopeKinds: const [ScopeKind.pattern]);
+      exitLocalScope(expectedScopeKinds: const [LocalScopeKind.pattern]);
 
       createAndEnterLocalScope(
         debugName: "joint variables of binary-or patterns",
-        kind: ScopeKind.pattern,
+        kind: LocalScopeKind.pattern,
       );
       push(lhsPattern);
     }
@@ -2656,7 +2666,8 @@ class BodyBuilderImpl extends StackListenerImpl
   }
 
   bool isGuardScope(LocalScope scope) =>
-      scope.kind == ScopeKind.caseHead || scope.kind == ScopeKind.ifCaseHead;
+      scope.kind == LocalScopeKind.caseHead ||
+      scope.kind == LocalScopeKind.ifCaseHead;
 
   /// Look up the name from [nameToken] in [scope] using [nameToken] as location
   /// information.
@@ -2669,7 +2680,7 @@ class BodyBuilderImpl extends StackListenerImpl
       name: name,
       nameToken: nameToken,
       nameOffset: nameOffset,
-      scopeKind: scope.kind,
+      forStatementScope: scope.kind == LocalScopeKind.forStatement,
     );
   }
 
@@ -2679,9 +2690,9 @@ class BodyBuilderImpl extends StackListenerImpl
     required String name,
     required Token nameToken,
     required int nameOffset,
-    required ScopeKind scopeKind,
     PrefixBuilder? prefix,
     Token? prefixToken,
+    required bool forStatementScope,
   }) {
     if (nameToken.isSynthetic) {
       return new ParserErrorGenerator(this, nameToken, cfe.codeSyntheticToken);
@@ -2788,7 +2799,7 @@ class BodyBuilderImpl extends StackListenerImpl
         VariableDeclaration variable = getable.variable!;
         // TODO(johnniwinther): The handling of for-in variables should be
         //  done through the builder.
-        if (scopeKind == ScopeKind.forStatement &&
+        if (forStatementScope &&
             variable.isAssignable &&
             variable.isLate &&
             variable.isFinal) {
@@ -2798,7 +2809,7 @@ class BodyBuilderImpl extends StackListenerImpl
             variable,
           );
         } else if (!getable.isAssignable ||
-            (variable.isFinal && scopeKind == ScopeKind.forStatement)) {
+            (variable.isFinal && forStatementScope)) {
           return _createReadOnlyVariableAccess(
             variable,
             nameToken,
@@ -3314,7 +3325,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Pattern pattern = toPattern(peek());
     createAndEnterLocalScope(
       debugName: "if-case-head",
-      kind: ScopeKind.ifCaseHead,
+      kind: LocalScopeKind.ifCaseHead,
     );
     for (VariableDeclaration variable in pattern.declaredVariables) {
       declareVariable(variable, _localScope);
@@ -3338,9 +3349,9 @@ class BodyBuilderImpl extends StackListenerImpl
     if (patternGuard != null && patternGuard.guard != null) {
       LocalScope thenScope = _localScope.createNestedScope(
         debugName: "then body",
-        kind: ScopeKind.statementLocalScope,
+        kind: LocalScopeKind.statementLocalScope,
       );
-      exitLocalScope(expectedScopeKinds: const [ScopeKind.ifCaseHead]);
+      exitLocalScope(expectedScopeKinds: const [LocalScopeKind.ifCaseHead]);
       push(condition);
       enterLocalScope(thenScope);
     } else {
@@ -3350,7 +3361,7 @@ class BodyBuilderImpl extends StackListenerImpl
       if (patternGuard != null) {
         createAndEnterLocalScope(
           debugName: "if-case-head",
-          kind: ScopeKind.ifCaseHead,
+          kind: LocalScopeKind.ifCaseHead,
         );
         for (VariableDeclaration variable
             in patternGuard.pattern.declaredVariables) {
@@ -3358,14 +3369,14 @@ class BodyBuilderImpl extends StackListenerImpl
         }
         LocalScope thenScope = _localScope.createNestedScope(
           debugName: "then body",
-          kind: ScopeKind.statementLocalScope,
+          kind: LocalScopeKind.statementLocalScope,
         );
         exitLocalScope();
         enterLocalScope(thenScope);
       } else {
         createAndEnterLocalScope(
           debugName: "then body",
-          kind: ScopeKind.statementLocalScope,
+          kind: LocalScopeKind.statementLocalScope,
         );
       }
     }
@@ -3681,7 +3692,7 @@ class BodyBuilderImpl extends StackListenerImpl
     debugEvent("beginBlock");
     createAndEnterLocalScope(
       debugName: "block",
-      kind: ScopeKind.statementLocalScope,
+      kind: LocalScopeKind.statementLocalScope,
     );
   }
 
@@ -3867,7 +3878,7 @@ class BodyBuilderImpl extends StackListenerImpl
       }
       LocalScope forScope = _localScope.createNestedScope(
         debugName: "pattern-for internal variables",
-        kind: ScopeKind.forStatement,
+        kind: LocalScopeKind.forStatement,
       );
       exitLocalScope();
       enterLocalScope(forScope);
@@ -5047,7 +5058,7 @@ class BodyBuilderImpl extends StackListenerImpl
         local: typeParameters,
         parent: _localScope,
         debugName: "local function type parameter scope",
-        kind: ScopeKind.typeParameters,
+        kind: LocalScopeKind.typeParameters,
       ),
     );
   }
@@ -5075,7 +5086,7 @@ class BodyBuilderImpl extends StackListenerImpl
         local: typeParameters,
         parent: _localScope,
         debugName: "function-type scope",
-        kind: ScopeKind.typeParameters,
+        kind: LocalScopeKind.typeParameters,
       ),
     );
   }
@@ -7136,14 +7147,14 @@ class BodyBuilderImpl extends StackListenerImpl
       if (patternGuard.guard != null) {
         LocalScope thenScope = _localScope.createNestedScope(
           debugName: "then-control-flow",
-          kind: ScopeKind.ifElement,
+          kind: LocalScopeKind.ifElement,
         );
-        exitLocalScope(expectedScopeKinds: const [ScopeKind.ifCaseHead]);
+        exitLocalScope(expectedScopeKinds: const [LocalScopeKind.ifCaseHead]);
         enterLocalScope(thenScope);
       } else {
         createAndEnterLocalScope(
           debugName: "if-case-head",
-          kind: ScopeKind.ifCaseHead,
+          kind: LocalScopeKind.ifCaseHead,
         );
         for (VariableDeclaration variable
             in patternGuard.pattern.declaredVariables) {
@@ -7151,15 +7162,15 @@ class BodyBuilderImpl extends StackListenerImpl
         }
         LocalScope thenScope = _localScope.createNestedScope(
           debugName: "then-control-flow",
-          kind: ScopeKind.ifElement,
+          kind: LocalScopeKind.ifElement,
         );
-        exitLocalScope(expectedScopeKinds: const [ScopeKind.ifCaseHead]);
+        exitLocalScope(expectedScopeKinds: const [LocalScopeKind.ifCaseHead]);
         enterLocalScope(thenScope);
       }
     } else {
       createAndEnterLocalScope(
         debugName: "then-control-flow",
-        kind: ScopeKind.ifElement,
+        kind: LocalScopeKind.ifElement,
       );
     }
     push(condition);
@@ -7185,7 +7196,7 @@ class BodyBuilderImpl extends StackListenerImpl
     if (then is! MapLiteralEntry) then = toValue(then);
 
     Object condition = pop() as Condition;
-    exitLocalScope(expectedScopeKinds: const [ScopeKind.ifElement]);
+    exitLocalScope(expectedScopeKinds: const [LocalScopeKind.ifElement]);
     push(condition);
 
     // This is matched by the call to [beginNode] in
@@ -7212,7 +7223,7 @@ class BodyBuilderImpl extends StackListenerImpl
 
     Object? entry = pop();
     Condition condition = pop() as Condition;
-    exitLocalScope(expectedScopeKinds: const [ScopeKind.ifElement]);
+    exitLocalScope(expectedScopeKinds: const [LocalScopeKind.ifElement]);
     Token ifToken = pop() as Token;
 
     PatternGuard? patternGuard = condition.patternGuard;
@@ -7700,7 +7711,7 @@ class BodyBuilderImpl extends StackListenerImpl
     // declared.
     createAndEnterLocalScope(
       debugName: "named function",
-      kind: ScopeKind.namedFunctionExpression,
+      kind: LocalScopeKind.namedFunctionExpression,
     );
     push(typeParameters ?? NullValues.NominalParameters);
     enterFunction();
@@ -7950,7 +7961,7 @@ class BodyBuilderImpl extends StackListenerImpl
       // Coverage-ignore-block(suite): Not run.
       createAndEnterLocalScope(
         debugName: 'forIn',
-        kind: ScopeKind.statementLocalScope,
+        kind: LocalScopeKind.statementLocalScope,
       );
     }
   }
@@ -8587,13 +8598,13 @@ class BodyBuilderImpl extends StackListenerImpl
     assignedVariables.beginNode();
     createAndEnterLocalScope(
       debugName: "switch block",
-      kind: ScopeKind.switchBlock,
+      kind: LocalScopeKind.switchBlock,
     );
     enterSwitchScope();
     enterBreakTarget(token.charOffset);
     createAndEnterLocalScope(
       debugName: "case-head",
-      kind: ScopeKind.caseHead,
+      kind: LocalScopeKind.caseHead,
     ); // Sentinel scope.
   }
 
@@ -8646,15 +8657,15 @@ class BodyBuilderImpl extends StackListenerImpl
       // and reused later; it already contains the declared pattern
       // variables.
       switchCaseScope = _localScope;
-      exitLocalScope(expectedScopeKinds: const [ScopeKind.caseHead]);
+      exitLocalScope(expectedScopeKinds: const [LocalScopeKind.caseHead]);
     } else {
       // The multi-head or "default" case. The scope of the last head should
       // be exited, and the new scope for the joint variables should be
       // created.
-      exitLocalScope(expectedScopeKinds: const [ScopeKind.caseHead]);
+      exitLocalScope(expectedScopeKinds: const [LocalScopeKind.caseHead]);
       switchCaseScope = _localScope.createNestedScope(
         debugName: "joint-variables",
-        kind: ScopeKind.jointVariables,
+        kind: LocalScopeKind.jointVariables,
       );
     }
 
@@ -8759,7 +8770,7 @@ class BodyBuilderImpl extends StackListenerImpl
           jointPatternVariables = null;
         } else {
           for (VariableDeclaration jointVariable in jointPatternVariables) {
-            assert(_localScope.kind == ScopeKind.jointVariables);
+            assert(_localScope.kind == LocalScopeKind.jointVariables);
             declareVariable(jointVariable, _localScope);
             assignedVariables.declare(jointVariable);
           }
@@ -8767,16 +8778,16 @@ class BodyBuilderImpl extends StackListenerImpl
       }
       switchCaseScope = _localScope.createNestedScope(
         debugName: "switch case",
-        kind: ScopeKind.switchCase,
+        kind: LocalScopeKind.switchCase,
       );
-      exitLocalScope(expectedScopeKinds: const [ScopeKind.jointVariables]);
+      exitLocalScope(expectedScopeKinds: const [LocalScopeKind.jointVariables]);
       enterLocalScope(switchCaseScope);
     } else if (expressionCount == 1) {
       switchCaseScope = _localScope.createNestedScope(
         debugName: "switch case",
-        kind: ScopeKind.switchCase,
+        kind: LocalScopeKind.switchCase,
       );
-      exitLocalScope(expectedScopeKinds: const [ScopeKind.caseHead]);
+      exitLocalScope(expectedScopeKinds: const [LocalScopeKind.caseHead]);
       enterLocalScope(switchCaseScope);
     }
     push(jointPatternVariablesNotInAll ?? NullValues.VariableDeclarationList);
@@ -8788,7 +8799,7 @@ class BodyBuilderImpl extends StackListenerImpl
 
     createAndEnterLocalScope(
       debugName: "switch-case-body",
-      kind: ScopeKind.switchCaseBody,
+      kind: LocalScopeKind.switchCaseBody,
     );
 
     assert(
@@ -8893,7 +8904,7 @@ class BodyBuilderImpl extends StackListenerImpl
     // one synthetic block when we finish compiling the switch statement and
     // check this switch case to see if it falls through to the next case.
     Statement block = popBlock(statementCount, beginToken, null);
-    exitLocalScope(expectedScopeKinds: const [ScopeKind.switchCaseBody]);
+    exitLocalScope(expectedScopeKinds: const [LocalScopeKind.switchCaseBody]);
     List<VariableDeclaration>? jointPatternVariables =
         pop() as List<VariableDeclaration>?;
     List<VariableDeclaration>? jointPatternVariablesWithMismatchingFinality =
@@ -8906,10 +8917,10 @@ class BodyBuilderImpl extends StackListenerImpl
     // specifically in the body of the case, as opposed to, for example, the
     // guard in one of the heads of the case.
     assert(
-      _localScope.kind == ScopeKind.switchCase ||
-          _localScope.kind == ScopeKind.jointVariables,
-      "Expected the current scope to be of kind '${ScopeKind.switchCase}' "
-      "or '${ScopeKind.jointVariables}', but got '${_localScope.kind}.",
+      _localScope.kind == LocalScopeKind.switchCase ||
+          _localScope.kind == LocalScopeKind.jointVariables,
+      "Expected the current scope to be of kind '${LocalScopeKind.switchCase}' "
+      "or '${LocalScopeKind.jointVariables}', but got '${_localScope.kind}.",
     );
     Map<String, List<int>>? usedNamesOffsets = _localScope.usedNames;
 
@@ -8973,9 +8984,9 @@ class BodyBuilderImpl extends StackListenerImpl
 
     exitLocalScope(
       expectedScopeKinds: const [
-        ScopeKind.switchCase,
-        ScopeKind.caseHead,
-        ScopeKind.jointVariables,
+        LocalScopeKind.switchCase,
+        LocalScopeKind.caseHead,
+        LocalScopeKind.jointVariables,
       ],
     );
 
@@ -9064,7 +9075,7 @@ class BodyBuilderImpl extends StackListenerImpl
     push(labels ?? NullValues.Labels);
     createAndEnterLocalScope(
       debugName: "case-head",
-      kind: ScopeKind.caseHead,
+      kind: LocalScopeKind.caseHead,
     ); // Sentinel scope.
     assert(
       checkState(beginToken, [
@@ -9177,7 +9188,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Object? pattern = pop();
     createAndEnterLocalScope(
       debugName: "switch-expression-case",
-      kind: ScopeKind.caseHead,
+      kind: LocalScopeKind.caseHead,
     );
     if (pattern is Pattern) {
       for (VariableDeclaration variable in pattern.declaredVariables) {
@@ -9293,7 +9304,7 @@ class BodyBuilderImpl extends StackListenerImpl
     );
 
     exitLocalScope(
-      expectedScopeKinds: const [ScopeKind.caseHead],
+      expectedScopeKinds: const [LocalScopeKind.caseHead],
     ); // Exit the sentinel scope.
 
     bool containsPatterns = false;
@@ -11311,7 +11322,7 @@ class BodyBuilderImpl extends StackListenerImpl
     if (extraKnownVariables.isNotEmpty) {
       LocalScope extraKnownVariablesScope = _localScope.createNestedScope(
         debugName: "expression compilation extra known variables scope",
-        kind: ScopeKind.ifElement,
+        kind: LocalScopeKind.ifElement,
       );
       enterLocalScope(extraKnownVariablesScope);
       for (VariableDeclarationImpl extraVariable in extraKnownVariables) {

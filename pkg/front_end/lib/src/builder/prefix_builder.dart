@@ -33,7 +33,6 @@ class PrefixBuilder extends NamedBuilderImpl
 
   late final LookupScope _prefixScope = new NameSpaceLookupScope(
     _prefixNameSpace,
-    ScopeKind.library,
     parent: parentPrefixBuilder?.prefixScope,
   );
 

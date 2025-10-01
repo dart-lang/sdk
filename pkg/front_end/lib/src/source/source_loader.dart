@@ -1433,7 +1433,6 @@ severity: $severity
             //  fragment in which we are compiling the expression.
             memberScope = new NameSpaceLookupScope(
               builder.nameSpace,
-              ScopeKind.declaration,
               parent: TypeParameterScope.fromList(
                 memberScope,
                 builder.typeParameters,
@@ -1445,7 +1444,6 @@ severity: $severity
             //  fragment in which we are compiling the expression.
             memberScope = new NameSpaceLookupScope(
               builder.nameSpace,
-              ScopeKind.declaration,
               // TODO(johnniwinther): Shouldn't type parameters be in scope?
               parent: memberScope,
             );

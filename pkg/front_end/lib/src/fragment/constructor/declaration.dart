@@ -195,7 +195,7 @@ mixin _ConstructorDeclarationMixin
     }
     return parent.createNestedFixedScope(
       debugName: "formal parameter initializer",
-      kind: ScopeKind.initializers,
+      kind: LocalScopeKind.initializers,
       local: local,
     );
   }

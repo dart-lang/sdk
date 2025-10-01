@@ -5661,9 +5661,9 @@ class PrefixUseGenerator extends Generator {
       name: name,
       nameToken: nameToken,
       nameOffset: nameToken.charOffset,
-      scopeKind: prefix.prefixScope.kind,
       prefix: prefix,
       prefixToken: token,
+      forStatementScope: false,
     );
 
     if (prefix.deferred) {

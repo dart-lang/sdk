@@ -7,22 +7,96 @@ import '../builder/variable_builder.dart';
 import 'lookup_result.dart';
 import 'scope.dart';
 
+enum LocalScopeKind {
+  /// Outermost immutable local scope derived from a [LookupScope].
+  enclosing,
+
+  /// Scope of pattern switch-case statements
+  ///
+  /// These scopes receive special treatment in that they are end-points of the
+  /// scope stack in presence of multiple heads for the same case, but can have
+  /// nested scopes if it's just a single head. In that latter possibility the
+  /// body of the case is nested into the scope of the case head. And for switch
+  /// expressions that scope includes both the head and the case expression.
+  caseHead,
+
+  /// Scope where the formal parameters of a function are declared
+  formals,
+
+  /// Scope of a `for` statement
+  forStatement,
+
+  /// Scope of a function body
+  functionBody,
+
+  /// Scope of the head of the if-case statement
+  ifCaseHead,
+
+  /// Scope of an if-element in a collection
+  ifElement,
+
+  /// Scope for the initializers of generative constructors
+  initializers,
+
+  /// Scope where the joint variables of a switch case are declared
+  jointVariables,
+
+  /// Scope where labels of labelled statements are declared
+  labels,
+
+  /// The special scope of the named function expression
+  ///
+  /// This scope is treated separately because the named function expressions
+  /// are allowed to be recursive, and the name of that function expression
+  /// should be visible in the scope of the function itself.
+  namedFunctionExpression,
+
+  /// The scope of the RHS of a binary-or pattern
+  ///
+  /// It is utilized for separating the branch-local variables from the joint
+  /// variables of the overall binary-or pattern.
+  orPatternRight,
+
+  /// The scope of a pattern
+  ///
+  /// It contains the variables associated with pattern variable declarations.
+  pattern,
+
+  /// Local scope of a statement, such as the body of a while loop
+  statementLocalScope,
+
+  /// Local scope of a switch block
+  switchBlock,
+
+  /// Scope for switch cases
+  ///
+  /// This scope kind is used in assertion checks.
+  switchCase,
+
+  /// Scope for switch case bodies
+  ///
+  /// This is used to handle local variables of switch cases.
+  switchCaseBody,
+
+  /// Scope for type parameters of declarations
+  typeParameters,
+}
+
 abstract class LocalScope implements LookupScope {
-  @override
-  ScopeKind get kind;
+  LocalScopeKind get kind;
 
   @override
   LookupResult? lookup(String name, {int fileOffset = -1});
 
   LocalScope createNestedScope({
     required String debugName,
-    required ScopeKind kind,
+    required LocalScopeKind kind,
   });
 
   LocalScope createNestedFixedScope({
     required String debugName,
     required Map<String, VariableBuilder> local,
-    required ScopeKind kind,
+    required LocalScopeKind kind,
   });
 
   Iterable<VariableBuilder> get localVariables;
@@ -43,7 +117,7 @@ abstract base class BaseLocalScope implements LocalScope {
   @override
   LocalScope createNestedScope({
     required String debugName,
-    required ScopeKind kind,
+    required LocalScopeKind kind,
   }) {
     return new LocalScopeImpl(this, kind, debugName);
   }
@@ -52,7 +126,7 @@ abstract base class BaseLocalScope implements LocalScope {
   LocalScope createNestedFixedScope({
     required String debugName,
     required Map<String, VariableBuilder> local,
-    required ScopeKind kind,
+    required LocalScopeKind kind,
   }) {
     return new FixedLocalScope(
       kind: kind,
@@ -106,7 +180,7 @@ final class LocalScopeImpl extends BaseLocalScope
   Map<String, List<int>>? usedNames;
 
   @override
-  final ScopeKind kind;
+  final LocalScopeKind kind;
 
   LocalScopeImpl(this._parent, this.kind, this._debugName);
 
@@ -148,7 +222,7 @@ final class LocalTypeParameterScope extends BaseLocalScope
   final LocalScope? _parent;
 
   @override
-  final ScopeKind kind;
+  final LocalScopeKind kind;
 
   final Map<String, TypeParameterBuilder>? _local;
 
@@ -191,7 +265,7 @@ final class FixedLocalScope extends BaseLocalScope
   @override
   final LocalScope? _parent;
   @override
-  final ScopeKind kind;
+  final LocalScopeKind kind;
   @override
   final Map<String, VariableBuilder>? _local;
 
@@ -224,7 +298,7 @@ final class FormalParameterScope extends BaseLocalScope
        _local = local;
 
   @override
-  ScopeKind get kind => ScopeKind.formals;
+  LocalScopeKind get kind => LocalScopeKind.formals;
 
   @override
   String toString() =>
@@ -238,7 +312,7 @@ final class EnclosingLocalScope extends BaseLocalScope
   EnclosingLocalScope(this._scope);
 
   @override
-  ScopeKind get kind => _scope.kind;
+  LocalScopeKind get kind => LocalScopeKind.enclosing;
 
   @override
   // Coverage-ignore(suite): Not run.

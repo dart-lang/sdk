@@ -251,7 +251,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     );
     _prefixScope = new CompilationUnitPrefixScope(
       prefixNameSpace,
-      ScopeKind.prefix,
       parent: scope,
     );
     LookupScope libraryScope = _prefixScope;
@@ -259,13 +258,11 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       // Coverage-ignore-block(suite): Not run.
       libraryScope = new NameSpaceLookupScope(
         resolveInLibrary.libraryNameSpace,
-        ScopeKind.library,
         parent: libraryScope,
       );
     }
     _compilationUnitScope = new CompilationUnitScope(
       this,
-      ScopeKind.compilationUnit,
       parent: libraryScope,
     );
     _typeScope = new TypeScope(TypeScopeKind.library, _compilationUnitScope);

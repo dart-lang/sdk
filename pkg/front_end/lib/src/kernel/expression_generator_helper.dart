@@ -92,9 +92,9 @@ abstract class ExpressionGeneratorHelper {
     required String name,
     required Token nameToken,
     required int nameOffset,
-    required ScopeKind scopeKind,
     PrefixBuilder? prefix,
     Token? prefixToken,
+    required bool forStatementScope,
   });
 
   Expression_Generator_Initializer finishSend(
