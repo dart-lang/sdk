@@ -1496,6 +1496,8 @@ class AnalysisDriver {
           completeWithError(_requestedFilesNonInteractive.remove(file.path));
           // getErrors()
           completeWithError(_errorsRequestedFiles.remove(file.path));
+          // getIndex()
+          completeWithError(_indexRequestedFiles.remove(file.path));
         }
         // getResolvedLibrary()
         completeWithError(_requestedLibraries.remove(library.file.path));
