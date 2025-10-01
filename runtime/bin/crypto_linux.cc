@@ -11,6 +11,7 @@
 
 #include "bin/crypto.h"
 #include "bin/fdutils.h"
+#include "platform/memory_sanitizer.h"
 #include "platform/signal_blocker.h"
 
 namespace dart {
@@ -55,6 +56,9 @@ bool Crypto::GetRandomBytes(intptr_t count, uint8_t* buffer) {
     }
     bytes_read += res;
   } while (bytes_read < count);
+  // Not using the libc wrapper `getrandom`, which MSAN is missing an
+  // interceptor for anyway.
+  MSAN_UNPOISON(buffer, count);
   return true;
 }
 
