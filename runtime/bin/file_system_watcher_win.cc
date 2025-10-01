@@ -18,16 +18,16 @@
 namespace dart {
 namespace bin {
 
+void FileSystemWatcher::InitOnce() {}
+
+void FileSystemWatcher::Cleanup() {}
+
 bool FileSystemWatcher::IsSupported() {
   return true;
 }
 
 intptr_t FileSystemWatcher::Init() {
   return 0;
-}
-
-void FileSystemWatcher::Close(intptr_t id) {
-  USE(id);
 }
 
 intptr_t FileSystemWatcher::WatchPath(intptr_t id,

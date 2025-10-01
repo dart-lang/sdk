@@ -36,6 +36,9 @@ class FileSystemWatcher {
     int link;
   };
 
+  static void InitOnce();
+  static void Cleanup();
+
   static bool IsSupported();
   static intptr_t Init();
   static void Close(intptr_t id);

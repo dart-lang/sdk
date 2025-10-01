@@ -71,7 +71,6 @@ namespace bin {
   V(File_Truncate, 2)                                                          \
   V(File_WriteByte, 2)                                                         \
   V(File_WriteFrom, 4)                                                         \
-  V(FileSystemWatcher_CloseWatcher, 1)                                         \
   V(FileSystemWatcher_GetSocketId, 2)                                          \
   V(FileSystemWatcher_InitWatcher, 0)                                          \
   V(FileSystemWatcher_IsSupported, 0)                                          \

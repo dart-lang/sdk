@@ -262,7 +262,6 @@ abstract class _FileSystemWatcher {
     }
     final id = _id;
     if (_idMap.isEmpty && id != null) {
-      _closeWatcher(id);
       _doneWatcher();
       _id = null;
     }
@@ -390,7 +389,6 @@ abstract class _FileSystemWatcher {
         if (_idMap.containsKey(pathId)) {
           _idMap.remove(pathId);
           if (_idMap.isEmpty && _id != null) {
-            _closeWatcher(_id!);
             _id = null;
           }
         }
@@ -402,7 +400,6 @@ abstract class _FileSystemWatcher {
           var path = _pathFromPathId(pathId).path;
           _idMap.remove(pathId);
           if (_idMap.isEmpty && _id != null) {
-            _closeWatcher(_id!);
             _id = null;
           }
           throw FileSystemException(
@@ -424,8 +421,6 @@ abstract class _FileSystemWatcher {
 
   @pragma("vm:external-name", "FileSystemWatcher_InitWatcher")
   external static int _initWatcher();
-  @pragma("vm:external-name", "FileSystemWatcher_CloseWatcher")
-  external static void _closeWatcher(int id);
 
   @pragma("vm:external-name", "FileSystemWatcher_WatchPath")
   external static int _watchPath(

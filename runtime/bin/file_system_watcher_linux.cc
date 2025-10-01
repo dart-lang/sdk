@@ -18,6 +18,10 @@
 namespace dart {
 namespace bin {
 
+void FileSystemWatcher::InitOnce() {}
+
+void FileSystemWatcher::Cleanup() {}
+
 bool FileSystemWatcher::IsSupported() {
   return true;
 }
@@ -32,10 +36,6 @@ intptr_t FileSystemWatcher::Init() {
   // even if setting non-blocking fails.
   FDUtils::SetNonBlocking(id);
   return id;
-}
-
-void FileSystemWatcher::Close(intptr_t id) {
-  USE(id);
 }
 
 intptr_t FileSystemWatcher::WatchPath(intptr_t id,

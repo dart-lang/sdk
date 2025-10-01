@@ -29,11 +29,6 @@ void FUNCTION_NAME(FileSystemWatcher_InitWatcher)(Dart_NativeArguments args) {
   }
 }
 
-void FUNCTION_NAME(FileSystemWatcher_CloseWatcher)(Dart_NativeArguments args) {
-  intptr_t id = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 0));
-  FileSystemWatcher::Close(id);
-}
-
 void FUNCTION_NAME(FileSystemWatcher_WatchPath)(Dart_NativeArguments args) {
   intptr_t id = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 0));
   Namespace* namespc = Namespace::GetNamespace(args, 1);
