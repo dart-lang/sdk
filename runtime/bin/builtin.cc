@@ -37,6 +37,9 @@ void Builtin::SetNativeResolver(BuiltinLibraryId id) {
     Dart_Handle result =
         Dart_SetNativeResolver(library, NativeLookup, NativeSymbol);
     ASSERT(!Dart_IsError(result));
+    // Setup the ffi native resolver for built in library functions.
+    result = Dart_SetFfiNativeResolver(library, FfiNativeLookup);
+    ASSERT(!Dart_IsError(result));
   }
 }
 

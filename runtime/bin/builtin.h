@@ -46,6 +46,8 @@ class Builtin {
                                           int argument_count,
                                           bool* auto_setup_scope);
 
+  static void* FfiNativeLookup(const char* name, uintptr_t argument_count);
+
   static const uint8_t* NativeSymbol(Dart_NativeFunction nf);
 
   static const int num_libs_;

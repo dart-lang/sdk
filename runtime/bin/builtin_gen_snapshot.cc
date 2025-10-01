@@ -47,6 +47,10 @@ Dart_NativeFunction Builtin::NativeLookup(Dart_Handle name,
   return IONativeLookup(name, argument_count, auto_setup_scope);
 }
 
+void* Builtin::FfiNativeLookup(const char* name, uintptr_t argument_count) {
+  return nullptr;
+}
+
 const uint8_t* Builtin::NativeSymbol(Dart_NativeFunction nf) {
   int num_entries = sizeof(BuiltinEntries) / sizeof(struct NativeEntries);
   for (int i = 0; i < num_entries; i++) {

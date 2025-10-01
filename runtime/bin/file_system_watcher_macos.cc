@@ -211,6 +211,10 @@ void FileSystemWatcher::UnwatchPath(intptr_t id, intptr_t path_id) {
   Node::Unwatch(reinterpret_cast<Node*>(path_id));
 }
 
+void FileSystemWatcher::DestroyWatch(intptr_t path_id) {
+  FileSystemWatcher::UnwatchPath(0, path_id);
+}
+
 intptr_t FileSystemWatcher::GetSocketId(intptr_t id, intptr_t path_id) {
   return reinterpret_cast<Node*>(path_id)->read_fd();
 }
@@ -230,7 +234,7 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
       return DartUtils::NewDartOSError();
     }
     size_t path_len = strlen(e.data.path);
-    Dart_Handle event = Dart_NewList(5);
+    Dart_Handle event = Dart_NewList(kEventNumElements);
     int flags = e.data.flags;
     int mask = 0;
     if ((flags & kFSEventStreamEventFlagItemRenamed) != 0) {
@@ -261,16 +265,15 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
         mask |= kDelete;
       }
     }
-    Dart_ListSetAt(event, 0, Dart_NewInteger(mask));
-    Dart_ListSetAt(event, 1, Dart_NewInteger(1));
+    Dart_ListSetAt(event, kEventFlagsIndex, Dart_NewInteger(mask));
+    Dart_ListSetAt(event, kEventCookieIndex, Dart_NewInteger(0));
     Dart_Handle name = Dart_NewStringFromUTF8(
         reinterpret_cast<uint8_t*>(e.data.path), path_len);
     if (Dart_IsError(name)) {
       return name;
     }
-    Dart_ListSetAt(event, 2, name);
-    Dart_ListSetAt(event, 3, Dart_NewBoolean(true));
-    Dart_ListSetAt(event, 4, Dart_NewInteger(path_id));
+    Dart_ListSetAt(event, kEventPathIndex, name);
+    Dart_ListSetAt(event, kEventPathIdIndex, Dart_NewInteger(path_id));
     Dart_ListSetAt(events, i, event);
   }
   return events;
@@ -298,6 +301,8 @@ bool FileSystemWatcher::IsSupported() {
 }
 
 void FileSystemWatcher::UnwatchPath(intptr_t id, intptr_t path_id) {}
+
+void FileSystemWatcher::DestroyWatch(intptr_t path_id) {}
 
 void FileSystemWatcher::InitOnce() {}
 
