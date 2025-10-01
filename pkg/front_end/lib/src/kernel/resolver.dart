@@ -944,6 +944,7 @@ class Resolver {
       libraryBuilder: context.libraryBuilder,
       context: bodyBuilderContext,
       enclosingScope: new EnclosingLocalScope(scope),
+      extensionScope: context.typeInferrer.extensionScope,
       formalParameterScope: formalParameterScope,
       hierarchy: _classHierarchy,
       coreTypes: _coreTypes,

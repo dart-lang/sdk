@@ -187,14 +187,16 @@ Future<void> main() async {
       extensionScope: compilationUnit.compilationUnitScope,
     );
 
+    LocalScope lookupScope = new FixedLocalScope(
+      kind: ScopeKind.library,
+      debugName: "dummy",
+    );
     ExpressionGeneratorHelper helper = new BodyBuilderImpl(
       libraryBuilder: libraryBuilder,
       context: new LibraryBodyBuilderContext(libraryBuilder),
       uri: uri,
-      enclosingScope: new FixedLocalScope(
-        kind: ScopeKind.library,
-        debugName: "dummy",
-      ),
+      enclosingScope: lookupScope,
+      extensionScope: lookupScope,
       coreTypes: coreTypes,
       hierarchy: hierarchy,
       assignedVariables: typeInferrer.assignedVariables,

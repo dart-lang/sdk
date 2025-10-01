@@ -121,11 +121,13 @@ enum ScopeKind {
   import,
 }
 
-abstract class LookupScope {
+abstract class ExtensionScope {
+  void forEachExtension(void Function(ExtensionBuilder) f);
+}
+
+abstract class LookupScope implements ExtensionScope {
   ScopeKind get kind;
   LookupResult? lookup(String name);
-  // TODO(johnniwinther): Should this be moved to an outer scope interface?
-  void forEachExtension(void Function(ExtensionBuilder) f);
 }
 
 /// A [LookupScope] based directly on a [NameSpace].

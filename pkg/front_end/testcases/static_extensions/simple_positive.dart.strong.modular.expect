@@ -1,0 +1,28 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  static get foo() → core::String
+    return "A.foo";
+}
+extension E on self::A {
+  static get foo = get self::E|foo;
+  static get bar = get self::E|bar;
+}
+static extension-member get E|foo() → core::String
+  return "E.foo";
+static extension-member get E|bar() → core::String
+  return "E.bar";
+static method main() → dynamic {
+  self::expectEqual(self::A::foo, "A.foo");
+  self::expectEqual(self::E|bar, "E.bar");
+}
+static method expectEqual(dynamic a, dynamic b) → dynamic {
+  if(!(a =={core::Object::==}{(core::Object) → core::bool} b)) {
+    throw "Expected the values to be equal.";
+  }
+}

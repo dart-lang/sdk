@@ -4461,12 +4461,38 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
               return tearOffExpression;
             }
           }
-          generator = new UnresolvedNameGenerator(
-            _helper,
-            send.token,
-            name,
-            unresolvedReadKind: UnresolvedKind.Member,
-          );
+
+          MemberBuilder? extensionMemberBuilder;
+
+          if (_helper.libraryFeatures.staticExtensions.isEnabled) {
+            _helper.extensionScope.forEachExtension((
+              ExtensionBuilder extensionBuilder,
+            ) {
+              if (extensionBuilder.onType.declaration == declaration) {
+                extensionMemberBuilder = extensionBuilder
+                    .lookupLocalMemberByName(name, setter: false);
+              }
+            });
+          }
+
+          if (extensionMemberBuilder != null) {
+            generator = new StaticAccessGenerator.fromBuilder(
+              _helper,
+              name,
+              send.token,
+              extensionMemberBuilder,
+              null,
+              typeOffset: fileOffset,
+              isNullAware: isNullAware,
+            );
+          } else {
+            generator = new UnresolvedNameGenerator(
+              _helper,
+              send.token,
+              name,
+              unresolvedReadKind: UnresolvedKind.Member,
+            );
+          }
         } else {
           return _helper.resolveAndBuildConstructorInvocation(
             declarationBuilder,

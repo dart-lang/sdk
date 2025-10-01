@@ -349,6 +349,9 @@ class BodyBuilderImpl extends StackListenerImpl
   /// Index for building unique lowered names for wildcard variables.
   int wildcardVariableIndex = 0;
 
+  @override
+  ExtensionScope extensionScope;
+
   BodyBuilderImpl({
     required this.libraryBuilder,
     required BodyBuilderContext context,
@@ -362,6 +365,7 @@ class BodyBuilderImpl extends StackListenerImpl
     required this.assignedVariables,
     required this.typeEnvironment,
     required ConstantContext constantContext,
+    required this.extensionScope,
   }) : _context = context,
        forest = const Forest(),
        enableNative = libraryBuilder.loader.target.backendTarget.enableNative(

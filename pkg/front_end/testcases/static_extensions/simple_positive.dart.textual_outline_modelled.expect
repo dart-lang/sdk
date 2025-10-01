@@ -1,0 +1,12 @@
+class A {
+  static String get foo => "A.foo";
+}
+
+expectEqual(a, b) {}
+
+extension E on A {
+  static String get bar => "E.bar";
+  static String get foo => "E.foo";
+}
+
+main() {}

@@ -1,0 +1,22 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+  static get foo() → core::String
+    ;
+}
+extension E on self::A {
+  static get foo = get self::E|foo;
+  static get bar = get self::E|bar;
+}
+static extension-member get E|foo() → core::String
+  ;
+static extension-member get E|bar() → core::String
+  ;
+static method main() → dynamic
+  ;
+static method expectEqual(dynamic a, dynamic b) → dynamic
+  ;

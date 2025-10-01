@@ -190,7 +190,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   ProblemReportingHelper get problemReportingHelper => libraryBuilder.loader;
 
-  LookupScope get extensionScope => _inferrer.extensionScope;
+  ExtensionScope get extensionScope => _inferrer.extensionScope;
 
   bool get isInferenceUpdate1Enabled =>
       libraryBuilder.isInferenceUpdate1Enabled;
