@@ -2180,10 +2180,10 @@ class _RawServerSocket extends Stream<RawSocket>
     var zone = Zone.current;
     final controller = _controller = StreamController(
       sync: true,
-      onListen: _onSubscriptionStateChange,
-      onCancel: _onSubscriptionStateChange,
-      onPause: _onPauseStateChange,
-      onResume: _onPauseStateChange,
+      onListen: _resume,
+      onCancel: close,
+      onPause: _pause,
+      onResume: _resume,
     );
     _socket.setHandlers(
       read: zone.bindCallbackGuarded(() {
@@ -2230,22 +2230,6 @@ class _RawServerSocket extends Stream<RawSocket>
 
   void _resume() {
     _socket.setListening(read: true, write: false);
-  }
-
-  void _onSubscriptionStateChange() {
-    if (_controller!.hasListener) {
-      _resume();
-    } else {
-      _socket.close();
-    }
-  }
-
-  void _onPauseStateChange() {
-    if (_controller!.isPaused) {
-      _pause();
-    } else {
-      _resume();
-    }
   }
 
   bool get _closedReadEventSent => _socket.closedReadEventSent;
@@ -2323,10 +2307,10 @@ class _RawSocket extends Stream<RawSocketEvent>
   _RawSocket(this._socket) {
     var zone = Zone.current;
     _controller
-      ..onListen = _onSubscriptionStateChange
-      ..onCancel = _onSubscriptionStateChange
-      ..onPause = _onPauseStateChange
-      ..onResume = _onPauseStateChange;
+      ..onListen = _resume
+      ..onCancel = close
+      ..onPause = _pause
+      ..onResume = _resume;
     _socket.setHandlers(
       read: () => _controller.add(RawSocketEvent.read),
       write: () {
@@ -2457,28 +2441,12 @@ class _RawSocket extends Stream<RawSocketEvent>
       _socket.getRawOption(option);
   void setRawOption(RawSocketOption option) => _socket.setRawOption(option);
 
-  _pause() {
+  void _pause() {
     _socket.setListening(read: false, write: false);
   }
 
   void _resume() {
     _socket.setListening(read: _readEventsEnabled, write: _writeEventsEnabled);
-  }
-
-  void _onPauseStateChange() {
-    if (_controller.isPaused) {
-      _pause();
-    } else {
-      _resume();
-    }
-  }
-
-  void _onSubscriptionStateChange() {
-    if (_controller.hasListener) {
-      _resume();
-    } else {
-      _socket.close();
-    }
   }
 
   bool get _closedReadEventSent => _socket.closedReadEventSent;
@@ -2997,10 +2965,10 @@ class _RawDatagramSocket extends Stream<RawSocketEvent>
     var zone = Zone.current;
     _controller = StreamController<RawSocketEvent>(
       sync: true,
-      onListen: _onSubscriptionStateChange,
-      onCancel: _onSubscriptionStateChange,
-      onPause: _onPauseStateChange,
-      onResume: _onPauseStateChange,
+      onListen: _resume,
+      onCancel: close,
+      onPause: _pause,
+      onResume: _resume,
     );
     _socket.setHandlers(
       read: () => _controller.add(RawSocketEvent.read),
@@ -3126,28 +3094,12 @@ class _RawDatagramSocket extends Stream<RawSocketEvent>
 
   InternetAddress get address => _socket.address;
 
-  _pause() {
+  void _pause() {
     _socket.setListening(read: false, write: false);
   }
 
   void _resume() {
     _socket.setListening(read: _readEventsEnabled, write: _writeEventsEnabled);
-  }
-
-  void _onPauseStateChange() {
-    if (_controller.isPaused) {
-      _pause();
-    } else {
-      _resume();
-    }
-  }
-
-  void _onSubscriptionStateChange() {
-    if (_controller.hasListener) {
-      _resume();
-    } else {
-      _socket.close();
-    }
   }
 
   Uint8List getRawOption(RawSocketOption option) =>

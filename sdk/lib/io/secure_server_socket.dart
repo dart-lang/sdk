@@ -142,10 +142,10 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
   ) {
     _controller = new StreamController<RawSecureSocket>(
       sync: true,
-      onListen: _onSubscriptionStateChange,
-      onPause: _onPauseStateChange,
-      onResume: _onPauseStateChange,
-      onCancel: _onSubscriptionStateChange,
+      onListen: _start,
+      onPause: _pause,
+      onResume: _resume,
+      onCancel: close,
     );
   }
 
@@ -288,24 +288,20 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
         });
   }
 
-  void _onPauseStateChange() {
-    if (_controller.isPaused) {
-      _subscription!.pause();
-    } else {
-      _subscription!.resume();
-    }
+  void _pause() {
+    _subscription!.pause();
   }
 
-  void _onSubscriptionStateChange() {
-    if (_controller.hasListener) {
-      _subscription = _socket.listen(
-        _onData,
-        onError: _controller.addError,
-        onDone: _controller.close,
-      );
-    } else {
-      close();
-    }
+  void _resume() {
+    _subscription!.resume();
+  }
+
+  void _start() {
+    _subscription = _socket.listen(
+      _onData,
+      onError: _controller.addError,
+      onDone: _controller.close,
+    );
   }
 
   void set _owner(owner) {
