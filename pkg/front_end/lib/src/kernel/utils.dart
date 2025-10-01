@@ -356,8 +356,5 @@ class _DummyLookupScope implements LookupScope {
   void forEachExtension(void Function(ExtensionBuilder p1) f) {}
 
   @override
-  ScopeKind get kind => ScopeKind.library;
-
-  @override
   LookupResult? lookup(String name) => null;
 }

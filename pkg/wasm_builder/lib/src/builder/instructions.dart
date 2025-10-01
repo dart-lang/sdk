@@ -789,7 +789,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   void select(ir.ValueType type) {
     assert(_verifyTypes([type, type, ir.NumType.i32], [type],
         trace: ['select', type]));
-    _add(ir.Select(type));
+    _add(type is ir.NumType ? ir.Select() : ir.SelectWithType(type));
   }
 
   // Variable instructions

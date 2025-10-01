@@ -2863,7 +2863,7 @@ final class _Uri implements _PlatformUri {
   /// Normalizes using [_normalize] or returns substring of original.
   ///
   /// If [_normalize] returns `null` (original content is already normalized),
-  /// this methods returns the substring if [component] from [start] to [end].
+  /// this methods returns the substring of [component] from [start] to [end].
   static String _normalizeOrSubstring(
     String component,
     int start,
@@ -2994,7 +2994,7 @@ final class _Uri implements _PlatformUri {
       }
       int delta = baseEnd - newEnd;
       // If we see a "." or ".." segment in base, stop here and let
-      // _removeDotSegments handle it.
+      // _removeDotSegments or _normalizeRelativePath handle it.
       if ((delta == 2 || delta == 3) &&
           base.codeUnitAt(newEnd + 1) == _DOT &&
           (delta == 2 || base.codeUnitAt(newEnd + 2) == _DOT)) {
@@ -3053,45 +3053,132 @@ final class _Uri implements _PlatformUri {
 
   /// Removes all `.` segments and any non-leading `..` segments.
   ///
-  /// If the path starts with something that looks like a scheme,
-  /// and [allowScheme] is false, the colon is escaped.
+  /// Returns a new path that behaves the same as the input [path] when
+  /// used as a URI or URI Reference path.
   ///
-  /// Removing the ".." from a "bar/foo/.." sequence results in "bar/"
-  /// (trailing "/"). If the entire path is removed (because it contains as
-  /// many ".." segments as real segments), the result is "./".
-  /// This is different from an empty string, which represents "no path"
-  /// when you resolve it against a base URI with a path with a non-empty
-  /// final segment.
+  /// If [allowScheme] is `false` and the path starts with something that would
+  /// parse as a scheme, valid scheme-characters followed by a colon,
+  /// the colon is escaped to `%3A`. The `allowScheme` should be set to `true`
+  /// when the result will become the path of a URI with no scheme or authority.
+  ///
+  /// The result will contain no non-leading `..` segments. There may be
+  /// any number of leading `..` segments if the [path] contains more `..`
+  /// segments than prior actual segments. For example `a/b/../../../../c` will
+  /// normalize to `../../c`.
+  ///
+  /// The result will contain no non-leading `.` segment.
+  /// It will only start with a `.` segment if necessary to preserve
+  /// the behavior of the input [path]:
+  /// * The result is the path `./` if the result would otherwise
+  ///   have been an empty path, and the input `path` is not empty, or
+  /// * The result starts with `.//` to represent an otherwise leading
+  ///   empty segment without being an absolute path.
+  ///
+  /// The leading `.` segment
+  /// is only used to prefix a path that could otherwise behave differently
+  /// from the input [path]. An empty path means _no path_ in a URI, which
+  /// behaves differently from any non-empty path in some cases, and
+  /// URI paths cannot represent an empty leading path segment.
+  ///
+  /// The result will end with a `/` if the [path] does, or if the path
+  /// ends with a `.` or `..` segment.
   static String _normalizeRelativePath(String path, bool allowScheme) {
-    assert(!path.startsWith('/')); // Only get called for relative paths.
+    assert(!path.startsWith('/')); // Only get called with relative paths.
     if (!_mayContainDotSegments(path)) {
       if (!allowScheme) path = _escapeScheme(path);
       return path;
     }
     assert(path.isNotEmpty); // An empty path would not have dot segments.
+    // Collects segments to be joined by `/` to produce the result.
+    // Used as a stack where `..` can pop the last segment.
     List<String> output = [];
+    // Set to `true` after a `.` or `..` segment.
+    // If the path ends after a `.` or `..` with no trailing `/`,
+    // the result should have a trailing slash.
+    // For example "a/b" normalizes to "a/b", and "a/b/." normalizes to "a/b/",
+    // but the content of `output` will be the same in both cases.
+    // If the input ends with `appendSlash` set to `true`, the result will
+    // have an extra `/` added.
     bool appendSlash = false;
+    // Split input into segments so `.` and `..` segments can be handled
+    // and remaining segments combined into a normalized path.
+    // The first segment will never be empty, since the path is relative
+    // and non-empty, so the path start with a non-`/` character.
+    // A final empty string does not semantically represent a path segment,
+    // just that the path ends in `/`.
+    // It's handled the same as any other empty segment.
+    // There is no difference between an empty segment and "no segment"
+    // unless followed by a `..` or `.`, which the final string isn't.
     for (String segment in path.split("/")) {
-      appendSlash = false;
       if (".." == segment) {
+        appendSlash = true;
         if (!output.isEmpty && output.last != "..") {
           output.removeLast();
-          appendSlash = true;
         } else {
-          output.add("..");
+          output.add(".."); // The result can have a number of _leading_ `..`s.
         }
       } else if ("." == segment) {
         appendSlash = true;
       } else {
+        appendSlash = false;
+        if (segment.isEmpty && output.isEmpty) {
+          // Avoid a leading empty segment, which would become an absolute path.
+          // Can occur for inputs like `.//etc` or `a/..//etc`.
+          //
+          // The returned path will be the `output` list joined with `/`s.
+          // A leading empty segment in `output` would make the resulting join
+          // start with `/` and be an absolute path,
+          // which is not a correct normalization of a relative path.
+          // Using `./` as "first segment" represents that empty segment as the
+          // segment between the `./` and the following joining `/`.
+          //
+          // The `./` first segment combines correctly with any following
+          // segments, whether `.`, `..` or empty/non-empty segments.
+          // * A `.` leaves the empty segment and sets `appendSlash` to true.
+          // * A `..` removes the `./` segment, effectively removing
+          //   the empty segment between the `./` and the joining `/`
+          //   and making the `output` empty. It sets `appendSlash` to true.
+          // * Any other segment is just appended and preserves the empty
+          //   segment until an equal number of `..`s bring the `output`
+          //   back to just the leading `"./"`.
+          // * If reaching the end of input with only the `./` in the `output`
+          //   then either:
+          //   * `appendSlash` is `true`, and the result becomes the path `.//`,
+          //     which contains exactly the empty segment.
+          //   * `appendSlash` is `false`, in which case the end of input
+          //     was right after the empty segment that added the `./`,
+          //     an empty segment that came from a trailing `/` in the input
+          //     `path`. In that case, the empty segment shouldn't count
+          //     as a real segment, which makes the result path be empty.
+          //     In that case the result should be `./` anyway.
+          //
+          // In all cases, just treating `./` as a normal segment gives
+          // the desired behavior both when combined with later input segments
+          // and in the returned result.
+          //
+          // (This case could also be handled by checking at the end whether
+          // the first segment is empty, and if so, prepending the result with
+          // `"./"`. Simply changing the content of a first empty segment at
+          // this point is simple and cheap.)
+          segment = './';
+        }
         output.add(segment);
       }
     }
-    if (output.isEmpty || (output.length == 1 && output[0].isEmpty)) {
+    if (output.isEmpty) {
+      // Can happen for, fx, `.` or `a/..`.
+      // A URI Reference does not distinguish having an empty path from having
+      // _no path_, and a URI Reference with no path behaves differently when
+      // combined with another URI or URI reference than one with non-empty
+      // path. To make this normalization not change the behavior, instead
+      // return a minimal non-empty normalized path.
       return "./";
     }
-    if (appendSlash || output.last == '..') output.add("");
+    assert(!output.first.isEmpty); // Would be `./` instead.
+    if (appendSlash) output.add("");
     if (!allowScheme) output[0] = _escapeScheme(output[0]);
-    return output.join("/");
+    var result = output.join("/");
+    return result;
   }
 
   /// If [path] starts with a valid scheme, escape the percent.
@@ -3265,7 +3352,7 @@ final class _Uri implements _PlatformUri {
         targetScheme = _makeScheme(targetScheme, 0, targetScheme.length);
       }
       if (split <= afterScheme) {
-        if (targetUserInfo != null) {
+        if (targetUserInfo.isNotEmpty) {
           targetUserInfo = _makeUserInfo(
             targetUserInfo,
             0,

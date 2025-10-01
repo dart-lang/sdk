@@ -260,7 +260,6 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   TypeBuilder get onType {
     return _onType ??= libraryBuilder.loader.computeTypeBuilder(
       extension.onType,

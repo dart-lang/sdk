@@ -14742,6 +14742,13 @@ Message _withArgumentsOldPartTwice(Uri uri) =>
     _withArgumentsPartTwice(uri: uri);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode codePartWithLibraryDirective = const MessageCode(
+  "PartWithLibraryDirective",
+  problemMessage: r"""A part cannot have a library directive.""",
+  correctionMessage: r"""Try removing the library directive.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codePatchClassOrigin = const MessageCode(
   "PatchClassOrigin",
   severity: CfeSeverity.context,

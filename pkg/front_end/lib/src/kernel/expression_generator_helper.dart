@@ -58,6 +58,8 @@ abstract class ExpressionGeneratorHelper {
 
   CompilerContext get compilerContext;
 
+  ExtensionScope get extensionScope;
+
   InvalidExpression buildProblem({
     required Message message,
     required Uri fileUri,
@@ -90,9 +92,9 @@ abstract class ExpressionGeneratorHelper {
     required String name,
     required Token nameToken,
     required int nameOffset,
-    required ScopeKind scopeKind,
     PrefixBuilder? prefix,
     Token? prefixToken,
+    required bool forStatementScope,
   });
 
   Expression_Generator_Initializer finishSend(

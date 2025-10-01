@@ -11,7 +11,6 @@ import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/base/constant_context.dart';
 import 'package:front_end/src/base/local_scope.dart';
 import 'package:front_end/src/base/name_space.dart';
-import 'package:front_end/src/base/scope.dart';
 import 'package:front_end/src/base/uri_translator.dart';
 import 'package:front_end/src/builder/compilation_unit.dart';
 import 'package:front_end/src/builder/declaration_builders.dart';
@@ -187,14 +186,15 @@ Future<void> main() async {
       extensionScope: compilationUnit.compilationUnitScope,
     );
 
+    LocalScope lookupScope = new FixedLocalScope(
+      kind: LocalScopeKind.enclosing,
+    );
     ExpressionGeneratorHelper helper = new BodyBuilderImpl(
       libraryBuilder: libraryBuilder,
       context: new LibraryBodyBuilderContext(libraryBuilder),
       uri: uri,
-      enclosingScope: new FixedLocalScope(
-        kind: ScopeKind.library,
-        debugName: "dummy",
-      ),
+      enclosingScope: lookupScope,
+      extensionScope: lookupScope,
       coreTypes: coreTypes,
       hierarchy: hierarchy,
       assignedVariables: typeInferrer.assignedVariables,

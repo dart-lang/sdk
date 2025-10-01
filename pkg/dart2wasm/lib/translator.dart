@@ -549,7 +549,7 @@ class Translator with KernelNodes {
     _initModules(sourceMapUrlGenerator);
     initFunction = mainModule.functions
         .define(typesBuilder.defineFunction(const [], const []), "#init");
-    mainModule.functions.start = initFunction;
+    mainModule.startFunction = initFunction;
 
     closureLayouter.collect();
     classInfoCollector.collect();

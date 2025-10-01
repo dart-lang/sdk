@@ -7979,3 +7979,15 @@ PartOfName:
       part 'lib.dart';
     lib.dart: |
       part of lib;
+
+PartWithLibraryDirective:
+  parameters: none
+  problemMessage: "A part cannot have a library directive."
+  correctionMessage: "Try removing the library directive."
+  script:
+    main.dart: |
+      library lib;
+      part 'lib.dart';
+    lib.dart: |
+      library;
+      part of 'main.dart';

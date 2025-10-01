@@ -395,7 +395,7 @@ class DynamicModuleInfo {
   DynamicModuleInfo(this.translator, this.metadata);
 
   void initSubmodule() {
-    submodule.functions.start = initFunction = submodule.functions.define(
+    submodule.startFunction = initFunction = submodule.functions.define(
         translator.typesBuilder.defineFunction(const [], const []), "#init");
 
     // Make sure the exception tag is exported from the main module.

@@ -12,14 +12,8 @@ class FunctionsBuilder with Builder<ir.Functions> {
   final _functionBuilders = <FunctionBuilder>[];
   final _importedFunctions = <ir.ImportedFunction>[];
   final _declaredFunctions = <ir.BaseFunction>{};
-  ir.BaseFunction? _start;
 
   FunctionsBuilder(this._moduleBuilder);
-
-  set start(ir.BaseFunction init) {
-    assert(_start == null);
-    _start = init;
-  }
 
   void collectUsedTypes(Set<ir.DefType> usedTypes) {
     for (final f in _functionBuilders) {
@@ -62,7 +56,6 @@ class FunctionsBuilder with Builder<ir.Functions> {
   ir.Functions forceBuild() {
     final built = finalizeImportsAndBuilders<ir.DefinedFunction>(
         _importedFunctions, _functionBuilders);
-    return ir.Functions(
-        _start, _importedFunctions, built, [..._declaredFunctions]);
+    return ir.Functions(_importedFunctions, built, [..._declaredFunctions]);
   }
 }

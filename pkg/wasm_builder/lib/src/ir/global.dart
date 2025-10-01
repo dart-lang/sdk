@@ -14,10 +14,10 @@ abstract class Global with Indexable, Exportable {
   final Module enclosingModule;
 
   /// Name of the global in the names section.
-  final String? globalName;
+  String? globalName;
 
-  Global(
-      this.enclosingModule, this.finalizableIndex, this.type, this.globalName);
+  Global(this.enclosingModule, this.finalizableIndex, this.type,
+      [this.globalName]);
 
   @override
   String toString() => globalName ?? "$finalizableIndex";

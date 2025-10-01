@@ -68,4 +68,41 @@ class Instructions implements Serializable {
 
     s.sourceMapSerializer.addMapping(s.offset, null);
   }
+
+  static Instructions deserializeConst(
+    Deserializer d,
+    Types types,
+    Functions functions,
+    Globals globals,
+  ) {
+    final instructions = <Instruction>[];
+    while (true) {
+      final instruction =
+          Instruction.deserializeConst(d, types, functions, globals);
+      instructions.add(instruction);
+      if (instruction is End) break;
+    }
+    return Instructions([], {}, instructions, null, [], null);
+  }
+
+  static Instructions deserialize(
+    Deserializer d,
+    Module module,
+    Types types,
+    Functions functions,
+    Tables tables,
+    Memories memories,
+    Tags tags,
+    Globals globals,
+    DataSegments dataSegments,
+  ) {
+    final instructions = <Instruction>[];
+    while (true) {
+      final instruction = Instruction.deserialize(
+          d, types, tables, tags, globals, dataSegments, memories, functions);
+      instructions.add(instruction);
+      if (instruction is End) break;
+    }
+    return Instructions([], {}, instructions, null, [], null);
+  }
 }

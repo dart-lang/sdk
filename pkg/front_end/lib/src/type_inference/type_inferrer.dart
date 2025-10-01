@@ -33,6 +33,9 @@ abstract class TypeInferrer {
   /// Gets the [TypeSchemaEnvironment] being used for type inference.
   TypeSchemaEnvironment get typeSchemaEnvironment;
 
+  /// Gets the [ExtensionScope] being used for type inference.
+  ExtensionScope get extensionScope;
+
   /// Returns the [FlowAnalysis] used during inference.
   FlowAnalysis<
     TreeNode,
@@ -134,7 +137,8 @@ class TypeInferrerImpl implements TypeInferrer {
 
   final SourceLibraryBuilder libraryBuilder;
 
-  final LookupScope extensionScope;
+  @override
+  final ExtensionScope extensionScope;
 
   late final StaticTypeContext staticTypeContext =
       new StaticTypeContextImpl.direct(
@@ -381,11 +385,14 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
   final TypeInferrerImpl impl;
   final Benchmarker benchmarker;
 
+  @override
+  final ExtensionScope extensionScope;
+
   TypeInferrerImplBenchmarked(
     TypeInferenceEngine engine,
     InterfaceType? thisType,
     SourceLibraryBuilder libraryBuilder,
-    LookupScope extensionScope,
+    this.extensionScope,
     AssignedVariables<TreeNode, VariableDeclaration> assignedVariables,
     InferenceDataForTesting? dataForTesting,
     this.benchmarker,

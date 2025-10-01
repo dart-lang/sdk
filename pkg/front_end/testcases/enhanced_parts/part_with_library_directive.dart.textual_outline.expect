@@ -1,0 +1,3 @@
+part 'part_with_library_directive_part1.dart';
+
+part 'part_with_library_directive_part2.dart';

@@ -3,20 +3,5 @@
 // BSD-style license that can be found in the LICENSE file.
 
 export 'serializer.dart' show Serializable, Serializer;
-export 'sections.dart'
-    show
-        CodeSection,
-        DataCountSection,
-        DataSection,
-        ElementSection,
-        ExportSection,
-        FunctionSection,
-        GlobalSection,
-        ImportSection,
-        MemorySection,
-        NameSection,
-        SourceMapSection,
-        StartSection,
-        TableSection,
-        TagSection,
-        TypeSection;
+export 'deserializer.dart' show Deserializer;
+export 'sections.dart';

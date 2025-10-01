@@ -194,8 +194,7 @@ mixin _ConstructorDeclarationMixin
       local[formal.name] = formal.forFormalParameterInitializerScope();
     }
     return parent.createNestedFixedScope(
-      debugName: "formal parameter initializer",
-      kind: ScopeKind.initializers,
+      kind: LocalScopeKind.initializers,
       local: local,
     );
   }

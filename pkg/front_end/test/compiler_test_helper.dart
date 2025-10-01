@@ -301,6 +301,7 @@ class BodyBuilderTest extends BodyBuilderImpl {
          libraryBuilder: libraryBuilder,
          context: context,
          enclosingScope: new EnclosingLocalScope(enclosingScope),
+         extensionScope: enclosingScope,
          formalParameterScope: formalParameterScope,
          hierarchy: hierarchy,
          coreTypes: coreTypes,
