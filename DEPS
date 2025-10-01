@@ -150,7 +150,7 @@ vars = {
   "tools_rev": "2ef298e48450de9d2443d466ec4d61172a71b113",
   "vector_math_rev": "3939545edc38ed657381381d33acde02c49ff827",
   "web_rev": "0baaea4de4dfd60db85dd112d8cc7480d0dd8bd8",
-  "webdev_rev": "23aefebea46c1f94c27703743b2c8db1f651bf29",
+  "webdev_rev": "0b2a408f6f64a29cd0d18ac7d2d407a4e1db8e0f",
   "webdriver_rev": "09104f459ed834d48b132f6b7734923b1fbcf2e9",
   "webkit_inspection_protocol_rev": "effa75205516757795683d527c3dea9546eb0c32",
 
