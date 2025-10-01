@@ -7,7 +7,7 @@ library uriTest;
 import "package:expect/expect.dart";
 import 'dart:convert';
 
-testUri(String uriText, bool isAbsolute) {
+void testUri(String uriText, bool isAbsolute) {
   var uri = Uri.parse(uriText);
 
   Expect.equals(isAbsolute, uri.isAbsolute);
@@ -29,21 +29,21 @@ testUri(String uriText, bool isAbsolute) {
   }
 }
 
-testEncodeDecode(String orig, String encoded) {
+void testEncodeDecode(String orig, String encoded) {
   var e = Uri.encodeFull(orig);
   Expect.stringEquals(encoded, e);
   var d = Uri.decodeFull(encoded);
   Expect.stringEquals(orig, d);
 }
 
-testEncodeDecodeComponent(String orig, String encoded) {
+void testEncodeDecodeComponent(String orig, String encoded) {
   var e = Uri.encodeComponent(orig);
   Expect.stringEquals(encoded, e);
   var d = Uri.decodeComponent(encoded);
   Expect.stringEquals(orig, d);
 }
 
-testEncodeDecodeQueryComponent(
+void testEncodeDecodeQueryComponent(
   String orig,
   String encodedUTF8,
   String encodedLatin1,
@@ -77,7 +77,7 @@ testEncodeDecodeQueryComponent(
   }
 }
 
-testUriPerRFCs() {
+void testUriPerRFCs() {
   final urisSample = "http://a/b/c/d;p?q";
   Uri base = Uri.parse(urisSample);
   testResolve(expect, relative) {
@@ -694,7 +694,7 @@ void testBackslashes() {
   );
 }
 
-main() {
+void main() {
   testUri("http:", true);
   testUri("file:///", true);
   testUri("file", false);
@@ -878,6 +878,137 @@ main() {
   testBackslashes();
 
   testNonBmpEncodingRegression();
+
+  testDotSlashSlashRegression();
+}
+
+void testDotSlashSlashRegression() {
+  // Regression test.
+  //
+  // A relative path must not normalize to one starting with an empty segment,
+  // because that makes the result look like an absolute path.
+  // To avoid that, prepend `./` before the leading empty segment.
+  //
+  // The `_normalizeRelativePath` misbehaved on inputs like `.//`, removing
+  // the initial `.` segment and returning `/`.
+
+  // A replacement based implementation of path normalization, for comparison.
+  //
+  // (^|/).(/|$) -> (^|/)
+  // (^|/)<segment>/..(/|$) -> (^|/)
+  //
+  // That is: Remove a `/./` or a `/segment/../` by turning it into a `/`,
+  // unless it's at the start, then don't insert a leading `/`.
+  // Add leading `./` if starting with `/` (starting with empty segment)
+  // or has become empty.
+  // Add final `/` if ending in `..` segment (and then also starting with
+  // `..` segment).
+  var normalizeRE = RegExp(r'(/|^)(?:\.|(?!\.\.(?:/|$))[^/]*/\.\.)(?:/|$)');
+  String normalizeByReplacement(String path) {
+    while (true) {
+      var newPath = path.replaceAllMapped(normalizeRE, (m) => m[1]!);
+      if (newPath == path) break;
+      path = newPath;
+    }
+    // If ends with `..` segment, add `/` after it.
+    if (path == '..' || path.endsWith('/..')) {
+      path += '/';
+    }
+    // Don't return an absolute or empty path.
+    if (path.isEmpty || path.startsWith('/')) path = "./$path";
+    return path;
+  }
+
+  // Check that `Uri.parse` gives the expected result.
+  // Check that the expected result is what normalization by replacement
+  // would give.
+  void checkNormalize(String expectedPath, String input) {
+    Expect.stringEquals(
+      expectedPath,
+      Uri.parse(input).toString(),
+      "Uri.parse('$input')",
+    );
+    Expect.stringEquals(
+      expectedPath,
+      normalizeByReplacement(input),
+      "NormByReplace('$input')",
+    );
+  }
+
+  var twoSlashRE = RegExp(r'(?<=/)(?=/)');
+  void testNormalize(String expectedPath, String input) {
+    checkNormalize(expectedPath, input);
+
+    // Change all empty segments, `//`, to `/x/`, in expectation and result.
+    var nonEmptyExpect = expectedPath.replaceAll(twoSlashRE, 'x');
+    if (nonEmptyExpect.startsWith('./x/')) {
+      // Only differs if empty segment would have been first.
+      nonEmptyExpect = nonEmptyExpect.substring(2);
+    }
+    checkNormalize(nonEmptyExpect, input.replaceAll(twoSlashRE, 'x'));
+  }
+
+  const paths = [
+    // (input,  expected outout)
+    ('a/..', './'),
+    ('a/../', './'),
+    ('a/..//', './/'),
+    ('a/..//.', './/'),
+    ('a/..//./', './/'),
+    ('.', './'),
+    ('./', './'),
+    ('.//', './/'),
+    ('.//.', './/'),
+    ('.//./', './/'),
+    ('.//./.', './/'),
+    ('.//././', './/'),
+    ('.//./..', './'),
+    ('.//./../', './'),
+    ('.//.//.', './//'),
+    ('.//.//./', './//'),
+    ('.//', './/'),
+    ('.//a', './/a'),
+    ('.//..', './'),
+    ('.//../', './'),
+    ('.//../a', 'a'),
+    ('.//../a/', 'a/'),
+    ('.//.././', './'),
+    ('.//.././/', './/'),
+    ('.//../..', '../'),
+    ('.//../../', '../'),
+    ('.//../.././/', '..//'),
+    ('.//../..//', '..//'),
+    ('.//../..//..', '../'),
+    ('.//../..//../', '../'),
+    ('.//..//', './/'),
+    ('.//..//..', './'),
+    ('.//..//../', './'),
+    ('.///', './//'),
+    ('.///a', './//a'),
+    ('.///.', './//'),
+    ('.///./', './//'),
+    ('.///../..', './'),
+    ('.///../../', './'),
+    // Not broken, extra sanity checks in case the fix broke it.
+    ('..', '../'),
+    ('../', '../'),
+    ('../a', '../a'),
+    ('../a/', '../a/'),
+    ('../.', '../'),
+    ('.././', '../'),
+    ('../..', '../../'),
+    ('../../', '../../'),
+    ('..//', '..//'),
+    ('..//..', '../'),
+    ('..//../', '../'),
+    ('.././..', '../../'),
+    ('.././/', '..//'),
+  ];
+  for (var (input, expected) in paths) {
+    assert(!input.startsWith('/'));
+    testNormalize(expected, input);
+    testNormalize(expected, './$input'); // Prefixing with `./` changes nothing.
+  }
 }
 
 void testNonBmpEncodingRegression() {
