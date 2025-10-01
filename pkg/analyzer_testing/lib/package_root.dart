@@ -41,7 +41,15 @@ String get packageRoot {
     return pathFromCwd;
   }
 
-  throw StateError('Unable to find sdk/pkg/ in $scriptPath');
+  var exceptionMessage =
+      'Unable to find the Dart SDK package root directory ("sdk/pkg/") in ';
+  if (pkgRootVar != null) {
+    exceptionMessage += '"$pkgRootVar" (specified via `-DpkgRoot=`), or ';
+  }
+  exceptionMessage +=
+      'in an ancestor of either "$pathFromScript", or "$pathFromCwd".';
+
+  throw StateError(exceptionMessage);
 }
 
 /// Tries to find the path to the 'pkg' folder from [searchPath].
