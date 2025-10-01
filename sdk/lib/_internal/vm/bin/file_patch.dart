@@ -450,11 +450,11 @@ abstract class _FileSystemWatcher {
       }
 
       if (Platform.isWindows) {
-        return _SocketPerPathFileSystemWatcher();
+        return _Win32FileSystemWatcher();
       }
 
       if (Platform.isMacOS) {
-        return _SocketPerPathFileSystemWatcher();
+        return _FSEventStreamFileSystemWatcher();
       }
     }
 
@@ -497,16 +497,54 @@ abstract class _FileSystemWatcher {
   external static void _destroyWatch(ffi.Pointer<ffi.Void> pathId);
 }
 
-class _InotifyFileSystemWatcher extends _FileSystemWatcher {
+/// A watcher that receives events for multiple `pathId` on a single channel.
+abstract class _MultiplexingFileSystemWatcher extends _FileSystemWatcher {
+  /// Map of [_watchedPath] indexed by `pathId` values.
   final Map<int, _WatchedPath> _watchedPaths = <int, _WatchedPath>{};
 
+  /// Perform necessary initialization of the native state for the watcher.
+  void _ensureWatcherIsRunning();
+
+  /// Shutdown the watcher when there is no actively watched paths.
+  ///
+  /// If shutdown requires asynchronous actions returns [Future] which will
+  /// complete when shutdown is finished.
+  FutureOr<void> _stopWatcher();
+
+  @override
+  _WatchedPath _startWatching(String path, int events, bool recursive) {
+    _ensureWatcherIsRunning();
+    final pathId = super._watchPath(path, events, recursive);
+    // On Linux inotify_add_watch will return an existing watch descriptor
+    // for the inode if there is already one associated with it. Thus we
+    // need accept the possibility that calling _watchPath twice will
+    // return the same pathId. Other OSes do not reuse pathId values.
+    assert(Platform.isLinux || !_watchedPaths.containsKey(pathId));
+    return _watchedPaths[pathId] ??= _WatchedPath(pathId, path, events);
+  }
+
+  @override
+  Future<void> _stopWatching(_WatchedPath wp) async {
+    assert(_watchedPaths[wp.pathId] == wp);
+    _watchedPaths.remove(wp.pathId);
+    await super._stopWatching(wp);
+
+    // If there are no more active watcher close inotify descriptor.
+    if (_watchedPaths.isEmpty) {
+      await _stopWatcher();
+    }
+  }
+}
+
+class _InotifyFileSystemWatcher extends _MultiplexingFileSystemWatcher {
   int? _inotifyFd;
   StreamSubscription<List<_NativeFSEvent>>? _inotifySubscription;
 
   @override
   int get _watcherId => _inotifyFd!;
 
-  void _ensureInotifyFD() {
+  @override
+  void _ensureWatcherIsRunning() {
     if (_inotifyFd != null) {
       return;
     }
@@ -516,22 +554,6 @@ class _InotifyFileSystemWatcher extends _FileSystemWatcher {
       inotifyFd,
       0,
     ).listen(_handleEvents);
-  }
-
-  @override
-  _WatchedPath _startWatching(String path, int events, bool recursive) {
-    _ensureInotifyFD();
-    // On Linux inotify_add_watch will return an existing watch descriptor
-    // for the inode if there is already one associated with it. Thus we
-    // need accept the possibility that calling _watchPath twice will
-    // return the same pathId.
-    final pathId = super._watchPath(path, events, recursive);
-    final watchedPath = _watchedPaths[pathId] ??= _WatchedPath(
-      pathId,
-      path,
-      events,
-    );
-    return watchedPath;
   }
 
   void _handleEvents(List<_NativeFSEvent> events) {
@@ -556,22 +578,46 @@ class _InotifyFileSystemWatcher extends _FileSystemWatcher {
   }
 
   @override
-  Future<void> _stopWatching(_WatchedPath wp) async {
-    assert(_watchedPaths[wp.pathId] == wp);
-    _watchedPaths.remove(wp.pathId);
-    await super._stopWatching(wp);
-
-    // If there are no more active watcher close inotify descriptor.
+  FutureOr<void> _stopWatcher() {
     final subscription = _inotifySubscription;
-    if (_watchedPaths.isEmpty && subscription != null) {
-      _inotifyFd = null;
-      _inotifySubscription = null;
-      return subscription.cancel();
+    _inotifyFd = null;
+    _inotifySubscription = null;
+    return subscription?.cancel();
+  }
+}
+
+class _FSEventStreamFileSystemWatcher extends _MultiplexingFileSystemWatcher {
+  final _port = RawReceivePort()..keepIsolateAlive = false;
+
+  @override
+  late final _watcherId = ffi.NativePort(_port.sendPort).nativePort;
+
+  @override
+  void _ensureWatcherIsRunning() {
+    _port.keepIsolateAlive = true;
+    _port.handler = _handleEvents;
+  }
+
+  @override
+  FutureOr<void> _stopWatcher() {
+    _port.keepIsolateAlive = false;
+    _port.handler = null;
+  }
+
+  void _handleEvents(List events) {
+    // All events in a bundle have the same pathId, and we never get an empty
+    // bundle.
+    final pathId = (events[0] as _NativeFSEvent).pathId;
+    if (_watchedPaths[pathId] case final watchedPath?) {
+      for (_NativeFSEvent event in events) {
+        watchedPath.addEvent(event);
+      }
+      watchedPath.flushUnmatchedMoves();
     }
   }
 }
 
-class _SocketPerPathFileSystemWatcher extends _FileSystemWatcher {
+class _Win32FileSystemWatcher extends _FileSystemWatcher {
   @override
   _WatchedPath _startWatching(String path, int events, bool recursive) {
     final watchedPath = _WatchedPath(

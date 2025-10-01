@@ -36,15 +36,75 @@ union FSEvent {
   uint8_t bytes[PATH_MAX + 8];
 };
 
+// A helper for creating Dart_CObject array using a single allocation.
+//
+// We can't use CObject helpers because those rely on Dart_ScopeAllocate.
+namespace {
+
+template <typename T>
+struct SetCObjectValue;
+
+template <>
+struct SetCObjectValue<const char*> {
+  static void Assign(Dart_CObject* o, const char* str) {
+    o->type = Dart_CObject_kString;
+    o->value.as_string = str;
+  }
+};
+
+template <>
+struct SetCObjectValue<char*> {
+  static void Assign(Dart_CObject* o, const char* str) {
+    o->type = Dart_CObject_kString;
+    o->value.as_string = str;
+  }
+};
+
+template <>
+struct SetCObjectValue<int64_t> {
+  static void Assign(Dart_CObject* o, int64_t v) {
+    o->type = Dart_CObject_kInt64;
+    o->value.as_int64 = v;
+  }
+};
+
+template <typename... Ts>
+Dart_CObject* CreateCObjectArray(Ts... elements) {
+  const auto length = sizeof...(elements);
+  auto array = static_cast<Dart_CObject*>(
+      malloc(sizeof(Dart_CObject) +
+             (sizeof(Dart_CObject*) + sizeof(Dart_CObject)) * length));
+  array->type = Dart_CObject_kArray;
+  array->value.as_array.values = reinterpret_cast<Dart_CObject**>(array + 1);
+  array->value.as_array.length = length;
+  for (uintptr_t i = 0; i < length; i++) {
+    array->value.as_array.values[i] =
+        reinterpret_cast<Dart_CObject*>(array->value.as_array.values + length) +
+        i;
+  }
+
+  int index = 0;
+  (
+      [&] {
+        SetCObjectValue<Ts>::Assign(array->value.as_array.values[index],
+                                    elements);
+        ++index;
+      }(),
+      ...);
+
+  return array;
+}
+
+}  // namespace
+
 class Node {
  public:
-  Node(char* base_path, int read_fd, int write_fd, bool recursive)
-      : base_path_length_(strlen(base_path)),
+  Node(Dart_Port port, char* base_path, bool recursive)
+      : port_(port),
+        base_path_length_(strlen(base_path)),
         path_ref_(CFStringCreateWithCString(nullptr,
                                             base_path,
                                             kCFStringEncodingUTF8)),
-        read_fd_(read_fd),
-        write_fd_(write_fd),
         recursive_(recursive),
         ref_(nullptr) {
     Start();
@@ -56,7 +116,6 @@ class Node {
     // deallocated, the same [FSEventStream] that [Callback] gets a reference
     // to during its execution. [Callback] holding a reference prevents stream
     // from deallocation.
-    close(write_fd_);
     CFRelease(path_ref_);
   }
 
@@ -96,20 +155,16 @@ class Node {
   }
 
   intptr_t base_path_length() const { return base_path_length_; }
-  int read_fd() const { return read_fd_; }
-  int write_fd() const { return write_fd_; }
   bool recursive() const { return recursive_; }
 
-  static Node* Watch(const char* path, int events, bool recursive) {
-    int fds[2];
-    VOID_NO_RETRY_EXPECTED(pipe(fds));
-    FDUtils::SetNonBlocking(fds[0]);
-    FDUtils::SetBlocking(fds[1]);
-
+  static Node* Watch(Dart_Port port,
+                     const char* path,
+                     int events,
+                     bool recursive) {
     char base_path[PATH_MAX];
     realpath(path, base_path);
 
-    return new Node(base_path, fds[0], fds[1], recursive);
+    return new Node(port, base_path, recursive);
   }
 
   static void Unwatch(Node* node) {
@@ -147,11 +202,16 @@ class Node {
       TimerUtils::Sleep(1000 /* ms */);
     }
     Node* node = static_cast<Node*>(client);
+
+    // Can't use CObject helpers because they expect Dart_ScopeAllocate to work
+    // and this thread is not attached to any isolate or native message handler.
+    Dart_CObject events;
+    events.type = Dart_CObject_kArray;
+    events.value.as_array.values =
+        static_cast<Dart_CObject**>(malloc(sizeof(Dart_CObject*) * num_events));
+    events.value.as_array.length = 0;
     for (size_t i = 0; i < num_events; i++) {
       char* path = reinterpret_cast<char**>(event_paths)[i];
-      FSEvent event;
-      event.data.exists =
-          File::GetType(nullptr, path, false) != File::kDoesNotExist;
       path += node->base_path_length();
       // If path is longer the base, skip next character ('/').
       if (path[0] != '\0') {
@@ -160,18 +220,72 @@ class Node {
       if (!node->recursive() && (strstr(path, "/") != nullptr)) {
         continue;
       }
-      event.data.flags = event_flags[i];
-      memmove(event.data.path, path, strlen(path) + 1);
-      write(node->write_fd(), event.bytes, sizeof(event));
+
+      const bool is_path_empty = path[0] == '\0';
+      const bool path_exists =
+          !is_path_empty &&
+          File::GetType(nullptr, path, false) != File::kDoesNotExist;
+
+      events.value.as_array.values[events.value.as_array.length++] =
+          CreateCObjectArray(
+              /*flags=*/ConvertEventFlags(event_flags[i], is_path_empty,
+                                          path_exists),
+              /*cookie=*/static_cast<int64_t>(0), path,
+              /*path_id=*/reinterpret_cast<int64_t>(node));
     }
+
+    if (events.value.as_array.length != 0) {
+      Dart_PostCObject(node->port_, &events);
+    }
+
+    for (int i = 0; i < events.value.as_array.length; i++) {
+      free(events.value.as_array.values[i]);
+    }
+    free(events.value.as_array.values);
+  }
+
+  static int64_t ConvertEventFlags(FSEventStreamEventFlags flags,
+                                   bool is_path_empty,
+                                   bool path_exists) {
+    int64_t mask = 0;
+    if ((flags & kFSEventStreamEventFlagItemRenamed) != 0) {
+      if (is_path_empty) {
+        // The moved path is the path being watched.
+        mask |= FileSystemWatcher::kDeleteSelf;
+      } else if (path_exists) {
+        mask |= FileSystemWatcher::kCreate;
+      } else {
+        mask |= FileSystemWatcher::kDelete;
+      }
+    }
+    if ((flags & kFSEventStreamEventFlagItemModified) != 0) {
+      mask |= FileSystemWatcher::kModifyContent;
+    }
+    if ((flags & kFSEventStreamEventFlagItemXattrMod) != 0) {
+      mask |= FileSystemWatcher::kModifyAttribute;
+    }
+    if ((flags & kFSEventStreamEventFlagItemCreated) != 0) {
+      mask |= FileSystemWatcher::kCreate;
+    }
+    if ((flags & kFSEventStreamEventFlagItemIsDir) != 0) {
+      mask |= FileSystemWatcher::kIsDir;
+    }
+    if ((flags & kFSEventStreamEventFlagItemRemoved) != 0) {
+      if (is_path_empty) {
+        // The removed path is the path being watched.
+        mask |= FileSystemWatcher::kDeleteSelf;
+      } else {
+        mask |= FileSystemWatcher::kDelete;
+      }
+    }
+    return mask;
   }
 
   static dispatch_queue_t notification_queue_;
 
+  Dart_Port port_;
   intptr_t base_path_length_;
   CFStringRef path_ref_;
-  int read_fd_;
-  int write_fd_;
   bool recursive_;
   FSEventStreamRef ref_;
   Monitor monitor_;
@@ -203,7 +317,8 @@ intptr_t FileSystemWatcher::WatchPath(intptr_t id,
                                       const char* path,
                                       int events,
                                       bool recursive) {
-  return reinterpret_cast<intptr_t>(Node::Watch(path, events, recursive));
+  return reinterpret_cast<intptr_t>(
+      Node::Watch(static_cast<Dart_Port>(id), path, events, recursive));
 }
 
 void FileSystemWatcher::UnwatchPath(intptr_t id, intptr_t path_id) {
@@ -216,67 +331,13 @@ void FileSystemWatcher::DestroyWatch(intptr_t path_id) {
 }
 
 intptr_t FileSystemWatcher::GetSocketId(intptr_t id, intptr_t path_id) {
-  return reinterpret_cast<Node*>(path_id)->read_fd();
+  // This API should not be called. We are communicating over ports instead.
+  return -1;
 }
 
 Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
-  intptr_t fd = GetSocketId(id, path_id);
-  intptr_t avail = FDUtils::AvailableBytes(fd);
-  int count = avail / sizeof(FSEvent);
-  if (count <= 0) {
-    return Dart_NewList(0);
-  }
-  Dart_Handle events = Dart_NewList(count);
-  FSEvent e;
-  for (int i = 0; i < count; i++) {
-    intptr_t bytes = TEMP_FAILURE_RETRY(read(fd, e.bytes, sizeof(e)));
-    if (bytes < 0) {
-      return DartUtils::NewDartOSError();
-    }
-    size_t path_len = strlen(e.data.path);
-    Dart_Handle event = Dart_NewList(kEventNumElements);
-    int flags = e.data.flags;
-    int mask = 0;
-    if ((flags & kFSEventStreamEventFlagItemRenamed) != 0) {
-      if (path_len == 0) {
-        // The moved path is the path being watched.
-        mask |= kDeleteSelf;
-      } else {
-        mask |= e.data.exists ? kCreate : kDelete;
-      }
-    }
-    if ((flags & kFSEventStreamEventFlagItemModified) != 0) {
-      mask |= kModifyContent;
-    }
-    if ((flags & kFSEventStreamEventFlagItemXattrMod) != 0) {
-      mask |= kModifyAttribute;
-    }
-    if ((flags & kFSEventStreamEventFlagItemCreated) != 0) {
-      mask |= kCreate;
-    }
-    if ((flags & kFSEventStreamEventFlagItemIsDir) != 0) {
-      mask |= kIsDir;
-    }
-    if ((flags & kFSEventStreamEventFlagItemRemoved) != 0) {
-      if (path_len == 0) {
-        // The removed path is the path being watched.
-        mask |= kDeleteSelf;
-      } else {
-        mask |= kDelete;
-      }
-    }
-    Dart_ListSetAt(event, kEventFlagsIndex, Dart_NewInteger(mask));
-    Dart_ListSetAt(event, kEventCookieIndex, Dart_NewInteger(0));
-    Dart_Handle name = Dart_NewStringFromUTF8(
-        reinterpret_cast<uint8_t*>(e.data.path), path_len);
-    if (Dart_IsError(name)) {
-      return name;
-    }
-    Dart_ListSetAt(event, kEventPathIndex, name);
-    Dart_ListSetAt(event, kEventPathIdIndex, Dart_NewInteger(path_id));
-    Dart_ListSetAt(events, i, event);
-  }
-  return events;
+  // This API should not be called. We are communicating over ports instead.
+  return DartUtils::NewDartOSError();
 }
 
 }  // namespace bin
