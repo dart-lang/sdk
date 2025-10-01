@@ -325,7 +325,6 @@ class FormalParameters {
       }
     }
     return parent.createNestedFixedScope(
-      debugName: "formals",
       kind: LocalScopeKind.formals,
       local: local,
     );

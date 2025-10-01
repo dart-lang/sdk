@@ -188,7 +188,6 @@ Future<void> main() async {
 
     LocalScope lookupScope = new FixedLocalScope(
       kind: LocalScopeKind.enclosing,
-      debugName: "dummy",
     );
     ExpressionGeneratorHelper helper = new BodyBuilderImpl(
       libraryBuilder: libraryBuilder,

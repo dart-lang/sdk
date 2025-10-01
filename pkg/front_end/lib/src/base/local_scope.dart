@@ -88,13 +88,9 @@ abstract class LocalScope implements LookupScope {
   @override
   LookupResult? lookup(String name, {int fileOffset = -1});
 
-  LocalScope createNestedScope({
-    required String debugName,
-    required LocalScopeKind kind,
-  });
+  LocalScope createNestedScope({required LocalScopeKind kind});
 
   LocalScope createNestedFixedScope({
-    required String debugName,
     required Map<String, VariableBuilder> local,
     required LocalScopeKind kind,
   });
@@ -115,25 +111,16 @@ abstract class LocalScope implements LookupScope {
 
 abstract base class BaseLocalScope implements LocalScope {
   @override
-  LocalScope createNestedScope({
-    required String debugName,
-    required LocalScopeKind kind,
-  }) {
-    return new LocalScopeImpl(this, kind, debugName);
+  LocalScope createNestedScope({required LocalScopeKind kind}) {
+    return new LocalScopeImpl(this, kind);
   }
 
   @override
   LocalScope createNestedFixedScope({
-    required String debugName,
     required Map<String, VariableBuilder> local,
     required LocalScopeKind kind,
   }) {
-    return new FixedLocalScope(
-      kind: kind,
-      parent: this,
-      local: local,
-      debugName: debugName,
-    );
+    return new FixedLocalScope(kind: kind, parent: this, local: local);
   }
 }
 
@@ -170,8 +157,6 @@ final class LocalScopeImpl extends BaseLocalScope
   @override
   final LocalScope? _parent;
 
-  final String _debugName;
-
   /// Names declared in this scope.
   @override
   Map<String, VariableBuilder>? _local;
@@ -182,7 +167,7 @@ final class LocalScopeImpl extends BaseLocalScope
   @override
   final LocalScopeKind kind;
 
-  LocalScopeImpl(this._parent, this.kind, this._debugName);
+  LocalScopeImpl(this._parent, this.kind);
 
   @override
   List<int>? declare(String name, VariableBuilder builder) {
@@ -203,7 +188,7 @@ final class LocalScopeImpl extends BaseLocalScope
   }
 
   @override
-  String toString() => "$runtimeType(${kind}, $_debugName, ${_local?.keys})";
+  String toString() => "$runtimeType(${kind}, ${_local?.keys})";
 }
 
 mixin ImmutableLocalScopeMixin implements LocalScope {
@@ -226,16 +211,12 @@ final class LocalTypeParameterScope extends BaseLocalScope
 
   final Map<String, TypeParameterBuilder>? _local;
 
-  final String _debugName;
-
   LocalTypeParameterScope({
     required this.kind,
     LocalScope? parent,
     Map<String, TypeParameterBuilder>? local,
-    required String debugName,
   }) : _parent = parent,
-       _local = local,
-       _debugName = debugName;
+       _local = local;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -257,7 +238,7 @@ final class LocalTypeParameterScope extends BaseLocalScope
   }
 
   @override
-  String toString() => "$runtimeType(${kind}, $_debugName, ${_local?.keys})";
+  String toString() => "$runtimeType(${kind}, ${_local?.keys})";
 }
 
 final class FixedLocalScope extends BaseLocalScope
@@ -269,19 +250,15 @@ final class FixedLocalScope extends BaseLocalScope
   @override
   final Map<String, VariableBuilder>? _local;
 
-  final String _debugName;
-
   FixedLocalScope({
     required this.kind,
     LocalScope? parent,
     Map<String, VariableBuilder>? local,
-    required String debugName,
   }) : _parent = parent,
-       _local = local,
-       _debugName = debugName;
+       _local = local;
 
   @override
-  String toString() => "$runtimeType(${kind}, $_debugName, ${_local?.keys})";
+  String toString() => "$runtimeType(${kind}, ${_local?.keys})";
 }
 
 final class FormalParameterScope extends BaseLocalScope
