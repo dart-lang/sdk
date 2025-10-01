@@ -453,6 +453,7 @@ class NameSection extends CustomSection {
             localNames.writeUnsigned(entry.key);
             localNames.writeName(entry.value);
           }
+          functionsWithLocalNamesCount++;
         }
       }
     }
