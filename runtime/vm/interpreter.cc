@@ -133,9 +133,8 @@ class InterpreterHelpers {
                : TypeArguments::null();
   }
 
-  // The usage counter is actually a 'hotness' counter.
-  // For an instance call, both the usage counters of the caller and of the
-  // calle will get incremented, as well as the ICdata counter at the call site.
+  // The usage counter is actually a 'hotness' counter. For a Dart->Dart
+  // call, both the caller's and callee's usage counters are incremented.
   DART_FORCE_INLINE static void IncrementUsageCounter(FunctionPtr f) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
     f->untag()->usage_counter_++;
@@ -1965,6 +1964,7 @@ SwitchDispatchNoSingleStep:
     }
     SP = FP + num_locals - 1;
 
+    InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
     DISPATCH();
   }
 
@@ -1972,6 +1972,7 @@ SwitchDispatchNoSingleStep:
     BYTECODE(EntryOptional, A_B_C);
     SP = FP - 1;
     if (CopyParameters(thread, &pc, &FP, &SP, rA, rB, rC, 0)) {
+      InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
       DISPATCH();
     } else {
       SP[1] = FrameFunction(FP);
@@ -1984,6 +1985,7 @@ SwitchDispatchNoSingleStep:
     FP[kKBCSuspendStateSlotFromFp] = null_value;
     SP = FP + kKBCSuspendStateSlotFromFp;
     if (CopyParameters(thread, &pc, &FP, &SP, rA, rB, rC, 1)) {
+      InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
       DISPATCH();
     } else {
       SP[1] = FrameFunction(FP);
