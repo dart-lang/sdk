@@ -480,10 +480,13 @@ trace to find the place to insert the appropriate support.
                 self.extra_paths.add(self.rebase(self.optarg))
                 self.entry_points.add(
                     self.rebase(os.path.join(self.optarg, 'compiler_api.dart')))
-                # This file isn't referenced from compiler_api.dart.
+                # These files aren't referenced from compiler_api.dart.
                 self.entry_points.add(
                     self.rebase(
                         os.path.join(self.optarg, 'src/io/mapped_file.dart')))
+                self.entry_points.add(
+                    self.rebase(
+                        'package:shell_arg_splitter/shell_arg_splitter.dart'))
             else:
                 self.unsupported('analysis_server', arg)
 
