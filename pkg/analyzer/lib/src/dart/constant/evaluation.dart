@@ -836,7 +836,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     // [_dartObjectComputer.typeInstantiate] is unnecessary.
     var typeElement = node.constructorName.type.element;
 
-    TypeAliasElement? viaTypeAlias;
+    TypeAliasElementImpl? viaTypeAlias;
     if (typeElement is TypeAliasElementImpl) {
       if (constructorFunctionType.typeParameters.isNotEmpty &&
           !typeElement.isProperRename) {
