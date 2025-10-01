@@ -431,7 +431,7 @@ ObjectPtr SwitchableCallPatternBase::data() const {
   return object_pool_.ObjectAt(data_pool_index_);
 }
 
-void SwitchableCallPatternBase::SetData(const Object& data) const {
+void SwitchableCallPatternBase::SetDataRelease(const Object& data) const {
   ASSERT(!Object::Handle(object_pool_.ObjectAt(data_pool_index_)).IsCode());
   object_pool_.SetObjectAt<std::memory_order_release>(data_pool_index_, data);
 }
@@ -457,7 +457,7 @@ ObjectPtr SwitchableCallPattern::target() const {
   return object_pool_.ObjectAt(target_pool_index_);
 }
 
-void SwitchableCallPattern::SetTarget(const Code& target) const {
+void SwitchableCallPattern::SetTargetRelease(const Code& target) const {
   ASSERT(Object::Handle(object_pool_.ObjectAt(target_pool_index_)).IsCode());
   object_pool_.SetObjectAt<std::memory_order_release>(target_pool_index_,
                                                       target);
@@ -484,10 +484,10 @@ uword BareSwitchableCallPattern::target_entry() const {
   return object_pool_.RawValueAt(target_pool_index_);
 }
 
-void BareSwitchableCallPattern::SetTarget(const Code& target) const {
+void BareSwitchableCallPattern::SetTargetRelease(const Code& target) const {
   ASSERT(object_pool_.TypeAt(target_pool_index_) ==
          ObjectPool::EntryType::kImmediate);
-  object_pool_.SetRawValueAt<std::memory_order_relaxed>(
+  object_pool_.SetRawValueAt<std::memory_order_release>(
       target_pool_index_, target.MonomorphicEntryPoint());
 }
 

@@ -77,11 +77,6 @@ class CodePatcher : public AllStatic {
                                     const Code& caller_code,
                                     const Object& data,
                                     const Code& target);
-  static void PatchSwitchableCallAtWithMutatorsStopped(Thread* thread,
-                                                       uword return_address,
-                                                       const Code& caller_code,
-                                                       const Object& data,
-                                                       const Code& target);
   static ObjectPtr GetSwitchableCallDataAt(uword return_address,
                                            const Code& caller_code);
   static ObjectPtr GetSwitchableCallTargetAt(uword return_address,

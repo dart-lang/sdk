@@ -124,7 +124,7 @@ class SwitchableCallPatternBase : public ValueObject {
   explicit SwitchableCallPatternBase(const ObjectPool& object_pool);
 
   ObjectPtr data() const;
-  void SetData(const Object& data) const;
+  void SetDataRelease(const Object& data) const;
 
  protected:
   const ObjectPool& object_pool_;
@@ -144,7 +144,7 @@ class SwitchableCallPattern : public SwitchableCallPatternBase {
   SwitchableCallPattern(uword pc, const Code& code);
 
   ObjectPtr target() const;
-  void SetTarget(const Code& target) const;
+  void SetTargetRelease(const Code& target) const;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(SwitchableCallPattern);
@@ -159,7 +159,7 @@ class BareSwitchableCallPattern : public SwitchableCallPatternBase {
   explicit BareSwitchableCallPattern(uword pc);
 
   uword target_entry() const;
-  void SetTarget(const Code& target) const;
+  void SetTargetRelease(const Code& target) const;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BareSwitchableCallPattern);

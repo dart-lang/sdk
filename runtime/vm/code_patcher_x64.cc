@@ -296,7 +296,7 @@ class SwitchableCallBase : public ValueObject {
 
   ObjectPtr data() const { return object_pool_.ObjectAt(data_index()); }
 
-  void SetData(const Object& data) const {
+  void SetDataRelease(const Object& data) const {
     ASSERT(!Object::Handle(object_pool_.ObjectAt(data_index())).IsCode());
     object_pool_.SetObjectAt<std::memory_order_release>(data_index(), data);
     // No need to flush the instruction cache, since the code is not modified.
@@ -358,7 +358,7 @@ class SwitchableCall : public SwitchableCallBase {
     ASSERT(Object::Handle(object_pool_.ObjectAt(target_index_)).IsCode());
   }
 
-  void SetTarget(const Code& target) const {
+  void SetTargetRelease(const Code& target) const {
     ASSERT(Object::Handle(object_pool_.ObjectAt(target_index())).IsCode());
     object_pool_.SetObjectAt<std::memory_order_release>(target_index(), target);
     // No need to flush the instruction cache, since the code is not modified.
@@ -435,10 +435,10 @@ class BareSwitchableCall : public SwitchableCallBase {
            ObjectPool::EntryType::kImmediate);
   }
 
-  void SetTarget(const Code& target) const {
+  void SetTargetRelease(const Code& target) const {
     ASSERT(object_pool_.TypeAt(target_index()) ==
            ObjectPool::EntryType::kImmediate);
-    object_pool_.SetRawValueAt<std::memory_order_relaxed>(
+    object_pool_.SetRawValueAt<std::memory_order_release>(
         target_index(), target.MonomorphicEntryPoint());
   }
 
@@ -518,28 +518,19 @@ void CodePatcher::PatchSwitchableCallAt(uword return_address,
                                         const Code& caller_code,
                                         const Object& data,
                                         const Code& target) {
-  auto thread = Thread::Current();
-  // Ensure all threads are suspended as we update data and target pair.
-  thread->isolate_group()->RunWithStoppedMutators([&]() {
-    PatchSwitchableCallAtWithMutatorsStopped(thread, return_address,
-                                             caller_code, data, target);
-  });
-}
-
-void CodePatcher::PatchSwitchableCallAtWithMutatorsStopped(
-    Thread* thread,
-    uword return_address,
-    const Code& caller_code,
-    const Object& data,
-    const Code& target) {
+  // First update target to a stub that does not read 'data' so that concurrent
+  // Dart execution cannot observe the new stub with the old data or the old
+  // stub with the new data.
   if (FLAG_precompiled_mode) {
     BareSwitchableCall call(return_address);
-    call.SetData(data);
-    call.SetTarget(target);
+    call.SetTargetRelease(StubCode::SwitchableCallMiss());
+    call.SetDataRelease(data);
+    call.SetTargetRelease(target);
   } else {
     SwitchableCall call(return_address, caller_code);
-    call.SetData(data);
-    call.SetTarget(target);
+    call.SetTargetRelease(StubCode::SwitchableCallMiss());
+    call.SetDataRelease(data);
+    call.SetTargetRelease(target);
   }
 }
 
