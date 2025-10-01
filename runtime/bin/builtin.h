@@ -31,7 +31,6 @@ class Builtin {
     kIOLibrary,
     kHttpLibrary,
     kCLILibrary,
-    kConcurrentLibrary,
   };
 
   // Setup native resolver method built in library specified in 'id'.

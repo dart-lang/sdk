@@ -18,7 +18,6 @@ Builtin::builtin_lib_props Builtin::builtin_libraries_[] = {
     {DartUtils::kIOLibURL, true},
     {DartUtils::kHttpLibURL, false},
     {DartUtils::kCLILibURL, true},
-    {DartUtils::kConcurrentLibURL, true},
 
     // End marker.
     {nullptr, false}};
