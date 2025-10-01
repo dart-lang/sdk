@@ -228,7 +228,6 @@ front_end/DuplicatedDeclarationUse/analyzerCode: missingAnalyzerCode # No corres
 front_end/DuplicatedRecordLiteralFieldName/analyzerCode: missingAnalyzerCode
 front_end/DuplicatedRecordTypeFieldName/analyzerCode: missingAnalyzerCode
 front_end/DynamicCallsAreNotAllowedInDynamicModule/analyzerCode: missingAnalyzerCode
-front_end/Encoding/analyzerCode: missingAnalyzerCode
 front_end/EnumAbstractMember/analyzerCode: missingAnalyzerCode
 front_end/EnumConstructorSuperInitializer/analyzerCode: missingAnalyzerCode
 front_end/EnumConstructorTearoff/analyzerCode: missingAnalyzerCode

@@ -623,6 +623,7 @@ const MessageCode codeEmptyRecordTypeNamedFieldsList = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeEncoding = const MessageCode(
   "Encoding",
+  analyzerCodes: <AnalyzerCode>[AnalyzerCode.encoding],
   problemMessage: r"""Unable to decode bytes as UTF-8.""",
 );
 
@@ -3282,6 +3283,7 @@ enum AnalyzerCode {
   constConstructorWithBody,
   constNotInitialized,
   defaultValueInFunctionType,
+  encoding,
   expectedClassMember,
   expectedExecutable,
   expectedStringLiteral,

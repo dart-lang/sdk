@@ -17,6 +17,14 @@
 part of "package:_fe_analyzer_shared/src/scanner/errors.dart";
 
 class ScannerErrorCode extends DiagnosticCodeWithExpectedTypes {
+  /// No parameters.
+  static const ScannerErrorWithoutArguments encoding =
+      const ScannerErrorWithoutArguments(
+        'ENCODING',
+        "Unable to decode bytes as UTF-8.",
+        expectedTypes: [],
+      );
+
   /// Parameters:
   /// String p0: the token that was expected but not found
   static const ScannerErrorTemplate<

@@ -31,6 +31,10 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
 
   Code errorCode = token.errorCode;
   switch (errorCode.analyzerCodes?.first) {
+    case AnalyzerCode.encoding:
+      reportError(ScannerErrorCode.encoding, charOffset, null);
+      return;
+
     case AnalyzerCode.unterminatedStringLiteral:
       // TODO(paulberry,ahe): Fasta reports the error location as the entire
       // string; analyzer expects the end of the string.

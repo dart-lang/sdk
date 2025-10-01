@@ -353,6 +353,7 @@ class FastaErrorReporter {
         // Reported by
         // [ErrorVerifier._checkForExtensionTypeDeclaresInstanceField]
         return;
+      case AnalyzerCode.encoding:
       case AnalyzerCode.unexpectedSeparatorInNumber:
       case AnalyzerCode.unsupportedOperator:
         // This is handled by `translateErrorToken` in
