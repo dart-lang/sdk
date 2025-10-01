@@ -1049,8 +1049,8 @@ class OutlineBuilder extends StackListenerImpl {
     }
     _builderFactory.addLibraryDirective(
       libraryName: libraryName,
+      fileOffset: libraryKeyword.charOffset,
       metadata: metadata,
-      isAugment: false,
     );
   }
 
@@ -1075,8 +1075,8 @@ class OutlineBuilder extends StackListenerImpl {
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
     _builderFactory.addLibraryDirective(
       libraryName: null,
+      fileOffset: libraryKeyword.charOffset,
       metadata: metadata,
-      isAugment: true,
     );
   }
 
@@ -4137,17 +4137,25 @@ class OutlineBuilder extends StackListenerImpl {
         );
       }
       List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
-      _builderFactory.addPartOf(
-        metadata,
-        flattenName(containingLibrary, containingLibrary.firstOffset, uri),
-        null,
-        containingLibrary.firstOffset,
+      _builderFactory.addPartOfWithName(
+        metadata: metadata,
+        name: flattenName(
+          containingLibrary,
+          containingLibrary.firstOffset,
+          uri,
+        ),
+        fileOffset: partKeyword.charOffset,
       );
     } else {
       int charOffset = popCharOffset();
       String uriString = pop() as String;
       List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
-      _builderFactory.addPartOf(metadata, null, uriString, charOffset);
+      _builderFactory.addPartOfWithUri(
+        metadata: metadata,
+        uri: uriString,
+        uriOffset: charOffset,
+        fileOffset: partKeyword.charOffset,
+      );
     }
   }
 

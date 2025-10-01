@@ -555,7 +555,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     library.isUnsupported = isUnsupported;
     addDependencies(library, new Set<SourceCompilationUnit>());
 
-    library.name = compilationUnit.name;
+    library.name = compilationUnit.libraryDirective?.name;
     library.procedures.sort(compareProcedures);
 
     if (unserializableExports != null) {
@@ -898,7 +898,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     // should create a class that represents qualified names that we can
     // relativize when printing a message, but still store the full URI in
     // .dill files.
-    return compilationUnit.name ?? "<library '$fileUri'>";
+    return "<library '$importUri'>";
   }
 
   @override
@@ -1768,22 +1768,4 @@ class LibraryAccess {
   final int length;
 
   LibraryAccess(this.accessor, this.fileUri, this.charOffset, this.length);
-}
-
-/// Information about a part directive.
-class Part {
-  /// The file URI at which the part directive occurs.
-  final Uri fileUri;
-
-  /// The file offset at which the part directive occurs.
-  final int fileOffset;
-
-  /// The [CompilationUnit] referenced by the part directive.
-  final CompilationUnit compilationUnit;
-
-  Part({
-    required this.fileUri,
-    required this.fileOffset,
-    required this.compilationUnit,
-  });
 }

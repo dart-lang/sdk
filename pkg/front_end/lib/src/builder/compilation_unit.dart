@@ -10,6 +10,7 @@ import 'package:kernel/reference_from_index.dart';
 
 import '../api_prototype/experimental_flags.dart';
 import '../base/combinator.dart' show CombinatorBuilder;
+import '../base/directives.dart';
 import '../base/export.dart' show Export;
 import '../base/loader.dart' show Loader;
 import '../base/messages.dart'
@@ -162,13 +163,11 @@ abstract class SourceCompilationUnit
 
   LanguageVersion get languageVersion;
 
-  String? get name;
+  LibraryDirective? get libraryDirective;
 
   int finishNativeMethods(SourceLoader loader);
 
-  String? get partOfName;
-
-  Uri? get partOfUri;
+  PartOf? get partOfDirective;
 
   List<MetadataBuilder>? get metadata;
 
