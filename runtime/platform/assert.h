@@ -6,7 +6,6 @@
 #define RUNTIME_PLATFORM_ASSERT_H_
 
 #include "platform/globals.h"
-#include "platform/memory_sanitizer.h"
 
 #if !defined(DEBUG) && !defined(NDEBUG)
 #error neither DEBUG nor NDEBUG defined

@@ -17,6 +17,7 @@
 #include "platform/assert.h"
 #include "platform/atomic.h"
 #include "platform/growable_array.h"
+#include "platform/thread_sanitizer.h"
 #include "vm/class_table.h"
 #include "vm/dispatch_table.h"
 #include "vm/exceptions.h"

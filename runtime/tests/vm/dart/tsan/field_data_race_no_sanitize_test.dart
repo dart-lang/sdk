@@ -12,7 +12,7 @@ import "package:expect/expect.dart";
 import '../dylib_utils.dart';
 
 class Box {
-  @pragma("vm:no-sanitize-thread") // __attribute__((no_sanitize("thread")))
+  @pragma("vm:no-sanitize-thread") // __attribute__((no_sanitize_thread)))
   int foo = 0;
 }
 

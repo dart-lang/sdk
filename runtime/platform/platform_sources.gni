@@ -21,6 +21,7 @@ platform_sources = [
   "list_queue.h",
   "lockers.h",
   "memory_sanitizer.h",
+  "no_tsan.h",
   "safe_stack.h",
   "signal_blocker.h",
   "synchronization.h",

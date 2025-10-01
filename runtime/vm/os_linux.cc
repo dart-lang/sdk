@@ -23,6 +23,7 @@
 #include <unistd.h>        // NOLINT
 
 #include "platform/memory_sanitizer.h"
+#include "platform/thread_sanitizer.h"
 #include "platform/utils.h"
 #include "vm/code_comments.h"
 #include "vm/code_observers.h"

@@ -36,7 +36,7 @@ extern "C" void __msan_check_mem_is_initialized(const volatile void*, size_t);
 #define MSAN_UNPOISON(ptr, len) __msan_unpoison(ptr, len)
 #define MSAN_CHECK_INITIALIZED(ptr, len)                                       \
   __msan_check_mem_is_initialized(ptr, len)
-#define NO_SANITIZE_MEMORY __attribute__((no_sanitize("memory")))
+#define NO_SANITIZE_MEMORY __attribute__((no_sanitize_memory))
 #else  // defined(USING_MEMORY_SANITIZER)
 #define MSAN_POISON(ptr, len)                                                  \
   do {                                                                         \

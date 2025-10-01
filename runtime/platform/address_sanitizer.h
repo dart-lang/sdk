@@ -19,7 +19,7 @@
 
 #if defined(USING_ADDRESS_SANITIZER)
 extern "C" void __asan_unpoison_memory_region(void const volatile*, size_t);
-#define NO_SANITIZE_ADDRESS __attribute__((no_sanitize("address")))
+#define NO_SANITIZE_ADDRESS __attribute__((no_sanitize_address))
 #define ASAN_UNPOISON(ptr, len) __asan_unpoison_memory_region(ptr, len)
 #else  // defined(USING_ADDRESS_SANITIZER)
 #define NO_SANITIZE_ADDRESS

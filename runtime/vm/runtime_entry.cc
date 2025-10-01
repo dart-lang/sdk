@@ -5300,7 +5300,7 @@ extern "C" void __tsan_func_exit() {
 }
 #else
 #define CASE(x)                                                                \
-  extern "C" __attribute__((disable_sanitizer_instrumentation)) void           \
+  extern "C" NO_SANITIZE_THREAD DISABLE_SANITIZER_INSTRUMENTATION void         \
   jit_tsan_##x(void* addr) {                                                   \
     __tsan_##x##_pc(                                                           \
         addr, reinterpret_cast<void*>(                                         \
