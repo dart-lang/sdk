@@ -258,7 +258,6 @@ import 'expected_two_map_pattern_type_arguments_test.dart'
 import 'expected_two_map_type_arguments_test.dart'
     as expected_two_map_type_arguments;
 import 'experiment_not_enabled_test.dart' as experiment_not_enabled;
-import 'experimental_member_use_test.dart' as experimental_member_use;
 import 'export_internal_library_test.dart' as export_internal_library;
 import 'export_of_non_library_test.dart' as export_of_non_library;
 import 'expression_in_map_test.dart' as expression_in_map;
@@ -1126,7 +1125,6 @@ main() {
     expected_two_map_pattern_type_arguments.main();
     expected_two_map_type_arguments.main();
     experiment_not_enabled.main();
-    experimental_member_use.main();
     export_internal_library.main();
     export_of_non_library.main();
     expression_in_map.main();

@@ -1340,17 +1340,16 @@ int get exitCode => 0;
 
 void set exitCode(int code) {}
 
-abstract class Directory implements FileSystemEntity {
+abstract interface class Directory implements FileSystemEntity {
   factory Directory(String path) {
     throw 0;
   }
 }
 
-abstract class File implements FileSystemEntity {
+abstract interface class File implements FileSystemEntity {
   factory File(String path) {
     throw 0;
   }
-
   Future<DateTime> lastModified();
   DateTime lastModifiedSync();
   IOSink openWrite();
@@ -1366,12 +1365,14 @@ abstract class FileSystemEntity {
   static Future<bool> isLink(String path) async => true;
   static bool isLinkSync(String path) => true;
 
-  static Future<FileSystemEntityType> type(String path,
-          {bool followLinks: true}) =>
-      throw 0;
-  static FileSystemEntityType typeSync(String path,
-          {bool followLinks = true}) =>
-      throw 0;
+  static Future<FileSystemEntityType> type(
+    String path, {
+    bool followLinks = true,
+  }) => throw 0;
+  static FileSystemEntityType typeSync(
+    String path, {
+    bool followLinks = true,
+  }) => throw 0;
 
   Future<bool> exists();
   bool existsSync();
@@ -1380,33 +1381,33 @@ abstract class FileSystemEntity {
   FileStat statSync();
 }
 
-class IOSink implements Sink<List<int>> {
-  Future<dynamic> close() {}
-  void write(Object? object) {}
+abstract interface class IOSink implements Sink<List<int>> {
+  Future<dynamic> close();
+  void write(Object? object);
 }
 
-class Platform {
+abstract final class Platform {
   @deprecated
   static final bool isAndroid = (operatingSystem == "android");
 
   @deprecated
-  static final String localHostname = 'hostname';
+  static final localHostname = 'hostname';
 }
 
-class ProcessStartMode {
+final class ProcessStartMode {
   static const normal = const ProcessStartMode._internal(0);
-  const ProcessStartMode._internal(int mode);
+  const ProcessStartMode._internal(int _mode);
 }
 
-abstract class Process {
+abstract interface class Process {
   external static Future<Process> start(
     String executable,
     List<String> arguments, {
     String? workingDirectory,
     Map<String, String>? environment,
-    bool includeParentEnvironment: true,
-    bool runInShell: false,
-    ProcessStartMode mode: ProcessStartMode.normal,
+    bool includeParentEnvironment = true,
+    bool runInShell = false,
+    ProcessStartMode mode = ProcessStartMode.normal,
   });
 
   external static Future<ProcessResult> run(
@@ -1414,17 +1415,23 @@ abstract class Process {
     List<String> arguments, {
     String? workingDirectory,
     Map<String, String>? environment,
-    bool includeParentEnvironment: true,
-    bool runInShell: false,
-    Encoding? stdoutEncoding,
-    Encoding? stderrEncoding,
+    bool includeParentEnvironment = true,
+    bool runInShell = false,
+    Encoding? stdoutEncoding = systemEncoding,
+    Encoding? stderrEncoding = systemEncoding,
   });
 }
 
-abstract class Socket {
-  void destroy() {}
+abstract interface class Socket implements IOSink {
+  void destroy();
 
-  static Future<Socket> connect(dynamic host, int port) async => Socket();
+  static Future<Socket> connect(
+    host,
+    int port, {
+    sourceAddress,
+    int sourcePort = 0,
+    Duration? timeout,
+  }) => throw 0;
 }
 '''),
 ]);

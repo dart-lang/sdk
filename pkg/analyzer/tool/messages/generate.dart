@@ -19,10 +19,9 @@ library;
 import 'dart:convert';
 
 import 'package:analyzer_testing/package_root.dart' as pkg_root;
+import 'package:analyzer_utilities/analyzer_messages.dart';
 import 'package:analyzer_utilities/messages.dart';
 import 'package:analyzer_utilities/tools.dart';
-
-import 'error_code_info.dart';
 
 Future<void> main() async {
   await GeneratedContent.generateAll(pkg_root.packageRoot, allTargets);

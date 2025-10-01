@@ -30,6 +30,7 @@ import "package:async/src/stream_group.dart";
 import "dart:typed_data";
 import "dart:convert";
 import "dart:collection";
+import "package:collection/src/equality.dart";
 import "package:collection/src/functions.dart";
 import "package:collection/src/queue_list.dart";
 import "package:collection/src/union_set.dart";
