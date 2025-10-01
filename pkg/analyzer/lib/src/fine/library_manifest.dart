@@ -294,9 +294,14 @@ class LibraryManifestBuilder {
   }) {
     performance.getDataInt('libraryCount').add(inputLibraries.length);
 
-    _fillItemMapFromInputManifests(performance: performance);
+    performance.run('matchInputManifests', (performance) {
+      _fillItemMapFromInputManifests(performance: performance);
+    });
 
-    _buildManifests();
+    performance.run('buildItems', (performance) {
+      _buildManifests();
+    });
+
     _addExportedExtensions();
     _addReExports();
     _fillExportMaps();

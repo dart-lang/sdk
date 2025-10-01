@@ -913,7 +913,6 @@ class RequirementsManifest {
       return OpaqueApiUseFailure(uses: opaqueApiUses);
     }
 
-    var onlyHashForLibraries = true;
     for (var libraryEntry in libraries.entries) {
       var libraryUri = libraryEntry.key;
       var libraryRequirements = libraryEntry.value;
@@ -932,7 +931,6 @@ class RequirementsManifest {
       } else {
         performance.getDataInt('libDetails').increment();
         performance.getDataSet<Uri>('libDetailsUris').add(libraryUri);
-        onlyHashForLibraries = false;
       }
 
       var libraryManifest = libraryManifestHandle.instance;
@@ -1578,12 +1576,6 @@ class RequirementsManifest {
           );
         }
       }
-    }
-
-    if (onlyHashForLibraries) {
-      performance.getDataInt('libsHash').increment();
-    } else {
-      performance.getDataInt('libsDetails').increment();
     }
 
     for (var exportRequirement in exportRequirements) {
