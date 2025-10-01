@@ -538,6 +538,64 @@ void f() {
 ''');
   }
 
+  Future<void> test_function_async_awaitExpression_closure() async {
+    await indexTestUnit(r'''
+f() async {
+  if (await x^('')) {}
+}
+
+Future<bool> x(String s) async {
+  print(s);
+  return true;
+}
+''');
+    _createRefactoring();
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+f() async {
+  if (await (String s) async {
+    print(s);
+    return true;
+  }('')) {}
+}
+
+Future<bool> x(String s) async {
+  print(s);
+  return true;
+}
+''');
+  }
+
+  Future<void> test_function_async_awaitStatement() async {
+    await indexTestUnit(r'''
+f() async {
+  await x^('');
+}
+
+Future<void> x(String s) async {
+  print(s);
+  await y(s);
+}
+
+Future<void> y(String s) async {}
+''');
+    _createRefactoring();
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+f() async {
+  print('');
+  await y('');
+}
+
+Future<void> x(String s) async {
+  print(s);
+  await y(s);
+}
+
+Future<void> y(String s) async {}
+''');
+  }
+
   Future<void> test_function_expressionFunctionBody() async {
     await indexTestUnit(r'''
 ^test(a, b) => a + b;
@@ -1600,6 +1658,40 @@ class A {
   Future bar() async {
     return new Future.value([(await foo()), (await foo())]);
   }
+}
+''');
+  }
+
+  Future<void> test_method_async_awaitStatement() async {
+    await indexTestUnit(r'''
+f(A a) async {
+  await a.x^('');
+}
+
+class A {
+  Future<void> x(String s) async {
+    print(s);
+    await y(s);
+  }
+
+  Future<void> y(String s) async {}
+}
+''');
+    _createRefactoring();
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+f(A a) async {
+  print('');
+  await a.y('');
+}
+
+class A {
+  Future<void> x(String s) async {
+    print(s);
+    await y(s);
+  }
+
+  Future<void> y(String s) async {}
 }
 ''');
   }

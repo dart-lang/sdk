@@ -769,6 +769,7 @@ Encoding:
   pseudoShared: true
   parameters: none
   problemMessage: "Unable to decode bytes as UTF-8."
+  analyzerCode: ENCODING
   bytes: [255]
 
 ExperimentDisabled:

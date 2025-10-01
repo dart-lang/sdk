@@ -59,6 +59,10 @@ Dart_NativeFunction LookupIONative(Dart_Handle name,
                                    int argument_count,
                                    bool* auto_setup_scope);
 
+// Performs a lookup of the I/O function with a specified 'name' and
+// 'argument_count'. Returns nullptr if matching function is not found.
+void* LookupIOFfiNative(const char* name, uintptr_t argument_count);
+
 // Returns the symbol for I/O native function 'nf'. Returns NULL if 'nf' is not
 // a valid I/O native function.
 const uint8_t* LookupIONativeSymbol(Dart_NativeFunction nf);

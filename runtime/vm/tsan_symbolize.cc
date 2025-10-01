@@ -142,7 +142,7 @@ typedef void (*AddFrame)(void* ctxt,
 // then symbolize using our normal PC descriptors, etc, but this function must
 // not call any function that has been instrumented by TSAN or it might deadlock
 // during __tsan_func_entry.
-extern "C" __attribute__((disable_sanitizer_instrumentation)) void
+extern "C" NO_SANITIZE_THREAD DISABLE_SANITIZER_INSTRUMENTATION void
 __tsan_symbolize_external_ex(uintptr_t pc, AddFrame add_frame, void* ctxt) {
   constexpr uintptr_t kExternalPCBit = 1ULL << 60;
   const uword lookup_pc = pc & ~kExternalPCBit;

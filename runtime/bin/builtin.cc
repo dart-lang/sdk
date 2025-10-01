@@ -18,7 +18,6 @@ Builtin::builtin_lib_props Builtin::builtin_libraries_[] = {
     {DartUtils::kIOLibURL, true},
     {DartUtils::kHttpLibURL, false},
     {DartUtils::kCLILibURL, true},
-    {DartUtils::kConcurrentLibURL, true},
 
     // End marker.
     {nullptr, false}};
@@ -37,6 +36,9 @@ void Builtin::SetNativeResolver(BuiltinLibraryId id) {
     // Setup the native resolver for built in library functions.
     Dart_Handle result =
         Dart_SetNativeResolver(library, NativeLookup, NativeSymbol);
+    ASSERT(!Dart_IsError(result));
+    // Setup the ffi native resolver for built in library functions.
+    result = Dart_SetFfiNativeResolver(library, FfiNativeLookup);
     ASSERT(!Dart_IsError(result));
   }
 }

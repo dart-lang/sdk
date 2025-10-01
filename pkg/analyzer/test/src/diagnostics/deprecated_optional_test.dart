@@ -25,12 +25,96 @@ void g() {
 ''');
   }
 
+  test_argumentGiven_implicitSuperInvocation_namedParameter() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  C({@Deprecated.optional() int? p});
+}
+
+class D extends C {
+  D({super.p});
+}
+''');
+  }
+
+  test_argumentGiven_implicitSuperInvocation_withSuperParameter() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  C([@Deprecated.optional() int? p]);
+}
+
+class D extends C {
+  D(super.p);
+}
+''');
+  }
+
   test_argumentGiven_named() async {
     await assertNoErrorsInCode(r'''
 void f({@Deprecated.optional() int? p}) {}
 
 void g() {
   f(p: 1);
+}
+''');
+  }
+
+  test_argumentGiven_superInvocation() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  C([@Deprecated.optional() int? p]);
+}
+
+class D extends C {
+  D() : super(7);
+}
+''');
+  }
+
+  test_argumentGiven_superInvocation_namedParameter() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  C({@Deprecated.optional() int? p});
+}
+
+class D extends C {
+  D() : super(p: 7);
+}
+''');
+  }
+
+  test_argumentGiven_superInvocation_namedParameter_withSuperParameter() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  C({@Deprecated.optional() int? p});
+}
+
+class D extends C {
+  D({super.p}) : super();
+}
+''');
+  }
+
+  test_argumentGiven_superInvocation_namedSuperConstructor() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  C.named([@Deprecated.optional() int? p]);
+}
+
+class D extends C {
+  D() : super.named(7);
+}
+''');
+  }
+
+  test_argumentGiven_superInvocation_withSuperParameter() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  C([@Deprecated.optional() int? p]);
+}
+
+class D extends C {
+  D(super.p) : super();
 }
 ''');
   }
@@ -75,6 +159,36 @@ C f() {
 }
 ''',
       [error(WarningCode.deprecatedOptional, 69, 3)],
+    );
+  }
+
+  test_argumentOmitted_implicitSuperInvocation() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  C([@Deprecated.optional() int? p]);
+}
+
+class D extends C {
+  D();
+}
+''',
+      [error(WarningCode.deprecatedOptional, 73, 1)],
+    );
+  }
+
+  test_argumentOmitted_implicitSuperInvocation_namedParameter() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  C({@Deprecated.optional() int? p});
+}
+
+class D extends C {
+  D();
+}
+''',
+      [error(WarningCode.deprecatedOptional, 73, 1)],
     );
   }
 
@@ -177,7 +291,22 @@ class D extends C {
     );
   }
 
-  test_argumentOmitted_superInvocation_named() async {
+  test_argumentOmitted_superInvocation_namedParameter() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  C({@Deprecated.optional() int? p});
+}
+
+class D extends C {
+  D() : super();
+}
+''',
+      [error(WarningCode.deprecatedOptional, 79, 5)],
+    );
+  }
+
+  test_argumentOmitted_superInvocation_namedSuperConstructor() async {
     await assertErrorsInCode(
       r'''
 class C {

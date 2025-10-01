@@ -1743,7 +1743,7 @@ class alignas(8) UntaggedScript : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(StringPtr, resolved_url)
   COMPRESSED_POINTER_FIELD(TypedDataPtr, line_starts)
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  COMPRESSED_POINTER_FIELD(TypedDataViewPtr, constant_coverage)
+  COMPRESSED_POINTER_FIELD(ObjectPtr, constant_coverage)
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   COMPRESSED_POINTER_FIELD(ArrayPtr, debug_positions)
   COMPRESSED_POINTER_FIELD(KernelProgramInfoPtr, kernel_program_info)

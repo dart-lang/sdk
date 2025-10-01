@@ -16,7 +16,14 @@
 #endif
 
 #if defined(USING_THREAD_SANITIZER)
-#define NO_SANITIZE_THREAD __attribute__((no_sanitize("thread")))
+#define NO_SANITIZE_THREAD __attribute__((no_sanitize_thread))
+#if defined(__clang__)
+#define DISABLE_SANITIZER_INSTRUMENTATION                                      \
+  __attribute__((disable_sanitizer_instrumentation))
+#else
+#define DISABLE_SANITIZER_INSTRUMENTATION
+#endif
+
 extern "C" uint32_t __tsan_atomic32_load(uint32_t* addr, int order);
 extern "C" void __tsan_atomic32_store(uint32_t* addr,
                                       uint32_t value,
@@ -49,6 +56,7 @@ extern "C" void __tsan_func_entry(void* pc);
 extern "C" void __tsan_func_exit();
 #else
 #define NO_SANITIZE_THREAD
+#define DISABLE_SANITIZER_INSTRUMENTATION
 #endif
 
 #if defined(USING_THREAD_SANITIZER)

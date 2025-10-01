@@ -63,6 +63,7 @@ class ObjectPointerVisitor;
   V(DartFfi, "dart:ffi")                                                       \
   V(DartInternal, "dart:_internal")                                            \
   V(DartIsVM, "dart.isVM")                                                     \
+  V(DartIo, "dart:io")                                                         \
   V(DartIsolate, "dart:isolate")                                               \
   V(DartLibrary, "dart.library.")                                              \
   V(DartLibraryFfi, "dart.library.ffi")                                        \

@@ -869,7 +869,7 @@ type SourcePositionEntry = {
 
 ```
 type SourceFile {
-  UInt flags = (hasLineStarts, hasSource)
+  UInt flags = (hasLineStarts, hasSource, hasConstConstructorCoverageFlag)
   PackedObject importUri;
 
   if hasLineStarts
@@ -878,6 +878,9 @@ type SourceFile {
 
   if hasSource
     PackedString source;
+
+  if hasConstConstructorCoverageFlag
+    List<PackedObject> coveredConstConstructors;
 }
 
 type LineStarts {

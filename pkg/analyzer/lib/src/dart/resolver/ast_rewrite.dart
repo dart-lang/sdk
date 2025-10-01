@@ -275,8 +275,13 @@ class AstRewriter {
     var prefixElement = nameScope.lookup(prefix.name).getter;
     if (parent is ConstantPattern && prefixElement is PrefixElement) {
       var element = prefixElement.scope.lookup(node.identifier.name).getter;
-      if (element is TypeDefiningElement) {
-        return _toPatternTypeLiteral(parent, node);
+      switch (element) {
+        case DynamicElementImpl():
+        case InterfaceElementImpl():
+        case NeverElementImpl():
+        case TypeAliasElementImpl():
+        case TypeParameterElementImpl():
+          return _toPatternTypeLiteral(parent, node);
       }
     }
     if (prefixElement is InterfaceElement) {
@@ -410,8 +415,13 @@ class AstRewriter {
     var parent = node.parent;
     if (parent is ConstantPattern) {
       var element = nameScope.lookup(node.name).getter;
-      if (element is TypeDefiningElement) {
-        return _toPatternTypeLiteral(parent, node);
+      switch (element) {
+        case DynamicElementImpl():
+        case InterfaceElementImpl():
+        case NeverElementImpl():
+        case TypeAliasElementImpl():
+        case TypeParameterElementImpl():
+          return _toPatternTypeLiteral(parent, node);
       }
     }
 

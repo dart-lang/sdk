@@ -86,6 +86,10 @@ Dart_NativeFunction LookupIONative(Dart_Handle name,
   return IONativeLookup(name, argument_count, auto_setup_scope);
 }
 
+void* LookupIOFfiNative(const char* name, uintptr_t argument_count) {
+  return IOFfiNativeLookup(name, argument_count);
+}
+
 const uint8_t* LookupIONativeSymbol(Dart_NativeFunction nf) {
   return IONativeSymbol(nf);
 }

@@ -227,13 +227,15 @@ class BytecodeGenerator extends RecursiveVisitor {
         if (source == null) {
           final importUri =
               objectTable.getConstStringHandle(astSource.importUri.toString());
-          source = new SourceFile(importUri);
+          final coveredConstConstructors = astSource
+              .constantCoverageConstructors
+              ?.map((r) => objectTable.getHandle(r.asConstructor)!)
+              .toList();
+          source = new SourceFile(importUri, coveredConstConstructors);
           bytecodeComponent.sourceFiles.add(source);
           bytecodeComponent.uriToSource[uri] = source;
         }
-        if (options.emitSourcePositions &&
-            includeSourceInfo &&
-            source.lineStarts == null) {
+        if (includeSourceInfo && source.lineStarts == null) {
           LineStarts lineStarts = new LineStarts(astSource.lineStarts!);
           bytecodeComponent.lineStarts.add(lineStarts);
           source.lineStarts = lineStarts;

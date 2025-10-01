@@ -774,6 +774,10 @@ abstract class FileSystemEntity {
       (_getTypeSync(_toUtf8Array(path), true) ==
       FileSystemEntityType.directory);
 
+  static bool _isDirectoryIgnoringLinksSync(String path) =>
+      (_getTypeSync(_toUtf8Array(path), false) ==
+      FileSystemEntityType.directory);
+
   external static _getTypeNative(
     _Namespace namespace,
     Uint8List rawPath,
@@ -946,6 +950,7 @@ sealed class FileSystemEvent {
   static const int _modifyAttributes = 1 << 4;
   static const int _deleteSelf = 1 << 5;
   static const int _isDir = 1 << 6;
+  static const int _movedTo = 1 << 7;
 
   /// The type of event. See [FileSystemEvent] for a list of events.
   final int type;

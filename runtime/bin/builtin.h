@@ -31,7 +31,6 @@ class Builtin {
     kIOLibrary,
     kHttpLibrary,
     kCLILibrary,
-    kConcurrentLibrary,
   };
 
   // Setup native resolver method built in library specified in 'id'.
@@ -46,6 +45,8 @@ class Builtin {
   static Dart_NativeFunction NativeLookup(Dart_Handle name,
                                           int argument_count,
                                           bool* auto_setup_scope);
+
+  static void* FfiNativeLookup(const char* name, uintptr_t argument_count);
 
   static const uint8_t* NativeSymbol(Dart_NativeFunction nf);
 

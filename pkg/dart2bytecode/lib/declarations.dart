@@ -225,17 +225,23 @@ class ClassDeclaration extends BytecodeDeclaration {
 class SourceFile extends BytecodeDeclaration {
   static const hasLineStartsFlag = 1 << 0;
   static const hasSourceFlag = 1 << 1;
+  static const hasConstConstructorCoverageFlag = 1 << 2;
 
   final ObjectHandle importUri;
   LineStarts? lineStarts;
   String? source;
+  List<ObjectHandle>? coveredConstConstructors;
 
-  SourceFile(this.importUri, [this.lineStarts, this.source]);
+  SourceFile(this.importUri,
+      [this.coveredConstConstructors, this.lineStarts, this.source]);
 
   void write(BufferedWriter writer) {
     int flags = 0;
     if (lineStarts != null) {
       flags |= hasLineStartsFlag;
+    }
+    if (coveredConstConstructors?.isNotEmpty ?? false) {
+      flags |= hasConstConstructorCoverageFlag;
     }
     if (source != null && source != '') {
       flags |= hasSourceFlag;
@@ -248,6 +254,9 @@ class SourceFile extends BytecodeDeclaration {
     if ((flags & hasSourceFlag) != 0) {
       writer.writePackedStringReference(source!);
     }
+    if ((flags & hasConstConstructorCoverageFlag) != 0) {
+      writer.writePackedList(coveredConstConstructors!);
+    }
   }
 
   factory SourceFile.read(BufferedReader reader) {
@@ -259,7 +268,12 @@ class SourceFile extends BytecodeDeclaration {
     final source = ((flags & hasSourceFlag) != 0)
         ? reader.readPackedStringReference()
         : null;
-    return new SourceFile(importUri, lineStarts, source);
+    final coveredConstConstructors =
+        ((flags & hasConstConstructorCoverageFlag) != 0)
+            ? reader.readPackedList<ObjectHandle>()
+            : null;
+    return new SourceFile(
+        importUri, coveredConstConstructors, lineStarts, source);
   }
 
   @override
@@ -271,6 +285,11 @@ class SourceFile extends BytecodeDeclaration {
     }
     if (lineStarts != null) {
       sb.write(', ${lineStarts!.lineStarts.length} line starts');
+    }
+    if (coveredConstConstructors?.isNotEmpty ?? false) {
+      sb.write(', covered const constructors: [');
+      sb.writeAll(coveredConstConstructors!, ', ');
+      sb.write(']');
     }
     return sb.toString();
   }

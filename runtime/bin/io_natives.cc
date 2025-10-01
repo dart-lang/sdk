@@ -9,6 +9,7 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/file_system_watcher.h"
 #include "bin/socket_base.h"
 #include "include/dart_api.h"
 #include "platform/assert.h"
@@ -71,7 +72,6 @@ namespace bin {
   V(File_Truncate, 2)                                                          \
   V(File_WriteByte, 2)                                                         \
   V(File_WriteFrom, 4)                                                         \
-  V(FileSystemWatcher_CloseWatcher, 1)                                         \
   V(FileSystemWatcher_GetSocketId, 2)                                          \
   V(FileSystemWatcher_InitWatcher, 0)                                          \
   V(FileSystemWatcher_IsSupported, 0)                                          \
@@ -206,6 +206,12 @@ namespace bin {
   V(X509_StartValidity, 1)                                                     \
   V(X509_EndValidity, 1)
 
+#if defined(DART_HOST_OS_MACOS) || defined(DART_HOST_OS_WINDOWS)
+#define IO_FFI_NATIVE_LIST(V) V(FileSystemWatcher::DestroyWatch)
+#else
+#define IO_FFI_NATIVE_LIST(V)
+#endif
+
 IO_NATIVE_LIST(DECLARE_FUNCTION);
 
 static const struct NativeEntries {
@@ -240,6 +246,24 @@ const uint8_t* IONativeSymbol(Dart_NativeFunction nf) {
     const struct NativeEntries* entry = &(IOEntries[i]);
     if (reinterpret_cast<Dart_NativeFunction>(entry->function_) == nf) {
       return reinterpret_cast<const uint8_t*>(entry->name_);
+    }
+  }
+  return nullptr;
+}
+
+#define REGISTER_FFI_NATIVE_ENTRY(name) {#name, reinterpret_cast<void*>(&name)},
+
+static const struct FfiNativeEntries {
+  const char* const name_;
+  void* const function_;
+} IOFfiEntries[] = {IO_FFI_NATIVE_LIST(REGISTER_FFI_NATIVE_ENTRY)};
+
+void* IOFfiNativeLookup(const char* name, uintptr_t argument_count) {
+  int num_entries = sizeof(IOFfiEntries) / sizeof(struct FfiNativeEntries);
+  for (int i = 0; i < num_entries; i++) {
+    const struct FfiNativeEntries* entry = &(IOFfiEntries[i]);
+    if (strcmp(name, entry->name_) == 0) {
+      return entry->function_;
     }
   }
   return nullptr;

@@ -10,34 +10,19 @@
 #if !DART_HOST_OS_IOS
 
 #include <CoreServices/CoreServices.h>  // NOLINT
-#include <errno.h>                      // NOLINT
-#include <fcntl.h>                      // NOLINT
-#include <unistd.h>                     // NOLINT
+#include <dispatch/dispatch.h>
+#include <errno.h>   // NOLINT
+#include <fcntl.h>   // NOLINT
+#include <unistd.h>  // NOLINT
 
 #include "bin/eventhandler.h"
 #include "bin/fdutils.h"
 #include "bin/file.h"
+#include "bin/lockers.h"
 #include "bin/namespace.h"
 #include "bin/socket.h"
 #include "bin/thread.h"
 #include "platform/signal_blocker.h"
-
-#ifndef MAC_OS_X_VERSION_10_7
-enum { kFSEventStreamCreateFlagFileEvents = 0x00000010 };
-enum {
-  kFSEventStreamEventFlagItemCreated = 0x00000100,
-  kFSEventStreamEventFlagItemRemoved = 0x00000200,
-  kFSEventStreamEventFlagItemInodeMetaMod = 0x00000400,
-  kFSEventStreamEventFlagItemRenamed = 0x00000800,
-  kFSEventStreamEventFlagItemModified = 0x00001000,
-  kFSEventStreamEventFlagItemFinderInfoMod = 0x00002000,
-  kFSEventStreamEventFlagItemChangeOwner = 0x00004000,
-  kFSEventStreamEventFlagItemXattrMod = 0x00008000,
-  kFSEventStreamEventFlagItemIsFile = 0x00010000,
-  kFSEventStreamEventFlagItemIsDir = 0x00020000,
-  kFSEventStreamEventFlagItemIsSymlink = 0x00040000
-};
-#endif
 
 namespace dart {
 namespace bin {
@@ -51,172 +36,160 @@ union FSEvent {
   uint8_t bytes[PATH_MAX + 8];
 };
 
-class FSEventsWatcher {
- public:
-  class Node {
-   public:
-    Node(FSEventsWatcher* watcher,
-         char* base_path,
-         int read_fd,
-         int write_fd,
-         bool recursive)
-        : watcher_(watcher),
-          base_path_length_(strlen(base_path)),
-          path_ref_(CFStringCreateWithCString(nullptr,
-                                              base_path,
-                                              kCFStringEncodingUTF8)),
-          read_fd_(read_fd),
-          write_fd_(write_fd),
-          recursive_(recursive),
-          ref_(nullptr) {
-      Start();
-    }
+// A helper for creating Dart_CObject array using a single allocation.
+//
+// We can't use CObject helpers because those rely on Dart_ScopeAllocate.
+namespace {
 
-    ~Node() {
-      // This is invoked outside of [Callback] execution because
-      // [context.release] callback is invoked when [FSEventStream] is
-      // deallocated, the same [FSEventStream] that [Callback] gets a reference
-      // to during its execution. [Callback] holding a reference prevents stream
-      // from deallocation.
-      close(write_fd_);
-      CFRelease(path_ref_);
-      watcher_ = nullptr;  // this is to catch access-after-free in Callback
-    }
+template <typename T>
+struct SetCObjectValue;
 
-    void set_ref(FSEventStreamRef ref) { ref_ = ref; }
+template <>
+struct SetCObjectValue<const char*> {
+  static void Assign(Dart_CObject* o, const char* str) {
+    o->type = Dart_CObject_kString;
+    o->value.as_string = str;
+  }
+};
 
-    void Start() {
-      FSEventStreamContext context;
-      memset(&context, 0, sizeof(context));
-      context.info = reinterpret_cast<void*>(this);
-      context.release = [](const void* info) {
-        delete static_cast<const Node*>(info);
-      };
-      CFArrayRef array = CFArrayCreate(
-          nullptr, reinterpret_cast<const void**>(&path_ref_), 1, nullptr);
-      FSEventStreamRef ref = FSEventStreamCreate(
-          nullptr, Callback, &context, array, kFSEventStreamEventIdSinceNow,
-          0.10, kFSEventStreamCreateFlagFileEvents);
-      CFRelease(array);
+template <>
+struct SetCObjectValue<char*> {
+  static void Assign(Dart_CObject* o, const char* str) {
+    o->type = Dart_CObject_kString;
+    o->value.as_string = str;
+  }
+};
 
-      set_ref(ref);
+template <>
+struct SetCObjectValue<int64_t> {
+  static void Assign(Dart_CObject* o, int64_t v) {
+    o->type = Dart_CObject_kInt64;
+    o->value.as_int64 = v;
+  }
+};
 
-      FSEventStreamScheduleWithRunLoop(ref_, watcher_->run_loop_,
-                                       kCFRunLoopDefaultMode);
-
-      FSEventStreamStart(ref_);
-      FSEventStreamFlushSync(ref_);
-    }
-
-    void Stop() {
-      FSEventStreamStop(ref_);
-      FSEventStreamInvalidate(ref_);
-      FSEventStreamRelease(ref_);
-    }
-
-    FSEventsWatcher* watcher() const { return watcher_; }
-    intptr_t base_path_length() const { return base_path_length_; }
-    int read_fd() const { return read_fd_; }
-    int write_fd() const { return write_fd_; }
-    bool recursive() const { return recursive_; }
-
-   private:
-    FSEventsWatcher* watcher_;
-    intptr_t base_path_length_;
-    CFStringRef path_ref_;
-    int read_fd_;
-    int write_fd_;
-    bool recursive_;
-    FSEventStreamRef ref_;
-
-    DISALLOW_COPY_AND_ASSIGN(Node);
-  };
-
-  FSEventsWatcher() : monitor_(), run_loop_(nullptr), owner_() { Start(); }
-
-  void Start() {
-    Thread::Start("dart:io FileWatcher", Run, reinterpret_cast<uword>(this));
-    monitor_.Enter();
-    while (run_loop_ == nullptr) {
-      monitor_.Wait(Monitor::kNoTimeout);
-    }
-    monitor_.Exit();
+template <typename... Ts>
+Dart_CObject* CreateCObjectArray(Ts... elements) {
+  const auto length = sizeof...(elements);
+  auto array = static_cast<Dart_CObject*>(
+      malloc(sizeof(Dart_CObject) +
+             (sizeof(Dart_CObject*) + sizeof(Dart_CObject)) * length));
+  array->type = Dart_CObject_kArray;
+  array->value.as_array.values = reinterpret_cast<Dart_CObject**>(array + 1);
+  array->value.as_array.length = length;
+  for (uintptr_t i = 0; i < length; i++) {
+    array->value.as_array.values[i] =
+        reinterpret_cast<Dart_CObject*>(array->value.as_array.values + length) +
+        i;
   }
 
-  static void Run(uword arg) {
-    FSEventsWatcher* watcher = reinterpret_cast<FSEventsWatcher*>(arg);
-    // Only checked in debug mode.
-    watcher->owner_.Acquire();
-    CFRunLoopRef loop = CFRunLoopGetCurrent();
-    CFRetain(loop);
+  int index = 0;
+  (
+      [&] {
+        SetCObjectValue<Ts>::Assign(array->value.as_array.values[index],
+                                    elements);
+        ++index;
+      }(),
+      ...);
 
-    // Notify, as the run-loop is set.
-    watcher->monitor().Enter();
-    watcher->run_loop_ = loop;
-    watcher->monitor().Notify();
-    watcher->monitor().Exit();
+  return array;
+}
 
-    CFRunLoopTimerRef timer =
-        CFRunLoopTimerCreate(nullptr, CFAbsoluteTimeGetCurrent() + 1, 1, 0, 0,
-                             TimerCallback, nullptr);
-    CFRunLoopAddTimer(watcher->run_loop_, timer, kCFRunLoopCommonModes);
-    CFRelease(timer);
+}  // namespace
 
-    CFRunLoopRun();
+class Node {
+ public:
+  Node(Dart_Port port, char* base_path, bool recursive)
+      : port_(port),
+        base_path_length_(strlen(base_path)),
+        path_ref_(CFStringCreateWithCString(nullptr,
+                                            base_path,
+                                            kCFStringEncodingUTF8)),
+        recursive_(recursive),
+        ref_(nullptr) {
+    Start();
+  }
 
-    CFRelease(watcher->run_loop_);
-    watcher->monitor_.Enter();
-    watcher->owner_.Release();
-    watcher->run_loop_ = nullptr;
-    watcher->monitor_.Notify();
-    watcher->monitor_.Exit();
+  ~Node() {
+    // This is invoked outside of [Callback] execution because
+    // [context.release] callback is invoked when [FSEventStream] is
+    // deallocated, the same [FSEventStream] that [Callback] gets a reference
+    // to during its execution. [Callback] holding a reference prevents stream
+    // from deallocation.
+    CFRelease(path_ref_);
+  }
+
+  void set_ref(FSEventStreamRef ref) { ref_ = ref; }
+
+  void Start() {
+    FSEventStreamContext context;
+    memset(&context, 0, sizeof(context));
+    context.info = reinterpret_cast<void*>(this);
+    context.release = [](const void* info) {
+      reinterpret_cast<Node*>(const_cast<void*>(info))->NotifyStopped();
+    };
+    CFArrayRef array = CFArrayCreate(
+        nullptr, reinterpret_cast<const void**>(&path_ref_), 1, nullptr);
+    FSEventStreamRef ref = FSEventStreamCreate(
+        nullptr, Callback, &context, array, kFSEventStreamEventIdSinceNow, 0.10,
+        kFSEventStreamCreateFlagFileEvents);
+    CFRelease(array);
+
+    set_ref(ref);
+
+    FSEventStreamSetDispatchQueue(ref_, notification_queue_);
+    FSEventStreamStart(ref_);
+    FSEventStreamFlushSync(ref_);
   }
 
   void Stop() {
-    // Schedule StopCallback to be executed in the RunLoop.
-    CFRunLoopTimerContext context;
-    memset(&context, 0, sizeof(context));
-    context.info = this;
-    CFRunLoopTimerRef timer =
-        CFRunLoopTimerCreate(nullptr, 0, 0, 0, 0, StopCallback, &context);
-    CFRunLoopAddTimer(run_loop_, timer, kCFRunLoopCommonModes);
-    CFRelease(timer);
-    monitor_.Enter();
-    while (run_loop_ != nullptr) {
-      monitor_.Wait(Monitor::kNoTimeout);
+    FSEventStreamStop(ref_);
+    FSEventStreamInvalidate(ref_);
+    FSEventStreamRelease(ref_);
+    {
+      MonitorLocker lock(&monitor_);
+      while (running_) {
+        lock.Wait();
+      }
     }
-    monitor_.Exit();
   }
 
-  static void StopCallback(CFRunLoopTimerRef timer, void* info) {
-    FSEventsWatcher* watcher = reinterpret_cast<FSEventsWatcher*>(info);
-    DEBUG_ASSERT(watcher->owner_.IsOwnedByCurrentThread());
-    CFRunLoopStop(watcher->run_loop_);
-  }
+  intptr_t base_path_length() const { return base_path_length_; }
+  bool recursive() const { return recursive_; }
 
-  ~FSEventsWatcher() { Stop(); }
-
-  Monitor& monitor() { return monitor_; }
-
-  bool has_run_loop() const { return run_loop_ != nullptr; }
-
-  static void TimerCallback(CFRunLoopTimerRef timer, void* context) {
-    // Dummy callback to keep RunLoop alive.
-  }
-
-  Node* AddPath(const char* path, int events, bool recursive) {
-    int fds[2];
-    VOID_NO_RETRY_EXPECTED(pipe(fds));
-    FDUtils::SetNonBlocking(fds[0]);
-    FDUtils::SetBlocking(fds[1]);
-
+  static Node* Watch(Dart_Port port,
+                     const char* path,
+                     int events,
+                     bool recursive) {
     char base_path[PATH_MAX];
     realpath(path, base_path);
 
-    return new Node(this, base_path, fds[0], fds[1], recursive);
+    return new Node(port, base_path, recursive);
+  }
+
+  static void Unwatch(Node* node) {
+    node->Stop();
+    delete node;
+  }
+
+  static void InitOnce() {
+    notification_queue_ =
+        dispatch_queue_create("dev.dart.fsevents", DISPATCH_QUEUE_SERIAL);
+  }
+
+  static void Cleanup() {
+    // We want to make sure that no Node is active, these should have all been
+    // destroyed.
+    dispatch_release(notification_queue_);
   }
 
  private:
+  void NotifyStopped() {
+    MonitorLocker lock(&monitor_);
+    running_ = false;
+    lock.Notify();
+  }
+
   static void Callback(ConstFSEventStreamRef ref,
                        void* client,
                        size_t num_events,
@@ -229,13 +202,16 @@ class FSEventsWatcher {
       TimerUtils::Sleep(1000 /* ms */);
     }
     Node* node = static_cast<Node*>(client);
-    RELEASE_ASSERT(node->watcher() != nullptr);
-    DEBUG_ASSERT(node->watcher()->owner_.IsOwnedByCurrentThread());
+
+    // Can't use CObject helpers because they expect Dart_ScopeAllocate to work
+    // and this thread is not attached to any isolate or native message handler.
+    Dart_CObject events;
+    events.type = Dart_CObject_kArray;
+    events.value.as_array.values =
+        static_cast<Dart_CObject**>(malloc(sizeof(Dart_CObject*) * num_events));
+    events.value.as_array.length = 0;
     for (size_t i = 0; i < num_events; i++) {
       char* path = reinterpret_cast<char**>(event_paths)[i];
-      FSEvent event;
-      event.data.exists =
-          File::GetType(nullptr, path, false) != File::kDoesNotExist;
       path += node->base_path_length();
       // If path is longer the base, skip next character ('/').
       if (path[0] != '\0') {
@@ -244,30 +220,96 @@ class FSEventsWatcher {
       if (!node->recursive() && (strstr(path, "/") != nullptr)) {
         continue;
       }
-      event.data.flags = event_flags[i];
-      memmove(event.data.path, path, strlen(path) + 1);
-      write(node->write_fd(), event.bytes, sizeof(event));
+
+      const bool is_path_empty = path[0] == '\0';
+      const bool path_exists =
+          !is_path_empty &&
+          File::GetType(nullptr, path, false) != File::kDoesNotExist;
+
+      events.value.as_array.values[events.value.as_array.length++] =
+          CreateCObjectArray(
+              /*flags=*/ConvertEventFlags(event_flags[i], is_path_empty,
+                                          path_exists),
+              /*cookie=*/static_cast<int64_t>(0), path,
+              /*path_id=*/reinterpret_cast<int64_t>(node));
     }
+
+    if (events.value.as_array.length != 0) {
+      Dart_PostCObject(node->port_, &events);
+    }
+
+    for (int i = 0; i < events.value.as_array.length; i++) {
+      free(events.value.as_array.values[i]);
+    }
+    free(events.value.as_array.values);
   }
 
-  Monitor monitor_;
-  CFRunLoopRef run_loop_;
-  platform::ThreadBoundResource owner_;
+  static int64_t ConvertEventFlags(FSEventStreamEventFlags flags,
+                                   bool is_path_empty,
+                                   bool path_exists) {
+    int64_t mask = 0;
+    if ((flags & kFSEventStreamEventFlagItemRenamed) != 0) {
+      if (is_path_empty) {
+        // The moved path is the path being watched.
+        mask |= FileSystemWatcher::kDeleteSelf;
+      } else if (path_exists) {
+        mask |= FileSystemWatcher::kCreate;
+      } else {
+        mask |= FileSystemWatcher::kDelete;
+      }
+    }
+    if ((flags & kFSEventStreamEventFlagItemModified) != 0) {
+      mask |= FileSystemWatcher::kModifyContent;
+    }
+    if ((flags & kFSEventStreamEventFlagItemXattrMod) != 0) {
+      mask |= FileSystemWatcher::kModifyAttribute;
+    }
+    if ((flags & kFSEventStreamEventFlagItemCreated) != 0) {
+      mask |= FileSystemWatcher::kCreate;
+    }
+    if ((flags & kFSEventStreamEventFlagItemIsDir) != 0) {
+      mask |= FileSystemWatcher::kIsDir;
+    }
+    if ((flags & kFSEventStreamEventFlagItemRemoved) != 0) {
+      if (is_path_empty) {
+        // The removed path is the path being watched.
+        mask |= FileSystemWatcher::kDeleteSelf;
+      } else {
+        mask |= FileSystemWatcher::kDelete;
+      }
+    }
+    return mask;
+  }
 
-  DISALLOW_COPY_AND_ASSIGN(FSEventsWatcher);
+  static dispatch_queue_t notification_queue_;
+
+  Dart_Port port_;
+  intptr_t base_path_length_;
+  CFStringRef path_ref_;
+  bool recursive_;
+  FSEventStreamRef ref_;
+  Monitor monitor_;
+  bool running_ = true;
+
+  DISALLOW_COPY_AND_ASSIGN(Node);
 };
 
-#define kCFCoreFoundationVersionNumber10_7 635.00
+dispatch_queue_t Node::notification_queue_;
+
 bool FileSystemWatcher::IsSupported() {
-  return kCFCoreFoundationVersionNumber >= kCFCoreFoundationVersionNumber10_7;
+  return true;
+}
+
+void FileSystemWatcher::InitOnce() {
+  Node::InitOnce();
+}
+
+void FileSystemWatcher::Cleanup() {
+  Node::Cleanup();
 }
 
 intptr_t FileSystemWatcher::Init() {
-  return reinterpret_cast<intptr_t>(new FSEventsWatcher());
-}
-
-void FileSystemWatcher::Close(intptr_t id) {
-  delete reinterpret_cast<FSEventsWatcher*>(id);
+  return 0;
 }
 
 intptr_t FileSystemWatcher::WatchPath(intptr_t id,
@@ -275,78 +317,27 @@ intptr_t FileSystemWatcher::WatchPath(intptr_t id,
                                       const char* path,
                                       int events,
                                       bool recursive) {
-  FSEventsWatcher* watcher = reinterpret_cast<FSEventsWatcher*>(id);
-  return reinterpret_cast<intptr_t>(watcher->AddPath(path, events, recursive));
+  return reinterpret_cast<intptr_t>(
+      Node::Watch(static_cast<Dart_Port>(id), path, events, recursive));
 }
 
 void FileSystemWatcher::UnwatchPath(intptr_t id, intptr_t path_id) {
   USE(id);
-  reinterpret_cast<FSEventsWatcher::Node*>(path_id)->Stop();
+  Node::Unwatch(reinterpret_cast<Node*>(path_id));
+}
+
+void FileSystemWatcher::DestroyWatch(intptr_t path_id) {
+  FileSystemWatcher::UnwatchPath(0, path_id);
 }
 
 intptr_t FileSystemWatcher::GetSocketId(intptr_t id, intptr_t path_id) {
-  return reinterpret_cast<FSEventsWatcher::Node*>(path_id)->read_fd();
+  // This API should not be called. We are communicating over ports instead.
+  return -1;
 }
 
 Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
-  intptr_t fd = GetSocketId(id, path_id);
-  intptr_t avail = FDUtils::AvailableBytes(fd);
-  int count = avail / sizeof(FSEvent);
-  if (count <= 0) {
-    return Dart_NewList(0);
-  }
-  Dart_Handle events = Dart_NewList(count);
-  FSEvent e;
-  for (int i = 0; i < count; i++) {
-    intptr_t bytes = TEMP_FAILURE_RETRY(read(fd, e.bytes, sizeof(e)));
-    if (bytes < 0) {
-      return DartUtils::NewDartOSError();
-    }
-    size_t path_len = strlen(e.data.path);
-    Dart_Handle event = Dart_NewList(5);
-    int flags = e.data.flags;
-    int mask = 0;
-    if ((flags & kFSEventStreamEventFlagItemRenamed) != 0) {
-      if (path_len == 0) {
-        // The moved path is the path being watched.
-        mask |= kDeleteSelf;
-      } else {
-        mask |= e.data.exists ? kCreate : kDelete;
-      }
-    }
-    if ((flags & kFSEventStreamEventFlagItemModified) != 0) {
-      mask |= kModifyContent;
-    }
-    if ((flags & kFSEventStreamEventFlagItemXattrMod) != 0) {
-      mask |= kModifyAttribute;
-    }
-    if ((flags & kFSEventStreamEventFlagItemCreated) != 0) {
-      mask |= kCreate;
-    }
-    if ((flags & kFSEventStreamEventFlagItemIsDir) != 0) {
-      mask |= kIsDir;
-    }
-    if ((flags & kFSEventStreamEventFlagItemRemoved) != 0) {
-      if (path_len == 0) {
-        // The removed path is the path being watched.
-        mask |= kDeleteSelf;
-      } else {
-        mask |= kDelete;
-      }
-    }
-    Dart_ListSetAt(event, 0, Dart_NewInteger(mask));
-    Dart_ListSetAt(event, 1, Dart_NewInteger(1));
-    Dart_Handle name = Dart_NewStringFromUTF8(
-        reinterpret_cast<uint8_t*>(e.data.path), path_len);
-    if (Dart_IsError(name)) {
-      return name;
-    }
-    Dart_ListSetAt(event, 2, name);
-    Dart_ListSetAt(event, 3, Dart_NewBoolean(true));
-    Dart_ListSetAt(event, 4, Dart_NewInteger(path_id));
-    Dart_ListSetAt(events, i, event);
-  }
-  return events;
+  // This API should not be called. We are communicating over ports instead.
+  return DartUtils::NewDartOSError();
 }
 
 }  // namespace bin
@@ -372,11 +363,15 @@ bool FileSystemWatcher::IsSupported() {
 
 void FileSystemWatcher::UnwatchPath(intptr_t id, intptr_t path_id) {}
 
+void FileSystemWatcher::DestroyWatch(intptr_t path_id) {}
+
+void FileSystemWatcher::InitOnce() {}
+
+void FileSystemWatcher::Cleanup() {}
+
 intptr_t FileSystemWatcher::Init() {
   return -1;
 }
-
-void FileSystemWatcher::Close(intptr_t id) {}
 
 intptr_t FileSystemWatcher::WatchPath(intptr_t id,
                                       Namespace* namespc,

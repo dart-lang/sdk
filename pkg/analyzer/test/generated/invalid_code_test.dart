@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/context_collection_resolution.dart';
@@ -349,6 +350,12 @@ typedef void F({a = [if (true) 0]});
     await _assertCanBeAnalyzed('''
 typedef void F([a = () { if (true) 0; }]);
 ''');
+  }
+
+  test_invalid_unicode() async {
+    await assertErrorsInCode('\uFFFD', [
+      error(ScannerErrorCode.encoding, 0, 1),
+    ]);
   }
 
   test_invalidPart_withPart() async {

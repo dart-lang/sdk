@@ -6,6 +6,7 @@
 
 #include "platform/assert.h"
 #include "platform/leak_sanitizer.h"
+#include "platform/thread_sanitizer.h"
 #include "vm/class_id.h"
 #include "vm/compiler/runtime_api.h"
 #include "vm/dart.h"

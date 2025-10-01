@@ -6,6 +6,7 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/file_system_watcher.h"
 #include "bin/lockers.h"
 #include "bin/socket.h"
 #include "bin/thread.h"
@@ -19,6 +20,8 @@ static EventHandler* event_handler = nullptr;
 static Monitor* shutdown_monitor = nullptr;
 
 void EventHandler::Start() {
+  FileSystemWatcher::InitOnce();
+
   // Initialize global socket registry.
   ListeningSocketRegistry::Initialize();
 
@@ -59,6 +62,8 @@ void EventHandler::Stop() {
 
   // Destroy the global socket registry.
   ListeningSocketRegistry::Cleanup();
+
+  FileSystemWatcher::Cleanup();
 }
 
 EventHandlerImplementation* EventHandler::delegate() {

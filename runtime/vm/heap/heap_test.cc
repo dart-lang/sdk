@@ -11,6 +11,7 @@
 
 #include "platform/assert.h"
 #include "platform/no_tsan.h"
+#include "platform/thread_sanitizer.h"
 #include "vm/class_finalizer.h"
 #include "vm/dart_api_impl.h"
 #include "vm/globals.h"

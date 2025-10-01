@@ -851,7 +851,7 @@ class _HeaderValue implements HeaderValue {
               if (index < source.length) {
                 char = source.codeUnitAt(index);
                 index++;
-                if (preserveBackslash && char != _CharCode.BACKSLASH) {
+                if (preserveBackslash && char != _CharCode.QUOTE) {
                   sb.writeCharCode(_CharCode.BACKSLASH);
                 }
                 sb.writeCharCode(char);

@@ -62,6 +62,8 @@ class BytecodeOffsetsMapTraits {
       return Function::Cast(key).Hash();
     } else if (key.IsField()) {
       return Field::Cast(key).Hash();
+    } else if (key.IsScript()) {
+      return String::Hash(Script::Cast(key).url());
     } else {
       UNREACHABLE();
     }
@@ -73,7 +75,7 @@ BytecodeLoader::BytecodeLoader(Thread* thread, const TypedDataBase& binary)
     : thread_(thread),
       binary_(binary),
       bytecode_component_array_(Array::Handle(thread->zone())),
-      pending_classes_(GrowableObjectArray::Handle(thread->zone(),
+      pending_objects_(GrowableObjectArray::Handle(thread->zone(),
                                                    GrowableObjectArray::New())),
       bytecode_offsets_map_(
           Array::Handle(thread->zone(),
@@ -104,7 +106,7 @@ FunctionPtr BytecodeLoader::LoadBytecode(bool load_code) {
   AlternativeReadingScope alt(&bytecode_reader.reader(),
                               bytecode_component.GetLibraryIndexOffset());
   bytecode_reader.ReadLibraryDeclarations(bytecode_component.GetNumLibraries(),
-                                          pending_classes_, load_code);
+                                          pending_objects_, load_code);
 
   if (bytecode_component.GetMainOffset() == 0) {
     return Function::null();
@@ -121,7 +123,7 @@ void BytecodeLoader::LoadPendingCode() {
 
   BytecodeComponentData bytecode_component(bytecode_component_array_);
   BytecodeReaderHelper bytecode_reader(thread_, &bytecode_component);
-  bytecode_reader.ReadPendingCode(pending_classes_);
+  bytecode_reader.ReadPendingCode(pending_objects_);
 }
 
 void BytecodeLoader::SetOffset(const Object& obj, intptr_t offset) {
@@ -321,6 +323,24 @@ void BytecodeReaderHelper::ReadCode(const Function& function,
       ClosureFunctionsCache::AddClosureFunctionLocked(closure);
     }
   }
+}
+
+void BytecodeReaderHelper::ReadCoveredConstConstructors(const Script& script,
+                                                        intptr_t offset) {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  AlternativeReadingScope alt(&reader_, offset);
+  const intptr_t len = reader_.ReadListLength();
+  const auto& constant_coverage = Array::Handle(Z, Array::New(len, Heap::kOld));
+  auto& function = Function::Handle(Z);
+  for (intptr_t i = 0; i < len; i++) {
+    function ^= ReadObject();
+    ASSERT(function.IsConstructor() && function.is_const());
+    constant_coverage.SetAt(i, function);
+  }
+  script.set_collected_constant_coverage(constant_coverage);
+#else
+  UNREACHABLE();
+#endif
 }
 
 void BytecodeReaderHelper::ReadClosureDeclaration(const Function& function,
@@ -1643,6 +1663,7 @@ ScriptPtr BytecodeReaderHelper::ReadSourceFile(const String& uri,
   // pkg/dart2bytecode/lib/declarations.dart.
   const int kHasLineStartsFlag = 1 << 0;
   const int kHasSourceFlag = 1 << 1;
+  const int kHasCoveredConstConstructorsFlag = 1 << 2;
 
   AlternativeReadingScope alt(&reader_, offset);
 
@@ -1664,6 +1685,21 @@ ScriptPtr BytecodeReaderHelper::ReadSourceFile(const String& uri,
   const Script& script =
       Script::Handle(Z, Script::New(import_uri, uri, source));
   script.set_line_starts(line_starts);
+
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  if ((flags & kHasCoveredConstConstructorsFlag) != 0) {
+    // Any covered const constructors are read later during
+    // ReadPendingCode, which then sets the collected constant
+    // coverage for these scripts.
+    BytecodeLoader* const loader = thread_->bytecode_loader();
+    ASSERT(loader != nullptr);
+    loader->AddPendingObject(script, reader_.offset());
+  } else {
+    script.set_collected_constant_coverage(Object::empty_array());
+  }
+#else
+  USE(kHasCoveredConstConstructorsFlag);
+#endif
 
   return script.ptr();
 }
@@ -2332,10 +2368,8 @@ void BytecodeReaderHelper::ReadClassDeclaration(const Class& cls) {
   }
 }
 
-void BytecodeReaderHelper::ReadLibraryDeclaration(
-    const Library& library,
-    const GrowableObjectArray& pending_classes,
-    bool register_classes) {
+void BytecodeReaderHelper::ReadLibraryDeclaration(const Library& library,
+                                                  bool register_classes) {
   // Library flags, must be in sync with LibraryDeclaration constants in
   // pkg/dart2bytecode/lib/declarations.dart.
   // const int kUsesDartMirrorsFlag = 1 << 0;
@@ -2383,8 +2417,7 @@ void BytecodeReaderHelper::ReadLibraryDeclaration(
 
     BytecodeLoader* loader = thread_->bytecode_loader();
     ASSERT(loader != nullptr);
-    loader->SetOffset(cls, class_offset);
-    pending_classes.Add(cls);
+    loader->AddPendingObject(cls, class_offset);
   }
 
   ASSERT(!library.Loaded());
@@ -2393,7 +2426,7 @@ void BytecodeReaderHelper::ReadLibraryDeclaration(
 
 void BytecodeReaderHelper::ReadLibraryDeclarations(
     intptr_t num_libraries,
-    const GrowableObjectArray& pending_classes,
+    const GrowableObjectArray& pending_objects,
     bool load_code) {
   auto& library = Library::Handle(Z);
   auto& uri = String::Handle(Z);
@@ -2431,47 +2464,61 @@ void BytecodeReaderHelper::ReadLibraryDeclarations(
     ASSERT(!library.Loaded());
 
     AlternativeReadingScope alt(&reader_, library_offset);
-    ReadLibraryDeclaration(library, pending_classes, register_classes);
+    ReadLibraryDeclaration(library, register_classes);
   }
 
   if (load_code) {
-    ReadPendingCode(pending_classes);
+    ReadPendingCode(pending_objects);
   }
 }
 
 void BytecodeReaderHelper::ReadPendingCode(
-    const GrowableObjectArray& pending_classes) {
-  auto& cls = Class::Handle(Z);
+    const GrowableObjectArray& pending_objects) {
+  auto& obj = Object::Handle(Z);
   auto& error = Error::Handle(Z);
   auto& members = Array::Handle(Z);
   auto& function = Function::Handle(Z);
   auto& field = Field::Handle(Z);
-  for (intptr_t i = 0, n = pending_classes.Length(); i < n; ++i) {
-    cls ^= pending_classes.At(i);
-    error = cls.EnsureIsFinalized(thread_);
-    if (!error.IsNull()) {
-      Exceptions::PropagateError(error);
-      UNREACHABLE();
-    }
-    members = cls.functions();
-    for (intptr_t j = 0, m = members.Length(); j < m; ++j) {
-      function ^= members.At(j);
-      if (!function.is_abstract() && !function.HasBytecode()) {
-        ReadCode(function, thread_->bytecode_loader()->GetOffset(function));
+  for (intptr_t i = 0, n = pending_objects.Length(); i < n; ++i) {
+    obj = pending_objects.At(i);
+    ASSERT(!obj.IsNull());
+    if (obj.IsClass()) {
+      const auto& cls = Class::Cast(obj);
+      error = cls.EnsureIsFinalized(thread_);
+      if (!error.IsNull()) {
+        Exceptions::PropagateError(error);
+        UNREACHABLE();
       }
-    }
-    members = cls.fields();
-    for (intptr_t j = 0, m = members.Length(); j < m; ++j) {
-      field ^= members.At(j);
-      if (field.has_nontrivial_initializer()) {
-        if (field.is_static() || field.is_late() ||
-            thread_->bytecode_loader()->HasOffset(field)) {
-          function = field.EnsureInitializerFunction();
-          if (!function.HasBytecode()) {
-            ReadCode(function, thread_->bytecode_loader()->GetOffset(field));
+      members = cls.functions();
+      for (intptr_t j = 0, m = members.Length(); j < m; ++j) {
+        function ^= members.At(j);
+        if (!function.is_abstract() && !function.HasBytecode()) {
+          ReadCode(function, thread_->bytecode_loader()->GetOffset(function));
+        }
+      }
+      members = cls.fields();
+      for (intptr_t j = 0, m = members.Length(); j < m; ++j) {
+        field ^= members.At(j);
+        if (field.has_nontrivial_initializer()) {
+          if (field.is_static() || field.is_late() ||
+              thread_->bytecode_loader()->HasOffset(field)) {
+            function = field.EnsureInitializerFunction();
+            if (!function.HasBytecode()) {
+              ReadCode(function, thread_->bytecode_loader()->GetOffset(field));
+            }
           }
         }
       }
+    } else if (obj.IsScript()) {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+      const auto& script = Script::Cast(obj);
+      ReadCoveredConstConstructors(
+          script, thread_->bytecode_loader()->GetOffset(script));
+#else
+      UNREACHABLE();
+#endif
+    } else {
+      FATAL("Unexpected object %s in pending objects list", obj.ToCString());
     }
   }
 }

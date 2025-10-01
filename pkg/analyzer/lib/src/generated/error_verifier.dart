@@ -16,6 +16,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -5395,25 +5396,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         .map((parameter) => parameter.name)
         .toSet();
 
-    void reportError(DiagnosticCode code, List<Object> arguments) {
-      Identifier returnType = constructor.returnType;
-      var name = constructor.name;
-      int offset = returnType.offset;
-      int length = (name != null ? name.end : returnType.end) - offset;
-      diagnosticReporter.atOffset(
-        offset: offset,
-        length: length,
-        diagnosticCode: code,
-        arguments: arguments,
-      );
-    }
-
     if (!_currentLibrary.featureSet.isEnabled(Feature.super_parameters)) {
       if (requiredPositionalParameterCount != 0 ||
           requiredNamedParameters.isNotEmpty) {
-        reportError(CompileTimeErrorCode.noDefaultSuperConstructorExplicit, [
-          superType,
-        ]);
+        var SourceRange(:offset, :length) = constructor.errorRange;
+        diagnosticReporter.atOffset(
+          offset: offset,
+          length: length,
+          diagnosticCode:
+              CompileTimeErrorCode.noDefaultSuperConstructorExplicit,
+          arguments: [superType],
+        );
       }
       return;
     }
@@ -5427,9 +5420,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (requiredPositionalParameterCount >
             superParametersResult.positionalArgumentCount ||
         requiredNamedParameters.isNotEmpty) {
-      reportError(
-        CompileTimeErrorCode.implicitSuperInitializerMissingArguments,
-        [superType],
+      var SourceRange(:offset, :length) = constructor.errorRange;
+      diagnosticReporter.atOffset(
+        offset: offset,
+        length: length,
+        diagnosticCode:
+            CompileTimeErrorCode.implicitSuperInitializerMissingArguments,
+        arguments: [superType],
       );
     }
   }

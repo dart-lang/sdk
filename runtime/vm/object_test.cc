@@ -11,6 +11,10 @@
 #include "bin/vmservice_impl.h"
 
 #include "platform/globals.h"
+#include "platform/leak_sanitizer.h"
+#include "platform/memory_sanitizer.h"
+#include "platform/thread_sanitizer.h"
+#include "platform/undefined_behavior_sanitizer.h"
 
 #include "vm/class_finalizer.h"
 #include "vm/closure_functions_cache.h"

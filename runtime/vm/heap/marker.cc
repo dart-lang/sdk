@@ -6,6 +6,7 @@
 
 #include "platform/assert.h"
 #include "platform/atomic.h"
+#include "platform/thread_sanitizer.h"
 #include "vm/allocation.h"
 #include "vm/dart_api_state.h"
 #include "vm/heap/gc_shared.h"

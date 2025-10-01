@@ -18,6 +18,10 @@
 namespace dart {
 namespace bin {
 
+void FileSystemWatcher::InitOnce() {}
+
+void FileSystemWatcher::Cleanup() {}
+
 bool FileSystemWatcher::IsSupported() {
   return true;
 }
@@ -32,10 +36,6 @@ intptr_t FileSystemWatcher::Init() {
   // even if setting non-blocking fails.
   FDUtils::SetNonBlocking(id);
   return id;
-}
-
-void FileSystemWatcher::Close(intptr_t id) {
-  USE(id);
 }
 
 intptr_t FileSystemWatcher::WatchPath(intptr_t id,
@@ -88,6 +88,9 @@ static int InotifyEventToMask(struct inotify_event* e) {
   if ((e->mask & IN_MOVE) != 0) {
     mask |= FileSystemWatcher::kMove;
   }
+  if ((e->mask & IN_MOVED_TO) != 0) {
+    mask |= FileSystemWatcher::kMovedTo;
+  }
   if ((e->mask & IN_DELETE) != 0) {
     mask |= FileSystemWatcher::kDelete;
   }
@@ -118,28 +121,31 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
     struct inotify_event* e =
         reinterpret_cast<struct inotify_event*>(buffer + offset);
     if ((e->mask & IN_IGNORED) == 0) {
-      Dart_Handle event = Dart_NewList(5);
+      Dart_Handle event = Dart_NewList(kEventNumElements);
       int mask = InotifyEventToMask(e);
-      Dart_ListSetAt(event, 0, Dart_NewInteger(mask));
-      Dart_ListSetAt(event, 1, Dart_NewInteger(e->cookie));
+      Dart_ListSetAt(event, kEventFlagsIndex, Dart_NewInteger(mask));
+      Dart_ListSetAt(event, kEventCookieIndex, Dart_NewInteger(e->cookie));
       if (e->len > 0) {
         Dart_Handle name = Dart_NewStringFromUTF8(
             reinterpret_cast<uint8_t*>(e->name), strlen(e->name));
         if (Dart_IsError(name)) {
           return name;
         }
-        Dart_ListSetAt(event, 2, name);
+        Dart_ListSetAt(event, kEventPathIndex, name);
       } else {
-        Dart_ListSetAt(event, 2, Dart_Null());
+        Dart_ListSetAt(event, kEventPathIndex, Dart_Null());
       }
-      Dart_ListSetAt(event, 3, Dart_NewBoolean((e->mask & IN_MOVED_TO) != 0u));
-      Dart_ListSetAt(event, 4, Dart_NewInteger(e->wd));
+      Dart_ListSetAt(event, kEventPathIdIndex, Dart_NewInteger(e->wd));
       Dart_ListSetAt(events, i, event);
       i++;
     }
     offset += kEventSize + e->len;
   }
   ASSERT(offset == bytes);
+  if (i == 0) {
+    // No events in the chunk.
+    return Dart_NewList(0);
+  }
   return events;
 }
 

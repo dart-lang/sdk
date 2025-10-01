@@ -2846,6 +2846,10 @@ void Object::InitializeObject(uword address,
 
   reinterpret_cast<UntaggedObject*>(address)->tags_ = tags;
 #if defined(HOST_HAS_FAST_WRITE_WRITE_FENCE)
+  // GCC warns that TSAN doesn't understand thread fences.
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic ignored "-Wtsan"
+#endif
   std::atomic_thread_fence(std::memory_order_release);
 #endif
 }
@@ -13925,9 +13929,27 @@ void Script::set_source(const String& value) const {
 }
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-TypedDataViewPtr Script::constant_coverage() const {
-  return untag()->constant_coverage();
+TypedDataViewPtr Script::kernel_constant_coverage() const {
+  return TypedDataView::RawCast(untag()->constant_coverage());
 }
+#if defined(DART_DYNAMIC_MODULES)
+ArrayPtr Script::collected_constant_coverage() const {
+  return Array::RawCast(untag()->constant_coverage());
+}
+void Script::set_collected_constant_coverage(const Array& value) const {
+  ASSERT(!value.IsNull());
+  // Collected constant coverage should only be initialized once,
+  // whether empty or non-empty.
+  ASSERT(untag()->constant_coverage() == Object::null());
+  untag()->set_constant_coverage(value.ptr());
+}
+bool Script::HasCollectedConstantCoverage() const {
+  // Constant coverage should always be initialized to a non-null value.
+  ASSERT(untag()->constant_coverage() != Object::null());
+  return untag()->constant_coverage()->IsArray() ||
+         untag()->constant_coverage()->IsImmutableArray();
+}
+#endif  // defined(DART_DYNAMIC_MODULES)
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 TypedDataPtr Script::line_starts() const {
@@ -13986,6 +14008,19 @@ void Script::CollectDebugTokenPositions() const {
 }
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+ArrayPtr Script::CollectConstConstructorCoverageFrom() const {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_DYNAMIC_MODULES)
+  if (HasCollectedConstantCoverage()) {
+    return Array::RawCast(untag()->constant_coverage());
+  }
+#endif  // defined(DART_DYNAMIC_MODULES)
+  return CollectConstConstructorCoverageFromKernel();
+#else
+  return Object::empty_array().ptr();
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+}
 
 ArrayPtr Script::debug_positions() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)

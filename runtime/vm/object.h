@@ -5058,10 +5058,6 @@ class Script : public Object {
   TypedDataPtr line_starts() const;
   void set_line_starts(const TypedData& value) const;
 
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  TypedDataViewPtr constant_coverage() const;
-#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-
   LibraryPtr FindLibrary() const;
   StringPtr GetLine(intptr_t line_number, Heap::Space space = Heap::kNew) const;
   StringPtr GetSnippet(intptr_t from_line,
@@ -5109,8 +5105,22 @@ class Script : public Object {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   ArrayPtr CollectConstConstructorCoverageFrom() const;
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_DYNAMIC_MODULES)
+  void set_collected_constant_coverage(const Array& value) const;
+#endif  // defined(DART_DYNAMIC_MODULES)
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
  private:
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  TypedDataViewPtr kernel_constant_coverage() const;
+  ArrayPtr CollectConstConstructorCoverageFromKernel() const;
+#if defined(DART_DYNAMIC_MODULES)
+  ArrayPtr collected_constant_coverage() const;
+  bool HasCollectedConstantCoverage() const;
+#endif  // defined(DART_DYNAMIC_MODULES)
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+
   void set_debug_positions(const Array& value) const;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)

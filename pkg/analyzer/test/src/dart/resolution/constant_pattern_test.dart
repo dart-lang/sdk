@@ -2,13 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstantPatternResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -277,7 +280,26 @@ ConstantPattern
 ''');
   }
 
-  test_expression_typeLiteral_notPrefixed() async {
+  test_expression_typeLiteral_notPrefixed_dynamicElement() async {
+    await assertNoErrorsInCode(r'''
+void f(Object? x) {
+  if (x case dynamic) {}
+}
+''');
+    var node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+ConstantPattern
+  expression: TypeLiteral
+    type: NamedType
+      name: dynamic
+      element2: dynamic
+      type: dynamic
+    staticType: Type
+  matchedValueType: Object?
+''');
+  }
+
+  test_expression_typeLiteral_notPrefixed_interfaceElement() async {
     await assertNoErrorsInCode(r'''
 void f(Object? x) {
   if (x case int) {}
@@ -326,7 +348,26 @@ ListPattern
 ''');
   }
 
-  test_expression_typeLiteral_notPrefixed_typeAlias() async {
+  test_expression_typeLiteral_notPrefixed_neverElement() async {
+    await assertNoErrorsInCode(r'''
+void f(Object? x) {
+  if (x case Never) {}
+}
+''');
+    var node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+ConstantPattern
+  expression: TypeLiteral
+    type: NamedType
+      name: Never
+      element2: Never
+      type: Never
+    staticType: Type
+  matchedValueType: Object?
+''');
+  }
+
+  test_expression_typeLiteral_notPrefixed_typeAliasElement() async {
     await assertNoErrorsInCode(r'''
 typedef A = int;
 
@@ -348,12 +389,34 @@ ConstantPattern
 ''');
   }
 
-  test_expression_typeLiteral_prefixed() async {
-    await assertNoErrorsInCode(r'''
-import 'dart:math' as math;
+  test_expression_typeLiteral_notPrefixed_typeParameterElement() async {
+    await assertErrorsInCode(
+      r'''
+void f<T>(Object? x) {
+  if (x case T) {}
+}
+''',
+      [error(CompileTimeErrorCode.constTypeParameter, 36, 1)],
+    );
+    var node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+ConstantPattern
+  expression: TypeLiteral
+    type: NamedType
+      name: T
+      element2: #E0 T
+      type: T
+    staticType: Type
+  matchedValueType: Object?
+''');
+  }
 
-void f(Object? x) {
-  if (x case math.Random) {}
+  test_expression_typeLiteral_prefixed_dynamicElement() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:core' as core;
+
+void f(core.Object? x) {
+  if (x case core.dynamic) {}
 }
 ''');
     var node = findNode.singleGuardedPattern.pattern;
@@ -362,18 +425,68 @@ ConstantPattern
   expression: TypeLiteral
     type: NamedType
       importPrefix: ImportPrefixReference
-        name: math
+        name: core
         period: .
-        element2: <testLibraryFragment>::@prefix2::math
-      name: Random
-      element2: dart:math::@class::Random
-      type: Random
+        element2: <testLibraryFragment>::@prefix2::core
+      name: dynamic
+      element2: dynamic
+      type: dynamic
     staticType: Type
   matchedValueType: Object?
 ''');
   }
 
-  test_expression_typeLiteral_prefixed_typeAlias() async {
+  test_expression_typeLiteral_prefixed_interfaceElement() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:core' as core;
+
+void f(core.Object? x) {
+  if (x case core.int) {}
+}
+''');
+    var node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+ConstantPattern
+  expression: TypeLiteral
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: core
+        period: .
+        element2: <testLibraryFragment>::@prefix2::core
+      name: int
+      element2: dart:core::@class::int
+      type: int
+    staticType: Type
+  matchedValueType: Object?
+''');
+  }
+
+  test_expression_typeLiteral_prefixed_neverElement() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:core' as core;
+
+void f(core.Object? x) {
+  if (x case core.Never) {}
+}
+''');
+    var node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+ConstantPattern
+  expression: TypeLiteral
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: core
+        period: .
+        element2: <testLibraryFragment>::@prefix2::core
+      name: Never
+      element2: Never
+      type: Never
+    staticType: Type
+  matchedValueType: Object?
+''');
+  }
+
+  test_expression_typeLiteral_prefixed_typeAliasElement() async {
     newFile('$testPackageLibPath/a.dart', r'''
 typedef A = int;
 ''');
