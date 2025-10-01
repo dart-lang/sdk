@@ -1,0 +1,41 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///export_lib1.dart";
+
+static method main() → dynamic
+  ;
+
+library;
+import self as self2;
+import "export_lib2.dart" as exp;
+import "export_lib3.dart" as exp2;
+import "export_lib4.dart" as exp3;
+additionalExports = (exp::method1,
+  exp2::method2,
+  exp3::method3)
+
+export "org-dartlang-testcase:///export_lib2.dart";
+export "org-dartlang-testcase:///export_lib3.dart";
+export "org-dartlang-testcase:///export_lib4.dart";
+
+part export_part1.dart;
+part export_part2.dart;
+
+library;
+import self as exp;
+
+static method method1() → void
+  ;
+
+library;
+import self as exp2;
+
+static method method2() → void
+  ;
+
+library;
+import self as exp3;
+
+static method method3() → void
+  ;
