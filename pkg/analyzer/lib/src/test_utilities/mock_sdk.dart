@@ -45,8 +45,8 @@ abstract class Future<T> {
 
   Future<T> whenComplete(FutureOr<void> action());
 
-  static Future<List<T>> wait<T>(Iterable<Future<T>> futures,
-    {void cleanUp(T successValue)?}) => throw 0;
+  static Future<List<T>> wait<T>(
+    Iterable<Future<T>> futures, {void cleanUp(T successValue)?,}) => throw 0;
 }
 
 abstract class FutureOr<T> {}
@@ -92,8 +92,12 @@ abstract mixin class Stream<T> {
 
   Future<T> get first;
 
-  StreamSubscription<T> listen(void onData(T event)?,
-      {Function? onError, void onDone()?, bool? cancelOnError});
+  StreamSubscription<T> listen(
+    void onData(T event)?, {
+    Function? onError,
+    void onDone()?,
+    bool? cancelOnError,
+  });
 
   Stream<T> handleError(Function onError, {bool test(error)?});
 }
@@ -131,10 +135,11 @@ final MockSdkLibrary _LIB_COLLECTION = MockSdkLibrary('collection', [
 library dart.collection;
 
 abstract final class HashMap<K, V> implements Map<K, V> {
-  external factory HashMap(
-      {bool Function(K, K)? equals,
-      int Function(K)? hashCode,
-      bool Function(dynamic)? isValidKey});
+  external factory HashMap({
+    bool Function(K, K)? equals,
+    int Function(K)? hashCode,
+    bool Function(dynamic)? isValidKey,
+  });
 
   external factory HashMap.identity();
 
@@ -146,10 +151,11 @@ abstract final class HashMap<K, V> implements Map<K, V> {
     throw 0;
   }
 
-  factory HashMap.fromIterable(Iterable iterable,
-      {K Function(dynamic element)? key, V Function(dynamic element)? value}) {
-    throw 0;
-  }
+  factory HashMap.fromIterable(
+    Iterable iterable, {
+    K Function(dynamic element)? key,
+    V Function(dynamic element)? value,
+  }) => throw 0;
 
   factory HashMap.fromIterables(Iterable<K> keys, Iterable<V> values) {
     throw 0;
@@ -164,10 +170,11 @@ abstract final class HashMap<K, V> implements Map<K, V> {
 abstract mixin class IterableMixin<E> implements Iterable<E> { }
 
 abstract final class LinkedHashMap<K, V> implements Map<K, V> {
-  external factory LinkedHashMap(
-      {bool Function(K, K)? equals,
-      int Function(K)? hashCode,
-      bool Function(dynamic)? isValidKey});
+  external factory LinkedHashMap({
+    bool Function(K, K)? equals,
+    int Function(K)? hashCode,
+    bool Function(dynamic)? isValidKey,
+  });
 
   external factory LinkedHashMap.identity();
 
@@ -179,10 +186,11 @@ abstract final class LinkedHashMap<K, V> implements Map<K, V> {
     throw 0;
   }
 
-  factory LinkedHashMap.fromIterable(Iterable iterable,
-      {K Function(dynamic element)? key, V Function(dynamic element)? value}) {
-    throw 0;
-  }
+  factory LinkedHashMap.fromIterable(
+    Iterable iterable, {
+    K Function(dynamic element)? key,
+    V Function(dynamic element)? value,
+  }) => throw 0;
 
   factory LinkedHashMap.fromIterables(Iterable<K> keys, Iterable<V> values) {
     throw 0;
@@ -195,10 +203,11 @@ abstract final class LinkedHashMap<K, V> implements Map<K, V> {
 }
 
 abstract final class LinkedHashSet<E> implements Set<E> {
-  external factory LinkedHashSet(
-      {bool Function(E, E)? equals,
-      int Function(E)? hashCode,
-      bool Function(dynamic)? isValidKey});
+  external factory LinkedHashSet({
+    bool Function(E, E)? equals,
+    int Function(E)? hashCode,
+    bool Function(dynamic)? isValidKey,
+  });
 
   external factory LinkedHashSet.identity();
 
@@ -211,7 +220,7 @@ abstract final class LinkedHashSet<E> implements Set<E> {
   }
 }
 
-abstract base mixin class LinkedListEntry<E extends LinkedListEntry<E>> { }
+abstract base mixin class LinkedListEntry<E extends LinkedListEntry<E>> {}
 
 abstract mixin class ListMixin<E> implements List<E> { }
 
@@ -244,12 +253,14 @@ final class JsonCodec {
   String encode(Object? value, {Object? toEncodable(dynamic object)?}) => '';
 }
 
-abstract mixin class StringConversionSink { }
+abstract mixin class StringConversionSink {}
 
 typedef StringConversionSinkMixin = StringConversionSink;
 
-String jsonEncode(Object? object,
-        {Object? toEncodable(Object? nonEncodable)?}) => '';
+String jsonEncode(
+  Object? object, {
+  Object? toEncodable(Object? nonEncodable)?,
+}) => '';
 '''),
 ]);
 
@@ -283,8 +294,10 @@ abstract final class BigInt implements Comparable<BigInt> {
 }
 
 final class bool {
-  external const factory bool.fromEnvironment(String name,
-      {bool defaultValue = false});
+  external const factory bool.fromEnvironment(
+    String name, {
+    bool defaultValue = false,
+  });
 
   external const factory bool.hasEnvironment(String name);
 
@@ -325,7 +338,13 @@ class Deprecated {
 }
 
 enum _DeprecationKind {
-  use, implement, extend, subclass, instantiate, mixin, optional;
+  use,
+  implement,
+  extend,
+  subclass,
+  instantiate,
+  mixin,
+  optional,
 }
 
 final class pragma {
@@ -414,8 +433,10 @@ class FormatException implements Exception {}
 abstract final class Function {}
 
 abstract final class int extends num {
-  external const factory int.fromEnvironment(String name,
-      {int defaultValue = 0});
+  external const factory int.fromEnvironment(
+    String name, {
+    int defaultValue = 0,
+  });
 
   bool get isEven;
   bool get isOdd;
@@ -488,8 +509,11 @@ abstract interface class List<E> implements Iterable<E> {
   external factory List.empty({bool growable = false});
   external factory List.from(Iterable elements, {bool growable = true});
   external factory List.of(Iterable<E> elements, {bool growable = true});
-  external factory List.generate(int length, E generator(int index),
-      {bool growable = true});
+  external factory List.generate(
+    int length,
+    E generator(int index), {
+    bool growable = true,
+  });
   external factory List.unmodifiable(Iterable elements);
 
   E get last => throw 0;
@@ -515,8 +539,11 @@ abstract interface class Map<K, V> {
   external factory Map.unmodifiable(Map<dynamic, dynamic> other);
   external factory Map.identity();
 
-  external factory Map.fromIterable(Iterable iterable,
-      {K key(dynamic element)?, V value(dynamic element)?});
+  external factory Map.fromIterable(
+    Iterable iterable, {
+    K key(dynamic element)?,
+    V value(dynamic element)?,
+  });
 
   external factory Map.fromIterables(Iterable<K> keys, Iterable<V> values);
   external factory Map.fromEntries(Iterable<MapEntry<K, V>> entries);
@@ -643,32 +670,38 @@ abstract interface class StackTrace {}
 class Stopwatch {}
 
 abstract final class String implements Comparable<String>, Pattern {
-  external factory String.fromCharCodes(Iterable<int> charCodes,
-      [int start = 0, int? end]);
+  external factory String.fromCharCodes(
+    Iterable<int> charCodes, [
+    int start = 0,
+    int? end,
+  ]);
 
   external factory String.fromCharCode(int charCode);
 
-  external const factory String.fromEnvironment(String name,
-      {String defaultValue = ""});
+  external const factory String.fromEnvironment(
+    String name, {
+    String defaultValue = "",
+  });
 
   List<int> get codeUnits;
   bool get isEmpty;
   bool get isNotEmpty;
   int get length;
-
   bool operator ==(Object other);
   String operator [](int index);
   String operator +(String other);
   String operator *(int times);
-
   int codeUnitAt(int index);
   bool contains(Pattern other, [int startIndex = 0]);
   int indexOf(Pattern pattern, [int start = 0]);
   int lastIndexOf(Pattern pattern, [int? start]);
   bool startsWith(Pattern pattern, [int index = 0]);
   List<String> split(Pattern pattern);
-  String splitMapJoin(Pattern pattern,
-      {String Function(Match)? onMatch, String Function(String)? onNonMatch});
+  String splitMapJoin(
+    Pattern pattern, {
+    String Function(Match)? onMatch,
+    String Function(String)? onNonMatch,
+  });
   String substring(int start, [int? end]);
   String toLowerCase();
   String toUpperCase();
@@ -939,25 +972,25 @@ final class _ArraySize<T extends NativeType> implements Array<T> {
     this.dimension3,
     this.dimension4,
     this.dimension5,
-  ])  : dimensions = null,
-        variableDimension = null;
+  ]) : dimensions = null,
+       variableDimension = null;
 
   const _ArraySize.multi(this.dimensions)
-      : dimension1 = null,
-        dimension2 = null,
-        dimension3 = null,
-        dimension4 = null,
-        dimension5 = null,
-        variableDimension = null;
+    : dimension1 = null,
+      dimension2 = null,
+      dimension3 = null,
+      dimension4 = null,
+      dimension5 = null,
+      variableDimension = null;
 
   const _ArraySize.variable([
     this.dimension2,
     this.dimension3,
     this.dimension4,
     this.dimension5,
-  ])  : dimension1 = 0,
-        dimensions = null,
-        variableDimension = 0;
+  ]) : dimension1 = 0,
+       dimensions = null,
+       variableDimension = 0;
 
   const _ArraySize.variableWithVariableDimension([
     this.dimension1,
@@ -965,26 +998,24 @@ final class _ArraySize<T extends NativeType> implements Array<T> {
     this.dimension3,
     this.dimension4,
     this.dimension5,
-  ])  : dimensions = null,
-        variableDimension = dimension1;
+  ]) : dimensions = null,
+       variableDimension = dimension1;
 
   const _ArraySize.variableMulti(
     List<int> nestedDimensions, {
     int variableDimension = 0,
-  })  : dimensions = nestedDimensions,
-        dimension1 = null,
-        dimension2 = null,
-        dimension3 = null,
-        dimension4 = null,
-        dimension5 = null,
-        variableDimension = variableDimension;
+  }) : dimensions = nestedDimensions,
+       dimension1 = null,
+       dimension2 = null,
+       dimension3 = null,
+       dimension4 = null,
+       dimension5 = null,
+       variableDimension = variableDimension;
 }
 
 extension StructPointer<T extends Struct> on Pointer<T> {
   external T get ref;
-
   external T operator [](int index);
-
   @Since('3.7')
   external T refWithFinalizer(
     Pointer<NativeFinalizerFunction> finalizer, {
@@ -1033,21 +1064,9 @@ class Abi {
   const Abi._(this._architecture, this._os);
 }
 
-enum _Architecture {
-  arm,
-  arm64,
-  ia32,
-  x64,
-}
+enum _Architecture { arm, arm64, ia32, x64 }
 
-enum _OS {
-  android,
-  fuchsia,
-  ios,
-  linux,
-  macos,
-  windows,
-}
+enum _OS { android, fuchsia, ios, linux, macos, windows }
 
 @Since('2.16')
 base class AbiSpecificInteger implements SizedNativeType {
