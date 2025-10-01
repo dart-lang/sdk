@@ -631,6 +631,12 @@ class _ReferenceProcessor {
     if (parent is Statement) {
       return parent2 is Block;
     }
+    // OK, if statement in block in an await expression
+    if (parent is AwaitExpression) {
+      if (parent2 is ExpressionStatement) {
+        return parent2.parent is Block;
+      }
+    }
     // maybe assignment, in block
     if (parent is AssignmentExpression) {
       var assignment = parent;
