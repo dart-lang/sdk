@@ -256,8 +256,8 @@ if (current_os == "win") {
 # BUILD OPTIONS
 # =============================================================================
 
-use_flutter_cxx =
-    is_clang && ((is_asan && is_mac) || is_msan || is_tsan || is_ios)
+use_flutter_cxx = is_clang && (((is_asan || is_ubsan) && is_mac) || is_msan ||
+                               is_tsan || is_ios)
 
 using_sanitizer = !is_win && (is_asan || is_hwasan || is_lsan || is_msan ||
                               is_tsan || is_ubsan)
