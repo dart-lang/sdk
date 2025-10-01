@@ -1414,7 +1414,7 @@ final v = 2;
     expect(session2, isNot(session1));
   }
 
-  test_discoverAvailableFiles_packages() async {
+  test_discoverAvailableFiles_packages() {
     writeTestPackageConfig(
       PackageConfigFileBuilder()
         ..add(name: 'aaa', rootPath: '$packagesRootPath/aaa')
@@ -1433,7 +1433,7 @@ final v = 2;
 
     // Don't add `a1`, `a2`, or `b1` - they should be discovered.
     // And `c` is not in the package config, so should not be discovered.
-    await driver.discoverAvailableFiles();
+    driver.discoverAvailableFiles();
 
     var knownFiles = driver.knownFiles.resources;
     expect(knownFiles, contains(t1));
@@ -1444,12 +1444,12 @@ final v = 2;
     expect(knownFiles, isNot(contains(c1)));
 
     // We can wait for discovery more than once.
-    await driver.discoverAvailableFiles();
+    driver.discoverAvailableFiles();
   }
 
-  test_discoverAvailableFiles_sdk() async {
+  test_discoverAvailableFiles_sdk() {
     var driver = driverFor(testFile);
-    await driver.discoverAvailableFiles();
+    driver.discoverAvailableFiles();
     expect(
       driver.knownFiles.resources,
       containsAll([

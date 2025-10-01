@@ -190,10 +190,10 @@ class FindDeclarations {
 
   Future<void> compute([CancellationToken? cancellationToken]) async {
     if (!onlyAnalyzed) {
-      await performance.runAsync('discoverAvailableFiles', (performance) async {
-        await Future.wait(
-          drivers.map((driver) => driver.discoverAvailableFiles()),
-        );
+      performance.run('discoverAvailableFiles', (performance) {
+        for (var driver in drivers) {
+          driver.discoverAvailableFiles();
+        }
       });
     }
 
@@ -525,7 +525,7 @@ class Search {
       id = subtype.id;
     }
 
-    await _driver.discoverAvailableFiles();
+    _driver.discoverAvailableFiles();
 
     List<SubtypeResult> results = [];
 

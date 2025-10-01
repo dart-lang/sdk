@@ -238,7 +238,7 @@ Future<void> _getAvailableLibraries(
 ) async {
   for (var analysisContext in collection.contexts) {
     var analysisDriver = analysisContext.driver;
-    await analysisDriver.discoverAvailableFiles();
+    analysisDriver.discoverAvailableFiles();
     var knownFiles = analysisDriver.fsState.knownFiles.toList();
     for (var file in knownFiles) {
       // Skip libraries with known invalid types.
