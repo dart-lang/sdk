@@ -48,6 +48,12 @@ class _StdIOUtils {
   }
 
   static int _nativeSocketType(_NativeSocket nativeSocket) {
+    if (nativeSocket.isClosed) {
+      throw FileSystemException("Socket is closed");
+    }
+    if (nativeSocket.isClosing) {
+      throw FileSystemException("Socket is being closed");
+    }
     var result = _getSocketType(nativeSocket);
     if (result is OSError) {
       throw FileSystemException("Error retrieving socket type", "", result);
