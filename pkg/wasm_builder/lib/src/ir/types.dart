@@ -8,5 +8,12 @@ class Types {
   /// Types defined in this module.
   final List<List<DefType>> recursionGroups;
 
-  Types(this.recursionGroups);
+  late final List<DefType> defined;
+
+  Types(this.recursionGroups)
+      : defined = recursionGroups.expand((g) => g).toList();
+
+  DefType operator [](int index) => defined[index];
+
+  int get length => defined.length;
 }

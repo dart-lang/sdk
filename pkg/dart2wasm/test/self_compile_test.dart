@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:path/path.dart' as path;
 
@@ -39,14 +40,7 @@ Future main() async {
     final wasmBytes = outFile.readAsBytesSync();
     outFile.renameSync(outDart2WasmFilename);
 
-    if (vmBytes.length != wasmBytes.length) {
-      throw 'Mismatch in length ${vmBytes.length} vs ${wasmBytes.length}';
-    }
-    for (int i = 0; i < vmBytes.length; ++i) {
-      if (vmBytes[i] != wasmBytes[i]) {
-        throw 'Mismatch at offset $i ${vmBytes[i]} vs ${wasmBytes[i]}';
-      }
-    }
+    expectEqualBytes(vmBytes, wasmBytes);
   });
 }
 
@@ -58,6 +52,17 @@ Future run(List<String> command) async {
     print('-> stdout:\n${result.stdout}');
     print('-> stderr:\n${result.stderr}');
     throw 'Subprocess failed';
+  }
+}
+
+void expectEqualBytes(Uint8List a, Uint8List b) {
+  if (a.length != b.length) {
+    throw 'Mismatch in length ${a.length} vs ${b.length}';
+  }
+  for (int i = 0; i < a.length; ++i) {
+    if (a[i] != b[i]) {
+      throw 'Mismatch at offset $i ${a[i]} vs ${b[i]}';
+    }
   }
 }
 

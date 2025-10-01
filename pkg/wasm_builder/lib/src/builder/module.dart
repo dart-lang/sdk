@@ -32,6 +32,7 @@ class ModuleBuilder with Builder<ir.Module> {
   final dataSegments = DataSegmentsBuilder();
   late final globals = GlobalsBuilder(this);
   final exports = ExportsBuilder();
+  ir.BaseFunction? _startFunction;
 
   /// Create a new, initially empty, module.
   ///
@@ -44,6 +45,11 @@ class ModuleBuilder with Builder<ir.Module> {
     types = TypesBuilder(this, parent: parent?.types);
   }
 
+  set startFunction(ir.BaseFunction init) {
+    assert(_startFunction == null);
+    _startFunction = init;
+  }
+
   @override
   ir.Module forceBuild() {
     final finalFunctions = functions.build();
@@ -51,10 +57,18 @@ class ModuleBuilder with Builder<ir.Module> {
     final finalMemories = memories.build();
     final finalGlobals = globals.build();
     final finalTags = tags.build();
+    final imports = ir.Imports(
+      finalFunctions.imported,
+      finalTags.imported,
+      finalGlobals.imported,
+      finalTables.imported,
+      finalMemories.imported,
+    );
     return module
       ..initialize(
           moduleName,
           finalFunctions,
+          _startFunction,
           finalTables,
           finalTags,
           finalMemories,
@@ -62,13 +76,7 @@ class ModuleBuilder with Builder<ir.Module> {
           finalGlobals,
           types.build(),
           dataSegments.build(),
-          <ir.Import>[
-            ...finalFunctions.imported,
-            ...finalTables.imported,
-            ...finalMemories.imported,
-            ...finalGlobals.imported,
-            ...finalTags.imported,
-          ],
+          imports,
           watchPoints,
           sourceMapUrl);
   }

@@ -151,6 +151,7 @@
       "third_party/devtools/",
       "third_party/webdriver/",
       "third_party/pkg/",
+      "third_party/flute/",
       "tests/.dart_tool/package_config.json",
       "tests/angular/",
       "tests/co19/co19-analyzer.status",

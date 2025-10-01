@@ -80,4 +80,8 @@ class Tags {
   final List<ImportedTag> imported;
 
   Tags(this.defined, this.imported);
+
+  Tag operator [](int index) => index < imported.length
+      ? imported[index]
+      : defined[index - imported.length];
 }

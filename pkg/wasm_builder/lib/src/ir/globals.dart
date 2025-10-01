@@ -12,4 +12,10 @@ class Globals {
   final List<DefinedGlobal> defined;
 
   Globals(this.imported, this.defined);
+
+  Global operator [](int index) => index < imported.length
+      ? imported[index]
+      : defined[index - imported.length];
+
+  int get length => imported.length + defined.length;
 }
