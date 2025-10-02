@@ -124,7 +124,7 @@ class Socket : public ReferenceCounted<Socket> {
   static bool short_socket_read_;
   static bool short_socket_write_;
 
-  std::atomic<intptr_t> fd_;
+  intptr_t fd_;
   Dart_Port isolate_port_;
   Dart_Port port_;
   uint8_t* udp_receive_buffer_;

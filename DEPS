@@ -97,7 +97,7 @@ vars = {
 
   # Prefer to use hashes of binaryen that have been reviewed & rolled into g3.
   "binaryen_rev" : "1d2e23d5e55788091a51420ba3a9889d4efe7509",
-  "boringssl_rev": "40e035a9e5d721b3b7c15c46259d782ffe7d9e96",
+  "boringssl_rev": "db638238d29708a20b991af3b2488e45a8bbcf71",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
   "devtools_rev": "5e1792245005088a0a0dfe28f207bd22045ba783",
@@ -131,28 +131,28 @@ vars = {
   ### /third_party/pkg dependencies
   # 'tools/rev_sdk_deps.dart' will rev pkg dependencies to their latest; put an
   # EOL comment after a dependency to instead pin at the current revision.
-  "ai_rev": "901e2cea44bde868061cae58269cf8cc583a8a78",
+  "ai_rev": "ec5d6aa38c8a6a9e687cc5223e2592ac91f2d5fe",
   "core_rev": "5c3e2c38df268be2347f3aad30ced0147dd012bb", # b/444274553
   "dartdoc_rev": "669b15f7da5da04a38e95e8ac0ff6471697a549f",
   "ecosystem_rev": "36e514d52c5d056227e4cea98b784ade50b5b4f1",
   "flute_rev": "d5adc4d6439572db5da71a9261b9bf0c7c96daa4",
-  "http_rev": "e0dadd16e01bb4611036f4946ed480dac2d59dca",
-  "i18n_rev": "09627d28f97e05858e1ba5c6e45ff45d56b1e786",
+  "http_rev": "2c53fa3c558ec5d1dd9fce4360d435113dba11e5",
+  "i18n_rev": "34d1832b7e65d9aef1f7f6a82c22f6e53476191c",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
-  "native_rev": "400c7001de7a3cddca341e728163bd64029ab288", # rolled manually while native assets are experimental
+  "native_rev": "3ec573500f743d4a1393f7802143aef50fec0a47", # rolled manually while native assets are experimental
   "protobuf_rev": "14bbd0bd7ff9b7e322ff4e85bd243f6905170b92",
   "pub_rev": "f7f1891e2de3d795532f45ec214f88ac912ffcd6", # rolled manually
-  "shelf_rev": "de91a5b8c1de05f622c0c6f1eab38d5f31e0113f",
+  "shelf_rev": "f30d65034a868530a9aa9ada7c3067d22fa01185",
   "sync_http_rev": "6666fff944221891182e1f80bf56569338164d72",
   "tar_rev": "13479f7c2a18f499e840ad470cfcca8c579f6909",
-  "test_rev": "b99d556ec6096965eb177111299c0783678200f6",
-  "tools_rev": "2ef298e48450de9d2443d466ec4d61172a71b113",
-  "vector_math_rev": "3939545edc38ed657381381d33acde02c49ff827",
-  "web_rev": "0baaea4de4dfd60db85dd112d8cc7480d0dd8bd8",
-  "webdev_rev": "23aefebea46c1f94c27703743b2c8db1f651bf29",
+  "test_rev": "a16f14975c5625ef99abc71f7e91bca5d8e55054",
+  "tools_rev": "19f91a030f5cef908820efade7e7638aea0248ac",
+  "vector_math_rev": "a7b7e9ccb931348dbfa669e0f8fea1bf97705b16",
+  "web_rev": "816abcc1bf186f61c7e66e7f4c56d1554a61ab27",
+  "webdev_rev": "0b2a408f6f64a29cd0d18ac7d2d407a4e1db8e0f",
   "webdriver_rev": "09104f459ed834d48b132f6b7734923b1fbcf2e9",
-  "webkit_inspection_protocol_rev": "effa75205516757795683d527c3dea9546eb0c32",
+  "webkit_inspection_protocol_rev": "0f7685804d77ec02c6564d7ac1a6c8a2341c5bdf",
 
   # Windows deps
   "crashpad_rev": "d256de317164c0eb362bdd9cbb4d259fe6d086f3",
@@ -592,7 +592,7 @@ deps = {
     "packages": [
       {
       "package": "chromium/fuchsia/test-scripts",
-      "version": "APSBP-sS-3FX69Ihfx91uOhJ-r7ZCIkkTM9khYk7FyEC",
+      "version": "JUeFbA8y0E-_pj-bgvR6glsLIO-gJIHlR9RtM5zxni8C",
       }
     ],
     "condition": 'download_fuchsia_deps',

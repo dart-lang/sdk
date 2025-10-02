@@ -226,10 +226,9 @@ class SearchEngineImpl implements SearchEngine {
       assignedFiles = searchEngineCache.assignedFiles = {};
       for (var driver in drivers) {
         var assignedFilesForDrive = assignedFiles[driver] = [];
-        await performance.runAsync(
-          'discoverAvailableFiles',
-          (_) => driver.discoverAvailableFiles(),
-        );
+        performance.run('discoverAvailableFiles', (_) {
+          return driver.discoverAvailableFiles();
+        });
         for (var file in driver.fsState.knownFiles) {
           if (searchedFiles.add(file.path, driver.search)) {
             assignedFilesForDrive.add(file);

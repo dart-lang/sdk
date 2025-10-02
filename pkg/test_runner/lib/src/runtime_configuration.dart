@@ -369,8 +369,19 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
     if (isReload) {
       multiplier *= 2;
     }
-    if (_configuration.sanitizer != Sanitizer.none) {
-      multiplier *= 4;
+    switch (_configuration.sanitizer) {
+      case Sanitizer.none:
+      case Sanitizer.lsan:
+      case Sanitizer.ubsan:
+        multiplier *= 1;
+        break;
+      case Sanitizer.asan:
+      case Sanitizer.msan:
+        multiplier *= 2;
+        break;
+      case Sanitizer.tsan:
+        multiplier *= 6;
+        break;
     }
     if (_configuration.rr) {
       multiplier *= 2;

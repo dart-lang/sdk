@@ -215,10 +215,6 @@ void SocketBase::GetError(intptr_t fd, OSError* os_error) {
 }
 
 int SocketBase::GetType(intptr_t fd) {
-  if (fd < 0) {
-    return -1;
-  }
-
   Handle* handle = reinterpret_cast<Handle*>(fd);
   switch (GetFileType(handle->handle())) {
     case FILE_TYPE_CHAR:

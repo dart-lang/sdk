@@ -92,7 +92,7 @@ class DartFixContext implements FixContext {
     }
 
     var analysisDriver = analysisContext.driver;
-    await analysisDriver.discoverAvailableFiles();
+    analysisDriver.discoverAvailableFiles();
 
     var fsState = analysisDriver.fsState;
     var filter = FileStateFilter(fsState.getFileForPath(unitResult.path));

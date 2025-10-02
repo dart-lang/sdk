@@ -671,9 +671,9 @@ class AnalysisDriver {
     _libraryContext = null;
   }
 
-  /// Return a [Future] that completes when discovery of all files that are
-  /// potentially available is done, so that they are included in [knownFiles].
-  Future<void> discoverAvailableFiles() async {
+  /// Discovers all files that are potentially available, so that they are
+  /// included in [knownFiles].
+  void discoverAvailableFiles() {
     if (_hasAvailableFilesDiscovered) {
       return;
     }
@@ -820,7 +820,7 @@ class AnalysisDriver {
 
   /// Completes with files that define a class member with the [name].
   Future<List<FileState>> getFilesDefiningClassMemberName(String name) async {
-    await discoverAvailableFiles();
+    discoverAvailableFiles();
     var request = _GetFilesDefiningClassMemberNameRequest(name);
     _definingClassMemberNameRequests.add(request);
     _scheduler.notify();
@@ -829,7 +829,7 @@ class AnalysisDriver {
 
   /// Completes with files that reference the given external [name].
   Future<List<FileState>> getFilesReferencingName(String name) async {
-    await discoverAvailableFiles();
+    discoverAvailableFiles();
     var request = _GetFilesReferencingNameRequest(name);
     _referencingNameRequests.add(request);
     _scheduler.notify();
