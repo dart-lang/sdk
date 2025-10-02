@@ -173,10 +173,6 @@ class SynthesizedTypeBuilder extends FixedTypeBuilder {
   bool get isExplicit => _typeBuilder.isExplicit;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  bool get isVoidType => _typeBuilder.isVoidType;
-
-  @override
   NullabilityBuilder get nullabilityBuilder => _typeBuilder.nullabilityBuilder;
 
   @override

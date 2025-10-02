@@ -115,10 +115,6 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
   String get debugName => "Function";
 
   @override
-  // Coverage-ignore(suite): Not run.
-  bool get isVoidType => false;
-
-  @override
   StringBuffer printOn(StringBuffer buffer) {
     if (typeParameters != null) {
       // Coverage-ignore-block(suite): Not run.

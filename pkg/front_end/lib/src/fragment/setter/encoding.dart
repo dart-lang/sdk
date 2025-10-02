@@ -159,6 +159,7 @@ sealed class SetterEncoding {
 
   void buildOutlineNode({
     required SourceLibraryBuilder libraryBuilder,
+    required ProblemReporting problemReporting,
     required NameScheme nameScheme,
     required BuildNodesCallback f,
     required PropertyReferences? references,
@@ -269,6 +270,7 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
   @override
   void buildOutlineNode({
     required SourceLibraryBuilder libraryBuilder,
+    required ProblemReporting problemReporting,
     required NameScheme nameScheme,
     required BuildNodesCallback f,
     required PropertyReferences? references,
@@ -294,10 +296,20 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
       supportsTypeParameters: true,
     );
     if (_fragment.returnType is! InferableTypeBuilder) {
-      function.returnType = _fragment.returnType.build(
+      DartType returnType = _fragment.returnType.build(
         libraryBuilder,
         TypeUse.returnType,
       );
+      if (returnType is! VoidType) {
+        problemReporting.addProblem(
+          codeNonVoidReturnSetter,
+          _fragment.returnType.charOffset!,
+          noLength,
+          _fragment.fileUri,
+        );
+        returnType = const VoidType();
+      }
+      function.returnType = returnType;
     }
     if (_fragment.declaredFormals?.length != 1 ||
         _fragment.declaredFormals![0].isOptionalPositional) {
@@ -560,6 +572,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
   @override
   void buildOutlineNode({
     required SourceLibraryBuilder libraryBuilder,
+    required ProblemReporting problemReporting,
     required NameScheme nameScheme,
     required BuildNodesCallback f,
     required PropertyReferences? references,
@@ -614,10 +627,20 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
       function.requiredParameterCount = 2;
     }
     if (_fragment.returnType is! InferableTypeBuilder) {
-      function.returnType = _fragment.returnType.build(
+      DartType returnType = _fragment.returnType.build(
         libraryBuilder,
         TypeUse.returnType,
       );
+      if (returnType is! VoidType) {
+        problemReporting.addProblem(
+          codeNonVoidReturnSetter,
+          _fragment.returnType.charOffset!,
+          noLength,
+          _fragment.fileUri,
+        );
+        returnType = const VoidType();
+      }
+      function.returnType = returnType;
     }
 
     MemberName memberName = nameScheme.getProcedureMemberName(

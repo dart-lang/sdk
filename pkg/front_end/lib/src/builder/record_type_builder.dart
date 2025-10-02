@@ -108,10 +108,6 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
   String get debugName => "Record";
 
   @override
-  // Coverage-ignore(suite): Not run.
-  bool get isVoidType => false;
-
-  @override
   StringBuffer printOn(StringBuffer buffer) {
     buffer.write("(");
     bool isFirst = true;

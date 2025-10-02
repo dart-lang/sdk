@@ -126,6 +126,7 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
     MethodDeclaration lastFragment = augmentedFragments.removeLast();
     lastFragment.buildOutlineNode(
       libraryBuilder,
+      libraryBuilder,
       _nameScheme,
       f,
       reference: _reference,
@@ -135,6 +136,7 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
 
     for (MethodDeclaration augmented in augmentedFragments) {
       augmented.buildOutlineNode(
+        libraryBuilder,
         libraryBuilder,
         _nameScheme,
         noAddBuildNodesCallback,

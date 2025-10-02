@@ -566,6 +566,7 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
   @override
   void buildOutlineNode(
     SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     NameScheme nameScheme,
     BuildNodesCallback f, {
     required Reference reference,

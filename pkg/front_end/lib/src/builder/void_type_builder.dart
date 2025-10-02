@@ -34,9 +34,6 @@ class VoidTypeBuilder extends FixedTypeBuilder {
   String get debugName => 'VoidTypeBuilder';
 
   @override
-  bool get isVoidType => true;
-
-  @override
   StringBuffer printOn(StringBuffer buffer) {
     buffer.write('void');
     return buffer;

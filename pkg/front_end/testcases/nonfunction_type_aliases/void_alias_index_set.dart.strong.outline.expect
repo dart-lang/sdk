@@ -1,0 +1,69 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/void_alias_index_set.dart:10:3: Error: The return type of the operator []= must be 'void'.
+// Try changing the return type to 'void'.
+//   int operator []=(Object key, Object value) {} // Error
+//   ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/void_alias_index_set.dart:18:3: Error: The return type of the operator []= must be 'void'.
+// Try changing the return type to 'void'.
+//   int operator []=(Object key, Object value) {} // Error
+//   ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/void_alias_index_set.dart:26:3: Error: The return type of the operator []= must be 'void'.
+// Try changing the return type to 'void'.
+//   int operator []=(Object key, Object value) {} // Error
+//   ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef Void = void;
+class Class1 extends core::Object {
+  synthetic constructor •() → self::Class1
+    ;
+  operator []=(core::Object key, core::Object value) → void
+    ;
+}
+class Class2 extends core::Object {
+  synthetic constructor •() → self::Class2
+    ;
+  operator []=(core::Object key, core::Object value) → void
+    ;
+}
+extension Extension1 on core::int {
+  operator []= = self::Extension1|[]=;
+}
+extension Extension2 on core::int {
+  operator []= = self::Extension2|[]=;
+}
+extension type ExtensionType1(core::int it) {
+  abstract extension-type-member representation-field get it() → core::int;
+  operator []= = self::ExtensionType1|[]=;
+  constructor • = self::ExtensionType1|constructor#;
+  constructor tearoff • = self::ExtensionType1|constructor#_#new#tearOff;
+}
+extension type ExtensionType2(core::int it) {
+  abstract extension-type-member representation-field get it() → core::int;
+  operator []= = self::ExtensionType2|[]=;
+  constructor • = self::ExtensionType2|constructor#;
+  constructor tearoff • = self::ExtensionType2|constructor#_#new#tearOff;
+}
+static extension-member method Extension1|[]=(lowered final core::int #this, core::Object key, core::Object value) → void
+  ;
+static extension-member method Extension2|[]=(lowered final core::int #this, core::Object key, core::Object value) → void
+  ;
+static extension-type-member method ExtensionType1|constructor#(core::int it) → self::ExtensionType1% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method ExtensionType1|constructor#_#new#tearOff(core::int it) → self::ExtensionType1% /* erasure=core::int, declared=! */
+  return self::ExtensionType1|constructor#(it);
+static extension-type-member method ExtensionType1|[]=(lowered final self::ExtensionType1% /* erasure=core::int, declared=! */ #this, core::Object key, core::Object value) → void
+  ;
+static extension-type-member method ExtensionType2|constructor#(core::int it) → self::ExtensionType2% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method ExtensionType2|constructor#_#new#tearOff(core::int it) → self::ExtensionType2% /* erasure=core::int, declared=! */
+  return self::ExtensionType2|constructor#(it);
+static extension-type-member method ExtensionType2|[]=(lowered final self::ExtensionType2% /* erasure=core::int, declared=! */ #this, core::Object key, core::Object value) → void
+  ;
