@@ -40,6 +40,7 @@ dart/spawn_uri_aot_test: Pass, Slow # Runs various subprocesses for testing AOT.
 dart/split_aot_kernel_generation_test: Pass, Slow # Spawns several subprocesses
 dart/stack_overflow_shared_test: Pass, Slow # Uses --shared-slow-path-triggers-gc flag.
 dart/timeline_recorder_file_test: Pass, Slow
+dart/use_dwarf_stack_traces_flag_deferred_test: Pass, Slow # Spawns several subprocesses
 dart/use_dwarf_stack_traces_flag_test: Pass, Slow # Spawns several subprocesses
 
 [ $arch == ia32 ]
@@ -327,6 +328,8 @@ dart/isolates/reload_many_isolates_live_and_die_test: SkipSlow # The test itself
 dart/kernel_determinism_test: SkipSlow
 dart/regress_48196_test: SkipSlow
 dart/regress_52703_test: SkipSlow
+dart/use_dwarf_stack_traces_flag_deferred_test: SkipSlow
+dart/use_dwarf_stack_traces_flag_test: SkipSlow
 
 [ $compiler == dartkp && $simulator ]
 dart/awaiter_stacks/stream_methods_test/1: Pass, Slow

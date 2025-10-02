@@ -427,7 +427,7 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
   final LibraryElementImpl element;
 
   @override
-  final List<ResolvedUnitResult> units;
+  final List<ResolvedUnitResultImpl> units;
 
   ResolvedLibraryResultImpl({
     required super.session,

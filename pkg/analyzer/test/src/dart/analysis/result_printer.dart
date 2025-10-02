@@ -1841,7 +1841,12 @@ class ManifestPrinter {
 }
 
 class RequirementPrinterConfiguration {
-  var ignoredLibraries = <Uri>{Uri.parse('dart:core')};
+  var ignoredLibraries = <Uri>{
+    Uri.parse('dart:_internal'),
+    Uri.parse('dart:async'),
+    Uri.parse('dart:core'),
+    Uri.parse('dart:math'),
+  };
 }
 
 class ResolvedLibraryResultPrinter {
@@ -1861,14 +1866,14 @@ class ResolvedLibraryResultPrinter {
 
   void write(SomeResolvedLibraryResult result) {
     switch (result) {
-      case ResolvedLibraryResult():
+      case ResolvedLibraryResultImpl():
         _writeResolvedLibraryResult(result);
       default:
         throw UnimplementedError('${result.runtimeType}');
     }
   }
 
-  void _writeResolvedLibraryResult(ResolvedLibraryResult result) {
+  void _writeResolvedLibraryResult(ResolvedLibraryResultImpl result) {
     if (idProvider.existing(result) case var id?) {
       sink.writelnWithIndent('ResolvedLibraryResult $id');
       return;
@@ -1885,9 +1890,7 @@ class ResolvedLibraryResultPrinter {
     });
   }
 
-  void _writeResolvedUnitResult(ResolvedUnitResult result) {
-    // TODO(scheglov): remove the cast
-    result as ResolvedUnitResultImpl;
+  void _writeResolvedUnitResult(ResolvedUnitResultImpl result) {
     ResolvedUnitResultPrinter(
       configuration: configuration.unitConfiguration,
       sink: sink,
