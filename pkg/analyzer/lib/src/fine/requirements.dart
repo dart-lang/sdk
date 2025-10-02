@@ -318,6 +318,9 @@ class InterfaceItemRequirements {
   final Map<LookupName, ManifestItemId?> implementedMethods;
   final Map<int, Map<LookupName, ManifestItemId?>> superMethods;
 
+  /// Set if [ClassElementImpl.allSubtypes] was invoked.
+  ManifestItemIdList? allSubtypes;
+
   InterfaceItemRequirements({
     required this.interfaceId,
     required this.hasNonFinalField,
@@ -326,6 +329,7 @@ class InterfaceItemRequirements {
     required this.methods,
     required this.implementedMethods,
     required this.superMethods,
+    required this.allSubtypes,
   });
 
   factory InterfaceItemRequirements.empty() {
@@ -337,6 +341,7 @@ class InterfaceItemRequirements {
       methods: {},
       implementedMethods: {},
       superMethods: {},
+      allSubtypes: null,
     );
   }
 
@@ -352,6 +357,7 @@ class InterfaceItemRequirements {
         readKey: () => reader.readInt64(),
         readValue: () => reader.readNameToOptionalIdMap(),
       ),
+      allSubtypes: ManifestItemIdList.readOptional(reader),
     );
   }
 
@@ -367,6 +373,7 @@ class InterfaceItemRequirements {
       writeKey: (index) => writer.writeInt64(index),
       writeValue: (map) => writer.writeNameToIdMap(map),
     );
+    allSubtypes.writeOptional(writer);
   }
 }
 
@@ -1551,6 +1558,20 @@ class RequirementsManifest {
             }
           }
         }
+
+        if (interfaceRequirements.allSubtypes case var required?) {
+          interfaceItem as ClassItem;
+          var actualIds = interfaceItem.allSubtypes;
+          if (required != actualIds) {
+            return InterfaceChildrenIdsMismatch(
+              libraryUri: libraryUri,
+              interfaceName: interfaceName,
+              childrenPropertyName: 'allSubtypes',
+              expectedIds: required,
+              actualIds: actualIds,
+            );
+          }
+        }
       }
 
       if (libraryRequirements.exportedExtensions case var expectedIds?) {
@@ -1589,7 +1610,19 @@ class RequirementsManifest {
   }
 
   void record_classElement_allSubtypes({required ClassElementImpl element}) {
-    // TODO(scheglov): implement.
+    if (_recordingLockLevel != 0) {
+      return;
+    }
+
+    var itemRequirements = _getInterfaceItem(element);
+    if (itemRequirements == null) {
+      return;
+    }
+
+    var item = itemRequirements.item as ClassItem;
+    var requirements = itemRequirements.requirements;
+
+    requirements.allSubtypes ??= item.allSubtypes;
   }
 
   void record_fieldElement_getter({

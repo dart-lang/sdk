@@ -159,52 +159,54 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   ///
   /// If the class is sealed, and all its subtypes are either final or sealed,
   /// then these subtypes are all subtypes that are possible.
-  @trackedDirectlyExpensive
+  @trackedDirectly
   List<InterfaceTypeImpl>? get allSubtypes {
     globalResultRequirements?.record_classElement_allSubtypes(element: this);
 
-    if (isFinal) {
-      var result = <InterfaceTypeImpl>[];
-      for (var element in library.children) {
-        if (element is InterfaceElementImpl && element != this) {
-          var elementThis = element.thisType;
-          if (elementThis.asInstanceOf(this) != null) {
-            result.add(elementThis);
+    return globalResultRequirements.alreadyRecorded(() {
+      if (isFinal) {
+        var result = <InterfaceTypeImpl>[];
+        for (var element in library.children) {
+          if (element is InterfaceElementImpl && element != this) {
+            var elementThis = element.thisType;
+            if (elementThis.asInstanceOf(this) != null) {
+              result.add(elementThis);
+            }
           }
         }
+        return result;
       }
-      return result;
-    }
 
-    if (isSealed) {
-      var result = <InterfaceTypeImpl>[];
-      for (var element in library.children) {
-        if (element is! InterfaceElementImpl || identical(element, this)) {
-          continue;
-        }
+      if (isSealed) {
+        var result = <InterfaceTypeImpl>[];
+        for (var element in library.children) {
+          if (element is! InterfaceElementImpl || identical(element, this)) {
+            continue;
+          }
 
-        var elementThis = element.thisType;
-        if (elementThis.asInstanceOf(this) == null) {
-          continue;
-        }
+          var elementThis = element.thisType;
+          if (elementThis.asInstanceOf(this) == null) {
+            continue;
+          }
 
-        switch (element) {
-          case ClassElementImpl _:
-            if (element.isFinal || element.isSealed) {
+          switch (element) {
+            case ClassElementImpl _:
+              if (element.isFinal || element.isSealed) {
+                result.add(elementThis);
+              } else {
+                return null;
+              }
+            case EnumElement _:
               result.add(elementThis);
-            } else {
+            case MixinElement _:
               return null;
-            }
-          case EnumElement _:
-            result.add(elementThis);
-          case MixinElement _:
-            return null;
+          }
         }
+        return result;
       }
-      return result;
-    }
 
-    return null;
+      return null;
+    });
   }
 
   @override
