@@ -7,16 +7,28 @@ class A extends core::Object {
     ;
   static get foo() → core::String
     ;
+  static set baz(core::num value) → void
+    ;
 }
 extension E on self::A {
   static get foo = get self::E|foo;
   static get bar = get self::E|bar;
+  static set baz = set self::E|baz;
+  static set quux = set self::E|quux;
 }
 static extension-member get E|foo() → core::String
   ;
 static extension-member get E|bar() → core::String
   ;
+static extension-member set E|baz(core::num value) → void
+  ;
+static extension-member set E|quux(core::bool value) → void
+  ;
 static method main() → dynamic
   ;
 static method expectEqual(dynamic a, dynamic b) → dynamic
+  ;
+static method expectThrows(() → dynamic f) → dynamic
+  ;
+static method expectDoesntThrow(() → dynamic f) → dynamic
   ;

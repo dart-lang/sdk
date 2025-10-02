@@ -4150,6 +4150,37 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
     return _expression!;
   }
 
+  ({MemberBuilder? getable, MemberBuilder? setable})?
+  _findStaticExtensionMember(Name name) {
+    MemberBuilder? getable;
+    MemberBuilder? setable;
+    _helper.extensionScope.forEachExtension((
+      ExtensionBuilder extensionBuilder,
+    ) {
+      // TODO(cstefantsova): Report an error on more than one found members.
+      if (extensionBuilder.onType.declaration == declaration) {
+        // Getable.
+        MemberBuilder? member = extensionBuilder.lookupLocalMemberByName(
+          name,
+          setter: false,
+        );
+        if (member != null && member.isStatic) {
+          getable = member;
+        }
+
+        // Setable.
+        member = extensionBuilder.lookupLocalMemberByName(name, setter: true);
+        if (member != null && member.isStatic) {
+          setable = member;
+        }
+      }
+    });
+
+    return getable != null || setable != null
+        ? (getable: getable, setable: setable)
+        : null;
+  }
+
   @override
   Expression_Generator buildSelectorAccess(
     Selector send,
@@ -4280,8 +4311,11 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
             ExtensionBuilder() => false,
             ExtensionTypeDeclarationBuilder() => true,
           };
+
       if (result == null) {
-        // If we find a setter, [member] is an [AccessErrorBuilder], not null.
+        // TODO(johnniwinther): Update the comment below.
+        // If we find a setter, [member] is a [SourcePropertyBuilder] or an
+        // [AccessErrorBuilder], not null.
         if (send is PropertySelector) {
           assert(
             send.typeArguments == null,
@@ -4462,26 +4496,16 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
             }
           }
 
-          MemberBuilder? extensionMemberBuilder;
-
-          if (_helper.libraryFeatures.staticExtensions.isEnabled) {
-            _helper.extensionScope.forEachExtension((
-              ExtensionBuilder extensionBuilder,
-            ) {
-              if (extensionBuilder.onType.declaration == declaration) {
-                extensionMemberBuilder = extensionBuilder
-                    .lookupLocalMemberByName(name, setter: false);
-              }
-            });
-          }
-
-          if (extensionMemberBuilder != null) {
+          if (_helper.libraryFeatures.staticExtensions.isEnabled
+                  ? _findStaticExtensionMember(name)
+                  : null
+              case (:var getable, :var setable)) {
             generator = new StaticAccessGenerator.fromBuilder(
               _helper,
               name,
               send.token,
-              extensionMemberBuilder,
-              null,
+              getable,
+              setable,
               typeOffset: fileOffset,
               isNullAware: isNullAware,
             );
