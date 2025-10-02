@@ -477,11 +477,9 @@ class LibraryExportRequirements {
           if (declaredTopNames.contains(lookupName)) {
             continue;
           }
-          // TODO(scheglov): must always be not null.
-          var id = manifest.getExportedId(lookupName);
-          if (id != null) {
-            exportedIds[lookupName] = id;
-          }
+          // SAFETY: the element is in the export namespace, so exists.
+          var id = manifest.getExportedId(lookupName)!;
+          exportedIds[lookupName] = id;
         }
 
         fragments.add(
