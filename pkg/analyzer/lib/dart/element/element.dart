@@ -2055,7 +2055,9 @@ abstract class HideElementCombinator implements NamespaceCombinator {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class InstanceElement
-    implements TypeDefiningElement, TypeParameterizedElement {
+    implements
+        TypeDefiningElement, // ignore:deprecated_member_use_from_same_package
+        TypeParameterizedElement {
   @override
   InstanceElement get baseElement;
 
@@ -2205,7 +2207,9 @@ abstract class InstanceElement
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class InstanceFragment
-    implements TypeDefiningFragment, TypeParameterizedFragment {
+    implements
+        TypeDefiningFragment, // ignore:deprecated_member_use_from_same_package
+        TypeParameterizedFragment {
   @override
   InstanceElement get element;
 
@@ -3890,7 +3894,10 @@ abstract class TopLevelVariableFragment implements PropertyInducingFragment {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class TypeAliasElement
-    implements TypeParameterizedElement, TypeDefiningElement {
+    implements
+        TypeParameterizedElement,
+        TypeDefiningElement // ignore:deprecated_member_use_from_same_package
+        {
   /// If the aliased type has structure, return the corresponding element.
   /// For example, it could be [GenericFunctionTypeElement].
   ///
@@ -3944,7 +3951,10 @@ abstract class TypeAliasElement
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class TypeAliasFragment
-    implements TypeParameterizedFragment, TypeDefiningFragment {
+    implements
+        TypeParameterizedFragment,
+        TypeDefiningFragment // ignore:deprecated_member_use_from_same_package
+        {
   @override
   TypeAliasElement get element;
 
@@ -3961,11 +3971,8 @@ abstract class TypeAliasFragment
 /// An element that defines a type.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class TypeDefiningElement
-    implements
-        Element,
-        Annotatable // ignore:deprecated_member_use_from_same_package
-        {
+@Deprecated('Check for specific elements instead')
+abstract class TypeDefiningElement implements Element, Annotatable {
   // TODO(brianwilkerson): Evaluate to see whether this type is actually needed
   //  after converting clients to the new API.
 
@@ -3979,11 +3986,8 @@ abstract class TypeDefiningElement
 /// The portion of a [TypeDefiningElement] contributed by a single declaration.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class TypeDefiningFragment
-    implements
-        Fragment,
-        Annotatable // ignore:deprecated_member_use_from_same_package
-        {
+@Deprecated('Check for specific fragments instead')
+abstract class TypeDefiningFragment implements Fragment, Annotatable {
   @override
   TypeDefiningElement get element;
 
@@ -4004,7 +4008,10 @@ abstract class TypeDefiningFragment
 /// A type parameter.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class TypeParameterElement implements TypeDefiningElement {
+abstract class TypeParameterElement
+    implements
+        TypeDefiningElement // ignore:deprecated_member_use_from_same_package
+        {
   @override
   TypeParameterElement get baseElement;
 
@@ -4030,7 +4037,10 @@ abstract class TypeParameterElement implements TypeDefiningElement {
 /// declaration.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class TypeParameterFragment implements TypeDefiningFragment {
+abstract class TypeParameterFragment
+    implements
+        TypeDefiningFragment // ignore:deprecated_member_use_from_same_package
+        {
   @override
   TypeParameterElement get element;
 

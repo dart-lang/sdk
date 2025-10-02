@@ -1,3 +1,7 @@
+## 8.3.0-dev
+* Deprecate `TypeDefiningElement`, check for specific elements.
+* Deprecate `TypeDefiningFragment`, check for specific fragments.
+
 ## 8.2.0
 * Updated SDK constraint to `^3.9.0`.
 * Deprecate `Diagnostic.data`. Instead, please use an expando to attach data to

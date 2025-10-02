@@ -1133,7 +1133,10 @@ class DirectiveUriWithUnitImpl extends DirectiveUriWithRelativeUriImpl
 }
 
 /// The synthetic element representing the declaration of the type `dynamic`.
-class DynamicElementImpl extends ElementImpl implements TypeDefiningElement {
+class DynamicElementImpl extends ElementImpl
+    implements
+        TypeDefiningElement // ignore:deprecated_member_use_from_same_package
+        {
   /// The unique instance of this class.
   static final DynamicElementImpl instance = DynamicElementImpl._();
 
@@ -1210,7 +1213,10 @@ class DynamicElementImpl extends ElementImpl implements TypeDefiningElement {
 }
 
 /// The synthetic element representing the declaration of the type `dynamic`.
-class DynamicFragmentImpl extends FragmentImpl implements TypeDefiningFragment {
+class DynamicFragmentImpl extends FragmentImpl
+    implements
+        TypeDefiningFragment // ignore:deprecated_member_use_from_same_package
+        {
   /// The unique instance of this class.
   static final DynamicFragmentImpl instance = DynamicFragmentImpl._();
 
@@ -8943,7 +8949,10 @@ class MultiplyDefinedFragmentImpl extends FragmentImpl
 }
 
 /// The synthetic element representing the declaration of the type `Never`.
-class NeverElementImpl extends ElementImpl implements TypeDefiningElement {
+class NeverElementImpl extends ElementImpl
+    implements
+        TypeDefiningElement // ignore:deprecated_member_use_from_same_package
+        {
   /// The unique instance of this class.
   static final instance = NeverElementImpl._();
 
@@ -9027,7 +9036,10 @@ class NeverElementImpl extends ElementImpl implements TypeDefiningElement {
 }
 
 /// The synthetic element representing the declaration of the type `Never`.
-class NeverFragmentImpl extends FragmentImpl implements TypeDefiningFragment {
+class NeverFragmentImpl extends FragmentImpl
+    implements
+        TypeDefiningFragment // ignore:deprecated_member_use_from_same_package
+        {
   /// The unique instance of this class.
   static final instance = NeverFragmentImpl._();
 
