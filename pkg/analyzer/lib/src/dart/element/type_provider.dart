@@ -171,6 +171,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get boolType {
+    boolElement; // record requirement
     return _boolType ??= boolElement.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
@@ -189,6 +190,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get deprecatedType {
+    deprecatedElement; // record requirement
     return _deprecatedType ??= deprecatedElement.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
@@ -209,14 +211,19 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get doubleType {
+    doubleElement; // record requirement
     return _doubleType ??= doubleElement.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
-  InterfaceTypeImpl get doubleTypeQuestion => _doubleTypeQuestion ??= doubleType
-      .withNullability(NullabilitySuffix.question);
+  InterfaceTypeImpl get doubleTypeQuestion {
+    doubleElement; // record requirement
+    return _doubleTypeQuestion ??= doubleType.withNullability(
+      NullabilitySuffix.question,
+    );
+  }
 
   @override
   TypeImpl get dynamicType => DynamicTypeImpl.instance;
@@ -239,6 +246,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl? get enumType {
+    enumElement; // record requirement
     if (!_hasEnumType) {
       _hasEnumType = true;
       var element = enumElement;
@@ -259,6 +267,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get functionType {
+    functionElement; // record requirement
     return _functionType ??= functionElement.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
@@ -267,6 +276,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get futureDynamicType {
+    futureElement; // record requirement
     return _futureDynamicType ??= futureElement.instantiateImpl(
       typeArguments: fixedTypeList(dynamicType),
       nullabilitySuffix: NullabilitySuffix.none,
@@ -287,6 +297,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get futureNullType {
+    futureElement; // record requirement
     return _futureNullType ??= futureElement.instantiateImpl(
       typeArguments: fixedTypeList(nullType),
       nullabilitySuffix: NullabilitySuffix.none,
@@ -307,6 +318,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get futureOrNullType {
+    futureOrElement; // record requirement
     return _futureOrNullType ??= futureOrElement.instantiateImpl(
       typeArguments: fixedTypeList(nullType),
       nullabilitySuffix: NullabilitySuffix.none,
@@ -327,17 +339,23 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get intType {
+    intElement; // record requirement
     return _intType ??= intElement.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
-  InterfaceTypeImpl get intTypeQuestion =>
-      _intTypeQuestion ??= intType.withNullability(NullabilitySuffix.question);
+  InterfaceTypeImpl get intTypeQuestion {
+    intElement; // record requirement
+    return _intTypeQuestion ??= intType.withNullability(
+      NullabilitySuffix.question,
+    );
+  }
 
   @override
   InterfaceTypeImpl get iterableDynamicType {
+    iterableElement; // record requirement
     return _iterableDynamicType ??= iterableElement.instantiateImpl(
       typeArguments: fixedTypeList(dynamicType),
       nullabilitySuffix: NullabilitySuffix.none,
@@ -358,6 +376,8 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get iterableObjectType {
+    iterableElement; // record requirement
+    objectElement; // record requirement
     return _iterableObjectType ??= iterableElement.instantiateImpl(
       typeArguments: fixedTypeList(objectType),
       nullabilitySuffix: NullabilitySuffix.none,
@@ -390,6 +410,8 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get mapObjectObjectType {
+    mapElement; // record requirement
+    objectElement; // record requirement
     return _mapObjectObjectType ??= mapElement.instantiateImpl(
       typeArguments: fixedTypeList(objectType, objectType),
       nullabilitySuffix: NullabilitySuffix.none,
@@ -413,6 +435,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get nullType {
+    nullElement; // record requirement
     return _nullType ??= nullElement.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
@@ -433,14 +456,19 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get numType {
+    numElement; // record requirement
     return _numType ??= numElement.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
-  InterfaceTypeImpl get numTypeQuestion =>
-      _numTypeQuestion ??= numType.withNullability(NullabilitySuffix.question);
+  InterfaceTypeImpl get numTypeQuestion {
+    numElement; // record requirement
+    return _numTypeQuestion ??= numType.withNullability(
+      NullabilitySuffix.question,
+    );
+  }
 
   @override
   ClassElementImpl get objectElement {
@@ -456,6 +484,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get objectQuestionType {
+    objectElement; // record requirement
     return _objectQuestionType ??= objectElement.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.question,
@@ -464,6 +493,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get objectType {
+    objectElement; // record requirement
     return _objectType ??= objectElement.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
@@ -484,6 +514,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get recordType {
+    recordElement; // record requirement
     return _recordType ??= recordElement.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
@@ -509,6 +540,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get stackTraceType {
+    stackTraceElement; // record requirement
     return _stackTraceType ??= stackTraceElement.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
@@ -517,6 +549,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get streamDynamicType {
+    streamElement; // record requirement
     return _streamDynamicType ??= streamElement.instantiateImpl(
       typeArguments: fixedTypeList(dynamicType),
       nullabilitySuffix: NullabilitySuffix.none,
@@ -549,6 +582,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get stringType {
+    stringElement; // record requirement
     return _stringType ??= stringElement.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
@@ -569,6 +603,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get symbolType {
+    symbolElement; // record requirement
     return _symbolType ??= symbolElement.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
@@ -582,6 +617,7 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceTypeImpl get typeType {
+    typeElement; // record requirement
     return _typeType ??= typeElement.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,

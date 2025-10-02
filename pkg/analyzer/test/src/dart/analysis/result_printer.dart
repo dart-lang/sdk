@@ -1841,7 +1841,12 @@ class ManifestPrinter {
 }
 
 class RequirementPrinterConfiguration {
-  var ignoredLibraries = <Uri>{Uri.parse('dart:core')};
+  var ignoredLibraries = <Uri>{
+    Uri.parse('dart:_internal'),
+    Uri.parse('dart:async'),
+    Uri.parse('dart:core'),
+    Uri.parse('dart:math'),
+  };
 }
 
 class ResolvedLibraryResultPrinter {
