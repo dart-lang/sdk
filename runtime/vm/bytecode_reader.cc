@@ -1192,12 +1192,26 @@ ObjectPtr BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
       }
     }
     case kScript: {
+      auto& script = Script::Handle(Z);
       const String& uri = String::CheckedHandle(Z, ReadObject());
       if ((flags & kFlagHasSourceFile) != 0) {
-        return ReadSourceFile(uri, bytecode_component_->GetSourceFilesOffset() +
-                                       reader_.ReadUInt());
+        script =
+            ReadSourceFile(uri, bytecode_component_->GetSourceFilesOffset() +
+                                    reader_.ReadUInt());
+      } else {
+        script = Script::New(uri, Object::null_string());
       }
-      return Script::New(uri, Object::null_string());
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+      // Covered const constructor information for scripts is loaded
+      // during ReadPendingCode. For any script that is not pending,
+      // set the collected constant coverage to the empty array.
+      BytecodeLoader* const loader = thread_->bytecode_loader();
+      ASSERT(loader != nullptr);
+      if (!loader->HasOffset(script)) {
+        script.set_collected_constant_coverage(Object::empty_array());
+      }
+#endif
+      return script.ptr();
     }
     case kType: {
       const intptr_t tag = (flags & kTagMask) / kFlagBit0;
@@ -1686,20 +1700,16 @@ ScriptPtr BytecodeReaderHelper::ReadSourceFile(const String& uri,
       Script::Handle(Z, Script::New(import_uri, uri, source));
   script.set_line_starts(line_starts);
 
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   if ((flags & kHasCoveredConstConstructorsFlag) != 0) {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
     // Any covered const constructors are read later during
     // ReadPendingCode, which then sets the collected constant
     // coverage for these scripts.
     BytecodeLoader* const loader = thread_->bytecode_loader();
     ASSERT(loader != nullptr);
     loader->AddPendingObject(script, reader_.offset());
-  } else {
-    script.set_collected_constant_coverage(Object::empty_array());
-  }
-#else
-  USE(kHasCoveredConstConstructorsFlag);
 #endif
+  }
 
   return script.ptr();
 }
@@ -2479,7 +2489,9 @@ void BytecodeReaderHelper::ReadPendingCode(
   auto& members = Array::Handle(Z);
   auto& function = Function::Handle(Z);
   auto& field = Field::Handle(Z);
-  for (intptr_t i = 0, n = pending_objects.Length(); i < n; ++i) {
+  // Handling pending objects can end up adding new pending objects
+  // to the array, so re-retrieve the length for each iteration.
+  for (intptr_t i = 0; i < pending_objects.Length(); ++i) {
     obj = pending_objects.At(i);
     ASSERT(!obj.IsNull());
     if (obj.IsClass()) {
