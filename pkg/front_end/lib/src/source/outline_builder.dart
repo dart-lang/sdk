@@ -1997,11 +1997,6 @@ class OutlineBuilder extends StackListenerImpl {
         // [BodyBuilder.finishFunction].
         isAbstract = false;
       }
-      if (returnType != null && !returnType.isVoidType) {
-        addProblem(codeNonVoidReturnSetter, beginToken.charOffset, noLength);
-        // Use implicit void as recovery.
-        returnType = null;
-      }
     }
     Modifiers modifiers = pop() as Modifiers;
     if (isAbstract && !modifiers.isExternal) {
@@ -2518,28 +2513,6 @@ class OutlineBuilder extends StackListenerImpl {
         // [BodyBuilder.finishFunction].
         isAbstract = false;
       }
-      if (returnType != null && !returnType.isVoidType) {
-        addProblem(
-          codeNonVoidReturnSetter,
-          returnType.charOffset ?? // Coverage-ignore(suite): Not run.
-              beginToken.charOffset,
-          noLength,
-        );
-        // Use implicit void as recovery.
-        returnType = null;
-      }
-    }
-    if (operator == Operator.indexSet &&
-        returnType != null &&
-        !returnType.isVoidType) {
-      addProblem(
-        codeNonVoidReturnOperator,
-        returnType.charOffset ?? // Coverage-ignore(suite): Not run.
-            beginToken.offset,
-        noLength,
-      );
-      // Use implicit void as recovery.
-      returnType = null;
     }
 
     if (isAbstract && !modifiers.isExternal) {

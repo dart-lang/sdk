@@ -206,9 +206,6 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   }
 
   @override
-  bool get isVoidType => false;
-
-  @override
   void bind(
     ProblemReporting problemReporting,
     TypeDeclarationBuilder declaration,

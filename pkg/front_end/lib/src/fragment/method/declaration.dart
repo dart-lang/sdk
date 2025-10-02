@@ -58,6 +58,7 @@ abstract class MethodDeclaration {
 
   void buildOutlineNode(
     SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     NameScheme nameScheme,
     BuildNodesCallback f, {
     required Reference reference,
@@ -164,6 +165,7 @@ class MethodDeclarationImpl
   @override
   void buildOutlineNode(
     SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     NameScheme nameScheme,
     BuildNodesCallback f, {
     required Reference reference,
@@ -172,6 +174,7 @@ class MethodDeclarationImpl
   }) {
     _encoding.buildOutlineNode(
       libraryBuilder,
+      problemReporting,
       nameScheme,
       f,
       reference: reference,

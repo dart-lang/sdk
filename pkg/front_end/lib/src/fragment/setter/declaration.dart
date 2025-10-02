@@ -54,6 +54,7 @@ abstract class SetterDeclaration {
 
   void buildSetterOutlineNode({
     required SourceLibraryBuilder libraryBuilder,
+    required ProblemReporting problemReporting,
     required NameScheme nameScheme,
     required BuildNodesCallback f,
     required PropertyReferences? references,
@@ -183,6 +184,7 @@ class RegularSetterDeclaration
   @override
   void buildSetterOutlineNode({
     required SourceLibraryBuilder libraryBuilder,
+    required ProblemReporting problemReporting,
     required NameScheme nameScheme,
     required BuildNodesCallback f,
     required PropertyReferences? references,
@@ -190,6 +192,7 @@ class RegularSetterDeclaration
   }) {
     _encoding.buildOutlineNode(
       libraryBuilder: libraryBuilder,
+      problemReporting: problemReporting,
       nameScheme: nameScheme,
       f: f,
       references: references,

@@ -166,6 +166,7 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
       for (SetterDeclaration augmented in augmentedSetables) {
         augmented.buildSetterOutlineNode(
           libraryBuilder: libraryBuilder,
+          problemReporting: libraryBuilder,
           nameScheme: _nameScheme,
           f: noAddBuildNodesCallback,
           // Augmented setters don't reuse references.
@@ -176,6 +177,7 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
     }
     _lastSetable?.buildSetterOutlineNode(
       libraryBuilder: libraryBuilder,
+      problemReporting: libraryBuilder,
       nameScheme: _nameScheme,
       f: f,
       references: _references,

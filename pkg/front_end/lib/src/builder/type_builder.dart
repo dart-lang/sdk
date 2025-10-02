@@ -431,8 +431,6 @@ sealed class TypeBuilder {
 
   TypeBuilder withNullabilityBuilder(NullabilityBuilder nullabilityBuilder);
 
-  bool get isVoidType;
-
   /// Register [type] as the inferred type of this type builder.
   ///
   /// If this is not an [InferableTypeBuilder] this method will throw.

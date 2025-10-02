@@ -4,6 +4,7 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/names.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
@@ -56,6 +57,7 @@ sealed class MethodEncoding implements InferredTypeListener {
 
   void buildOutlineNode(
     SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     NameScheme nameScheme,
     BuildNodesCallback f, {
     required Reference reference,
@@ -196,6 +198,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
   @override
   void buildOutlineNode(
     SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     NameScheme nameScheme,
     BuildNodesCallback f, {
     required Reference reference,
@@ -219,10 +222,22 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
       supportsTypeParameters: true,
     );
     if (_fragment.returnType is! InferableTypeBuilder) {
-      function.returnType = _fragment.returnType.build(
+      DartType returnType = _fragment.returnType.build(
         libraryBuilder,
         TypeUse.returnType,
       );
+      if (_fragment.name == indexSetName.text) {
+        if (returnType is! VoidType) {
+          problemReporting.addProblem(
+            codeNonVoidReturnOperator,
+            _fragment.returnType.charOffset!,
+            noLength,
+            _fragment.fileUri,
+          );
+          returnType = const VoidType();
+        }
+      }
+      function.returnType = returnType;
     }
 
     MemberName memberName = nameScheme.getProcedureMemberName(
@@ -515,6 +530,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   @override
   void buildOutlineNode(
     SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
     NameScheme nameScheme,
     BuildNodesCallback f, {
     required Reference reference,
@@ -550,10 +566,22 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       supportsTypeParameters: true,
     );
     if (_fragment.returnType is! InferableTypeBuilder) {
-      function.returnType = _fragment.returnType.build(
+      DartType returnType = _fragment.returnType.build(
         libraryBuilder,
         TypeUse.returnType,
       );
+      if (_fragment.name == indexSetName.text) {
+        if (returnType is! VoidType) {
+          problemReporting.addProblem(
+            codeNonVoidReturnOperator,
+            _fragment.returnType.charOffset!,
+            noLength,
+            _fragment.fileUri,
+          );
+          returnType = const VoidType();
+        }
+      }
+      function.returnType = returnType;
     }
 
     MemberName memberName = nameScheme.getProcedureMemberName(
