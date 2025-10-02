@@ -31641,6 +31641,8 @@ void f() {
       package:test/x.dart
         libraryMetadataId: #M7
         exportMapId: #M2
+        requestedDeclaredVariables
+          foo: #M1
 [status] idle
 [future] getErrors T1
   ErrorsResult #0
@@ -31698,6 +31700,8 @@ export 'x.dart';
       package:test/x.dart
         libraryMetadataId: #M7
         exportMapId: #M2
+        requestedDeclaredVariables
+          foo: #M1
 [status] idle
 [future] getErrors T2
   ErrorsResult #1
@@ -31799,6 +31803,8 @@ void f() {
       package:test/x.dart
         libraryMetadataId: #M7
         exportMapId: #M2
+        requestedDeclaredVariables
+          foo: #M1
 [status] idle
 [future] getErrors T1
   ErrorsResult #0
@@ -31860,6 +31866,8 @@ export 'x.dart';
       package:test/x.dart
         libraryMetadataId: #M7
         exportMapId: #M2
+        requestedDeclaredVariables
+          foo: #M1
 [status] idle
 [future] getErrors T2
   ErrorsResult #1
@@ -94767,6 +94775,8 @@ final x = a;
           a=: <null>
         reExportDeprecatedOnly
           a: false
+        requestedDeclaredVariables
+          a: #M1
 [status] idle
 [future] getErrors T1
   ErrorsResult #1
@@ -95066,6 +95076,8 @@ final x = a;
           a=: <null>
         reExportDeprecatedOnly
           a: false
+        requestedDeclaredVariables
+          a: #M1
 [status] idle
 [future] getIndex T1
   strings
@@ -96821,6 +96833,218 @@ import 'a.dart';
     );
   }
 
+  test_req_topLevel_getterElement_variable() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+final foo = 0;
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+''');
+
+    _ManualRequirements.install((state) {
+      state.singleUnit.scopeGetterElement('foo').variable;
+    });
+
+    await _runManualRequirementsRecording(
+      expectedEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H0
+    declaredGetters
+      foo: #M0
+    declaredVariables
+      foo: #M1
+    exportMapId: #M2
+    exportMap
+      foo: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    exportMapId: #M3
+  requirements
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M4
+        exportMapId: #M2
+        exportMap
+          foo: #M0
+          foo=: <null>
+        reExportDeprecatedOnly
+          foo: false
+        requestedDeclaredVariables
+          foo: #M1
+[status] idle
+''',
+    );
+  }
+
+  test_req_topLevel_getterElement_variable_synthetic() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+int get foo => 0;
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+''');
+
+    _ManualRequirements.install((state) {
+      state.singleUnit.scopeGetterElement('foo').variable;
+    });
+
+    await _runManualRequirementsRecording(
+      expectedEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H0
+    declaredGetters
+      foo: #M0
+    declaredVariables
+      foo: #M1
+    exportMapId: #M2
+    exportMap
+      foo: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    exportMapId: #M3
+  requirements
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M4
+        exportMapId: #M2
+        exportMap
+          foo: #M0
+          foo=: <null>
+        reExportDeprecatedOnly
+          foo: false
+        requestedDeclaredVariables
+          foo: #M1
+[status] idle
+''',
+    );
+  }
+
+  test_req_topLevel_setterElement_variable() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+var foo = 0;
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+''');
+
+    _ManualRequirements.install((state) {
+      state.singleUnit.scopeSetterElement('foo').variable;
+    });
+
+    await _runManualRequirementsRecording(
+      expectedEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H0
+    declaredGetters
+      foo: #M0
+    declaredSetters
+      foo=: #M1
+    declaredVariables
+      foo: #M2
+    exportMapId: #M3
+    exportMap
+      foo: #M0
+      foo=: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    exportMapId: #M4
+  requirements
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M5
+        exportMapId: #M3
+        exportMap
+          foo: #M0
+          foo=: #M1
+        reExportDeprecatedOnly
+          foo: false
+          foo=: false
+        requestedDeclaredVariables
+          foo: #M2
+[status] idle
+''',
+    );
+  }
+
+  test_req_topLevel_setterElement_variable_synthetic() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+set foo(int _) {}
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+''');
+
+    _ManualRequirements.install((state) {
+      state.singleUnit.scopeSetterElement('foo').variable;
+    });
+
+    await _runManualRequirementsRecording(
+      expectedEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H0
+    declaredSetters
+      foo=: #M0
+    declaredVariables
+      foo: #M1
+    exportMapId: #M2
+    exportMap
+      foo=: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    exportMapId: #M3
+  requirements
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M4
+        exportMapId: #M2
+        exportMap
+          foo: <null>
+          foo=: #M0
+        reExportDeprecatedOnly
+          foo=: false
+        requestedDeclaredVariables
+          foo: #M1
+[status] idle
+''',
+    );
+  }
+
   test_requirements_declaredVariables_change_getErrors() async {
     newFile(testFile.path, '');
 
@@ -97286,6 +97510,11 @@ class _ManualRequirementsUnit {
     return scopeInterfaceElement(name) as ClassElementImpl;
   }
 
+  GetterElementImpl scopeGetterElement(String name) {
+    var lookupResult = libraryFragment.scope.lookup(name);
+    return lookupResult.getter as GetterElementImpl;
+  }
+
   InstanceElementImpl scopeInstanceElement(String name) {
     var lookupResult = libraryFragment.scope.lookup(name);
     return lookupResult.getter as InstanceElementImpl;
@@ -97293,6 +97522,11 @@ class _ManualRequirementsUnit {
 
   InterfaceElementImpl scopeInterfaceElement(String name) {
     return scopeInstanceElement(name) as InterfaceElementImpl;
+  }
+
+  SetterElementImpl scopeSetterElement(String name) {
+    var lookupResult = libraryFragment.scope.lookup(name);
+    return lookupResult.setter as SetterElementImpl;
   }
 }
 

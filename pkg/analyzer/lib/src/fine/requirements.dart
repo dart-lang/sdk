@@ -2386,8 +2386,8 @@ class RequirementsManifest {
     switch (element.enclosingElement) {
       case InstanceElementImpl instanceElement:
         record_instanceElement_getField(element: instanceElement, name: name);
-      default:
-      // TODO(scheglov): support for top-level variables
+      case var libraryElement as LibraryElementImpl:
+        record_library_getTopLevelVariable(element: libraryElement, name: name);
     }
   }
 
