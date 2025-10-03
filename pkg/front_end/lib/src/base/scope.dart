@@ -25,11 +25,7 @@ import 'messages.dart';
 import 'name_space.dart';
 import 'uri_offset.dart';
 
-abstract class ExtensionScope {
-  void forEachExtension(void Function(ExtensionBuilder) f);
-}
-
-abstract class LookupScope implements ExtensionScope {
+abstract class LookupScope {
   LookupResult? lookup(String name);
 }
 
@@ -42,12 +38,6 @@ abstract class BaseNameSpaceLookupScope implements LookupScope {
   @override
   LookupResult? lookup(String name) {
     return _nameSpace.lookup(name) ?? _parent?.lookup(name);
-  }
-
-  @override
-  void forEachExtension(void Function(ExtensionBuilder) f) {
-    _nameSpace.forEachLocalExtension(f);
-    _parent?.forEachExtension(f);
   }
 
   @override
@@ -76,11 +66,6 @@ abstract class AbstractTypeParameterScope implements LookupScope {
   LookupResult? lookup(String name) {
     LookupResult? result = getTypeParameter(name);
     return result ?? _parent.lookup(name);
-  }
-
-  @override
-  void forEachExtension(void Function(ExtensionBuilder) f) {
-    _parent.forEachExtension(f);
   }
 
   @override
@@ -151,20 +136,6 @@ class CompilationUnitScope extends BaseNameSpaceLookupScope {
 
   @override
   NameSpace get _nameSpace => _compilationUnit.libraryBuilder.libraryNameSpace;
-
-  /// Set of extension declarations in scope. This is computed lazily in
-  /// [forEachExtension].
-  Set<ExtensionBuilder>? _extensions;
-
-  @override
-  void forEachExtension(void Function(ExtensionBuilder) f) {
-    if (_extensions == null) {
-      Set<ExtensionBuilder> extensions = _extensions = <ExtensionBuilder>{};
-      _parent?.forEachExtension(extensions.add);
-      _nameSpace.forEachLocalExtension(extensions.add);
-    }
-    _extensions!.forEach(f);
-  }
 }
 
 /// The scope containing the prefixes imported into a compilation unit.
@@ -177,25 +148,6 @@ class CompilationUnitPrefixScope extends BaseNameSpaceLookupScope {
 
   CompilationUnitPrefixScope(this._nameSpace, {required LookupScope? parent})
     : _parent = parent;
-
-  /// Set of extension declarations in scope. This is computed lazily in
-  /// [forEachExtension].
-  Set<ExtensionBuilder>? _extensions;
-
-  @override
-  void forEachExtension(void Function(ExtensionBuilder) f) {
-    if (_extensions == null) {
-      Set<ExtensionBuilder> extensions = _extensions = {};
-      Iterator<PrefixBuilder> iterator = _nameSpace.filteredIterator();
-      while (iterator.moveNext()) {
-        iterator.current.forEachExtension((e) {
-          extensions.add(e);
-        });
-      }
-      _parent?.forEachExtension(extensions.add);
-    }
-    _extensions!.forEach(f);
-  }
 }
 
 class DeclarationBuilderScope extends BaseNameSpaceLookupScope {
@@ -413,11 +365,10 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
 
 class LookupResultIterator implements Iterator<NamedBuilder> {
   Iterator<LookupResult>? _lookupResultIterator;
-  Iterator<ExtensionBuilder>? _extensionsIterator;
   LookupResult? _currentLookupResult;
   NamedBuilder? _currentBuilder;
 
-  LookupResultIterator(this._lookupResultIterator, this._extensionsIterator);
+  LookupResultIterator(this._lookupResultIterator);
 
   @override
   bool moveNext() {
@@ -455,14 +406,6 @@ class LookupResultIterator implements Iterator<NamedBuilder> {
         }
       } else {
         _lookupResultIterator = null;
-      }
-    }
-    if (_extensionsIterator != null) {
-      // Coverage-ignore-block(suite): Not run.
-      if (_extensionsIterator!.moveNext()) {
-        _currentBuilder = _extensionsIterator!.current;
-      } else {
-        _extensionsIterator = null;
       }
     }
     return false;

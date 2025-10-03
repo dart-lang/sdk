@@ -12,6 +12,7 @@ import '../api_prototype/experimental_flags.dart';
 import '../base/combinator.dart' show CombinatorBuilder;
 import '../base/directives.dart';
 import '../base/export.dart' show Export;
+import '../base/extension_scope.dart';
 import '../base/loader.dart' show Loader;
 import '../base/messages.dart'
     show LocatedMessage, Message, ProblemReporting, noLength;
@@ -181,6 +182,8 @@ abstract class SourceCompilationUnit
   ///
   /// This contains all imports with prefixes declared in this compilation unit.
   LookupScope get prefixScope;
+
+  ExtensionScope get prefixExtensionScope;
 
   /// The name space containing the prefixes declared in this compilation unit.
   NameSpace get prefixNameSpace;

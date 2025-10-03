@@ -14,6 +14,7 @@ import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
 import '../api_prototype/experimental_flags.dart';
 import '../base/export.dart' show Export;
+import '../base/extension_scope.dart';
 import '../base/lookup_result.dart';
 import '../base/messages.dart';
 import '../base/name_space.dart';
@@ -107,11 +108,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   final LibraryNameSpaceBuilder _libraryNameSpaceBuilder;
 
   LibraryNameSpace? _libraryNameSpace;
+  Extensions? _libraryExtensions;
+
   late final List<NamedBuilder> _memberBuilders;
 
   final ComputedMutableNameSpace _exportNameSpace;
 
   final LookupScope? _parentScope;
+
+  final ExtensionScope? _parentExtensionScope;
 
   @override
   final SourceLoader loader;
@@ -194,6 +199,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     required LanguageVersion packageLanguageVersion,
     required SourceLoader loader,
     LookupScope? parentScope,
+    ExtensionScope? parentExtensionScope,
     Library? target,
     LibraryBuilder? nameOrigin,
     IndexedLibrary? indexedLibrary,
@@ -227,6 +233,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       libraryNameSpaceBuilder: libraryNameSpaceBuilder,
       exportNameSpace: exportNameSpace,
       parentScope: parentScope,
+      parentExtensionScope: parentExtensionScope,
       library: library,
       libraryName: libraryName,
       nameOrigin: nameOrigin,
@@ -248,6 +255,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     required LibraryNameSpaceBuilder libraryNameSpaceBuilder,
     required ComputedMutableNameSpace exportNameSpace,
     required LookupScope? parentScope,
+    required ExtensionScope? parentExtensionScope,
     required this.library,
     required this.libraryName,
     required LibraryBuilder? nameOrigin,
@@ -260,6 +268,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
        _libraryNameSpaceBuilder = libraryNameSpaceBuilder,
        _exportNameSpace = exportNameSpace,
        _parentScope = parentScope,
+       _parentExtensionScope = parentExtensionScope,
        super(fileUri) {
     assert(
       _packageUri == null ||
@@ -358,6 +367,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   LookupScope? get parentScope => _parentScope;
 
+  ExtensionScope? get parentExtensionScope => _parentExtensionScope;
+
   @override
   NameSpace get libraryNameSpace {
     assert(
@@ -365,6 +376,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       "Name space has not being computed for $this.",
     );
     return _libraryNameSpace!;
+  }
+
+  @override
+  Extensions get libraryExtensions {
+    assert(
+      _libraryExtensions != null,
+      "Name space has not being computed for $this.",
+    );
+    return _libraryExtensions!;
   }
 
   @override
@@ -689,7 +709,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     );
 
     _memberBuilders = [];
-    _libraryNameSpace = _libraryNameSpaceBuilder.toNameSpace(
+    var (
+      LibraryNameSpace libraryNameSpace,
+      LibraryExtensions libraryExtensions,
+    ) = _libraryNameSpaceBuilder.toNameSpace(
       problemReporting: this,
       enclosingLibraryBuilder: this,
       mixinApplications: _mixinApplications!,
@@ -697,6 +720,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       indexedLibrary: indexedLibrary,
       memberBuilders: _memberBuilders,
     );
+    _libraryNameSpace = libraryNameSpace;
+    _libraryExtensions = libraryExtensions;
 
     state = SourceLibraryBuilderState.nameSpaceBuilt;
   }

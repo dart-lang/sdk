@@ -241,7 +241,7 @@ class FactoryEncoding implements InferredTypeListener {
           .createTypeInferrer(
             thisType: declarationBuilder.thisType,
             libraryBuilder: libraryBuilder,
-            extensionScope: _fragment.typeParameterScope,
+            extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
           );
       MemberLookupResult? result = _redirectionTarget.target;
       MemberBuilder? targetBuilder;

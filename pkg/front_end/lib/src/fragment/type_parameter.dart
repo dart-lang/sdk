@@ -12,6 +12,7 @@ class TypeParameterFragment {
   final TypeParameterKind kind;
   final bool isWildcard;
   final String variableName;
+  final ExtensionScope extensionScope;
   final LookupScope typeParameterScope;
 
   late final TypeBuilder? bound;
@@ -27,6 +28,7 @@ class TypeParameterFragment {
     required this.kind,
     required this.isWildcard,
     required this.variableName,
+    required this.extensionScope,
     required this.typeParameterScope,
   });
 

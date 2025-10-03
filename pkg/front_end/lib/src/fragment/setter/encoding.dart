@@ -241,6 +241,7 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
   }) {
     buildMetadataForOutlineExpressions(
       libraryBuilder: libraryBuilder,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.enclosingScope,
       bodyBuilderContext: bodyBuilderContext,
       annotatable: annotatable,
@@ -262,6 +263,7 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
       libraryBuilder,
       declarationBuilder,
       _fragment.declaredFormals,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.typeParameterScope,
       isClassInstanceMember: isClassInstanceMember,
     );
@@ -529,6 +531,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
   }) {
     buildMetadataForOutlineExpressions(
       libraryBuilder: libraryBuilder,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.enclosingScope,
       bodyBuilderContext: bodyBuilderContext,
       annotatable: annotatable,
@@ -550,6 +553,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
       libraryBuilder,
       declarationBuilder,
       _fragment.declaredFormals,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.typeParameterScope,
       isClassInstanceMember: isClassInstanceMember,
     );
@@ -564,6 +568,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
       libraryBuilder,
       declarationBuilder,
       _thisFormal,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.typeParameterScope,
       isClassInstanceMember: isClassInstanceMember,
     );

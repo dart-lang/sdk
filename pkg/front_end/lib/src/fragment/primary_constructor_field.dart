@@ -157,6 +157,7 @@ class PrimaryConstructorFieldDeclaration
     for (Annotatable annotatable in annotatables) {
       buildMetadataForOutlineExpressions(
         libraryBuilder: libraryBuilder,
+        extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
         scope: _fragment.enclosingScope,
         bodyBuilderContext: bodyBuilderContext,
         annotatable: annotatable,
@@ -425,6 +426,7 @@ class PrimaryConstructorFieldDeclaration
           .buildFieldInitializer(
             libraryBuilder: libraryBuilder,
             fileUri: fileUri,
+            extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
             scope: scope,
             inferenceDataForTesting: builder.dataForTesting?.inferenceData,
             bodyBuilderContext: createBodyBuilderContext(),

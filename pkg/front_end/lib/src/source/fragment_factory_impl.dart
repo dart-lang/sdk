@@ -1009,7 +1009,6 @@ class FragmentFactoryImpl implements FragmentFactory {
     int uriOffset,
   ) {
     if (configurations != null) {
-      // Coverage-ignore-block(suite): Not run.
       for (Configuration config in configurations) {
         if (loader.getLibrarySupportValue(config.dottedName) ==
             config.condition) {
@@ -2354,6 +2353,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       kind: kind,
       isWildcard: isWildcard,
       variableName: variableName,
+      extensionScope: _compilationUnit.extensionScope,
       typeParameterScope: _typeScopes.current.lookupScope,
     );
     return fragment;

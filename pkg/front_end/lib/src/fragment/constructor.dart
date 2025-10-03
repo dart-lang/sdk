@@ -145,12 +145,17 @@ class _ConstructorBodyBuildingContext implements FunctionBodyBuildingContext {
   VariableDeclaration? get thisVariable => _fragment.declaration.thisVariable;
 
   @override
+  ExtensionScope get extensionScope {
+    return _fragment.enclosingCompilationUnit.extensionScope;
+  }
+
+  @override
   LookupScope get typeParameterScope {
     return _fragment.typeParameterScope;
   }
 
   @override
-  LocalScope computeFormalParameterScope(LookupScope typeParameterScope) {
+  LocalScope get formalParameterScope {
     return _fragment.declaration.computeFormalParameterScope(
       typeParameterScope,
     );

@@ -15,6 +15,7 @@ import 'package:kernel/ast.dart'
         VariableDeclaration;
 import 'package:kernel/class_hierarchy.dart';
 
+import '../base/extension_scope.dart';
 import '../base/lookup_result.dart';
 import '../base/modifiers.dart';
 import '../base/scope.dart' show LookupScope;
@@ -285,6 +286,7 @@ class FormalParameterBuilder extends NamedBuilderImpl
   void buildOutlineExpressions(
     SourceLibraryBuilder libraryBuilder,
     DeclarationBuilder? declarationBuilder, {
+    required ExtensionScope extensionScope,
     required LookupScope scope,
     required bool buildDefaultValue,
   }) {
@@ -300,6 +302,7 @@ class FormalParameterBuilder extends NamedBuilderImpl
         Expression initializer = resolver.buildParameterInitializer(
           libraryBuilder: libraryBuilder,
           bodyBuilderContext: bodyBuilderContext,
+          extensionScope: extensionScope,
           scope: scope,
           fileUri: fileUri,
           initializerToken: initializerToken!,

@@ -8,6 +8,7 @@ typedef BodyBuilderCreator =
     BodyBuilder Function({
       required SourceLibraryBuilder libraryBuilder,
       required BodyBuilderContext context,
+      required ExtensionScope extensionScope,
       required LookupScope enclosingScope,
       LocalScope? formalParameterScope,
       required ClassHierarchy hierarchy,
@@ -45,6 +46,7 @@ class ResolverForTesting extends Resolver {
     return bodyBuilderCreator(
       libraryBuilder: context.libraryBuilder,
       context: bodyBuilderContext,
+      extensionScope: context.extensionScope,
       enclosingScope: scope,
       formalParameterScope: formalParameterScope,
       hierarchy: _classHierarchy,
@@ -64,6 +66,7 @@ class _ResolverContext {
   final TypeInferrer typeInferrer;
   final TypeEnvironment typeEnvironment;
   final AssignedVariables assignedVariables;
+  final ExtensionScope extensionScope;
   final Uri fileUri;
 
   late final CloneVisitorNotMembers _simpleCloner =
@@ -74,6 +77,7 @@ class _ResolverContext {
     required this.typeInferrer,
     required this.typeEnvironment,
     required this.assignedVariables,
+    required this.extensionScope,
     required this.fileUri,
   });
 
@@ -81,14 +85,14 @@ class _ResolverContext {
     required TypeInferenceEngineImpl typeInferenceEngine,
     required SourceLibraryBuilder libraryBuilder,
     required BodyBuilderContext bodyBuilderContext,
-    required LookupScope scope,
+    required ExtensionScope extensionScope,
     required Uri fileUri,
     InferenceDataForTesting? inferenceDataForTesting,
   }) {
     TypeInferrer typeInferrer = typeInferenceEngine.createTypeInferrer(
       thisType: bodyBuilderContext.thisType,
       libraryBuilder: libraryBuilder,
-      extensionScope: scope,
+      extensionScope: extensionScope,
       dataForTesting: inferenceDataForTesting,
     );
     TypeEnvironment typeEnvironment = typeInferrer.typeSchemaEnvironment;
@@ -98,6 +102,7 @@ class _ResolverContext {
       typeInferrer: typeInferrer,
       typeEnvironment: typeEnvironment,
       assignedVariables: assignedVariables,
+      extensionScope: extensionScope,
       fileUri: fileUri,
     );
   }

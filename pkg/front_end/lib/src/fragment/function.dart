@@ -20,9 +20,11 @@ abstract class FunctionBodyBuildingContext {
 
   BodyBuilderContext createBodyBuilderContext();
 
+  ExtensionScope get extensionScope;
+
   LookupScope get typeParameterScope;
 
-  LocalScope computeFormalParameterScope(LookupScope typeParameterScope);
+  LocalScope get formalParameterScope;
 
   VariableDeclaration? get thisVariable;
 

@@ -217,6 +217,7 @@ class FactoryDeclarationImpl
         annotationsFileUri: _fragment.fileUri,
         bodyBuilderContext: bodyBuilderContext,
         libraryBuilder: libraryBuilder,
+        extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
         scope: _fragment.enclosingScope,
       );
     }
@@ -239,6 +240,7 @@ class FactoryDeclarationImpl
         formal.buildOutlineExpressions(
           libraryBuilder,
           factoryBuilder.declarationBuilder,
+          extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
           scope: _fragment.typeParameterScope,
           buildDefaultValue:
               FormalParameterBuilder // force line break

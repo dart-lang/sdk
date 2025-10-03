@@ -119,6 +119,11 @@ class _PrimaryConstructorBodyBuildingContext
   bool get shouldBuild => !_fragment.modifiers.isConst;
 
   @override
+  ExtensionScope get extensionScope {
+    return _fragment.enclosingCompilationUnit.extensionScope;
+  }
+
+  @override
   List<TypeParameter>? get thisTypeParameters =>
       _fragment.declaration.thisTypeParameters;
 
@@ -131,7 +136,7 @@ class _PrimaryConstructorBodyBuildingContext
   }
 
   @override
-  LocalScope computeFormalParameterScope(LookupScope typeParameterScope) {
+  LocalScope get formalParameterScope {
     return _fragment.declaration.computeFormalParameterScope(
       typeParameterScope,
     );

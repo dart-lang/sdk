@@ -10,6 +10,7 @@ import 'package:front_end/src/api_prototype/file_system.dart' as api;
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:front_end/src/base/compiler_context.dart';
 import 'package:front_end/src/base/constant_context.dart';
+import 'package:front_end/src/base/extension_scope.dart';
 import 'package:front_end/src/base/incremental_compiler.dart';
 import 'package:front_end/src/base/local_scope.dart';
 import 'package:front_end/src/base/processed_options.dart';
@@ -287,6 +288,7 @@ class BodyBuilderTest extends BodyBuilderImpl {
   BodyBuilderTest({
     required SourceLibraryBuilder libraryBuilder,
     required BodyBuilderContext context,
+    required ExtensionScope extensionScope,
     required LookupScope enclosingScope,
     LocalScope? formalParameterScope,
     required ClassHierarchy hierarchy,
@@ -301,7 +303,7 @@ class BodyBuilderTest extends BodyBuilderImpl {
          libraryBuilder: libraryBuilder,
          context: context,
          enclosingScope: new EnclosingLocalScope(enclosingScope),
-         extensionScope: enclosingScope,
+         extensionScope: extensionScope,
          formalParameterScope: formalParameterScope,
          hierarchy: hierarchy,
          coreTypes: coreTypes,

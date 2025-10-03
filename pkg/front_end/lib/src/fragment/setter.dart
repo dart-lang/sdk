@@ -156,12 +156,17 @@ class _SetterFunctionBodyBuildingContext
   VariableDeclaration? get thisVariable => _fragment.declaration.thisVariable;
 
   @override
+  ExtensionScope get extensionScope {
+    return _fragment.enclosingCompilationUnit.extensionScope;
+  }
+
+  @override
   LookupScope get typeParameterScope {
     return _fragment.typeParameterScope;
   }
 
   @override
-  LocalScope computeFormalParameterScope(LookupScope typeParameterScope) {
+  LocalScope get formalParameterScope {
     return _fragment.declaration.createFormalParameterScope(typeParameterScope);
   }
 

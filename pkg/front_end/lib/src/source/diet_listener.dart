@@ -17,6 +17,7 @@ import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
 import 'package:kernel/ast.dart';
 
 import '../api_prototype/experimental_flags.dart';
+import '../base/extension_scope.dart';
 import '../base/identifiers.dart'
     show
         Identifier,
@@ -45,6 +46,8 @@ class DietListener extends StackListenerImpl {
   /// declaration in which the expression should be evaluated.
   final LookupScope outermostScope;
 
+  final ExtensionScope extensionScope;
+
   final bool enableNative;
 
   bool _inRedirectingFactory = false;
@@ -62,17 +65,18 @@ class DietListener extends StackListenerImpl {
 
   final OffsetMap _offsetMap;
 
-  DietListener(
-    SourceLibraryBuilder library,
-    this.outermostScope,
-    this._offsetMap,
-  ) : libraryBuilder = library,
-      uri = _offsetMap.uri,
-      _memberScope = outermostScope,
-      enableNative = library.loader.target.backendTarget.enableNative(
-        library.importUri,
-      ),
-      _benchmarker = library.loader.target.benchmarker;
+  DietListener({
+    required this.libraryBuilder,
+    required this.outermostScope,
+    required this.extensionScope,
+    required OffsetMap offsetMap,
+  }) : _offsetMap = offsetMap,
+       uri = offsetMap.uri,
+       _memberScope = outermostScope,
+       enableNative = libraryBuilder.loader.target.backendTarget.enableNative(
+         libraryBuilder.importUri,
+       ),
+       _benchmarker = libraryBuilder.loader.target.benchmarker;
 
   @override
   LibraryFeatures get libraryFeatures => libraryBuilder.libraryFeatures;
@@ -952,6 +956,7 @@ class DietListener extends StackListenerImpl {
       bodyBuilderContext: fragment.declaration.createBodyBuilderContext(),
       fileUri: uri,
       offsetMap: _offsetMap,
+      extensionScope: extensionScope,
       scope: _memberScope,
       inferenceDataForTesting: fragment
           .builder
@@ -1360,6 +1365,7 @@ class DietListener extends StackListenerImpl {
         libraryBuilder: libraryBuilder,
         bodyBuilderContext: bodyBuilderContext,
         fileUri: uri,
+        extensionScope: extensionScope,
         scope: _memberScope,
         metadata: metadata,
         annotatable: parent,

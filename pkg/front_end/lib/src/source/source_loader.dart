@@ -35,6 +35,7 @@ import '../api_prototype/experimental_flags.dart';
 import '../api_prototype/file_system.dart';
 import '../base/common.dart';
 import '../base/export.dart' show Export;
+import '../base/extension_scope.dart';
 import '../base/import_chains.dart';
 import '../base/loader.dart' show Loader, untranslatableUriScheme;
 import '../base/lookup_result.dart';
@@ -1320,16 +1321,16 @@ severity: $severity
     compilationUnit.buildOutline(tokens);
   }
 
-  /// Builds all the method bodies found in the given [library].
-  Future<Null> buildBody(SourceLibraryBuilder? library) async {
+  /// Builds all the method bodies found in the given [libraryBuilder].
+  Future<Null> buildBody(SourceLibraryBuilder? libraryBuilder) async {
     // [library] is only nullable so we can call this a "dummy-time" to get rid
     // of a semi-leak.
-    if (library == null) return;
+    if (libraryBuilder == null) return;
 
     // We tokenize source files twice to keep memory usage low. This is the
     // second time, and the first time was in [buildOutline] above. So this
     // time we suppress lexical errors.
-    SourceCompilationUnit compilationUnit = library.compilationUnit;
+    SourceCompilationUnit compilationUnit = libraryBuilder.compilationUnit;
     Token tokens = await tokenize(
       compilationUnit,
       suppressLexicalErrors: true,
@@ -1351,9 +1352,9 @@ severity: $severity
         );
         DietParser parser = new DietParser(
           new ForwardingListener(),
-          allowPatterns: library.libraryFeatures.patterns.isEnabled,
+          allowPatterns: libraryBuilder.libraryFeatures.patterns.isEnabled,
           enableFeatureEnhancedParts:
-              library.libraryFeatures.enhancedParts.isEnabled,
+              libraryBuilder.libraryFeatures.enhancedParts.isEnabled,
         );
         parser.parseUnit(tokens);
         target.benchmarker?.endSubdivide();
@@ -1365,9 +1366,9 @@ severity: $severity
         );
         Parser parser = new Parser(
           new ForwardingListener(),
-          allowPatterns: library.libraryFeatures.patterns.isEnabled,
+          allowPatterns: libraryBuilder.libraryFeatures.patterns.isEnabled,
           enableFeatureEnhancedParts:
-              library.libraryFeatures.enhancedParts.isEnabled,
+              libraryBuilder.libraryFeatures.enhancedParts.isEnabled,
         );
         parser.parseUnit(tokens);
         target.benchmarker?.endSubdivide();
@@ -1375,33 +1376,35 @@ severity: $severity
     }
 
     DietListener listener = createDietListener(
-      library,
-      compilationUnit.compilationUnitScope,
-      compilationUnit.offsetMap,
+      libraryBuilder: libraryBuilder,
+      extensionScope: compilationUnit.extensionScope,
+      compilationUnitScope: compilationUnit.compilationUnitScope,
+      offsetMap: compilationUnit.offsetMap,
     );
     DietParser parser = new DietParser(
       listener,
-      allowPatterns: library.libraryFeatures.patterns.isEnabled,
+      allowPatterns: libraryBuilder.libraryFeatures.patterns.isEnabled,
       enableFeatureEnhancedParts:
-          library.libraryFeatures.enhancedParts.isEnabled,
+          libraryBuilder.libraryFeatures.enhancedParts.isEnabled,
     );
     parser.parseUnit(tokens);
-    for (SourceCompilationUnit compilationUnit in library.parts) {
+    for (SourceCompilationUnit compilationUnit in libraryBuilder.parts) {
       Token tokens = await tokenize(
         compilationUnit,
         suppressLexicalErrors: true,
         allowLazyStrings: false,
       );
       DietListener listener = createDietListener(
-        library,
-        compilationUnit.compilationUnitScope,
-        compilationUnit.offsetMap,
+        libraryBuilder: libraryBuilder,
+        extensionScope: compilationUnit.extensionScope,
+        compilationUnitScope: compilationUnit.compilationUnitScope,
+        offsetMap: compilationUnit.offsetMap,
       );
       DietParser parser = new DietParser(
         listener,
-        allowPatterns: library.libraryFeatures.patterns.isEnabled,
+        allowPatterns: libraryBuilder.libraryFeatures.patterns.isEnabled,
         enableFeatureEnhancedParts:
-            library.libraryFeatures.enhancedParts.isEnabled,
+            libraryBuilder.libraryFeatures.enhancedParts.isEnabled,
       );
       parser.parseUnit(tokens);
     }
@@ -1419,6 +1422,8 @@ severity: $severity
   ) async {
     // TODO(johnniwinther): Support expression compilation in a specific
     //  compilation unit.
+    ExtensionScope extensionScope =
+        libraryBuilder.compilationUnit.extensionScope;
     LookupScope memberScope =
         libraryBuilder.compilationUnit.compilationUnitScope;
 
@@ -1473,6 +1478,7 @@ severity: $severity
         isDeclarationInstanceMember: isClassInstanceMember,
       ),
       fileUri: libraryBuilder.fileUri,
+      extensionScope: extensionScope,
       scope: memberScope,
       token: token,
       procedure: procedure,
@@ -1482,12 +1488,18 @@ severity: $severity
     );
   }
 
-  DietListener createDietListener(
-    SourceLibraryBuilder library,
-    LookupScope compilationUnitScope,
-    OffsetMap offsetMap,
-  ) {
-    return new DietListener(library, compilationUnitScope, offsetMap);
+  DietListener createDietListener({
+    required SourceLibraryBuilder libraryBuilder,
+    required ExtensionScope extensionScope,
+    required LookupScope compilationUnitScope,
+    required OffsetMap offsetMap,
+  }) {
+    return new DietListener(
+      libraryBuilder: libraryBuilder,
+      extensionScope: extensionScope,
+      outermostScope: compilationUnitScope,
+      offsetMap: offsetMap,
+    );
   }
 
   Resolver createResolver() {

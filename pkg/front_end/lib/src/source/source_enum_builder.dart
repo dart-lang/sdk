@@ -301,6 +301,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
             formals: [indexFormalParameterBuilder, nameFormalParameterBuilder],
             fileUri: fileUri,
             fileOffset: fileOffset,
+            extensionScope: _introductory.extensionScope,
             lookupScope: _introductory.compilationUnitScope,
           );
 

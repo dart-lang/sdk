@@ -20,6 +20,7 @@ import 'package:kernel/type_algebra.dart'
         updateBoundNullabilities;
 import 'package:kernel/type_environment.dart';
 
+import '../base/extension_scope.dart';
 import '../base/lookup_result.dart';
 import '../base/messages.dart';
 import '../base/modifiers.dart';
@@ -313,6 +314,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     _hasComputedSupertypes = true;
     _supertypeBuilder = _applyMixins(
       typeParameterFactory: typeParameterFactory,
+      extensionScope: _introductory.extensionScope,
       compilationUnitScope: _introductory.compilationUnitScope,
       problemReporting: problemReporting,
       objectTypeBuilder: loader.target.objectType,
@@ -2439,6 +2441,7 @@ TypeBuilder? _applyMixins({
   required String subclassName,
   required bool isMixinDeclaration,
   required IndexedLibrary? indexedLibrary,
+  required ExtensionScope extensionScope,
   required LookupScope compilationUnitScope,
   required Map<SourceClassBuilder, TypeBuilder> mixinApplications,
   required Uri fileUri,
@@ -2594,6 +2597,7 @@ TypeBuilder? _applyMixins({
     computedStartOffset = startOffset;
     classDeclaration = new AnonymousMixinApplication(
       name: fullname,
+      extensionScope: extensionScope,
       compilationUnitScope: compilationUnitScope,
       supertype: isMixinDeclaration ? null : supertype,
       interfaces: isMixinDeclaration ? [supertype!, mixin] : null,

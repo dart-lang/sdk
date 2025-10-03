@@ -2,15 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:_fe_analyzer_shared/src/metadata/expressions.dart' as shared;
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:kernel/ast.dart';
 import 'package:kernel/clone.dart';
 
+import '../base/extension_scope.dart';
 import '../base/loader.dart';
 import '../base/scope.dart' show LookupScope;
 import '../kernel/body_builder_context.dart';
-import '../kernel/macro/metadata.dart';
+import '../kernel/macro/metadata.dart' hide ExtensionScope;
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 bool computeSharedExpressionForTesting = false;
@@ -74,6 +75,7 @@ class MetadataBuilder {
     required Uri annotationsFileUri,
     required BodyBuilderContext bodyBuilderContext,
     required SourceLibraryBuilder libraryBuilder,
+    required ExtensionScope extensionScope,
     required LookupScope scope,
   }) {
     if (metadata == null) return;
@@ -153,6 +155,7 @@ class MetadataBuilder {
       libraryBuilder: libraryBuilder,
       bodyBuilderContext: bodyBuilderContext,
       annotationsFileUri: annotationsFileUri,
+      extensionScope: extensionScope,
       scope: scope,
       annotatable: annotatable,
       annotations: annotations,
