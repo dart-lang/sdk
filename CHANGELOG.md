@@ -138,8 +138,24 @@ instead.
   `Uri.parseIPv6Address` for IPv4 addresses embedded in IPv6 addresses.
 - The `Uri.parseIPv4Address` adds `start` and `end` parameters
   to allow parsing a substring without creating a new string.
+- New annotations are offered for deprecating specific functionalities:
+  - [`@Deprecated.extend()`][] indicates the ability to extend a class is
+    deprecated.
+  - [`@Deprecated.implement()`][] indicates the ability to implement a class or
+    mixin is deprecated.
+  - [`@Deprecated.subclass()`][] indicates the ability to extend a class or
+    implement a class or mixin is deprecated.
+  - [`@Deprecated.mixin()`][] indicates the ability to mix in a class is
+    deprecated.
+  - [`@Deprecated.instantiate()`][] indicates the ability to instantiate a
+    class is deprecated.
 
 [#61392]: https://dartbug.com/61392
+[`@Deprecated.extend()`]: https://api.dart.dev/dev/latest/dart-core/Deprecated/Deprecated.extend.html
+[`@Deprecated.implement()`]: https://api.dart.dev/dev/latest/dart-core/Deprecated/Deprecated.implement.html
+[`@Deprecated.subclass()`]: https://api.dart.dev/dev/latest/dart-core/Deprecated/Deprecated.subclass.html
+[`@Deprecated.mixin()`]: https://api.dart.dev/dev/latest/dart-core/Deprecated/Deprecated.mixin.html
+[`@Deprecated.instantiate()`]: https://api.dart.dev/dev/latest/dart-core/Deprecated/Deprecated.instantiate.html
 
 #### `dart:io`
 
