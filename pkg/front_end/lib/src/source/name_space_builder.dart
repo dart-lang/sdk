@@ -4,6 +4,7 @@
 
 import 'package:kernel/reference_from_index.dart';
 
+import '../base/extension_scope.dart';
 import '../base/lookup_result.dart';
 import '../base/messages.dart';
 import '../base/name_space.dart';
@@ -163,7 +164,7 @@ class LibraryNameSpaceBuilder {
     _fragments.addAll(other._fragments);
   }
 
-  LibraryNameSpace toNameSpace({
+  (LibraryNameSpace, LibraryExtensions) toNameSpace({
     required SourceLibraryBuilder enclosingLibraryBuilder,
     required IndexedLibrary? indexedLibrary,
     required ProblemReporting problemReporting,
@@ -196,9 +197,9 @@ class LibraryNameSpaceBuilder {
     for (MapEntry<String, List<Fragment>> entry in fragmentsByName.entries) {
       builderFactory.computeBuildersByName(entry.key, fragments: entry.value);
     }
-    return new LibraryNameSpace(
-      content: builderRegistry.content,
-      extensions: builderRegistry.extensions,
+    return (
+      new LibraryNameSpace(content: builderRegistry.content),
+      new LibraryExtensions(extensions: builderRegistry.extensions),
     );
   }
 }

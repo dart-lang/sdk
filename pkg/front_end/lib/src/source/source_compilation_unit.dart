@@ -12,6 +12,7 @@ import '../api_prototype/experimental_flags.dart';
 import '../base/combinator.dart' show CombinatorBuilder;
 import '../base/directives.dart';
 import '../base/export.dart' show Export;
+import '../base/extension_scope.dart';
 import '../base/import.dart' show Import;
 import '../base/lookup_result.dart';
 import '../base/messages.dart';
@@ -94,6 +95,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
   final LookupScope? _parentScope;
 
+  final ExtensionScope? _parentExtensionScope;
+
   SourceCompilationUnit? _parentCompilationUnit;
 
   /// Map used to find objects created in the [OutlineBuilder] from within
@@ -142,11 +145,15 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
   final ComputedMutableNameSpace _importNameSpace;
 
+  final ExtensionsBuilder _importedExtensions = new ExtensionsBuilder();
+
   late final LookupScope _importScope;
 
   final MutableNameSpace _prefixNameSpace;
 
   late final LookupScope _prefixScope;
+
+  late final ExtensionScope _prefixExtensionScope;
 
   LibraryFeatures? _libraryFeatures;
 
@@ -164,6 +171,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
   late final LookupScope _compilationUnitScope;
 
+  late final ExtensionScope _compilationUnitExtensionScope;
+
   late final TypeScope _typeScope;
 
   @override
@@ -178,6 +187,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     required IndexedLibrary? indexedLibrary,
     Map<String, Builder>? omittedTypeDeclarationBuilders,
     LookupScope? parentScope,
+    ExtensionScope? parentExtensionScope,
     required bool forAugmentationLibrary,
     required SourceCompilationUnit? augmentationRoot,
     required LibraryBuilder? resolveInLibrary,
@@ -201,6 +211,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       originImportUri: originImportUri,
       indexedLibrary: indexedLibrary,
       parentScope: parentScope,
+      parentExtensionScope: parentExtensionScope,
       importNameSpace: importNameSpace,
       prefixNameSpace: prefixNameSpace,
       forAugmentationLibrary: forAugmentationLibrary,
@@ -224,6 +235,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     required this.originImportUri,
     required this.indexedLibrary,
     LookupScope? parentScope,
+    ExtensionScope? parentExtensionScope,
     required ComputedMutableNameSpace importNameSpace,
     required ComputedMutableNameSpace prefixNameSpace,
     required this.forAugmentationLibrary,
@@ -242,6 +254,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
        _prefixNameSpace = prefixNameSpace,
        _nameOrigin = resolveInLibrary,
        _parentScope = parentScope,
+       _parentExtensionScope = parentExtensionScope,
        _referenceIsPartOwner = referenceIsPartOwner,
        _problemReporting = new LibraryProblemReporting(loader, fileUri),
        _augmentationRoot = augmentationRoot {
@@ -249,21 +262,38 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       this,
       _importNameSpace,
     );
+    ExtensionScope extensionScope = new CompilationUnitImportExtensionScope(
+      this,
+      _importedExtensions,
+    );
     _prefixScope = new CompilationUnitPrefixScope(
       prefixNameSpace,
       parent: scope,
     );
+    _prefixExtensionScope = new CompilationUnitPrefixExtensionScope(
+      prefixNameSpace,
+      parent: extensionScope,
+    );
     LookupScope libraryScope = _prefixScope;
+    ExtensionScope libraryExtensionScope = _prefixExtensionScope;
     if (resolveInLibrary != null) {
       // Coverage-ignore-block(suite): Not run.
       libraryScope = new NameSpaceLookupScope(
         resolveInLibrary.libraryNameSpace,
         parent: libraryScope,
       );
+      libraryExtensionScope = new ParentLibraryExtensionScope(
+        resolveInLibrary.libraryExtensions,
+        parent: libraryExtensionScope,
+      );
     }
     _compilationUnitScope = new CompilationUnitScope(
       this,
       parent: libraryScope,
+    );
+    _compilationUnitExtensionScope = new CompilationUnitExtensionScope(
+      this,
+      parent: libraryExtensionScope,
     );
     _typeScope = new TypeScope(TypeScopeKind.library, _compilationUnitScope);
   }
@@ -634,6 +664,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           isAugmentation: forAugmentationLibrary,
           isPatch: forPatchLibrary,
           parentScope: _parentScope,
+          parentExtensionScope: _parentExtensionScope,
           importNameSpace: _importNameSpace,
           libraryNameSpaceBuilder: _libraryNameSpaceBuilder,
         );
@@ -717,6 +748,9 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   PartOf? get partOfDirective => _compilationUnitData.partOf;
 
   @override
+  ExtensionScope get extensionScope => _compilationUnitExtensionScope;
+
+  @override
   LookupScope get compilationUnitScope => _compilationUnitScope;
 
   // Coverage-ignore(suite): Not run.
@@ -724,6 +758,9 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
   @override
   LookupScope get prefixScope => _prefixScope;
+
+  @override
+  ExtensionScope get prefixExtensionScope => _prefixExtensionScope;
 
   @override
   NameSpace get prefixNameSpace => _prefixNameSpace;
@@ -1129,6 +1166,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       annotationsFileUri: fileUri,
       bodyBuilderContext: bodyBuilderContext,
       libraryBuilder: libraryBuilder,
+      extensionScope: extensionScope,
       scope: compilationUnitScope,
     );
   }
@@ -1247,7 +1285,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       _importNameSpace.addLocalMember(name, builder, setter: isSetter);
     }
     if (builder is ExtensionBuilder) {
-      _importNameSpace.addExtension(builder);
+      _importedExtensions.addExtension(builder);
     }
   }
 

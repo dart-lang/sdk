@@ -8,6 +8,7 @@ import 'package:kernel/ast.dart';
 
 import '../base/combinator.dart';
 import '../base/export.dart';
+import '../base/extension_scope.dart';
 import '../base/loader.dart';
 import '../base/lookup_result.dart';
 import '../base/name_space.dart';
@@ -119,6 +120,7 @@ class DillCompilationUnitImpl extends DillCompilationUnit {
 
 class DillLibraryBuilder extends LibraryBuilderImpl {
   late final LibraryNameSpace _nameSpace;
+  late final LibraryExtensions _extensions;
 
   final DillExportNameSpace _exportNameSpace = new DillExportNameSpace();
 
@@ -155,10 +157,18 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   final List<NamedBuilder> _memberBuilders = [];
 
   DillLibraryBuilder(this.library, this.loader) : super(library.fileUri);
+
   @override
   NameSpace get libraryNameSpace {
     ensureLoaded();
     return _nameSpace;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Extensions get libraryExtensions {
+    ensureLoaded();
+    return _extensions;
   }
 
   @override
@@ -361,7 +371,8 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
         }
       }
     }
-    _nameSpace = new LibraryNameSpace(content: content, extensions: extensions);
+    _nameSpace = new LibraryNameSpace(content: content);
+    _extensions = new LibraryExtensions(extensions: extensions);
 
     if (isReadyToFinalizeExports) {
       finalizeExports();

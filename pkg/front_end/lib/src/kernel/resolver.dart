@@ -18,6 +18,7 @@ import '../api_prototype/lowering_predicates.dart';
 import '../base/compiler_context.dart';
 import '../base/constant_context.dart' show ConstantContext;
 import '../base/crash.dart';
+import '../base/extension_scope.dart';
 import '../base/identifiers.dart';
 import '../base/local_scope.dart';
 import '../base/lookup_result.dart';
@@ -77,6 +78,7 @@ class Resolver {
     required SourceLibraryBuilder libraryBuilder,
     required BodyBuilderContext bodyBuilderContext,
     required Uri annotationsFileUri,
+    required ExtensionScope extensionScope,
     required LookupScope scope,
     required Annotatable annotatable,
     required List<Annotation> annotations,
@@ -85,7 +87,7 @@ class Resolver {
       typeInferenceEngine: _typeInferenceEngine,
       libraryBuilder: libraryBuilder,
       bodyBuilderContext: bodyBuilderContext,
-      scope: scope,
+      extensionScope: extensionScope,
       fileUri: annotationsFileUri,
     );
     // TODO(johnniwinther): Should this be `ConstantContext.required`?
@@ -138,6 +140,7 @@ class Resolver {
   (Expression, DartType?) buildEnumConstant({
     required SourceLibraryBuilder libraryBuilder,
     required BodyBuilderContext bodyBuilderContext,
+    required ExtensionScope extensionScope,
     required LookupScope scope,
     required Token? token,
     required List<Expression> enumSyntheticArguments,
@@ -152,7 +155,7 @@ class Resolver {
       typeInferenceEngine: _typeInferenceEngine,
       libraryBuilder: libraryBuilder,
       bodyBuilderContext: bodyBuilderContext,
-      scope: scope,
+      extensionScope: extensionScope,
       fileUri: fileUri,
     );
     CompilerContext compilerContext = libraryBuilder.loader.target.context;
@@ -231,6 +234,7 @@ class Resolver {
     required SourceLibraryBuilder libraryBuilder,
     required BodyBuilderContext bodyBuilderContext,
     required Uri fileUri,
+    required ExtensionScope extensionScope,
     required LookupScope scope,
     required bool isLate,
     DartType? declaredFieldType,
@@ -241,7 +245,7 @@ class Resolver {
       typeInferenceEngine: _typeInferenceEngine,
       libraryBuilder: libraryBuilder,
       bodyBuilderContext: bodyBuilderContext,
-      scope: scope,
+      extensionScope: extensionScope,
       fileUri: fileUri,
     );
     ConstantContext constantContext = bodyBuilderContext.constantContext;
@@ -270,6 +274,7 @@ class Resolver {
     required BodyBuilderContext bodyBuilderContext,
     required Uri fileUri,
     required OffsetMap offsetMap,
+    required ExtensionScope extensionScope,
     required LookupScope scope,
     required InferenceDataForTesting? inferenceDataForTesting,
     required Token startToken,
@@ -282,7 +287,7 @@ class Resolver {
       typeInferenceEngine: _typeInferenceEngine,
       libraryBuilder: libraryBuilder,
       bodyBuilderContext: bodyBuilderContext,
-      scope: scope,
+      extensionScope: extensionScope,
       fileUri: fileUri,
       inferenceDataForTesting: inferenceDataForTesting,
     );
@@ -327,10 +332,11 @@ class Resolver {
     CompilerContext compilerContext = libraryBuilder.loader.target.context;
     ProblemReporting problemReporting = libraryBuilder;
     LibraryFeatures libraryFeatures = libraryBuilder.libraryFeatures;
+    ExtensionScope extensionScope = functionBodyBuildingContext.extensionScope;
     LookupScope typeParameterScope =
         functionBodyBuildingContext.typeParameterScope;
-    LocalScope formalParameterScope = functionBodyBuildingContext
-        .computeFormalParameterScope(typeParameterScope);
+    LocalScope formalParameterScope =
+        functionBodyBuildingContext.formalParameterScope;
     BodyBuilderContext bodyBuilderContext = functionBodyBuildingContext
         .createBodyBuilderContext();
 
@@ -338,7 +344,7 @@ class Resolver {
       typeInferenceEngine: _typeInferenceEngine,
       libraryBuilder: libraryBuilder,
       bodyBuilderContext: bodyBuilderContext,
-      scope: formalParameterScope,
+      extensionScope: extensionScope,
       fileUri: fileUri,
       inferenceDataForTesting:
           functionBodyBuildingContext.inferenceDataForTesting,
@@ -393,6 +399,7 @@ class Resolver {
     required SourceLibraryBuilder libraryBuilder,
     required SourceConstructorBuilder constructorBuilder,
     required BodyBuilderContext bodyBuilderContext,
+    required ExtensionScope extensionScope,
     required LookupScope typeParameterScope,
     required LocalScope? formalParameterScope,
     required Uri fileUri,
@@ -403,7 +410,7 @@ class Resolver {
       typeInferenceEngine: _typeInferenceEngine,
       libraryBuilder: libraryBuilder,
       bodyBuilderContext: bodyBuilderContext,
-      scope: typeParameterScope,
+      extensionScope: extensionScope,
       fileUri: fileUri,
     );
 
@@ -461,6 +468,7 @@ class Resolver {
   List<Initializer>? buildInitializersUnfinished({
     required SourceLibraryBuilder libraryBuilder,
     required BodyBuilderContext bodyBuilderContext,
+    required ExtensionScope extensionScope,
     required LookupScope typeParameterScope,
     required Uri fileUri,
     required Token beginInitializers,
@@ -470,7 +478,7 @@ class Resolver {
       typeInferenceEngine: _typeInferenceEngine,
       libraryBuilder: libraryBuilder,
       bodyBuilderContext: bodyBuilderContext,
-      scope: typeParameterScope,
+      extensionScope: extensionScope,
       fileUri: fileUri,
     );
     ConstantContext constantContext = isConst
@@ -491,6 +499,7 @@ class Resolver {
     required SourceLibraryBuilder libraryBuilder,
     required BodyBuilderContext bodyBuilderContext,
     required Uri fileUri,
+    required ExtensionScope extensionScope,
     required LookupScope scope,
     required Token metadata,
     required Annotatable annotatable,
@@ -499,7 +508,7 @@ class Resolver {
       typeInferenceEngine: _typeInferenceEngine,
       libraryBuilder: libraryBuilder,
       bodyBuilderContext: bodyBuilderContext,
-      scope: scope,
+      extensionScope: extensionScope,
       fileUri: fileUri,
     );
     ConstantContext constantContext = bodyBuilderContext.constantContext;
@@ -534,6 +543,7 @@ class Resolver {
   Expression buildParameterInitializer({
     required SourceLibraryBuilder libraryBuilder,
     required BodyBuilderContext bodyBuilderContext,
+    required ExtensionScope extensionScope,
     required LookupScope scope,
     required Uri fileUri,
     required Token initializerToken,
@@ -544,7 +554,7 @@ class Resolver {
       typeInferenceEngine: _typeInferenceEngine,
       libraryBuilder: libraryBuilder,
       bodyBuilderContext: bodyBuilderContext,
-      scope: scope,
+      extensionScope: extensionScope,
       fileUri: fileUri,
     );
     ConstantContext constantContext = ConstantContext.required;
@@ -579,17 +589,18 @@ class Resolver {
     CompilerContext compilerContext = libraryBuilder.loader.target.context;
     ProblemReporting problemReporting = libraryBuilder;
     LibraryFeatures libraryFeatures = libraryBuilder.libraryFeatures;
+    ExtensionScope extensionScope = functionBodyBuildingContext.extensionScope;
     LookupScope typeParameterScope =
         functionBodyBuildingContext.typeParameterScope;
-    LocalScope formalParameterScope = functionBodyBuildingContext
-        .computeFormalParameterScope(typeParameterScope);
+    LocalScope formalParameterScope =
+        functionBodyBuildingContext.formalParameterScope;
     BodyBuilderContext bodyBuilderContext = functionBodyBuildingContext
         .createBodyBuilderContext();
     _ResolverContext context = new _ResolverContext(
       typeInferenceEngine: _typeInferenceEngine,
       libraryBuilder: libraryBuilder,
       bodyBuilderContext: bodyBuilderContext,
-      scope: typeParameterScope,
+      extensionScope: extensionScope,
       fileUri: fileUri,
       inferenceDataForTesting:
           functionBodyBuildingContext.inferenceDataForTesting,
@@ -650,17 +661,18 @@ class Resolver {
     ?.beginSubdivide(
       BenchmarkSubdivides.diet_listener_buildRedirectingFactoryMethod,
     );
+    ExtensionScope extensionScope = functionBodyBuildingContext.extensionScope;
     LookupScope typeParameterScope =
         functionBodyBuildingContext.typeParameterScope;
-    LocalScope formalParameterScope = functionBodyBuildingContext
-        .computeFormalParameterScope(typeParameterScope);
+    LocalScope formalParameterScope =
+        functionBodyBuildingContext.formalParameterScope;
     BodyBuilderContext bodyBuilderContext = functionBodyBuildingContext
         .createBodyBuilderContext();
     _ResolverContext context = new _ResolverContext(
       typeInferenceEngine: _typeInferenceEngine,
       libraryBuilder: libraryBuilder,
       bodyBuilderContext: bodyBuilderContext,
-      scope: typeParameterScope,
+      extensionScope: extensionScope,
       fileUri: fileUri,
       inferenceDataForTesting:
           functionBodyBuildingContext.inferenceDataForTesting,
@@ -688,6 +700,7 @@ class Resolver {
     required SourceLibraryBuilder libraryBuilder,
     required BodyBuilderContext bodyBuilderContext,
     required Uri fileUri,
+    required ExtensionScope extensionScope,
     required LookupScope scope,
     required Token token,
     required Procedure procedure,
@@ -699,7 +712,7 @@ class Resolver {
       typeInferenceEngine: _typeInferenceEngine,
       libraryBuilder: libraryBuilder,
       bodyBuilderContext: bodyBuilderContext,
-      scope: scope,
+      extensionScope: extensionScope,
       fileUri: fileUri,
     );
 
@@ -944,7 +957,7 @@ class Resolver {
       libraryBuilder: context.libraryBuilder,
       context: bodyBuilderContext,
       enclosingScope: new EnclosingLocalScope(scope),
-      extensionScope: context.typeInferrer.extensionScope,
+      extensionScope: context.extensionScope,
       formalParameterScope: formalParameterScope,
       hierarchy: _classHierarchy,
       coreTypes: _coreTypes,

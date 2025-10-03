@@ -132,6 +132,7 @@ class EnumElementDeclaration
     for (Annotatable annotatable in annotatables) {
       buildMetadataForOutlineExpressions(
         libraryBuilder: libraryBuilder,
+        extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
         scope: _fragment.enclosingScope,
         bodyBuilderContext: bodyBuilderContext,
         annotatable: annotatable,
@@ -365,6 +366,7 @@ class EnumElementDeclaration
           .buildEnumConstant(
             libraryBuilder: libraryBuilder,
             bodyBuilderContext: sourceEnumBuilder.createBodyBuilderContext(),
+            extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
             scope: _fragment.enclosingScope,
             token: token,
             enumSyntheticArguments: enumSyntheticArguments,

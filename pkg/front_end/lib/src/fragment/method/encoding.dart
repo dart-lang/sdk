@@ -173,6 +173,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
   }) {
     buildMetadataForOutlineExpressions(
       libraryBuilder: libraryBuilder,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.enclosingScope,
       bodyBuilderContext: bodyBuilderContext,
       annotatable: annotatable,
@@ -190,6 +191,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
       libraryBuilder,
       declarationBuilder,
       _fragment.declaredFormals,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.typeParameterScope,
       isClassInstanceMember: isClassInstanceMember,
     );
@@ -490,6 +492,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   }) {
     buildMetadataForOutlineExpressions(
       libraryBuilder: libraryBuilder,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.enclosingScope,
       bodyBuilderContext: bodyBuilderContext,
       annotatable: annotatable,
@@ -508,6 +511,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       libraryBuilder,
       declarationBuilder,
       _fragment.declaredFormals,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.typeParameterScope,
       isClassInstanceMember: isClassInstanceMember,
     );
@@ -522,6 +526,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       libraryBuilder,
       declarationBuilder,
       _thisFormal,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.typeParameterScope,
       isClassInstanceMember: isClassInstanceMember,
     );

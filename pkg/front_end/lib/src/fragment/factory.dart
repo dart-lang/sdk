@@ -124,12 +124,16 @@ class _FactoryBodyBuildingContext implements FunctionBodyBuildingContext {
   VariableDeclaration? get thisVariable => null;
 
   @override
+  ExtensionScope get extensionScope =>
+      _fragment.enclosingCompilationUnit.extensionScope;
+
+  @override
   LookupScope get typeParameterScope {
     return _fragment.typeParameterScope;
   }
 
   @override
-  LocalScope computeFormalParameterScope(LookupScope typeParameterScope) {
+  LocalScope get formalParameterScope {
     if (_fragment.formals == null) {
       return new FormalParameterScope(parent: typeParameterScope);
     }

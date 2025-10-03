@@ -203,7 +203,7 @@ ExtensionBuilder? lookupExtensionBuilder(
     required: required,
   )!;
   ExtensionBuilder? extensionBuilder;
-  libraryBuilder.libraryNameSpace.forEachLocalExtension((
+  libraryBuilder.libraryExtensions.forEachLocalExtension((
     ExtensionBuilder builder,
   ) {
     if (builder.extension == extension) {

@@ -15,6 +15,7 @@ import 'package:kernel/type_environment.dart';
 import '../api_prototype/experimental_flags.dart';
 import '../api_prototype/lowering_predicates.dart';
 import '../base/constant_context.dart';
+import '../base/extension_scope.dart';
 import '../base/local_scope.dart';
 import '../base/lookup_result.dart';
 import '../base/messages.dart';
@@ -126,6 +127,9 @@ sealed class Fragment {
 abstract interface class LibraryFragment {
   /// Returns `true` if this is a patch library or patch part.
   bool get isPatch;
+
+  /// The [ExtensionScope] for this compilation unit.
+  ExtensionScope get extensionScope;
 }
 
 /// Common interface for declaration fragments such as

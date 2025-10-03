@@ -16,7 +16,7 @@ import 'package:kernel/src/norm.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
-import '../base/scope.dart';
+import '../base/extension_scope.dart';
 import '../kernel/benchmarker.dart' show Benchmarker;
 import '../kernel/exhaustiveness.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart' show ClassHierarchyBuilder;
@@ -187,7 +187,7 @@ abstract class TypeInferenceEngine {
   TypeInferrer createTypeInferrer({
     required InterfaceType? thisType,
     required SourceLibraryBuilder libraryBuilder,
-    required LookupScope extensionScope,
+    required ExtensionScope extensionScope,
     InferenceDataForTesting? dataForTesting,
   });
 
@@ -366,7 +366,7 @@ class TypeInferenceEngineImpl extends TypeInferenceEngine {
   TypeInferrer createTypeInferrer({
     required InterfaceType? thisType,
     required SourceLibraryBuilder libraryBuilder,
-    required LookupScope extensionScope,
+    required ExtensionScope extensionScope,
     InferenceDataForTesting? dataForTesting,
   }) {
     AssignedVariables<TreeNode, VariableDeclaration> assignedVariables;

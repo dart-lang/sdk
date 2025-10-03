@@ -837,6 +837,7 @@ class SourceExtensionTypeDeclarationBuilder
       annotationsFileUri: _introductory.fileUri,
       bodyBuilderContext: bodyBuilderContext,
       libraryBuilder: libraryBuilder,
+      extensionScope: _introductory.enclosingCompilationUnit.extensionScope,
       scope: _introductory.enclosingScope,
     );
 

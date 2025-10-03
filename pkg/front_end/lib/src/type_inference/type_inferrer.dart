@@ -10,7 +10,7 @@ import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_environment.dart';
 
-import '../base/scope.dart';
+import '../base/extension_scope.dart';
 import '../kernel/benchmarker.dart' show BenchmarkSubdivides, Benchmarker;
 import '../kernel/internal_ast.dart';
 import '../source/source_constructor_builder.dart';

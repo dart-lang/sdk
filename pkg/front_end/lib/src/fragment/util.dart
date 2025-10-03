@@ -47,6 +47,7 @@ class ConstructorName {
 
 void buildMetadataForOutlineExpressions({
   required SourceLibraryBuilder libraryBuilder,
+  required ExtensionScope extensionScope,
   required LookupScope scope,
   required BodyBuilderContext bodyBuilderContext,
   required Annotatable annotatable,
@@ -61,6 +62,7 @@ void buildMetadataForOutlineExpressions({
     metadata: metadata,
     bodyBuilderContext: bodyBuilderContext,
     libraryBuilder: libraryBuilder,
+    extensionScope: extensionScope,
     scope: scope,
   );
 }
@@ -86,6 +88,7 @@ void buildFormalsForOutlineExpressions(
   SourceLibraryBuilder libraryBuilder,
   DeclarationBuilder? declarationBuilder,
   List<FormalParameterBuilder>? formals, {
+  required ExtensionScope extensionScope,
   required LookupScope scope,
   required bool isClassInstanceMember,
 }) {
@@ -96,6 +99,7 @@ void buildFormalsForOutlineExpressions(
         libraryBuilder,
         declarationBuilder,
         formal,
+        extensionScope: extensionScope,
         scope: scope,
         isClassInstanceMember: isClassInstanceMember,
       );
@@ -107,6 +111,7 @@ void buildFormalForOutlineExpressions(
   SourceLibraryBuilder libraryBuilder,
   DeclarationBuilder? declarationBuilder,
   FormalParameterBuilder formal, {
+  required ExtensionScope extensionScope,
   required LookupScope scope,
   required bool isClassInstanceMember,
 }) {
@@ -117,6 +122,7 @@ void buildFormalForOutlineExpressions(
   formal.buildOutlineExpressions(
     libraryBuilder,
     declarationBuilder,
+    extensionScope: extensionScope,
     scope: scope,
     buildDefaultValue: isClassInstanceMember,
   );

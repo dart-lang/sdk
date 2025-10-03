@@ -46,6 +46,7 @@ import '../api_prototype/lowering_predicates.dart';
 import '../base/compiler_context.dart';
 import '../base/constant_context.dart' show ConstantContext;
 import '../base/crash.dart';
+import '../base/extension_scope.dart';
 import '../base/identifiers.dart'
     show
         Identifier,
@@ -62,7 +63,6 @@ import '../base/messages.dart';
 import '../base/modifiers.dart' show Modifiers;
 import '../base/problems.dart'
     show internalProblem, unhandled, unsupported, DebugAbort;
-import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';

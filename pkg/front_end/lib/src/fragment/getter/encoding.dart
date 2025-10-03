@@ -243,6 +243,7 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
   }) {
     buildMetadataForOutlineExpressions(
       libraryBuilder: libraryBuilder,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.enclosingScope,
       bodyBuilderContext: bodyBuilderContext,
       annotatable: annotatable,
@@ -263,6 +264,7 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
       libraryBuilder,
       declarationBuilder,
       _fragment.declaredFormals,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.typeParameterScope,
       isClassInstanceMember: isClassInstanceMember,
     );
@@ -516,6 +518,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
   }) {
     buildMetadataForOutlineExpressions(
       libraryBuilder: libraryBuilder,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.enclosingScope,
       bodyBuilderContext: bodyBuilderContext,
       annotatable: annotatable,
@@ -537,6 +540,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
       libraryBuilder,
       declarationBuilder,
       _fragment.declaredFormals,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.typeParameterScope,
       isClassInstanceMember: isClassInstanceMember,
     );
@@ -551,6 +555,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
       libraryBuilder,
       declarationBuilder,
       _thisFormal,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.typeParameterScope,
       isClassInstanceMember: isClassInstanceMember,
     );

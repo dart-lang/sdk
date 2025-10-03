@@ -1986,7 +1986,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             // If the name looks like an unnamed extension, try to find if we
             // can find such a builder.
             ExtensionBuilder? foundExtensionBuilder;
-            libraryBuilder.libraryNameSpace.forEachLocalExtension((
+            libraryBuilder.libraryExtensions.forEachLocalExtension((
               ExtensionBuilder extension,
             ) {
               if (extension.name == beforeDot) {
@@ -2147,6 +2147,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         loader: lastGoodKernelTarget.loader,
         resolveInLibrary: libraryBuilder,
         parentScope: debugCompilationUnit.compilationUnitScope,
+        parentExtensionScope: debugCompilationUnit.extensionScope,
         isUnsupported: libraryBuilder.isUnsupported,
         forAugmentationLibrary: false,
         forPatchLibrary: false,

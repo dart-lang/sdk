@@ -183,7 +183,7 @@ Future<void> main() async {
     TypeInferrer typeInferrer = engine.createTypeInferrer(
       thisType: null,
       libraryBuilder: libraryBuilder,
-      extensionScope: compilationUnit.compilationUnitScope,
+      extensionScope: compilationUnit.extensionScope,
     );
 
     LocalScope lookupScope = new FixedLocalScope(
@@ -194,7 +194,7 @@ Future<void> main() async {
       context: new LibraryBodyBuilderContext(libraryBuilder),
       uri: uri,
       enclosingScope: lookupScope,
-      extensionScope: lookupScope,
+      extensionScope: compilationUnit.extensionScope,
       coreTypes: coreTypes,
       hierarchy: hierarchy,
       assignedVariables: typeInferrer.assignedVariables,

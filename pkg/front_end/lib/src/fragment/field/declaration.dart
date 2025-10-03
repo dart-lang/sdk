@@ -364,6 +364,7 @@ class RegularFieldDeclaration
     for (Annotatable annotatable in annotatables) {
       buildMetadataForOutlineExpressions(
         libraryBuilder: libraryBuilder,
+        extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
         scope: _fragment.enclosingScope,
         bodyBuilderContext: bodyBuilderContext,
         annotatable: annotatable,
@@ -412,6 +413,7 @@ class RegularFieldDeclaration
           libraryBuilder: libraryBuilder,
           bodyBuilderContext: bodyBuilderContext,
           fileUri: fileUri,
+          extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
           scope: scope,
           isLate: isLate,
           declaredFieldType: declaredFieldType,
