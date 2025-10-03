@@ -205,7 +205,7 @@ SwitchStatement
             constructorName: ConstructorName
               type: NamedType
                 name: A
-                element2: <testLibrary>::@class::A
+                element: <testLibrary>::@class::A
                 type: A
               element: <testLibrary>::@class::A::@constructor::new
             argumentList: ArgumentList
@@ -303,7 +303,7 @@ SwitchStatement
         pattern: DeclaredVariablePattern
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isPublic a@48
@@ -332,7 +332,7 @@ SwitchStatement
         pattern: DeclaredVariablePattern
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isPublic a@75
@@ -396,7 +396,7 @@ SwitchStatement
           keyword: final
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isFinal isPublic a@54
@@ -426,7 +426,7 @@ SwitchStatement
           keyword: final
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isFinal isPublic a@87
@@ -490,7 +490,7 @@ SwitchStatement
           leftOperand: DeclaredVariablePattern
             type: NamedType
               name: int
-              element2: dart:core::@class::int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredFragment: isPublic a@48
@@ -504,7 +504,7 @@ SwitchStatement
               DeclaredVariablePattern
                 type: NamedType
                   name: int
-                  element2: dart:core::@class::int
+                  element: dart:core::@class::int
                   type: int
                 name: a
                 declaredFragment: isPublic a@58
@@ -538,7 +538,7 @@ SwitchStatement
           leftOperand: DeclaredVariablePattern
             type: NamedType
               name: int
-              element2: dart:core::@class::int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredFragment: isPublic a@86
@@ -552,7 +552,7 @@ SwitchStatement
               DeclaredVariablePattern
                 type: NamedType
                   name: int
-                  element2: dart:core::@class::int
+                  element: dart:core::@class::int
                   type: int
                 name: a
                 declaredFragment: isPublic a@96
@@ -630,7 +630,7 @@ SwitchStatement
           keyword: final
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isFinal isPublic a@54
@@ -659,7 +659,7 @@ SwitchStatement
         pattern: DeclaredVariablePattern
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isPublic a@81
@@ -733,7 +733,7 @@ SwitchStatement
           keyword: final
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isFinal isPublic a@54
@@ -762,7 +762,7 @@ SwitchStatement
         pattern: DeclaredVariablePattern
           type: NamedType
             name: num
-            element2: dart:core::@class::num
+            element: dart:core::@class::num
             type: num
           name: a
           declaredFragment: isPublic a@81
@@ -835,7 +835,7 @@ SwitchStatement
         pattern: DeclaredVariablePattern
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isPublic a@48
@@ -864,7 +864,7 @@ SwitchStatement
         pattern: DeclaredVariablePattern
           type: NamedType
             name: num
-            element2: dart:core::@class::num
+            element: dart:core::@class::num
             type: num
           name: a
           declaredFragment: isPublic a@75
@@ -945,7 +945,7 @@ SwitchStatement
         pattern: DeclaredVariablePattern
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isPublic a@60
@@ -1017,7 +1017,7 @@ SwitchStatement
         pattern: DeclaredVariablePattern
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isPublic a@48
@@ -1098,7 +1098,7 @@ SwitchStatement
         pattern: DeclaredVariablePattern
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isPublic a@48
@@ -1253,7 +1253,7 @@ SwitchStatement
         pattern: DeclaredVariablePattern
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isPublic a@61
@@ -1338,7 +1338,7 @@ SwitchStatement
         pattern: DeclaredVariablePattern
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isPublic a@48
@@ -1352,7 +1352,7 @@ SwitchStatement
         pattern: DeclaredVariablePattern
           type: NamedType
             name: double
-            element2: dart:core::@class::double
+            element: dart:core::@class::double
             type: double
           name: b
           declaredFragment: isPublic b@67
@@ -1366,7 +1366,7 @@ SwitchStatement
         pattern: DeclaredVariablePattern
           type: NamedType
             name: String
-            element2: dart:core::@class::String
+            element: dart:core::@class::String
             type: String
           name: c
           declaredFragment: isPublic c@86
@@ -1431,7 +1431,7 @@ SwitchStatement
             arguments
               NamedType
                 name: int
-                element2: dart:core::@class::int
+                element: dart:core::@class::int
                 type: int
             rightBracket: >
           leftBracket: [
@@ -1515,7 +1515,7 @@ SwitchStatement
             DeclaredVariablePattern
               type: NamedType
                 name: int
-                element2: dart:core::@class::int
+                element: dart:core::@class::int
                 type: int
               name: a
               declaredFragment: isPublic a@62
@@ -1528,7 +1528,7 @@ SwitchStatement
                 token: a
                 element: a@62
                 staticType: int
-              element2: dart:core::@class::Object::@method::==
+              element: dart:core::@class::Object::@method::==
               matchedValueType: Object?
           rightBracket: ]
           matchedValueType: Object?
@@ -1588,7 +1588,7 @@ SwitchStatement
         pattern: DeclaredVariablePattern
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isPublic a@48

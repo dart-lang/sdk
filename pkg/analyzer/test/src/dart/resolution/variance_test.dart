@@ -69,7 +69,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
-      element2: <testLibrary>::@class::B
+      element: <testLibrary>::@class::B
       type: B<num>
     element: ConstructorMember
       baseElement: <testLibrary>::@class::B::@constructor::new

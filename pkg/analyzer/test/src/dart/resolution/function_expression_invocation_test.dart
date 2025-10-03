@@ -152,7 +152,7 @@ FunctionExpressionInvocation
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -186,7 +186,7 @@ FunctionExpressionInvocation
       asOperator: as
       type: NamedType
         name: dynamic
-        element2: dynamic
+        element: dynamic
         type: dynamic
       staticType: dynamic
     rightParenthesis: )
@@ -225,7 +225,7 @@ FunctionExpressionInvocation
       asOperator: as
       type: NamedType
         name: dynamic
-        element2: dynamic
+        element: dynamic
         type: dynamic
       staticType: dynamic
     rightParenthesis: )
@@ -235,11 +235,11 @@ FunctionExpressionInvocation
     arguments
       NamedType
         name: bool
-        element2: dart:core::@class::bool
+        element: dart:core::@class::bool
         type: bool
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -392,7 +392,7 @@ FunctionExpressionInvocation
     arguments
       NamedType
         name: String
-        element2: dart:core::@class::String
+        element: dart:core::@class::String
         type: String
     rightBracket: >
   argumentList: ArgumentList
@@ -581,7 +581,7 @@ FunctionExpressionInvocation
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -631,7 +631,7 @@ FunctionExpressionInvocation
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList

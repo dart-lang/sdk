@@ -416,7 +416,7 @@ library
         token: foo @1
         element: <null>
         staticType: null
-      element2: <null>
+      element: <null>
   fragments
     #F0 <testLibraryFragment>
       element: <testLibrary>
@@ -429,7 +429,7 @@ library
                 token: foo @1
                 element: <null>
                 staticType: null
-              element2: <null>
+              element: <null>
 ''');
   }
 
@@ -963,7 +963,7 @@ library
         token: a @1
         element: <testLibrary>::@getter::a
         staticType: null
-      element2: <testLibrary>::@getter::a
+      element: <testLibrary>::@getter::a
   fragments
     #F0 <testLibraryFragment>
       element: <testLibrary>
@@ -976,7 +976,7 @@ library
                 token: a @1
                 element: <testLibrary>::@getter::a
                 staticType: null
-              element2: <testLibrary>::@getter::a
+              element: <testLibrary>::@getter::a
       topLevelVariables
         #F1 hasInitializer a (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::a
@@ -1022,7 +1022,7 @@ library
         token: a @1
         element: <testLibrary>::@getter::a
         staticType: null
-      element2: <testLibrary>::@getter::a
+      element: <testLibrary>::@getter::a
   fragments
     #F0 <testLibraryFragment>
       element: <testLibrary>
@@ -1035,7 +1035,7 @@ library
                 token: a @1
                 element: <testLibrary>::@getter::a
                 staticType: null
-              element2: <testLibrary>::@getter::a
+              element: <testLibrary>::@getter::a
           combinators
             show: Random
       topLevelVariables

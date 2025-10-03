@@ -107,7 +107,7 @@ PatternAssignment
     elements
       AssignedVariablePattern
         name: a
-        element2: <testLibrary>::@function::f::@formalParameter::a
+        element: <testLibrary>::@function::f::@formalParameter::a
         matchedValueType: int
     rightBracket: ]
     matchedValueType: List<int>
@@ -138,7 +138,7 @@ PatternAssignment
   pattern: ObjectPattern
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A
     leftParenthesis: (
     fields
@@ -147,9 +147,9 @@ PatternAssignment
           colon: :
         pattern: AssignedVariablePattern
           name: foo
-          element2: <testLibrary>::@function::f::@formalParameter::foo
+          element: <testLibrary>::@function::f::@formalParameter::foo
           matchedValueType: int
-        element2: <testLibrary>::@class::A::@getter::foo
+        element: <testLibrary>::@class::A::@getter::foo
     rightParenthesis: )
     matchedValueType: A
   equals: =
@@ -157,7 +157,7 @@ PatternAssignment
     constructorName: ConstructorName
       type: NamedType
         name: A
-        element2: <testLibrary>::@class::A
+        element: <testLibrary>::@class::A
         type: A
       element: <testLibrary>::@class::A::@constructor::new
     argumentList: ArgumentList
@@ -182,7 +182,7 @@ PatternAssignment
     leftParenthesis: (
     pattern: AssignedVariablePattern
       name: a
-      element2: <testLibrary>::@function::f::@formalParameter::a
+      element: <testLibrary>::@function::f::@formalParameter::a
       matchedValueType: int
     rightParenthesis: )
     matchedValueType: int
@@ -211,7 +211,7 @@ PatternAssignment
     leftParenthesis: (
     pattern: AssignedVariablePattern
       name: a
-      element2: <testLibrary>::@function::f::@formalParameter::a
+      element: <testLibrary>::@function::f::@formalParameter::a
       matchedValueType: int
     rightParenthesis: )
     matchedValueType: int
@@ -251,9 +251,9 @@ PatternAssignment
           colon: :
         pattern: AssignedVariablePattern
           name: a
-          element2: <testLibrary>::@function::f::@formalParameter::a
+          element: <testLibrary>::@function::f::@formalParameter::a
           matchedValueType: int
-        element2: <null>
+        element: <null>
     rightParenthesis: )
     matchedValueType: ({int foo})
   equals: =
@@ -283,9 +283,9 @@ PatternAssignment
           colon: :
         pattern: AssignedVariablePattern
           name: a
-          element2: <testLibrary>::@function::f::@formalParameter::a
+          element: <testLibrary>::@function::f::@formalParameter::a
           matchedValueType: int
-        element2: <null>
+        element: <null>
     rightParenthesis: )
     matchedValueType: ({int a})
   equals: =
@@ -324,9 +324,9 @@ PatternAssignment
       PatternField
         pattern: AssignedVariablePattern
           name: a
-          element2: <testLibrary>::@function::f::@formalParameter::a
+          element: <testLibrary>::@function::f::@formalParameter::a
           matchedValueType: int
-        element2: <null>
+        element: <null>
     rightParenthesis: )
     matchedValueType: (int,)
   equals: =

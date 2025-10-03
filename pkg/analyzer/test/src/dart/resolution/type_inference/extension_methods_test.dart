@@ -233,9 +233,9 @@ AssignmentExpression
       baseElement: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
       substitution: {T: int}
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: SetterMember
+  writeElement: SetterMember
     baseElement: <testLibrary>::@extension::E::@setter::foo
     substitution: {T: int}
   writeType: int
@@ -357,9 +357,9 @@ AssignmentExpression
     staticType: S
     typeArgumentTypes
       S
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: SetterMember
+  writeElement: SetterMember
     baseElement: <testLibrary>::@extension::Test::@setter::test
     substitution: {T: S}
   writeType: S
@@ -436,7 +436,7 @@ PropertyAccess
       arguments
         NamedType
           name: num
-          element2: dart:core::@class::num
+          element: dart:core::@class::num
           type: num
       rightBracket: >
     argumentList: ArgumentList
@@ -448,7 +448,7 @@ PropertyAccess
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A<int>
       rightParenthesis: )
-    element2: <testLibrary>::@extension::E
+    element: <testLibrary>::@extension::E
     extendedType: A<num>
     staticType: null
     typeArgumentTypes
@@ -487,7 +487,7 @@ MethodInvocation
       arguments
         NamedType
           name: num
-          element2: dart:core::@class::num
+          element: dart:core::@class::num
           type: num
       rightBracket: >
     argumentList: ArgumentList
@@ -499,7 +499,7 @@ MethodInvocation
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A<int>
       rightParenthesis: )
-    element2: <testLibrary>::@extension::E
+    element: <testLibrary>::@extension::E
     extendedType: A<num>
     staticType: null
     typeArgumentTypes
@@ -551,7 +551,7 @@ PropertyAccess
       arguments
         NamedType
           name: num
-          element2: dart:core::@class::num
+          element: dart:core::@class::num
           type: num
       rightBracket: >
     argumentList: ArgumentList
@@ -563,7 +563,7 @@ PropertyAccess
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A<int>
       rightParenthesis: )
-    element2: <testLibrary>::@extension::E
+    element: <testLibrary>::@extension::E
     extendedType: A<num>
     staticType: null
     typeArgumentTypes
@@ -603,7 +603,7 @@ AssignmentExpression
         arguments
           NamedType
             name: num
-            element2: dart:core::@class::num
+            element: dart:core::@class::num
             type: num
         rightBracket: >
       argumentList: ArgumentList
@@ -615,7 +615,7 @@ AssignmentExpression
             element: <testLibrary>::@function::f::@formalParameter::a
             staticType: A<int>
         rightParenthesis: )
-      element2: <testLibrary>::@extension::E
+      element: <testLibrary>::@extension::E
       extendedType: A<num>
       staticType: null
       typeArgumentTypes
@@ -633,9 +633,9 @@ AssignmentExpression
       baseElement: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
       substitution: {T: num}
     staticType: double
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: SetterMember
+  writeElement: SetterMember
     baseElement: <testLibrary>::@extension::E::@setter::foo
     substitution: {T: num}
   writeType: num
@@ -695,7 +695,7 @@ PropertyAccess
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A<int>
       rightParenthesis: )
-    element2: <testLibrary>::@extension::E
+    element: <testLibrary>::@extension::E
     extendedType: A<int>
     staticType: null
     typeArgumentTypes
@@ -738,7 +738,7 @@ MethodInvocation
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A<int>
       rightParenthesis: )
-    element2: <testLibrary>::@extension::E
+    element: <testLibrary>::@extension::E
     extendedType: A<int>
     staticType: null
     typeArgumentTypes
@@ -794,7 +794,7 @@ PropertyAccess
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A<int>
       rightParenthesis: )
-    element2: <testLibrary>::@extension::E
+    element: <testLibrary>::@extension::E
     extendedType: A<int>
     staticType: null
     typeArgumentTypes
@@ -837,7 +837,7 @@ AssignmentExpression
             element: <testLibrary>::@function::f::@formalParameter::a
             staticType: A<int>
         rightParenthesis: )
-      element2: <testLibrary>::@extension::E
+      element: <testLibrary>::@extension::E
       extendedType: A<int>
       staticType: null
       typeArgumentTypes
@@ -855,9 +855,9 @@ AssignmentExpression
       baseElement: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
       substitution: {T: int}
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: SetterMember
+  writeElement: SetterMember
     baseElement: <testLibrary>::@extension::E::@setter::foo
     substitution: {T: int}
   writeType: int

@@ -27,7 +27,7 @@ LogicalAndPattern
   leftOperand: WildcardPattern
     type: NamedType
       name: int
-      element2: dart:core::@class::int
+      element: dart:core::@class::int
       type: int
     name: _
     matchedValueType: dynamic
@@ -35,7 +35,7 @@ LogicalAndPattern
   rightOperand: WildcardPattern
     type: NamedType
       name: double
-      element2: dart:core::@class::double
+      element: dart:core::@class::double
       type: double
     name: _
     matchedValueType: int
@@ -58,7 +58,7 @@ LogicalAndPattern
   leftOperand: WildcardPattern
     type: NamedType
       name: int
-      element2: dart:core::@class::int
+      element: dart:core::@class::int
       type: int
     name: _
     matchedValueType: dynamic
@@ -66,7 +66,7 @@ LogicalAndPattern
   rightOperand: WildcardPattern
     type: NamedType
       name: double
-      element2: dart:core::@class::double
+      element: dart:core::@class::double
       type: double
     name: _
     matchedValueType: int

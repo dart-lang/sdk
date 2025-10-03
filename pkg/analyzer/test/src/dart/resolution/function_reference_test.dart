@@ -39,7 +39,7 @@ FunctionReference
       constructorName: ConstructorName
         type: NamedType
           name: A
-          element2: <testLibrary>::@class::A
+          element: <testLibrary>::@class::A
           type: null
         period: .
         name: SimpleIdentifier
@@ -55,7 +55,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: A<int> Function()
@@ -81,7 +81,7 @@ FunctionReference
       constructorName: ConstructorName
         type: NamedType
           name: A
-          element2: <testLibrary>::@class::A
+          element: <testLibrary>::@class::A
           type: null
         period: .
         name: SimpleIdentifier
@@ -97,7 +97,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: A<int> Function()
@@ -131,7 +131,7 @@ FunctionReference
     constructorName: ConstructorName
       type: NamedType
         name: A
-        element2: <testLibrary>::@class::A
+        element: <testLibrary>::@class::A
         type: null
       period: .
       name: SimpleIdentifier
@@ -145,7 +145,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -177,9 +177,9 @@ FunctionReference
         importPrefix: ImportPrefixReference
           name: a
           period: .
-          element2: <testLibraryFragment>::@prefix2::a
+          element: <testLibraryFragment>::@prefix2::a
         name: Future
-        element2: dart:async::@class::Future
+        element: dart:async::@class::Future
         type: null
       period: .
       name: SimpleIdentifier
@@ -193,7 +193,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -230,7 +230,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -266,7 +266,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -317,7 +317,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -354,7 +354,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -398,7 +398,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -435,7 +435,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -483,7 +483,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -526,7 +526,7 @@ FunctionReference
             element: <testLibrary>::@function::bar::@formalParameter::a
             staticType: A
         rightParenthesis: )
-      element2: <testLibrary>::@extension::E
+      element: <testLibrary>::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -540,7 +540,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -572,7 +572,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -612,7 +612,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -651,7 +651,7 @@ FunctionReference
             element: <testLibrary>::@function::bar::@formalParameter::a
             staticType: A
         rightParenthesis: )
-      element2: <testLibrary>::@extension::E
+      element: <testLibrary>::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -665,7 +665,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -707,7 +707,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -753,7 +753,7 @@ FunctionReference
             element: <testLibrary>::@function::bar::@formalParameter::a
             staticType: A
         rightParenthesis: )
-      element2: <testLibrary>::@extension::E
+      element: <testLibrary>::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -767,7 +767,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -804,7 +804,7 @@ FunctionReference
             element: <testLibrary>::@function::bar::@formalParameter::a
             staticType: A
         rightParenthesis: )
-      element2: <testLibrary>::@extension::E
+      element: <testLibrary>::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -818,7 +818,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -850,7 +850,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -890,7 +890,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -925,7 +925,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -965,7 +965,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(dynamic, dynamic)
@@ -1006,7 +1006,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(String)
@@ -1041,7 +1041,7 @@ FunctionReference
     arguments
       NamedType
         name: String
-        element2: dart:core::@class::String
+        element: dart:core::@class::String
         type: String
     rightBracket: >
   staticType: void Function(String)
@@ -1084,7 +1084,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1128,7 +1128,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -1153,7 +1153,7 @@ ImplicitCallReference
     constructorName: ConstructorName
       type: NamedType
         name: C
-        element2: <testLibrary>::@class::C
+        element: <testLibrary>::@class::C
         type: C
       element: <testLibrary>::@class::C::@constructor::new
     argumentList: ArgumentList
@@ -1165,7 +1165,7 @@ ImplicitCallReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   element: <testLibrary>::@class::C::@method::call
@@ -1208,7 +1208,7 @@ ImplicitCallReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   element: <testLibrary>::@class::C::@method::call
@@ -1242,11 +1242,11 @@ ImplicitCallReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       NamedType
         name: String
-        element2: dart:core::@class::String
+        element: dart:core::@class::String
         type: String
     rightBracket: >
   element: <testLibrary>::@extension::E::@method::call
@@ -1327,7 +1327,7 @@ ImplicitCallReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   element: package:test/a.dart::@class::C::@method::call
@@ -1372,7 +1372,7 @@ ImplicitCallReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   element: package:test/a.dart::@class::C::@method::call
@@ -1403,7 +1403,7 @@ ImplicitCallReference
     constructorName: ConstructorName
       type: NamedType
         name: C
-        element2: <testLibrary>::@class::C
+        element: <testLibrary>::@class::C
         type: C
       element: <testLibrary>::@class::C::@constructor::new
     argumentList: ArgumentList
@@ -1415,7 +1415,7 @@ ImplicitCallReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   element: <testLibrary>::@class::C::@method::call
@@ -1447,7 +1447,7 @@ ImplicitCallReference
     constructorName: ConstructorName
       type: NamedType
         name: C
-        element2: <testLibrary>::@class::C
+        element: <testLibrary>::@class::C
         type: C
       element: <testLibrary>::@class::C::@constructor::new
     argumentList: ArgumentList
@@ -1459,7 +1459,7 @@ ImplicitCallReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   element: <testLibrary>::@class::C::@method::call
@@ -1497,7 +1497,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1529,7 +1529,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1562,7 +1562,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1610,7 +1610,7 @@ FunctionReference
     arguments
       NamedType
         name: String
-        element2: dart:core::@class::String
+        element: dart:core::@class::String
         type: String
     rightBracket: >
   staticType: InvalidType
@@ -1659,7 +1659,7 @@ FunctionReference
     arguments
       NamedType
         name: String
-        element2: dart:core::@class::String
+        element: dart:core::@class::String
         type: String
     rightBracket: >
   staticType: InvalidType
@@ -1689,7 +1689,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1732,7 +1732,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1782,7 +1782,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1826,7 +1826,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1879,7 +1879,7 @@ FunctionReference
     arguments
       NamedType
         name: double
-        element2: dart:core::@class::double
+        element: dart:core::@class::double
         type: double
     rightBracket: >
   staticType: InvalidType
@@ -1931,7 +1931,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1988,10 +1988,10 @@ FunctionReference
           arguments
             NamedType
               name: int
-              element2: dart:core::@class::int
+              element: dart:core::@class::int
               type: int
           rightBracket: >
-        element2: <testLibrary>::@typeAlias::Exactly
+        element: <testLibrary>::@typeAlias::Exactly
         type: int Function(int)
           alias: <testLibrary>::@typeAlias::Exactly
             typeArguments
@@ -2044,7 +2044,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2083,7 +2083,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2121,7 +2121,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -2155,7 +2155,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -2196,7 +2196,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2234,7 +2234,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2275,7 +2275,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2326,7 +2326,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2378,7 +2378,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -2414,7 +2414,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -2452,7 +2452,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2487,7 +2487,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2544,10 +2544,10 @@ FunctionReference
           arguments
             NamedType
               name: int
-              element2: dart:core::@class::int
+              element: dart:core::@class::int
               type: int
           rightBracket: >
-        element2: <testLibrary>::@typeAlias::Exactly
+        element: <testLibrary>::@typeAlias::Exactly
         type: int Function(int)
           alias: <testLibrary>::@typeAlias::Exactly
             typeArguments
@@ -2587,7 +2587,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2622,7 +2622,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2661,7 +2661,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -2722,7 +2722,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2750,7 +2750,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2792,7 +2792,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2837,7 +2837,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2872,7 +2872,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -2898,7 +2898,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2935,7 +2935,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -2971,7 +2971,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -3004,7 +3004,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function()
@@ -3081,7 +3081,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -3171,7 +3171,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3210,7 +3210,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3260,7 +3260,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3310,7 +3310,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3361,7 +3361,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3402,7 +3402,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3438,7 +3438,7 @@ ImplicitCallReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   element: <testLibrary>::@class::A::@method::call
@@ -3474,7 +3474,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(dynamic, dynamic)
@@ -3510,11 +3510,11 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(dynamic)
@@ -3544,7 +3544,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3585,7 +3585,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3629,7 +3629,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3667,7 +3667,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -3696,7 +3696,7 @@ PropertyAccess
       arguments
         NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
     staticType: void Function(int)
@@ -3734,7 +3734,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3775,7 +3775,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3824,7 +3824,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -3860,7 +3860,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -3896,7 +3896,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -3924,7 +3924,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -3964,7 +3964,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -4003,7 +4003,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -4036,7 +4036,7 @@ FunctionReference
         asOperator: as
         type: NamedType
           name: dynamic
-          element2: dynamic
+          element: dynamic
           type: dynamic
         staticType: dynamic
       rightParenthesis: )
@@ -4045,7 +4045,7 @@ FunctionReference
     type: GenericFunctionType
       returnType: NamedType
         name: void
-        element2: <null>
+        element: <null>
         type: void
       functionKeyword: Function
       typeParameters: TypeParameterList
@@ -4061,7 +4061,7 @@ FunctionReference
         parameter: SimpleFormalParameter
           type: NamedType
             name: T
-            element2: #E0 T
+            element: #E0 T
             type: T
           declaredElement: <testLibraryFragment> null@null
             element: isPrivate
@@ -4105,9 +4105,9 @@ FunctionReference
       correspondingParameter: <testLibrary>::@setter::g::@formalParameter::value
       element: <testLibrary>::@function::foo::@formalParameter::f
       staticType: void Function<T>(T)
-    readElement2: <null>
+    readElement: <null>
     readType: null
-    writeElement2: <testLibrary>::@setter::g
+    writeElement: <testLibrary>::@setter::g
     writeType: void Function<T>(T)
     element: <null>
     staticType: void Function<T>(T)
@@ -4142,9 +4142,9 @@ FunctionReference
       literal: 1
       correspondingParameter: <testLibrary>::@extension::0::@method::+::@formalParameter::i
       staticType: int
-    readElement2: <testLibrary>::@function::foo::@formalParameter::f
+    readElement: <testLibrary>::@function::foo::@formalParameter::f
     readType: void Function<T>(T)
-    writeElement2: <testLibrary>::@function::foo::@formalParameter::f
+    writeElement: <testLibrary>::@function::foo::@formalParameter::f
     writeType: void Function<T>(T)
     element: <testLibrary>::@extension::0::@method::+
     staticType: void Function<T>(T)
@@ -4246,7 +4246,7 @@ ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: C
-      element2: <testLibrary>::@class::C
+      element: <testLibrary>::@class::C
       type: null
     period: .
     name: SimpleIdentifier
@@ -4283,7 +4283,7 @@ FunctionReference
       parameter: SimpleFormalParameter
         type: NamedType
           name: T
-          element2: #E0 T
+          element: #E0 T
           type: T
         name: a
         declaredElement: <testLibraryFragment> a@42
@@ -4469,9 +4469,9 @@ FunctionReference
       element: <testLibrary>::@function::foo::@formalParameter::f
       staticType: null
     operator: ++
-    readElement2: <testLibrary>::@function::foo::@formalParameter::f
+    readElement: <testLibrary>::@function::foo::@formalParameter::f
     readType: void Function<T>(T)
-    writeElement2: <testLibrary>::@function::foo::@formalParameter::f
+    writeElement: <testLibrary>::@function::foo::@formalParameter::f
     writeType: void Function<T>(T)
     element: <testLibrary>::@extension::0::@method::+
     staticType: void Function<T>(T)
@@ -4533,9 +4533,9 @@ FunctionReference
       token: f
       element: <testLibrary>::@function::foo::@formalParameter::f
       staticType: null
-    readElement2: <testLibrary>::@function::foo::@formalParameter::f
+    readElement: <testLibrary>::@function::foo::@formalParameter::f
     readType: void Function<T>(T)
-    writeElement2: <testLibrary>::@function::foo::@formalParameter::f
+    writeElement: <testLibrary>::@function::foo::@formalParameter::f
     writeType: void Function<T>(T)
     element: <testLibrary>::@extension::0::@method::+
     staticType: void Function<T>(T)
@@ -4628,7 +4628,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)

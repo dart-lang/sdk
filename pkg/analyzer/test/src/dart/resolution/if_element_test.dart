@@ -136,7 +136,7 @@ IfElement
           DeclaredVariablePattern
             type: NamedType
               name: int
-              element2: dart:core::@class::int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredFragment: isPublic a@56
@@ -149,7 +149,7 @@ IfElement
               token: a
               element: a@56
               staticType: int
-            element2: dart:core::@class::Object::@method::==
+            element: dart:core::@class::Object::@method::==
             matchedValueType: Object?
         rightBracket: ]
         matchedValueType: Object
@@ -212,7 +212,7 @@ IfElement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
         name: a
         declaredFragment: isPublic a@42
@@ -310,7 +310,7 @@ IfElement
           constructorName: ConstructorName
             type: NamedType
               name: A
-              element2: <testLibrary>::@class::A
+              element: <testLibrary>::@class::A
               type: A
             element: <testLibrary>::@class::A::@constructor::new
           argumentList: ArgumentList

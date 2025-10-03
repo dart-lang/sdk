@@ -34,7 +34,7 @@ Annotation
     token: a
     element: <testLibrary>::@getter::a
     staticType: null
-  element2: <testLibrary>::@getter::a
+  element: <testLibrary>::@getter::a
 ''');
     _assertAnnotationValueText(annotation, '''
 int 42
@@ -107,7 +107,7 @@ Annotation
     token: v
     element: <testLibrary>::@enum::E::@getter::v
     staticType: null
-  element2: <testLibrary>::@enum::E::@getter::v
+  element: <testLibrary>::@enum::E::@getter::v
 ''');
 
     _assertAnnotationValueText(annotation, '''
@@ -157,7 +157,7 @@ Annotation
         constructorName: ConstructorName
           type: NamedType
             name: A
-            element2: <testLibrary>::@class::A
+            element: <testLibrary>::@class::A
             type: A
           element: <testLibrary>::@class::A::@constructor::new
         argumentList: ArgumentList
@@ -171,7 +171,7 @@ Annotation
         correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
         staticType: A
     rightParenthesis: )
-  element2: <testLibrary>::@class::A::@constructor::new
+  element: <testLibrary>::@class::A::@constructor::new
 ''');
     _assertAnnotationValueText(annotation, r'''
 A
@@ -267,7 +267,7 @@ Annotation
         correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
         staticType: int
     rightParenthesis: )
-  element2: <testLibrary>::@class::A::@constructor::new
+  element: <testLibrary>::@class::A::@constructor::new
 ''');
 
     var localVariable = findElement2.localVar('x');
@@ -374,7 +374,7 @@ Annotation
         correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
         staticType: int
     rightParenthesis: )
-  element2: <testLibrary>::@class::A::@constructor::new
+  element: <testLibrary>::@class::A::@constructor::new
 ''');
     _assertAnnotationValueText(node, r'''
 A
@@ -411,7 +411,7 @@ Annotation
         correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
         staticType: int
     rightParenthesis: )
-  element2: <testLibrary>::@class::A::@constructor::new
+  element: <testLibrary>::@class::A::@constructor::new
 ''');
     _assertAnnotationValueText(node, r'''
 A
@@ -480,7 +480,7 @@ Annotation
         correspondingParameter: <testLibrary>::@class::A::@constructor::named::@formalParameter::f
         staticType: int
     rightParenthesis: )
-  element2: <testLibrary>::@class::A::@constructor::named
+  element: <testLibrary>::@class::A::@constructor::named
 ''');
     _assertAnnotationValueText(annotation, '''
 A
@@ -527,7 +527,7 @@ Annotation
         correspondingParameter: <testLibrary>::@class::A::@constructor::named::@formalParameter::f
         staticType: int
     rightParenthesis: )
-  element2: <testLibrary>::@class::A::@constructor::named
+  element: <testLibrary>::@class::A::@constructor::named
 ''');
 
     _assertAnnotationValueText(node, r'''
@@ -566,7 +566,7 @@ Annotation
       staticType: null
     element: <testLibrary>::@class::A::@getter::foo
     staticType: null
-  element2: <testLibrary>::@class::A::@getter::foo
+  element: <testLibrary>::@class::A::@getter::foo
 ''');
     _assertAnnotationValueText(annotation, '''
 int 42
@@ -601,7 +601,7 @@ Annotation
         correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
         staticType: int
     rightParenthesis: )
-  element2: <testLibrary>::@class::A::@constructor::new
+  element: <testLibrary>::@class::A::@constructor::new
 ''');
 
     _assertAnnotationValueText(node, r'''
@@ -645,7 +645,7 @@ Annotation
         constructorName: ConstructorName
           type: NamedType
             name: C
-            element2: <testLibrary>::@class::C
+            element: <testLibrary>::@class::C
             type: C
           element: <testLibrary>::@class::C::@constructor::new
         argumentList: ArgumentList
@@ -654,7 +654,7 @@ Annotation
         correspondingParameter: <testLibrary>::@class::D::@constructor::new::@formalParameter::c
         staticType: C
     rightParenthesis: )
-  element2: <testLibrary>::@class::D::@constructor::new
+  element: <testLibrary>::@class::D::@constructor::new
 ''');
 
     _assertAnnotationValueText(node, r'''
@@ -703,7 +703,7 @@ Annotation
         correspondingParameter: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
         staticType: int
     rightParenthesis: )
-  element2: <testLibrary>::@extensionType::A::@constructor::named
+  element: <testLibrary>::@extensionType::A::@constructor::named
 ''');
 
     _assertAnnotationValueText(node, r'''
@@ -735,7 +735,7 @@ Annotation
         correspondingParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
         staticType: int
     rightParenthesis: )
-  element2: <testLibrary>::@extensionType::A::@constructor::new
+  element: <testLibrary>::@extensionType::A::@constructor::new
 ''');
 
     _assertAnnotationValueText(node, r'''
@@ -785,7 +785,7 @@ Annotation
           substitution: {T: Object?}
         staticType: List<List<Object?>>
     rightParenthesis: )
-  element2: ConstructorMember
+  element: ConstructorMember
     baseElement: <testLibrary>::@class::A::@constructor::named
     substitution: {T: Object?}
 ''');
@@ -833,7 +833,7 @@ Annotation
           substitution: {T: Object?}
         staticType: List<List<Object?>>
     rightParenthesis: )
-  element2: ConstructorMember
+  element: ConstructorMember
     baseElement: <testLibrary>::@class::A::@constructor::new
     substitution: {T: Object?}
 ''');
@@ -892,7 +892,7 @@ Annotation
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element2: ConstructorMember
+  element: ConstructorMember
     baseElement: <testLibrary>::@class::A::@constructor::named
     substitution: {T: int}
 ''');
@@ -937,7 +937,7 @@ Annotation
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element2: ConstructorMember
+  element: ConstructorMember
     baseElement: <testLibrary>::@class::A::@constructor::new
     substitution: {T: int}
 ''');
@@ -978,7 +978,7 @@ Annotation
       staticType: null
     element: <testLibrary>::@class::A::@getter::foo
     staticType: null
-  element2: <testLibrary>::@class::A::@getter::foo
+  element: <testLibrary>::@class::A::@getter::foo
 ''');
   }
 
@@ -1023,7 +1023,7 @@ Annotation
           substitution: {T: dynamic}
         staticType: int
     rightParenthesis: )
-  element2: ConstructorMember
+  element: ConstructorMember
     baseElement: <testLibrary>::@class::A::@constructor::named
     substitution: {T: dynamic}
 ''');
@@ -1065,7 +1065,7 @@ Annotation
       staticType: null
     element: <testLibrary>::@class::A::@getter::foo
     staticType: null
-  element2: <testLibrary>::@class::A::@getter::foo
+  element: <testLibrary>::@class::A::@getter::foo
 ''');
     _assertAnnotationValueText(annotation, '''
 <null>
@@ -1096,7 +1096,7 @@ Annotation
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   period: .
@@ -1116,7 +1116,7 @@ Annotation
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element2: ConstructorMember
+  element: ConstructorMember
     baseElement: <testLibrary>::@class::A::@constructor::named
     substitution: {T: int}
 ''');
@@ -1156,7 +1156,7 @@ Annotation
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   arguments: ArgumentList
@@ -1169,7 +1169,7 @@ Annotation
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element2: ConstructorMember
+  element: ConstructorMember
     baseElement: <testLibrary>::@class::A::@constructor::new
     substitution: {T: int}
 ''');
@@ -1215,7 +1215,7 @@ Annotation
           substitution: {T: dynamic}
         staticType: int
     rightParenthesis: )
-  element2: ConstructorMember
+  element: ConstructorMember
     baseElement: <testLibrary>::@class::A::@constructor::new
     substitution: {T: dynamic}
 ''');
@@ -1264,7 +1264,7 @@ Annotation
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element2: ConstructorMember
+  element: ConstructorMember
     baseElement: <testLibrary>::@class::B::@constructor::new
     substitution: {T: int}
 ''');
@@ -1323,7 +1323,7 @@ Annotation
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element2: ConstructorMember
+  element: ConstructorMember
     baseElement: <testLibrary>::@class::B::@constructor::new
     substitution: {T: int}
 ''');
@@ -1379,7 +1379,7 @@ Annotation
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element2: ConstructorMember
+  element: ConstructorMember
     baseElement: <testLibrary>::@class::B::@constructor::new
     substitution: {T: int}
 ''');
@@ -1434,7 +1434,7 @@ Annotation
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element2: ConstructorMember
+  element: ConstructorMember
     baseElement: <testLibrary>::@class::B::@constructor::new
     substitution: {T: int}
 ''');
@@ -1490,7 +1490,7 @@ Annotation
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element2: ConstructorMember
+  element: ConstructorMember
     baseElement: <testLibrary>::@class::B::@constructor::new
     substitution: {T: int}
 ''');
@@ -1548,7 +1548,7 @@ Annotation
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element2: ConstructorMember
+  element: ConstructorMember
     baseElement: <testLibrary>::@class::B::@constructor::new
     substitution: {T: int}
 ''');
@@ -1599,7 +1599,7 @@ Annotation
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   arguments: ArgumentList
@@ -1612,7 +1612,7 @@ Annotation
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element2: ConstructorMember
+  element: ConstructorMember
     baseElement: <testLibrary>::@class::B::@constructor::new
     substitution: {T: int}
 ''');
@@ -1789,7 +1789,7 @@ Annotation
         correspondingParameter: package:test/a.dart::@class::A::@constructor::named::@formalParameter::f
         staticType: int
     rightParenthesis: )
-  element2: package:test/a.dart::@class::A::@constructor::named
+  element: package:test/a.dart::@class::A::@constructor::named
 ''');
 
     _assertAnnotationValueText(node, '''
@@ -1836,7 +1836,7 @@ Annotation
     token: foo
     element: package:test/a.dart::@class::A::@getter::foo
     staticType: null
-  element2: package:test/a.dart::@class::A::@getter::foo
+  element: package:test/a.dart::@class::A::@getter::foo
 ''');
 
     _assertAnnotationValueText(node, '''
@@ -1884,7 +1884,7 @@ Annotation
         correspondingParameter: package:test/a.dart::@class::A::@constructor::new::@formalParameter::f
         staticType: int
     rightParenthesis: )
-  element2: package:test/a.dart::@class::A::@constructor::new
+  element: package:test/a.dart::@class::A::@constructor::new
 ''');
 
     _assertAnnotationValueText(node, '''
@@ -1925,7 +1925,7 @@ Annotation
       staticType: null
     element: package:test/a.dart::@getter::foo
     staticType: null
-  element2: package:test/a.dart::@getter::foo
+  element: package:test/a.dart::@getter::foo
 ''');
 
     _assertAnnotationValueText(node, '''
@@ -1970,7 +1970,7 @@ Annotation
     token: foo
     element: package:test/a.dart::@class::A::@getter::foo
     staticType: null
-  element2: package:test/a.dart::@class::A::@getter::foo
+  element: package:test/a.dart::@class::A::@getter::foo
 ''');
     _assertAnnotationValueText(annotation, '''
 int 42
@@ -2027,7 +2027,7 @@ Annotation
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element2: ConstructorMember
+  element: ConstructorMember
     baseElement: package:test/a.dart::@class::A::@constructor::named
     substitution: {T: int}
 ''');
@@ -2085,7 +2085,7 @@ Annotation
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element2: ConstructorMember
+  element: ConstructorMember
     baseElement: package:test/a.dart::@class::A::@constructor::new
     substitution: {T: int}
 ''');
@@ -2138,7 +2138,7 @@ Annotation
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   period: .
@@ -2158,7 +2158,7 @@ Annotation
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element2: ConstructorMember
+  element: ConstructorMember
     baseElement: package:test/a.dart::@class::A::@constructor::named
     substitution: {T: int}
 ''');
@@ -2211,7 +2211,7 @@ Annotation
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   arguments: ArgumentList
@@ -2224,7 +2224,7 @@ Annotation
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element2: ConstructorMember
+  element: ConstructorMember
     baseElement: package:test/a.dart::@class::A::@constructor::new
     substitution: {T: int}
 ''');
@@ -2279,7 +2279,7 @@ Annotation
       staticType: null
     element: <testLibrary>::@class::A::@getter::foo
     staticType: null
-  element2: <testLibrary>::@class::A::@getter::foo
+  element: <testLibrary>::@class::A::@getter::foo
 ''');
     _assertAnnotationValueText(annotation, '''
 int 42
@@ -2314,7 +2314,7 @@ Annotation
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   period: .
@@ -2340,7 +2340,7 @@ Annotation
           substitution: {T: int, U: double}
         staticType: double
     rightParenthesis: )
-  element2: ConstructorMember
+  element: ConstructorMember
     baseElement: <testLibrary>::@class::A::@constructor::named
     substitution: {T: int, U: double}
 ''');
@@ -2385,7 +2385,7 @@ Annotation
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   arguments: ArgumentList
@@ -2404,7 +2404,7 @@ Annotation
           substitution: {T: int, U: double}
         staticType: double
     rightParenthesis: )
-  element2: ConstructorMember
+  element: ConstructorMember
     baseElement: <testLibrary>::@class::A::@constructor::new
     substitution: {T: int, U: double}
 ''');
@@ -2465,7 +2465,7 @@ Annotation
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element2: ConstructorMember
+  element: ConstructorMember
     baseElement: <testLibrary>::@class::A::@constructor::named
     substitution: {T: int}
 ''');
@@ -2512,7 +2512,7 @@ Annotation
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element2: ConstructorMember
+  element: ConstructorMember
     baseElement: <testLibrary>::@class::A::@constructor::new
     substitution: {T: int}
 ''');
@@ -2554,7 +2554,7 @@ Annotation
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   period: .
@@ -2574,7 +2574,7 @@ Annotation
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element2: ConstructorMember
+  element: ConstructorMember
     baseElement: <testLibrary>::@class::A::@constructor::named
     substitution: {T: int}
 ''');
@@ -2616,7 +2616,7 @@ Annotation
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   arguments: ArgumentList
@@ -2629,7 +2629,7 @@ Annotation
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element2: ConstructorMember
+  element: ConstructorMember
     baseElement: <testLibrary>::@class::A::@constructor::new
     substitution: {T: int}
 ''');
@@ -2688,7 +2688,7 @@ Annotation
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element2: ConstructorMember
+  element: ConstructorMember
     baseElement: <testLibrary>::@class::A::@constructor::named
     substitution: {T: int}
 ''');
@@ -2735,7 +2735,7 @@ Annotation
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
-  element2: ConstructorMember
+  element: ConstructorMember
     baseElement: <testLibrary>::@class::A::@constructor::new
     substitution: {T: int}
 ''');
@@ -2788,7 +2788,7 @@ Annotation
         correspondingParameter: <testLibrary>::@class::A::@constructor::named::@formalParameter::f
         staticType: int
     rightParenthesis: )
-  element2: <testLibrary>::@class::A::@constructor::named
+  element: <testLibrary>::@class::A::@constructor::named
 ''');
     _assertAnnotationValueText(annotation, r'''
 A
@@ -2829,7 +2829,7 @@ Annotation
         correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
         staticType: int
     rightParenthesis: )
-  element2: <testLibrary>::@class::A::@constructor::new
+  element: <testLibrary>::@class::A::@constructor::new
 ''');
     _assertAnnotationValueText(annotation, r'''
 A
@@ -2855,7 +2855,7 @@ Annotation
     token: foo
     element: <testLibrary>::@getter::foo
     staticType: null
-  element2: <testLibrary>::@getter::foo
+  element: <testLibrary>::@getter::foo
 ''');
 
     var element = node.elementAnnotation!;

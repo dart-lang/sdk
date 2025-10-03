@@ -519,9 +519,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@class::A::@setter::foo
+  writeElement: <testLibrary>::@class::A::@setter::foo
   writeType: int
   element: <null>
   staticType: int
@@ -561,9 +561,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@class::A::@setter::foo
+  writeElement: <testLibrary>::@class::A::@setter::foo
   writeType: int
   element: <null>
   staticType: int
@@ -604,9 +604,9 @@ AssignmentExpression
     correspondingParameter: <testLibrary>::@mixin::A::@setter::foo::@formalParameter::a
     element: <testLibrary>::@class::B::@setter::foo::@formalParameter::a
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@mixin::A::@setter::foo
+  writeElement: <testLibrary>::@mixin::A::@setter::foo
   writeType: int
   element: <null>
   staticType: int
@@ -644,9 +644,9 @@ AssignmentExpression
     correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::a
     element: <testLibrary>::@class::B::@setter::foo::@formalParameter::a
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@class::A::@setter::foo
+  writeElement: <testLibrary>::@class::A::@setter::foo
   writeType: int
   element: <null>
   staticType: int
@@ -687,9 +687,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@class::A::@setter::foo
+  writeElement: <testLibrary>::@class::A::@setter::foo
   writeType: int
   element: <null>
   staticType: int

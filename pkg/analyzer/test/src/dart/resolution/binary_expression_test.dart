@@ -991,7 +991,7 @@ BinaryExpression
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: int
       rightParenthesis: )
-    element2: <testLibrary>::@extension::E
+    element: <testLibrary>::@extension::E
     extendedType: int
     staticType: null
   operator: !=
@@ -1083,7 +1083,7 @@ BinaryExpression
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: int
       rightParenthesis: )
-    element2: <testLibrary>::@extension::E
+    element: <testLibrary>::@extension::E
     extendedType: int
     staticType: null
   operator: ==
@@ -1786,7 +1786,7 @@ BinaryExpression
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: int
       rightParenthesis: )
-    element2: <testLibrary>::@extension::E
+    element: <testLibrary>::@extension::E
     extendedType: int
     staticType: null
   operator: +
@@ -2066,7 +2066,7 @@ BinaryExpression
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
-    element2: <testLibrary>::@extension::E
+    element: <testLibrary>::@extension::E
     extendedType: A
     staticType: null
   operator: +

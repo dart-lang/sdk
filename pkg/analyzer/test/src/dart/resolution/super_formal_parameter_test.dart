@@ -66,7 +66,7 @@ class B extends A {
 SuperFormalParameter
   type: NamedType
     name: T
-    element2: #E0 T
+    element: #E0 T
     type: T
   superKeyword: super
   period: .
@@ -84,7 +84,7 @@ SuperFormalParameter
     parameter: SimpleFormalParameter
       type: NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       name: b
       declaredElement: <testLibraryFragment> b@69

@@ -236,7 +236,7 @@ SwitchExpression
         pattern: ObjectPattern
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           leftParenthesis: (
           fields
@@ -250,7 +250,7 @@ SwitchExpression
                   element: hasImplicitType isPublic
                     type: bool
                 matchedValueType: bool
-              element2: dart:core::@class::int::@getter::isEven
+              element: dart:core::@class::int::@getter::isEven
           rightParenthesis: )
           matchedValueType: num
         whenClause: WhenClause
@@ -332,7 +332,7 @@ SwitchExpressionCase
         constructorName: ConstructorName
           type: NamedType
             name: A
-            element2: <testLibrary>::@class::A
+            element: <testLibrary>::@class::A
             type: A
           element: <testLibrary>::@class::A::@constructor::new
         argumentList: ArgumentList
@@ -555,7 +555,7 @@ SwitchExpression
             arguments
               NamedType
                 name: int
-                element2: dart:core::@class::int
+                element: dart:core::@class::int
                 type: int
             rightBracket: >
           leftBracket: [
@@ -645,7 +645,7 @@ SwitchExpression
             DeclaredVariablePattern
               type: NamedType
                 name: int
-                element2: dart:core::@class::int
+                element: dart:core::@class::int
                 type: int
               name: a
               declaredFragment: isPublic a@58
@@ -658,7 +658,7 @@ SwitchExpression
                 token: a
                 element: a@58
                 staticType: int
-              element2: dart:core::@class::Object::@method::==
+              element: dart:core::@class::Object::@method::==
               matchedValueType: Object?
           rightBracket: ]
           matchedValueType: Object?
@@ -727,7 +727,7 @@ SwitchExpression
         pattern: DeclaredVariablePattern
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isPublic a@44

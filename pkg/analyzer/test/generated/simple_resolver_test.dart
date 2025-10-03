@@ -877,7 +877,7 @@ Annotation
     token: A
     element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibrary>::@getter::A
+  element: <testLibrary>::@getter::A
 ''');
   }
 
@@ -900,7 +900,7 @@ Annotation
     token: A
     element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibrary>::@getter::A
+  element: <testLibrary>::@getter::A
 ''');
   }
 
@@ -921,7 +921,7 @@ Annotation
     token: A
     element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibrary>::@getter::A
+  element: <testLibrary>::@getter::A
 ''');
   }
 
@@ -941,7 +941,7 @@ Annotation
     token: A
     element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibrary>::@getter::A
+  element: <testLibrary>::@getter::A
 ''');
   }
 
@@ -993,7 +993,7 @@ Annotation
     token: A
     element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibrary>::@getter::A
+  element: <testLibrary>::@getter::A
 ''');
   }
 
@@ -1014,7 +1014,7 @@ Annotation
     token: A
     element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibrary>::@getter::A
+  element: <testLibrary>::@getter::A
 ''');
   }
 
@@ -1043,7 +1043,7 @@ Annotation
     token: A
     element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibrary>::@getter::A
+  element: <testLibrary>::@getter::A
 ''');
   }
 
@@ -1064,7 +1064,7 @@ Annotation
     token: A
     element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibrary>::@getter::A
+  element: <testLibrary>::@getter::A
 ''');
   }
 
@@ -1106,7 +1106,7 @@ Annotation
     token: A
     element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibrary>::@getter::A
+  element: <testLibrary>::@getter::A
 ''');
   }
 
@@ -1126,7 +1126,7 @@ Annotation
     token: A
     element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibrary>::@getter::A
+  element: <testLibrary>::@getter::A
 ''');
   }
 
@@ -1172,7 +1172,7 @@ Annotation
     token: A
     element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibrary>::@getter::A
+  element: <testLibrary>::@getter::A
 ''');
   }
 

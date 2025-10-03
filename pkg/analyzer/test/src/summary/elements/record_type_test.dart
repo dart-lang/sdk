@@ -599,20 +599,20 @@ library
                           RecordTypeAnnotationNamedField
                             type: NamedType
                               name: int @17
-                              element2: dart:core::@class::int
+                              element: dart:core::@class::int
                               type: int
                             name: f1 @21
                           RecordTypeAnnotationNamedField
                             type: NamedType
                               name: String @25
-                              element2: dart:core::@class::String
+                              element: dart:core::@class::String
                               type: String
                             name: f2 @32
                         rightBracket: } @34
                       rightParenthesis: ) @35
                       type: ({int f1, String f2})
                   rightBracket: > @36
-                element2: dart:core::@class::List
+                element: dart:core::@class::List
                 type: List<({int f1, String f2})>
               staticType: Type
       getters
@@ -662,18 +662,18 @@ library
                         RecordTypeAnnotationPositionalField
                           type: NamedType
                             name: int @16
-                            element2: dart:core::@class::int
+                            element: dart:core::@class::int
                             type: int
                         RecordTypeAnnotationPositionalField
                           type: NamedType
                             name: String @21
-                            element2: dart:core::@class::String
+                            element: dart:core::@class::String
                             type: String
                           name: f2 @28
                       rightParenthesis: ) @30
                       type: (int, String)
                   rightBracket: > @31
-                element2: dart:core::@class::List
+                element: dart:core::@class::List
                 type: List<(int, String)>
               staticType: Type
       getters

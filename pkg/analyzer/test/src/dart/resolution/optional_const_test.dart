@@ -23,7 +23,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
-      element2: package:test/a.dart::@class::B
+      element: package:test/a.dart::@class::B
       type: B<num>
     period: .
     name: SimpleIdentifier
@@ -49,7 +49,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
-      element2: package:test/a.dart::@class::B
+      element: package:test/a.dart::@class::B
       type: B<num>
     element: ConstructorMember
       baseElement: package:test/a.dart::@class::B::@constructor::new
@@ -70,9 +70,9 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element2: package:test/b.dart::<fragment>::@prefix2::p
+        element: package:test/b.dart::<fragment>::@prefix2::p
       name: B
-      element2: package:test/a.dart::@class::B
+      element: package:test/a.dart::@class::B
       type: B<num>
     period: .
     name: SimpleIdentifier
@@ -100,9 +100,9 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element2: package:test/b.dart::<fragment>::@prefix2::p
+        element: package:test/b.dart::<fragment>::@prefix2::p
       name: B
-      element2: package:test/a.dart::@class::B
+      element: package:test/a.dart::@class::B
       type: B<num>
     element: ConstructorMember
       baseElement: package:test/a.dart::@class::B::@constructor::new
@@ -121,7 +121,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: package:test/a.dart::@class::A
+      element: package:test/a.dart::@class::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -143,7 +143,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: package:test/a.dart::@class::A
+      element: package:test/a.dart::@class::A
       type: A
     element: package:test/a.dart::@class::A::@constructor::new
   argumentList: ArgumentList
@@ -162,9 +162,9 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element2: package:test/b.dart::<fragment>::@prefix2::p
+        element: package:test/b.dart::<fragment>::@prefix2::p
       name: A
-      element2: package:test/a.dart::@class::A
+      element: package:test/a.dart::@class::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -188,9 +188,9 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element2: package:test/b.dart::<fragment>::@prefix2::p
+        element: package:test/b.dart::<fragment>::@prefix2::p
       name: A
-      element2: package:test/a.dart::@class::A
+      element: package:test/a.dart::@class::A
       type: A
     element: package:test/a.dart::@class::A::@constructor::new
   argumentList: ArgumentList
@@ -221,17 +221,17 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element2: <testLibraryFragment>::@prefix2::p
+        element: <testLibraryFragment>::@prefix2::p
       name: C
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
-      element2: package:test/a.dart::@class::C
+      element: package:test/a.dart::@class::C
       type: C<int>
     element: ConstructorMember
       baseElement: package:test/a.dart::@class::C::@constructor::new

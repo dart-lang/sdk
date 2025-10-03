@@ -25,7 +25,7 @@ void f<V>(T p<T, U>(U a, V b)) {}
 FunctionTypedFormalParameter
   returnType: NamedType
     name: T
-    element2: #E0 T
+    element: #E0 T
     type: T
   name: p
   typeParameters: TypeParameterList
@@ -45,7 +45,7 @@ FunctionTypedFormalParameter
     parameter: SimpleFormalParameter
       type: NamedType
         name: U
-        element2: #E1 U
+        element: #E1 U
         type: U
       name: a
       declaredElement: <testLibraryFragment> a@22
@@ -54,7 +54,7 @@ FunctionTypedFormalParameter
     parameter: SimpleFormalParameter
       type: NamedType
         name: V
-        element2: #E2 V
+        element: #E2 V
         type: V
       name: b
       declaredElement: <testLibraryFragment> b@27
@@ -77,7 +77,7 @@ void f(void p(int a)) {}
 FunctionTypedFormalParameter
   returnType: NamedType
     name: void
-    element2: <null>
+    element: <null>
     type: void
   name: p
   parameters: FormalParameterList
@@ -85,7 +85,7 @@ FunctionTypedFormalParameter
     parameter: SimpleFormalParameter
       type: NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       name: a
       declaredElement: <testLibraryFragment> a@18

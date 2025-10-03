@@ -38,9 +38,9 @@ ImplementsClause
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element2: <testLibraryFragment>::@prefix2::a
+        element: <testLibraryFragment>::@prefix2::a
       name: A
-      element2: package:test/lib1.dart::@class::A
+      element: package:test/lib1.dart::@class::A
       type: A
 ''');
   }
@@ -69,9 +69,9 @@ ImplementsClause
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element2: <testLibraryFragment>::@prefix2::a
+        element: <testLibraryFragment>::@prefix2::a
       name: B
-      element2: package:test/lib1.dart::@typeAlias::B
+      element: package:test/lib1.dart::@typeAlias::B
       type: A
         alias: package:test/lib1.dart::@typeAlias::B
 ''');
@@ -102,9 +102,9 @@ ImplementsClause
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element2: <testLibraryFragment>::@prefix2::a
+        element: <testLibraryFragment>::@prefix2::a
       name: A
-      element2: package:test/lib1.dart::@class::A
+      element: package:test/lib1.dart::@class::A
       type: A
 ''');
   }
@@ -131,9 +131,9 @@ ImplementsClause
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element2: <testLibraryFragment>::@prefix2::a
+        element: <testLibraryFragment>::@prefix2::a
       name: A
-      element2: package:test/a.dart::@class::A
+      element: package:test/a.dart::@class::A
       type: A
 ''');
   }
@@ -160,9 +160,9 @@ ImplementsClause
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element2: <testLibraryFragment>::@prefix2::a
+        element: <testLibraryFragment>::@prefix2::a
       name: A
-      element2: package:test/a.dart::@extensionType::A
+      element: package:test/a.dart::@extensionType::A
       type: A
 ''');
   }
@@ -185,9 +185,9 @@ ImplementsClause
       importPrefix: ImportPrefixReference
         name: math
         period: .
-        element2: <testLibraryFragment>::@prefix2::math
+        element: <testLibraryFragment>::@prefix2::math
       name: Random
-      element2: dart:math::@class::Random
+      element: dart:math::@class::Random
       type: Random
 ''');
   }

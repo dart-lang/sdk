@@ -42,7 +42,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -56,7 +56,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -70,7 +70,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -203,7 +203,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E<int>
                     element: ConstructorMember
                       baseElement: <testLibrary>::@enum::E::@constructor::new
@@ -223,7 +223,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E<String>
                     element: ConstructorMember
                       baseElement: <testLibrary>::@enum::E::@constructor::new
@@ -350,7 +350,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -450,10 +450,10 @@ library
                         arguments
                           NamedType
                             name: double @16
-                            element2: dart:core::@class::double
+                            element: dart:core::@class::double
                             type: double
                         rightBracket: > @22
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E<double>
                     element: ConstructorMember
                       baseElement: <testLibrary>::@enum::E::@constructor::new
@@ -561,7 +561,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -653,7 +653,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -753,7 +753,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -847,7 +847,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -971,7 +971,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -1099,7 +1099,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -1200,7 +1200,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -1330,7 +1330,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -1445,7 +1445,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -1560,7 +1560,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -1674,7 +1674,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     period: . @0
                     name: SimpleIdentifier
@@ -1784,7 +1784,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -1892,7 +1892,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E<dynamic>
                     element: ConstructorMember
                       baseElement: <testLibrary>::@enum::E::@constructor::new
@@ -1980,7 +1980,7 @@ library
                 isOperator: is @59
                 type: NamedType
                   name: T @62
-                  element2: #E0 T
+                  element: #E0 T
                   type: T
                 staticType: bool
               rightParenthesis: ) @63
@@ -2036,7 +2036,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -2129,7 +2129,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -2268,7 +2268,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -2381,7 +2381,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -2491,7 +2491,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -2626,7 +2626,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E<dynamic>
                     element: ConstructorMember
                       baseElement: <testLibrary>::@enum::E::@constructor::new
@@ -2750,7 +2750,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -2863,7 +2863,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E<dynamic>
                     element: ConstructorMember
                       baseElement: <testLibrary>::@enum::E::@constructor::new
@@ -2987,7 +2987,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -3084,7 +3084,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: <empty> @-1 <synthetic>
-                      element2: <null>
+                      element: <null>
                       type: InvalidType
                     element: <null>
                   argumentList: ArgumentList
@@ -3176,7 +3176,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -3287,7 +3287,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -3410,7 +3410,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -3533,7 +3533,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -3650,7 +3650,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E<dynamic>
                     element: ConstructorMember
                       baseElement: <testLibrary>::@enum::E::@constructor::new
@@ -3751,7 +3751,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E<num, num>
                     element: ConstructorMember
                       baseElement: <testLibrary>::@enum::E::@constructor::new
@@ -4303,7 +4303,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -4317,7 +4317,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -4436,7 +4436,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -4450,7 +4450,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -4583,7 +4583,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -4597,7 +4597,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -4703,7 +4703,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -4717,7 +4717,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -4823,7 +4823,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E1 @-1
-                      element2: <testLibrary>::@enum::E1
+                      element: <testLibrary>::@enum::E1
                       type: E1
                     element: <testLibrary>::@enum::E1::@constructor::new
                   argumentList: ArgumentList
@@ -4861,7 +4861,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E2 @-1
-                      element2: <testLibrary>::@enum::E2
+                      element: <testLibrary>::@enum::E2
                       type: E2
                     element: <testLibrary>::@enum::E2::@constructor::new
                   argumentList: ArgumentList
@@ -5042,7 +5042,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -5056,7 +5056,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -5070,7 +5070,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -5261,7 +5261,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -5401,7 +5401,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -5415,7 +5415,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -5429,7 +5429,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -5583,7 +5583,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -5677,7 +5677,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -5706,7 +5706,7 @@ library
                     token: a @31
                     element: <testLibrary>::@getter::a
                     staticType: null
-                  element2: <testLibrary>::@getter::a
+                  element: <testLibrary>::@getter::a
               typeName: E
               typeNameOffset: 41
           getters
@@ -5757,7 +5757,7 @@ library
                 token: a @31
                 element: <testLibrary>::@getter::a
                 staticType: null
-              element2: <testLibrary>::@getter::a
+              element: <testLibrary>::@getter::a
       getters
         synthetic static v
           reference: <testLibrary>::@enum::E::@getter::v
@@ -5813,7 +5813,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -5851,7 +5851,7 @@ library
                     token: a @31
                     element: <testLibrary>::@getter::a
                     staticType: null
-                  element2: <testLibrary>::@getter::a
+                  element: <testLibrary>::@getter::a
       topLevelVariables
         #F8 hasInitializer a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
@@ -5910,7 +5910,7 @@ library
                 token: a @31
                 element: <testLibrary>::@getter::a
                 staticType: null
-              element2: <testLibrary>::@getter::a
+              element: <testLibrary>::@getter::a
           returnType: void
   topLevelVariables
     const hasInitializer a
@@ -5961,7 +5961,7 @@ library
                     token: foo @29
                     element: <testLibrary>::@getter::foo
                     staticType: null
-                  element2: <testLibrary>::@getter::foo
+                  element: <testLibrary>::@getter::foo
           fields
             #F3 hasInitializer v (nameOffset:40) (firstTokenOffset:40) (offset:40)
               element: <testLibrary>::@enum::E::@field::v
@@ -5970,7 +5970,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E<dynamic>
                     element: ConstructorMember
                       baseElement: <testLibrary>::@enum::E::@constructor::new
@@ -6018,7 +6018,7 @@ library
                     token: foo @70
                     element: <testLibrary>::@enum::E::@getter::foo
                     staticType: null
-                  element2: <testLibrary>::@enum::E::@getter::foo
+                  element: <testLibrary>::@enum::E::@getter::foo
       topLevelVariables
         #F11 hasInitializer foo (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::foo
@@ -6043,7 +6043,7 @@ library
                 token: foo @29
                 element: <testLibrary>::@getter::foo
                 staticType: null
-              element2: <testLibrary>::@getter::foo
+              element: <testLibrary>::@getter::foo
       supertype: Enum
       fields
         static const enumConstant hasInitializer v
@@ -6101,7 +6101,7 @@ library
                 token: foo @70
                 element: <testLibrary>::@enum::E::@getter::foo
                 staticType: null
-              element2: <testLibrary>::@enum::E::@getter::foo
+              element: <testLibrary>::@enum::E::@getter::foo
           returnType: void
   topLevelVariables
     const hasInitializer foo
@@ -6147,7 +6147,7 @@ library
                     token: a @22
                     element: <testLibrary>::@getter::a
                     staticType: null
-                  element2: <testLibrary>::@getter::a
+                  element: <testLibrary>::@getter::a
           fields
             #F3 hasInitializer v (nameOffset:31) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@enum::E::@field::v
@@ -6156,7 +6156,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E<dynamic>
                     element: ConstructorMember
                       baseElement: <testLibrary>::@enum::E::@constructor::new
@@ -6210,7 +6210,7 @@ library
                 token: a @22
                 element: <testLibrary>::@getter::a
                 staticType: null
-              element2: <testLibrary>::@getter::a
+              element: <testLibrary>::@getter::a
       supertype: Enum
       fields
         static const enumConstant hasInitializer v
@@ -6281,7 +6281,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: <testLibrary>::@enum::E
+                      element: <testLibrary>::@enum::E
                       type: E
                     element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -6407,7 +6407,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -6567,7 +6567,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -6771,7 +6771,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A::@def::0
+                      element: <testLibrary>::@enum::A::@def::0
                       type: A
                     element: <testLibrary>::@enum::A::@def::0::@constructor::new
                   argumentList: ArgumentList
@@ -6995,7 +6995,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -7038,7 +7038,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -7134,7 +7134,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -7182,7 +7182,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -7203,7 +7203,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -7309,7 +7309,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -7356,7 +7356,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <null>
+                      element: <null>
                       type: null
                     element: <null>
                   argumentList: ArgumentList
@@ -7371,7 +7371,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -7464,7 +7464,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -7478,7 +7478,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <null>
+                      element: <null>
                       type: null
                     element: <null>
                   argumentList: ArgumentList
@@ -7493,7 +7493,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -7548,7 +7548,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -7652,7 +7652,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <null>
+                      element: <null>
                       type: null
                     element: <null>
                   argumentList: ArgumentList
@@ -7671,7 +7671,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -7728,7 +7728,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -7829,7 +7829,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <null>
+                      element: <null>
                       type: null
                     element: <null>
                   argumentList: ArgumentList
@@ -7844,7 +7844,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -7889,7 +7889,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -7976,7 +7976,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     period: . @0
                     name: SimpleIdentifier
@@ -8093,10 +8093,10 @@ library
                         arguments
                           NamedType
                             name: int @16
-                            element2: dart:core::@class::int
+                            element: dart:core::@class::int
                             type: int
                         rightBracket: > @19
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A<int>
                     period: . @0
                     name: SimpleIdentifier
@@ -8223,7 +8223,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -8334,7 +8334,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -8437,7 +8437,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -8549,7 +8549,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <null>
                   argumentList: ArgumentList
@@ -8678,7 +8678,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <null>
                   argumentList: ArgumentList
@@ -8806,7 +8806,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -8942,7 +8942,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -9091,7 +9091,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -9236,7 +9236,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -9389,7 +9389,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -9524,7 +9524,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -9660,7 +9660,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -9788,7 +9788,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -9943,10 +9943,10 @@ library
                         arguments
                           NamedType
                             name: int @16
-                            element2: dart:core::@class::int
+                            element: dart:core::@class::int
                             type: int
                         rightBracket: > @19
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A<int>
                     element: ConstructorMember
                       baseElement: <testLibrary>::@enum::A::@constructor::new
@@ -10091,7 +10091,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -10221,7 +10221,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -10350,7 +10350,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -10491,10 +10491,10 @@ library
                         arguments
                           NamedType
                             name: int @16
-                            element2: dart:core::@class::int
+                            element: dart:core::@class::int
                             type: int
                         rightBracket: > @19
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A<int>
                     element: ConstructorMember
                       baseElement: <testLibrary>::@enum::A::@constructor::new
@@ -10639,7 +10639,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -10771,7 +10771,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -10909,7 +10909,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -11045,7 +11045,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -11174,7 +11174,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -11305,7 +11305,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -11427,7 +11427,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -11568,7 +11568,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -11724,10 +11724,10 @@ library
                         arguments
                           NamedType
                             name: int @30
-                            element2: dart:core::@class::int
+                            element: dart:core::@class::int
                             type: int
                         rightBracket: > @33
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A<int>
                     element: ConstructorMember
                       baseElement: <testLibrary>::@enum::A::@constructor::new
@@ -11878,7 +11878,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A<dynamic>
                     element: ConstructorMember
                       baseElement: <testLibrary>::@enum::A::@constructor::new
@@ -12010,7 +12010,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -12125,7 +12125,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -12250,7 +12250,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -12372,7 +12372,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -12494,7 +12494,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -12622,7 +12622,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -12755,10 +12755,10 @@ library
                         arguments
                           NamedType
                             name: int @16
-                            element2: dart:core::@class::int
+                            element: dart:core::@class::int
                             type: int
                         rightBracket: > @19
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A<int>
                     element: ConstructorMember
                       baseElement: <testLibrary>::@enum::A::@constructor::new
@@ -12895,10 +12895,10 @@ library
                         arguments
                           NamedType
                             name: int @16
-                            element2: dart:core::@class::int
+                            element: dart:core::@class::int
                             type: int
                         rightBracket: > @19
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A<int>
                     element: ConstructorMember
                       baseElement: <testLibrary>::@enum::A::@constructor::new
@@ -13022,7 +13022,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -13154,10 +13154,10 @@ library
                         arguments
                           NamedType
                             name: int @27
-                            element2: dart:core::@class::int
+                            element: dart:core::@class::int
                             type: int
                         rightBracket: > @30
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A<int>
                     element: ConstructorMember
                       baseElement: <testLibrary>::@enum::A::@constructor::new
@@ -13322,7 +13322,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -13470,7 +13470,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -13609,7 +13609,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -13736,7 +13736,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -13895,7 +13895,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -13990,7 +13990,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A::@def::0
+                      element: <testLibrary>::@enum::A::@def::0
                       type: A
                     element: <testLibrary>::@enum::A::@def::0::@constructor::new
                   argumentList: ArgumentList
@@ -14121,7 +14121,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     period: . @0
                     name: SimpleIdentifier
@@ -14249,7 +14249,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     period: . @0
                     name: SimpleIdentifier
@@ -14365,7 +14365,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A
                     element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
@@ -14483,7 +14483,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: B @-1
-                      element2: <testLibrary>::@enum::B
+                      element: <testLibrary>::@enum::B
                       type: B
                     element: <testLibrary>::@enum::B::@constructor::new
                   argumentList: ArgumentList
@@ -14610,7 +14610,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: B @-1
-                      element2: <testLibrary>::@enum::B
+                      element: <testLibrary>::@enum::B
                       type: B
                     element: <testLibrary>::@enum::B::@constructor::new
                   argumentList: ArgumentList
@@ -14737,7 +14737,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: B @-1
-                      element2: <testLibrary>::@enum::B
+                      element: <testLibrary>::@enum::B
                       type: B
                     element: <testLibrary>::@enum::B::@constructor::new
                   argumentList: ArgumentList
@@ -14865,7 +14865,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element2: <testLibrary>::@enum::A
+                      element: <testLibrary>::@enum::A
                       type: A<B>
                     element: ConstructorMember
                       baseElement: <testLibrary>::@enum::A::@constructor::new

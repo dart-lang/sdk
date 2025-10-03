@@ -555,7 +555,7 @@ FunctionExpression
     parameter: SimpleFormalParameter
       type: NamedType
         name: T
-        element2: #E0 T
+        element: #E0 T
         type: T
       name: a
       declaredElement: <testLibraryFragment> a@29
@@ -570,7 +570,7 @@ FunctionExpression
         arguments
           NamedType
             name: T
-            element2: #E0 T
+            element: #E0 T
             type: T
         rightBracket: >
       leftBracket: [

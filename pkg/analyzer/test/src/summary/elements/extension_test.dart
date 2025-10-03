@@ -293,7 +293,7 @@ library
                     token: foo @34
                     element: <testLibrary>::@getter::foo
                     staticType: null
-                  element2: <testLibrary>::@getter::foo
+                  element: <testLibrary>::@getter::foo
           fields
             #F3 hasInitializer foo (nameOffset:65) (firstTokenOffset:65) (offset:65)
               element: <testLibrary>::@extension::E::@field::foo
@@ -314,7 +314,7 @@ library
                     token: foo @77
                     element: <testLibrary>::@extension::E::@getter::foo
                     staticType: null
-                  element2: <testLibrary>::@extension::E::@getter::foo
+                  element: <testLibrary>::@extension::E::@getter::foo
       topLevelVariables
         #F6 hasInitializer foo (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::foo
@@ -339,7 +339,7 @@ library
                 token: foo @34
                 element: <testLibrary>::@getter::foo
                 staticType: null
-              element2: <testLibrary>::@getter::foo
+              element: <testLibrary>::@getter::foo
       extendedType: int
       fields
         static const hasInitializer foo
@@ -367,7 +367,7 @@ library
                 token: foo @77
                 element: <testLibrary>::@extension::E::@getter::foo
                 staticType: null
-              element2: <testLibrary>::@extension::E::@getter::foo
+              element: <testLibrary>::@extension::E::@getter::foo
           returnType: void
   topLevelVariables
     const hasInitializer foo

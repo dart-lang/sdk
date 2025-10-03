@@ -38,10 +38,10 @@ FunctionDeclaration
       arguments
         NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
-    element2: dart:async::@class::Stream
+    element: dart:async::@class::Stream
     type: Stream<int>
   name: f
   functionExpression: FunctionExpression
@@ -91,10 +91,10 @@ FunctionDeclaration
       arguments
         NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
-    element2: dart:async::@class::Stream
+    element: dart:async::@class::Stream
     type: Stream<int>
   name: f
   functionExpression: FunctionExpression
@@ -149,7 +149,7 @@ void bar(a a) {
     assertResolvedNodeText(node_1, r'''
 NamedType
   name: a
-  element2: <testLibrary>::@class::a
+  element: <testLibrary>::@class::a
   type: a
 ''');
 
@@ -172,7 +172,7 @@ void m<T extends List<T>>() {}
 FunctionDeclaration
   returnType: NamedType
     name: void
-    element2: <null>
+    element: <null>
     type: void
   name: m
   functionExpression: FunctionExpression
@@ -189,10 +189,10 @@ FunctionDeclaration
               arguments
                 NamedType
                   name: T
-                  element2: #E0 T
+                  element: #E0 T
                   type: T
               rightBracket: >
-            element2: dart:core::@class::List
+            element: dart:core::@class::List
             type: List<T>
           declaredElement: <testLibraryFragment> T@7
             defaultType: List<dynamic>
@@ -224,7 +224,7 @@ void m<T extends num>() {}
 FunctionDeclaration
   returnType: NamedType
     name: void
-    element2: <null>
+    element: <null>
     type: void
   name: m
   functionExpression: FunctionExpression
@@ -236,7 +236,7 @@ FunctionDeclaration
           extendsKeyword: extends
           bound: NamedType
             name: num
-            element2: dart:core::@class::num
+            element: dart:core::@class::num
             type: num
           declaredElement: <testLibraryFragment> T@7
             defaultType: num
@@ -273,7 +273,7 @@ void f() {
 FunctionDeclaration
   returnType: NamedType
     name: void
-    element2: <null>
+    element: <null>
     type: void
   name: m
   functionExpression: FunctionExpression
@@ -290,10 +290,10 @@ FunctionDeclaration
               arguments
                 NamedType
                   name: T
-                  element2: #E0 T
+                  element: #E0 T
                   type: T
               rightBracket: >
-            element2: dart:core::@class::List
+            element: dart:core::@class::List
             type: List<T>
           declaredElement: <testLibraryFragment> T@20
             defaultType: List<dynamic>
@@ -330,7 +330,7 @@ void f() {
 FunctionDeclaration
   returnType: NamedType
     name: void
-    element2: <null>
+    element: <null>
     type: void
   name: m
   functionExpression: FunctionExpression
@@ -342,7 +342,7 @@ FunctionDeclaration
           extendsKeyword: extends
           bound: NamedType
             name: num
-            element2: dart:core::@class::num
+            element: dart:core::@class::num
             type: num
           declaredElement: <testLibraryFragment> T@20
             defaultType: num
@@ -377,7 +377,7 @@ int get foo(double a) => 0;
 FunctionDeclaration
   returnType: NamedType
     name: int
-    element2: dart:core::@class::int
+    element: dart:core::@class::int
     type: int
   propertyKeyword: get
   name: foo
@@ -387,7 +387,7 @@ FunctionDeclaration
       parameter: SimpleFormalParameter
         type: NamedType
           name: double
-          element2: dart:core::@class::double
+          element: dart:core::@class::double
           type: double
         name: a
         declaredElement: <testLibraryFragment> a@19
@@ -430,10 +430,10 @@ FunctionDeclaration
       arguments
         NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
-    element2: dart:core::@class::Iterable
+    element: dart:core::@class::Iterable
     type: Iterable<int>
   name: f
   functionExpression: FunctionExpression
@@ -481,10 +481,10 @@ FunctionDeclaration
       arguments
         NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
-    element2: dart:core::@class::Iterable
+    element: dart:core::@class::Iterable
     type: Iterable<int>
   name: f
   functionExpression: FunctionExpression
@@ -594,7 +594,7 @@ TypeParameter
   bound: GenericFunctionType
     returnType: NamedType
       name: void
-      element2: <null>
+      element: <null>
       type: void
     functionKeyword: Function
     typeParameters: TypeParameterList
@@ -610,7 +610,7 @@ TypeParameter
       parameter: SimpleFormalParameter
         type: NamedType
           name: _
-          element2: <null>
+          element: <null>
           type: InvalidType
         declaredElement: <testLibraryFragment> null@null
           element: isPrivate
@@ -618,7 +618,7 @@ TypeParameter
       parameter: SimpleFormalParameter
         type: NamedType
           name: _
-          element2: <null>
+          element: <null>
           type: InvalidType
         declaredElement: <testLibraryFragment> null@null
           element: isPrivate

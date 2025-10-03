@@ -386,7 +386,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: dart:foo::@enum::E
+                      element: dart:foo::@enum::E
                       type: E
                     element: dart:foo::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -400,7 +400,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: dart:foo::@enum::E
+                      element: dart:foo::@enum::E
                       type: E
                     element: dart:foo::@enum::E::@constructor::new
                   argumentList: ArgumentList
@@ -509,7 +509,7 @@ library
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: dart:foo::@enum::E
+                      element: dart:foo::@enum::E
                       type: E
                     element: dart:foo::@enum::E::@constructor::new
                   argumentList: ArgumentList

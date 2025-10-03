@@ -532,9 +532,9 @@ AssignmentExpression
     literal: 1
     correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::value
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@class::A::@setter::x
+  writeElement: <testLibrary>::@class::A::@setter::x
   writeType: int
   element: <null>
   staticType: int?
@@ -566,9 +566,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::value
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@class::A::@setter::x
+  writeElement: <testLibrary>::@class::A::@setter::x
   writeType: int
   element: <null>
   staticType: int
@@ -594,9 +594,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@function::m::@formalParameter::x
+  writeElement: <testLibrary>::@function::m::@formalParameter::x
   writeType: int
   element: <null>
   staticType: int
@@ -613,9 +613,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@function::m::@formalParameter::y
+  writeElement: <testLibrary>::@function::m::@formalParameter::y
   writeType: int?
   element: <null>
   staticType: int
@@ -676,9 +676,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibrary>::@class::A::@getter::x
+  readElement: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@class::A::@setter::x
+  writeElement: <testLibrary>::@class::A::@setter::x
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -710,9 +710,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibrary>::@class::A::@getter::y
+  readElement: <testLibrary>::@class::A::@getter::y
   readType: int?
-  writeElement2: <testLibrary>::@class::A::@setter::y
+  writeElement: <testLibrary>::@class::A::@setter::y
   writeType: int?
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -772,9 +772,9 @@ AssignmentExpression
     literal: 1
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibrary>::@class::A::@getter::x
+  readElement: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@class::A::@setter::x
+  writeElement: <testLibrary>::@class::A::@setter::x
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int?
@@ -806,9 +806,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibrary>::@class::A::@getter::x
+  readElement: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@class::A::@setter::x
+  writeElement: <testLibrary>::@class::A::@setter::x
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -843,9 +843,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibrary>::@function::m::@formalParameter::x
+  readElement: <testLibrary>::@function::m::@formalParameter::x
   readType: int
-  writeElement2: <testLibrary>::@function::m::@formalParameter::x
+  writeElement: <testLibrary>::@function::m::@formalParameter::x
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -862,9 +862,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibrary>::@function::m::@formalParameter::y
+  readElement: <testLibrary>::@function::m::@formalParameter::y
   readType: int?
-  writeElement2: <testLibrary>::@function::m::@formalParameter::y
+  writeElement: <testLibrary>::@function::m::@formalParameter::y
   writeType: int?
   element: dart:core::@class::num::@method::+
   staticType: int
