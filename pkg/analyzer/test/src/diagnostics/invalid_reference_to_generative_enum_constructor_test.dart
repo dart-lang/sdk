@@ -62,7 +62,8 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidReferenceToGenerativeEnumConstructor,
+          CompileTimeErrorCode
+              .invalidReferenceToGenerativeEnumConstructorTearoff,
           58,
           7,
         ),
@@ -142,7 +143,8 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidReferenceToGenerativeEnumConstructor,
+          CompileTimeErrorCode
+              .invalidReferenceToGenerativeEnumConstructorTearoff,
           29,
           5,
         ),

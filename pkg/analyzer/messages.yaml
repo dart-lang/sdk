@@ -9079,7 +9079,7 @@ CompileTimeErrorCode:
     hasPublishedDocs: true
   INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR:
     parameters: none
-    problemMessage: Generative enum constructors can only be used as targets of redirection.
+    problemMessage: Generative enum constructors can only be used to create an enum constant.
     correctionMessage: Try using an enum value, or a factory constructor.
     hasPublishedDocs: true
     documentation: |-
@@ -9134,6 +9134,12 @@ CompileTimeErrorCode:
 
       E f() => E.c(2);
       ```
+  INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR_TEAROFF:
+    sharedName: INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR
+    parameters: none
+    problemMessage: Generative enum constructors can't be torn off.
+    correctionMessage: Try using an enum value, or a factory constructor.
+    hasPublishedDocs: true
   INVALID_REFERENCE_TO_THIS:
     parameters: none
     problemMessage: "Invalid reference to 'this' expression."

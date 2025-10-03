@@ -3860,10 +3860,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         constructorElement.isGenerative &&
         constructorElement.enclosingElement is EnumElement) {
       if (_currentLibrary.featureSet.isEnabled(Feature.enhanced_enums)) {
-        diagnosticReporter.atNode(
-          node,
-          CompileTimeErrorCode.invalidReferenceToGenerativeEnumConstructor,
-        );
+        if (node.parent case ConstructorReference(
+          :var parent,
+        ) when parent is! InstanceCreationExpression) {
+          diagnosticReporter.atNode(
+            node,
+            CompileTimeErrorCode
+                .invalidReferenceToGenerativeEnumConstructorTearoff,
+          );
+        } else {
+          diagnosticReporter.atNode(
+            node,
+            CompileTimeErrorCode.invalidReferenceToGenerativeEnumConstructor,
+          );
+        }
       } else {
         diagnosticReporter.atNode(node, CompileTimeErrorCode.instantiateEnum);
       }
