@@ -4,6 +4,8 @@
 
 // CHANGES:
 //
+// v0.53 Support declaring constructors.
+//
 // v0.52 Support static access shorthands.
 //
 // v0.51 Support a `switchExpression` with no cases.
@@ -176,18 +178,14 @@ import java.util.Stack;
 @parser::members {
   static String filePath = null;
   static boolean errorHasOccurred = false;
-
-  /// Must be invoked before the first error is reported for a library.
-  /// Will print the name of the library and indicate that it has errors.
-  static void prepareForErrors() {
-    errorHasOccurred = true;
-    System.err.println("Syntax error in " + filePath + ":");
-  }
+  static boolean errorHeaderHasBeenPrinted = false;
 
   /// Parse library, return true if success, false if errors occurred.
   public boolean parseLibrary(String filePath) throws RecognitionException {
     this.filePath = filePath;
-    errorHasOccurred = false;
+    errorHeaderHasBeenPrinted = false;
+    this.removeErrorListeners(); // Remove the default ConsoleErrorListener.
+    this.addErrorListener(new DartErrorListener()); // Add our custom one.
     startSymbol();
     return !errorHasOccurred;
   }
@@ -397,13 +395,11 @@ functionFormalParameter
     ;
 
 simpleFormalParameter
-    :    declaredIdentifier
-    |    COVARIANT? identifier
+    :    COVARIANT? type? identifier
     ;
 
-// NB: It is an anomaly that VAR can be a return type (`var this.x()`).
 fieldFormalParameter
-    :    finalConstVarOrType? THIS '.' identifier (formalParameterPart '?'?)?
+    :    type? THIS '.' identifier (formalParameterPart '?'?)?
     ;
 
 superFormalParameter
@@ -424,9 +420,23 @@ typeWithParameters
 
 classDeclaration
     :    AUGMENT? (classModifiers | mixinClassModifiers)
-         CLASS typeWithParameters superclass? interfaces?
-         LBRACE (metadata classMemberDeclaration)* RBRACE
+         CLASS classNamePart superclass? interfaces? classBody
     |    classModifiers MIXIN? CLASS mixinApplicationClass
+    ;
+
+primaryConstructorNoConst
+    :    typeIdentifier typeParameters?
+         ('.' identifierOrNew)? declaringParameterList
+    ;
+
+classNamePart
+    :    CONST? primaryConstructorNoConst
+    |    typeWithParameters
+    ;
+
+classBody
+    :    LBRACE (metadata classMemberDeclaration)* RBRACE
+    |    ';'
     ;
 
 classModifiers
@@ -466,25 +476,21 @@ mixinDeclaration
          LBRACE (metadata mixinMemberDeclaration)* RBRACE
     ;
 
-// TODO: We might want to make this more strict.
 mixinMemberDeclaration
     :    classMemberDeclaration
     ;
 
 extensionTypeDeclaration
-    :    EXTENSION TYPE CONST? typeWithParameters
-         representationDeclaration interfaces?
-         LBRACE (metadata extensionTypeMemberDeclaration)* RBRACE
+    :    EXTENSION TYPE classNamePart interfaces? extensionTypeBody
     |    AUGMENT EXTENSION TYPE typeWithParameters interfaces?
-         LBRACE (metadata extensionTypeMemberDeclaration)* RBRACE
+         extensionTypeBody
     ;
 
-representationDeclaration
-    :    ('.' identifierOrNew)? '(' metadata typedIdentifier ')'
+extensionTypeBody
+    :    LBRACE (metadata extensionTypeMemberDeclaration)* RBRACE
+    |    ';'
     ;
 
-
-// TODO: We might want to make this more strict.
 extensionTypeMemberDeclaration
     :    classMemberDeclaration
     ;
@@ -498,7 +504,6 @@ extensionBody
     :    LBRACE (metadata extensionMemberDeclaration)* RBRACE
     ;
 
-// TODO: We might want to make this more strict.
 extensionMemberDeclaration
     :    classMemberDeclaration
     ;
@@ -564,13 +569,82 @@ setterSignature
 
 constructorSignature
     :    constructorName formalParameterList
+    |    declaringConstructorSignature
+    ;
+
+declaringConstructorSignature
+    :    THIS ('.' identifierOrNew)? declaringParameterList?
+    ;
+
+declaringConstantConstructorSignature
+    :    CONST THIS ('.' identifierOrNew)? declaringParameterList
+    ;
+
+declaringParameterList
+    :    '(' ')'
+    |    '(' declaringFormalParameters ','? ')'
+    |    '(' declaringFormalParameters ','
+         optionalOrNamedDeclaringFormalParameters ')'
+    |    '(' optionalOrNamedDeclaringFormalParameters ')'
+    ;
+
+declaringFormalParameters
+    :    declaringFormalParameter (',' declaringFormalParameter)*
+    ;
+
+declaringFormalParameter
+    :    metadata declaringFormalParameterNoMetadata
+    ;
+
+declaringFormalParameterNoMetadata
+    :    declaringFunctionFormalParameter
+    |    fieldFormalParameter
+    |    declaringSimpleFormalParameter
+    |    superFormalParameter
+    ;
+
+declaringFunctionFormalParameter
+    :    COVARIANT? (VAR | FINAL)? type?
+         identifier formalParameterPart '?'?
+    ;
+
+declaringSimpleFormalParameter
+    :    COVARIANT? (VAR | FINAL)? type? identifier
+    ;
+
+optionalOrNamedDeclaringFormalParameters
+    :    optionalPositionalDeclaringFormalParameters
+    |    namedDeclaringFormalParameters
+    ;
+
+optionalPositionalDeclaringFormalParameters
+    :    '[' defaultDeclaringFormalParameter
+         (',' defaultDeclaringFormalParameter)* ','? ']'
+    ;
+
+defaultDeclaringFormalParameter
+    :    declaringFormalParameter ('=' expression)?
+    ;
+
+namedDeclaringFormalParameters
+    :    LBRACE defaultDeclaringNamedParameter
+         (',' defaultDeclaringNamedParameter)* ','? RBRACE
+    ;
+
+defaultDeclaringNamedParameter
+    :    metadata REQUIRED? declaringFormalParameterNoMetadata
+         ('=' expression)?
     ;
 
 constructorName
-    :    typeIdentifier ('.' identifierOrNew)?
+    :    typeIdentifierOrNew ('.' identifierOrNew)?
     ;
 
-// TODO: Add this in the language specification, use it in grammar rules.
+typeIdentifierOrNew
+    :    typeIdentifier
+    |    NEW
+    ;
+
 identifierOrNew
     :    identifier
     |    NEW
@@ -613,6 +687,7 @@ redirectingFactoryConstructorSignature
 
 constantConstructorSignature
     :    CONST constructorName formalParameterList
+    |    declaringConstantConstructorSignature
     ;
 
 mixinApplication
@@ -620,8 +695,8 @@ mixinApplication
     ;
 
 enumType
-    :    AUGMENT? ENUM typeWithParameters mixins? interfaces? LBRACE
-         enumEntry (',' enumEntry)* (',')?
+    :    AUGMENT? ENUM classNamePart mixins? interfaces? LBRACE
+         enumEntry (',' enumEntry)* ','?
          (';' (metadata classMemberDeclaration)*)?
          RBRACE
     ;
