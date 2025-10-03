@@ -20,13 +20,28 @@ import '../test/utils/io_utils.dart' show computeRepoDirUri;
 
 final Uri repoDir = computeRepoDirUri();
 
-Future<void> main(List<String> args) async {
+Future<void> main(List<String> argsOrg) async {
+  bool silent = false;
+  List<String> args = [];
+  for (String arg in argsOrg) {
+    if (arg == "--silent") {
+      silent = true;
+    } else if (arg.startsWith("--")) {
+      // Ignore other non-path arguments for better compatibility with the
+      // stable analysis tool (and thus comparison with the analyzer).
+      continue;
+    } else {
+      args.add(arg);
+    }
+  }
   Stopwatch stopwatch = new Stopwatch()..start();
-  await run(args);
-  print("Finished in ${stopwatch.elapsed}");
+  await run(args, silent);
+  if (!silent) {
+    print("Finished in ${stopwatch.elapsed}");
+  }
 }
 
-Future<void> run(List<String> args) async {
+Future<void> run(List<String> args, bool silent) async {
   api.CompilerOptions compilerOptions = getOptions();
 
   ProcessedOptions options = new ProcessedOptions(options: compilerOptions);
@@ -34,6 +49,10 @@ Future<void> run(List<String> args) async {
   Set<Uri> libUris = {};
   Set<Uri> packageConfigUris = {};
   for (String arg in args) {
+    if (!arg.endsWith("/")) {
+      // Assume directory.
+      arg = "$arg/";
+    }
     Uri dir = Uri.base.resolveUri(new Uri.file(arg));
     libUris.add(dir);
     while (!File.fromUri(
@@ -71,7 +90,9 @@ Future<void> run(List<String> args) async {
     new CompilerContext(options),
   );
   IncrementalCompilerResult result = await compiler.computeDelta();
-  print("Got ${result.component.libraries.length} libraries.");
+  if (!silent) {
+    print("Got ${result.component.libraries.length} libraries.");
+  }
 }
 
 api.CompilerOptions getOptions() {
