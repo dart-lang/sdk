@@ -176,6 +176,114 @@ library
 ''');
   }
 
+  test_enum_constant_arguments_symbolLiteral() async {
+    var library = await buildLibrary(r'''
+enum E {
+  v(#foo.bar);
+  const E(Object _);
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      enums
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@enum::E
+          fields
+            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+              element: <testLibrary>::@enum::E::@field::v
+              initializer: expression_0
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element2: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @12
+                    arguments
+                      SymbolLiteral
+                        poundSign: # @13
+                        components
+                          foo
+                            offset: 14
+                          bar
+                            offset: 18
+                    rightParenthesis: ) @21
+                  staticType: E
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@field::values
+              initializer: expression_1
+                ListLiteral
+                  leftBracket: [ @0
+                  elements
+                    SimpleIdentifier
+                      token: v @-1
+                      element: <testLibrary>::@enum::E::@getter::v
+                      staticType: E
+                  rightBracket: ] @0
+                  staticType: List<E>
+          constructors
+            #F4 const new (nameOffset:<null>) (firstTokenOffset:26) (offset:32)
+              element: <testLibrary>::@enum::E::@constructor::new
+              typeName: E
+              typeNameOffset: 32
+              formalParameters
+                #F5 _ (nameOffset:41) (firstTokenOffset:34) (offset:41)
+                  element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::_
+          getters
+            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+              element: <testLibrary>::@enum::E::@getter::v
+            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@getter::values
+  enums
+    enum E
+      reference: <testLibrary>::@enum::E
+      firstFragment: #F1
+      supertype: Enum
+      fields
+        static const enumConstant hasInitializer v
+          reference: <testLibrary>::@enum::E::@field::v
+          firstFragment: #F2
+          type: E
+          constantInitializer
+            fragment: #F2
+            expression: expression_0
+          getter: <testLibrary>::@enum::E::@getter::v
+        synthetic static const values
+          reference: <testLibrary>::@enum::E::@field::values
+          firstFragment: #F3
+          type: List<E>
+          constantInitializer
+            fragment: #F3
+            expression: expression_1
+          getter: <testLibrary>::@enum::E::@getter::values
+      constructors
+        const new
+          reference: <testLibrary>::@enum::E::@constructor::new
+          firstFragment: #F4
+          formalParameters
+            #E0 requiredPositional _
+              firstFragment: #F5
+              type: Object
+      getters
+        synthetic static v
+          reference: <testLibrary>::@enum::E::@getter::v
+          firstFragment: #F6
+          returnType: E
+          variable: <testLibrary>::@enum::E::@field::v
+        synthetic static values
+          reference: <testLibrary>::@enum::E::@getter::values
+          firstFragment: #F7
+          returnType: List<E>
+          variable: <testLibrary>::@enum::E::@field::values
+''');
+  }
+
   test_enum_constant_inference() async {
     var library = await buildLibrary(r'''
 enum E<T> {
