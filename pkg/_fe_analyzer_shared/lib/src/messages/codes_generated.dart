@@ -23,7 +23,7 @@ const MessageCode codeAbstractClassMember = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeAbstractExtensionField = const MessageCode(
   "AbstractExtensionField",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.abstractExtensionField],
+  pseudoSharedCode: PseudoSharedCode.abstractExtensionField,
   problemMessage: r"""Extension fields can't be declared 'abstract'.""",
   correctionMessage: r"""Try removing the 'abstract' keyword.""",
 );
@@ -67,7 +67,7 @@ const MessageCode codeAbstractLateField = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeAbstractNotSync = const MessageCode(
   "AbstractNotSync",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.nonSyncAbstractMethod],
+  pseudoSharedCode: PseudoSharedCode.nonSyncAbstractMethod,
   problemMessage:
       r"""Abstract methods can't use 'async', 'async*', or 'sync*'.""",
 );
@@ -108,7 +108,7 @@ codeAsciiControlCharacter = const Template(
       r"""The control character #character can only be used in strings and comments.""",
   withArgumentsOld: _withArgumentsOldAsciiControlCharacter,
   withArguments: _withArgumentsAsciiControlCharacter,
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.illegalCharacter],
+  pseudoSharedCode: PseudoSharedCode.illegalCharacter,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -129,13 +129,14 @@ Message _withArgumentsOldAsciiControlCharacter(int character) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeAssertAsExpression = const MessageCode(
   "AssertAsExpression",
+  pseudoSharedCode: PseudoSharedCode.assertAsExpression,
   problemMessage: r"""`assert` can't be used as an expression.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeAwaitAsIdentifier = const MessageCode(
   "AwaitAsIdentifier",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.asyncKeywordUsedAsIdentifier],
+  pseudoSharedCode: PseudoSharedCode.asyncKeywordUsedAsIdentifier,
   problemMessage:
       r"""'await' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.""",
 );
@@ -143,7 +144,7 @@ const MessageCode codeAwaitAsIdentifier = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeAwaitForNotAsync = const MessageCode(
   "AwaitForNotAsync",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.asyncForInWrongContext],
+  pseudoSharedCode: PseudoSharedCode.asyncForInWrongContext,
   problemMessage:
       r"""The asynchronous for-in can only be used in functions marked with 'async' or 'async*'.""",
   correctionMessage:
@@ -153,7 +154,7 @@ const MessageCode codeAwaitForNotAsync = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeAwaitNotAsync = const MessageCode(
   "AwaitNotAsync",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.awaitInWrongContext],
+  pseudoSharedCode: PseudoSharedCode.awaitInWrongContext,
   problemMessage:
       r"""'await' can only be used in 'async' or 'async*' methods.""",
 );
@@ -223,7 +224,7 @@ codeBuiltInIdentifierAsType = const Template(
       r"""The built-in identifier '#lexeme' can't be used as a type.""",
   withArgumentsOld: _withArgumentsOldBuiltInIdentifierAsType,
   withArguments: _withArgumentsBuiltInIdentifierAsType,
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.builtInIdentifierAsType],
+  pseudoSharedCode: PseudoSharedCode.builtInIdentifierAsType,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -251,7 +252,7 @@ codeBuiltInIdentifierInDeclaration = const Template(
   problemMessageTemplate: r"""Can't use '#lexeme' as a name here.""",
   withArgumentsOld: _withArgumentsOldBuiltInIdentifierInDeclaration,
   withArguments: _withArgumentsBuiltInIdentifierInDeclaration,
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.builtInIdentifierInDeclaration],
+  pseudoSharedCode: PseudoSharedCode.builtInIdentifierInDeclaration,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -360,7 +361,7 @@ const MessageCode codeConstClass = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeConstConstructorWithBody = const MessageCode(
   "ConstConstructorWithBody",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.constConstructorWithBody],
+  pseudoSharedCode: PseudoSharedCode.constConstructorWithBody,
   problemMessage: r"""A const constructor can't have a body.""",
   correctionMessage:
       r"""Try removing either the 'const' keyword or the body.""",
@@ -389,7 +390,7 @@ codeConstFieldWithoutInitializer = const Template(
       r"""Try adding an initializer ('= expression') to the declaration.""",
   withArgumentsOld: _withArgumentsOldConstFieldWithoutInitializer,
   withArguments: _withArgumentsConstFieldWithoutInitializer,
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.constNotInitialized],
+  pseudoSharedCode: PseudoSharedCode.constNotInitialized,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -598,7 +599,7 @@ Message _withArgumentsOldDuplicatedModifier(Token lexeme) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeEmptyNamedParameterList = const MessageCode(
   "EmptyNamedParameterList",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.missingIdentifier],
+  pseudoSharedCode: PseudoSharedCode.missingIdentifier,
   problemMessage: r"""Named parameter lists cannot be empty.""",
   correctionMessage: r"""Try adding a named parameter to the list.""",
 );
@@ -606,7 +607,7 @@ const MessageCode codeEmptyNamedParameterList = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeEmptyOptionalParameterList = const MessageCode(
   "EmptyOptionalParameterList",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.missingIdentifier],
+  pseudoSharedCode: PseudoSharedCode.missingIdentifier,
   problemMessage: r"""Optional parameter lists cannot be empty.""",
   correctionMessage: r"""Try adding an optional parameter to the list.""",
 );
@@ -623,7 +624,7 @@ const MessageCode codeEmptyRecordTypeNamedFieldsList = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeEncoding = const MessageCode(
   "Encoding",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.encoding],
+  pseudoSharedCode: PseudoSharedCode.encoding,
   problemMessage: r"""Unable to decode bytes as UTF-8.""",
 );
 
@@ -655,7 +656,7 @@ codeExpectedAfterButGot = const Template(
   problemMessageTemplate: r"""Expected '#string' after this.""",
   withArgumentsOld: _withArgumentsOldExpectedAfterButGot,
   withArguments: _withArgumentsExpectedAfterButGot,
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.expectedToken],
+  pseudoSharedCode: PseudoSharedCode.expectedToken,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -682,7 +683,7 @@ const MessageCode codeExpectedAnInitializer = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExpectedBody = const MessageCode(
   "ExpectedBody",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.missingFunctionBody],
+  pseudoSharedCode: PseudoSharedCode.missingFunctionBody,
   problemMessage: r"""Expected a function body or '=>'.""",
   correctionMessage: r"""Try adding {}.""",
 );
@@ -697,7 +698,7 @@ codeExpectedButGot = const Template(
   problemMessageTemplate: r"""Expected '#string' before this.""",
   withArgumentsOld: _withArgumentsOldExpectedButGot,
   withArguments: _withArgumentsExpectedButGot,
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.expectedToken],
+  pseudoSharedCode: PseudoSharedCode.expectedToken,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -741,7 +742,7 @@ codeExpectedClassMember = const Template(
   problemMessageTemplate: r"""Expected a class member, but got '#lexeme'.""",
   withArgumentsOld: _withArgumentsOldExpectedClassMember,
   withArguments: _withArgumentsExpectedClassMember,
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.expectedClassMember],
+  pseudoSharedCode: PseudoSharedCode.expectedClassMember,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -768,7 +769,7 @@ codeExpectedDeclaration = const Template(
   problemMessageTemplate: r"""Expected a declaration, but got '#lexeme'.""",
   withArgumentsOld: _withArgumentsOldExpectedDeclaration,
   withArguments: _withArgumentsExpectedDeclaration,
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.expectedExecutable],
+  pseudoSharedCode: PseudoSharedCode.expectedExecutable,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -804,7 +805,7 @@ codeExpectedEnumBody = const Template(
       r"""An enum definition must have a body with at least one constant name.""",
   withArgumentsOld: _withArgumentsOldExpectedEnumBody,
   withArguments: _withArgumentsExpectedEnumBody,
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.missingEnumBody],
+  pseudoSharedCode: PseudoSharedCode.missingEnumBody,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -860,7 +861,7 @@ codeExpectedFunctionBody = const Template(
   problemMessageTemplate: r"""Expected a function body, but got '#lexeme'.""",
   withArgumentsOld: _withArgumentsOldExpectedFunctionBody,
   withArguments: _withArgumentsExpectedFunctionBody,
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.missingFunctionBody],
+  pseudoSharedCode: PseudoSharedCode.missingFunctionBody,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -880,7 +881,7 @@ Message _withArgumentsOldExpectedFunctionBody(Token lexeme) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExpectedHexDigit = const MessageCode(
   "ExpectedHexDigit",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.missingHexDigit],
+  pseudoSharedCode: PseudoSharedCode.missingHexDigit,
   problemMessage: r"""A hex digit (0-9 or A-F) must follow '0x'.""",
 );
 
@@ -896,7 +897,7 @@ codeExpectedIdentifier = const Template(
       r"""Try inserting an identifier before '#lexeme'.""",
   withArgumentsOld: _withArgumentsOldExpectedIdentifier,
   withArguments: _withArgumentsExpectedIdentifier,
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.missingIdentifier],
+  pseudoSharedCode: PseudoSharedCode.missingIdentifier,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1000,7 +1001,7 @@ codeExpectedString = const Template(
   problemMessageTemplate: r"""Expected a String, but got '#lexeme'.""",
   withArgumentsOld: _withArgumentsOldExpectedString,
   withArguments: _withArgumentsExpectedString,
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.expectedStringLiteral],
+  pseudoSharedCode: PseudoSharedCode.expectedStringLiteral,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1045,7 +1046,7 @@ codeExpectedToken = const Template(
   problemMessageTemplate: r"""Expected to find '#string'.""",
   withArgumentsOld: _withArgumentsOldExpectedToken,
   withArguments: _withArgumentsExpectedToken,
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.expectedToken],
+  pseudoSharedCode: PseudoSharedCode.expectedToken,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1080,7 +1081,7 @@ codeExpectedType = const Template(
   problemMessageTemplate: r"""Expected a type, but got '#lexeme'.""",
   withArgumentsOld: _withArgumentsOldExpectedType,
   withArguments: _withArgumentsExpectedType,
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.expectedTypeName],
+  pseudoSharedCode: PseudoSharedCode.expectedTypeName,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1205,7 +1206,7 @@ const MessageCode codeExtensionDeclaresConstructor = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExtensionDeclaresInstanceField = const MessageCode(
   "ExtensionDeclaresInstanceField",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.extensionDeclaresInstanceField],
+  pseudoSharedCode: PseudoSharedCode.extensionDeclaresInstanceField,
   problemMessage: r"""Extensions can't declare instance fields""",
   correctionMessage:
       r"""Try removing the field declaration or making it a static field""",
@@ -1214,7 +1215,7 @@ const MessageCode codeExtensionDeclaresInstanceField = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExtensionTypeDeclaresAbstractMember = const MessageCode(
   "ExtensionTypeDeclaresAbstractMember",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.extensionTypeWithAbstractMember],
+  pseudoSharedCode: PseudoSharedCode.extensionTypeWithAbstractMember,
   problemMessage: r"""Extension types can't declare abstract members.""",
   correctionMessage: r"""Try providing an implementation for the member.""",
 );
@@ -1222,9 +1223,7 @@ const MessageCode codeExtensionTypeDeclaresAbstractMember = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExtensionTypeDeclaresInstanceField = const MessageCode(
   "ExtensionTypeDeclaresInstanceField",
-  analyzerCodes: <AnalyzerCode>[
-    AnalyzerCode.extensionTypeDeclaresInstanceField,
-  ],
+  pseudoSharedCode: PseudoSharedCode.extensionTypeDeclaresInstanceField,
   problemMessage: r"""Extension types can't declare instance fields""",
   correctionMessage:
       r"""Try removing the field declaration or making it a static field""",
@@ -1450,7 +1449,7 @@ Message _withArgumentsOldExtraneousModifierInPrimaryConstructor(Token lexeme) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeFactoryNotSync = const MessageCode(
   "FactoryNotSync",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.nonSyncFactory],
+  pseudoSharedCode: PseudoSharedCode.nonSyncFactory,
   problemMessage:
       r"""Factory bodies can't use 'async', 'async*', or 'sync*'.""",
 );
@@ -1474,6 +1473,7 @@ codeFastaCLIArgumentRequired = const Template(
   problemMessageTemplate: r"""Expected value after '#name'.""",
   withArgumentsOld: _withArgumentsOldFastaCLIArgumentRequired,
   withArguments: _withArgumentsFastaCLIArgumentRequired,
+  pseudoSharedCode: PseudoSharedCode.fastaCliArgumentRequired,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1558,7 +1558,7 @@ codeFinalFieldWithoutInitializer = const Template(
       r"""Try adding an initializer ('= expression') to the declaration.""",
   withArgumentsOld: _withArgumentsOldFinalFieldWithoutInitializer,
   withArguments: _withArgumentsFinalFieldWithoutInitializer,
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.finalNotInitialized],
+  pseudoSharedCode: PseudoSharedCode.finalNotInitialized,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1596,7 +1596,7 @@ const MessageCode codeFinalMixinClass = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeFunctionTypeDefaultValue = const MessageCode(
   "FunctionTypeDefaultValue",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.defaultValueInFunctionType],
+  pseudoSharedCode: PseudoSharedCode.defaultValueInFunctionType,
   problemMessage: r"""Can't have a default value in a function type.""",
 );
 
@@ -1612,7 +1612,7 @@ const MessageCode codeFunctionTypedParameterVar = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeGeneratorReturnsValue = const MessageCode(
   "GeneratorReturnsValue",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.returnInGenerator],
+  pseudoSharedCode: PseudoSharedCode.returnInGenerator,
   problemMessage: r"""'sync*' and 'async*' can't return a value.""",
 );
 
@@ -1627,7 +1627,7 @@ const MessageCode codeGetterConstructor = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeGetterWithFormals = const MessageCode(
   "GetterWithFormals",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.getterWithParameters],
+  pseudoSharedCode: PseudoSharedCode.getterWithParameters,
   problemMessage: r"""A getter can't have formal parameters.""",
   correctionMessage: r"""Try removing '(...)'.""",
 );
@@ -1816,6 +1816,7 @@ codeInternalProblemStackNotEmpty = const Template(
   #string""",
   withArgumentsOld: _withArgumentsOldInternalProblemStackNotEmpty,
   withArguments: _withArgumentsInternalProblemStackNotEmpty,
+  pseudoSharedCode: PseudoSharedCode.internalProblemStackNotEmpty,
   severity: CfeSeverity.internalProblem,
 );
 
@@ -1850,6 +1851,7 @@ codeInternalProblemUnhandled = const Template(
   problemMessageTemplate: r"""Unhandled #string in #string2.""",
   withArgumentsOld: _withArgumentsOldInternalProblemUnhandled,
   withArguments: _withArgumentsInternalProblemUnhandled,
+  pseudoSharedCode: PseudoSharedCode.internalProblemUnhandled,
   severity: CfeSeverity.internalProblem,
 );
 
@@ -1883,6 +1885,7 @@ codeInternalProblemUnsupported = const Template(
   problemMessageTemplate: r"""Unsupported operation: '#name'.""",
   withArgumentsOld: _withArgumentsOldInternalProblemUnsupported,
   withArguments: _withArgumentsInternalProblemUnsupported,
+  pseudoSharedCode: PseudoSharedCode.internalProblemUnsupported,
   severity: CfeSeverity.internalProblem,
 );
 
@@ -1903,7 +1906,7 @@ Message _withArgumentsOldInternalProblemUnsupported(String name) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeInterpolationInUri = const MessageCode(
   "InterpolationInUri",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.invalidLiteralInConfiguration],
+  pseudoSharedCode: PseudoSharedCode.invalidLiteralInConfiguration,
   problemMessage: r"""Can't use string interpolation in a URI.""",
 );
 
@@ -1920,7 +1923,7 @@ const MessageCode codeInvalidAwaitFor = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeInvalidCodePoint = const MessageCode(
   "InvalidCodePoint",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.invalidCodePoint],
+  pseudoSharedCode: PseudoSharedCode.invalidCodePoint,
   problemMessage:
       r"""The escape sequence starting with '\u' isn't a valid code point.""",
 );
@@ -2062,7 +2065,7 @@ const MessageCode codeInvalidInitializer = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeInvalidInlineFunctionType = const MessageCode(
   "InvalidInlineFunctionType",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.invalidInlineFunctionType],
+  pseudoSharedCode: PseudoSharedCode.invalidInlineFunctionType,
   problemMessage:
       r"""Inline function types cannot be used for parameters in a generic function type.""",
   correctionMessage:
@@ -2119,7 +2122,7 @@ const MessageCode codeInvalidSuperInInitializer = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeInvalidSyncModifier = const MessageCode(
   "InvalidSyncModifier",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.missingStarAfterSync],
+  pseudoSharedCode: PseudoSharedCode.missingStarAfterSync,
   problemMessage: r"""Invalid modifier 'sync'.""",
   correctionMessage: r"""Try replacing 'sync' with 'sync*'.""",
 );
@@ -2159,7 +2162,7 @@ const MessageCode codeInvalidUnicodeEscapeUStarted = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeInvalidVoid = const MessageCode(
   "InvalidVoid",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.expectedTypeName],
+  pseudoSharedCode: PseudoSharedCode.expectedTypeName,
   problemMessage: r"""Type 'void' can't be used here.""",
   correctionMessage:
       r"""Try removing 'void' keyword or replace it with 'var', 'final', or a type.""",
@@ -2326,7 +2329,7 @@ const MessageCode codeMissingConstFinalVarOrType = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeMissingExponent = const MessageCode(
   "MissingExponent",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.missingDigit],
+  pseudoSharedCode: PseudoSharedCode.missingDigit,
   problemMessage:
       r"""Numbers in exponential notation should always contain an exponent (an integer number with an optional sign).""",
   correctionMessage:
@@ -2345,7 +2348,7 @@ const MessageCode codeMissingExpressionInThrow = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeMissingFunctionParameters = const MessageCode(
   "MissingFunctionParameters",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.missingFunctionParameters],
+  pseudoSharedCode: PseudoSharedCode.missingFunctionParameters,
   problemMessage:
       r"""A function declaration needs an explicit list of parameters.""",
   correctionMessage:
@@ -2355,7 +2358,7 @@ const MessageCode codeMissingFunctionParameters = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeMissingMethodParameters = const MessageCode(
   "MissingMethodParameters",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.missingMethodParameters],
+  pseudoSharedCode: PseudoSharedCode.missingMethodParameters,
   problemMessage:
       r"""A method declaration needs an explicit list of parameters.""",
   correctionMessage:
@@ -2403,7 +2406,7 @@ const MessageCode codeMissingPrimaryConstructorParameters = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeMissingTypedefParameters = const MessageCode(
   "MissingTypedefParameters",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.missingTypedefParameters],
+  pseudoSharedCode: PseudoSharedCode.missingTypedefParameters,
   problemMessage: r"""A typedef needs an explicit list of parameters.""",
   correctionMessage: r"""Try adding a parameter list to the typedef.""",
 );
@@ -2507,7 +2510,7 @@ const MessageCode codeMultipleExtends = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeMultipleImplements = const MessageCode(
   "MultipleImplements",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.multipleImplementsClauses],
+  pseudoSharedCode: PseudoSharedCode.multipleImplementsClauses,
   problemMessage:
       r"""Each class definition can have at most one implements clause.""",
   correctionMessage:
@@ -2554,7 +2557,7 @@ const MessageCode codeMultipleWith = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNamedFunctionExpression = const MessageCode(
   "NamedFunctionExpression",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.namedFunctionExpression],
+  pseudoSharedCode: PseudoSharedCode.namedFunctionExpression,
   problemMessage: r"""A function expression can't have a name.""",
 );
 
@@ -2580,7 +2583,7 @@ codeNonAsciiIdentifier = const Template(
       r"""Try using an US-ASCII letter, a digit, '_' (an underscore), or '$' (a dollar sign).""",
   withArgumentsOld: _withArgumentsOldNonAsciiIdentifier,
   withArguments: _withArgumentsNonAsciiIdentifier,
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.illegalCharacter],
+  pseudoSharedCode: PseudoSharedCode.illegalCharacter,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2615,7 +2618,7 @@ codeNonAsciiWhitespace = const Template(
       r"""The non-ASCII space character #unicode can only be used in strings and comments.""",
   withArgumentsOld: _withArgumentsOldNonAsciiWhitespace,
   withArguments: _withArgumentsNonAsciiWhitespace,
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.illegalCharacter],
+  pseudoSharedCode: PseudoSharedCode.illegalCharacter,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2636,7 +2639,7 @@ Message _withArgumentsOldNonAsciiWhitespace(int unicode) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNonPartOfDirectiveInPart = const MessageCode(
   "NonPartOfDirectiveInPart",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.nonPartOfDirectiveInPart],
+  pseudoSharedCode: PseudoSharedCode.nonPartOfDirectiveInPart,
   problemMessage:
       r"""The part-of directive must be the only directive in a part.""",
   correctionMessage:
@@ -2766,7 +2769,7 @@ codePatternVariableDeclarationOutsideFunctionOrMethod = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codePositionalAfterNamedArgument = const MessageCode(
   "PositionalAfterNamedArgument",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.positionalAfterNamedArgument],
+  pseudoSharedCode: PseudoSharedCode.positionalAfterNamedArgument,
   problemMessage: r"""Place positional arguments before named arguments.""",
   correctionMessage:
       r"""Try moving the positional argument before the named arguments, or add a name to the argument.""",
@@ -2775,9 +2778,7 @@ const MessageCode codePositionalAfterNamedArgument = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codePositionalParameterWithEquals = const MessageCode(
   "PositionalParameterWithEquals",
-  analyzerCodes: <AnalyzerCode>[
-    AnalyzerCode.wrongSeparatorForPositionalParameter,
-  ],
+  pseudoSharedCode: PseudoSharedCode.wrongSeparatorForPositionalParameter,
   problemMessage:
       r"""Positional optional parameters can't use ':' to specify a default value.""",
   correctionMessage: r"""Try replacing ':' with '='.""",
@@ -2795,7 +2796,7 @@ const MessageCode codePrefixAfterCombinator = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codePrivateNamedParameter = const MessageCode(
   "PrivateNamedParameter",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.privateOptionalParameter],
+  pseudoSharedCode: PseudoSharedCode.privateOptionalParameter,
   problemMessage:
       r"""A named parameter can't start with an underscore ('_').""",
 );
@@ -2860,7 +2861,7 @@ const MessageCode codeRedirectionInNonFactory = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeRequiredParameterWithDefault = const MessageCode(
   "RequiredParameterWithDefault",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.namedParameterOutsideGroup],
+  pseudoSharedCode: PseudoSharedCode.namedParameterOutsideGroup,
   problemMessage: r"""Non-optional parameters can't have a default value.""",
   correctionMessage:
       r"""Try removing the default value or making the parameter optional.""",
@@ -2893,6 +2894,7 @@ const MessageCode codeSealedMixinClass = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeSetOrMapLiteralTooManyTypeArguments = const MessageCode(
   "SetOrMapLiteralTooManyTypeArguments",
+  pseudoSharedCode: PseudoSharedCode.setOrMapLiteralTooManyTypeArguments,
   problemMessage:
       r"""A set or map literal requires exactly one or two type arguments, respectively.""",
 );
@@ -2908,7 +2910,7 @@ const MessageCode codeSetterConstructor = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeSetterNotSync = const MessageCode(
   "SetterNotSync",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.invalidModifierOnSetter],
+  pseudoSharedCode: PseudoSharedCode.invalidModifierOnSetter,
   problemMessage: r"""Setters can't use 'async', 'async*', or 'sync*'.""",
 );
 
@@ -3032,7 +3034,7 @@ const MessageCode codeTypedefInClass = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeUnexpectedDollarInString = const MessageCode(
   "UnexpectedDollarInString",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.unexpectedDollarInString],
+  pseudoSharedCode: PseudoSharedCode.unexpectedDollarInString,
   problemMessage:
       r"""A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).""",
   correctionMessage: r"""Try adding a backslash (\) to escape the '$'.""",
@@ -3041,7 +3043,7 @@ const MessageCode codeUnexpectedDollarInString = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeUnexpectedSeparatorInNumber = const MessageCode(
   "UnexpectedSeparatorInNumber",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.unexpectedSeparatorInNumber],
+  pseudoSharedCode: PseudoSharedCode.unexpectedSeparatorInNumber,
   problemMessage:
       r"""Digit separators ('_') in a number literal can only be placed between two digits.""",
   correctionMessage: r"""Try removing the '_'.""",
@@ -3057,7 +3059,7 @@ codeUnexpectedToken = const Template(
   problemMessageTemplate: r"""Unexpected token '#lexeme'.""",
   withArgumentsOld: _withArgumentsOldUnexpectedToken,
   withArguments: _withArgumentsUnexpectedToken,
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.unexpectedToken],
+  pseudoSharedCode: PseudoSharedCode.unexpectedToken,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3091,7 +3093,7 @@ codeUnmatchedToken = const Template(
   problemMessageTemplate: r"""Can't find '#string' to match '#lexeme'.""",
   withArgumentsOld: _withArgumentsOldUnmatchedToken,
   withArguments: _withArgumentsUnmatchedToken,
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.expectedToken],
+  pseudoSharedCode: PseudoSharedCode.expectedToken,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3122,6 +3124,7 @@ codeUnspecified = const Template(
   problemMessageTemplate: r"""#string""",
   withArgumentsOld: _withArgumentsOldUnspecified,
   withArguments: _withArgumentsUnspecified,
+  pseudoSharedCode: PseudoSharedCode.unspecified,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3148,7 +3151,7 @@ codeUnsupportedOperator = const Template(
   problemMessageTemplate: r"""The '#lexeme' operator is not supported.""",
   withArgumentsOld: _withArgumentsOldUnsupportedOperator,
   withArguments: _withArgumentsUnsupportedOperator,
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.unsupportedOperator],
+  pseudoSharedCode: PseudoSharedCode.unsupportedOperator,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3168,7 +3171,7 @@ Message _withArgumentsOldUnsupportedOperator(Token lexeme) =>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeUnsupportedPrefixPlus = const MessageCode(
   "UnsupportedPrefixPlus",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.missingIdentifier],
+  pseudoSharedCode: PseudoSharedCode.missingIdentifier,
   problemMessage: r"""'+' is not a prefix operator.""",
   correctionMessage: r"""Try removing '+'.""",
 );
@@ -3176,7 +3179,7 @@ const MessageCode codeUnsupportedPrefixPlus = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeUnterminatedComment = const MessageCode(
   "UnterminatedComment",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.unterminatedMultiLineComment],
+  pseudoSharedCode: PseudoSharedCode.unterminatedMultiLineComment,
   problemMessage: r"""Comment starting with '/*' must end with '*/'.""",
 );
 
@@ -3191,7 +3194,7 @@ codeUnterminatedString = const Template(
       r"""String starting with #string must end with #string2.""",
   withArgumentsOld: _withArgumentsOldUnterminatedString,
   withArguments: _withArgumentsUnterminatedString,
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.unterminatedStringLiteral],
+  pseudoSharedCode: PseudoSharedCode.unterminatedStringLiteral,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3259,7 +3262,7 @@ const MessageCode codeWithBeforeExtends = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeYieldAsIdentifier = const MessageCode(
   "YieldAsIdentifier",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.asyncKeywordUsedAsIdentifier],
+  pseudoSharedCode: PseudoSharedCode.asyncKeywordUsedAsIdentifier,
   problemMessage:
       r"""'yield' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.""",
 );
@@ -3267,14 +3270,15 @@ const MessageCode codeYieldAsIdentifier = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeYieldNotGenerator = const MessageCode(
   "YieldNotGenerator",
-  analyzerCodes: <AnalyzerCode>[AnalyzerCode.yieldInNonGenerator],
+  pseudoSharedCode: PseudoSharedCode.yieldInNonGenerator,
   problemMessage:
       r"""'yield' can only be used in 'sync*' or 'async*' methods.""",
 );
 
-/// Enum containing analyzer error codes referenced by [Code.analyzerCodes].
-enum AnalyzerCode {
+/// Enum containing analyzer error codes referenced by [Code.pseudoSharedCode].
+enum PseudoSharedCode {
   abstractExtensionField,
+  assertAsExpression,
   asyncForInWrongContext,
   asyncKeywordUsedAsIdentifier,
   awaitInWrongContext,
@@ -3292,9 +3296,13 @@ enum AnalyzerCode {
   extensionDeclaresInstanceField,
   extensionTypeDeclaresInstanceField,
   extensionTypeWithAbstractMember,
+  fastaCliArgumentRequired,
   finalNotInitialized,
   getterWithParameters,
   illegalCharacter,
+  internalProblemStackNotEmpty,
+  internalProblemUnhandled,
+  internalProblemUnsupported,
   invalidCodePoint,
   invalidInlineFunctionType,
   invalidLiteralInConfiguration,
@@ -3317,9 +3325,11 @@ enum AnalyzerCode {
   positionalAfterNamedArgument,
   privateOptionalParameter,
   returnInGenerator,
+  setOrMapLiteralTooManyTypeArguments,
   unexpectedDollarInString,
   unexpectedSeparatorInNumber,
   unexpectedToken,
+  unspecified,
   unsupportedOperator,
   unterminatedMultiLineComment,
   unterminatedStringLiteral,

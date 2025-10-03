@@ -169,9 +169,3 @@ _fe_analyzer_shared/ConstAndFinal/declaration3: hasOnlyUnrelatedMessages # maybe
 _fe_analyzer_shared/ConstAndFinal/declaration4: hasOnlyUnrelatedMessages # maybe the parser should do better here - it seems it once did?
 _fe_analyzer_shared/ConstAndFinal/part_wrapped_declaration3: hasOnlyUnrelatedMessages # maybe the parser should do better here - it seems it once did?
 _fe_analyzer_shared/ConstAndFinal/part_wrapped_declaration4: hasOnlyUnrelatedMessages # maybe the parser should do better here - it seems it once did?
-
-# Missing analyzer codes.
-front_end/AssertAsExpression/analyzerCode: missingAnalyzerCode
-front_end/FastaCLIArgumentRequired/analyzerCode: missingAnalyzerCode
-front_end/SetOrMapLiteralTooManyTypeArguments/analyzerCode: missingAnalyzerCode
-front_end/Unspecified/analyzerCode: missingAnalyzerCode

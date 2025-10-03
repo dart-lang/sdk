@@ -858,7 +858,7 @@ enum ErrorCodeParameterType {
 /// In-memory representation of error code information obtained from the file
 /// `pkg/front_end/messages.yaml`.
 class FrontEndErrorCodeInfo extends CfeStyleErrorCodeInfo {
-  /// Whether the error code contains a `pseudoShared: true` property in
+  /// The value of the `pseudoSharedCode` property in
   /// `pkg/front_end/messages.yaml`.
   ///
   /// Messages with this property set are not shared; they have separately
@@ -868,15 +868,13 @@ class FrontEndErrorCodeInfo extends CfeStyleErrorCodeInfo {
   /// into the associated analyzer error using [FastaErrorReporter].
   // TODO(paulberry): migrate all pseudo-shared error codes to shared error
   // codes.
-  final bool pseudoShared;
+  final String? pseudoSharedCode;
 
   FrontEndErrorCodeInfo.fromYaml(super.yaml)
-    : pseudoShared = (yaml['pseudoShared'] as bool?) ?? false,
+    : pseudoSharedCode = yaml['pseudoSharedCode'] as String?,
       super.fromYaml() {
-    if (!pseudoShared && analyzerCodes.isNotEmpty) {
-      throw StateError(
-        'Only shared and pseudo-shared messages can have analyzer codes',
-      );
+    if (analyzerCodes.isNotEmpty) {
+      throw StateError('Only shared messages can have analyzer codes');
     }
     if (index != null) {
       throw StateError('Non-shared messages must not have an index');

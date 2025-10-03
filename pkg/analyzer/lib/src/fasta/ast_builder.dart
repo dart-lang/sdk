@@ -31,7 +31,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         codeExperimentNotEnabled,
         codeExtraneousModifier,
         codeInternalProblemUnhandled,
-        AnalyzerCode;
+        PseudoSharedCode;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show
         Assert,
@@ -223,10 +223,8 @@ class AstBuilder extends StackListener {
     List<LocatedMessage>? context,
   }) {
     if (directives.isEmpty &&
-        (message.code.analyzerCodes?.contains(
-              AnalyzerCode.nonPartOfDirectiveInPart,
-            ) ??
-            false)) {
+        message.code.pseudoSharedCode ==
+            PseudoSharedCode.nonPartOfDirectiveInPart) {
       message = codeDirectiveAfterDeclaration;
     }
     diagnosticReporter.reportMessage(message, charOffset, length);
@@ -5632,7 +5630,7 @@ class AstBuilder extends StackListener {
       if (isDartLibrary) return;
     }
     debugEvent("Error: ${message.problemMessage}");
-    if (message.code.analyzerCodes == null && startToken is ErrorToken) {
+    if (message.code.pseudoSharedCode == null && startToken is ErrorToken) {
       translateErrorToken(startToken, diagnosticReporter.reportScannerError);
     } else {
       int offset = startToken.offset;
