@@ -2558,12 +2558,12 @@ void f() {
 replacement
   left: 4
 suggestions
+  true
+    kind: keyword
   falsetrue
     kind: topLevelVariable
   truefalse
     kind: topLevelVariable
-  true
-    kind: keyword
 ''');
   }
 
@@ -4726,12 +4726,12 @@ class D {f(){} g(){f^(f);}}
 replacement
   left: 1
 suggestions
+  f
+    kind: methodInvocation
   if
     kind: keyword
   final
     kind: keyword
-  f
-    kind: methodInvocation
   for
     kind: keyword
   false
@@ -5176,6 +5176,8 @@ class Bar<T extends Foo> {const Bar(T k);T^ m(T a, T b){}final T f = null;}
 replacement
   left: 1
 suggestions
+  T
+    kind: typeParameter
   static
     kind: keyword
   const
@@ -5184,8 +5186,6 @@ suggestions
     kind: keyword
   factory
     kind: keyword
-  T
-    kind: typeParameter
   covariant
     kind: keyword
   get
@@ -8495,10 +8495,10 @@ void f(p) {
 replacement
   left: 3
 suggestions
-  str
-    kind: localVariable
   STR
     kind: topLevelVariable
+  str
+    kind: localVariable
 ''');
   }
 
@@ -8517,12 +8517,12 @@ void f(p) {
 replacement
   left: 3
 suggestions
+  STR
+    kind: topLevelVariable
   str
     kind: localVariable
   String
     kind: class
-  STR
-    kind: topLevelVariable
   String.fromCharCode
     kind: constructorInvocation
   String.fromCharCodes

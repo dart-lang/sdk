@@ -40,11 +40,17 @@ class RelevanceComputer {
   /// computed. In the latter case, [_hasContainingMemberName] will be `false`.
   String? _cachedContainingMemberName;
 
+  /// The already typed string at the completion location, maybe empty.
+  /// See [DartCompletionRequest.targetPrefix].
+  /// It is used to inflate the relevance of perfect matches to `1.0`.
+  final String targetPrefix;
+  late final String targetPrefixLower = targetPrefix.toLowerCase();
+
   /// A textual representation of the location at which completion was
   /// requested.
   String? completionLocation;
 
-  RelevanceComputer(this.request, this.listener)
+  RelevanceComputer(this.request, this.listener, {required this.targetPrefix})
     : featureComputer = request.featureComputer;
 
   /// Return the name of the member containing the completion location, or
@@ -101,6 +107,16 @@ class RelevanceComputer {
 
   /// Compute the relevance for the given [CandidateSuggestion].
   int computeRelevance(CandidateSuggestion suggestion) {
+    // See https://github.com/dart-lang/sdk/issues/61679
+    // We have two checks to distinguish prefix `str` or `STR` when
+    // candidates are also `str` or `STR`. We want to prefer the same case.
+    if (_isExactPrefixMatch(suggestion)) {
+      return maximumRelevance;
+    }
+    if (_isExactPrefixMatchToLower(suggestion)) {
+      return maximumRelevance - 1;
+    }
+
     var neverType = request.libraryElement.typeProvider.neverType;
     switch (suggestion) {
       case TypedSuggestionCompletionMixin():
@@ -745,5 +761,15 @@ class RelevanceComputer {
       typeArguments: typeArguments,
       nullabilitySuffix: NullabilitySuffix.none,
     );
+  }
+
+  bool _isExactPrefixMatch(CandidateSuggestion suggestion) {
+    return targetPrefixLower.isNotEmpty &&
+        suggestion.completion == targetPrefix;
+  }
+
+  bool _isExactPrefixMatchToLower(CandidateSuggestion suggestion) {
+    return targetPrefixLower.isNotEmpty &&
+        suggestion.completion.toLowerCase() == targetPrefixLower;
   }
 }

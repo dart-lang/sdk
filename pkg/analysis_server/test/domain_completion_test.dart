@@ -1257,6 +1257,49 @@ suggestions
 ''');
   }
 
+  Future<void> test_numResults_includesLocalVariable() async {
+    await _configureWithWorkspaceRoot();
+
+    // Create many imported declarations to exceed the maxResults cap.
+    newFile(
+      '$testPackageLibPath/a.dart',
+      [
+        for (var i = 1; i <= 50; i++) 'class C$i {}',
+        for (var i = 1; i <= 50; i++) 'void f$i() {}',
+        for (var i = 1; i <= 50; i++) 'var v$i = $i;',
+      ].join('\n'),
+    );
+
+    // No prefix, no filtering.
+    // Local variables 'foo0*' must be included.
+    var response = await _getTestCodeSuggestions('''
+import 'a.dart';
+void f() {
+  var foo01 = 0;
+  var foo02 = 0;
+  ^
+}
+''', maxResults: 10);
+
+    // Only include local variables to keep the result stable.
+    printerConfiguration.filter = (suggestion) {
+      return suggestion.completion.startsWith('foo0');
+    };
+
+    // Note the variables order: the closer, the higher.
+    assertResponseText(response, r'''
+suggestions
+  foo02
+    kind: localVariable
+    isNotImported: null
+    libraryUri: null
+  foo01
+    kind: localVariable
+    isNotImported: null
+    libraryUri: null
+''');
+  }
+
   Future<void> test_numResults_topLevelVariables() async {
     await _configureWithWorkspaceRoot();
 
@@ -2025,16 +2068,16 @@ void f() {
 replacement
   left: 4
 suggestions
-  foo01
-    kind: topLevelVariable
-    isNotImported: null
-    libraryUri: null
-    relevance: 510
   foo02
     kind: topLevelVariable
     isNotImported: null
     libraryUri: null
     relevance: 558
+  foo01
+    kind: topLevelVariable
+    isNotImported: null
+    libraryUri: null
+    relevance: 510
 ''');
   }
 
