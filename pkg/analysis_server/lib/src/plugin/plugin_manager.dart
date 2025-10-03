@@ -551,9 +551,7 @@ class PluginManager {
         buffer.writeln('  exitCode = ${pubResult.exitCode}');
         buffer.writeln('  stdout = ${pubResult.stdout}');
         buffer.writeln('  stderr = ${pubResult.stderr}');
-        exceptionReason = buffer.toString();
-        instrumentationService.logError(exceptionReason);
-        _notificationManager.handlePluginError(exceptionReason);
+        throw PluginException(buffer.toString());
       }
       if (!packageConfigFile.exists) {
         exceptionReason ??= 'File "${packageConfigFile.path}" does not exist.';
