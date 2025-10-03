@@ -198,7 +198,7 @@ class MessageTestSuite extends ChainContext {
       bool includeErrorContext = false;
       List<Example> examples = <Example>[];
       String? externalTest;
-      List<String>? analyzerCodes;
+      String? analyzerCode;
       CfeSeverity? severity;
       YamlNode? badSeverity;
       YamlNode? unnecessarySeverity;
@@ -325,9 +325,12 @@ class MessageTestSuite extends ChainContext {
             break;
 
           case "analyzerCode":
-            analyzerCodes = value is String
-                ? <String>[value]
-                : new List<String>.from(value);
+            if (value is! String) {
+              throw new ArgumentError(
+                'analyzerCode should be a string: $value',
+              );
+            }
+            analyzerCode = value;
             if (!analyzerCodeRequired) {
               throw new ArgumentError(
                 'analyzerCode not allowed in package ${json.encode(package)}',
@@ -706,7 +709,7 @@ class MessageTestSuite extends ChainContext {
         createDescription(
           "analyzerCode",
           null,
-          analyzerCodeRequired && analyzerCodes == null
+          analyzerCodeRequired && analyzerCode == null
               ? (
                   expectation: KnownExpectation.missingAnalyzerCode,
                   message:

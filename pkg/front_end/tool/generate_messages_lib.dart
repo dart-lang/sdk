@@ -168,7 +168,6 @@ class _TemplateCompiler {
   final int? index;
   final String problemMessage;
   final String? correctionMessage;
-  final List<AnalyzerCode> analyzerCodes;
   final String? severity;
   final Map<String, ErrorCodeParameter> parameters;
   final String? pseudoSharedCode;
@@ -199,7 +198,6 @@ class _TemplateCompiler {
     required this.pseudoSharedCodeValues,
   }) : problemMessage = errorCodeInfo.problemMessage,
        correctionMessage = errorCodeInfo.correctionMessage,
-       analyzerCodes = errorCodeInfo.analyzerCodes,
        severity = errorCodeInfo.cfeSeverity,
        parameters = errorCodeInfo.parameters,
        pseudoSharedCode = errorCodeInfo is FrontEndErrorCodeInfo
