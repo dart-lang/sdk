@@ -38,7 +38,7 @@ ExtensionOverride
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -49,7 +49,7 @@ ExtensionOverride
         correspondingParameter: <null>
         staticType: int
     rightParenthesis: )
-  element2: <testLibrary>::@extension::E
+  element: <testLibrary>::@extension::E
   extendedType: int
   staticType: null
 ''');
@@ -78,7 +78,7 @@ ExtensionOverride
     arguments
       NamedType
         name: bool
-        element2: dart:core::@class::bool
+        element: dart:core::@class::bool
         type: bool
     rightBracket: >
   argumentList: ArgumentList
@@ -89,7 +89,7 @@ ExtensionOverride
         correspondingParameter: <null>
         staticType: int
     rightParenthesis: )
-  element2: <testLibrary>::@extension::E
+  element: <testLibrary>::@extension::E
   extendedType: int
   staticType: null
   typeArgumentTypes
@@ -121,11 +121,11 @@ ExtensionOverride
     arguments
       NamedType
         name: bool
-        element2: dart:core::@class::bool
+        element: dart:core::@class::bool
         type: bool
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -136,7 +136,7 @@ ExtensionOverride
         correspondingParameter: <null>
         staticType: int
     rightParenthesis: )
-  element2: <testLibrary>::@extension::E
+  element: <testLibrary>::@extension::E
   extendedType: int
   staticType: null
   typeArgumentTypes

@@ -52,9 +52,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: package:test/a.dart::@class::A::@setter::_foo::@formalParameter::value
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: package:test/a.dart::@class::A::@setter::_foo
+  writeElement: package:test/a.dart::@class::A::@setter::_foo
   writeType: int
   element: <null>
   staticType: int
@@ -113,9 +113,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: package:test/a.dart::@class::A::@setter::_foo::@formalParameter::_
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: package:test/a.dart::@class::A::@setter::_foo
+  writeElement: package:test/a.dart::@class::A::@setter::_foo
   writeType: int
   element: <null>
   staticType: int
@@ -159,9 +159,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: package:test/a.dart::@class::A::@setter::_foo::@formalParameter::_
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: package:test/a.dart::@class::A::@setter::_foo
+  writeElement: package:test/a.dart::@class::A::@setter::_foo
   writeType: int
   element: <null>
   staticType: int

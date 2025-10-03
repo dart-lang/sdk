@@ -40,7 +40,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: M
-      element2: <testLibrary>::@mixin::M
+      element: <testLibrary>::@mixin::M
       type: M
     period: .
     name: SimpleIdentifier
@@ -74,7 +74,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: M
-      element2: <testLibrary>::@mixin::M
+      element: <testLibrary>::@mixin::M
       type: M
     element: <null>
   argumentList: ArgumentList

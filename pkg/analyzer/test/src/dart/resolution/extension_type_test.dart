@@ -32,7 +32,7 @@ ExtensionTypeDeclaration
     leftParenthesis: (
     fieldType: NamedType
       name: int
-      element2: dart:core::@class::int
+      element: dart:core::@class::int
       type: int
     fieldName: it
     rightParenthesis: )
@@ -61,7 +61,7 @@ ExtensionTypeDeclaration
     leftParenthesis: (
     fieldType: NamedType
       name: int
-      element2: dart:core::@class::int
+      element: dart:core::@class::int
       type: int
     fieldName: it
     rightParenthesis: )
@@ -113,7 +113,7 @@ ExtensionTypeDeclaration
     leftParenthesis: (
     fieldType: NamedType
       name: num
-      element2: dart:core::@class::num
+      element: dart:core::@class::num
       type: num
     fieldName: it
     rightParenthesis: )
@@ -134,7 +134,7 @@ ExtensionTypeDeclaration
         parameter: SimpleFormalParameter
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredElement: <testLibraryFragment> a@47
@@ -178,7 +178,7 @@ ExtensionTypeDeclaration
     leftParenthesis: (
     fieldType: NamedType
       name: int
-      element2: dart:core::@class::int
+      element: dart:core::@class::int
       type: int
     fieldName: it
     rightParenthesis: )
@@ -205,7 +205,7 @@ ExtensionTypeDeclaration
     leftParenthesis: (
     fieldType: NamedType
       name: int
-      element2: dart:core::@class::int
+      element: dart:core::@class::int
       type: int
     fieldName: it
     rightParenthesis: )
@@ -216,7 +216,7 @@ ExtensionTypeDeclaration
     interfaces
       NamedType
         name: num
-        element2: dart:core::@class::num
+        element: dart:core::@class::num
         type: num
   leftBracket: {
   rightBracket: }
@@ -239,7 +239,7 @@ extension type A<T>(int it) {
 MethodDeclaration
   returnType: NamedType
     name: void
-    element2: <null>
+    element: <null>
     type: void
   name: foo
   typeParameters: TypeParameterList
@@ -255,7 +255,7 @@ MethodDeclaration
     parameter: SimpleFormalParameter
       type: NamedType
         name: T
-        element2: #E0 T
+        element: #E0 T
         type: T
       name: t
       declaredElement: <testLibraryFragment> t@46
@@ -264,7 +264,7 @@ MethodDeclaration
     parameter: SimpleFormalParameter
       type: NamedType
         name: U
-        element2: #E1 U
+        element: #E1 U
         type: U
       name: u
       declaredElement: <testLibraryFragment> u@51
@@ -326,14 +326,14 @@ ExtensionTypeDeclaration
         arguments
           NamedType
             name: T
-            element2: #E0 T
+            element: #E0 T
             type: T
           NamedType
             name: U
-            element2: #E1 U
+            element: #E1 U
             type: U
         rightBracket: >
-      element2: dart:core::@class::Map
+      element: dart:core::@class::Map
       type: Map<T, U>
     fieldName: it
     rightParenthesis: )
@@ -372,7 +372,7 @@ ExtensionTypeDeclaration
         extendsKeyword: extends
         bound: NamedType
           name: num
-          element2: dart:core::@class::num
+          element: dart:core::@class::num
           type: num
         declaredElement: <testLibraryFragment> _@24
           defaultType: num
@@ -381,7 +381,7 @@ ExtensionTypeDeclaration
     leftParenthesis: (
     fieldType: NamedType
       name: int
-      element2: dart:core::@class::int
+      element: dart:core::@class::int
       type: int
     fieldName: _
     rightParenthesis: )

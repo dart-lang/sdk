@@ -99,7 +99,7 @@ class SuggestionCollector {
     // score.
     suggestions.sort((first, second) {
       if (first.matcherScore == second.matcherScore) {
-        return first.relevanceScore.compareTo(second.relevanceScore);
+        return second.relevanceScore.compareTo(first.relevanceScore);
       }
       return second.matcherScore.compareTo(first.matcherScore);
     });

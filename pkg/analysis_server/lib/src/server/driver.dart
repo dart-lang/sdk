@@ -659,6 +659,7 @@ class Driver implements ServerStarter {
       'use-new-relevance',
       'use-fasta-parser',
       DISABLE_FILE_BYTE_STORE,
+      WITH_FINE_DEPENDENCIES,
     ];
     return knownArguments
         .where((argument) => results.wasParsed(argument))

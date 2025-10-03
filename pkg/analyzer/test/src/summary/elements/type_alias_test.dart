@@ -67,7 +67,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @79
                 rightParenthesis: ) @80
-              element2: dart:core::@class::Object::@constructor::new
+              element: dart:core::@class::Object::@constructor::new
         #F4 AnnotationThenComment (nameOffset:156) (firstTokenOffset:108) (offset:156)
           element: <testLibrary>::@typeAlias::AnnotationThenComment
           documentationComment: /// Comment 1.\n/// Comment 2.
@@ -81,7 +81,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @115
                 rightParenthesis: ) @116
-              element2: dart:core::@class::Object::@constructor::new
+              element: dart:core::@class::Object::@constructor::new
         #F5 CommentThenAnnotation (nameOffset:230) (firstTokenOffset:182) (offset:230)
           element: <testLibrary>::@typeAlias::CommentThenAnnotation
           documentationComment: /// Comment 1.\n/// Comment 2.
@@ -95,7 +95,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @219
                 rightParenthesis: ) @220
-              element2: dart:core::@class::Object::@constructor::new
+              element: dart:core::@class::Object::@constructor::new
         #F6 CommentAroundAnnotation (nameOffset:304) (firstTokenOffset:271) (offset:304)
           element: <testLibrary>::@typeAlias::CommentAroundAnnotation
           documentationComment: /// Comment 2.
@@ -109,7 +109,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @278
                 rightParenthesis: ) @279
-              element2: dart:core::@class::Object::@constructor::new
+              element: dart:core::@class::Object::@constructor::new
   typeAliases
     Raw
       reference: <testLibrary>::@typeAlias::Raw
@@ -133,7 +133,7 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @79
             rightParenthesis: ) @80
-          element2: dart:core::@class::Object::@constructor::new
+          element: dart:core::@class::Object::@constructor::new
       aliasedType: dynamic Function()
     AnnotationThenComment
       reference: <testLibrary>::@typeAlias::AnnotationThenComment
@@ -149,7 +149,7 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @115
             rightParenthesis: ) @116
-          element2: dart:core::@class::Object::@constructor::new
+          element: dart:core::@class::Object::@constructor::new
       aliasedType: dynamic Function()
     CommentThenAnnotation
       reference: <testLibrary>::@typeAlias::CommentThenAnnotation
@@ -165,7 +165,7 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @219
             rightParenthesis: ) @220
-          element2: dart:core::@class::Object::@constructor::new
+          element: dart:core::@class::Object::@constructor::new
       aliasedType: dynamic Function()
     CommentAroundAnnotation
       reference: <testLibrary>::@typeAlias::CommentAroundAnnotation
@@ -181,7 +181,7 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @278
             rightParenthesis: ) @279
-          element2: dart:core::@class::Object::@constructor::new
+          element: dart:core::@class::Object::@constructor::new
       aliasedType: dynamic Function()
 ''');
   }
@@ -237,7 +237,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @101
                 rightParenthesis: ) @102
-              element2: dart:core::@class::Object::@constructor::new
+              element: dart:core::@class::Object::@constructor::new
         #F4 AnnotationThenComment (nameOffset:189) (firstTokenOffset:141) (offset:189)
           element: <testLibrary>::@typeAlias::AnnotationThenComment
           documentationComment: /// Comment 1.\n/// Comment 2.
@@ -251,7 +251,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @148
                 rightParenthesis: ) @149
-              element2: dart:core::@class::Object::@constructor::new
+              element: dart:core::@class::Object::@constructor::new
         #F5 CommentThenAnnotation (nameOffset:274) (firstTokenOffset:226) (offset:274)
           element: <testLibrary>::@typeAlias::CommentThenAnnotation
           documentationComment: /// Comment 1.\n/// Comment 2.
@@ -265,7 +265,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @263
                 rightParenthesis: ) @264
-              element2: dart:core::@class::Object::@constructor::new
+              element: dart:core::@class::Object::@constructor::new
         #F6 CommentAroundAnnotation (nameOffset:359) (firstTokenOffset:326) (offset:359)
           element: <testLibrary>::@typeAlias::CommentAroundAnnotation
           documentationComment: /// Comment 2.
@@ -279,7 +279,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @333
                 rightParenthesis: ) @334
-              element2: dart:core::@class::Object::@constructor::new
+              element: dart:core::@class::Object::@constructor::new
   typeAliases
     Raw
       reference: <testLibrary>::@typeAlias::Raw
@@ -303,7 +303,7 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @101
             rightParenthesis: ) @102
-          element2: dart:core::@class::Object::@constructor::new
+          element: dart:core::@class::Object::@constructor::new
       aliasedType: dynamic Function()
     AnnotationThenComment
       reference: <testLibrary>::@typeAlias::AnnotationThenComment
@@ -319,7 +319,7 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @148
             rightParenthesis: ) @149
-          element2: dart:core::@class::Object::@constructor::new
+          element: dart:core::@class::Object::@constructor::new
       aliasedType: dynamic Function()
     CommentThenAnnotation
       reference: <testLibrary>::@typeAlias::CommentThenAnnotation
@@ -335,7 +335,7 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @263
             rightParenthesis: ) @264
-          element2: dart:core::@class::Object::@constructor::new
+          element: dart:core::@class::Object::@constructor::new
       aliasedType: dynamic Function()
     CommentAroundAnnotation
       reference: <testLibrary>::@typeAlias::CommentAroundAnnotation
@@ -351,7 +351,7 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @333
             rightParenthesis: ) @334
-          element2: dart:core::@class::Object::@constructor::new
+          element: dart:core::@class::Object::@constructor::new
       aliasedType: dynamic Function()
 ''');
   }

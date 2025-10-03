@@ -190,7 +190,7 @@ LogicalOrPattern
     keyword: final
     type: NamedType
       name: int
-      element2: dart:core::@class::int
+      element: dart:core::@class::int
       type: int
     name: a
     declaredFragment: isFinal isPublic a@39
@@ -260,7 +260,7 @@ LogicalOrPattern
       keyword: final
       type: NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       name: a
       declaredFragment: isFinal isPublic a@39
@@ -305,7 +305,7 @@ LogicalOrPattern
       keyword: final
       type: NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       name: a
       declaredFragment: isFinal isPublic a@39
@@ -317,7 +317,7 @@ LogicalOrPattern
       keyword: final
       type: NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       name: a
       declaredFragment: isFinal isPublic a@54
@@ -403,7 +403,7 @@ LogicalOrPattern
       keyword: final
       type: NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       name: a
       declaredFragment: isFinal isPublic a@39
@@ -422,7 +422,7 @@ LogicalOrPattern
     keyword: final
     type: NamedType
       name: int
-      element2: dart:core::@class::int
+      element: dart:core::@class::int
       type: int
     name: a
     declaredFragment: isFinal isPublic a@59
@@ -460,7 +460,7 @@ LogicalOrPattern
       keyword: final
       type: NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       name: a
       declaredFragment: isFinal isPublic a@44
@@ -624,7 +624,7 @@ LogicalOrPattern
     keyword: final
     type: NamedType
       name: int
-      element2: dart:core::@class::int
+      element: dart:core::@class::int
       type: int
     name: a
     declaredFragment: isFinal isPublic a@50

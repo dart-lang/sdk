@@ -1503,13 +1503,16 @@ sealed class AstNodeImpl implements AstNode {
           lastToken?.next = token;
           token.previous = lastToken;
           lastToken = token;
-        case NodeListImpl nodeList:
+        case List<Token> tokenList:
           // Push in reverse order, so process in source order.
-          stack.addAll(nodeList.reversed);
+          stack.addAll(tokenList.reversed);
         case AstNodeImpl node:
           // Push in reverse order, so process in source order.
           var entities = node._childEntities.entities;
           stack.addAll(entities.reversed.map((e) => e.value));
+        case NodeListImpl nodeList:
+          // Push in reverse order, so process in source order.
+          stack.addAll(nodeList.reversed);
         default:
           throw UnimplementedError('${entity.runtimeType}');
       }

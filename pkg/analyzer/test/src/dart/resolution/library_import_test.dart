@@ -224,7 +224,7 @@ CompilationUnit
               constructorName: ConstructorName
                 type: NamedType
                   name: A
-                  element2: package:test/a.dart::@class::A
+                  element: package:test/a.dart::@class::A
                   type: A
                 element: package:test/a.dart::@class::A::@constructor::new
               argumentList: ArgumentList
@@ -324,7 +324,7 @@ CompilationUnit
               constructorName: ConstructorName
                 type: NamedType
                   name: A
-                  element2: package:test/a_html.dart::@class::A
+                  element: package:test/a_html.dart::@class::A
                   type: A
                 element: package:test/a_html.dart::@class::A::@constructor::new
               argumentList: ArgumentList
@@ -546,7 +546,7 @@ CompilationUnit
               constructorName: ConstructorName
                 type: NamedType
                   name: A
-                  element2: package:test/a_io.dart::@class::A
+                  element: package:test/a_io.dart::@class::A
                   type: A
                 element: package:test/a_io.dart::@class::A::@constructor::new
               argumentList: ArgumentList

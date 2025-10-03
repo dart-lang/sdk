@@ -101,7 +101,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: C
-      element2: <testLibrary>::@class::C
+      element: <testLibrary>::@class::C
       type: C<dynamic>
     element: ConstructorMember
       baseElement: <testLibrary>::@class::C::@constructor::new

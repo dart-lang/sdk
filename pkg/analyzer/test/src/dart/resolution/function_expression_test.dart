@@ -37,10 +37,10 @@ FunctionExpression
             arguments
               NamedType
                 name: T
-                element2: #E0 T
+                element: #E0 T
                 type: T
             rightBracket: >
-          element2: dart:core::@class::List
+          element: dart:core::@class::List
           type: List<T>
         declaredElement: <testLibraryFragment> T@14
           defaultType: List<dynamic>
@@ -77,7 +77,7 @@ FunctionExpression
         extendsKeyword: extends
         bound: NamedType
           name: num
-          element2: dart:core::@class::num
+          element: dart:core::@class::num
           type: num
         declaredElement: <testLibraryFragment> T@14
           defaultType: num

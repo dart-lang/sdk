@@ -2529,7 +2529,7 @@ library
               constructorName: ConstructorName
                 type: NamedType
                   name: A @45
-                  element2: <testLibrary>::@class::A
+                  element: <testLibrary>::@class::A
                   type: A<int>
                 element: ConstructorMember
                   baseElement: <testLibrary>::@class::A::@constructor::new
@@ -2876,7 +2876,7 @@ library
                 token: a1 @18
                 element: package:test/a.dart::@getter::a1
                 staticType: null
-              element2: package:test/a.dart::@getter::a1
+              element: package:test/a.dart::@getter::a1
           nextFragment: #F3
         #F3 augment foo (nameOffset:59) (firstTokenOffset:39) (offset:59)
           element: <testLibrary>::@getter::foo
@@ -2887,7 +2887,7 @@ library
                 token: a2 @40
                 element: package:test/a.dart::@getter::a2
                 staticType: null
-              element2: package:test/a.dart::@getter::a2
+              element: package:test/a.dart::@getter::a2
           previousFragment: #F2
           nextFragment: #F4
         #F4 augment foo (nameOffset:89) (firstTokenOffset:69) (offset:89)
@@ -2899,7 +2899,7 @@ library
                 token: a3 @70
                 element: package:test/a.dart::@getter::a3
                 staticType: null
-              element2: package:test/a.dart::@getter::a3
+              element: package:test/a.dart::@getter::a3
           previousFragment: #F3
   topLevelVariables
     synthetic foo
@@ -2918,21 +2918,21 @@ library
             token: a1 @18
             element: package:test/a.dart::@getter::a1
             staticType: null
-          element2: package:test/a.dart::@getter::a1
+          element: package:test/a.dart::@getter::a1
         Annotation
           atSign: @ @39
           name: SimpleIdentifier
             token: a2 @40
             element: package:test/a.dart::@getter::a2
             staticType: null
-          element2: package:test/a.dart::@getter::a2
+          element: package:test/a.dart::@getter::a2
         Annotation
           atSign: @ @69
           name: SimpleIdentifier
             token: a3 @70
             element: package:test/a.dart::@getter::a3
             staticType: null
-          element2: package:test/a.dart::@getter::a3
+          element: package:test/a.dart::@getter::a3
       returnType: int
       variable: <testLibrary>::@topLevelVariable::foo
   exportedReferences
@@ -3184,7 +3184,7 @@ library
                 token: deprecated @16
                 element: dart:core::@getter::deprecated
                 staticType: null
-              element2: dart:core::@getter::deprecated
+              element: dart:core::@getter::deprecated
           previousFragment: #F2
   topLevelVariables
     final hasInitializer foo
@@ -3203,7 +3203,7 @@ library
             token: deprecated @16
             element: dart:core::@getter::deprecated
             staticType: null
-          element2: dart:core::@getter::deprecated
+          element: dart:core::@getter::deprecated
       returnType: int
       variable: <testLibrary>::@topLevelVariable::foo
   exportedReferences
@@ -3630,7 +3630,7 @@ library
                 token: a1 @18
                 element: package:test/a.dart::@getter::a1
                 staticType: null
-              element2: package:test/a.dart::@getter::a1
+              element: package:test/a.dart::@getter::a1
           formalParameters
             #F3 _ (nameOffset:33) (firstTokenOffset:29) (offset:33)
               element: <testLibrary>::@setter::foo::@formalParameter::_
@@ -3644,7 +3644,7 @@ library
                 token: a2 @40
                 element: package:test/a.dart::@getter::a2
                 staticType: null
-              element2: package:test/a.dart::@getter::a2
+              element: package:test/a.dart::@getter::a2
           formalParameters
             #F5 _ (nameOffset:63) (firstTokenOffset:59) (offset:63)
               element: <testLibrary>::@setter::foo::@formalParameter::_
@@ -3659,7 +3659,7 @@ library
                 token: a3 @70
                 element: package:test/a.dart::@getter::a3
                 staticType: null
-              element2: package:test/a.dart::@getter::a3
+              element: package:test/a.dart::@getter::a3
           formalParameters
             #F7 _ (nameOffset:93) (firstTokenOffset:89) (offset:93)
               element: <testLibrary>::@setter::foo::@formalParameter::_
@@ -3681,21 +3681,21 @@ library
             token: a1 @18
             element: package:test/a.dart::@getter::a1
             staticType: null
-          element2: package:test/a.dart::@getter::a1
+          element: package:test/a.dart::@getter::a1
         Annotation
           atSign: @ @39
           name: SimpleIdentifier
             token: a2 @40
             element: package:test/a.dart::@getter::a2
             staticType: null
-          element2: package:test/a.dart::@getter::a2
+          element: package:test/a.dart::@getter::a2
         Annotation
           atSign: @ @69
           name: SimpleIdentifier
             token: a3 @70
             element: package:test/a.dart::@getter::a3
             staticType: null
-          element2: package:test/a.dart::@getter::a3
+          element: package:test/a.dart::@getter::a3
       formalParameters
         #E0 requiredPositional _
           firstFragment: #F3
@@ -3975,7 +3975,7 @@ library
                 token: deprecated @16
                 element: dart:core::@getter::deprecated
                 staticType: null
-              element2: dart:core::@getter::deprecated
+              element: dart:core::@getter::deprecated
           formalParameters
             #F4 _ (nameOffset:47) (firstTokenOffset:43) (offset:47)
               element: <testLibrary>::@setter::foo::@formalParameter::_
@@ -4003,7 +4003,7 @@ library
             token: deprecated @16
             element: dart:core::@getter::deprecated
             staticType: null
-          element2: dart:core::@getter::deprecated
+          element: dart:core::@getter::deprecated
       formalParameters
         #E0 requiredPositional _
           firstFragment: #F4
@@ -4645,7 +4645,7 @@ library
                 token: deprecated @16
                 element: dart:core::@getter::deprecated
                 staticType: null
-              element2: dart:core::@getter::deprecated
+              element: dart:core::@getter::deprecated
           previousFragment: #F1
       getters
         #F3 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
@@ -4661,7 +4661,7 @@ library
             token: deprecated @16
             element: dart:core::@getter::deprecated
             staticType: null
-          element2: dart:core::@getter::deprecated
+          element: dart:core::@getter::deprecated
       type: int
       getter: <testLibrary>::@getter::foo
   getters

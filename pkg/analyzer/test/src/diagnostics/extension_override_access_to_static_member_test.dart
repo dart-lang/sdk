@@ -49,7 +49,7 @@ FunctionExpressionInvocation
           correspondingParameter: <null>
           staticType: int
       rightParenthesis: )
-    element2: <testLibrary>::@extension::E
+    element: <testLibrary>::@extension::E
     extendedType: int
     staticType: null
   argumentList: ArgumentList
@@ -132,7 +132,7 @@ MethodInvocation
         SimpleStringLiteral
           literal: 'a'
       rightParenthesis: )
-    element2: <testLibrary>::@extension::E
+    element: <testLibrary>::@extension::E
     extendedType: String
     staticType: null
   operator: .

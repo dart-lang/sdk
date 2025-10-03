@@ -106,7 +106,11 @@ class SuggestionBuilder {
   /// Initialize a newly created suggestion builder to build suggestions for the
   /// given [request].
   SuggestionBuilder(this.request, {this.listener, required this.useFilter})
-    : relevanceComputer = RelevanceComputer(request, listener) {
+    : relevanceComputer = RelevanceComputer(
+        request,
+        listener,
+        targetPrefix: request.targetPrefix,
+      ) {
     targetPrefixLower = request.targetPrefix.toLowerCase();
   }
 

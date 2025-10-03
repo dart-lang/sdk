@@ -398,7 +398,7 @@ library
                   GenericFunctionType
                     returnType: NamedType
                       name: int @32
-                      element2: dart:core::@class::int
+                      element: dart:core::@class::int
                       type: int
                     functionKeyword: Function @36
                     parameters: FormalParameterList
@@ -406,7 +406,7 @@ library
                       parameter: SimpleFormalParameter
                         type: NamedType
                           name: String @45
-                          element2: dart:core::@class::String
+                          element: dart:core::@class::String
                           type: String
                         name: a @52
                         declaredElement: <testLibraryFragment> a@52
@@ -426,7 +426,7 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @55
                 rightParenthesis: ) @56
-              element2: ConstructorMember
+              element: ConstructorMember
                 baseElement: <testLibrary>::@class::A::@constructor::new
                 substitution: {T: int Function(String)}
       getters
@@ -466,7 +466,7 @@ library
               GenericFunctionType
                 returnType: NamedType
                   name: int @32
-                  element2: dart:core::@class::int
+                  element: dart:core::@class::int
                   type: int
                 functionKeyword: Function @36
                 parameters: FormalParameterList
@@ -474,7 +474,7 @@ library
                   parameter: SimpleFormalParameter
                     type: NamedType
                       name: String @45
-                      element2: dart:core::@class::String
+                      element: dart:core::@class::String
                       type: String
                     name: a @52
                     declaredElement: <testLibraryFragment> a@52
@@ -494,7 +494,7 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @55
             rightParenthesis: ) @56
-          element2: ConstructorMember
+          element: ConstructorMember
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {T: int Function(String)}
       type: int
@@ -558,7 +558,7 @@ library
                       GenericFunctionType
                         returnType: NamedType
                           name: String @41
-                          element2: dart:core::@class::String
+                          element: dart:core::@class::String
                           type: String
                         functionKeyword: Function @48
                         parameters: FormalParameterList
@@ -569,7 +569,7 @@ library
                               type: NamedType
                                 name: int @58
                                 question: ? @61
-                                element2: dart:core::@class::int
+                                element: dart:core::@class::int
                                 type: int?
                               name: a @63
                               declaredElement: <testLibraryFragment> a@63
@@ -590,7 +590,7 @@ library
                           type: String Function({int? a})
                         type: String Function({int? a})
                     rightBracket: > @66
-                  element2: <testLibrary>::@class::A
+                  element: <testLibrary>::@class::A
                   type: A<String Function({int? a})>
                 element: ConstructorMember
                   baseElement: <testLibrary>::@class::A::@constructor::new
@@ -670,7 +670,7 @@ library
                       GenericFunctionType
                         returnType: NamedType
                           name: String @41
-                          element2: dart:core::@class::String
+                          element: dart:core::@class::String
                           type: String
                         functionKeyword: Function @48
                         parameters: FormalParameterList
@@ -681,7 +681,7 @@ library
                               type: NamedType
                                 name: int @58
                                 question: ? @61
-                                element2: dart:core::@class::int
+                                element: dart:core::@class::int
                                 type: int?
                               name: a @63
                               declaredElement: <testLibraryFragment> a@63
@@ -702,7 +702,7 @@ library
                           type: String Function([int?])
                         type: String Function([int?])
                     rightBracket: > @66
-                  element2: <testLibrary>::@class::A
+                  element: <testLibrary>::@class::A
                   type: A<String Function([int?])>
                 element: ConstructorMember
                   baseElement: <testLibrary>::@class::A::@constructor::new
@@ -782,7 +782,7 @@ library
                       GenericFunctionType
                         returnType: NamedType
                           name: String @41
-                          element2: dart:core::@class::String
+                          element: dart:core::@class::String
                           type: String
                         functionKeyword: Function @48
                         parameters: FormalParameterList
@@ -793,7 +793,7 @@ library
                               requiredKeyword: required @58
                               type: NamedType
                                 name: int @67
-                                element2: dart:core::@class::int
+                                element: dart:core::@class::int
                                 type: int
                               name: a @71
                               declaredElement: <testLibraryFragment> a@71
@@ -814,7 +814,7 @@ library
                           type: String Function({required int a})
                         type: String Function({required int a})
                     rightBracket: > @74
-                  element2: <testLibrary>::@class::A
+                  element: <testLibrary>::@class::A
                   type: A<String Function({required int a})>
                 element: ConstructorMember
                   baseElement: <testLibrary>::@class::A::@constructor::new
@@ -894,7 +894,7 @@ library
                       GenericFunctionType
                         returnType: NamedType
                           name: String @41
-                          element2: dart:core::@class::String
+                          element: dart:core::@class::String
                           type: String
                         functionKeyword: Function @48
                         parameters: FormalParameterList
@@ -902,7 +902,7 @@ library
                           parameter: SimpleFormalParameter
                             type: NamedType
                               name: int @57
-                              element2: dart:core::@class::int
+                              element: dart:core::@class::int
                               type: int
                             name: a @61
                             declaredElement: <testLibraryFragment> a@61
@@ -919,7 +919,7 @@ library
                           type: String Function(int)
                         type: String Function(int)
                     rightBracket: > @63
-                  element2: <testLibrary>::@class::A
+                  element: <testLibrary>::@class::A
                   type: A<String Function(int)>
                 element: ConstructorMember
                   baseElement: <testLibrary>::@class::A::@constructor::new

@@ -123,7 +123,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
-      element2: <testLibrary>::@typeAlias::B
+      element: <testLibrary>::@typeAlias::B
       type: InvalidType
     element: <null>
   argumentList: ArgumentList

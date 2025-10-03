@@ -384,9 +384,9 @@ AssignmentExpression
     element: dart:core::@class::num::@method::+
     staticInvokeType: num Function(num)
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: InvalidType
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: InvalidType
@@ -435,9 +435,9 @@ AssignmentExpression
     element: dart:core::@class::num::@method::+
     staticInvokeType: num Function(num)
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -523,9 +523,9 @@ AssignmentExpression
     element: dart:core::@class::num::@method::+
     staticInvokeType: num Function(num)
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: InvalidType
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: InvalidType
@@ -577,9 +577,9 @@ AssignmentExpression
     element: dart:core::@class::num::@method::+
     staticInvokeType: num Function(num)
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -787,9 +787,9 @@ PostfixExpression
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
   operator: ++
-  readElement2: <testLibrary>::@function::f::@formalParameter::x
+  readElement: <testLibrary>::@function::f::@formalParameter::x
   readType: Never
-  writeElement2: <testLibrary>::@function::f::@formalParameter::x
+  writeElement: <testLibrary>::@function::f::@formalParameter::x
   writeType: Never
   element: <null>
   staticType: Never
@@ -819,9 +819,9 @@ PostfixExpression
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
   operator: ++
-  readElement2: <testLibrary>::@function::f::@formalParameter::x
+  readElement: <testLibrary>::@function::f::@formalParameter::x
   readType: Never?
-  writeElement2: <testLibrary>::@function::f::@formalParameter::x
+  writeElement: <testLibrary>::@function::f::@formalParameter::x
   writeType: Never?
   element: <null>
   staticType: Never?
@@ -846,9 +846,9 @@ PrefixExpression
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
-  readElement2: <testLibrary>::@function::f::@formalParameter::x
+  readElement: <testLibrary>::@function::f::@formalParameter::x
   readType: Never
-  writeElement2: <testLibrary>::@function::f::@formalParameter::x
+  writeElement: <testLibrary>::@function::f::@formalParameter::x
   writeType: Never
   element: <null>
   staticType: Never
@@ -878,9 +878,9 @@ PrefixExpression
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
-  readElement2: <testLibrary>::@function::f::@formalParameter::x
+  readElement: <testLibrary>::@function::f::@formalParameter::x
   readType: Never?
-  writeElement2: <testLibrary>::@function::f::@formalParameter::x
+  writeElement: <testLibrary>::@function::f::@formalParameter::x
   writeType: Never?
   element: <null>
   staticType: InvalidType
@@ -971,9 +971,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: InvalidType
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: InvalidType
@@ -1037,9 +1037,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: int

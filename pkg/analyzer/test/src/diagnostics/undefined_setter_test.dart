@@ -292,9 +292,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: int

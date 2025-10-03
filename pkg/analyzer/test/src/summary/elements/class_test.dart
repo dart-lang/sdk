@@ -2361,7 +2361,7 @@ library
                                 type: dynamic Function()
                               type: dynamic Function()
                           rightBracket: > @96
-                        element2: <testLibrary>::@class::A
+                        element: <testLibrary>::@class::A
                         type: A<dynamic Function()>
                       element: ConstructorMember
                         baseElement: <testLibrary>::@class::A::@constructor::new
@@ -6503,7 +6503,7 @@ library
                 constructorName: ConstructorName
                   type: NamedType
                     name: D @45
-                    element2: <testLibrary>::@class::D
+                    element: <testLibrary>::@class::D
                     type: D
                   element: <testLibrary>::@class::D::@constructor::new
                 argumentList: ArgumentList
@@ -6541,7 +6541,7 @@ library
                 constructorName: ConstructorName
                   type: NamedType
                     name: C @97
-                    element2: <testLibrary>::@class::C
+                    element: <testLibrary>::@class::C
                     type: C
                   element: <testLibrary>::@class::C::@constructor::new
                 argumentList: ArgumentList
@@ -7935,7 +7935,7 @@ library
                           GenericFunctionType
                             returnType: NamedType
                               name: int @58
-                              element2: dart:core::@class::int
+                              element: dart:core::@class::int
                               type: int
                             functionKeyword: Function @62
                             parameters: FormalParameterList
@@ -7943,7 +7943,7 @@ library
                               parameter: SimpleFormalParameter
                                 type: NamedType
                                   name: double @71
-                                  element2: dart:core::@class::double
+                                  element: dart:core::@class::double
                                   type: double
                                 name: a @78
                                 declaredElement: <testLibraryFragment> a@78
@@ -7960,7 +7960,7 @@ library
                               type: int Function(double)
                             type: int Function(double)
                         rightBracket: > @80
-                      element2: <testLibrary>::@class::A
+                      element: <testLibrary>::@class::A
                       type: A<int Function(double)>
                     element: ConstructorMember
                       baseElement: <testLibrary>::@class::A::@constructor::new
@@ -19294,7 +19294,7 @@ library
               constructorName: ConstructorName
                 type: NamedType
                   name: B @27
-                  element2: package:test/a.dart::@class::B
+                  element: package:test/a.dart::@class::B
                   type: B
                 period: . @28
                 name: SimpleIdentifier
@@ -21089,7 +21089,7 @@ library
               constructorName: ConstructorName
                 type: NamedType
                   name: C @65
-                  element2: <testLibrary>::@class::C
+                  element: <testLibrary>::@class::C
                   type: C
                 period: . @66
                 name: SimpleIdentifier

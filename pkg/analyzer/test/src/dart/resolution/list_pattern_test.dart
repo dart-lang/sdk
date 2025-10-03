@@ -35,7 +35,7 @@ ListPattern
     DeclaredVariablePattern
       type: NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       name: a
       declaredFragment: isPublic a@41
@@ -98,7 +98,7 @@ ListPattern
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   leftBracket: [
@@ -224,7 +224,7 @@ ListPattern
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   leftBracket: [
@@ -306,7 +306,7 @@ ListPattern
     DeclaredVariablePattern
       type: NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       name: a
       declaredFragment: isPublic a@48
@@ -366,7 +366,7 @@ ListPattern
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   leftBracket: [
@@ -402,7 +402,7 @@ ListPattern
     arguments
       NamedType
         name: num
-        element2: dart:core::@class::num
+        element: dart:core::@class::num
         type: num
     rightBracket: >
   leftBracket: [
@@ -410,7 +410,7 @@ ListPattern
     DeclaredVariablePattern
       type: NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       name: a
       declaredFragment: isPublic a@53
@@ -443,7 +443,7 @@ ListPattern
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   leftBracket: [
@@ -516,7 +516,7 @@ PatternVariableDeclaration
       arguments
         NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
     leftBracket: [
@@ -568,7 +568,7 @@ PatternVariableDeclaration
       DeclaredVariablePattern
         type: NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
         name: a
         declaredFragment: isPublic a@22

@@ -35,7 +35,7 @@ AsExpression
   asOperator: as
   type: NamedType
     name: int
-    element2: dart:core::@class::int
+    element: dart:core::@class::int
     type: int
   staticType: int
 ''');
@@ -59,7 +59,7 @@ AsExpression
   asOperator: as
   type: NamedType
     name: int
-    element2: dart:core::@class::int
+    element: dart:core::@class::int
     type: int
   staticType: int
 ''');
@@ -86,7 +86,7 @@ AsExpression
   asOperator: as
   type: NamedType
     name: T
-    element2: #E0 T
+    element: #E0 T
     type: T
   staticType: T
 ''');
@@ -128,7 +128,7 @@ AsExpression
   asOperator: as
   type: NamedType
     name: double
-    element2: dart:core::@class::double
+    element: dart:core::@class::double
     type: double
   staticType: double
 ''');

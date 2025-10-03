@@ -1378,7 +1378,7 @@ void g() {
     await verifyCompletions(
       mainFileUri,
       content,
-      expectCompletions: ['(a, b) {}', '(a, b) =>'],
+      expectCompletions: ['(a, b) =>', '(a, b) {}'],
       applyEditsFor: '(a, b) =>',
       expectedContent: expectedContent,
     );
@@ -1406,7 +1406,7 @@ void g() {
       content,
       // Display text does not contain 'required' because it makes the
       // completion much longer, we just include it in the completion text.
-      expectCompletions: ['({a, b}) {}', '({a, b}) =>'],
+      expectCompletions: ['({a, b}) =>', '({a, b}) {}'],
       applyEditsFor: '({a, b}) =>',
       expectedContent: expectedContent,
     );

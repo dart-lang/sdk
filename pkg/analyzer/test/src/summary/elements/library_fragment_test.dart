@@ -93,7 +93,7 @@ library
                 token: deprecated @22
                 element: dart:core::@getter::deprecated
                 staticType: null
-              element2: dart:core::@getter::deprecated
+              element: dart:core::@getter::deprecated
 ''');
   }
 
@@ -167,7 +167,7 @@ library
                 token: deprecated @22
                 element: dart:core::@getter::deprecated
                 staticType: null
-              element2: dart:core::@getter::deprecated
+              element: dart:core::@getter::deprecated
 ''');
   }
 

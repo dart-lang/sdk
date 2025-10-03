@@ -66,7 +66,7 @@ ConstantPattern
     constructorName: ConstructorName
       type: NamedType
         name: A
-        element2: <testLibrary>::@class::A
+        element: <testLibrary>::@class::A
         type: A
       element: <testLibrary>::@class::A::@constructor::new
     argumentList: ArgumentList
@@ -292,7 +292,7 @@ ConstantPattern
   expression: TypeLiteral
     type: NamedType
       name: dynamic
-      element2: dynamic
+      element: dynamic
       type: dynamic
     staticType: Type
   matchedValueType: Object?
@@ -311,7 +311,7 @@ ConstantPattern
   expression: TypeLiteral
     type: NamedType
       name: int
-      element2: dart:core::@class::int
+      element: dart:core::@class::int
       type: int
     staticType: Type
   matchedValueType: Object?
@@ -338,7 +338,7 @@ ListPattern
       expression: TypeLiteral
         type: NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
         staticType: Type
       matchedValueType: Object?
@@ -360,7 +360,7 @@ ConstantPattern
   expression: TypeLiteral
     type: NamedType
       name: Never
-      element2: Never
+      element: Never
       type: Never
     staticType: Type
   matchedValueType: Object?
@@ -381,7 +381,7 @@ ConstantPattern
   expression: TypeLiteral
     type: NamedType
       name: A
-      element2: <testLibrary>::@typeAlias::A
+      element: <testLibrary>::@typeAlias::A
       type: int
         alias: <testLibrary>::@typeAlias::A
     staticType: Type
@@ -404,7 +404,7 @@ ConstantPattern
   expression: TypeLiteral
     type: NamedType
       name: T
-      element2: #E0 T
+      element: #E0 T
       type: T
     staticType: Type
   matchedValueType: Object?
@@ -427,9 +427,9 @@ ConstantPattern
       importPrefix: ImportPrefixReference
         name: core
         period: .
-        element2: <testLibraryFragment>::@prefix2::core
+        element: <testLibraryFragment>::@prefix2::core
       name: dynamic
-      element2: dynamic
+      element: dynamic
       type: dynamic
     staticType: Type
   matchedValueType: Object?
@@ -452,9 +452,9 @@ ConstantPattern
       importPrefix: ImportPrefixReference
         name: core
         period: .
-        element2: <testLibraryFragment>::@prefix2::core
+        element: <testLibraryFragment>::@prefix2::core
       name: int
-      element2: dart:core::@class::int
+      element: dart:core::@class::int
       type: int
     staticType: Type
   matchedValueType: Object?
@@ -477,9 +477,9 @@ ConstantPattern
       importPrefix: ImportPrefixReference
         name: core
         period: .
-        element2: <testLibraryFragment>::@prefix2::core
+        element: <testLibraryFragment>::@prefix2::core
       name: Never
-      element2: Never
+      element: Never
       type: Never
     staticType: Type
   matchedValueType: Object?
@@ -507,9 +507,9 @@ ConstantPattern
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element2: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix2::prefix
       name: A
-      element2: package:test/a.dart::@typeAlias::A
+      element: package:test/a.dart::@typeAlias::A
       type: int
         alias: package:test/a.dart::@typeAlias::A
     staticType: Type

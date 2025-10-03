@@ -61,7 +61,7 @@ FieldDeclaration
     type: NamedType
       name: F
       question: ?
-      element2: <testLibrary>::@typeAlias::F
+      element: <testLibrary>::@typeAlias::F
       type: T Function<T>(int, T)?
         alias: <testLibrary>::@typeAlias::F
     variables
@@ -264,7 +264,7 @@ FormalParameterList
   parameter: FunctionTypedFormalParameter
     returnType: NamedType
       name: void
-      element2: <null>
+      element: <null>
       type: void
     name: p1
     parameters: FormalParameterList
@@ -283,7 +283,7 @@ FormalParameterList
   parameter: FunctionTypedFormalParameter
     returnType: NamedType
       name: void
-      element2: <null>
+      element: <null>
       type: void
     name: p2
     parameters: FormalParameterList
@@ -305,7 +305,7 @@ FormalParameterList
     parameter: FunctionTypedFormalParameter
       returnType: NamedType
         name: void
-        element2: <null>
+        element: <null>
         type: void
       name: p3
       parameters: FormalParameterList
@@ -342,7 +342,7 @@ FormalParameterList
   parameter: FieldFormalParameter
     type: NamedType
       name: void
-      element2: <null>
+      element: <null>
       type: void
     thisKeyword: this
     period: .
@@ -363,7 +363,7 @@ FormalParameterList
   parameter: FieldFormalParameter
     type: NamedType
       name: void
-      element2: <null>
+      element: <null>
       type: void
     thisKeyword: this
     period: .
@@ -387,7 +387,7 @@ FormalParameterList
     parameter: FieldFormalParameter
       type: NamedType
         name: void
-        element2: <null>
+        element: <null>
         type: void
       thisKeyword: this
       period: .
@@ -430,7 +430,7 @@ FormalParameterList
   parameter: FunctionTypedFormalParameter
     returnType: NamedType
       name: void
-      element2: <null>
+      element: <null>
       type: void
     name: p1
     parameters: FormalParameterList
@@ -449,7 +449,7 @@ FormalParameterList
   parameter: FunctionTypedFormalParameter
     returnType: NamedType
       name: void
-      element2: <null>
+      element: <null>
       type: void
     name: p2
     parameters: FormalParameterList
@@ -471,7 +471,7 @@ FormalParameterList
     parameter: FunctionTypedFormalParameter
       returnType: NamedType
         name: void
-        element2: <null>
+        element: <null>
         type: void
       name: p3
       parameters: FormalParameterList

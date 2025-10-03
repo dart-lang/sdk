@@ -145,11 +145,10 @@
 # - `Uri`: a URI.
 
 AsciiControlCharacter:
-  pseudoShared: true
+  pseudoSharedCode: ILLEGAL_CHARACTER
   parameters:
     Unicode character: the unexpected control character.
   problemMessage: "The control character #character can only be used in strings and comments."
-  analyzerCode: ILLEGAL_CHARACTER
   expression: "\x1b 1"
 
 ConstEvalStartingPoint:
@@ -722,29 +721,26 @@ MemberShouldBeListedAsCanBeOverriddenInDynamicInterface:
   correctionMessage: "Try removing the override or update the dynamic interface to list member '#name.#name2' as can-be-overridden."
 
 NonAsciiIdentifier:
-  pseudoShared: true
+  pseudoSharedCode: ILLEGAL_CHARACTER
   parameters:
     Character character: undocumented
     Unicode unicode: undocumented
   problemMessage: "The non-ASCII character '#character' (#unicode) can't be used in identifiers, only in strings and comments."
   correctionMessage: "Try using an US-ASCII letter, a digit, '_' (an underscore), or '$' (a dollar sign)."
-  analyzerCode: ILLEGAL_CHARACTER
   expression: "å"
   exampleAllowOtherCodes: true
 
 NonAsciiWhitespace:
-  pseudoShared: true
+  pseudoSharedCode: ILLEGAL_CHARACTER
   parameters:
     Unicode unicode: undocumented
   problemMessage: "The non-ASCII space character #unicode can only be used in strings and comments."
-  analyzerCode: ILLEGAL_CHARACTER
   expression: "\u2028 1"
 
 Encoding:
-  pseudoShared: true
+  pseudoSharedCode: ENCODING
   parameters: none
   problemMessage: "Unable to decode bytes as UTF-8."
-  analyzerCode: ENCODING
   bytes: [255]
 
 ExperimentDisabled:
@@ -760,11 +756,10 @@ ExperimentDisabledInvalidLanguageVersion:
   problemMessage: "This requires the '#string' language feature, which requires language version of #string2 or higher."
 
 EmptyNamedParameterList:
-  pseudoShared: true
+  pseudoSharedCode: "MISSING_IDENTIFIER"
   parameters: none
   problemMessage: "Named parameter lists cannot be empty."
   correctionMessage: "Try adding a named parameter to the list."
-  analyzerCode: "MISSING_IDENTIFIER"
   script: |
     foo({}) {}
 
@@ -801,11 +796,10 @@ DuplicatedRecordLiteralFieldNameContext:
   severity: CONTEXT
 
 EmptyOptionalParameterList:
-  pseudoShared: true
+  pseudoSharedCode: "MISSING_IDENTIFIER"
   parameters: none
   problemMessage: "Optional parameter lists cannot be empty."
   correctionMessage: "Try adding an optional parameter to the list."
-  analyzerCode: "MISSING_IDENTIFIER"
   script: |
     foo([]) {}
 
@@ -820,24 +814,22 @@ ExpectedBlockToSkip:
   correctionMessage: "Try adding {}."
 
 ExpectedBody:
-  pseudoShared: true
+  pseudoSharedCode: MISSING_FUNCTION_BODY
   parameters: none
   problemMessage: "Expected a function body or '=>'."
   # TODO(ahe): In some scenarios, we can suggest removing the 'static' keyword.
   correctionMessage: "Try adding {}."
-  analyzerCode: MISSING_FUNCTION_BODY
   script: "main();"
 
 ExpectedButGot:
   # Also see ExpectedAfterButGot and ExpectedInstead
-  pseudoShared: true
+  pseudoSharedCode: EXPECTED_TOKEN
   parameters:
     String string: undocumented
   problemMessage: "Expected '#string' before this."
   # Consider the second example below: the parser expects a ')' before 'y', but
   # a ',' would also have worked. We don't have enough information to give a
   # good suggestion.
-  analyzerCode: EXPECTED_TOKEN
   exampleAllowOtherCodes: true
   script:
     - "main() => true ? 1;"
@@ -845,7 +837,7 @@ ExpectedButGot:
 
 ExpectedAfterButGot:
   # Also see ExpectedButGot and ExpectedInstead
-  pseudoShared: true
+  pseudoSharedCode: EXPECTED_TOKEN
   parameters:
     String string: undocumented
   problemMessage: "Expected '#string' after this."
@@ -867,7 +859,6 @@ ExpectedAfterButGot:
   #        Expected ';' after this
   #    class Foo {
   #
-  analyzerCode: EXPECTED_TOKEN
   script:
     - "main() { return true }"
 
@@ -894,11 +885,10 @@ ImplementsSuperClass:
       class C extends A implements A {}
 
 MultipleImplements:
-  pseudoShared: true
+  pseudoSharedCode: MULTIPLE_IMPLEMENTS_CLAUSES
   parameters: none
   problemMessage: "Each class definition can have at most one implements clause."
   correctionMessage: "Try combining all of the implements clauses into a single clause."
-  analyzerCode: MULTIPLE_IMPLEMENTS_CLAUSES
   script: "class A implements B implements C, D {}"
   exampleAllowOtherCodes: true
 
@@ -924,21 +914,19 @@ ImplementsNever:
   exampleAllowOtherCodes: true
 
 ExpectedDeclaration:
-  pseudoShared: true
+  pseudoSharedCode: EXPECTED_EXECUTABLE
   parameters:
     Token lexeme: undocumented
   problemMessage: "Expected a declaration, but got '#lexeme'."
-  analyzerCode: EXPECTED_EXECUTABLE
   script: |
     var get b, c;
   exampleAllowOtherCodes: true
 
 ExpectedClassMember:
-  pseudoShared: true
+  pseudoSharedCode: EXPECTED_CLASS_MEMBER
   parameters:
     Token lexeme: undocumented
   problemMessage: "Expected a class member, but got '#lexeme'."
-  analyzerCode: EXPECTED_CLASS_MEMBER
   script: |
     class Foo {
       Foo() : this.new = 42;
@@ -947,52 +935,47 @@ ExpectedClassMember:
   exampleAllowMultipleReports: true
 
 ExpectedFunctionBody:
-  pseudoShared: true
+  pseudoSharedCode: MISSING_FUNCTION_BODY
   parameters:
     Token lexeme: undocumented
   problemMessage: "Expected a function body, but got '#lexeme'."
-  analyzerCode: MISSING_FUNCTION_BODY
   script: |
     var get b, c;
   exampleAllowOtherCodes: true
   exampleAllowMultipleReports: true
 
 ExpectedHexDigit:
-  pseudoShared: true
+  pseudoSharedCode: MISSING_HEX_DIGIT
   parameters: none
   problemMessage: "A hex digit (0-9 or A-F) must follow '0x'."
   # No tip, seems obvious from the error message.
-  analyzerCode: MISSING_HEX_DIGIT
   script: |
     main() {
       var i = 0x;
     }
 
 ExpectedIdentifier:
-  pseudoShared: true
+  pseudoSharedCode: MISSING_IDENTIFIER
   parameters:
     Token lexeme: undocumented
   problemMessage: "Expected an identifier, but got '#lexeme'."
   correctionMessage: "Try inserting an identifier before '#lexeme'."
-  analyzerCode: MISSING_IDENTIFIER
   script: "var = 42;"
 
 ExpectedString:
-  pseudoShared: true
+  pseudoSharedCode: EXPECTED_STRING_LITERAL
   parameters:
     Token lexeme: undocumented
   problemMessage: "Expected a String, but got '#lexeme'."
-  analyzerCode: EXPECTED_STRING_LITERAL
   script: |
     import foo;
   exampleAllowOtherCodes: true
 
 ExpectedToken:
-  pseudoShared: true
+  pseudoSharedCode: EXPECTED_TOKEN
   parameters:
     String string: undocumented
   problemMessage: "Expected to find '#string'."
-  analyzerCode: EXPECTED_TOKEN
   script: |
     void foo() {
       switch (1) {
@@ -1001,21 +984,19 @@ ExpectedToken:
     }
 
 ExpectedType:
-  pseudoShared: true
+  pseudoSharedCode: EXPECTED_TYPE_NAME
   parameters:
     Token lexeme: undocumented
   problemMessage: "Expected a type, but got '#lexeme'."
-  analyzerCode: EXPECTED_TYPE_NAME
   script: |
     extension try<T> on Class<T> {}
   exampleAllowOtherCodes: true
 
 AbstractExtensionField:
-  pseudoShared: true
+  pseudoSharedCode: ABSTRACT_EXTENSION_FIELD
   parameters: none
   problemMessage: "Extension fields can't be declared 'abstract'."
   correctionMessage: "Try removing the 'abstract' keyword."
-  analyzerCode: ABSTRACT_EXTENSION_FIELD
   exampleAllowOtherCodes: true
   script:
     - "extension C on int {abstract static var f;}"
@@ -1072,11 +1053,10 @@ NonConstConstructor:
     }
 
 ConstConstructorWithBody:
-  pseudoShared: true
+  pseudoSharedCode: CONST_CONSTRUCTOR_WITH_BODY
   parameters: none
   problemMessage: "A const constructor can't have a body."
   correctionMessage: "Try removing either the 'const' keyword or the body."
-  analyzerCode: CONST_CONSTRUCTOR_WITH_BODY
   script:
     - "class C { const C() {} }"
 
@@ -1232,19 +1212,17 @@ LabelNotFound:
     - "switch (0) {case 0: continue L;}"
 
 InvalidSyncModifier:
-  pseudoShared: true
+  pseudoSharedCode: MISSING_STAR_AFTER_SYNC
   parameters: none
   problemMessage: "Invalid modifier 'sync'."
   correctionMessage: "Try replacing 'sync' with 'sync*'."
-  analyzerCode: MISSING_STAR_AFTER_SYNC
   script: "main() sync {}"
 
 InvalidVoid:
-  pseudoShared: true
+  pseudoSharedCode: EXPECTED_TYPE_NAME
   parameters: none
   problemMessage: "Type 'void' can't be used here."
   correctionMessage: "Try removing 'void' keyword or replace it with 'var', 'final', or a type."
-  analyzerCode: EXPECTED_TYPE_NAME
   script:
     - "class Foo extends void {}"
   exampleAllowOtherCodes: true
@@ -1272,22 +1250,20 @@ FinalFieldNotInitializedByConstructor:
     }
 
 MissingExponent:
-  pseudoShared: true
+  pseudoSharedCode: MISSING_DIGIT
   parameters: none
   problemMessage: "Numbers in exponential notation should always contain an exponent (an integer number with an optional sign)."
   correctionMessage: "Make sure there is an exponent, and remove any whitespace before it."
-  analyzerCode: MISSING_DIGIT
   script: |
     main() {
       var i = 1e;
     }
 
 PositionalParameterWithEquals:
-  pseudoShared: true
+  pseudoSharedCode: WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER
   parameters: none
   problemMessage: "Positional optional parameters can't use ':' to specify a default value."
   correctionMessage: "Try replacing ':' with '='."
-  analyzerCode: WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER
   script: |
     main() {
       foo([a: 1]) => print(a);
@@ -1295,11 +1271,10 @@ PositionalParameterWithEquals:
     }
 
 RequiredParameterWithDefault:
-  pseudoShared: true
+  pseudoSharedCode: NAMED_PARAMETER_OUTSIDE_GROUP
   parameters: none
   problemMessage: "Non-optional parameters can't have a default value."
   correctionMessage: "Try removing the default value or making the parameter optional."
-  analyzerCode: NAMED_PARAMETER_OUTSIDE_GROUP
   script:
     - >
       main() {
@@ -1313,19 +1288,17 @@ RequiredParameterWithDefault:
       }
 
 InvalidCodePoint:
-  pseudoShared: true
+  pseudoSharedCode: INVALID_CODE_POINT
   parameters: none
   problemMessage: "The escape sequence starting with '\\u' isn't a valid code point."
-  analyzerCode: INVALID_CODE_POINT
   expression:
     - "'\\u{110000}'"
 
 UnexpectedDollarInString:
-  pseudoShared: true
+  pseudoSharedCode: UNEXPECTED_DOLLAR_IN_STRING
   parameters: none
   problemMessage: "A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({})."
   correctionMessage: "Try adding a backslash (\\) to escape the '$'."
-  analyzerCode: UNEXPECTED_DOLLAR_IN_STRING
   expression:
     - "'$'"
     - '"$"'
@@ -1333,11 +1306,10 @@ UnexpectedDollarInString:
     - '"""$"""'
 
 UnexpectedSeparatorInNumber:
-  pseudoShared: true
+  pseudoSharedCode: UNEXPECTED_SEPARATOR_IN_NUMBER
   parameters: none
   problemMessage: "Digit separators ('_') in a number literal can only be placed between two digits."
   correctionMessage: "Try removing the '_'."
-  analyzerCode: UNEXPECTED_SEPARATOR_IN_NUMBER
   expression:
     - '123_'
     - '1.23_'
@@ -1350,22 +1322,20 @@ UnexpectedSeparatorInNumber:
     - '1.2e_3'
 
 UnexpectedToken:
-  pseudoShared: true
+  pseudoSharedCode: UNEXPECTED_TOKEN
   parameters:
     Token lexeme: undocumented
   problemMessage: "Unexpected token '#lexeme'."
-  analyzerCode: UNEXPECTED_TOKEN
   script:
     - "import 'b.dart' d as b;"
   exampleAllowOtherCodes: true
 
 UnmatchedToken:
-  pseudoShared: true
+  pseudoSharedCode: EXPECTED_TOKEN
   parameters:
     String string: undocumented
     Token lexeme: undocumented
   problemMessage: "Can't find '#string' to match '#lexeme'."
-  analyzerCode: EXPECTED_TOKEN
   script:
     - "main("
     - "main(){"
@@ -1373,40 +1343,36 @@ UnmatchedToken:
   exampleAllowOtherCodes: true
 
 UnsupportedOperator:
-  pseudoShared: true
+  pseudoSharedCode: UNSUPPORTED_OPERATOR
   parameters:
     Token lexeme: undocumented
   problemMessage: "The '#lexeme' operator is not supported."
-  analyzerCode: UNSUPPORTED_OPERATOR
   script:
     - "class C { void operator ===(x) {} }"
     - "class C { void operator !==(x) {} }"
 
 UnsupportedPrefixPlus:
-  pseudoShared: true
+  pseudoSharedCode: MISSING_IDENTIFIER
   parameters: none
   problemMessage: "'+' is not a prefix operator."
   correctionMessage: "Try removing '+'."
-  analyzerCode: MISSING_IDENTIFIER
   expression: "+2" # No longer a valid way to write '2'
 
 UnterminatedComment:
-  pseudoShared: true
+  pseudoSharedCode: UNTERMINATED_MULTI_LINE_COMMENT
   parameters: none
   problemMessage: "Comment starting with '/*' must end with '*/'."
-  analyzerCode: UNTERMINATED_MULTI_LINE_COMMENT
   script:
     main() {
     }
     /*
 
 UnterminatedString:
-  pseudoShared: true
+  pseudoSharedCode: UNTERMINATED_STRING_LITERAL
   parameters:
     String string: undocumented
     String string2: undocumented
   problemMessage: "String starting with #string must end with #string2."
-  analyzerCode: UNTERMINATED_STRING_LITERAL
   script:
     - >
       main() {
@@ -1447,16 +1413,15 @@ UnterminatedToken:
 # prototyping, see [diagnostics.md](
 # lib/src/base/diagnostics.md#avoid-composing-messages-programmatically).
 Unspecified:
-  pseudoShared: true
+  pseudoSharedCode: UNSPECIFIED
   parameters:
     String string: undocumented
   problemMessage: "#string"
 
 AbstractNotSync:
-  pseudoShared: true
+  pseudoSharedCode: NON_SYNC_ABSTRACT_METHOD
   parameters: none
   problemMessage: "Abstract methods can't use 'async', 'async*', or 'sync*'."
-  analyzerCode: NON_SYNC_ABSTRACT_METHOD
   script: |
     abstract class Foo {
       Future<void> bar() async;
@@ -1464,50 +1429,45 @@ AbstractNotSync:
   exampleAllowOtherCodes: true
 
 AwaitAsIdentifier:
-  pseudoShared: true
+  pseudoSharedCode: ASYNC_KEYWORD_USED_AS_IDENTIFIER
   parameters: none
   problemMessage: "'await' can't be used as an identifier in 'async', 'async*', or 'sync*' methods."
-  analyzerCode: ASYNC_KEYWORD_USED_AS_IDENTIFIER
   script: |
     Future<void> foo() async {
       int await = 1;
     }
 
 AwaitNotAsync:
-  pseudoShared: true
+  pseudoSharedCode: AWAIT_IN_WRONG_CONTEXT
   parameters: none
   problemMessage: "'await' can only be used in 'async' or 'async*' methods."
-  analyzerCode: AWAIT_IN_WRONG_CONTEXT
   script: |
     void foo() {
       await null;
     }
 
 BuiltInIdentifierAsType:
-  pseudoShared: true
+  pseudoSharedCode: BUILT_IN_IDENTIFIER_AS_TYPE
   parameters:
     Token lexeme: undocumented
   problemMessage: "The built-in identifier '#lexeme' can't be used as a type."
-  analyzerCode: BUILT_IN_IDENTIFIER_AS_TYPE
   script: |
     class Foo<as extends Comparable<as>> {}
   exampleAllowOtherCodes: true
 
 BuiltInIdentifierInDeclaration:
-  pseudoShared: true
+  pseudoSharedCode: BUILT_IN_IDENTIFIER_IN_DECLARATION
   parameters:
     Token lexeme: undocumented
   problemMessage: "Can't use '#lexeme' as a name here."
-  analyzerCode: BUILT_IN_IDENTIFIER_IN_DECLARATION
   script: |
     class late {}
 
 AwaitForNotAsync:
-  pseudoShared: true
+  pseudoSharedCode: ASYNC_FOR_IN_WRONG_CONTEXT
   parameters: none
   problemMessage: "The asynchronous for-in can only be used in functions marked with 'async' or 'async*'."
   correctionMessage: "Try marking the function body with either 'async' or 'async*', or removing the 'await' before the for loop."
-  analyzerCode: ASYNC_FOR_IN_WRONG_CONTEXT
   script: |
     main(o) sync* {
       await for (var e in o) {}
@@ -1522,10 +1482,9 @@ ConstructorNotSync:
     }
 
 FactoryNotSync:
-  pseudoShared: true
+  pseudoSharedCode: NON_SYNC_FACTORY
   parameters: none
   problemMessage: "Factory bodies can't use 'async', 'async*', or 'sync*'."
-  analyzerCode: NON_SYNC_FACTORY
   script: |
     class Foo {
       Foo._();
@@ -1533,46 +1492,41 @@ FactoryNotSync:
     }
 
 GeneratorReturnsValue:
-  pseudoShared: true
+  pseudoSharedCode: RETURN_IN_GENERATOR
   parameters: none
   problemMessage: "'sync*' and 'async*' can't return a value."
-  analyzerCode: RETURN_IN_GENERATOR
   script: |
     Iterable<int> foo() sync* {
       return [42];
     }
 
 InvalidInlineFunctionType:
-  pseudoShared: true
+  pseudoSharedCode: INVALID_INLINE_FUNCTION_TYPE
   parameters: none
   problemMessage: "Inline function types cannot be used for parameters in a generic function type."
   correctionMessage: "Try changing the inline function type (as in 'int f()') to a prefixed function type using the `Function` keyword (as in 'int Function() f')."
-  analyzerCode: INVALID_INLINE_FUNCTION_TYPE
   declaration: "typedef F = Function(int f(String x));"
 
 SetterNotSync:
-  pseudoShared: true
+  pseudoSharedCode: INVALID_MODIFIER_ON_SETTER
   parameters: none
   problemMessage: "Setters can't use 'async', 'async*', or 'sync*'."
-  analyzerCode: INVALID_MODIFIER_ON_SETTER
   script: |
     set foo(int x) async {}
 
 YieldAsIdentifier:
-  pseudoShared: true
+  pseudoSharedCode: ASYNC_KEYWORD_USED_AS_IDENTIFIER
   parameters: none
   problemMessage: "'yield' can't be used as an identifier in 'async', 'async*', or 'sync*' methods."
-  analyzerCode: ASYNC_KEYWORD_USED_AS_IDENTIFIER
   script: |
     Future<void> foo() async {
       int yield = 1;
     }
 
 YieldNotGenerator:
-  pseudoShared: true
+  pseudoSharedCode: YIELD_IN_NON_GENERATOR
   parameters: none
   problemMessage: "'yield' can only be used in 'sync*' or 'async*' methods."
-  analyzerCode: YIELD_IN_NON_GENERATOR
   script: |
     Future<int> f() => Future.value(7);
     List<int> g() {
@@ -1581,11 +1535,10 @@ YieldNotGenerator:
     }
 
 PositionalAfterNamedArgument:
-  pseudoShared: true
+  pseudoSharedCode: POSITIONAL_AFTER_NAMED_ARGUMENT
   parameters: none
   problemMessage: "Place positional arguments before named arguments."
   correctionMessage: "Try moving the positional argument before the named arguments, or add a name to the argument."
-  analyzerCode: POSITIONAL_AFTER_NAMED_ARGUMENT
 
 ExpectedNamedArgument:
   parameters: none
@@ -1597,7 +1550,7 @@ ExpectedNamedArgument:
   exampleAllowOtherCodes: true
 
 AssertAsExpression:
-  pseudoShared: true
+  pseudoSharedCode: ASSERT_AS_EXPRESSION
   parameters: none
   problemMessage: "`assert` can't be used as an expression."
   script: |
@@ -1608,27 +1561,24 @@ AssertAsExpression:
   exampleAllowOtherCodes: true
 
 FunctionTypeDefaultValue:
-  pseudoShared: true
+  pseudoSharedCode: DEFAULT_VALUE_IN_FUNCTION_TYPE
   parameters: none
   problemMessage: "Can't have a default value in a function type."
-  analyzerCode: DEFAULT_VALUE_IN_FUNCTION_TYPE
   script: |
     void Function({dynamic obj = Object})? x;
 
 PrivateNamedParameter:
-  pseudoShared: true
+  pseudoSharedCode: PRIVATE_OPTIONAL_PARAMETER
   parameters: none
   problemMessage: "A named parameter can't start with an underscore ('_')."
-  analyzerCode: PRIVATE_OPTIONAL_PARAMETER
   script: |
     void foo({int? _hello}) {}
 
 GetterWithFormals:
-  pseudoShared: true
+  pseudoSharedCode: GETTER_WITH_PARAMETERS
   parameters: none
   problemMessage: "A getter can't have formal parameters."
   correctionMessage: "Try removing '(...)'."
-  analyzerCode: GETTER_WITH_PARAMETERS
   script: |
     int get foo(int x) => 42;
 
@@ -1640,23 +1590,21 @@ SetterWithWrongNumberOfFormals:
   exampleAllowOtherCodes: true
 
 ConstFieldWithoutInitializer:
-  pseudoShared: true
+  pseudoSharedCode: CONST_NOT_INITIALIZED
   parameters:
     Name name: undocumented
   problemMessage: "The const variable '#name' must be initialized."
   correctionMessage: "Try adding an initializer ('= expression') to the declaration."
-  analyzerCode: CONST_NOT_INITIALIZED
   script:
     - "var const foo; main(){}"
   exampleAllowOtherCodes: true
 
 FinalFieldWithoutInitializer:
-  pseudoShared: true
+  pseudoSharedCode: FINAL_NOT_INITIALIZED
   parameters:
     Name name: undocumented
   problemMessage: "The final variable '#name' must be initialized."
   correctionMessage: "Try adding an initializer ('= expression') to the declaration."
-  analyzerCode: FINAL_NOT_INITIALIZED
   script:
     - "var final foo; main(){}"
   exampleAllowOtherCodes: true
@@ -1918,7 +1866,7 @@ ListLiteralTooManyTypeArguments:
     }
 
 SetOrMapLiteralTooManyTypeArguments:
-  pseudoShared: true
+  pseudoSharedCode: SET_OR_MAP_LITERAL_TOO_MANY_TYPE_ARGUMENTS
   parameters: none
   problemMessage: "A set or map literal requires exactly one or two type arguments, respectively."
   script: |
@@ -2076,21 +2024,20 @@ FastaUsageLong:
         Multiple experiments can be separated by commas.
 
 FastaCLIArgumentRequired:
-  pseudoShared: true
+  pseudoSharedCode: FASTA_CLI_ARGUMENT_REQUIRED
   parameters:
     Name name: undocumented
   problemMessage: "Expected value after '#name'."
 
 NamedFunctionExpression:
-  pseudoShared: true
+  pseudoSharedCode: NAMED_FUNCTION_EXPRESSION
   parameters: none
   problemMessage: "A function expression can't have a name."
-  analyzerCode: NAMED_FUNCTION_EXPRESSION
   script: |
     var x = void f<T>(T t) {};
 
 InternalProblemUnhandled:
-  pseudoShared: true
+  pseudoSharedCode: INTERNAL_PROBLEM_UNHANDLED
   parameters:
     String string: undocumented
     String string2: undocumented
@@ -2111,7 +2058,7 @@ InternalProblemUnexpected:
   severity: INTERNAL_PROBLEM
 
 InternalProblemUnsupported:
-  pseudoShared: true
+  pseudoSharedCode: INTERNAL_PROBLEM_UNSUPPORTED
   parameters:
     Name name: undocumented
   problemMessage: "Unsupported operation: '#name'."
@@ -2154,7 +2101,7 @@ InternalProblemPreviousTokenNotFound:
   severity: INTERNAL_PROBLEM
 
 InternalProblemStackNotEmpty:
-  pseudoShared: true
+  pseudoSharedCode: INTERNAL_PROBLEM_STACK_NOT_EMPTY
   parameters:
     Name name: undocumented
     String string: undocumented
@@ -2381,33 +2328,30 @@ IllegalMixinDueToConstructorsCause:
   severity: CONTEXT
 
 ExtensionTypeDeclaresAbstractMember:
-  pseudoShared: true
+  pseudoSharedCode: EXTENSION_TYPE_WITH_ABSTRACT_MEMBER
   parameters: none
   problemMessage: "Extension types can't declare abstract members."
   correctionMessage: "Try providing an implementation for the member."
-  analyzerCode: EXTENSION_TYPE_WITH_ABSTRACT_MEMBER
   script: |
     extension type ET(int id) {
       void method();
     }
 
 ExtensionDeclaresInstanceField:
-  pseudoShared: true
+  pseudoSharedCode: EXTENSION_DECLARES_INSTANCE_FIELD
   parameters: none
   problemMessage: "Extensions can't declare instance fields"
   correctionMessage: "Try removing the field declaration or making it a static field"
-  analyzerCode: EXTENSION_DECLARES_INSTANCE_FIELD
   script: |
     extension E on int {
       int? field;
     }
 
 ExtensionTypeDeclaresInstanceField:
-  pseudoShared: true
+  pseudoSharedCode: EXTENSION_TYPE_DECLARES_INSTANCE_FIELD
   parameters: none
   problemMessage: "Extension types can't declare instance fields"
   correctionMessage: "Try removing the field declaration or making it a static field"
-  analyzerCode: EXTENSION_TYPE_DECLARES_INSTANCE_FIELD
   script: |
     extension type ET(int id) {
       int? field;
@@ -2995,12 +2939,11 @@ AnnotationOnFunctionTypeTypeParameter:
      main() { Function<@Object() T>() x; }
 
 ExpectedEnumBody:
-  pseudoShared: true
+  pseudoSharedCode: MISSING_ENUM_BODY
   parameters:
     Token lexeme: undocumented
   problemMessage: "Expected a enum body, but got '#lexeme'."
   correctionMessage: "An enum definition must have a body with at least one constant name."
-  analyzerCode: MISSING_ENUM_BODY
   script:
     - "enum E"
 
@@ -3070,11 +3013,10 @@ TypedefCause:
   severity: CONTEXT
 
 NonPartOfDirectiveInPart:
-  pseudoShared: true
+  pseudoSharedCode: NON_PART_OF_DIRECTIVE_IN_PART
   parameters: none
   problemMessage: "The part-of directive must be the only directive in a part."
   correctionMessage: "Try removing the other directives, or moving them to the library for which this is a part."
-  analyzerCode: NON_PART_OF_DIRECTIVE_IN_PART
   script:
     - "part of l; part 'f.dart';"
 
@@ -3101,29 +3043,26 @@ PartOfTwoLibrariesContext:
   severity: CONTEXT
 
 MissingFunctionParameters:
-  pseudoShared: true
+  pseudoSharedCode: MISSING_FUNCTION_PARAMETERS
   parameters: none
   problemMessage: "A function declaration needs an explicit list of parameters."
   correctionMessage: "Try adding a parameter list to the function declaration."
-  analyzerCode: MISSING_FUNCTION_PARAMETERS
   script:
     - "void f {}"
 
 MissingMethodParameters:
-  pseudoShared: true
+  pseudoSharedCode: MISSING_METHOD_PARAMETERS
   parameters: none
   problemMessage: "A method declaration needs an explicit list of parameters."
   correctionMessage: "Try adding a parameter list to the method declaration."
-  analyzerCode: MISSING_METHOD_PARAMETERS
   script:
     - "class C { void m {} }"
 
 MissingTypedefParameters:
-  pseudoShared: true
+  pseudoSharedCode: MISSING_TYPEDEF_PARAMETERS
   parameters: none
   problemMessage: "A typedef needs an explicit list of parameters."
   correctionMessage: "Try adding a parameter list to the typedef."
-  analyzerCode: MISSING_TYPEDEF_PARAMETERS
   script:
     - "typedef void F;"
 
@@ -3854,10 +3793,9 @@ ExpectedUri:
   exampleAllowOtherCodes: true
 
 InterpolationInUri:
-  pseudoShared: true
+  pseudoSharedCode: INVALID_LITERAL_IN_CONFIGURATION
   parameters: none
   problemMessage: "Can't use string interpolation in a URI."
-  analyzerCode: INVALID_LITERAL_IN_CONFIGURATION
   script: |
     import 'package:/foo/$bar.dart';
   exampleAllowOtherCodes: true

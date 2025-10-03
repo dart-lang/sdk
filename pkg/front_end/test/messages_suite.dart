@@ -177,6 +177,12 @@ class MessageTestSuite extends ChainContext {
     required String prefix,
   }) {
     List<MessageTestDescription> result = [];
+    var package = root.pathSegments.lastWhere((s) => s.isNotEmpty);
+    bool analyzerCodeRequired = switch (package) {
+      '_fe_analyzer_shared' => true,
+      'front_end' => false,
+      _ => throw StateError('Unexpected package: ${json.encode(package)}'),
+    };
     Uri uri = root.resolve("messages.yaml");
     File file = new File.fromUri(uri);
     String fileContent = file.readAsStringSync();
@@ -192,8 +198,7 @@ class MessageTestSuite extends ChainContext {
       bool includeErrorContext = false;
       List<Example> examples = <Example>[];
       String? externalTest;
-      bool frontendInternal = false;
-      List<String>? analyzerCodes;
+      String? analyzerCode;
       CfeSeverity? severity;
       YamlNode? badSeverity;
       YamlNode? unnecessarySeverity;
@@ -204,7 +209,6 @@ class MessageTestSuite extends ChainContext {
           "'spell_checking_list_messages.txt' or "
           "'spell_checking_list_common.txt'.";
       Map<ExperimentalFlag, bool>? experimentalFlags;
-      bool pseudoShared = false;
 
       Source? source;
       List<String> formatSpellingMistakes(
@@ -318,13 +322,20 @@ class MessageTestSuite extends ChainContext {
             break;
 
           case "frontendInternal":
-            frontendInternal = value;
             break;
 
           case "analyzerCode":
-            analyzerCodes = value is String
-                ? <String>[value]
-                : new List<String>.from(value);
+            if (value is! String) {
+              throw new ArgumentError(
+                'analyzerCode should be a string: $value',
+              );
+            }
+            analyzerCode = value;
+            if (!analyzerCodeRequired) {
+              throw new ArgumentError(
+                'analyzerCode not allowed in package ${json.encode(package)}',
+              );
+            }
             break;
 
           case "sharedName":
@@ -491,11 +502,12 @@ class MessageTestSuite extends ChainContext {
                 );
             }
 
-          case 'pseudoShared':
-            if (value is! bool) {
-              throw new ArgumentError('pseudoShared should be a bool: $value.');
+          case 'pseudoSharedCode':
+            if (value is! String) {
+              throw new ArgumentError(
+                'pseudoSharedCode should be a String: $value.',
+              );
             }
-            pseudoShared = value;
             break;
 
           default:
@@ -660,11 +672,6 @@ class MessageTestSuite extends ChainContext {
           severity != CfeSeverity.context &&
           severity != CfeSeverity.internalProblem &&
           severity != CfeSeverity.ignored;
-      bool analyzerCodeRequired =
-          pseudoShared &&
-          severity != CfeSeverity.context &&
-          severity != CfeSeverity.internalProblem &&
-          severity != CfeSeverity.ignored;
 
       result.add(
         createDescription(
@@ -702,7 +709,7 @@ class MessageTestSuite extends ChainContext {
         createDescription(
           "analyzerCode",
           null,
-          analyzerCodeRequired && !frontendInternal && analyzerCodes == null
+          analyzerCodeRequired && analyzerCode == null
               ? (
                   expectation: KnownExpectation.missingAnalyzerCode,
                   message:

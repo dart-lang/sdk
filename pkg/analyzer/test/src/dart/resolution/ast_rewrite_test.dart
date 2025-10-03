@@ -64,9 +64,9 @@ ImplicitCallReference
         substitution: {K: int, V: C}
       element: <testLibrary>::@function::foo::@formalParameter::c
       staticType: C
-    readElement2: <null>
+    readElement: <null>
     readType: null
-    writeElement2: MethodMember
+    writeElement: MethodMember
       baseElement: dart:core::@class::Map::@method::[]=
       substitution: {K: int, V: C}
     writeType: C
@@ -165,7 +165,7 @@ ImplicitCallReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   element: <testLibrary>::@class::C::@method::call
@@ -705,14 +705,14 @@ InstanceCreationExpression
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           NamedType
             name: String
-            element2: dart:core::@class::String
+            element: dart:core::@class::String
             type: String
         rightBracket: >
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A<int, String>
     element: ConstructorMember
       baseElement: <testLibrary>::@class::A::@constructor::new
@@ -753,7 +753,7 @@ ExtensionOverride
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -765,7 +765,7 @@ ExtensionOverride
         element: <testLibrary>::@function::f::@formalParameter::a
         staticType: A
     rightParenthesis: )
-  element2: <testLibrary>::@extension::E
+  element: <testLibrary>::@extension::E
   extendedType: A
   staticType: null
   typeArgumentTypes
@@ -794,11 +794,11 @@ MethodInvocation
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       NamedType
         name: String
-        element2: dart:core::@class::String
+        element: dart:core::@class::String
         type: String
     rightBracket: >
   argumentList: ArgumentList
@@ -843,14 +843,14 @@ InstanceCreationExpression
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           NamedType
             name: String
-            element2: dart:core::@class::String
+            element: dart:core::@class::String
             type: String
         rightBracket: >
-      element2: <testLibrary>::@typeAlias::X
+      element: <testLibrary>::@typeAlias::X
       type: A<int, String>
     element: ConstructorMember
       baseElement: <testLibrary>::@class::A::@constructor::new
@@ -908,9 +908,9 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element2: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix2::prefix
       name: A
-      element2: package:test/a.dart::@class::A
+      element: package:test/a.dart::@class::A
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -969,17 +969,17 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element2: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix2::prefix
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
-      element2: package:test/a.dart::@class::A
+      element: package:test/a.dart::@class::A
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -1038,17 +1038,17 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element2: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix2::prefix
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
-      element2: package:test/a.dart::@class::A
+      element: package:test/a.dart::@class::A
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -1149,9 +1149,9 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element2: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix2::prefix
       name: X
-      element2: package:test/a.dart::@typeAlias::X
+      element: package:test/a.dart::@typeAlias::X
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -1194,7 +1194,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -1248,7 +1248,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A<dynamic, dynamic>
     period: .
     name: SimpleIdentifier
@@ -1265,11 +1265,11 @@ InstanceCreationExpression
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       NamedType
         name: String
-        element2: dart:core::@class::String
+        element: dart:core::@class::String
         type: String
     rightBracket: >
   argumentList: ArgumentList
@@ -1314,7 +1314,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A<dynamic, dynamic>
     period: .
     name: SimpleIdentifier
@@ -1331,11 +1331,11 @@ InstanceCreationExpression
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       NamedType
         name: String
-        element2: dart:core::@class::String
+        element: dart:core::@class::String
         type: String
     rightBracket: >
   argumentList: ArgumentList
@@ -1411,21 +1411,21 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element2: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix2::prefix
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           NamedType
             name: String
-            element2: dart:core::@class::String
+            element: dart:core::@class::String
             type: String
         rightBracket: >
-      element2: package:test/a.dart::@class::A
+      element: package:test/a.dart::@class::A
       type: A<int, String>
     element: ConstructorMember
       baseElement: package:test/a.dart::@class::A::@constructor::new
@@ -1467,14 +1467,14 @@ ExtensionOverride
   importPrefix: ImportPrefixReference
     name: prefix
     period: .
-    element2: <testLibraryFragment>::@prefix2::prefix
+    element: <testLibraryFragment>::@prefix2::prefix
   name: E
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -1486,7 +1486,7 @@ ExtensionOverride
         element: <testLibrary>::@function::f::@formalParameter::a
         staticType: A
     rightParenthesis: )
-  element2: package:test/a.dart::@extension::E
+  element: package:test/a.dart::@extension::E
   extendedType: A
   staticType: null
   typeArgumentTypes
@@ -1524,11 +1524,11 @@ MethodInvocation
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       NamedType
         name: String
-        element2: dart:core::@class::String
+        element: dart:core::@class::String
         type: String
     rightBracket: >
   argumentList: ArgumentList
@@ -1568,7 +1568,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: X
-      element2: <testLibrary>::@typeAlias::X
+      element: <testLibrary>::@typeAlias::X
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -1634,7 +1634,7 @@ ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: C
-      element2: <testLibrary>::@class::C
+      element: <testLibrary>::@class::C
       type: null
     period: .
     name: SimpleIdentifier

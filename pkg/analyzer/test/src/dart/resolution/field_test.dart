@@ -34,7 +34,7 @@ FieldDeclaration
     lateKeyword: late
     type: NamedType
       name: Object
-      element2: dart:core::@class::Object
+      element: dart:core::@class::Object
       type: Object
     variables
       VariableDeclaration
@@ -63,7 +63,7 @@ FieldDeclaration
     lateKeyword: late
     type: NamedType
       name: Object
-      element2: dart:core::@class::Object
+      element: dart:core::@class::Object
       type: Object
     variables
       VariableDeclaration
@@ -96,7 +96,7 @@ FieldDeclaration
     keyword: final
     type: NamedType
       name: int
-      element2: dart:core::@class::int
+      element: dart:core::@class::int
       type: int
     variables
       VariableDeclaration
@@ -130,7 +130,7 @@ FieldDeclaration
     keyword: final
     type: NamedType
       name: int
-      element2: dart:core::@class::int
+      element: dart:core::@class::int
       type: int
     variables
       VariableDeclaration
@@ -164,7 +164,7 @@ FieldDeclaration
     keyword: final
     type: NamedType
       name: int
-      element2: dart:core::@class::int
+      element: dart:core::@class::int
       type: int
     variables
       VariableDeclaration
@@ -285,7 +285,7 @@ FieldDeclaration
             arguments
               NamedType
                 name: T
-                element2: #E0 T
+                element: #E0 T
                 type: T
             rightBracket: >
           leftBracket: [

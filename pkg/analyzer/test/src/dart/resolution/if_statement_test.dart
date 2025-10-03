@@ -74,7 +74,7 @@ IfStatement
         leftOperand: DeclaredVariablePattern
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isPublic a@37
@@ -88,7 +88,7 @@ IfStatement
             DeclaredVariablePattern
               type: NamedType
                 name: int
-                element2: dart:core::@class::int
+                element: dart:core::@class::int
                 type: int
               name: a
               declaredFragment: isPublic a@47
@@ -158,7 +158,7 @@ IfStatement
           arguments
             NamedType
               name: int
-              element2: dart:core::@class::int
+              element: dart:core::@class::int
               type: int
           rightBracket: >
         leftBracket: [
@@ -240,7 +240,7 @@ IfStatement
         leftOperand: DeclaredVariablePattern
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isPublic a@37
@@ -255,7 +255,7 @@ IfStatement
               keyword: final
               type: NamedType
                 name: int
-                element2: dart:core::@class::int
+                element: dart:core::@class::int
                 type: int
               name: a
               declaredFragment: isFinal isPublic a@53
@@ -323,7 +323,7 @@ IfStatement
         leftOperand: DeclaredVariablePattern
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isPublic a@37
@@ -337,7 +337,7 @@ IfStatement
             DeclaredVariablePattern
               type: NamedType
                 name: double
-                element2: dart:core::@class::double
+                element: dart:core::@class::double
                 type: double
               name: a
               declaredFragment: isPublic a@50
@@ -409,7 +409,7 @@ IfStatement
           leftOperand: DeclaredVariablePattern
             type: NamedType
               name: int
-              element2: dart:core::@class::int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredFragment: isPublic a@37
@@ -488,7 +488,7 @@ IfStatement
           leftOperand: DeclaredVariablePattern
             type: NamedType
               name: int
-              element2: dart:core::@class::int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredFragment: isPublic a@37
@@ -499,7 +499,7 @@ IfStatement
           rightOperand: DeclaredVariablePattern
             type: NamedType
               name: int
-              element2: dart:core::@class::int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredFragment: isPublic a@46
@@ -569,7 +569,7 @@ IfStatement
           leftOperand: DeclaredVariablePattern
             type: NamedType
               name: int
-              element2: dart:core::@class::int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredFragment: isPublic a@37
@@ -580,7 +580,7 @@ IfStatement
           rightOperand: DeclaredVariablePattern
             type: NamedType
               name: int
-              element2: dart:core::@class::int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredFragment: isPublic a@46
@@ -592,7 +592,7 @@ IfStatement
         rightOperand: DeclaredVariablePattern
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isPublic a@55
@@ -658,7 +658,7 @@ IfStatement
           leftOperand: DeclaredVariablePattern
             type: NamedType
               name: int
-              element2: dart:core::@class::int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredFragment: isPublic a@37
@@ -676,7 +676,7 @@ IfStatement
         rightOperand: DeclaredVariablePattern
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isPublic a@51
@@ -751,7 +751,7 @@ IfStatement
           rightOperand: DeclaredVariablePattern
             type: NamedType
               name: int
-              element2: dart:core::@class::int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredFragment: isPublic a@42
@@ -830,7 +830,7 @@ IfStatement
           rightOperand: DeclaredVariablePattern
             type: NamedType
               name: int
-              element2: dart:core::@class::int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredFragment: isPublic a@42
@@ -842,7 +842,7 @@ IfStatement
         rightOperand: DeclaredVariablePattern
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isPublic a@51
@@ -930,7 +930,7 @@ IfStatement
           DeclaredVariablePattern
             type: NamedType
               name: int
-              element2: dart:core::@class::int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredFragment: isPublic a@51
@@ -943,7 +943,7 @@ IfStatement
               token: a
               element: a@51
               staticType: int
-            element2: dart:core::@class::Object::@method::==
+            element: dart:core::@class::Object::@method::==
             matchedValueType: Object?
         rightBracket: ]
         matchedValueType: Object?
@@ -1022,7 +1022,7 @@ IfStatement
         leftOperand: DeclaredVariablePattern
           type: NamedType
             name: bool
-            element2: dart:core::@class::bool
+            element: dart:core::@class::bool
             type: bool
           name: a
           declaredFragment: isPublic a@51
@@ -1097,7 +1097,7 @@ IfStatement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
         name: a
         declaredFragment: isPublic a@37
@@ -1203,7 +1203,7 @@ IfStatement
           constructorName: ConstructorName
             type: NamedType
               name: A
-              element2: <testLibrary>::@class::A
+              element: <testLibrary>::@class::A
               type: A
             element: <testLibrary>::@class::A::@constructor::new
           argumentList: ArgumentList
@@ -1401,7 +1401,7 @@ IfStatement
     isOperator: is
     type: NamedType
       name: int
-      element2: dart:core::@class::int
+      element: dart:core::@class::int
       type: int
     staticType: bool
   rightParenthesis: )
@@ -1463,7 +1463,7 @@ IfStatement
     isOperator: is
     type: NamedType
       name: int
-      element2: dart:core::@class::int
+      element: dart:core::@class::int
       type: int
     staticType: bool
   rightParenthesis: )

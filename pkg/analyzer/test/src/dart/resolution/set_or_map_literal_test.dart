@@ -30,7 +30,7 @@ SetOrMapLiteral
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   leftBracket: {
@@ -55,11 +55,11 @@ SetOrMapLiteral
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       NamedType
         name: String
-        element2: dart:core::@class::String
+        element: dart:core::@class::String
         type: String
     rightBracket: >
   leftBracket: {

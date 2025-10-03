@@ -173,15 +173,15 @@ PrefixExpression
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: null
-    readElement2: <testLibrary>::@function::f::@formalParameter::x
+    readElement: <testLibrary>::@function::f::@formalParameter::x
     readType: int
-    writeElement2: <testLibrary>::@function::f::@formalParameter::x
+    writeElement: <testLibrary>::@function::f::@formalParameter::x
     writeType: int
     element: dart:core::@class::num::@method::+
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: InvalidType
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: InvalidType
@@ -208,9 +208,9 @@ PrefixExpression
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: null
-  readElement2: <testLibrary>::@function::f::@formalParameter::a
+  readElement: <testLibrary>::@function::f::@formalParameter::a
   readType: A
-  writeElement2: <testLibrary>::@function::f::@formalParameter::a
+  writeElement: <testLibrary>::@function::f::@formalParameter::a
   writeType: A
   element: <null>
   staticType: InvalidType
@@ -246,9 +246,9 @@ PrefixExpression
     rightBracket: ]
     element: <null>
     staticType: null
-  readElement2: <testLibrary>::@class::A::@method::[]
+  readElement: <testLibrary>::@class::A::@method::[]
   readType: int
-  writeElement2: <testLibrary>::@class::A::@method::[]=
+  writeElement: <testLibrary>::@class::A::@method::[]=
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -285,9 +285,9 @@ PrefixExpression
     rightBracket: ]
     element: <null>
     staticType: null
-  readElement2: <testLibrary>::@class::A::@method::[]
+  readElement: <testLibrary>::@class::A::@method::[]
   readType: int
-  writeElement2: <testLibrary>::@class::A::@method::[]=
+  writeElement: <testLibrary>::@class::A::@method::[]=
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -322,9 +322,9 @@ PrefixExpression
     rightBracket: ]
     element: <null>
     staticType: null
-  readElement2: <testLibrary>::@class::A::@method::[]
+  readElement: <testLibrary>::@class::A::@method::[]
   readType: int
-  writeElement2: <testLibrary>::@class::A::@method::[]=
+  writeElement: <testLibrary>::@class::A::@method::[]=
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -349,9 +349,9 @@ PrefixExpression
     token: x
     element: <null>
     staticType: null
-  readElement2: <null>
+  readElement: <null>
   readType: InvalidType
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: InvalidType
@@ -636,9 +636,9 @@ PrefixExpression
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
-  readElement2: <testLibrary>::@function::f::@formalParameter::x
+  readElement: <testLibrary>::@function::f::@formalParameter::x
   readType: A
-  writeElement2: <testLibrary>::@function::f::@formalParameter::x
+  writeElement: <testLibrary>::@function::f::@formalParameter::x
   writeType: Object
   element: <testLibrary>::@class::A::@method::+
   staticType: Object
@@ -678,12 +678,12 @@ PrefixExpression
           element: <testLibrary>::@function::f::@formalParameter::c
           staticType: C
       rightParenthesis: )
-    element2: <testLibrary>::@extension::Ext
+    element: <testLibrary>::@extension::Ext
     extendedType: C
     staticType: null
-  readElement2: <null>
+  readElement: <null>
   readType: InvalidType
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <testLibrary>::@extension::Ext::@method::+
   staticType: InvalidType
@@ -708,9 +708,9 @@ PrefixExpression
     token: int
     element: <null>
     staticType: null
-  readElement2: dart:core::@class::int
+  readElement: dart:core::@class::int
   readType: InvalidType
-  writeElement2: dart:core::@class::int
+  writeElement: dart:core::@class::int
   writeType: InvalidType
   element: <null>
   staticType: InvalidType
@@ -742,9 +742,9 @@ PrefixExpression
       element: <null>
       staticType: null
     staticType: null
-  readElement2: <testLibrary>::@class::A::@getter::foo
+  readElement: <testLibrary>::@class::A::@getter::foo
   readType: int
-  writeElement2: <testLibrary>::@class::A::@setter::foo
+  writeElement: <testLibrary>::@class::A::@setter::foo
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int?
@@ -779,9 +779,9 @@ PrefixExpression
       staticType: null
     element: <null>
     staticType: null
-  readElement2: <testLibrary>::@extensionType::A::@getter::foo
+  readElement: <testLibrary>::@extensionType::A::@getter::foo
   readType: int
-  writeElement2: <testLibrary>::@extensionType::A::@setter::foo
+  writeElement: <testLibrary>::@extensionType::A::@setter::foo
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -815,9 +815,9 @@ PrefixExpression
       staticType: null
     element: <null>
     staticType: null
-  readElement2: <testLibrary>::@class::A::@getter::x
+  readElement: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@class::A::@setter::x
+  writeElement: <testLibrary>::@class::A::@setter::x
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -852,9 +852,9 @@ PrefixExpression
       staticType: null
     element: <null>
     staticType: null
-  readElement2: package:test/a.dart::@getter::x
+  readElement: package:test/a.dart::@getter::x
   readType: int
-  writeElement2: package:test/a.dart::@setter::x
+  writeElement: package:test/a.dart::@setter::x
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -881,7 +881,7 @@ PrefixExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
-          element2: <testLibrary>::@class::A
+          element: <testLibrary>::@class::A
           type: A
         element: <testLibrary>::@class::A::@constructor::new
       argumentList: ArgumentList
@@ -894,9 +894,9 @@ PrefixExpression
       element: <null>
       staticType: null
     staticType: null
-  readElement2: <testLibrary>::@class::A::@getter::x
+  readElement: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@class::A::@setter::x
+  writeElement: <testLibrary>::@class::A::@setter::x
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -934,9 +934,9 @@ PrefixExpression
       element: <null>
       staticType: null
     staticType: null
-  readElement2: <testLibrary>::@class::A::@getter::x
+  readElement: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@class::A::@setter::x
+  writeElement: <testLibrary>::@class::A::@setter::x
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -969,9 +969,9 @@ PrefixExpression
       element: <null>
       staticType: null
     staticType: null
-  readElement2: <testLibrary>::@class::A::@getter::x
+  readElement: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@class::A::@setter::x
+  writeElement: <testLibrary>::@class::A::@setter::x
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -993,9 +993,9 @@ PrefixExpression
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
-  readElement2: <testLibrary>::@function::f::@formalParameter::x
+  readElement: <testLibrary>::@function::f::@formalParameter::x
   readType: double
-  writeElement2: <testLibrary>::@function::f::@formalParameter::x
+  writeElement: <testLibrary>::@function::f::@formalParameter::x
   writeType: double
   element: dart:core::@class::double::@method::+
   staticType: double
@@ -1017,9 +1017,9 @@ PrefixExpression
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
-  readElement2: <testLibrary>::@function::f::@formalParameter::x
+  readElement: <testLibrary>::@function::f::@formalParameter::x
   readType: int
-  writeElement2: <testLibrary>::@function::f::@formalParameter::x
+  writeElement: <testLibrary>::@function::f::@formalParameter::x
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -1041,9 +1041,9 @@ PrefixExpression
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
-  readElement2: <testLibrary>::@function::f::@formalParameter::x
+  readElement: <testLibrary>::@function::f::@formalParameter::x
   readType: num
-  writeElement2: <testLibrary>::@function::f::@formalParameter::x
+  writeElement: <testLibrary>::@function::f::@formalParameter::x
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: num
@@ -1068,9 +1068,9 @@ PrefixExpression
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
-  readElement2: <testLibrary>::@function::f::@formalParameter::x
+  readElement: <testLibrary>::@function::f::@formalParameter::x
   readType: T
-  writeElement2: <testLibrary>::@function::f::@formalParameter::x
+  writeElement: <testLibrary>::@function::f::@formalParameter::x
   writeType: T
   element: dart:core::@class::num::@method::+
   staticType: num
@@ -1099,9 +1099,9 @@ PrefixExpression
     token: x
     element: <null>
     staticType: null
-  readElement2: <testLibrary>::@class::B::@getter::x
+  readElement: <testLibrary>::@class::B::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@class::A::@setter::x
+  writeElement: <testLibrary>::@class::A::@setter::x
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -1127,9 +1127,9 @@ PrefixExpression
     token: x
     element: <null>
     staticType: null
-  readElement2: <testLibrary>::@class::A::@getter::x
+  readElement: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@class::A::@setter::x
+  writeElement: <testLibrary>::@class::A::@setter::x
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -1155,9 +1155,9 @@ PrefixExpression
     token: x
     element: <null>
     staticType: null
-  readElement2: <testLibrary>::@getter::x
+  readElement: <testLibrary>::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@setter::x
+  writeElement: <testLibrary>::@setter::x
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -1185,9 +1185,9 @@ PrefixExpression
     token: x
     element: <null>
     staticType: null
-  readElement2: <testLibrary>::@getter::x
+  readElement: <testLibrary>::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@setter::x
+  writeElement: <testLibrary>::@setter::x
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -1213,9 +1213,9 @@ PrefixExpression
   operand: SuperExpression
     superKeyword: super
     staticType: A
-  readElement2: <null>
+  readElement: <null>
   readType: InvalidType
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: InvalidType
@@ -1259,9 +1259,9 @@ PrefixExpression
           staticType: int
     rightBracket: }
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: InvalidType
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: InvalidType
@@ -1287,9 +1287,9 @@ PrefixExpression
     token: x
     element: <null>
     staticType: null
-  readElement2: <testLibrary>::@getter::x
+  readElement: <testLibrary>::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@setter::x
+  writeElement: <testLibrary>::@setter::x
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int

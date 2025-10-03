@@ -175,7 +175,9 @@ class DartCompletionManager {
     }
     // Compute relevance, sort and truncate list.
     isTruncated = collector.suggestions.length > maxSuggestions;
-    collector.finalize(RelevanceComputer(request, listener));
+    collector.finalize(
+      RelevanceComputer(request, listener, targetPrefix: request.targetPrefix),
+    );
     return collector;
   }
 

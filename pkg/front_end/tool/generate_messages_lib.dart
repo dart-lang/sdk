@@ -8,6 +8,7 @@ library;
 import 'dart:convert';
 import 'dart:io' show exitCode;
 
+import 'package:analyzer_utilities/extensions/string.dart';
 import 'package:analyzer_utilities/messages.dart';
 
 Uri computeSharedGeneratedFile(Uri repoDir) {
@@ -70,7 +71,7 @@ part of 'cfe_codes.dart';
   final indexNameMap = new Map<int, String>();
 
   List<String> keys = frontEndAndSharedMessages.keys.toList()..sort();
-  var analyzerCodeValues = <String>{};
+  var pseudoSharedCodeValues = <String>{};
   for (String name in keys) {
     var errorCodeInfo = frontEndAndSharedMessages[name]!;
     var index = errorCodeInfo.index;
@@ -92,14 +93,17 @@ part of 'cfe_codes.dart';
     }
     var forFeAnalyzerShared =
         errorCodeInfo is SharedErrorCodeInfo ||
-        errorCodeInfo is FrontEndErrorCodeInfo && errorCodeInfo.pseudoShared;
+        errorCodeInfo is FrontEndErrorCodeInfo &&
+            errorCodeInfo.pseudoSharedCode != null;
     String template;
     try {
       template = _TemplateCompiler(
         name: name,
         index: index,
         errorCodeInfo: errorCodeInfo,
-        analyzerCodeValues: forFeAnalyzerShared ? analyzerCodeValues : null,
+        pseudoSharedCodeValues: forFeAnalyzerShared
+            ? pseudoSharedCodeValues
+            : null,
       ).compile();
     } catch (e, st) {
       Error.throwWithStackTrace('Error while compiling $name: $e', st);
@@ -113,10 +117,10 @@ part of 'cfe_codes.dart';
   sharedMessages.writeln();
   sharedMessages.writeln(
     '/// Enum containing analyzer error codes referenced by '
-    '[Code.analyzerCodes].',
+    '[Code.pseudoSharedCode].',
   );
-  sharedMessages.writeln('enum AnalyzerCode {');
-  for (var code in analyzerCodeValues.toList()..sort()) {
+  sharedMessages.writeln('enum PseudoSharedCode {');
+  for (var code in pseudoSharedCodeValues.toList()..sort()) {
     sharedMessages.writeln('  $code,');
   }
   sharedMessages.writeln('}');
@@ -164,16 +168,16 @@ class _TemplateCompiler {
   final int? index;
   final String problemMessage;
   final String? correctionMessage;
-  final List<AnalyzerCode> analyzerCodes;
   final String? severity;
   final Map<String, ErrorCodeParameter> parameters;
+  final String? pseudoSharedCode;
 
   /// If the template will be generated into `pkg/_fe_analyzer_shared`, a set of
   /// strings representing the values that will be generated for the
-  /// `AnalyzerCode` enum; otherwise `null`.
+  /// `PseudoSharedCode` enum; otherwise `null`.
   ///
   /// The template compiler will add to this set as needed.
-  final Set<String>? analyzerCodeValues;
+  final Set<String>? pseudoSharedCodeValues;
 
   late final Set<String> usedNames = {
     'conversions',
@@ -191,21 +195,23 @@ class _TemplateCompiler {
     required this.name,
     required this.index,
     required CfeStyleErrorCodeInfo errorCodeInfo,
-    required this.analyzerCodeValues,
+    required this.pseudoSharedCodeValues,
   }) : problemMessage = errorCodeInfo.problemMessage,
        correctionMessage = errorCodeInfo.correctionMessage,
-       analyzerCodes = errorCodeInfo.analyzerCodes,
        severity = errorCodeInfo.cfeSeverity,
-       parameters = errorCodeInfo.parameters;
+       parameters = errorCodeInfo.parameters,
+       pseudoSharedCode = errorCodeInfo is FrontEndErrorCodeInfo
+           ? errorCodeInfo.pseudoSharedCode
+           : null;
 
   String compile() {
     var codeArguments = <String>[
       if (index != null)
         'index: $index'
-      else if (analyzerCodeValues != null && analyzerCodes.isNotEmpty)
+      else if (pseudoSharedCodeValues != null && pseudoSharedCode != null)
         // If "index:" is defined, then "analyzerCode:" should not be generated
         // in the front end. See comment in messages.yaml
-        'analyzerCodes: ${_encodeAnalyzerCodes()}',
+        'pseudoSharedCode: ${_encodePseudoSharedCode(pseudoSharedCode!)}',
       if (severity != null) 'severity: CfeSeverity.$severity',
     ];
 
@@ -323,14 +329,10 @@ Message _withArgumentsOld$name(${positionalParameters.join(', ')}) =>
   }
 
   /// Creates the list literal that should populate the error code's
-  /// `analyzerCodes` value.
-  String _encodeAnalyzerCodes() {
-    var encodedCodes = <String>[];
-    for (var code in analyzerCodes) {
-      var camelCaseCode = code.camelCaseErrorName;
-      analyzerCodeValues!.add(camelCaseCode);
-      encodedCodes.add('AnalyzerCode.$camelCaseCode');
-    }
-    return '<AnalyzerCode>[${encodedCodes.join(', ')}]';
+  /// `pseudoSharedCode` value.
+  String _encodePseudoSharedCode(String code) {
+    var camelCaseCode = code.toCamelCase();
+    pseudoSharedCodeValues!.add(camelCaseCode);
+    return 'PseudoSharedCode.$camelCaseCode';
   }
 }

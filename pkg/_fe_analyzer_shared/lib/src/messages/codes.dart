@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:_fe_analyzer_shared/src/scanner/errors.dart';
+/// @docImport 'package:analyzer/src/fasta/ast_builder.dart';
+/// @docImport 'package:analyzer/src/fasta/error_converter.dart';
 library _fe_analyzer_shared.messages.codes;
 
 import 'dart:convert' show JsonEncoder, json;
@@ -28,14 +31,26 @@ class Code {
   /// this error to its corresponding Analyzer error.
   final int index;
 
-  final List<AnalyzerCode>? analyzerCodes;
+  /// Enumerated value that can be used to map this [Code] to a corresponding
+  /// analyzer code.
+  ///
+  /// If this value is non-null, then manually maintained logic (such as
+  /// that in [translateErrorToken], [AstBuilder.addProblem],
+  /// [AstBuilder.handleRecoverableError], or
+  /// [FastaErrorReporter.reportMessage]) can use it to translate to a
+  /// corresponding analyzer error code.
+  ///
+  /// Note that error codes that require translation in this way are not truly
+  /// shared (hence the name "pseudoSharedCode"). Truly shared error codes are
+  /// mapped to corresponding analyzer error codes using [index].
+  final PseudoSharedCode? pseudoSharedCode;
 
   final CfeSeverity severity;
 
   const Code(
     this.name, {
     this.index = -1,
-    this.analyzerCodes,
+    this.pseudoSharedCode,
     this.severity = CfeSeverity.error,
   });
 
@@ -83,7 +98,7 @@ class MessageCode extends Code implements Message {
   const MessageCode(
     super.name, {
     super.index,
-    super.analyzerCodes,
+    super.pseudoSharedCode,
     super.severity,
     required this.problemMessage,
     this.correctionMessage,
@@ -124,7 +139,7 @@ class Template<TOld extends Function, T extends Function> extends Code {
     required this.withArgumentsOld,
     required this.withArguments,
     super.index = -1,
-    super.analyzerCodes,
+    super.pseudoSharedCode,
     super.severity = CfeSeverity.error,
   });
 

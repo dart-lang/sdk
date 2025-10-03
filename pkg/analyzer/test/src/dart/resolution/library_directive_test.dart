@@ -36,7 +36,7 @@ LibraryDirective
     element: <null>
     staticType: null
   semicolon: ;
-  element2: <testLibrary>
+  element: <testLibrary>
 ''');
   }
 
@@ -50,7 +50,7 @@ library;
 LibraryDirective
   libraryKeyword: library
   semicolon: ;
-  element2: <testLibrary>
+  element: <testLibrary>
 ''');
   }
 }

@@ -233,10 +233,6 @@ class AnalyzerCode implements Comparable<AnalyzerCode> {
 /// In-memory representation of error code information obtained from a
 /// `messages.yaml` file in `pkg/front_end` or `pkg/_fe_analyzer_shared`.
 abstract class CfeStyleErrorCodeInfo extends ErrorCodeInfo {
-  /// The set of analyzer error codes that corresponds to this error code, if
-  /// any.
-  final List<AnalyzerCode> analyzerCodes;
-
   /// The index of the error in the analyzer's `fastaAnalyzerErrorCodes` table.
   final int? index;
 
@@ -245,42 +241,11 @@ abstract class CfeStyleErrorCodeInfo extends ErrorCodeInfo {
   final String? cfeSeverity;
 
   CfeStyleErrorCodeInfo.fromYaml(YamlMap yaml)
-    : analyzerCodes = _decodeAnalyzerCodes(yaml['analyzerCode']),
-      index = _decodeIndex(yaml['index']),
+    : index = _decodeIndex(yaml['index']),
       cfeSeverity = _decodeSeverity(yaml['severity']),
       super.fromYaml(yaml) {
     if (yaml['problemMessage'] == null) {
       throw 'Missing problemMessage';
-    }
-  }
-
-  static AnalyzerCode _decodeAnalyzerCode(String s) {
-    switch (s.split('.')) {
-      case [var errorName] when errorName == errorName.toUpperCase():
-        return AnalyzerCode(className: null, snakeCaseErrorName: errorName);
-      case [var className, var errorName]
-          when errorName == errorName.toUpperCase():
-        return AnalyzerCode(
-          className: className,
-          snakeCaseErrorName: errorName,
-        );
-      default:
-        throw StateError(
-          'Analyzer codes must take the form DIAGNOSTIC_NAME or '
-          'ClassName.DIAGNOSTIC_NAME. Found ${json.encode(s)} instead.',
-        );
-    }
-  }
-
-  static List<AnalyzerCode> _decodeAnalyzerCodes(Object? value) {
-    if (value == null) {
-      return const [];
-    } else if (value is String) {
-      return [_decodeAnalyzerCode(value)];
-    } else if (value is List) {
-      return [for (var s in value) _decodeAnalyzerCode(s as String)];
-    } else {
-      throw 'Unrecognized analyzer code: $value';
     }
   }
 
@@ -858,7 +823,7 @@ enum ErrorCodeParameterType {
 /// In-memory representation of error code information obtained from the file
 /// `pkg/front_end/messages.yaml`.
 class FrontEndErrorCodeInfo extends CfeStyleErrorCodeInfo {
-  /// Whether the error code contains a `pseudoShared: true` property in
+  /// The value of the `pseudoSharedCode` property in
   /// `pkg/front_end/messages.yaml`.
   ///
   /// Messages with this property set are not shared; they have separately
@@ -868,15 +833,13 @@ class FrontEndErrorCodeInfo extends CfeStyleErrorCodeInfo {
   /// into the associated analyzer error using [FastaErrorReporter].
   // TODO(paulberry): migrate all pseudo-shared error codes to shared error
   // codes.
-  final bool pseudoShared;
+  final String? pseudoSharedCode;
 
-  FrontEndErrorCodeInfo.fromYaml(super.yaml)
-    : pseudoShared = (yaml['pseudoShared'] as bool?) ?? false,
-      super.fromYaml() {
-    if (!pseudoShared && analyzerCodes.isNotEmpty) {
-      throw StateError(
-        'Only shared and pseudo-shared messages can have analyzer codes',
-      );
+  FrontEndErrorCodeInfo.fromYaml(YamlMap yaml)
+    : pseudoSharedCode = yaml['pseudoSharedCode'] as String?,
+      super.fromYaml(yaml) {
+    if (yaml['analyzerCode'] != null) {
+      throw StateError('Only shared messages can have an analyzer code');
     }
     if (index != null) {
       throw StateError('Non-shared messages must not have an index');
@@ -1041,26 +1004,43 @@ class ParsedPlaceholder {
 /// In-memory representation of error code information obtained from the file
 /// `pkg/_fe_analyzer_shared/messages.yaml`.
 class SharedErrorCodeInfo extends CfeStyleErrorCodeInfo {
-  SharedErrorCodeInfo.fromYaml(super.yaml) : super.fromYaml() {
-    if (analyzerCodes.length != 1) {
-      throw StateError('Shared messages must have exactly one analyzerCode');
-    }
-    if (super.index == null) {
-      throw StateError('Shared messages must have an index');
-    }
-  }
-
   /// The analyzer error code that corresponds to this shared error code.
   ///
   /// Shared error codes are required to have exactly one analyzer error code
   /// associated with them.
-  AnalyzerCode get analyzerCode => analyzerCodes.single;
+  final AnalyzerCode analyzerCode;
+
+  SharedErrorCodeInfo.fromYaml(super.yaml)
+    : analyzerCode = _decodeAnalyzerCode(yaml['analyzerCode'] as String),
+      super.fromYaml() {
+    if (super.index == null) {
+      throw StateError('Shared messages must have an index');
+    }
+  }
 
   /// The index of the error in the analyzer's `fastaAnalyzerErrorCodes` table.
   ///
   /// Shared error codes are required to have a non-null index.
   @override
   int get index => super.index!;
+
+  static AnalyzerCode _decodeAnalyzerCode(String s) {
+    switch (s.split('.')) {
+      case [var errorName] when errorName == errorName.toUpperCase():
+        return AnalyzerCode(className: null, snakeCaseErrorName: errorName);
+      case [var className, var errorName]
+          when errorName == errorName.toUpperCase():
+        return AnalyzerCode(
+          className: className,
+          snakeCaseErrorName: errorName,
+        );
+      default:
+        throw StateError(
+          'Analyzer codes must take the form DIAGNOSTIC_NAME or '
+          'ClassName.DIAGNOSTIC_NAME. Found ${json.encode(s)} instead.',
+        );
+    }
+  }
 }
 
 /// Data tables mapping between shared errors and their corresponding
