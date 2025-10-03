@@ -34,12 +34,6 @@ final _pathEnvVarSeparator = Platform.isWindows ? ';' : ':';
 /// clone.
 const _gitPackageForTest = 'dart_app';
 
-final _gitHttpsUrl = Uri.parse('https://dart.googlesource.com/native');
-
-const _gitPath = 'pkgs/hooks_runner/test_data/dart_app/';
-
-const _gitRef = '8ce789991cddb8864b0f3fa210c83d3d10e78316';
-
 const String _dartDirectoryEnvKey = 'DART_DATA_HOME';
 
 final _dartDevEntryScriptUri = resolveDartDevUri('bin/dartdev.dart');
@@ -50,6 +44,13 @@ final _packageRelativePath = Uri.directory('pkg/vm_snapshot_analysis/');
 
 final _packageDir = Directory.fromUri(
   _sdkUri.resolveUri(_packageRelativePath),
+);
+
+/// Standalone, with its own pubspec.
+final _package2RelativePath = Uri.directory('pkg/dartdev/test/data/dart_app/');
+
+final _package2Dir = Directory.fromUri(
+  _sdkUri.resolveUri(_package2RelativePath),
 );
 
 void main([List<String> args = const []]) async {
@@ -242,28 +243,72 @@ Run "dart help" to see global options.
   }
 
   final argumentssGit = [
-    (
-      null,
-      [_gitHttpsUrl.toString(), '--git-path', _gitPath],
-    ),
-    (
-      null,
-      [_gitHttpsUrl.toString(), '--git-path', _gitPath, '--git-ref', _gitRef],
-    ),
+    ['git'],
+    [
+      'git',
+      '--git-path',
+      '--git-ref',
+    ],
   ];
 
-  for (final (workingDirectory, arguments) in argumentssGit) {
-    var testName = arguments.join(' ');
-    if (workingDirectory != null) {
-      testName += ' in ${workingDirectory.toFilePath()}';
-    }
+  for (final testArguments in argumentssGit) {
+    var testName = testArguments.join(' ');
 
     skippableTest('dart install $testName', timeout: longTimeout, () async {
       await inTempDir((tempUri) async {
-        final binDir = Directory.fromUri(tempUri.resolve('install/bin'));
+        final gitUri = tempUri.resolve('app.git/');
+        await Directory.fromUri(gitUri.resolve('bin/')).create(recursive: true);
+        for (final file in [
+          'pubspec.yaml',
+          'bin/dart_app.dart',
+        ]) {
+          await File.fromUri(_package2Dir.uri.resolve(file))
+              .copy(gitUri.resolve(file).toFilePath());
+        }
+        for (final commands in [
+          ['init'],
+          ['add', '.'],
+          ['commit', '-m', '"Initial commit"'],
+        ]) {
+          final gitResult = await Process.run(
+            'git',
+            commands,
+            workingDirectory: gitUri.toFilePath(),
+          );
+          if (gitResult.exitCode != 0) {
+            throw ProcessException(
+              'git',
+              commands,
+              gitResult.stderr,
+            );
+          }
+        }
+        final gitRef = ((await Process.run(
+          'git',
+          ['rev-parse', 'HEAD'],
+          workingDirectory: gitUri.toFilePath(),
+        ))
+                .stdout as String)
+            .trim();
+        final gitPath = './';
+        final arguments = [
+          gitUri.toFilePath(),
+          if (testArguments.contains('--git-path')) ...[
+            '--git-path',
+            gitPath,
+          ],
+          if (testArguments.contains('--git-ref')) ...[
+            '--git-ref',
+            gitRef,
+          ],
+        ];
+
+        final dartDataHome = tempUri.resolve('dart_home/');
+        await Directory.fromUri(dartDataHome).create();
+        final binDir = Directory.fromUri(dartDataHome.resolve('install/bin'));
 
         final environment = {
-          _dartDirectoryEnvKey: tempUri.toFilePath(),
+          _dartDirectoryEnvKey: dartDataHome.toFilePath(),
           'PATH':
               '${binDir.path}$_pathEnvVarSeparator${Platform.environment['PATH']!}',
         };
@@ -272,7 +317,7 @@ Run "dart help" to see global options.
           fromDartdevSource,
           'install',
           arguments,
-          workingDirectory,
+          null,
           environment,
         );
 
@@ -292,14 +337,8 @@ Run "dart help" to see global options.
         );
         expect(
           installedLine,
-          contains(' from Git repository "${_gitHttpsUrl.toString()}"'),
+          contains(' at "${gitRef.substring(0, 8)}"'),
         );
-        if (arguments.contains('--git-ref')) {
-          expect(
-            installedLine,
-            contains(' at "${_gitRef.substring(0, 8)}"'),
-          );
-        }
 
         await _runDartdev(
           fromDartdevSource,

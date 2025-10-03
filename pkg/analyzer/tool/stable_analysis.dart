@@ -5,21 +5,51 @@
 import 'dart:io';
 
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/clients/build_resolvers/build_resolvers.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/lint/registry.dart' as linter;
 import 'package:linter/src/rules.dart' as linter;
 
 void main(List<String> args) {
   String? dirPath;
-  bool registerLints = true;
+  bool silent = false;
+  bool lints = true;
+  bool warnings = true;
+  bool comments = true;
   bool dumpPerformanceNumbers = false;
+  // Hardcoded for now, but could be interesting to try them one at a time and
+  // see what the cost of each individual lint is.
+  Set<String> wantedLints = {
+    "collection_methods_unrelated_type",
+    "curly_braces_in_flow_control_structures",
+    "depend_on_referenced_packages",
+    "prefer_adjacent_string_concatenation",
+    "unawaited_futures",
+    "avoid_void_async",
+    "recursive_getters",
+    "avoid_empty_else",
+    "empty_statements",
+    "valid_regexps",
+    "lines_longer_than_80_chars",
+    "unrelated_type_equality_checks",
+    "annotate_overrides",
+    "always_declare_return_types",
+  };
 
   for (String arg in args) {
-    if (arg == "--no-lints") {
-      registerLints = false;
+    if (arg == "--silent") {
+      silent = true;
+    } else if (arg == "--no-lints") {
+      lints = false;
+    } else if (arg == "--no-warnings") {
+      warnings = false;
+    } else if (arg == "--no-comments") {
+      comments = false;
     } else if (arg == "--dump-performance") {
       dumpPerformanceNumbers = true;
     } else if (!arg.startsWith("--") && dirPath == null) {
@@ -28,11 +58,8 @@ void main(List<String> args) {
       throw "Unknown argument: $arg";
     }
   }
-
-  if (registerLints) {
-    linter.registerLintRules();
-  }
   if (dirPath == null) throw "Needs a directory to work on.";
+  if (dirPath.endsWith("/")) dirPath = dirPath.substring(0, dirPath.length - 1);
   Directory dir = Directory(dirPath);
   List<String> filesToAnalyze = [];
   for (FileSystemEntity entity in dir.listSync(
@@ -44,6 +71,13 @@ void main(List<String> args) {
     }
   }
 
+  if (lints) {
+    linter.registerLintRules();
+  }
+
+  // ignore: invalid_use_of_visible_for_testing_member
+  Scanner.preserveCommentsDefaultForTesting = comments;
+
   // Creating the Scheduler here, and not starting it, means it's not going to
   // get started. It's good for stability :).
   // To make sure the 'start' method is overwritten below.
@@ -54,6 +88,20 @@ void main(List<String> args) {
   AnalysisContextCollectionImpl collection = AnalysisContextCollectionImpl(
     includedPaths: [dir.path],
     scheduler: scheduler,
+    updateAnalysisOptions4: ({required AnalysisOptionsImpl analysisOptions}) {
+      analysisOptions.warning = warnings;
+      analysisOptions.lint = lints;
+      if (lints) {
+        int added = 0;
+        for (var rule in linter.Registry.ruleRegistry.rules) {
+          if (wantedLints.contains(rule.name)) {
+            analysisOptions.lintRules.add(rule);
+            added++;
+          }
+        }
+        if (!silent) print("Enabled $added lints");
+      }
+    },
   );
   DriverBasedAnalysisContext context = collection.contexts[0];
   AnalysisDriver analysisDriver = context.driver;
@@ -76,7 +124,7 @@ void main(List<String> args) {
       for (var unit in library.units) {
         for (var diagnostic in unit.diagnostics) {
           if (diagnostic.diagnosticCode.type == DiagnosticType.TODO) continue;
-          print(diagnostic);
+          if (!silent) print(diagnostic);
         }
       }
     }

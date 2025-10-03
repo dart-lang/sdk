@@ -13,6 +13,7 @@ void main(List<String> args) {
   if (args.contains("--help")) return _help();
   _checkEnvironment();
   bool doCacheBenchmarkingToo = false;
+  bool doDisabledGcBenchmarkToo = false;
   bool silent = false;
   int iterations = 5;
   int core = 7;
@@ -20,6 +21,7 @@ void main(List<String> args) {
   String? aotRuntime;
   String? checkFileSize;
   List<String> snapshots = [];
+  List<List<String>> snapshotSpecificArguments = [];
   List<String> arguments = [];
   for (String arg in args) {
     if (arg.startsWith("--iterations=")) {
@@ -34,10 +36,20 @@ void main(List<String> args) {
       snapshots.add(arg.substring("--snapshot=".length));
     } else if (arg.startsWith("--arguments=")) {
       arguments.add(arg.substring("--arguments=".length));
+    } else if (arg.startsWith("--sarguments=")) {
+      // "specific arguments" or "snapshot arguments".
+      while (snapshotSpecificArguments.length < snapshots.length) {
+        snapshotSpecificArguments.add([]);
+      }
+      snapshotSpecificArguments[snapshotSpecificArguments.length - 1].add(
+        arg.substring("--sarguments=".length),
+      );
     } else if (arg.startsWith("--filesize=")) {
       checkFileSize = arg.substring("--filesize=".length);
     } else if (arg == "--cache") {
       doCacheBenchmarkingToo = true;
+    } else if (arg == "--no-gc") {
+      doDisabledGcBenchmarkToo = true;
     } else if (arg == "--silent") {
       silent = true;
     } else {
@@ -52,6 +64,9 @@ void main(List<String> args) {
   if (arguments.isEmpty) {
     print("Note: Running without any arguments to the snapshots.");
   }
+  while (snapshotSpecificArguments.length < snapshots.length) {
+    snapshotSpecificArguments.add([]);
+  }
 
   _doRun(
     iterations,
@@ -59,23 +74,48 @@ void main(List<String> args) {
     aotRuntime,
     core,
     arguments,
+    snapshotSpecificArguments,
     checkFileSize,
     cacheBenchmarking: false,
     silent: silent,
     gcRuns: gcRuns,
   );
   if (doCacheBenchmarkingToo) {
+    print("");
     _doRun(
       iterations,
       snapshots,
       aotRuntime,
       core,
       arguments,
+      snapshotSpecificArguments,
       checkFileSize,
       cacheBenchmarking: true,
       silent: silent,
       gcRuns: gcRuns,
     );
+  }
+  if (doDisabledGcBenchmarkToo) {
+    print("");
+    _doRun(
+      iterations,
+      snapshots,
+      aotRuntime,
+      core,
+      arguments,
+      snapshotSpecificArguments,
+      checkFileSize,
+      cacheBenchmarking: false,
+      silent: silent,
+      gcRuns: 0,
+      extraVmArguments: [
+        "--new_gen_semi_initial_size=10000",
+        "--new_gen_semi_max_size=20000",
+      ],
+    );
+
+    // TODO(jensj): Should we do a (number of) run(s) where we measure memory
+    // usage?
   }
 }
 
@@ -85,20 +125,50 @@ void _doRun(
   String aotRuntime,
   int core,
   List<String> arguments,
+  List<List<String>> snapshotSpecificArguments,
   String? checkFileSize, {
   required bool cacheBenchmarking,
   required bool silent,
   required int gcRuns,
+  List<String>? extraVmArguments,
 }) {
   print(
-    "Will now run $iterations iterations with "
+    "Will now run $iterations+$gcRuns iterations with "
     "${snapshots.length} snapshots.",
   );
+
+  if (extraVmArguments != null && extraVmArguments.isNotEmpty) {
+    print("Running with extra vm arguments: ${extraVmArguments.join(" ")}");
+  }
+
+  int lines;
+  {
+    try {
+      lines = stdout.terminalLines;
+    } catch (_) {
+      lines = 80;
+    }
+
+    if (lines > 80) lines = 80;
+    int totalNumberOfRuns = (iterations + gcRuns) * snapshots.length;
+    if (totalNumberOfRuns < lines) lines = totalNumberOfRuns;
+    List<int> charCodes = List.filled(lines, ".".codeUnitAt(0));
+    for (int i = 9; i < charCodes.length; i += 10) {
+      charCodes[i] = "|".codeUnitAt(0);
+    }
+    print(new String.fromCharCodes(charCodes));
+  }
 
   List<List<Map<String, num>>> runResults = [];
   List<List<GCInfo>> gcInfos = [];
   Warnings warnings = new Warnings();
-  for (String snapshot in snapshots) {
+  int writes = 0;
+  for (int snapshotNum = 0; snapshotNum < snapshots.length; snapshotNum++) {
+    String snapshot = snapshots[snapshotNum];
+    List<String> usedArguments = [
+      ...arguments,
+      ...snapshotSpecificArguments[snapshotNum],
+    ];
     List<GCInfo> gcInfo = [];
     gcInfos.add(gcInfo);
     List<Map<String, num>> snapshotResults = [];
@@ -106,13 +176,15 @@ void _doRun(
     for (int iteration = 0; iteration < iterations; iteration++) {
       // We want this silent to mean no stdout print, but still want progress
       // info which is what the dot provides.
-      if (silent) stdout.write(".");
+      if (silent) {
+        writes = _silentWrite(writes, lines);
+      }
       Map<String, num> benchmarkRun = _benchmark(
         aotRuntime,
         core,
         snapshot,
-        [],
-        arguments,
+        extraVmArguments ?? [],
+        usedArguments,
         warnings: warnings,
         cacheBenchmarking: cacheBenchmarking,
         silent: silent,
@@ -128,27 +200,37 @@ void _doRun(
 
     // Do GC runs too.
     for (int i = 0; i < gcRuns; i++) {
-      if (silent) stdout.write(".");
+      if (silent) {
+        writes = _silentWrite(writes, lines);
+      }
       gcInfo.add(
-        _verboseGcRun(aotRuntime, snapshot, [], arguments, silent: true),
+        _verboseGcRun(aotRuntime, snapshot, [], usedArguments, silent: true),
       );
     }
   }
   stdout.write("\n\n");
 
   List<Map<String, num>> firstSnapshotResults = runResults.first;
+  String snapshot1Name = _getName(snapshots[0]);
+  if (snapshotSpecificArguments[0].isNotEmpty) {
+    snapshot1Name += " ${snapshotSpecificArguments[0].join(" ")}";
+  }
   for (int i = 1; i < runResults.length; i++) {
     if (i > 1) print("");
+    String comparedToSnapshotName = _getName(snapshots[i]);
+    if (snapshotSpecificArguments[i].isNotEmpty) {
+      comparedToSnapshotName += " ${snapshotSpecificArguments[i].join(" ")}";
+    }
     print(
-      "Comparing snapshot #1 (${_getName(snapshots[0])}) with "
-      "snapshot #${i + 1} (${_getName(snapshots[i])})",
+      "Comparing snapshot #1 ($snapshot1Name) with "
+      "snapshot #${i + 1} ($comparedToSnapshotName)",
     );
     List<Map<String, num>> compareToResults = runResults[i];
     if (!_compare(firstSnapshotResults, compareToResults)) {
       print("No change.");
     }
-    print("Comparing GC:");
     if (gcRuns >= 3) {
+      print("\nComparing GC runtimes:");
       if (!_compareSingle(
         gcInfos[i].map((gcInfo) => gcInfo.combinedTime).toList(),
         gcInfos[0].map((gcInfo) => gcInfo.combinedTime).toList(),
@@ -156,9 +238,14 @@ void _doRun(
       )) {
         print("No change in combined time.");
       }
-    } else {
+    } else if (gcRuns > 0) {
+      print("\nComparing GC data:");
+      bool printedAnything = false;
       for (int gcNum = 0; gcNum < gcRuns; gcNum++) {
-        printGcDiff(gcInfos[0][gcNum], gcInfos[i][gcNum]);
+        printedAnything |= printGcDiff(gcInfos[0][gcNum], gcInfos[i][gcNum]);
+      }
+      if (!printedAnything) {
+        print("'No' GC change.");
       }
     }
   }
@@ -171,6 +258,16 @@ void _doRun(
     print("sudo out/ReleaseX64/dart pkg/front_end/tool/perf_event_tool.dart");
     print("will attempt to give you such information.");
   }
+}
+
+int _silentWrite(int previousWriteCount, int lines) {
+  if (previousWriteCount >= lines) {
+    stdout.write("\n");
+    previousWriteCount = 0;
+  }
+  stdout.write(".");
+  previousWriteCount++;
+  return previousWriteCount;
 }
 
 String _getName(String urlIsh) {
@@ -499,7 +596,7 @@ void combinedGcDiff(List<GCInfo> prev, List<GCInfo> current) {
   prev.map((gcInfo) => gcInfo.combinedTime).toList();
 }
 
-void printGcDiff(GCInfo prev, GCInfo current) {
+bool printGcDiff(GCInfo prev, GCInfo current) {
   Set<String> allKeys = {...prev.countWhat.keys, ...current.countWhat.keys};
   bool printedAnything = false;
   for (String key in allKeys) {
@@ -517,6 +614,7 @@ void printGcDiff(GCInfo prev, GCInfo current) {
       "(notice only 1 run each).",
     );
   }
+  return printedAnything;
 }
 
 class GCInfo {
