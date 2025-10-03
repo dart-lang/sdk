@@ -41,7 +41,7 @@ Column(
 To learn more about the feature, check out the
 [feature specification][dot-shorthand-spec].
 
-[dot-shorthand-spec]: https://github.com/dart-lang/language/blob/main/working/3616%20-%20enum%20value%20shorthand/proposal-simple-lrhn.md
+[dot-shorthand-spec]: https://github.com/dart-lang/language/blob/main/accepted/3.10/dot-shorthands/feature-specification.md
 
 #### Eliminate spurious Null from generator return type
 
@@ -87,12 +87,12 @@ instead.
   field is not initialized.
 - Support the new `@Deprecated` annotations by reporting warnings when specific
   functionality of an element is deprecated.
-- Offer to import a libary for an appropriate extension member when method or
+- Offer to import a library for an appropriate extension member when method or
   property is accessed on a nullable value.
 - Offer to remove the `const` keyword for a constructor call which includes a
   method invocation.
 - Remove support for the deprecated `@required` annotation.
-- Add two assists to bind constuctor parameters to an existing or a
+- Add two assists to bind constructor parameters to an existing or a
   non-existing field.
 - Add a warning which is reported when an `@experimental` member is used
   outside of the package in which it is declared.
@@ -107,27 +107,27 @@ instead.
 
 #### Dart CLI and Dart VM
 
-- The Dart CLI and Dart VM have been split into two seperate executables.
+- The Dart CLI and Dart VM have been split into two separate executables.
 
   The Dart CLI tool has been split out of the VM into it's own embedder which
   runs in AOT mode. The pure Dart VM executable is called `dartvm` and
-  has no Dart CLI functionality in it
+  has no Dart CLI functionality in it.
 
   The Dart CLI executable parses the CLI commands and invokes the rest
   of the AOT tools in the same process, for the 'run' and 'test'
-  commands it execs a process which runs `dartvm`
+  commands it execs a process which runs `dartvm`.
 
-  `dart hello.dart` execs the `dartvm` process and runs 'hello.dart'
+  `dart hello.dart` execs the `dartvm` process and runs the `hello.dart` file.
 
   The Dart CLI is not generated for ia32 as we are not shipping a
   Dart SDK for ia32 anymore (support to execute the `dartvm` for ia32
-  architecture is retained)
+  architecture is retained).
 
 ### Libraries
 
 #### `dart:async`
 
-- Added `Future.syncValue` constructor for creating a future with a 
+- Added `Future.syncValue` constructor for creating a future with a
   known value. Unlike `Future.value`, it does not allow an asynchronous
   `Future<T>` as the value of a new `Future<T>`.
 
@@ -160,7 +160,7 @@ instead.
 #### `dart:io`
 
 - **Breaking Change** [#56468][]: Marked `IOOverrides` as an `abstract base`
-  class.
+  class so it can no longer be implemented.
 - Added ability to override behavior of `exit(...)` to `IOOverrides`.
 
 [#56468]: https://github.com/dart-lang/sdk/issues/56468
@@ -202,10 +202,67 @@ instead.
 
 - dart2wasm no longer supports `dart:js_util` and will throw an
   `UnsupportedError` if any API from this library is invoked. This also applies
-  to `package:js/js_util.dart`. `package:js/js.dart` continues to be supported. 
+  to `package:js/js_util.dart`. `package:js/js.dart` continues to be supported.
   See [#61550][] for more details.
 
 [#61550]: https://github.com/dart-lang/sdk/issues/61550
+
+## 3.9.4
+
+**Released on:** 2025-09-30
+
+#### Pub
+
+- `dart pub get --example` will now resolve `example/` folders in the
+  entire workspace, not only in the root package.
+  This fixes [dart-lang/pub#4674][] that made `flutter pub get`
+  crash if the examples had not been resolved before resolving the workspace.
+
+[dart-lang/pub#4674]: https://github.com/dart-lang/pub/issues/4674
+
+## 3.9.3
+
+**Released on:** 2025-09-09
+
+### Tools
+
+#### Development JavaScript compiler (DDC)
+
+- Fixes a pattern that could lead to exponentially slow compile times when
+  static calls are deeply nested within a closure.
+  When present this led to builds timing out or
+  taking several minutes rather than several seconds.
+
+## 3.9.2
+
+**Released on:** 2025-08-27
+
+### Tools
+
+#### Development JavaScript compiler (DDC)
+
+- Fixes an unintentional invocation of class static getters during a
+  hot reload in a web development environment.
+  This led to possible side effects being triggered early or
+  crashes during the hot reload if the getter throws an exception.
+
+## 3.9.1
+
+**Released on:** 2025-08-20
+
+This is a patch release that:
+
+- Fixes an issue in DevTools causing assertion errors in the terminal after
+  clicking 'Clear' on the Network Screen (issue [dart-lang/sdk#61187][]).
+- Fixes miscompilation to ARM32 when an app used
+  a large amount of literals (issue [flutter/flutter#172626][]).
+- Fixes an issue with git dependencies using `tag_pattern`,
+  where the `pubspec.lock` file would not be stable when
+  running `dart pub get` (issue [dart-lang/pub#4644][]).
+
+[dart-lang/sdk#61187]: https://github.com/dart-lang/sdk/issues/61187
+[flutter/flutter#172626]: https://github.com/flutter/flutter/issues/172626
+[dart-lang/pub#4644]: https://github.com/dart-lang/pub/issues/4644
 
 ## 3.9.0
 
@@ -1131,7 +1188,6 @@ The AOT snapshot can be used as follows to run DDC:
 [pub#4445]: https://github.com/dart-lang/pub/issues/4445
 [#57084]: https://github.com/dart-lang/sdk/issues/57084
 [#56552]: https://github.com/dart-lang/sdk/issues/56552
->>>>>>> BASE      (d73f7bdb4366b447eb9874fe80381b8efd03c718 Generate `GeneralizingAstVisitor`, `TimedAstVisitor`, `Analy)
 
 ## 3.6.0
 
@@ -1461,7 +1517,7 @@ This is a patch release that:
 - Fixes a bug in dart2wasm that can result in a runtime error that says
   `array.new_fixed()` has a constant larger than 10000 (issue [#55873]).
 
-- Adds support for `--enable-experiment` flag to `dart compile` wasm
+- Adds support for `--enable-experiment` flag to `dart compile wasm`
   (issue [#55894]).
 
 - Fixes an issue in dart2wasm compiler that can result in incorrect
@@ -2080,7 +2136,7 @@ This is a patch release that:
 
 This is a patch release that:
 
-- Adjusts the nullablity computations in the implementation of the
+- Adjusts the nullability computations in the implementation of the
   upper bound algorithm in the compiler frontend (issue [#53999][]).
 
 - Fixes missing closure code completion entries for function parameters
@@ -3966,7 +4022,7 @@ them, you must set the lower bound on the SDK constraint for your package to
     }
     ```
 
-[enhanced enums with members]: https://github.com/dart-lang/language/blob/master/accepted/future-releases/enhanced-enums/feature-specification.md
+[enhanced enums with members]: https://github.com/dart-lang/language/blob/main/accepted/2.17/enhanced-enums/feature-specification.md
 
 -   **[Super parameters][]**: When extending a class whose constructor takes
     parameters, the subclass constructor needs to provide arguments for them.
@@ -5691,7 +5747,7 @@ Updated the Linter to `0.1.129`, which includes:
 
 - `dart pub publish` will now check your pubspec keys for likely typos.
 
-- `dart pub upgrade package_foo` fetchs dependencies but ignores the
+- `dart pub upgrade package_foo` fetches dependencies but ignores the
   `pubspec.lock` for `package_foo`, allowing users to only upgrade a subset of
   dependencies.
 
