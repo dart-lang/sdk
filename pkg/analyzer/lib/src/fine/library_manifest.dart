@@ -987,6 +987,7 @@ class LibraryManifestBuilder {
 
     _fillInterfaceElementsInterface();
     _addClassTypeAliasConstructors();
+    _fillClassAllSubtypes();
   }
 
   void _computeHashForRequirements() {
@@ -1008,6 +1009,10 @@ class LibraryManifestBuilder {
       void addId(ManifestItemId id) {
         builder.addInt(id.hi32);
         builder.addInt(id.lo32);
+      }
+
+      void addIdList(ManifestItemIdList idList) {
+        builder.addList(idList.ids, addId);
       }
 
       void addVersion(Version? version) {
@@ -1072,6 +1077,10 @@ class LibraryManifestBuilder {
             if (item is InterfaceItem) {
               builder.addBool(item.hasNonFinalField);
               addId(item.interface.id);
+              if (item is ClassItem) {
+                // Not strictly necessary, we add all top-levels.
+                addIdList(item.allSubtypes);
+              }
             }
           }
         });
@@ -1090,9 +1099,25 @@ class LibraryManifestBuilder {
 
       addId(manifest.exportMapId);
       addMapOfIds(manifest.exportMap);
-      builder.addList(manifest.exportedExtensions.ids, addId);
+      addIdList(manifest.exportedExtensions);
 
       manifest.hashForRequirements = builder.toHash();
+    }
+  }
+
+  void _fillClassAllSubtypes() {
+    for (var libraryElement in libraryElements) {
+      for (var classElement in libraryElement.classes) {
+        var classItem = declaredItems[classElement];
+        if (classItem != null) {
+          classItem as ClassItem;
+          var ids = (classElement.allSubtypes ?? []).map((type) {
+            var item = declaredItems[type.element] as InterfaceItem;
+            return item.id;
+          }).sorted();
+          classItem.allSubtypes = ManifestItemIdList(ids);
+        }
+      }
     }
   }
 

@@ -19,6 +19,9 @@ import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 class ClassItem extends InterfaceItem<ClassElementImpl> {
+  /// See [ClassElementImpl.allSubtypes] for details.
+  ManifestItemIdList allSubtypes;
+
   ClassItem({
     required super.id,
     required _ClassItemFlags super.flags,
@@ -36,6 +39,7 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
     required super.mixins,
     required super.interfaces,
     required super.interface,
+    required this.allSubtypes,
   });
 
   factory ClassItem.fromElement({
@@ -61,6 +65,7 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
         mixins: element.mixins.encode(context),
         interfaces: element.interfaces.encode(context),
         interface: ManifestInterface.empty(),
+        allSubtypes: ManifestItemIdList([]),
       );
     });
   }
@@ -83,6 +88,7 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
       mixins: ManifestType.readList(reader),
       interfaces: ManifestType.readList(reader),
       interface: ManifestInterface.read(reader),
+      allSubtypes: ManifestItemIdList.read(reader),
     );
   }
 
@@ -99,6 +105,12 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
         flags.isMixinApplication == element.isMixinApplication &&
         flags.isMixinClass == element.isMixinClass &&
         flags.isSealed == element.isSealed;
+  }
+
+  @override
+  void write(BinaryWriter writer) {
+    super.write(writer);
+    allSubtypes.write(writer);
   }
 }
 

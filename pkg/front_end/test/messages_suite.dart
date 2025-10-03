@@ -204,6 +204,7 @@ class MessageTestSuite extends ChainContext {
           "'spell_checking_list_messages.txt' or "
           "'spell_checking_list_common.txt'.";
       Map<ExperimentalFlag, bool>? experimentalFlags;
+      bool pseudoShared = false;
 
       Source? source;
       List<String> formatSpellingMistakes(
@@ -494,6 +495,7 @@ class MessageTestSuite extends ChainContext {
             if (value is! bool) {
               throw new ArgumentError('pseudoShared should be a bool: $value.');
             }
+            pseudoShared = value;
             break;
 
           default:
@@ -654,7 +656,12 @@ class MessageTestSuite extends ChainContext {
         ),
       );
 
-      bool exampleAndAnalyzerCodeRequired =
+      bool exampleRequired =
+          severity != CfeSeverity.context &&
+          severity != CfeSeverity.internalProblem &&
+          severity != CfeSeverity.ignored;
+      bool analyzerCodeRequired =
+          pseudoShared &&
           severity != CfeSeverity.context &&
           severity != CfeSeverity.internalProblem &&
           severity != CfeSeverity.ignored;
@@ -663,7 +670,7 @@ class MessageTestSuite extends ChainContext {
         createDescription(
           "externalExample",
           null,
-          exampleAndAnalyzerCodeRequired &&
+          exampleRequired &&
                   externalTest != null &&
                   !(new File.fromUri(root.resolve(externalTest)).existsSync())
               ? (
@@ -681,9 +688,7 @@ class MessageTestSuite extends ChainContext {
         createDescription(
           "example",
           null,
-          exampleAndAnalyzerCodeRequired &&
-                  examples.isEmpty &&
-                  externalTest == null
+          exampleRequired && examples.isEmpty && externalTest == null
               ? (
                   expectation: KnownExpectation.missingExample,
                   message:
@@ -697,9 +702,7 @@ class MessageTestSuite extends ChainContext {
         createDescription(
           "analyzerCode",
           null,
-          exampleAndAnalyzerCodeRequired &&
-                  !frontendInternal &&
-                  analyzerCodes == null
+          analyzerCodeRequired && !frontendInternal && analyzerCodes == null
               ? (
                   expectation: KnownExpectation.missingAnalyzerCode,
                   message:

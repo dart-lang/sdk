@@ -159,52 +159,54 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   ///
   /// If the class is sealed, and all its subtypes are either final or sealed,
   /// then these subtypes are all subtypes that are possible.
-  @trackedDirectlyExpensive
+  @trackedDirectly
   List<InterfaceTypeImpl>? get allSubtypes {
     globalResultRequirements?.record_classElement_allSubtypes(element: this);
 
-    if (isFinal) {
-      var result = <InterfaceTypeImpl>[];
-      for (var element in library.children) {
-        if (element is InterfaceElementImpl && element != this) {
-          var elementThis = element.thisType;
-          if (elementThis.asInstanceOf(this) != null) {
-            result.add(elementThis);
+    return globalResultRequirements.alreadyRecorded(() {
+      if (isFinal) {
+        var result = <InterfaceTypeImpl>[];
+        for (var element in library.children) {
+          if (element is InterfaceElementImpl && element != this) {
+            var elementThis = element.thisType;
+            if (elementThis.asInstanceOf(this) != null) {
+              result.add(elementThis);
+            }
           }
         }
+        return result;
       }
-      return result;
-    }
 
-    if (isSealed) {
-      var result = <InterfaceTypeImpl>[];
-      for (var element in library.children) {
-        if (element is! InterfaceElementImpl || identical(element, this)) {
-          continue;
-        }
+      if (isSealed) {
+        var result = <InterfaceTypeImpl>[];
+        for (var element in library.children) {
+          if (element is! InterfaceElementImpl || identical(element, this)) {
+            continue;
+          }
 
-        var elementThis = element.thisType;
-        if (elementThis.asInstanceOf(this) == null) {
-          continue;
-        }
+          var elementThis = element.thisType;
+          if (elementThis.asInstanceOf(this) == null) {
+            continue;
+          }
 
-        switch (element) {
-          case ClassElementImpl _:
-            if (element.isFinal || element.isSealed) {
+          switch (element) {
+            case ClassElementImpl _:
+              if (element.isFinal || element.isSealed) {
+                result.add(elementThis);
+              } else {
+                return null;
+              }
+            case EnumElement _:
               result.add(elementThis);
-            } else {
+            case MixinElement _:
               return null;
-            }
-          case EnumElement _:
-            result.add(elementThis);
-          case MixinElement _:
-            return null;
+          }
         }
+        return result;
       }
-      return result;
-    }
 
-    return null;
+      return null;
+    });
   }
 
   @override
@@ -1131,7 +1133,10 @@ class DirectiveUriWithUnitImpl extends DirectiveUriWithRelativeUriImpl
 }
 
 /// The synthetic element representing the declaration of the type `dynamic`.
-class DynamicElementImpl extends ElementImpl implements TypeDefiningElement {
+class DynamicElementImpl extends ElementImpl
+    implements
+        TypeDefiningElement // ignore:deprecated_member_use_from_same_package
+        {
   /// The unique instance of this class.
   static final DynamicElementImpl instance = DynamicElementImpl._();
 
@@ -1208,7 +1213,10 @@ class DynamicElementImpl extends ElementImpl implements TypeDefiningElement {
 }
 
 /// The synthetic element representing the declaration of the type `dynamic`.
-class DynamicFragmentImpl extends FragmentImpl implements TypeDefiningFragment {
+class DynamicFragmentImpl extends FragmentImpl
+    implements
+        TypeDefiningFragment // ignore:deprecated_member_use_from_same_package
+        {
   /// The unique instance of this class.
   static final DynamicFragmentImpl instance = DynamicFragmentImpl._();
 
@@ -8941,7 +8949,10 @@ class MultiplyDefinedFragmentImpl extends FragmentImpl
 }
 
 /// The synthetic element representing the declaration of the type `Never`.
-class NeverElementImpl extends ElementImpl implements TypeDefiningElement {
+class NeverElementImpl extends ElementImpl
+    implements
+        TypeDefiningElement // ignore:deprecated_member_use_from_same_package
+        {
   /// The unique instance of this class.
   static final instance = NeverElementImpl._();
 
@@ -9025,7 +9036,10 @@ class NeverElementImpl extends ElementImpl implements TypeDefiningElement {
 }
 
 /// The synthetic element representing the declaration of the type `Never`.
-class NeverFragmentImpl extends FragmentImpl implements TypeDefiningFragment {
+class NeverFragmentImpl extends FragmentImpl
+    implements
+        TypeDefiningFragment // ignore:deprecated_member_use_from_same_package
+        {
   /// The unique instance of this class.
   static final instance = NeverFragmentImpl._();
 

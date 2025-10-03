@@ -238,6 +238,7 @@ class BundleRequirementsPrinter extends ManifestPrinter {
           sink.writelnWithIndent('hasNonFinalField: $value');
         }
         _writelnIdList('allConstructors', requirements.allConstructors);
+        _writelnIdList('allSubtypes', requirements.allSubtypes);
         sink.writeElements(
           'requestedConstructors',
           requirements.requestedConstructors.sorted,
@@ -1287,6 +1288,7 @@ class LibraryManifestPrinter extends ManifestPrinter {
         _writeNamedType('supertype', item.supertype);
         _writeTypeList('mixins', item.mixins);
         _writeTypeList('interfaces', item.interfaces);
+        _writelnIdListIfNotEmpty('allSubtypes', item.allSubtypes);
       });
     }
 
@@ -1828,6 +1830,13 @@ class ManifestPrinter {
   void _writelnIdField(String name, ManifestItemId? id) {
     var idStr = id != null ? idProvider.manifestId(id) : '<null>';
     sink.writelnWithIndent('$name: $idStr');
+  }
+
+  void _writelnIdListIfNotEmpty(String name, ManifestItemIdList idList) {
+    if (idList.ids.isNotEmpty) {
+      var idListStr = idList.asString(idProvider);
+      sink.writelnWithIndent('$name: $idListStr');
+    }
   }
 
   void _writelnIdLookupName(LookupName name, ManifestItemId? id) {

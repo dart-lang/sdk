@@ -873,6 +873,11 @@ class FrontEndErrorCodeInfo extends CfeStyleErrorCodeInfo {
   FrontEndErrorCodeInfo.fromYaml(super.yaml)
     : pseudoShared = (yaml['pseudoShared'] as bool?) ?? false,
       super.fromYaml() {
+    if (!pseudoShared && analyzerCodes.isNotEmpty) {
+      throw StateError(
+        'Only shared and pseudo-shared messages can have analyzer codes',
+      );
+    }
     if (index != null) {
       throw StateError('Non-shared messages must not have an index');
     }

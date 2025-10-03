@@ -4172,11 +4172,11 @@ package:analyzer/dart/element/element.dart:
     enclosingFragment (getter: LibraryFragment?)
     nextFragment (getter: Null)
     previousFragment (getter: Null)
-  TypeDefiningElement (class extends Object implements Element, Annotatable):
+  TypeDefiningElement (class extends Object implements Element, Annotatable, deprecated):
     new (constructor: TypeDefiningElement Function())
     firstFragment (getter: TypeDefiningFragment)
     fragments (getter: List<TypeDefiningFragment>)
-  TypeDefiningFragment (class extends Object implements Fragment, Annotatable):
+  TypeDefiningFragment (class extends Object implements Fragment, Annotatable, deprecated):
     new (constructor: TypeDefiningFragment Function())
     element (getter: TypeDefiningElement)
     nextFragment (getter: TypeDefiningFragment?)
