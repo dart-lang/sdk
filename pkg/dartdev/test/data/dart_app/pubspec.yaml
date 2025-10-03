@@ -1,0 +1,7 @@
+name: dart_app
+
+environment:
+  sdk: ^3.8.0
+
+executables:
+  dart_app:

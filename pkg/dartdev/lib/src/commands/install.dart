@@ -640,6 +640,12 @@ enum _SourceKind {
     if (parsedGitSshUrl != null) {
       return git;
     }
+
+    if (argument.endsWith('.git') ||
+        argument.endsWith('.git/') ||
+        argument.endsWith('.git\\')) {
+      return git;
+    }
     return path;
   }
 
