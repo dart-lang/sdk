@@ -331,6 +331,16 @@ class MessageTestSuite extends ChainContext {
                   'analyzerCode should be a string: $value',
                 );
               }
+              if (value.split('.') case [
+                _,
+                var diagnosticName,
+              ] when diagnosticName == diagnosticName.toUpperCase()) {
+                // ok
+              } else {
+                throw new ArgumentError(
+                  'analyzerCode should take the form ClassName.DIAGNOSTIC_NAME',
+                );
+              }
               analyzerCode = value;
               if (!analyzerCodeRequired) {
                 throw new ArgumentError(
