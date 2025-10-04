@@ -182,11 +182,8 @@ List<String> _splitText(
 /// This class implements [Comparable], so lists of it can be safely
 /// [List.sort]ed.
 class AnalyzerCode implements Comparable<AnalyzerCode> {
-  /// The class name, or `null` if no class name was specified.
-  ///
-  // TODO(paulberry): change `messages.yaml` so that a class name is always
-  // specified.
-  final String? className;
+  /// The class name.
+  final String className;
 
   /// The error name.
   ///
@@ -215,19 +212,14 @@ class AnalyzerCode implements Comparable<AnalyzerCode> {
   int compareTo(AnalyzerCode other) {
     var className = this.className;
     var otherClassName = other.className;
-    if (className == null) {
-      if (otherClassName != null) return -1;
-    } else if (otherClassName == null) {
-      return 1;
-    } else if (className.compareTo(otherClassName) case var result
-        when result != 0) {
+    if (className.compareTo(otherClassName) case var result when result != 0) {
       return result;
     }
     return snakeCaseErrorName.compareTo(other.snakeCaseErrorName);
   }
 
   @override
-  String toString() => [?className, snakeCaseErrorName].join('.');
+  String toString() => [className, snakeCaseErrorName].join('.');
 }
 
 /// In-memory representation of error code information obtained from a
@@ -1026,8 +1018,6 @@ class SharedErrorCodeInfo extends CfeStyleErrorCodeInfo {
 
   static AnalyzerCode _decodeAnalyzerCode(String s) {
     switch (s.split('.')) {
-      case [var errorName] when errorName == errorName.toUpperCase():
-        return AnalyzerCode(className: null, snakeCaseErrorName: errorName);
       case [var className, var errorName]
           when errorName == errorName.toUpperCase():
         return AnalyzerCode(
@@ -1036,8 +1026,8 @@ class SharedErrorCodeInfo extends CfeStyleErrorCodeInfo {
         );
       default:
         throw StateError(
-          'Analyzer codes must take the form DIAGNOSTIC_NAME or '
-          'ClassName.DIAGNOSTIC_NAME. Found ${json.encode(s)} instead.',
+          'Analyzer codes must take the form ClassName.DIAGNOSTIC_NAME. Found '
+          '${json.encode(s)} instead.',
         );
     }
   }
