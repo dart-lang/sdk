@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ConvertToNamedArgumentsTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_TO_NAMED_ARGUMENTS;
+  FixKind get kind => DartFixKind.convertToNamedArguments;
 
   Future<void> test_ambiguous() async {
     await resolveTestCode('''

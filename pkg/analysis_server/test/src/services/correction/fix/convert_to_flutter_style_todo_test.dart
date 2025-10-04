@@ -45,7 +45,7 @@ void g() { }
 @reflectiveTest
 class ConvertToFlutterStyleTodoTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_TO_FLUTTER_STYLE_TODO;
+  FixKind get kind => DartFixKind.convertToFlutterStyleTodo;
 
   @override
   String get lintCode => LintNames.flutter_style_todos;

@@ -46,7 +46,7 @@ class C {}
 @reflectiveTest
 class ConvertToWhereTypeTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_TO_WHERE_TYPE;
+  FixKind get kind => DartFixKind.convertToWhereType;
 
   @override
   String get lintCode => LintNames.prefer_iterable_whereType;

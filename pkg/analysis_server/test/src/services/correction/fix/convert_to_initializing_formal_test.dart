@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class ConvertToInitializingFormalTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_TO_INITIALIZING_FORMAL;
+  FixKind get kind => DartFixKind.convertToInitializingFormal;
 
   @override
   String get lintCode => LintNames.prefer_initializing_formals;

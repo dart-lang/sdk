@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ChangeArgumentNameTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CHANGE_ARGUMENT_NAME;
+  FixKind get kind => DartFixKind.changeArgumentName;
 
   Future<void> test_child_constructor() async {
     await resolveTestCode('''

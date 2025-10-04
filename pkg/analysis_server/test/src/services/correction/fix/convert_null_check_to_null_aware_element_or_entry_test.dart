@@ -103,8 +103,7 @@ Set<int> f(int? x, int? y) {
 class ConvertNullCheckToNullAwareElementOrEntryTest
     extends FixProcessorLintTest {
   @override
-  FixKind get kind =>
-      DartFixKind.CONVERT_NULL_CHECK_TO_NULL_AWARE_ELEMENT_OR_ENTRY;
+  FixKind get kind => DartFixKind.convertNullCheckToNullAwareElementOrEntry;
 
   @override
   String get lintCode => LintNames.use_null_aware_elements;

@@ -29,7 +29,7 @@ class CreateMissingOverrides extends ResolvedCorrectionProducer {
   ];
 
   @override
-  FixKind get fixKind => DartFixKind.CREATE_MISSING_OVERRIDES;
+  FixKind get fixKind => DartFixKind.createMissingOverrides;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

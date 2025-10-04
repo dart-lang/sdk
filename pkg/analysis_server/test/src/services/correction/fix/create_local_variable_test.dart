@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class CreateLocalVariableTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_LOCAL_VARIABLE;
+  FixKind get kind => DartFixKind.createLocalVariable;
 
   Future<void> test_functionType_named() async {
     await resolveTestCode('''

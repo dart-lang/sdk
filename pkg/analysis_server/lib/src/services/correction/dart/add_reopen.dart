@@ -18,10 +18,10 @@ class AddReopen extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_REOPEN;
+  FixKind get fixKind => DartFixKind.addReopen;
 
   @override
-  FixKind get multiFixKind => DartFixKind.ADD_REOPEN_MULTI;
+  FixKind get multiFixKind => DartFixKind.addReopenMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

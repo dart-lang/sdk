@@ -17,7 +17,7 @@ class AddStatic extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_STATIC;
+  FixKind get fixKind => DartFixKind.addStatic;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

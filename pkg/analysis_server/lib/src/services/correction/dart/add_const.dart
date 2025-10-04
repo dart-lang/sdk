@@ -24,10 +24,10 @@ class AddConst extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_CONST;
+  FixKind get fixKind => DartFixKind.addConst;
 
   @override
-  FixKind get multiFixKind => DartFixKind.ADD_CONST_MULTI;
+  FixKind get multiFixKind => DartFixKind.addConstMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

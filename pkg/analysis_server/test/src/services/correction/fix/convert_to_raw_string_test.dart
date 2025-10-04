@@ -42,7 +42,7 @@ text \ $ \\
 @reflectiveTest
 class ConvertToRawStringTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_TO_RAW_STRING;
+  FixKind get kind => DartFixKind.convertToRawString;
 
   @override
   String get lintCode => LintNames.use_raw_strings;

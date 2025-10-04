@@ -17,7 +17,7 @@ class ConvertToNullAwareSetElement extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_TO_NULL_AWARE_SET_ELEMENT;
+  FixKind get fixKind => DartFixKind.convertToNullAwareSetElement;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

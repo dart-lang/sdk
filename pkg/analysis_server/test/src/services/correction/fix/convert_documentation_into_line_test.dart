@@ -62,7 +62,7 @@ void f() {}
 @reflectiveTest
 class ConvertDocumentationIntoLineTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_TO_LINE_COMMENT;
+  FixKind get kind => DartFixKind.convertToLineComment;
 
   @override
   String get lintCode => LintNames.slash_for_doc_comments;

@@ -161,7 +161,7 @@ class AddDiagnosticPropertyReferenceTest extends FixProcessorLintTest {
   bool get addVectorMathPackageDep => true;
 
   @override
-  FixKind get kind => DartFixKind.ADD_DIAGNOSTIC_PROPERTY_REFERENCE;
+  FixKind get kind => DartFixKind.addDiagnosticPropertyReference;
 
   @override
   String get lintCode => LintNames.diagnostic_describe_all_properties;

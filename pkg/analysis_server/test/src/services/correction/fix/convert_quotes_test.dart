@@ -61,7 +61,7 @@ void f() {
 @reflectiveTest
 class ConvertQuotesTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_QUOTES;
+  FixKind get kind => DartFixKind.convertQuotes;
 
   @override
   String get lintCode => LintNames.avoid_escaping_inner_quotes;

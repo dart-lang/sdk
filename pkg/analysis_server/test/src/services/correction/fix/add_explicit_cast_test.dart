@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class AddExplicitCastMultiTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_EXPLICIT_CAST_MULTI;
+  FixKind get kind => DartFixKind.addExplicitCastMulti;
 
   Future<void> test_assignment_general() async {
     await resolveTestCode('''
@@ -233,7 +233,7 @@ class B {}
 @reflectiveTest
 class AddExplicitCastTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_EXPLICIT_CAST;
+  FixKind get kind => DartFixKind.addExplicitCast;
 
   Future<void> test_argument() async {
     await resolveTestCode('''

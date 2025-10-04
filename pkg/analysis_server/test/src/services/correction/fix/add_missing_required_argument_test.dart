@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class AddMissingRequiredArgumentTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT;
+  FixKind get kind => DartFixKind.addMissingRequiredArgument;
 
   @override
   void setUp() {

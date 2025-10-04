@@ -21,10 +21,10 @@ class ConvertToFunctionDeclaration extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_TO_FUNCTION_DECLARATION;
+  FixKind get fixKind => DartFixKind.convertToFunctionDeclaration;
 
   @override
-  FixKind get multiFixKind => DartFixKind.CONVERT_TO_FUNCTION_DECLARATION_MULTI;
+  FixKind get multiFixKind => DartFixKind.convertToFunctionDeclarationMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

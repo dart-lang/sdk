@@ -20,7 +20,7 @@ void main() {
 @reflectiveTest
 class CreateFieldEnumTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_FIELD;
+  FixKind get kind => DartFixKind.createField;
 
   Future<void> test_initializingFormal_dynamic() async {
     await resolveTestCode('''
@@ -142,7 +142,7 @@ void f(E e) {
 @reflectiveTest
 class CreateFieldMixinTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_FIELD;
+  FixKind get kind => DartFixKind.createField;
 
   Future<void> test_dotShorthand() async {
     await resolveTestCode('''
@@ -218,7 +218,7 @@ void f(M m) {
 @reflectiveTest
 class CreateFieldTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_FIELD;
+  FixKind get kind => DartFixKind.createField;
 
   Future<void> test_dotShorthand_class() async {
     await resolveTestCode('''

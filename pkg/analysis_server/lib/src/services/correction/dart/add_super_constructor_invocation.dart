@@ -94,7 +94,7 @@ class _AddInvocation extends ResolvedCorrectionProducer {
   }
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_SUPER_CONSTRUCTOR_INVOCATION;
+  FixKind get fixKind => DartFixKind.addSuperConstructorInvocation;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

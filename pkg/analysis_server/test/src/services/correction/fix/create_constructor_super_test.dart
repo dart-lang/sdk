@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class CreateConstructorSuperTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_CONSTRUCTOR_SUPER;
+  FixKind get kind => DartFixKind.createConstructorSuper;
 
   Future<void> test_fieldInitializer() async {
     await resolveTestCode('''
@@ -269,7 +269,7 @@ class B extends A {
 class CreateConstructorSuperWithoutSuperParametersTest
     extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_CONSTRUCTOR_SUPER;
+  FixKind get kind => DartFixKind.createConstructorSuper;
 
   @override
   String get testPackageLanguageVersion => '2.16';

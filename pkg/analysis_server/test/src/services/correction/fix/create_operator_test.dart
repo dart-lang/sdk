@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class CreateOperatorMixinTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_OPERATOR;
+  FixKind get kind => DartFixKind.createOperator;
 
   Future<void> test_functionType_method_targetMixin() async {
     await resolveTestCode('''
@@ -174,7 +174,7 @@ mixin M {
 @reflectiveTest
 class CreateOperatorTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_OPERATOR;
+  FixKind get kind => DartFixKind.createOperator;
 
   Future<void> test_await_expression_statement() async {
     await resolveTestCode('''

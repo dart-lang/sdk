@@ -23,10 +23,10 @@ class ConvertConditionalExpressionToIfElement
   AssistKind get assistKind => DartAssistKind.convertToIfElement;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_TO_IF_ELEMENT;
+  FixKind get fixKind => DartFixKind.convertToIfElement;
 
   @override
-  FixKind get multiFixKind => DartFixKind.CONVERT_TO_IF_ELEMENT_MULTI;
+  FixKind get multiFixKind => DartFixKind.convertToIfElementMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

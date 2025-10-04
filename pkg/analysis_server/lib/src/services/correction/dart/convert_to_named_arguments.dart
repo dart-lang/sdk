@@ -20,7 +20,7 @@ class ConvertToNamedArguments extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_TO_NAMED_ARGUMENTS;
+  FixKind get fixKind => DartFixKind.convertToNamedArguments;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -62,7 +62,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_proposedName];
 
   @override
-  FixKind get fixKind => DartFixKind.CHANGE_TO;
+  FixKind get fixKind => DartFixKind.changeTo;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

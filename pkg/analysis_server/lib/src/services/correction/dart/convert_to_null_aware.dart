@@ -24,10 +24,10 @@ class ConvertToNullAware extends ResolvedCorrectionProducer {
   AssistKind get assistKind => DartAssistKind.convertToNullAware;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_TO_NULL_AWARE;
+  FixKind get fixKind => DartFixKind.convertToNullAware;
 
   @override
-  FixKind get multiFixKind => DartFixKind.CONVERT_TO_NULL_AWARE_MULTI;
+  FixKind get multiFixKind => DartFixKind.convertToNullAwareMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -73,7 +73,7 @@ f2() {
 @reflectiveTest
 class ControlBodyOnNewLineLintTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.ADD_CURLY_BRACES;
+  FixKind get kind => DartFixKind.addCurlyBraces;
 
   @override
   String get lintCode => LintNames.always_put_control_body_on_new_line;

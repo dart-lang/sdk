@@ -44,7 +44,7 @@ int? f() {
 @reflectiveTest
 class AddReturnNullTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_RETURN_NULL;
+  FixKind get kind => DartFixKind.addReturnNull;
 
   Future<void> test_functionExpression() async {
     await resolveTestCode('''

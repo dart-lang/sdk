@@ -25,10 +25,10 @@ class ConvertMapFromIterableToForLiteral extends ResolvedCorrectionProducer {
   AssistKind get assistKind => DartAssistKind.convertToForElement;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_TO_FOR_ELEMENT;
+  FixKind get fixKind => DartFixKind.convertToForElement;
 
   @override
-  FixKind get multiFixKind => DartFixKind.CONVERT_TO_FOR_ELEMENT_MULTI;
+  FixKind get multiFixKind => DartFixKind.convertToForElementMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -62,7 +62,7 @@ void f(A a) {
 }
 ''');
 
-    assertHasFix(DartFixKind.CREATE_METHOD, r'''
+    assertHasFix(DartFixKind.createMethod, r'''
 class A {
   void foo(int i) {}
 }

@@ -57,7 +57,7 @@ var f = () => () {
 @reflectiveTest
 class ConvertIntoExpressionBodyTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_INTO_EXPRESSION_BODY;
+  FixKind get kind => DartFixKind.convertIntoExpressionBody;
 
   @override
   String get lintCode => LintNames.prefer_expression_function_bodies;

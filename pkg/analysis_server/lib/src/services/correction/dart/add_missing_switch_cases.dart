@@ -22,7 +22,7 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_MISSING_SWITCH_CASES;
+  FixKind get fixKind => DartFixKind.addMissingSwitchCases;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

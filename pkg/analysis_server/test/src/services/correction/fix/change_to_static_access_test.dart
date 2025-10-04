@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ChangeToStaticAccessTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CHANGE_TO_STATIC_ACCESS;
+  FixKind get kind => DartFixKind.changeToStaticAccess;
 
   Future<void> test_method() async {
     await resolveTestCode('''

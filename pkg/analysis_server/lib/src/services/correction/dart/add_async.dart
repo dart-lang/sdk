@@ -32,7 +32,7 @@ class AddAsync extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_ASYNC;
+  FixKind get fixKind => DartFixKind.addAsync;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

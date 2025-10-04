@@ -19,10 +19,10 @@ class AddOverride extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_OVERRIDE;
+  FixKind get fixKind => DartFixKind.addOverride;
 
   @override
-  FixKind get multiFixKind => DartFixKind.ADD_OVERRIDE_MULTI;
+  FixKind get multiFixKind => DartFixKind.addOverrideMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

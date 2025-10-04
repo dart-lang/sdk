@@ -20,7 +20,7 @@ void main() {
 @reflectiveTest
 class AddReturnType_AlwaysDeclareReturnTypesTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.ADD_RETURN_TYPE;
+  FixKind get kind => DartFixKind.addReturnType;
 
   @override
   String get lintCode => LintNames.always_declare_return_types;
@@ -303,7 +303,7 @@ Iterable<num> f() sync* {
 @reflectiveTest
 class AddReturnType_StrictTopLevelInferenceTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.ADD_RETURN_TYPE;
+  FixKind get kind => DartFixKind.addReturnType;
 
   @override
   String get lintCode => LintNames.strict_top_level_inference;

@@ -21,7 +21,7 @@ class ConvertToOnType extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_TO_ON_TYPE;
+  FixKind get fixKind => DartFixKind.convertToOnType;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

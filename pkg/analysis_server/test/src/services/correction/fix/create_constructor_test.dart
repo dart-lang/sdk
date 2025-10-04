@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class CreateConstructorMixinTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_CONSTRUCTOR;
+  FixKind get kind => DartFixKind.createConstructor;
 
   Future<void> test_named() async {
     await resolveTestCode('''
@@ -37,7 +37,7 @@ class CreateConstructorTest extends FixProcessorTest {
   static final _text200 = 'x' * 200;
 
   @override
-  FixKind get kind => DartFixKind.CREATE_CONSTRUCTOR;
+  FixKind get kind => DartFixKind.createConstructor;
 
   Future<void> test_inLibrary_insteadOfSyntheticDefault() async {
     var a = newFile('$testPackageLibPath/a.dart', '''

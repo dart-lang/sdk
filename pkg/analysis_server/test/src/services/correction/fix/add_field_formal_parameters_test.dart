@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class AddFieldFormalNamedParametersTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_INITIALIZING_FORMAL_NAMED_PARAMETERS;
+  FixKind get kind => DartFixKind.addInitializingFormalNamesParameters;
 
   Future<void> test_flutter_nullable() async {
     writeTestPackageConfig(flutter: true);
@@ -204,7 +204,7 @@ class Test {
 @reflectiveTest
 class AddFieldFormalParametersTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_INITIALIZING_FORMAL_PARAMETERS;
+  FixKind get kind => DartFixKind.addInitializingFormalParameters;
 
   Future<void> test_flutter() async {
     writeTestPackageConfig(flutter: true);

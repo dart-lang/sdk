@@ -22,10 +22,10 @@ class AddExplicitCast extends ResolvedCorrectionProducer {
       CorrectionApplicability.acrossSingleFile;
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_EXPLICIT_CAST;
+  FixKind get fixKind => DartFixKind.addExplicitCast;
 
   @override
-  FixKind get multiFixKind => DartFixKind.ADD_EXPLICIT_CAST_MULTI;
+  FixKind get multiFixKind => DartFixKind.addExplicitCastMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

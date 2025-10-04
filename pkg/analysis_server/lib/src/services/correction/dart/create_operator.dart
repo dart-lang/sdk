@@ -28,7 +28,7 @@ class CreateOperator extends ResolvedCorrectionProducer {
   List<String>? get fixArguments => [_operator];
 
   @override
-  FixKind get fixKind => DartFixKind.CREATE_OPERATOR;
+  FixKind get fixKind => DartFixKind.createOperator;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

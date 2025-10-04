@@ -18,7 +18,7 @@ class AddEolAtEndOfFile extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_EOL_AT_END_OF_FILE;
+  FixKind get fixKind => DartFixKind.addEolAtEndOfFile;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

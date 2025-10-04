@@ -22,7 +22,7 @@ void main() {
 @reflectiveTest
 class AddMissingSwitchCasesTest_SwitchExpression extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_MISSING_SWITCH_CASES;
+  FixKind get kind => DartFixKind.addMissingSwitchCases;
 
   Future<void> test_bool_hasFalse() async {
     await resolveTestCode('''
@@ -400,7 +400,7 @@ int f(A a) => switch (a) {
 @reflectiveTest
 class AddMissingSwitchCasesTest_SwitchStatement extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_MISSING_SWITCH_CASES;
+  FixKind get kind => DartFixKind.addMissingSwitchCases;
 
   bool Function(Diagnostic) get _filter {
     var hasError = false;

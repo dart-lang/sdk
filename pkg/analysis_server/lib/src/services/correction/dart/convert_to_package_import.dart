@@ -23,10 +23,10 @@ class ConvertToPackageImport extends ResolvedCorrectionProducer {
   AssistKind get assistKind => DartAssistKind.convertToPackageImport;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_TO_PACKAGE_IMPORT;
+  FixKind get fixKind => DartFixKind.convertToPackageImport;
 
   @override
-  FixKind get multiFixKind => DartFixKind.CONVERT_TO_PACKAGE_IMPORT_MULTI;
+  FixKind get multiFixKind => DartFixKind.convertToPackageImportMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

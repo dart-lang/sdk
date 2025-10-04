@@ -31,7 +31,7 @@ class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
   List<String> get fixArguments => ['$_missingParameters', _plural];
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_MISSING_REQUIRED_ARGUMENT;
+  FixKind get fixKind => DartFixKind.addMissingRequiredArgument;
 
   /// All the diagnostic codes that this fix can be applied to.
   List<DiagnosticCode> get _codesWhereThisIsValid {

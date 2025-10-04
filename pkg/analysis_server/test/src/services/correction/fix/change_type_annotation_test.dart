@@ -26,9 +26,9 @@ Future<void> bar() async {
 }
 ''');
     await assertFixPriorityOrder([
-      DartFixKind.ADD_AWAIT,
-      DartFixKind.CHANGE_TYPE_ANNOTATION,
-      DartFixKind.ADD_EXPLICIT_CAST,
+      DartFixKind.addAwait,
+      DartFixKind.changeTypeAnnotation,
+      DartFixKind.addExplicitCast,
     ]);
   }
 }
@@ -36,7 +36,7 @@ Future<void> bar() async {
 @reflectiveTest
 class ChangeTypeAnnotationTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CHANGE_TYPE_ANNOTATION;
+  FixKind get kind => DartFixKind.changeTypeAnnotation;
 
   Future<void> test_generic() async {
     await resolveTestCode('''

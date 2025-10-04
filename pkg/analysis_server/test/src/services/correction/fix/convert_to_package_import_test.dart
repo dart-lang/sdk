@@ -57,7 +57,7 @@ var bar = Bar();
 class ConvertToPackageImport_AlwaysUsePackageImportsTest
     extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_TO_PACKAGE_IMPORT;
+  FixKind get kind => DartFixKind.convertToPackageImport;
 
   @override
   String get lintCode => LintNames.always_use_package_imports;
@@ -110,7 +110,7 @@ var bar = Bar();
 class ConvertToPackageImport_AvoidRelativeLibImportsTest
     extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_TO_PACKAGE_IMPORT;
+  FixKind get kind => DartFixKind.convertToPackageImport;
 
   @override
   String get lintCode => LintNames.avoid_relative_lib_imports;

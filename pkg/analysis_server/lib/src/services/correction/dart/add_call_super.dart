@@ -24,7 +24,7 @@ class AddCallSuper extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_addition];
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_CALL_SUPER;
+  FixKind get fixKind => DartFixKind.addCallSuper;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

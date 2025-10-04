@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class AddExtensionOverrideTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_EXTENSION_OVERRIDE;
+  FixKind get kind => DartFixKind.addExtensionOverride;
 
   Future<void> test_getter() async {
     newFile('$testPackageLibPath/ext1.dart', '''

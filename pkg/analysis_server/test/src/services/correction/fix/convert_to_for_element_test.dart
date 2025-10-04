@@ -48,7 +48,7 @@ f2(Iterable<int> i) {
 @reflectiveTest
 class ConvertToForElementTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_TO_FOR_ELEMENT;
+  FixKind get kind => DartFixKind.convertToForElement;
 
   @override
   String get lintCode => LintNames.prefer_for_elements_to_map_fromIterable;

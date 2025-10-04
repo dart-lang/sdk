@@ -50,7 +50,7 @@ void g() async {
 @reflectiveTest
 class AddExplicitCallTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.ADD_EXPLICIT_CALL;
+  FixKind get kind => DartFixKind.addExplicitCall;
 
   @override
   String get lintCode => LintNames.implicit_call_tearoffs;

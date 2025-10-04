@@ -29,7 +29,7 @@ class CreateExtensionGetter extends _CreateExtensionMember {
   List<String> get fixArguments => [_getterName];
 
   @override
-  FixKind get fixKind => DartFixKind.CREATE_EXTENSION_GETTER;
+  FixKind get fixKind => DartFixKind.createExtensionGetter;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -147,7 +147,7 @@ class CreateExtensionMethod extends _CreateExtensionMember {
   List<String> get fixArguments => [_methodName];
 
   @override
-  FixKind get fixKind => DartFixKind.CREATE_EXTENSION_METHOD;
+  FixKind get fixKind => DartFixKind.createExtensionMethod;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -304,7 +304,7 @@ class CreateExtensionOperator extends _CreateExtensionMember {
   List<String>? get fixArguments => [_operator];
 
   @override
-  FixKind get fixKind => DartFixKind.CREATE_EXTENSION_OPERATOR;
+  FixKind get fixKind => DartFixKind.createExtensionOperator;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -437,7 +437,7 @@ class CreateExtensionSetter extends _CreateExtensionMember {
   List<String> get fixArguments => [_setterName];
 
   @override
-  FixKind get fixKind => DartFixKind.CREATE_EXTENSION_SETTER;
+  FixKind get fixKind => DartFixKind.createExtensionSetter;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

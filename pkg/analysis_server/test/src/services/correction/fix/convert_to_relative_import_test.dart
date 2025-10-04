@@ -49,7 +49,7 @@ D d;
 @reflectiveTest
 class ConvertToRelativeImportTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_TO_RELATIVE_IMPORT;
+  FixKind get kind => DartFixKind.convertToRelativeImport;
 
   @override
   String get lintCode => LintNames.prefer_relative_imports;

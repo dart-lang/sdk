@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ConvertFlutterChildTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_FLUTTER_CHILD;
+  FixKind get kind => DartFixKind.convertFlutterChild;
 
   @override
   void setUp() {

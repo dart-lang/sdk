@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class ConvertToNullAwareMapEntryKeyTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_TO_NULL_AWARE_MAP_ENTRY_KEY;
+  FixKind get kind => DartFixKind.convertToNullAwareMapEntryKey;
 
   Future<void> test_const_mapKey_withGeneralUnassignable() async {
     // Check that the fix isn't suggested when the assignability issue can't be
@@ -74,7 +74,7 @@ void f (String? arg) {
 @reflectiveTest
 class ConvertToNullAwareMapEntryValueTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_TO_NULL_AWARE_MAP_ENTRY_VALUE;
+  FixKind get kind => DartFixKind.convertToNullAwareMapEntryValue;
 
   Future<void> test_const_mapValue_withGeneralUnassignable() async {
     // Check that the fix isn't suggested when the assignability issue can't be
