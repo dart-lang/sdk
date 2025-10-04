@@ -4031,11 +4031,23 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const CompileTimeErrorWithoutArguments
   invalidReferenceToGenerativeEnumConstructor = CompileTimeErrorWithoutArguments(
     'INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR',
-    "Generative enum constructors can only be used as targets of redirection.",
+    "Generative enum constructors can only be used to create an enum constant.",
     correctionMessage: "Try using an enum value, or a factory constructor.",
     hasPublishedDocs: true,
     expectedTypes: [],
   );
+
+  /// No parameters.
+  static const CompileTimeErrorWithoutArguments
+  invalidReferenceToGenerativeEnumConstructorTearoff =
+      CompileTimeErrorWithoutArguments(
+        'INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR',
+        "Generative enum constructors can't be torn off.",
+        correctionMessage: "Try using an enum value, or a factory constructor.",
+        hasPublishedDocs: true,
+        uniqueName: 'INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR_TEAROFF',
+        expectedTypes: [],
+      );
 
   /// No parameters.
   static const CompileTimeErrorWithoutArguments invalidReferenceToThis =

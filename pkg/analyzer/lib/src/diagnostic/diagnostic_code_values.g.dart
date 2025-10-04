@@ -325,6 +325,7 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   CompileTimeErrorCode.invalidOverride,
   CompileTimeErrorCode.invalidOverrideSetter,
   CompileTimeErrorCode.invalidReferenceToGenerativeEnumConstructor,
+  CompileTimeErrorCode.invalidReferenceToGenerativeEnumConstructorTearoff,
   CompileTimeErrorCode.invalidReferenceToThis,
   CompileTimeErrorCode.invalidSuperFormalParameterLocation,
   CompileTimeErrorCode.invalidTypeArgumentInConstList,
