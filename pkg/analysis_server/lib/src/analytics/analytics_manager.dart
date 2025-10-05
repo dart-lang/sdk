@@ -10,6 +10,7 @@ import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analytics/active_request_data.dart';
 import 'package:analysis_server/src/analytics/context_structure.dart';
 import 'package:analysis_server/src/analytics/notification_data.dart';
+import 'package:analysis_server/src/analytics/percentile_calculator.dart';
 import 'package:analysis_server/src/analytics/plugin_data.dart';
 import 'package:analysis_server/src/analytics/request_data.dart';
 import 'package:analysis_server/src/analytics/session_data.dart';
@@ -83,6 +84,13 @@ class AnalyticsManager {
   /// represented by the key.
   final Map<String, Map<String, int>> _severityAdjustments = {};
 
+  /// The start time of the current window during which analysis was working,
+  /// or `null` if analysis is currently idle.
+  DateTime? _analysisWorkingStart;
+
+  /// Accumulates durations (in ms) of periods where analysis was working.
+  final PercentileCalculator _analysisWorkingDurations = PercentileCalculator();
+
   /// A periodic timer used to send analytics data. This timer should be
   /// cancelled at shutdown.
   Timer? periodicTimer;
@@ -126,6 +134,15 @@ class AnalyticsManager {
       libraryCycleLibraryCounts: libraryCycleLibraryCounts,
       libraryCycleLineCounts: libraryCycleLineCounts,
     );
+  }
+
+  /// Called when analysis status changes to record period durations.
+  void analysisStatusChanged(bool isWorking) {
+    if (isWorking) {
+      _analysisWorkingStart ??= DateTime.now();
+    } else {
+      _finalizeOpenWorkingPeriod();
+    }
   }
 
   /// Record that the set of plugins known to the [pluginManager] has changed.
@@ -431,6 +448,13 @@ class AnalyticsManager {
       buffer.writeln('</ul>');
     }
 
+    if (_analysisWorkingDurations.valueCount > 0) {
+      h3('Analysis status periods');
+      buffer.writeln('<ul>');
+      li('workingDurations: ${_analysisWorkingDurations.toAnalyticsString()}');
+      buffer.writeln('</ul>');
+    }
+
     if (_lintUsageCounts.isNotEmpty) {
       h3('Lint usage counts');
       buffer.writeln('<ul>');
@@ -476,6 +500,16 @@ class AnalyticsManager {
     }
 
     return buffer.toString();
+  }
+
+  void _finalizeOpenWorkingPeriod() {
+    if (_analysisWorkingStart case var workingStart?) {
+      var durationMilliseconds =
+          DateTime.now().millisecondsSinceEpoch -
+          workingStart.millisecondsSinceEpoch;
+      _analysisWorkingDurations.addValue(durationMilliseconds);
+      _analysisWorkingStart = null;
+    }
   }
 
   /// Record that the request with the given [id] was responded to at the given
@@ -525,6 +559,19 @@ class AnalyticsManager {
     }
   }
 
+  /// Send information about analysis statistics.
+  Future<void> _sendAnalysisStatistics() async {
+    if (_analysisWorkingDurations.valueCount == 0) {
+      return;
+    }
+    analytics.send(
+      Event.analysisStatistics(
+        workingDuration: _analysisWorkingDurations.toAnalyticsString(),
+      ),
+    );
+    _analysisWorkingDurations.clear();
+  }
+
   /// Send information about the number of times each lint is enabled in an
   /// analysis options file.
   Future<void> _sendLintUsageCounts() async {
@@ -564,6 +611,7 @@ class AnalyticsManager {
     await _sendNotificationHandlingTimes();
     await _sendLintUsageCounts();
     await _sendSeverityAdjustments();
+    await _sendAnalysisStatistics();
   }
 
   /// Send information about the response times of plugins.
