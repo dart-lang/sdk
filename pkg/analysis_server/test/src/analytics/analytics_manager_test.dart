@@ -150,6 +150,23 @@ class AnalyticsManagerTest with ResourceProviderMixin {
     ]);
   }
 
+  Future<void> test_server_notification_analysisStatistics() async {
+    _defaultStartup();
+
+    // Record a brief working period.
+    manager.analysisStatusChanged(true);
+    await Future<void>.delayed(const Duration(milliseconds: 2));
+    manager.analysisStatusChanged(false);
+
+    await manager.shutdown();
+    analytics.assertEvents([
+      _ExpectedEvent.session(),
+      _ExpectedEvent.analysisStatistics(
+        eventData: {'workingDuration': _IsPercentiles()},
+      ),
+    ]);
+  }
+
   Future<void> test_server_request_analysisDidChangeWorkspaceFolders() async {
     _defaultStartup();
     var params = DidChangeWorkspaceFoldersParams(
@@ -515,6 +532,9 @@ class _ExpectedEvent {
   final Map<String, Object?>? eventData;
 
   _ExpectedEvent(this.eventName, this.eventData);
+
+  _ExpectedEvent.analysisStatistics({Map<String, Object?>? eventData})
+    : this(DashEvent.analysisStatistics, eventData);
 
   _ExpectedEvent.commandExecuted({Map<String, Object?>? eventData})
     : this(DashEvent.commandExecuted, eventData);

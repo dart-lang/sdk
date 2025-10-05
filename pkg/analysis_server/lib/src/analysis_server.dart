@@ -823,6 +823,7 @@ abstract class AnalysisServer {
       _isFirstAnalysisSinceContextsBuilt = false;
       _dartFixPrompt.triggerCheck();
     }
+    analyticsManager.analysisStatusChanged(status.isWorking);
   }
 
   /// Immediately handles an LSP message by delegating to the
