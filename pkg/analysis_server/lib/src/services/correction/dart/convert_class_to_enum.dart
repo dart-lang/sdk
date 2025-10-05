@@ -32,10 +32,10 @@ class ConvertClassToEnum extends ResolvedCorrectionProducer {
   AssistKind get assistKind => DartAssistKind.convertClassToEnum;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_CLASS_TO_ENUM;
+  FixKind get fixKind => DartFixKind.convertClassToEnum;
 
   @override
-  FixKind get multiFixKind => DartFixKind.CONVERT_CLASS_TO_ENUM_MULTI;
+  FixKind get multiFixKind => DartFixKind.convertClassToEnumMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

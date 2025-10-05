@@ -36,7 +36,7 @@ var s1 = <int>{};
 @reflectiveTest
 class ConvertToSetLiteralTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_TO_SET_LITERAL;
+  FixKind get kind => DartFixKind.convertToSetLiteral;
 
   @override
   String get lintCode => LintNames.prefer_collection_literals;

@@ -107,7 +107,7 @@ class AddSuperConstructorInvocationTest_language215 extends FixProcessorTest
 
 mixin AddSuperConstructorInvocationTestCases on FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_SUPER_CONSTRUCTOR_INVOCATION;
+  FixKind get kind => DartFixKind.addSuperConstructorInvocation;
 
   Future<void> test_hasInitializers() async {
     await resolveTestCode('''

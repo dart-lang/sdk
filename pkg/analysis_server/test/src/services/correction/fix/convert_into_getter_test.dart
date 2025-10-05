@@ -21,7 +21,7 @@ void main() {
 @reflectiveTest
 class ExtensionInstanceFieldFixTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_INTO_GETTER;
+  FixKind get kind => DartFixKind.convertIntoGetter;
 
   Future<void> test_final() async {
     await resolveTestCode('''
@@ -98,7 +98,7 @@ extension E on int {
 @reflectiveTest
 class ExtensionTypeInstanceFieldFixTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_INTO_GETTER;
+  FixKind get kind => DartFixKind.convertIntoGetter;
 
   Future<void> test_final() async {
     await resolveTestCode('''
@@ -170,7 +170,7 @@ extension type A(int i) {
 @reflectiveTest
 class ImplicitThisInInitializerFixTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_INTO_GETTER;
+  FixKind get kind => DartFixKind.convertIntoGetter;
 
   Future<void> test_final() async {
     await resolveTestCode('''

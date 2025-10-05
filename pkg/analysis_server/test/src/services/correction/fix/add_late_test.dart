@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class AddLateTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_LATE;
+  FixKind get kind => DartFixKind.addLate;
 
   Future<void> test_changeInImportedLib() async {
     newFile('$testPackageLibPath/a.dart', '''

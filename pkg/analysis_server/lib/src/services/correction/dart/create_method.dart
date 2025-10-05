@@ -38,10 +38,10 @@ class CreateMethod extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_memberName];
 
   @override
-  FixKind get fixKind => DartFixKind.CREATE_METHOD;
+  FixKind get fixKind => DartFixKind.createMethod;
 
   @override
-  FixKind get multiFixKind => DartFixKind.CREATE_METHOD_MULTI;
+  FixKind get multiFixKind => DartFixKind.createMethodMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) => switch (_kind) {

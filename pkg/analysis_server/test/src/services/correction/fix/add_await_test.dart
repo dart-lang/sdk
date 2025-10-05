@@ -21,7 +21,7 @@ void main() {
 @reflectiveTest
 class AddAwaitTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.ADD_AWAIT;
+  FixKind get kind => DartFixKind.addAwait;
 
   @override
   String get lintCode => LintNames.unawaited_futures;
@@ -202,7 +202,7 @@ Future<void> f() async {
 @reflectiveTest
 class AddAwaitTestArgumentAndAssignment extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_AWAIT;
+  FixKind get kind => DartFixKind.addAwait;
 
   Future<void> test_forIn_futureInt() async {
     await resolveTestCode('''

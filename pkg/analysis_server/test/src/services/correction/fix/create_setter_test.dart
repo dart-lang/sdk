@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class CreateSetterMixinTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_SETTER;
+  FixKind get kind => DartFixKind.createSetter;
 
   Future<void> test_main_part() async {
     var partPath = join(testPackageLibPath, 'part.dart');
@@ -150,7 +150,7 @@ mixin M {
 @reflectiveTest
 class CreateSetterTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_SETTER;
+  FixKind get kind => DartFixKind.createSetter;
 
   Future<void> test_extension_type() async {
     await resolveTestCode('''

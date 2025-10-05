@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class AddEnumConstantTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_ENUM_CONSTANT;
+  FixKind get kind => DartFixKind.addEnumConstant;
 
   Future<void> test_add() async {
     await resolveTestCode('''

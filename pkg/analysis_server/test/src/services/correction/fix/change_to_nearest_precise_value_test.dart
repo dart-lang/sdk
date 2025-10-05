@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ChangeToNearestPreciseValueTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CHANGE_TO_NEAREST_PRECISE_VALUE;
+  FixKind get kind => DartFixKind.changeToNearestPreciseValuee;
 
   Future<void> test_impreciseIntAsDouble() async {
     await resolveTestCode('''

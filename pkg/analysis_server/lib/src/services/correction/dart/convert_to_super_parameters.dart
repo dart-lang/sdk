@@ -29,10 +29,10 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
   AssistKind get assistKind => DartAssistKind.convertToSuperParameters;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_TO_SUPER_PARAMETERS;
+  FixKind get fixKind => DartFixKind.convertToSuperParameters;
 
   @override
-  FixKind? get multiFixKind => DartFixKind.CONVERT_TO_SUPER_PARAMETERS_MULTI;
+  FixKind? get multiFixKind => DartFixKind.convertToSuperParametersMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

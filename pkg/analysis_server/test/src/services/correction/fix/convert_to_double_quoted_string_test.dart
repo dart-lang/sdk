@@ -63,7 +63,7 @@ void f() {
 @reflectiveTest
 class ConvertToDoubleQuotedStringTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_TO_DOUBLE_QUOTED_STRING;
+  FixKind get kind => DartFixKind.convertToDoubleQuotedString;
 
   @override
   String get lintCode => LintNames.prefer_double_quotes;

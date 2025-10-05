@@ -21,7 +21,7 @@ class ConvertToWildcardVariable extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_TO_WILDCARD_VARIABLE;
+  FixKind get fixKind => DartFixKind.convertToWildcardVariable;
 
   bool get wildcardVariablesEnabled =>
       libraryElement2.featureSet.isEnabled(Feature.wildcard_variables);

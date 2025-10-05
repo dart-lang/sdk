@@ -21,22 +21,22 @@ class AddClassModifier extends ResolvedCorrectionProducer {
     : this._(
         context: context,
         modifier: 'base',
-        fixKind: DartFixKind.ADD_CLASS_MODIFIER_BASE,
-        multiFixKind: DartFixKind.ADD_CLASS_MODIFIER_BASE_MULTI,
+        fixKind: DartFixKind.addClassModifierBase,
+        multiFixKind: DartFixKind.addClassModifierBaseMulti,
       );
   AddClassModifier.finalModifier({required CorrectionProducerContext context})
     : this._(
         context: context,
         modifier: 'final',
-        fixKind: DartFixKind.ADD_CLASS_MODIFIER_FINAL,
-        multiFixKind: DartFixKind.ADD_CLASS_MODIFIER_FINAL_MULTI,
+        fixKind: DartFixKind.addClassModifierFinal,
+        multiFixKind: DartFixKind.addClassModifierFinalMulti,
       );
   AddClassModifier.sealedModifier({required CorrectionProducerContext context})
     : this._(
         context: context,
         modifier: 'sealed',
-        fixKind: DartFixKind.ADD_CLASS_MODIFIER_SEALED,
-        multiFixKind: DartFixKind.ADD_CLASS_MODIFIER_SEALED_MULTI,
+        fixKind: DartFixKind.addClassModifierSealed,
+        multiFixKind: DartFixKind.addClassModifierSealedMulti,
       );
 
   AddClassModifier._({

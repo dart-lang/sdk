@@ -93,7 +93,7 @@ void f() {
 @reflectiveTest
 class ConvertToFunctionDeclarationTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_TO_FUNCTION_DECLARATION;
+  FixKind get kind => DartFixKind.convertToFunctionDeclaration;
 
   @override
   String get lintCode => LintNames.prefer_function_declarations_over_variables;

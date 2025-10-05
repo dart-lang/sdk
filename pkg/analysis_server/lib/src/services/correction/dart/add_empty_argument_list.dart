@@ -16,10 +16,10 @@ class AddEmptyArgumentList extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_EMPTY_ARGUMENT_LIST;
+  FixKind get fixKind => DartFixKind.addEmptyArgumentList;
 
   @override
-  FixKind get multiFixKind => DartFixKind.ADD_EMPTY_ARGUMENT_LIST_MULTI;
+  FixKind get multiFixKind => DartFixKind.addEmptyArgumentListMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

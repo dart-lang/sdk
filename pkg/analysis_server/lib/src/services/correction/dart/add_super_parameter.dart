@@ -28,7 +28,7 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_missingCount == 1 ? '' : 's'];
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_SUPER_PARAMETER;
+  FixKind get fixKind => DartFixKind.addSuperParameter;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

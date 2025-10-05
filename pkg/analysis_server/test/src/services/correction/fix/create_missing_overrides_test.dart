@@ -21,7 +21,7 @@ void main() {
 @reflectiveTest
 class CreateMissingOverridesInheritsAbstractClassTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_MISSING_OVERRIDES;
+  FixKind get kind => DartFixKind.createMissingOverrides;
 
   Future<void> test_binaryOperator() async {
     await resolveTestCode('''
@@ -993,7 +993,7 @@ class B extends A {
 @reflectiveTest
 class CreateMissingOverridesMustBeOverriddenClassTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_MISSING_OVERRIDES;
+  FixKind get kind => DartFixKind.createMissingOverrides;
 
   @override
   void setUp() {

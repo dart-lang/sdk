@@ -21,7 +21,7 @@ void main() {
 @reflectiveTest
 class AddMissingParameterRequiredTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_MISSING_PARAMETER_REQUIRED;
+  FixKind get kind => DartFixKind.addMissingParameterRequired;
 
   Future<void> test_constructor_named_hasOne() async {
     await resolveTestCode('''

@@ -21,7 +21,7 @@ class ConvertRelatedToCascade extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_RELATED_TO_CASCADE;
+  FixKind get fixKind => DartFixKind.convertRelatedToCascade;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

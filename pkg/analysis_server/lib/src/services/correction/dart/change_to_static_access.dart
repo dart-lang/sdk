@@ -24,7 +24,7 @@ class ChangeToStaticAccess extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_className];
 
   @override
-  FixKind get fixKind => DartFixKind.CHANGE_TO_STATIC_ACCESS;
+  FixKind get fixKind => DartFixKind.changeToStaticAccess;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -24,11 +24,10 @@ class ConvertToGenericFunctionSyntax extends ParsedCorrectionProducer {
   AssistKind get assistKind => DartAssistKind.convertIntoGenericFunctionSyntax;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_TO_GENERIC_FUNCTION_SYNTAX;
+  FixKind get fixKind => DartFixKind.convertToGenericFunctionSyntax;
 
   @override
-  FixKind get multiFixKind =>
-      DartFixKind.CONVERT_TO_GENERIC_FUNCTION_SYNTAX_MULTI;
+  FixKind get multiFixKind => DartFixKind.convertToGenericFunctionSyntaxMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

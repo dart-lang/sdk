@@ -30,7 +30,7 @@ class CreateConstructor extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_constructorName];
 
   @override
-  FixKind get fixKind => DartFixKind.CREATE_CONSTRUCTOR;
+  FixKind get fixKind => DartFixKind.createConstructor;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

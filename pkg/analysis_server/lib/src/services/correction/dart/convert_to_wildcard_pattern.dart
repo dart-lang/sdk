@@ -17,7 +17,7 @@ class ConvertToWildcardPattern extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_TO_WILDCARD_PATTERN;
+  FixKind get fixKind => DartFixKind.convertToWildcardPattern;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

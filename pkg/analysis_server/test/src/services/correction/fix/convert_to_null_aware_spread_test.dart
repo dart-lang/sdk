@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ConvertToNullAwareSpreadTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_TO_NULL_AWARE_SPREAD;
+  FixKind get kind => DartFixKind.convertToNullAwareSpread;
 
   Future<void> test_spreadList() async {
     await resolveTestCode('''

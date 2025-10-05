@@ -63,7 +63,7 @@ void f() {
 @reflectiveTest
 class ConvertToSingleQuotedStringTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_TO_SINGLE_QUOTED_STRING;
+  FixKind get kind => DartFixKind.convertToSingleQuotedString;
 
   @override
   String get lintCode => LintNames.prefer_single_quotes;

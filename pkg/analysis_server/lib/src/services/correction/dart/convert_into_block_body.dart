@@ -38,10 +38,10 @@ class ConvertIntoBlockBody extends ResolvedCorrectionProducer {
   AssistKind get assistKind => DartAssistKind.convertIntoBlockBody;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_INTO_BLOCK_BODY;
+  FixKind get fixKind => DartFixKind.convertIntoBlockBody;
 
   @override
-  FixKind get multiFixKind => DartFixKind.CONVERT_INTO_BLOCK_BODY_MULTI;
+  FixKind get multiFixKind => DartFixKind.convertIntoBlockBodyMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -25,10 +25,10 @@ class ConvertIntoIsNot extends ResolvedCorrectionProducer {
   AssistKind get assistKind => DartAssistKind.convertIntoIsNot;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_TO_IS_NOT;
+  FixKind get fixKind => DartFixKind.convertToIsNot;
 
   @override
-  FixKind get multiFixKind => DartFixKind.CONVERT_TO_IS_NOT_MULTI;
+  FixKind get multiFixKind => DartFixKind.convertToIsNotMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

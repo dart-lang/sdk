@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class AddCallSuperTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_CALL_SUPER;
+  FixKind get kind => DartFixKind.addCallSuper;
 
   @override
   void setUp() {

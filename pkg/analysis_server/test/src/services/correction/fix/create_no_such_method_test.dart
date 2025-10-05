@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class CreateNoSuchMethodTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_NO_SUCH_METHOD;
+  FixKind get kind => DartFixKind.createNoSuchMethod;
 
   Future<void> test_class() async {
     await resolveTestCode('''

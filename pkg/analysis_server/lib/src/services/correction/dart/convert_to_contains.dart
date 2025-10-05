@@ -19,10 +19,10 @@ class ConvertToContains extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_TO_CONTAINS;
+  FixKind get fixKind => DartFixKind.convertToContains;
 
   @override
-  FixKind get multiFixKind => DartFixKind.CONVERT_TO_CONTAINS_MULTI;
+  FixKind get multiFixKind => DartFixKind.convertToContainsMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

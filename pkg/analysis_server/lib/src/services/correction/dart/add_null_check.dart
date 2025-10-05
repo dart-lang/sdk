@@ -73,7 +73,7 @@ class AddNullCheck extends ResolvedCorrectionProducer {
   }) : _target = target,
        _nullAwareToken = nullAwareToken,
        fixKind = nullAwareToken == null
-           ? DartFixKind.ADD_NULL_CHECK
+           ? DartFixKind.addNullCheck
            : DartFixKind.REPLACE_WITH_NULL_AWARE;
 
   @override

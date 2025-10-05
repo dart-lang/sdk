@@ -26,10 +26,10 @@ class ConvertToIfNull extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_TO_IF_NULL;
+  FixKind get fixKind => DartFixKind.convertToIfNull;
 
   @override
-  FixKind get multiFixKind => DartFixKind.CONVERT_TO_IF_NULL_MULTI;
+  FixKind get multiFixKind => DartFixKind.convertToIfNullMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class ChangeToTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CHANGE_TO;
+  FixKind get kind => DartFixKind.changeTo;
 
   Future<void> test_annotation_constructor() async {
     await resolveTestCode('''

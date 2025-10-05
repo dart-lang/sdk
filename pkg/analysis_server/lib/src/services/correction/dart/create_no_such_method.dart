@@ -17,7 +17,7 @@ class CreateNoSuchMethod extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.CREATE_NO_SUCH_METHOD;
+  FixKind get fixKind => DartFixKind.createNoSuchMethod;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

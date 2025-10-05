@@ -26,7 +26,7 @@ class CreateSetter extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_setterName];
 
   @override
-  FixKind get fixKind => DartFixKind.CREATE_SETTER;
+  FixKind get fixKind => DartFixKind.createSetter;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

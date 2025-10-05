@@ -17,10 +17,10 @@ class AddNeNull extends CorrectionProducerWithDiagnostic {
       CorrectionApplicability.acrossSingleFile;
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_NE_NULL;
+  FixKind get fixKind => DartFixKind.addNeNull;
 
   @override
-  FixKind get multiFixKind => DartFixKind.ADD_NE_NULL_MULTI;
+  FixKind get multiFixKind => DartFixKind.addNeNullMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

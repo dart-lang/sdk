@@ -108,7 +108,7 @@ void f(List<String> a, List<String> b) {
 @reflectiveTest
 class ConvertForEachToForLoopTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_FOR_EACH_TO_FOR_LOOP;
+  FixKind get kind => DartFixKind.convertForEachToForLoop;
 
   @override
   String get lintCode => LintNames.avoid_function_literals_in_foreach_calls;

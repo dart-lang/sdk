@@ -25,7 +25,7 @@ class CreateLocalVariable extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_variableName];
 
   @override
-  FixKind get fixKind => DartFixKind.CREATE_LOCAL_VARIABLE;
+  FixKind get fixKind => DartFixKind.createLocalVariable;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

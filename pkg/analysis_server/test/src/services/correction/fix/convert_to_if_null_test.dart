@@ -43,7 +43,7 @@ void f(String s) {
 @reflectiveTest
 class ConvertToIfNullPreferTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_TO_IF_NULL;
+  FixKind get kind => DartFixKind.convertToIfNull;
 
   @override
   String get lintCode => LintNames.prefer_if_null_operators;
@@ -160,7 +160,7 @@ void f(bool? value) {
 @reflectiveTest
 class ConvertToIfNullUseTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_TO_IF_NULL;
+  FixKind get kind => DartFixKind.convertToIfNull;
 
   @override
   String get lintCode => LintNames.use_if_null_to_convert_nulls_to_bools;

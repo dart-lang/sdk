@@ -24,10 +24,10 @@ class ConvertToMapLiteral extends ResolvedCorrectionProducer {
   AssistKind get assistKind => DartAssistKind.convertToMapLiteral;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_TO_MAP_LITERAL;
+  FixKind get fixKind => DartFixKind.convertToMapLiteral;
 
   @override
-  FixKind get multiFixKind => DartFixKind.CONVERT_TO_MAP_LITERAL_MULTI;
+  FixKind get multiFixKind => DartFixKind.convertToMapLiteralMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class CreateParameterTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_PARAMETER;
+  FixKind get kind => DartFixKind.createParameter;
 
   Future<void> test_dynamic_type() async {
     await resolveTestCode('''

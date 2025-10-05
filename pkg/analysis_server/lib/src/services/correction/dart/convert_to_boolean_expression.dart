@@ -20,10 +20,10 @@ class ConvertToBooleanExpression extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_TO_BOOL_EXPRESSION;
+  FixKind get fixKind => DartFixKind.convertToBoolExpression;
 
   @override
-  FixKind get multiFixKind => DartFixKind.CONVERT_TO_BOOL_EXPRESSION_MULTI;
+  FixKind get multiFixKind => DartFixKind.convertToBoolExpressionMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

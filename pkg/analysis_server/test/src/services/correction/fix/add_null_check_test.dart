@@ -135,7 +135,7 @@ void f(String? s) {
 @reflectiveTest
 class AddNullCheckTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_NULL_CHECK;
+  FixKind get kind => DartFixKind.addNullCheck;
 
   Future<void> test_argument() async {
     await resolveTestCode('''
@@ -688,7 +688,7 @@ Iterable<String> f(List<String>? args) sync* {
 @reflectiveTest
 class CastNullableToNonNullableTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.ADD_NULL_CHECK;
+  FixKind get kind => DartFixKind.addNullCheck;
 
   @override
   String get lintCode => LintNames.cast_nullable_to_non_nullable;

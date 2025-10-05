@@ -148,8 +148,8 @@ class _CreateClass extends ResolvedCorrectionProducer {
        _requiresConstConstructor = requiresConstConstructor,
        _arguments = arguments,
        fixKind = withKeyword
-           ? DartFixKind.CREATE_CLASS_LOWERCASE_WITH
-           : DartFixKind.CREATE_CLASS_LOWERCASE;
+           ? DartFixKind.createClassLowercaseWith
+           : DartFixKind.createClassLowercase;
 
   _CreateClass.uppercase({
     required super.context,
@@ -165,8 +165,8 @@ class _CreateClass extends ResolvedCorrectionProducer {
        _requiresConstConstructor = requiresConstConstructor,
        _arguments = arguments,
        fixKind = withKeyword
-           ? DartFixKind.CREATE_CLASS_UPPERCASE_WITH
-           : DartFixKind.CREATE_CLASS_UPPERCASE;
+           ? DartFixKind.createClassUppercaseWith
+           : DartFixKind.createClassUppercase;
 
   @override
   CorrectionApplicability get applicability =>

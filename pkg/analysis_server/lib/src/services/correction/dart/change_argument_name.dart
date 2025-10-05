@@ -99,7 +99,7 @@ class _ChangeName extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_proposedName];
 
   @override
-  FixKind get fixKind => DartFixKind.CHANGE_ARGUMENT_NAME;
+  FixKind get fixKind => DartFixKind.changeArgumentName;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

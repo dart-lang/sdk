@@ -21,7 +21,7 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_TO_INITIALIZING_FORMAL;
+  FixKind get fixKind => DartFixKind.convertToInitializingFormal;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

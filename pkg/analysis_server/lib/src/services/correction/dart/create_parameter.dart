@@ -24,7 +24,7 @@ class CreateParameter extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_parameterName];
 
   @override
-  FixKind get fixKind => DartFixKind.CREATE_PARAMETER;
+  FixKind get fixKind => DartFixKind.createParameter;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

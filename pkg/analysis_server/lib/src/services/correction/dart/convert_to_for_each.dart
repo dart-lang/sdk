@@ -19,7 +19,7 @@ class ConvertToForEach extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_TO_FOR_EACH;
+  FixKind get fixKind => DartFixKind.convertToForEach;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -34,10 +34,10 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
   AssistKind get assistKind => DartAssistKind.addTypeAnnotation;
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_TYPE_ANNOTATION;
+  FixKind get fixKind => DartFixKind.addTypeAnnotation;
 
   @override
-  FixKind get multiFixKind => DartFixKind.ADD_TYPE_ANNOTATION_MULTI;
+  FixKind get multiFixKind => DartFixKind.addTypeAnnotationMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

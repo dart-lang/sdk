@@ -62,7 +62,7 @@ extension type E(C c) implements C {
 @reflectiveTest
 class AddRedeclareTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.ADD_REDECLARE;
+  FixKind get kind => DartFixKind.addRedeclare;
 
   @override
   String get lintCode => LintNames.annotate_redeclares;

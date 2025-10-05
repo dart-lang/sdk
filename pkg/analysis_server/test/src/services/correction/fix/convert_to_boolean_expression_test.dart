@@ -39,7 +39,7 @@ void f(bool value) {
 @reflectiveTest
 class ConvertToBoolExpressionComparisonsTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_TO_BOOL_EXPRESSION;
+  FixKind get kind => DartFixKind.convertToBoolExpression;
 
   @override
   String get lintCode => LintNames.no_literal_bool_comparisons;
@@ -344,7 +344,7 @@ void f(bool value) {
 @reflectiveTest
 class ConvertToBoolExpressionConditionalTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_TO_BOOL_EXPRESSION;
+  FixKind get kind => DartFixKind.convertToBoolExpression;
 
   @override
   String get lintCode =>

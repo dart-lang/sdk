@@ -25,10 +25,10 @@ class AddReturnType extends ResolvedCorrectionProducer {
   AssistKind get assistKind => DartAssistKind.addReturnType;
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_RETURN_TYPE;
+  FixKind get fixKind => DartFixKind.addReturnType;
 
   @override
-  FixKind? get multiFixKind => DartFixKind.ADD_RETURN_TYPE_MULTI;
+  FixKind? get multiFixKind => DartFixKind.addReturnTypeMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

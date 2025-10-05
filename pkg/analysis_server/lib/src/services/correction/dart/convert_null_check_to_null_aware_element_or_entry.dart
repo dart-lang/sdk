@@ -20,12 +20,11 @@ class ConvertNullCheckToNullAwareElementOrEntry
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind =>
-      DartFixKind.CONVERT_NULL_CHECK_TO_NULL_AWARE_ELEMENT_OR_ENTRY;
+  FixKind get fixKind => DartFixKind.convertNullCheckToNullAwareElementOrEntry;
 
   @override
   FixKind get multiFixKind =>
-      DartFixKind.CONVERT_NULL_CHECK_TO_NULL_AWARE_ELEMENT_OR_ENTRY_MULTI;
+      DartFixKind.convertNullCheckToNullAwareElementOrEntryMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

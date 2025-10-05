@@ -16,10 +16,10 @@ class AddReturnNull extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_RETURN_NULL;
+  FixKind get fixKind => DartFixKind.addReturnNull;
 
   @override
-  FixKind? get multiFixKind => DartFixKind.ADD_RETURN_NULL_MULTI;
+  FixKind? get multiFixKind => DartFixKind.addReturnNullMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

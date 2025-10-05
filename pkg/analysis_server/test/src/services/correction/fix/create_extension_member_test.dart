@@ -21,7 +21,7 @@ void main() {
 @reflectiveTest
 class CreateExtensionGetterTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_EXTENSION_GETTER;
+  FixKind get kind => DartFixKind.createExtensionGetter;
 
   @FailingTest(reason: 'Should not be a fix because it will conflict with a')
   Future<void> test_conflicting_setter() async {
@@ -425,7 +425,7 @@ extension on List<int> {
 @reflectiveTest
 class CreateExtensionMethodTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_EXTENSION_METHOD;
+  FixKind get kind => DartFixKind.createExtensionMethod;
 
   Future<void> test_arguments() async {
     await resolveTestCode('''
@@ -1481,7 +1481,7 @@ void f(A? a) {
 @reflectiveTest
 class CreateExtensionOperatorTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_EXTENSION_OPERATOR;
+  FixKind get kind => DartFixKind.createExtensionOperator;
 
   Future<void> test_binary() async {
     await resolveTestCode('''
@@ -1648,7 +1648,7 @@ extension on String {
 @reflectiveTest
 class CreateExtensionSetterTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_EXTENSION_SETTER;
+  FixKind get kind => DartFixKind.createExtensionSetter;
 
   @FailingTest(reason: 'Should not be a fix because it will conflict with a')
   Future<void> test_conflicting_getter() async {

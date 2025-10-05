@@ -20,10 +20,10 @@ class ConvertForEachToForLoop extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_FOR_EACH_TO_FOR_LOOP;
+  FixKind get fixKind => DartFixKind.convertForEachToForLoop;
 
   @override
-  FixKind get multiFixKind => DartFixKind.CONVERT_FOR_EACH_TO_FOR_LOOP_MULTI;
+  FixKind get multiFixKind => DartFixKind.convertForEachToForLoopMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
