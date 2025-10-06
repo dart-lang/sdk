@@ -40,14 +40,6 @@ library;
 //     property = 23;
 //     ^^^^^^^^
 //
-// pkg/front_end/testcases/extensions/issue38745.dart:44:10: Error: Member not found: 'property2'.
-//   ext(c).property2;
-//          ^^^^^^^^^
-//
-// pkg/front_end/testcases/extensions/issue38745.dart:45:10: Error: Setter not found: 'property2'.
-//   ext(c).property2 = 23;
-//          ^^^^^^^^^
-//
 // pkg/front_end/testcases/extensions/issue38745.dart:38:5: Error: The getter 'property2' isn't defined for the type 'C<int>'.
 //  - 'C' is from 'pkg/front_end/testcases/extensions/issue38745.dart'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'property2'.

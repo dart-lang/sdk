@@ -1175,14 +1175,40 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     ExtensionAccessCandidate? bestSoFar;
     List<ExtensionAccessCandidate> noneMoreSpecific = [];
     extensionScope.forEachExtension((ExtensionBuilder extensionBuilder) {
-      MemberBuilder? thisBuilder = extensionBuilder.lookupLocalMemberByName(
-        name,
-        setter: setter,
-      );
-      MemberBuilder? otherBuilder = extensionBuilder.lookupLocalMemberByName(
-        otherName,
-        setter: otherIsSetter,
-      );
+      MemberBuilder? thisBuilder;
+      MemberBuilder? otherBuilder;
+      if (name == otherName) {
+        MemberLookupResult? result = extensionBuilder.lookupLocalMemberByName(
+          name,
+        );
+        if (result?.isInvalidLookup ?? false) {
+          result = null;
+        }
+        thisBuilder = setter ? result?.setable : result?.getable;
+        otherBuilder = otherIsSetter ? result?.setable : result?.getable;
+      } else {
+        // TODO(johnniwinther): Merge []/[]= lookups into one.
+        MemberLookupResult? thisResult = extensionBuilder
+            .lookupLocalMemberByName(name);
+        if (thisResult?.isInvalidLookup ?? false) {
+          thisResult = null;
+        }
+        MemberLookupResult? otherResult = extensionBuilder
+            .lookupLocalMemberByName(otherName);
+        if (otherResult?.isInvalidLookup ?? false) {
+          otherResult = null;
+        }
+        thisBuilder = setter
+            ?
+              // Coverage-ignore(suite): Not run.
+              thisResult?.setable
+            : thisResult?.getable;
+        otherBuilder = otherIsSetter
+            ?
+              // Coverage-ignore(suite): Not run.
+              otherResult?.setable
+            : otherResult?.getable;
+      }
       if ((thisBuilder != null && !thisBuilder.isStatic) ||
           (otherBuilder != null && !otherBuilder.isStatic)) {
         DartType onType;

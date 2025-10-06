@@ -21,12 +21,8 @@ abstract class ExtensionBuilder implements DeclarationBuilder {
   /// reported.
   ///
   /// If the extension member is a duplicate, `null` is returned.
-  // TODO(johnniwinther): Support [AmbiguousBuilder] here and in instance
-  // member lookup to avoid reporting that the member doesn't exist when it is
-  // duplicate.
-  MemberBuilder? lookupLocalMemberByName(
+  MemberLookupResult? lookupLocalMemberByName(
     Name name, {
-    bool setter = false,
     bool required = false,
   });
 }

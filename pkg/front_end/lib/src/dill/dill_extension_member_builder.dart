@@ -194,6 +194,7 @@ class DillExtensionGetterBuilder extends DillExtensionMemberBuilder
       _procedure.isExternal ? GetterQuality.External : GetterQuality.Concrete;
 
   @override
+  // Coverage-ignore(suite): Not run.
   SetterQuality get setterQuality => SetterQuality.Absent;
 
   @override

@@ -3456,18 +3456,25 @@ class ExplicitExtensionAccessGenerator extends Generator {
     Name name, {
     bool isNullAware = false,
   }) {
-    MemberBuilder? getter = extensionBuilder.lookupLocalMemberByName(name);
-    if (getter != null && getter.isStatic) {
-      getter = null;
+    MemberLookupResult? result = extensionBuilder.lookupLocalMemberByName(name);
+    if (result == null) {
+      return new UnresolvedNameGenerator(
+        _helper,
+        token,
+        name,
+        unresolvedReadKind: UnresolvedKind.Member,
+      );
     }
-    MemberBuilder? setter = extensionBuilder.lookupLocalMemberByName(
-      name,
-      setter: true,
-    );
-    if (setter != null && setter.isStatic) {
-      setter = null;
+    if (result.isInvalidLookup) {
+      return new UnresolvedNameGenerator(
+        _helper,
+        token,
+        name,
+        unresolvedReadKind: UnresolvedKind.Member,
+        errorHasBeenReported: true,
+      );
     }
-    if (getter == null && setter == null) {
+    if (result.isStatic) {
       return new UnresolvedNameGenerator(
         _helper,
         token,
@@ -3481,8 +3488,8 @@ class ExplicitExtensionAccessGenerator extends Generator {
       extensionTypeArgumentOffset: extensionTypeArgumentOffset,
       extension: extensionBuilder.extension,
       name: name,
-      getter: getter,
-      setter: setter,
+      getter: result.getable,
+      setter: result.setable,
       receiver: receiver,
       explicitTypeArguments: explicitTypeArguments,
       extensionTypeParameterCount: extensionBuilder.typeParameters?.length ?? 0,
@@ -3596,12 +3603,21 @@ class ExplicitExtensionAccessGenerator extends Generator {
     Token token, {
     required bool isNullAware,
   }) {
-    MemberBuilder? getter = extensionBuilder.lookupLocalMemberByName(
+    // TODO(johnniwinther): Join these.
+    MemberLookupResult? getterResult = extensionBuilder.lookupLocalMemberByName(
       indexGetName,
     );
-    MemberBuilder? setter = extensionBuilder.lookupLocalMemberByName(
+    if (getterResult?.isInvalidLookup ?? false) {
+      getterResult = null;
+    }
+    MemberLookupResult? setterResult = extensionBuilder.lookupLocalMemberByName(
       indexSetName,
     );
+    if (setterResult?.isInvalidLookup ?? false) {
+      setterResult = null;
+    }
+    MemberBuilder? getter = getterResult?.getable;
+    MemberBuilder? setter = setterResult?.getable;
     if (getter == null && setter == null) {
       // Coverage-ignore-block(suite): Not run.
       return new UnresolvedNameGenerator(
@@ -4149,35 +4165,22 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
     return _expression!;
   }
 
-  ({MemberBuilder? getable, MemberBuilder? setable})?
-  _findStaticExtensionMember(Name name) {
-    MemberBuilder? getable;
-    MemberBuilder? setable;
+  MemberLookupResult? _findStaticExtensionMember(Name name) {
+    MemberLookupResult? memberLookupResult;
     _helper.extensionScope.forEachExtension((
       ExtensionBuilder extensionBuilder,
     ) {
       // TODO(cstefantsova): Report an error on more than one found members.
       if (extensionBuilder.onType.declaration == declaration) {
-        // Getable.
-        MemberBuilder? member = extensionBuilder.lookupLocalMemberByName(
-          name,
-          setter: false,
-        );
-        if (member != null && member.isStatic) {
-          getable = member;
-        }
-
-        // Setable.
-        member = extensionBuilder.lookupLocalMemberByName(name, setter: true);
-        if (member != null && member.isStatic) {
-          setable = member;
+        memberLookupResult = extensionBuilder.lookupLocalMemberByName(name);
+        if (memberLookupResult != null) {
+          if (!memberLookupResult!.isStatic) {
+            memberLookupResult = null;
+          }
         }
       }
     });
-
-    return getable != null || setable != null
-        ? (getable: getable, setable: setable)
-        : null;
+    return memberLookupResult;
   }
 
   @override
@@ -4495,19 +4498,31 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
             }
           }
 
-          if (_helper.libraryFeatures.staticExtensions.isEnabled
-                  ? _findStaticExtensionMember(name)
-                  : null
-              case (:var getable, :var setable)) {
-            generator = new StaticAccessGenerator.fromBuilder(
-              _helper,
-              name,
-              send.token,
-              getable,
-              setable,
-              typeOffset: fileOffset,
-              isNullAware: isNullAware,
-            );
+          MemberLookupResult? memberLookupResult =
+              _helper.libraryFeatures.staticExtensions.isEnabled
+              ? _findStaticExtensionMember(name)
+              : null;
+          if (memberLookupResult != null) {
+            if (memberLookupResult.isInvalidLookup) {
+              // Coverage-ignore-block(suite): Not run.
+              generator = new UnresolvedNameGenerator(
+                _helper,
+                send.token,
+                name,
+                unresolvedReadKind: UnresolvedKind.Member,
+                errorHasBeenReported: true,
+              );
+            } else {
+              generator = new StaticAccessGenerator.fromBuilder(
+                _helper,
+                name,
+                send.token,
+                memberLookupResult.getable,
+                memberLookupResult.setable,
+                typeOffset: fileOffset,
+                isNullAware: isNullAware,
+              );
+            }
           } else {
             generator = new UnresolvedNameGenerator(
               _helper,
@@ -5170,11 +5185,14 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
 
   final UnresolvedKind unresolvedReadKind;
 
+  final bool errorHasBeenReported;
+
   factory UnresolvedNameGenerator(
     ExpressionGeneratorHelper helper,
     Token token,
     Name name, {
     required UnresolvedKind unresolvedReadKind,
+    bool errorHasBeenReported = false,
   }) {
     if (name.text.isEmpty) {
       unhandled("empty", "name", offsetForToken(token), helper.uri);
@@ -5184,6 +5202,7 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
       token,
       name,
       unresolvedReadKind,
+      errorHasBeenReported,
     );
   }
 
@@ -5192,6 +5211,7 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
     Token token,
     this.name,
     this.unresolvedReadKind,
+    this.errorHasBeenReported,
   ) : super(helper, token);
 
   @override
@@ -5209,6 +5229,7 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
       arguments: arguments,
       charOffset: charOffset,
       kind: UnresolvedKind.Method,
+      errorHasBeenReported: errorHasBeenReported,
     );
   }
 
@@ -5234,7 +5255,7 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
       _helper,
       name,
       this,
-      errorHasBeenReported: false,
+      errorHasBeenReported: errorHasBeenReported,
     );
   }
 
@@ -5257,7 +5278,10 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
 
   @override
   Expression buildSimpleRead() {
-    return buildError(kind: unresolvedReadKind)..fileOffset = fileOffset;
+    return buildError(
+      kind: unresolvedReadKind,
+      errorHasBeenReported: errorHasBeenReported,
+    );
   }
 
   @override
@@ -5271,7 +5295,10 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
     bool isCompound,
     Expression value,
   ) {
-    return buildError(kind: UnresolvedKind.Setter);
+    return buildError(
+      kind: UnresolvedKind.Setter,
+      errorHasBeenReported: errorHasBeenReported,
+    );
   }
 
   @override
