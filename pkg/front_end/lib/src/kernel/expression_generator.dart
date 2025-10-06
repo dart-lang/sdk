@@ -2765,7 +2765,6 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
     if (getter != null) {
       assert(!getter.isStatic);
       if (getter is PropertyBuilder) {
-        assert(!getter.hasConcreteField);
         readTarget = getter.readTarget as Procedure?;
       } else if (getter is MethodBuilder) {
         if (getter.isOperator) {

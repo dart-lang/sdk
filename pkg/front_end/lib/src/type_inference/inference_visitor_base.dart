@@ -29,7 +29,6 @@ import '../base/messages.dart';
 import '../base/problems.dart' show internalProblem, unhandled;
 import '../builder/declaration_builders.dart';
 import '../builder/member_builder.dart';
-import '../builder/property_builder.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/internal_ast.dart';
@@ -1234,46 +1233,33 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         if (typeSchemaEnvironment.isSubtypeOf(receiverType, onType)) {
           ObjectAccessTarget target = const ObjectAccessTarget.missing();
           if (thisBuilder != null && !thisBuilder.isStatic) {
-            if (thisBuilder is PropertyBuilder &&
-                thisBuilder.hasConcreteField) {
-              // Coverage-ignore-block(suite): Not run.
-              target = new ObjectAccessTarget.extensionMember(
-                receiverType,
-                setter ? thisBuilder.writeTarget! : thisBuilder.readTarget!,
-                thisBuilder.readTarget,
-                setter ? ClassMemberKind.Setter : ClassMemberKind.Getter,
-                inferredTypeArguments,
-                isPotentiallyNullable: isPotentiallyNullableAccess,
-              );
-            } else {
-              Member? member;
-              ClassMemberKind classMemberKind;
-              if (thisBuilder.isProperty) {
-                if (setter) {
-                  classMemberKind = ClassMemberKind.Setter;
-                  member = thisBuilder.writeTarget!;
-                } else {
-                  classMemberKind = ClassMemberKind.Getter;
-                  member = thisBuilder.readTarget!;
-                }
+            Member? member;
+            ClassMemberKind classMemberKind;
+            if (thisBuilder.isProperty) {
+              if (setter) {
+                classMemberKind = ClassMemberKind.Setter;
+                member = thisBuilder.writeTarget!;
               } else {
-                assert(
-                  !setter,
-                  "Unexpected method found as setter: $thisBuilder",
-                );
-                classMemberKind = ClassMemberKind.Method;
-                member = thisBuilder.invokeTarget!;
+                classMemberKind = ClassMemberKind.Getter;
+                member = thisBuilder.readTarget!;
               }
-              Member? tearoffTarget = thisBuilder.readTarget;
-              target = new ObjectAccessTarget.extensionMember(
-                receiverType,
-                member,
-                tearoffTarget,
-                classMemberKind,
-                inferredTypeArguments,
-                isPotentiallyNullable: isPotentiallyNullableAccess,
+            } else {
+              assert(
+                !setter,
+                "Unexpected method found as setter: $thisBuilder",
               );
+              classMemberKind = ClassMemberKind.Method;
+              member = thisBuilder.invokeTarget!;
             }
+            Member? tearoffTarget = thisBuilder.readTarget;
+            target = new ObjectAccessTarget.extensionMember(
+              receiverType,
+              member,
+              tearoffTarget,
+              classMemberKind,
+              inferredTypeArguments,
+              isPotentiallyNullable: isPotentiallyNullableAccess,
+            );
           }
           ExtensionAccessCandidate candidate = new ExtensionAccessCandidate(
             (thisBuilder ?? otherBuilder)!,

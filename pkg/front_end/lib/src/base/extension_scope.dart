@@ -65,12 +65,12 @@ abstract class BaseExtensionScope implements ExtensionScope {
   String toString() => "$runtimeType()";
 }
 
+// Coverage-ignore(suite): Not run.
 /// Implementation of [ExtensionScope] that includes extensions from a given
 /// [Extensions] object.
 ///
 /// This is used for expression compilation to give access to extensions
 /// declared in the library that the expression should be resolved in.
-// Coverage-ignore(suite): Not run.
 class ParentLibraryExtensionScope extends BaseExtensionScope {
   @override
   final Extensions _localExtensions;

@@ -1132,30 +1132,6 @@ class BuilderFactory {
     );
   }
 
-  void _createProperty({
-    required String name,
-    required UriOffsetLength uriOffset,
-    FieldDeclaration? fieldDeclaration,
-    GetterDeclaration? getterDeclaration,
-    List<GetterDeclaration>? getterAugmentationDeclarations,
-    SetterDeclaration? setterDeclaration,
-    List<SetterDeclaration>? setterAugmentationDeclarations,
-    required bool isStatic,
-    required bool inPatch,
-  }) {
-    _createPropertyBuilder(
-      name: name,
-      uriOffset: uriOffset,
-      fieldDeclaration: fieldDeclaration,
-      getterDeclaration: getterDeclaration,
-      getterAugmentations: getterAugmentationDeclarations ?? const [],
-      setterDeclaration: setterDeclaration,
-      setterAugmentations: setterAugmentationDeclarations ?? const [],
-      isStatic: isStatic,
-      inPatch: inPatch,
-    );
-  }
-
   void _createPropertyBuilder({
     required String name,
     required UriOffsetLength uriOffset,
@@ -2592,16 +2568,16 @@ class _PropertyPreBuilder extends _PreBuilder {
 
   @override
   void createBuilders(BuilderFactory builderFactory) {
-    builderFactory._createProperty(
+    builderFactory._createPropertyBuilder(
       name: name,
       inPatch: inPatch,
       isStatic: isStatic,
       uriOffset: uriOffset,
       fieldDeclaration: _getterDeclaration?.declarations.field,
       getterDeclaration: _getterDeclaration?.declarations.getter,
-      getterAugmentationDeclarations: _getterAugmentations,
+      getterAugmentations: _getterAugmentations,
       setterDeclaration: _setterDeclaration?.declarations.setter,
-      setterAugmentationDeclarations: _setterAugmentations,
+      setterAugmentations: _setterAugmentations,
     );
   }
 }

@@ -997,11 +997,9 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
     required bool isExtensionTypeInstanceMember,
     required this.isAbstract,
     required this.isExternal,
-    bool isForcedExtension = false,
-  }) : _isExtensionInstanceMember =
-           (isExternal || isForcedExtension) && isExtensionInstanceMember,
+  }) : _isExtensionInstanceMember = isExternal && isExtensionInstanceMember,
        _isExtensionTypeInstanceMember =
-           (isExternal || isForcedExtension) && isExtensionTypeInstanceMember;
+           isExternal && isExtensionTypeInstanceMember;
 
   @override
   DartType get type {
@@ -1529,6 +1527,314 @@ class RepresentationFieldEncoding implements FieldEncoding {
   }
 
   @override
+  Initializer buildErroneousInitializer(
+    Expression effect,
+    Expression value, {
+    required int fileOffset,
+  }) {
+    return new ShadowInvalidFieldInitializer(type, value, effect)
+      ..fileOffset = fileOffset;
+  }
+
+  @override
+  void registerSuperCall() {
+    throw new UnsupportedError(
+      "Unexpected call to ${runtimeType}.registerSuperCall().",
+    );
+  }
+}
+
+/// Encoding used for instance fields in extensions and extension types.
+///
+/// These fields are erroneous, so the encoding treats them as abstract fields.
+class ExtensionInstanceFieldEncoding implements FieldEncoding {
+  final FieldFragment _fragment;
+
+  /// Whether this is an extension member. If `false`, this is an extension
+  /// type member.
+  final bool _isExtensionInstanceMember;
+
+  Procedure? _getter;
+  Procedure? _setter;
+  DartType? _type;
+
+  ExtensionInstanceFieldEncoding(
+    this._fragment, {
+    required bool isExtensionInstanceMember,
+  }) : _isExtensionInstanceMember = isExtensionInstanceMember;
+
+  @override
+  DartType get type {
+    assert(
+      _type != null,
+      "Type has not been computed for field ${_fragment.name}.",
+    );
+    return _type!;
+  }
+
+  /// Updates the getter/setter types of [_getter] and [_setter] to match the
+  /// value of [_type].
+  ///
+  /// This allows for creating the members and computing the type in arbitrary
+  /// order.
+  void _updateMemberTypes() {
+    Procedure? getter = _getter;
+    Procedure? setter = _setter;
+    DartType? type = _type;
+    if (type != null && type is! InferredType && getter != null) {
+      DartType thisParameterType;
+      List<TypeParameter> typeParameters;
+      if (_isExtensionInstanceMember) {
+        SourceExtensionBuilder extensionBuilder =
+            _fragment.builder.parent as SourceExtensionBuilder;
+        thisParameterType = extensionBuilder.extension.onType;
+        typeParameters = extensionBuilder.extension.typeParameters;
+      } else {
+        SourceExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder =
+            _fragment.builder.parent as SourceExtensionTypeDeclarationBuilder;
+        thisParameterType = extensionTypeDeclarationBuilder
+            .extensionTypeDeclaration
+            .declaredRepresentationType;
+        typeParameters = extensionTypeDeclarationBuilder
+            .extensionTypeDeclaration
+            .typeParameters;
+      }
+      if (typeParameters.isNotEmpty) {
+        FreshTypeParameters getterTypeParameters = getFreshTypeParameters(
+          typeParameters,
+        );
+        getter.function.positionalParameters.first.type = getterTypeParameters
+            .substitute(thisParameterType);
+        getter.function.returnType = getterTypeParameters.substitute(type);
+        getter.function.typeParameters =
+            getterTypeParameters.freshTypeParameters;
+        setParents(getterTypeParameters.freshTypeParameters, getter.function);
+
+        if (setter != null) {
+          FreshTypeParameters setterTypeParameters = getFreshTypeParameters(
+            typeParameters,
+          );
+          setter.function.positionalParameters.first.type = setterTypeParameters
+              .substitute(thisParameterType);
+          setter.function.positionalParameters[1].type = setterTypeParameters
+              .substitute(type);
+          setter.function.typeParameters =
+              setterTypeParameters.freshTypeParameters;
+          setParents(setterTypeParameters.freshTypeParameters, setter.function);
+        }
+      } else {
+        getter.function.returnType = type;
+        setter?.function.positionalParameters[1].type = type;
+        getter.function.positionalParameters.first.type = thisParameterType;
+        setter?.function.positionalParameters.first.type = thisParameterType;
+      }
+    }
+  }
+
+  @override
+  void set type(DartType value) {
+    assert(
+      _type == null || _type is InferredType,
+      "Type has already been computed for field ${_fragment.name}.",
+    );
+    _type = value;
+    _updateMemberTypes();
+  }
+
+  @override
+  void createBodies(CoreTypes coreTypes, Expression? initializer) {
+    // TODO(johnniwinther): Enable this assert.
+    //assert(initializer != null);
+  }
+
+  @override
+  List<Initializer> createInitializer(
+    int fileOffset,
+    Expression value, {
+    required bool isSynthetic,
+  }) {
+    throw new UnsupportedError('ExternalFieldEncoding.createInitializer');
+  }
+
+  @override
+  void buildOutlineNode(
+    SourceLibraryBuilder libraryBuilder,
+    NameScheme nameScheme,
+    PropertyReferences references, {
+    required bool isAbstractOrExternal,
+    required List<TypeParameter>? classTypeParameters,
+  }) {
+    _getter =
+        new Procedure(
+            dummyName,
+            ProcedureKind.Method,
+            new FunctionNode(
+              null,
+              positionalParameters: [
+                new VariableDeclaration(syntheticThisName)
+                  ..fileOffset = _fragment.nameOffset
+                  ..isLowered = true,
+              ],
+            ),
+            fileUri: _fragment.fileUri,
+            reference: references.getterReference,
+          )
+          ..fileOffset = _fragment.nameOffset
+          ..fileEndOffset = _fragment.endOffset;
+    nameScheme
+        .getProcedureMemberName(ProcedureKind.Getter, _fragment.name)
+        .attachMember(_getter!);
+    if (_fragment.hasSetter) {
+      VariableDeclaration parameter =
+          new VariableDeclaration("#externalFieldValue", isSynthesized: true)
+            ..isCovariantByDeclaration = _fragment.modifiers.isCovariant
+            ..fileOffset = _fragment.nameOffset;
+      _setter =
+          new Procedure(
+              dummyName,
+              ProcedureKind.Method,
+              new FunctionNode(
+                  null,
+                  positionalParameters: [
+                    new VariableDeclaration(syntheticThisName)
+                      ..fileOffset = _fragment.nameOffset
+                      ..isLowered = true,
+                    parameter,
+                  ],
+                  returnType: const VoidType(),
+                )
+                ..fileOffset = _fragment.nameOffset
+                ..fileEndOffset = _fragment.endOffset,
+              fileUri: _fragment.fileUri,
+              reference: references.setterReference,
+            )
+            ..fileOffset = _fragment.nameOffset
+            ..fileEndOffset = _fragment.endOffset;
+      nameScheme
+          .getProcedureMemberName(ProcedureKind.Setter, _fragment.name)
+          .attachMember(_setter!);
+    }
+
+    _getter!
+      ..isConst = _fragment.modifiers.isConst
+      ..isStatic = true
+      ..isExtensionMember = _isExtensionInstanceMember
+      ..isExtensionTypeMember = !_isExtensionInstanceMember
+      // Encode as abstract.
+      // TODO(johnniwinther): Should we have an erroneous flag on such members?
+      ..isAbstract = true;
+
+    _setter
+      ?..isStatic = true
+      ..isExtensionMember = _isExtensionInstanceMember
+      ..isExtensionTypeMember = !_isExtensionInstanceMember
+      //  Encode as abstract.
+      // TODO(johnniwinther): Should we have an erroneous flag on such members?
+      ..isAbstract = true;
+
+    _updateMemberTypes();
+  }
+
+  @override
+  void registerMembers(BuildNodesCallback f) {
+    BuiltMemberKind getterMemberKind = _isExtensionInstanceMember
+        ? BuiltMemberKind.ExtensionGetter
+        : BuiltMemberKind.ExtensionTypeGetter;
+    f(member: _getter!, kind: getterMemberKind);
+    if (_setter != null) {
+      BuiltMemberKind setterMemberKind = _isExtensionInstanceMember
+          ? BuiltMemberKind.ExtensionSetter
+          : BuiltMemberKind.ExtensionTypeSetter;
+      f(member: _setter!, kind: setterMemberKind);
+    }
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void setCovariantByClass() {
+    _setter!.function.positionalParameters.first.isCovariantByClass = true;
+  }
+
+  @override
+  Field get field {
+    throw new UnsupportedError("ExtensionInstanceFieldEncoding.field");
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Member get builtMember => _getter!;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterable<Annotatable> get annotatables {
+    List<Annotatable> list = [_getter!];
+    if (_setter != null) {
+      list.add(_setter!);
+    }
+    return list;
+  }
+
+  @override
+  Member get readTarget => _getter!;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Reference get readTargetReference => _getter!.reference;
+
+  @override
+  Member? get writeTarget => _setter;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Reference? get writeTargetReference => _setter?.reference;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Iterable<Reference> get exportedReferenceMembers {
+    if (_setter != null) {
+      return [_getter!.reference, _setter!.reference];
+    }
+    return [_getter!.reference];
+  }
+
+  @override
+  List<ClassMember> get localMembers => <ClassMember>[
+    new _SynthesizedFieldClassMember(
+      _fragment.builder,
+      _getter!,
+      _fragment.builder.memberName,
+      _SynthesizedFieldMemberKind.AbstractExternalGetterSetter,
+      ClassMemberKind.Getter,
+      _fragment.uriOffset,
+    ),
+  ];
+
+  @override
+  List<ClassMember> get localSetters => _setter != null
+      ? <ClassMember>[
+          new _SynthesizedFieldClassMember(
+            _fragment.builder,
+            _setter!,
+            _fragment.builder.memberName,
+            _SynthesizedFieldMemberKind.AbstractExternalGetterSetter,
+            ClassMemberKind.Setter,
+            _fragment.uriOffset,
+          ),
+        ]
+      : const <ClassMember>[];
+
+  @override
+  void buildImplicitDefaultValue() {
+    throw new UnsupportedError("$runtimeType.buildImplicitDefaultValue");
+  }
+
+  @override
+  Initializer buildImplicitInitializer() {
+    throw new UnsupportedError("$runtimeType.buildImplicitInitializer");
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
   Initializer buildErroneousInitializer(
     Expression effect,
     Expression value, {

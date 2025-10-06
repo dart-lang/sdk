@@ -94,11 +94,6 @@ mixin DeclarationBuilderMixin implements IDeclarationBuilder {
     if (builder != null) {
       if (name.isPrivate && libraryBuilder.library != name.library) {
         builder = null;
-      } else if (builder is PropertyBuilder &&
-          builder.hasConcreteField &&
-          !builder.isStatic) {
-        // Non-external extension instance fields are invalid.
-        builder = null;
       } else if (builder.isDuplicate) {
         // Duplicates are not visible in the instance scope.
         builder = null;

@@ -24,13 +24,13 @@ import self as self;
 import "dart:core" as core;
 
 extension Foo on dynamic {
-  field foo1 = self::Foo|foo1;
-  field foo2 = self::Foo|foo2;
+  get foo1 = self::Foo|get#foo1;
+  get foo2 = self::Foo|get#foo2;
   method baz = self::Foo|baz;
   method tearoff baz = self::Foo|get#baz;
 }
-late static final field invalid-type Foo|foo1;
-late static final field invalid-type Foo|foo2;
+static abstract extension-member method Foo|get#foo1(lowered dynamic #this) → invalid-type;
+static abstract extension-member method Foo|get#foo2(lowered dynamic #this) → invalid-type;
 static extension-member method Foo|baz(lowered final dynamic #this, core::int i) → core::int
   ;
 static extension-member method Foo|get#baz(lowered final dynamic #this) → (core::int) → core::int

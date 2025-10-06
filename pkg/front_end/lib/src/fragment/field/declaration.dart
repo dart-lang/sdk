@@ -545,18 +545,12 @@ class RegularFieldDeclaration
         isAbstract: isAbstract,
         isExternal: isExternal,
       );
-    } else if (isExtensionTypeMember && isInstanceMember) {
-      // Field on a extension type. Encode as abstract.
-      // TODO(johnniwinther): Should we have an erroneous flag on such
-      // members?
-      _encoding = new AbstractOrExternalFieldEncoding(
+    } else if ((isExtensionMember || isExtensionTypeMember) &&
+        isInstanceMember) {
+      // Field on a extension or extension type. Encode as abstract.
+      _encoding = new ExtensionInstanceFieldEncoding(
         _fragment,
-        isExtensionInstanceMember: isExtensionMember && isInstanceMember,
-        isExtensionTypeInstanceMember:
-            isExtensionTypeMember && isInstanceMember,
-        isAbstract: true,
-        isExternal: false,
-        isForcedExtension: true,
+        isExtensionInstanceMember: isExtensionMember,
       );
     } else if (isLate &&
         libraryBuilder.loader.target.backendTarget.isLateFieldLoweringEnabled(

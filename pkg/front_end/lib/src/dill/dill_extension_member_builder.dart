@@ -133,6 +133,7 @@ class DillExtensionSetterBuilder extends DillExtensionMemberBuilder
   Iterable<Reference> get exportedMemberReferences => [procedure.reference];
 
   @override
+  // Coverage-ignore(suite): Not run.
   FieldQuality get fieldQuality => FieldQuality.Absent;
 
   @override
@@ -184,6 +185,7 @@ class DillExtensionGetterBuilder extends DillExtensionMemberBuilder
   Iterable<Reference> get exportedMemberReferences => [_procedure.reference];
 
   @override
+  // Coverage-ignore(suite): Not run.
   FieldQuality get fieldQuality => FieldQuality.Absent;
 
   @override
