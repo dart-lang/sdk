@@ -94847,14 +94847,6 @@ int get b => 0;
 [operation] checkLibraryDiagnosticsRequirements
   library: /home/test/lib/test.dart
   failure: null
-[operation] getErrorsFromBytes
-  file: /home/test/lib/test.dart
-  library: /home/test/lib/test.dart
-[stream]
-  ErrorsResult #1
-    path: /home/test/lib/test.dart
-    uri: package:test/test.dart
-    flags: isLibrary
 [status] idle
 ''');
   }
