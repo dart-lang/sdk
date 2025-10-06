@@ -391,14 +391,6 @@ class _MatchShadowedBy {
   _MatchShadowedBy(this.match, this.element);
 }
 
-class _MatchShadowedByLocal extends _MatchShadowedBy {
-  @override
-  final LocalElement element;
-
-  _MatchShadowedByLocal(SearchMatch match, this.element)
-    : super(match, element);
-}
-
 /// Helper to check if the renamed [element] will cause any conflicts.
 class _RenameClassMemberValidator extends _BaseClassMemberValidator {
   final Element element;
@@ -508,9 +500,6 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
         var elementRange = visibleRangeMap[localElement];
         if (elementRange != null &&
             elementRange.intersects(match.sourceRange)) {
-          if (localElement is LocalElement) {
-            return _MatchShadowedByLocal(match, localElement);
-          }
           return _MatchShadowedBy(match, localElement);
         }
       }
