@@ -95077,6 +95077,66 @@ final y = 0;
 ''');
   }
 
+  test_operation_addFile_later_addPart() async {
+    configuration.withCheckLibraryDiagnosticsRequirements = true;
+
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver, idProvider: idProvider);
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part 'a.dart';
+void f(A _) {}
+''');
+    driver.addFile2(b);
+
+    // No part `a.dart` yet.
+    // Has 2 errors: (1) no part; (2) no class `A`.
+    await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/b.dart
+  library: /home/test/lib/b.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isLibrary
+    errors
+      5 +8 URI_DOES_NOT_EXIST
+      22 +1 UNDEFINED_CLASS
+[operation] analyzedLibrary
+  file: /home/test/lib/b.dart
+[status] idle
+''');
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part of 'b.dart';
+class A {}
+''');
+    driver.addFile2(a);
+
+    // No errors: (1) the part is present; (2) class `A` in the part.
+    await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/b.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #2
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isPart
+[operation] analyzedLibrary
+  file: /home/test/lib/b.dart
+[status] idle
+''');
+  }
+
   test_operation_getErrors_changeImported_affected() async {
     configuration.withCheckLibraryDiagnosticsRequirements = true;
 

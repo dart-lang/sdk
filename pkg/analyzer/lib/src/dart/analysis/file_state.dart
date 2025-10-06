@@ -1906,6 +1906,7 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
   void disposeLibraryCycle() {
     _libraryCycle?.dispose();
     _libraryCycle = null;
+    diagnosticsBundleKey = null;
   }
 
   void internal_setLibraryCycle(LibraryCycle? cycle) {
