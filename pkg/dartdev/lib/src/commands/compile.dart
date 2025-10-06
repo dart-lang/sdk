@@ -758,6 +758,19 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       --minimize-rec-groups
     '''); // end of binaryenFlags
 
+  final List<String> binaryenFlagsDeferredLoading = _flagList('''
+      --enable-gc
+      --enable-reference-types
+      --enable-multivalue
+      --enable-exception-handling
+      --enable-nontrapping-float-to-int
+      --enable-sign-ext
+      --enable-bulk-memory
+      --enable-threads
+
+      -Os
+    '''); // end of binaryenFlagsDeferredLoading
+
   final List<String> optimizationLevel0Flags = _flagList('''
       --no-inlining
       --no-minify
@@ -875,6 +888,11 @@ class CompileWasmCommand extends CompileSubcommandCommand {
         help: 'Generate a source map file.',
         defaultsTo: true,
       )
+      ..addFlag('enable-deferred-loading',
+          help: 'Emit multiple modules based on the Dart program\'s deferred '
+              'import graph.',
+          hide: !verbose,
+          defaultsTo: false)
       ..addOption(
         packagesOption.flag,
         abbr: packagesOption.abbr,
@@ -954,6 +972,10 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       }
     }
 
+    final isMultiModule = args.flag('enable-deferred-loading') ||
+        // Used in testing to force multiple modules.
+        extraCompilerOptions
+            .any((e) => e.contains('enable-multi-module-stress-test'));
     final optimizationLevel = int.parse(args.option('optimization-level')!);
     final runWasmOpt = optimizationLevel >= 1;
 
@@ -996,6 +1018,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       if (args.flag('print-kernel')) '--print-kernel',
       if (args.flag(enableAssertsOption.flag)) '--${enableAssertsOption.flag}',
       if (!generateSourceMap) '--no-source-maps',
+      if (isMultiModule) '--enable-deferred-loading',
       for (final define in defines) '-D$define',
       if (maxPages != null) ...[
         '--import-shared-memory',
@@ -1032,42 +1055,92 @@ class CompileWasmCommand extends CompileSubcommandCommand {
     if (isDryRun) return 0;
 
     if (runWasmOpt) {
-      final unoptFile = '$outputFileBasename.unopt.wasm';
-      File(outputFile).renameSync(unoptFile);
-
-      final unoptSourceMapFile = '$outputFileBasename.unopt.wasm.map';
-      if (generateSourceMap) {
-        File('$outputFile.map').renameSync(unoptSourceMapFile);
-      }
-
-      final flags = [
-        ...binaryenFlags,
-        if (!strip) '-g',
-        if (generateSourceMap) ...[
-          '-ism',
-          unoptSourceMapFile,
-          '-osm',
-          '$outputFile.map'
-        ]
-      ];
-
-      if (verbose) {
-        log.stdout('Optimizing output with: ${sdk.wasmOpt} $flags');
-      }
-      final processResult = Process.runSync(
-        sdk.wasmOpt,
-        [...flags, '-o', outputFile, unoptFile],
-      );
-      if (processResult.exitCode != 0) {
-        log.stderr('Error: Wasm compilation failed while optimizing output');
-        log.stderr(processResult.stderr);
-        return compileErrorExitCode;
+      if (isMultiModule) {
+        // Iterate over all matching wasm files and optimize them concurrently
+        // in different processes.
+        final outputFiles = await _listMultiWasmModules(
+            path.dirname(outputFile), outputFileBasename);
+        final futures = <Future<int>>[];
+        for (final f in outputFiles) {
+          final baseFileName = path.setExtension(f.path, '');
+          futures.add(optimize(baseFileName, f.path,
+              deferredLoadingEnabled: true,
+              generateSourceMap: generateSourceMap,
+              strip: strip));
+        }
+        final exitCode = (await Future.wait(futures))
+            .firstWhere((r) => r != 0, orElse: () => 0);
+        if (exitCode != 0) return exitCode;
+      } else {
+        final exitCode = await optimize(outputFileBasename, outputFile,
+            deferredLoadingEnabled: false,
+            generateSourceMap: generateSourceMap,
+            strip: strip);
+        if (exitCode != 0) return exitCode;
       }
     }
 
     final mjsFile = '$outputFileBasename.mjs';
     log.stdout(
         "Generated wasm module '$outputFile', and JS init file '$mjsFile'.");
+    return 0;
+  }
+
+  Future<List<File>> _listMultiWasmModules(
+      String outputDir, String outputFileBasename) async {
+    final files = <File>[];
+    final outputFiles = await Directory(outputDir).list().toList();
+    // When multiple modules are produced from wasm (e.g. with deferred
+    // loading), the compiler emits files:
+    // - basename.wasm (main module)
+    // - basename_module{1...N}.wasm (extra modules)
+    for (final f in outputFiles) {
+      if (f is! File) continue;
+      if (!path.split(f.path).last.startsWith(outputFileBasename)) continue;
+      if (path.extension(f.path) != '.wasm') continue;
+
+      files.add(f);
+    }
+    return files;
+  }
+
+  Future<int> optimize(String outputFileBasename, String outputFile,
+      {required bool deferredLoadingEnabled,
+      required bool generateSourceMap,
+      required bool strip}) async {
+    final unoptFile = '$outputFileBasename.unopt.wasm';
+    File(outputFile).renameSync(unoptFile);
+
+    final unoptSourceMapFile = '$outputFileBasename.unopt.wasm.map';
+    if (generateSourceMap) {
+      File('$outputFile.map').renameSync(unoptSourceMapFile);
+    }
+
+    final flags = [
+      ...(deferredLoadingEnabled
+          ? binaryenFlagsDeferredLoading
+          : binaryenFlags),
+      if (!strip) '-g',
+      if (generateSourceMap) ...[
+        '-ism',
+        unoptSourceMapFile,
+        '-osm',
+        '$outputFile.map'
+      ]
+    ];
+
+    if (verbose) {
+      log.stdout('Optimizing output with: ${sdk.wasmOpt} $flags');
+    }
+    final processResult = Process.runSync(
+      sdk.wasmOpt,
+      [...flags, '-o', outputFile, unoptFile],
+    );
+    if (processResult.exitCode != 0) {
+      log.stderr('Error: Wasm compilation failed while optimizing output');
+      log.stderr(processResult.stderr);
+      return compileErrorExitCode;
+    }
     return 0;
   }
 }
