@@ -9,13 +9,13 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    // TODO(scheglov): implement augmentation
-    // defineReflectiveTests(AugmentationTypeParameterCountTest);
+    defineReflectiveTests(AugmentationTypeParameterCountTest);
   });
 }
 
 @reflectiveTest
 class AugmentationTypeParameterCountTest extends PubPackageResolutionTest {
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_0_1() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -33,6 +33,7 @@ augment class A<T> {}
     );
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_1_0() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -64,6 +65,7 @@ augment class A<T> {}
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_1_2() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -81,6 +83,7 @@ augment class A<T, U> {}
     );
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_2_1() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -98,6 +101,7 @@ augment class A<T> {}
     );
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_method() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -119,6 +123,7 @@ augment class A<T> {
     );
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_enum_0_1() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -136,6 +141,7 @@ augment enum A<T> {}
     );
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_enum_1_0() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -167,6 +173,7 @@ augment enum A <T>{}
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_enum_1_2() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -184,6 +191,7 @@ augment enum A<T, U> {}
     );
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_enum_2_1() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -201,6 +209,7 @@ augment enum A<T> {}
     );
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_extension_0_1() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -218,6 +227,7 @@ augment extension A<T> {}
     );
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_extension_1_0() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -249,6 +259,7 @@ augment extension A<T> {}
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_extension_1_2() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -266,6 +277,7 @@ augment extension A<T, U> {}
     );
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_extension_2_1() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -283,6 +295,7 @@ augment extension A<T> {}
     );
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_extensionType_0_1() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -300,6 +313,7 @@ augment extension type A<T>(int it) {}
     );
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_extensionType_1_0() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -331,6 +345,7 @@ augment extension type A<T>(int it) {}
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_extensionType_1_2() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -348,6 +363,7 @@ augment extension type A<T, U>(int it) {}
     );
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_extensionType_2_1() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -365,6 +381,7 @@ augment extension type A<T>(int it) {}
     );
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_mixin_0_1() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -382,6 +399,7 @@ augment mixin A<T> {}
     );
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_mixin_1_0() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -413,6 +431,7 @@ augment mixin A<T> {}
 ''');
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_mixin_1_2() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -430,6 +449,7 @@ augment mixin A<T, U> {}
     );
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_mixin_2_1() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -447,6 +467,7 @@ augment mixin A<T> {}
     );
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_mixin_method() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
