@@ -67,6 +67,12 @@ abstract class _AddDigitSeparators extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
+    if (node case PrefixExpression(:var operator, :var operand)) {
+      if (operator.type != TokenType.MINUS) {
+        return;
+      }
+      node = operand;
+    }
     if (node is IntegerLiteral) {
       if (!_tokenTypes.contains(node.literal.type)) {
         return;
@@ -133,6 +139,20 @@ abstract class _AddDigitSeparators extends ResolvedCorrectionProducer {
         );
         wholePart = source.substring(0, eIndex);
         fractionalPart = null;
+      }
+
+      var invalidExponential =
+          exponentialPart == null ||
+          exponentialPart.length < _minimumDigitCount ||
+          eIndex == -1;
+      var invalidWhole = wholePart.length < _minimumDigitCount;
+      var invalidFractional =
+          fractionalPart == null || fractionalPart.length < _minimumDigitCount;
+
+      // If all parts are invalid, then there is no point in offering the
+      // assist.
+      if (invalidExponential && invalidWhole && invalidFractional) {
+        return;
       }
 
       var buffer = StringBuffer();
