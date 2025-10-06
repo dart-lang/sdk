@@ -483,11 +483,9 @@ void f(int Function(int) p) {
   v = p;
 }
 ''');
-    // TODO(brianwilkerson): Improve `DartChangeBuilder.writeType` so that
-    //  unnecessary parameter names (`p1`) are not written.
     await assertHasAssist('''
 void f(int Function(int) p) {
-  int Function(int p1) v;
+  int Function(int) v;
   v = p;
 }
 ''');
@@ -674,6 +672,34 @@ void f() {
     await assertHasAssist('''
 void f() {
   ({int x, int y}) v = (x: 0, y: 0);
+}
+''');
+  }
+
+  Future<void> test_local_shadowed() async {
+    newFile(join(testPackageLibPath, 'a.dart'), '''
+class A {}
+''');
+    newFile(join(testPackageLibPath, 'other.dart'), '''
+import 'a.dart';
+A getA() => A();
+''');
+    await resolveTestCode('''
+import 'other.dart';
+
+class A {}
+void f() {
+  var ^v = getA();
+}
+''');
+    await assertHasAssist('''
+import 'package:test/a.dart' as prefix0;
+
+import 'other.dart';
+
+class A {}
+void f() {
+  prefix0.A v = getA();
 }
 ''');
   }
