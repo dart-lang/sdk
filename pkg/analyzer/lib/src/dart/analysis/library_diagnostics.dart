@@ -7,6 +7,7 @@ import 'dart:typed_data';
 import 'package:analyzer/src/binary/binary_reader.dart';
 import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/fine/manifest_id.dart';
 import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 
@@ -18,6 +19,7 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 /// requirements are satisfied. If they are, we can reuse the diagnostics.
 /// Otherwise, we need to re-analyze the library.
 class LibraryDiagnosticsBundle {
+  final ManifestItemId id;
   final RequirementsManifestDigest requirementsDigest;
   final Uint8List requirementsBytes;
   RequirementsManifest? _requirements;
@@ -31,6 +33,7 @@ class LibraryDiagnosticsBundle {
     var reader = BinaryReader(bytes);
     reader.initFromTableTrailer();
     return LibraryDiagnosticsBundle._(
+      id: ManifestItemId.read(reader),
       requirementsDigest: RequirementsManifestDigest.read(reader),
       requirementsBytes: reader.readUint8List(),
       serializedFileResults: reader.readMap(
@@ -41,6 +44,7 @@ class LibraryDiagnosticsBundle {
   }
 
   LibraryDiagnosticsBundle._({
+    required this.id,
     required this.requirementsDigest,
     required this.requirementsBytes,
     required this.serializedFileResults,
@@ -53,11 +57,13 @@ class LibraryDiagnosticsBundle {
   static void write({
     required ByteStore byteStore,
     required String key,
+    required ManifestItemId id,
     required RequirementsManifest requirements,
     required Map<Uri, Uint8List> serializedFileResults,
     required OperationPerformanceImpl performance,
   }) {
     var writer = BinaryWriter();
+    id.write(writer);
 
     var requirementsDigest = requirements.toDigest();
     requirementsDigest.write(writer);

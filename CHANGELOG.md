@@ -149,6 +149,8 @@ instead.
     deprecated.
   - [`@Deprecated.instantiate()`][] indicates the ability to instantiate a
     class is deprecated.
+- The ability to implement the RegExp class and the RegExpMatch class is
+  deprecated.
 
 [#61392]: https://dartbug.com/61392
 [`@Deprecated.extend()`]: https://api.dart.dev/dev/latest/dart-core/Deprecated/Deprecated.extend.html

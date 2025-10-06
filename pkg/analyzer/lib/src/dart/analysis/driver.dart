@@ -40,6 +40,7 @@ import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/exception/exception.dart';
+import 'package:analyzer/src/fine/manifest_id.dart';
 import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine;
@@ -106,7 +107,7 @@ testFineAfterLibraryAnalyzerHook;
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 570;
+  static const int DATA_VERSION = 571;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -228,6 +229,12 @@ class AnalysisDriver {
 
   /// Resolution signatures of the most recently produced results for files.
   final Map<String, String> _lastProducedSignatures = {};
+
+  /// Key: a file in [LibraryDiagnosticsBundle].
+  /// Value: last [LibraryDiagnosticsBundle] ID.
+  ///
+  /// Used in [_produceErrors] to avoid producing the same diagnostics.
+  final Map<File, ManifestItemId> _lastProducedDiagnosticIds = {};
 
   /// Cached results for [_priorityFiles].
   final Map<String, ResolvedUnitResult> _priorityResults = {};
@@ -1255,7 +1262,9 @@ class AnalysisDriver {
       return;
     }
     if (file_paths.isDart(resourceProvider.pathContext, path)) {
+      var file = resourceProvider.getFile(path);
       _lastProducedSignatures.remove(path);
+      _lastProducedDiagnosticIds.remove(file);
       _priorityResults.clear();
       _resolvedLibraryCache.clear();
       _pendingFileChanges.add(_FileChange(path, _FileChangeKind.remove));
@@ -1438,13 +1447,19 @@ class AnalysisDriver {
 
           performance.run('writeLibraryDiagnostics', (performance) {
             var key = _getLibraryDiagnosticsKey(library);
+            var id = ManifestItemId.generate();
             LibraryDiagnosticsBundle.write(
               byteStore: _byteStore,
               key: key,
+              id: id,
               requirements: requirements!,
               serializedFileResults: serializedFileResults,
               performance: performance,
             );
+            for (var unitResult in results) {
+              var unitResource = unitResult.file.resource;
+              _lastProducedDiagnosticIds[unitResource] = id;
+            }
           });
 
           _scheduler.eventsController.add(
@@ -2088,13 +2103,17 @@ class AnalysisDriver {
                 .where((file) => file.uri == fileEntry.key)
                 .single;
             _fileTracker.fileWasAnalyzed(file.path);
-            var result = _createErrorsResultFromBytes(
-              file,
-              library,
-              fileEntry.value,
-            );
-            _errorsRequestedFiles.completeAll(file.path, result);
-            _scheduler.eventsController.add(result);
+            if (_lastProducedDiagnosticIds[file.resource] == bundle.id) {
+              // Don't produce diagnostics if the same as the last time.
+            } else {
+              var result = _createErrorsResultFromBytes(
+                file,
+                library,
+                fileEntry.value,
+              );
+              _errorsRequestedFiles.completeAll(file.path, result);
+              _scheduler.eventsController.add(result);
+            }
           }
           return;
         }
