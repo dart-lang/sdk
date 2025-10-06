@@ -261,6 +261,25 @@ void f(A a) {
 ''');
   }
 
+  Future<void> test_guard() async {
+    await resolveTestCode('''
+class A {
+  void f(Object? x) {
+    if (x case String() when getter) {}
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  bool get getter => null;
+
+  void f(Object? x) {
+    if (x case String() when getter) {}
+  }
+}
+''');
+  }
+
   Future<void> test_hint_getter() async {
     await resolveTestCode('''
 class A {
