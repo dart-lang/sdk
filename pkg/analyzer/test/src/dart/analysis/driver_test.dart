@@ -29290,6 +29290,117 @@ extension type A(int it) {
     );
   }
 
+  test_dependency_extensionType_instanceMethod_change_lookUpMethod_inherited() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeInterfaceElement('A');
+      A.thisType.lookUpMethod(
+        'foo',
+        A.library,
+        concrete: true,
+        inherited: true,
+      );
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+extension type A(int it) {
+  int foo() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H0
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        declaredMethods
+          foo: #M3
+        interface: #M4
+          map
+            foo: #M3
+            it: #M2
+          implemented
+            foo: #M3
+            it: #M2
+    exportMapId: #M5
+    exportMap
+      A: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    exportMapId: #M6
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M7
+        exportMapId: #M5
+        exportMap
+          A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+[status] idle
+''',
+      updatedA: r'''
+extension type A(int it) {
+  double foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H2
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        declaredMethods
+          foo: #M8
+        interface: #M9
+          map
+            foo: #M8
+            it: #M2
+          implemented
+            foo: #M8
+            it: #M2
+    exportMapId: #M5
+    exportMap
+      A: #M0
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
   test_dependency_extensionType_instanceMethod_change_notUsed() async {
     await _runChangeScenarioTA(
       initialA: r'''
