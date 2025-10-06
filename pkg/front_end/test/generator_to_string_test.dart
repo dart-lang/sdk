@@ -361,6 +361,7 @@ Future<void> main() async {
         token,
         name,
         UnresolvedKind.Unknown,
+        false,
       ),
     );
     check(

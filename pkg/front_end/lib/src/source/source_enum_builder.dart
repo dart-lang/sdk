@@ -544,8 +544,9 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
     } else {
       ClassBuilder enumClass =
           _underscoreEnumTypeBuilder.declaration as ClassBuilder;
-      MemberBuilder? nameFieldBuilder =
-          enumClass.lookupLocalMember("_name")?.getable as MemberBuilder?;
+      MemberBuilder? nameFieldBuilder = enumClass
+          .lookupLocalMember("_name")
+          ?.getable;
       assert(nameFieldBuilder != null);
       Field nameField = nameFieldBuilder!.readTarget as Field;
 

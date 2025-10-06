@@ -163,27 +163,24 @@ extension Extension on core::int {
   method tearoff instanceMethod = self::Extension|get#instanceMethod;
   get instanceGetter = self::Extension|get#instanceGetter;
   set instanceSetter = self::Extension|set#instanceSetter;
-  field instanceField = self::Extension|instanceField;
-  field instanceFieldAndSetter1 = self::Extension|instanceFieldAndSetter1;
+  get instanceField = self::Extension|get#instanceField;
+  set instanceField = self::Extension|set#instanceField;
+  get instanceFieldAndSetter1 = self::Extension|get#instanceFieldAndSetter1;
+  set instanceFieldAndSetter1 = self::Extension|set#instanceFieldAndSetter1;
   set instanceFieldAndSetter2 = self::Extension|set#instanceFieldAndSetter2;
-  field instanceLateFinalFieldAndSetter1 = self::Extension|instanceLateFinalFieldAndSetter1;
+  get instanceLateFinalFieldAndSetter1 = self::Extension|get#instanceLateFinalFieldAndSetter1;
+  set instanceLateFinalFieldAndSetter1 = self::Extension|set#instanceLateFinalFieldAndSetter1;
   set instanceLateFinalFieldAndSetter2 = self::Extension|set#instanceLateFinalFieldAndSetter2;
-  field instanceDuplicateFieldAndSetter = self::Extension|instanceDuplicateFieldAndSetter;
+  get instanceDuplicateFieldAndSetter = self::Extension|get#instanceDuplicateFieldAndSetter;
   set instanceDuplicateFieldAndSetter = self::Extension|set#instanceDuplicateFieldAndSetter;
-  field instanceFieldAndDuplicateSetter = self::Extension|instanceFieldAndDuplicateSetter;
+  get instanceFieldAndDuplicateSetter = self::Extension|get#instanceFieldAndDuplicateSetter;
   set instanceFieldAndDuplicateSetter = self::Extension|set#instanceFieldAndDuplicateSetter;
-  field instanceDuplicateFieldAndDuplicateSetter = self::Extension|instanceDuplicateFieldAndDuplicateSetter;
+  get instanceDuplicateFieldAndDuplicateSetter = self::Extension|get#instanceDuplicateFieldAndDuplicateSetter;
   set instanceDuplicateFieldAndDuplicateSetter = self::Extension|set#instanceDuplicateFieldAndDuplicateSetter;
   method instanceMethodAndSetter1 = self::Extension|instanceMethodAndSetter1;
   method tearoff instanceMethodAndSetter1 = self::Extension|get#instanceMethodAndSetter1;
   set instanceMethodAndSetter2 = self::Extension|set#instanceMethodAndSetter2;
 }
-static field core::int Extension|instanceField;
-static field core::int Extension|instanceFieldAndSetter1;
-late static final [setter] field core::int Extension|instanceLateFinalFieldAndSetter1;
-static final field core::int Extension|instanceDuplicateFieldAndSetter;
-static final field core::int Extension|instanceFieldAndDuplicateSetter;
-static final field core::int Extension|instanceDuplicateFieldAndDuplicateSetter;
 static extension-member method Extension|instanceMethod(lowered final core::int #this) → core::int
   ;
 static extension-member method Extension|get#instanceMethod(lowered final core::int #this) → () → core::int
@@ -192,14 +189,23 @@ static extension-member method Extension|get#instanceGetter(lowered final core::
   ;
 static extension-member method Extension|set#instanceSetter(lowered final core::int #this, dynamic value) → void
   ;
+static abstract extension-member method Extension|get#instanceField(lowered core::int #this) → core::int;
+static abstract extension-member method Extension|set#instanceField(lowered core::int #this, synthesized core::int #externalFieldValue) → void;
+static abstract extension-member method Extension|get#instanceFieldAndSetter1(lowered core::int #this) → core::int;
+static abstract extension-member method Extension|set#instanceFieldAndSetter1(lowered core::int #this, synthesized core::int #externalFieldValue) → void;
 static extension-member method Extension|set#instanceFieldAndSetter2(lowered final core::int #this, core::int value) → void
   ;
+static abstract extension-member method Extension|get#instanceLateFinalFieldAndSetter1(lowered core::int #this) → core::int;
+static abstract extension-member method Extension|set#instanceLateFinalFieldAndSetter1(lowered core::int #this, synthesized core::int #externalFieldValue) → void;
 static extension-member method Extension|set#instanceLateFinalFieldAndSetter2(lowered final core::int #this, core::int value) → void
   ;
+static abstract extension-member method Extension|get#instanceDuplicateFieldAndSetter(lowered core::int #this) → core::int;
 static extension-member method Extension|set#instanceDuplicateFieldAndSetter(lowered final core::int #this, core::int value) → void
   ;
+static abstract extension-member method Extension|get#instanceFieldAndDuplicateSetter(lowered core::int #this) → core::int;
 static extension-member method Extension|set#instanceFieldAndDuplicateSetter(lowered final core::int #this, core::int value) → void
   ;
+static abstract extension-member method Extension|get#instanceDuplicateFieldAndDuplicateSetter(lowered core::int #this) → core::int;
 static extension-member method Extension|set#instanceDuplicateFieldAndDuplicateSetter(lowered final core::int #this, core::int value) → void
   ;
 static extension-member method Extension|instanceMethodAndSetter1(lowered final core::int #this) → core::int

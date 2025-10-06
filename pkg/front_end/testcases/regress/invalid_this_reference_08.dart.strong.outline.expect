@@ -14,11 +14,13 @@ library;
 import self as self;
 
 extension Foo on dynamic {
-  field foo = self::Foo|foo;
+  get foo = self::Foo|get#foo;
+  set foo = self::Foo|set#foo;
   method bar = self::Foo|bar;
   method tearoff bar = self::Foo|get#bar;
 }
-static field invalid-type Foo|foo;
+static abstract extension-member method Foo|get#foo(lowered dynamic #this) → invalid-type;
+static abstract extension-member method Foo|set#foo(lowered dynamic #this, synthesized invalid-type #externalFieldValue) → void;
 static extension-member method Foo|bar(lowered final dynamic #this) → dynamic
   ;
 static extension-member method Foo|get#bar(lowered final dynamic #this) → () → dynamic

@@ -522,7 +522,8 @@ abstract class AbstractScanner implements Scanner {
     Token? next = openBraceWithMissingEndForPossibleRecovery!.next;
     Token? lastMismatch;
     while (next != null && !next.isEof) {
-      if (next.isA(TokenType.OPEN_CURLY_BRACKET)) {
+      if (next.isA(TokenType.OPEN_CURLY_BRACKET) ||
+          next.isA(TokenType.STRING_INTERPOLATION_EXPRESSION)) {
         if (_getLineOf(next) != _getLineOf(next.endGroup!)) {
           int indentOfNext = _spacesAtStartOfLogicalLineOf(next);
           if (indentOfNext >= 0 &&
@@ -2201,6 +2202,13 @@ abstract class AbstractScanner implements Scanner {
 
   int tokenizeInterpolatedExpression(int next) {
     appendBeginGroup(TokenType.STRING_INTERPOLATION_EXPRESSION);
+    if (offsetForCurlyBracketRecoveryStart != null &&
+        tokenStart == offsetForCurlyBracketRecoveryStart) {
+      // This instance of the scanner was instructed to recover this
+      // string interpolation start.
+      discardInterpolation();
+      return advance();
+    }
     beginToken(); // The expression starts here.
     next = advance(); // Move past the curly bracket.
     while (next != $EOF && next != $STX) {
