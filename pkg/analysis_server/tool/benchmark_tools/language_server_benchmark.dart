@@ -24,6 +24,7 @@ abstract class DartLanguageServerBenchmark {
   int? _headerContentLength;
   bool _printedVmServiceStuff = false;
   final String executableToUse;
+  bool latestIsAnalyzing = false;
 
   /// There's something weird about getting (several) id 3's that wasn't
   /// requested...
@@ -405,6 +406,7 @@ abstract class DartLanguageServerBenchmark {
                 ? params['isAnalyzing']
                 : params['analysis']?['isAnalyzing'];
             if (isAnalyzing is bool) {
+              latestIsAnalyzing = isAnalyzing;
               _analyzingCompleter.complete(isAnalyzing);
               _analyzingCompleter = Completer<bool>();
               if (verbosity > 0) {
