@@ -1195,6 +1195,41 @@ extension type E(int i) {}
     expect(decoded, equals(expected));
   }
 
+  Future<void> test_function_callMethod_invocation() async {
+    var content = r'''
+f(void Function(int)? x) {
+  [!x?.call(2);!]
+}
+''';
+
+    var expected = [
+      _Token('x', SemanticTokenTypes.parameter),
+      _Token('call', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
+      _Token('2', SemanticTokenTypes.number),
+    ];
+
+    await _initializeAndVerifyTokensInRange(content, expected);
+  }
+
+  Future<void> test_function_callMethod_tearOff() async {
+    var content = r'''
+f(void Function(int) x) {
+  [!x.call!];
+}
+''';
+
+    var expected = [
+      _Token('x', SemanticTokenTypes.parameter),
+      _Token('call', SemanticTokenTypes.method, [
+        CustomSemanticTokenModifiers.instance,
+      ]),
+    ];
+
+    await _initializeAndVerifyTokensInRange(content, expected);
+  }
+
   /// Verify that sending a semantic token request immediately after an overlay
   /// update (with no delay) does not result in corrupt semantic tokens because
   /// the previous file content was used.

@@ -79,8 +79,6 @@ class CodePatcher : public AllStatic {
                                     const Code& target);
   static ObjectPtr GetSwitchableCallDataAt(uword return_address,
                                            const Code& caller_code);
-  static ObjectPtr GetSwitchableCallTargetAt(uword return_address,
-                                             const Code& caller_code);
   static uword GetSwitchableCallTargetEntryAt(uword return_address,
                                               const Code& caller_code);
 

@@ -430,14 +430,25 @@ class DartUnitHighlightsComputer {
     Token nameToken,
     Element? element,
   ) {
-    if (element is! MethodElement) {
-      return false;
-    }
-    var isStatic = element.isStatic;
     var isInvocation =
         (parent is MethodInvocation && parent.methodName.token == nameToken) ||
         (parent is DotShorthandInvocation &&
             parent.memberName.token == nameToken);
+
+    // Handle the `call` method on functions.
+    if (_isCallMethod(parent, nameToken)) {
+      return _addRegion_token(
+        nameToken,
+        isInvocation
+            ? HighlightRegionType.INSTANCE_METHOD_REFERENCE
+            : HighlightRegionType.INSTANCE_METHOD_TEAR_OFF,
+      );
+    }
+
+    if (element is! MethodElement) {
+      return false;
+    }
+    var isStatic = element.isStatic;
     // OK
     HighlightRegionType type;
     if (isStatic) {
@@ -658,6 +669,21 @@ class DartUnitHighlightsComputer {
     } else {
       return false;
     }
+  }
+
+  /// Returns whether [nameToken] is a reference to the `call` method on
+  /// a function.
+  bool _isCallMethod(AstNode parent, Token nameToken) {
+    return // Invocation
+    parent is MethodInvocation &&
+            parent.methodName.token == nameToken &&
+            parent.methodName.name == MethodElement.CALL_METHOD_NAME &&
+            parent.realTarget?.staticType is FunctionType ||
+        // Tearoff
+        (parent is PrefixedIdentifier &&
+            parent.identifier.token == nameToken &&
+            parent.identifier.name == MethodElement.CALL_METHOD_NAME &&
+            parent.prefix.staticType is FunctionType);
   }
 
   void _reset() {

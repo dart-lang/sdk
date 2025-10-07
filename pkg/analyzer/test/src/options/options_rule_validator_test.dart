@@ -338,6 +338,19 @@ linter:
 include: included.yaml
 ''');
   }
+
+  /// https://github.com/dart-lang/sdk/issues/59869
+  test_removed_rule_previousSdk() {
+    assertErrors(
+      '''
+linter:
+  rules:
+    - removed_in_2_12_lint
+''',
+      [AnalysisOptionsWarningCode.removedLint],
+      sdk: dart3_3,
+    );
+  }
 }
 
 @reflectiveTest
@@ -348,9 +361,9 @@ class OptionsRuleValidatorTest extends AbstractAnalysisOptionsTest
       '''
 linter:
   rules:
-    - deprecated_lint_with_replacement
+    - deprecated_lint
 ''',
-      [AnalysisOptionsWarningCode.deprecatedLintWithReplacement],
+      [AnalysisOptionsWarningCode.deprecatedLint],
     );
   }
 
@@ -365,14 +378,26 @@ linter:
     );
   }
 
+  void test_deprecated_rule_previousSDK() {
+    assertErrors(
+      '''
+linter:
+  rules:
+    - deprecated_since_3_lint
+''',
+      [AnalysisOptionsWarningCode.deprecatedLint],
+      sdk: dart3_3,
+    );
+  }
+
   void test_deprecated_rule_withReplacement() {
     assertErrors(
       '''
 linter:
   rules:
-    - deprecated_lint
+    - deprecated_lint_with_replacement
 ''',
-      [AnalysisOptionsWarningCode.deprecatedLint],
+      [AnalysisOptionsWarningCode.deprecatedLintWithReplacement],
     );
   }
 

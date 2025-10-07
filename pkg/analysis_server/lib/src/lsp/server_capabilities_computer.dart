@@ -154,7 +154,7 @@ class ServerCapabilitiesComputer {
       .pluginIsolates
       .expand(
         (isolate) =>
-            isolate.currentSession?.interestingFiles ?? const <String>[],
+            isolate.currentSession?.interestingFileGlobs ?? const <String>[],
       )
       // All published plugins use something like `*.extension` as
       // interestingFiles. Prefix a `**/` so that the glob matches nested

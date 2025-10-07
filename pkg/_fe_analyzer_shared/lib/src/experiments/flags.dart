@@ -66,6 +66,14 @@ enum ExperimentalFlag {
     experimentReleasedVersion: defaultLanguageVersion,
   ),
 
+  declaringConstructors(
+    name: 'declaring-constructors',
+    isEnabledByDefault: false,
+    isExpired: false,
+    experimentEnabledVersion: defaultLanguageVersion,
+    experimentReleasedVersion: defaultLanguageVersion,
+  ),
+
   digitSeparators(
     name: 'digit-separators',
     isEnabledByDefault: true,

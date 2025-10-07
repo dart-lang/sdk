@@ -257,12 +257,6 @@ void CodePatcher::PatchSwitchableCallAt(uword return_address,
   PatchInstanceCallAt(return_address, caller_code, data, target);
 }
 
-ObjectPtr CodePatcher::GetSwitchableCallTargetAt(uword return_address,
-                                                 const Code& caller_code) {
-  InstanceCall call(return_address, caller_code);
-  return call.target();
-}
-
 uword CodePatcher::GetSwitchableCallTargetEntryAt(uword return_address,
                                                   const Code& caller_code) {
   // Switchable instance calls only generated for precompilation.

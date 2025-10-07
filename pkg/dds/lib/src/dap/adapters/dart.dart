@@ -1214,6 +1214,12 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   void handleSessionTerminate([String exitSuffix = '']) async {
     await _waitForPendingOutputEvents();
 
+    // Ensure that we stop watching for a VM Service info file if we are using
+    // these utils.
+    if (this case VmServiceInfoFileUtils vmServiceUtils) {
+      vmServiceUtils.stopWaitingForVmServiceInfoFile();
+    }
+
     if (_hasSentTerminatedEvent) {
       return;
     }

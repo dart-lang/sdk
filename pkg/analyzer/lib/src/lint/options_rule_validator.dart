@@ -65,24 +65,16 @@ class LinterRuleOptionsValidator extends OptionsValidator {
     this.isPrimarySource = true,
   });
 
-  bool currentSdkAllows(Version? since) {
-    if (since == null) return true;
-    var sdk = sdkVersionConstraint;
-    if (sdk == null) return false;
-    return sdk.allows(since);
-  }
-
   AbstractAnalysisRule? getRegisteredLint(String value) => Registry
       .ruleRegistry
       .rules
       .firstWhereOrNull((rule) => rule.name == value);
 
-  bool isDeprecatedInCurrentSdk(RuleState state) =>
-      state.isDeprecated && currentSdkAllows(state.since);
+  bool isDeprecatedInCurrentOrEarlierSdk(RuleState state) =>
+      state.isDeprecated && _beforeCurrentConstraint(state.since);
 
-  bool isRemovedInCurrentSdk(RuleState state) {
-    return state.isRemoved && currentSdkAllows(state.since);
-  }
+  bool isRemovedInCurrentOrEarlierSdk(RuleState state) =>
+      state.isRemoved && _beforeCurrentConstraint(state.since);
 
   @override
   void validate(DiagnosticReporter reporter, YamlMap options) {
@@ -134,6 +126,16 @@ class LinterRuleOptionsValidator extends OptionsValidator {
     }
 
     return uriCache.resolveRelative(sourceUri, uri);
+  }
+
+  bool _beforeCurrentConstraint(Version? since) {
+    // No "since" applies to all SDKs.
+    if (since == null) return true;
+
+    return switch (sdkVersionConstraint) {
+      VersionRange(min: var min?) => since <= min,
+      _ => false,
+    };
   }
 
   Set<YamlScalar> _collectRules(YamlNode? rules) {
@@ -421,7 +423,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
       // includes).
       if (isPrimarySource) {
         var state = rule.state;
-        if (state.isDeprecated && isDeprecatedInCurrentSdk(state)) {
+        if (state.isDeprecated && isDeprecatedInCurrentOrEarlierSdk(state)) {
           var replacedBy = state.replacedBy;
           if (replacedBy != null) {
             reporter.atSourceSpan(
@@ -436,7 +438,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
               arguments: [value],
             );
           }
-        } else if (isRemovedInCurrentSdk(state)) {
+        } else if (isRemovedInCurrentOrEarlierSdk(state)) {
           var since = state.since.toString();
           var replacedBy = state.replacedBy;
           if (replacedBy != null) {

@@ -264,9 +264,7 @@ class TestPluginManager implements PluginManager {
   }
 
   @override
-  Future<List<Future<plugin.Response>>> broadcastWatchEvent(
-    WatchEvent watchEvent,
-  ) async {
+  List<Future<plugin.Response>> broadcastWatchEvent(WatchEvent watchEvent) {
     return [];
   }
 

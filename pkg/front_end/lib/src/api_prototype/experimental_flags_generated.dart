@@ -125,6 +125,15 @@ class ExperimentalFlag {
     experimentReleasedVersion: defaultLanguageVersion,
   );
 
+  static const ExperimentalFlag declaringConstructors = const ExperimentalFlag(
+    name: 'declaring-constructors',
+    isEnabledByDefault: false,
+    isExpired: false,
+    enabledVersion: defaultLanguageVersion,
+    experimentEnabledVersion: defaultLanguageVersion,
+    experimentReleasedVersion: defaultLanguageVersion,
+  );
+
   static const ExperimentalFlag digitSeparators = const ExperimentalFlag(
     name: 'digit-separators',
     isEnabledByDefault: true,
@@ -530,6 +539,10 @@ class GlobalFeatures {
   GlobalFeature get dataAssets =>
       _dataAssets ??= _computeGlobalFeature(ExperimentalFlag.dataAssets);
 
+  GlobalFeature? _declaringConstructors;
+  GlobalFeature get declaringConstructors => _declaringConstructors ??=
+      _computeGlobalFeature(ExperimentalFlag.declaringConstructors);
+
   GlobalFeature? _digitSeparators;
   GlobalFeature get digitSeparators => _digitSeparators ??=
       _computeGlobalFeature(ExperimentalFlag.digitSeparators);
@@ -738,6 +751,14 @@ class LibraryFeatures {
   LibraryFeature get dataAssets =>
       _dataAssets ??= globalFeatures._computeLibraryFeature(
         ExperimentalFlag.dataAssets,
+        canonicalUri,
+        libraryVersion,
+      );
+
+  LibraryFeature? _declaringConstructors;
+  LibraryFeature get declaringConstructors =>
+      _declaringConstructors ??= globalFeatures._computeLibraryFeature(
+        ExperimentalFlag.declaringConstructors,
         canonicalUri,
         libraryVersion,
       );
@@ -1033,6 +1054,8 @@ class LibraryFeatures {
         return controlFlowCollections;
       case shared.ExperimentalFlag.dataAssets:
         return dataAssets;
+      case shared.ExperimentalFlag.declaringConstructors:
+        return declaringConstructors;
       case shared.ExperimentalFlag.digitSeparators:
         return digitSeparators;
       case shared.ExperimentalFlag.dotShorthands:
@@ -1123,6 +1146,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.controlFlowCollections;
     case "data-assets":
       return ExperimentalFlag.dataAssets;
+    case "declaring-constructors":
+      return ExperimentalFlag.declaringConstructors;
     case "digit-separators":
       return ExperimentalFlag.digitSeparators;
     case "dot-shorthands":
@@ -1211,6 +1236,8 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.controlFlowCollections:
       ExperimentalFlag.controlFlowCollections.isEnabledByDefault,
   ExperimentalFlag.dataAssets: ExperimentalFlag.dataAssets.isEnabledByDefault,
+  ExperimentalFlag.declaringConstructors:
+      ExperimentalFlag.declaringConstructors.isEnabledByDefault,
   ExperimentalFlag.digitSeparators:
       ExperimentalFlag.digitSeparators.isEnabledByDefault,
   ExperimentalFlag.dotShorthands:
@@ -1289,6 +1316,8 @@ const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
   shared.ExperimentalFlag.controlFlowCollections:
       ExperimentalFlag.controlFlowCollections,
   shared.ExperimentalFlag.dataAssets: ExperimentalFlag.dataAssets,
+  shared.ExperimentalFlag.declaringConstructors:
+      ExperimentalFlag.declaringConstructors,
   shared.ExperimentalFlag.digitSeparators: ExperimentalFlag.digitSeparators,
   shared.ExperimentalFlag.dotShorthands: ExperimentalFlag.dotShorthands,
   shared.ExperimentalFlag.enhancedEnums: ExperimentalFlag.enhancedEnums,
